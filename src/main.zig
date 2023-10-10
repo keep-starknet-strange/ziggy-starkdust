@@ -1,5 +1,6 @@
 const std = @import("std");
 const starknet_felt = @import("fields/starknet.zig");
+const segments = @import("memory/segments.zig");
 
 pub fn main() !void {
     const stdout_file = std.io.getStdOut().writer();
@@ -8,11 +9,14 @@ pub fn main() !void {
 
     try stdout.print("Runing Cairo VM...\n", .{});
 
-    const a = starknet_felt.Felt252.one();
-    const b = starknet_felt.Felt252.fromInteger(2);
-    const c = a.add(b);
+    // Define a memory allocator.
+    const allocator = std.heap.page_allocator;
 
-    try stdout.print("c = {}\n", .{c.toInteger()});
+    // Initialize a memory segment manager.
+    var memory_segment_manager = segments.MemorySegmentManager.init(allocator);
+
+    // Allocate a memory segment.
+    _ = memory_segment_manager.addSegment();
 
     try bw.flush();
 }

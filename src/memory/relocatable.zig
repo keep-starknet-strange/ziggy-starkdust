@@ -6,9 +6,9 @@ const starknet_felt = @import("../fields/starknet.zig");
 // represented by a field element.
 pub const Relocatable = struct {
     // The index of the memory segment.
-    segment_index: u64,
+    segment_index: u32,
     // The offset in the memory segment.
-    offset: u64,
+    offset: u32,
 };
 
 // MaybeRelocatable is the type of the memory cells in the Cairo
