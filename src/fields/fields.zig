@@ -1,16 +1,8 @@
 const std = @import("std");
 const builtin = @import("builtin");
-const fastsqrt = @import("sqrt.zig");
 const ArrayList = std.ArrayList;
 
-pub const BandersnatchFields = struct {
-    // BaseField is the base field of the Bandersnatch curve.
-    pub const BaseField = Field(@import("gen_fp.zig"), 52435875175126190479447740508185965837690552500527637822603658699938581184513);
-    // ScalarField is the scalar field of the Bandersnatch prime-order subgroup.
-    pub const ScalarField = Field(@import("gen_fr.zig"), 13108968793781547619861935127046491459309155893440570251786403306729687672801);
-};
-
-fn Field(comptime F: type, comptime mod: u256) type {
+pub fn Field(comptime F: type, comptime mod: u256) type {
     return struct {
         pub const BitSize = @bitSizeOf(u256) - @clz(mod);
         pub const BytesSize = @sizeOf(u256);
@@ -211,20 +203,6 @@ fn Field(comptime F: type, comptime mod: u256) type {
             F.toBytes(&bytes, non_mont);
 
             return std.mem.readInt(u256, &bytes, std.builtin.Endian.Little);
-        }
-
-        pub fn sqrt(x: Self) ?Self {
-            if (x.isZero()) {
-                return null;
-            }
-            var candidate: Self = undefined;
-            var root_of_unity: Self = undefined;
-            fastsqrt.sqrtAlg_ComputeRelevantPowers(x, &candidate, &root_of_unity);
-            if (!fastsqrt.invSqrtEqDyadic(&root_of_unity)) {
-                return null;
-            }
-
-            return mul(candidate, root_of_unity);
         }
 
         pub fn legendre(a: Self) i2 {
