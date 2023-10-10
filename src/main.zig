@@ -10,4 +10,6 @@ pub fn main() !void {
     try bw.flush();
 }
 
-test "cairo vm basic test" {}
+test "fields" {
+    _ = @import("fields/fields.zig");
+}
