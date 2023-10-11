@@ -1,6 +1,6 @@
 const std = @import("std");
-const starknet_felt = @import("fields/starknet.zig");
-const segments = @import("memory/segments.zig");
+const starknet_felt = @import("math/fields/starknet.zig");
+const vm_core = @import("vm/core.zig");
 
 pub fn main() !void {
     const stdout_file = std.io.getStdOut().writer();
@@ -12,28 +12,33 @@ pub fn main() !void {
     // Define a memory allocator.
     const allocator = std.heap.page_allocator;
 
-    // Initialize a memory segment manager.
-    var memory_segment_manager = try segments.MemorySegmentManager.init(allocator);
+    // Create a new VM instance.
+    var vm = try vm_core.CairoVM.init(allocator);
 
-    // Allocate a memory segment.
-    _ = memory_segment_manager.addSegment();
-
-    // Allocate another memory segment.
-    _ = memory_segment_manager.addSegment();
+    // Run a step.
+    try vm.step();
 
     try bw.flush();
 }
 
-test "memory" {
-    _ = @import("memory/memory.zig");
-    _ = @import("memory/segments.zig");
-}
+// *****************************************************************************
+// *                     VM TESTS                                              *
+// *****************************************************************************
 
-test "fields" {
-    _ = @import("fields/fields.zig");
-    _ = @import("fields/starknet.zig");
+test "memory" {
+    _ = @import("vm/memory/memory.zig");
+    _ = @import("vm/memory/segments.zig");
 }
 
 test "relocatable" {
-    _ = @import("memory/relocatable.zig");
+    _ = @import("vm/memory/relocatable.zig");
+}
+
+// *****************************************************************************
+// *                     MATH TESTS                                            *
+// *****************************************************************************
+
+test "fields" {
+    _ = @import("math/fields/fields.zig");
+    _ = @import("math/fields/starknet.zig");
 }

@@ -1,4 +1,4 @@
-const starknet_felt = @import("../fields/starknet.zig");
+const starknet_felt = @import("../../math/fields/starknet.zig");
 
 // Relocatable in the Cairo VM represents an address
 // in some memory segment. When the VM finishes running,
@@ -9,6 +9,13 @@ pub const Relocatable = struct {
     segment_index: u32,
     // The offset in the memory segment.
     offset: u32,
+
+    pub fn default() Relocatable {
+        return Relocatable{
+            .segment_index = 0,
+            .offset = 0,
+        };
+    }
 };
 
 // MaybeRelocatable is the type of the memory cells in the Cairo

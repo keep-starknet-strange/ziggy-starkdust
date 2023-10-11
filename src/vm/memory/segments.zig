@@ -3,7 +3,7 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 
 // Local imports.
-const Memory = @import("./memory.zig").Memory;
+const Memory = @import("memory.zig").Memory;
 const relocatable = @import("relocatable.zig");
 
 // MemorySegmentManager manages the list of memory segments.
@@ -28,7 +28,7 @@ pub const MemorySegmentManager = struct {
     pub fn init(allocator: Allocator) !MemorySegmentManager {
         // Initialize the memory.
         const memory = allocator.create(Memory) catch unreachable;
-        memory.* = Memory.init(allocator);
+        memory.* = try Memory.init(allocator);
         // Cast the memory to a mutable pointer so we can mutate it.
         const mutable_memory = @as(*Memory, memory);
         return MemorySegmentManager{
@@ -54,4 +54,31 @@ pub const MemorySegmentManager = struct {
     }
 };
 
-test "memory segment manager" {}
+test "memory segment manager" {
+    // Initialize an allocator.
+    // TODO: Consider using a testing allocator.
+    const allocator = std.heap.page_allocator;
+
+    // Initialize a memory segment manager.
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
+
+    // Allocate a memory segment.
+    const relocatable_address_1 = memory_segment_manager.addSegment();
+
+    // Check that the memory segment manager has one segment.
+    try std.testing.expect(memory_segment_manager.memory.num_segments == 1);
+
+    // Check if the relocatable address is correct.
+    try std.testing.expect(relocatable_address_1.segment_index == 0);
+    try std.testing.expect(relocatable_address_1.offset == 0);
+
+    // Allocate another memory segment.
+    const relocatable_address_2 = memory_segment_manager.addSegment();
+
+    // Check that the memory segment manager has two segments.
+    try std.testing.expect(memory_segment_manager.memory.num_segments == 2);
+
+    // Check if the relocatable address is correct.
+    try std.testing.expect(relocatable_address_2.segment_index == 1);
+    try std.testing.expect(relocatable_address_2.offset == 0);
+}
