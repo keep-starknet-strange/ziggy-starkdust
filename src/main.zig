@@ -13,9 +13,12 @@ pub fn main() !void {
     const allocator = std.heap.page_allocator;
 
     // Initialize a memory segment manager.
-    var memory_segment_manager = segments.MemorySegmentManager.init(allocator);
+    var memory_segment_manager = try segments.MemorySegmentManager.init(allocator);
 
     // Allocate a memory segment.
+    _ = memory_segment_manager.addSegment();
+
+    // Allocate another memory segment.
     _ = memory_segment_manager.addSegment();
 
     try bw.flush();
