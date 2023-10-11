@@ -25,18 +25,27 @@ pub const MemorySegmentManager = struct {
     // * `allocator` - The allocator to use for the HashMaps.
     // # Returns
     // A new MemorySegmentManager.
-    pub fn init(allocator: Allocator) !MemorySegmentManager {
-        // Initialize the memory.
-        const memory = allocator.create(Memory) catch unreachable;
-        memory.* = try Memory.init(allocator);
-        // Cast the memory to a mutable pointer so we can mutate it.
-        const mutable_memory = @as(*Memory, memory);
-        return MemorySegmentManager{
-            .segment_used_sizes = std.AutoHashMap(u32, u32).init(allocator),
-            .segment_sizes = std.AutoHashMap(u32, u32).init(allocator),
-            .memory = mutable_memory,
-            .public_memory_offsets = std.AutoHashMap(u32, u32).init(allocator),
+    pub fn init(allocator: *Allocator) !*MemorySegmentManager {
+        // Create the pointer to the MemorySegmentManager.
+        var segment_manager = try allocator.create(MemorySegmentManager);
+        // Initialize the values of the MemorySegmentManager struct.
+        segment_manager.* = MemorySegmentManager{
+            .segment_used_sizes = std.AutoHashMap(u32, u32).init(allocator.*),
+            .segment_sizes = std.AutoHashMap(u32, u32).init(allocator.*),
+            // Initialize the memory pointer.
+            .memory = try Memory.init(allocator),
+            .public_memory_offsets = std.AutoHashMap(u32, u32).init(allocator.*),
         };
+        // Return the pointer to the MemorySegmentManager.
+        return segment_manager;
+    }
+
+    // Safe deallocation of the memory.
+    pub fn deinit(self: *MemorySegmentManager) void {
+        // Clear the hash maps
+        self.segment_used_sizes.deinit();
+        self.segment_sizes.deinit();
+        self.public_memory_offsets.deinit();
     }
 
     // Adds a memory segment and returns the first address of the new segment.
@@ -57,10 +66,10 @@ pub const MemorySegmentManager = struct {
 test "memory segment manager" {
     // Initialize an allocator.
     // TODO: Consider using a testing allocator.
-    const allocator = std.heap.page_allocator;
+    var allocator = std.heap.page_allocator;
 
     // Initialize a memory segment manager.
-    var memory_segment_manager = try MemorySegmentManager.init(allocator);
+    var memory_segment_manager = try MemorySegmentManager.init(&allocator);
 
     // Allocate a memory segment.
     const relocatable_address_1 = memory_segment_manager.addSegment();

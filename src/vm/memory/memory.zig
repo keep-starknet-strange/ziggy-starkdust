@@ -21,11 +21,14 @@ pub const Memory = struct {
     // - `allocator` - The allocator to use.
     // # Returns
     // The new memory.
-    pub fn init(allocator: Allocator) !Memory {
-        return Memory{
-            .data = std.AutoHashMap(relocatable.Relocatable, relocatable.MaybeRelocatable).init(allocator),
+    pub fn init(allocator: *Allocator) !*Memory {
+        var memory = try allocator.create(Memory);
+
+        memory.* = Memory{
+            .data = std.AutoHashMap(relocatable.Relocatable, relocatable.MaybeRelocatable).init(allocator.*),
             .num_segments = 0,
-            .validated_addresses = std.AutoHashMap(relocatable.Relocatable, bool).init(allocator),
+            .validated_addresses = std.AutoHashMap(relocatable.Relocatable, bool).init(allocator.*),
         };
+        return memory;
     }
 };

@@ -1,6 +1,7 @@
 const std = @import("std");
 const starknet_felt = @import("math/fields/starknet.zig");
 const vm_core = @import("vm/core.zig");
+const RunContext = @import("vm/run_context.zig").RunContext;
 
 pub fn main() !void {
     const stdout_file = std.io.getStdOut().writer();
@@ -10,13 +11,19 @@ pub fn main() !void {
     try stdout.print("Runing Cairo VM...\n", .{});
 
     // Define a memory allocator.
-    const allocator = std.heap.page_allocator;
+    var allocator = std.heap.page_allocator;
 
     // Create a new VM instance.
-    var vm = try vm_core.CairoVM.init(allocator);
+    var vm = try vm_core.CairoVM.init(&allocator);
+    defer vm.deinit(); // <-- This ensures that resources are freed when exiting the scope
 
     // Run a step.
     try vm.step();
+
+    // Print the run context pc.
+    try stdout.print("PC: {}\n", .{vm.run_context.pc});
+    //try stdout.print("AP: {}\n", .{vm.run_context.ap});
+    //try stdout.print("FP: {}\n", .{vm.run_context.fp});
 
     try bw.flush();
 }

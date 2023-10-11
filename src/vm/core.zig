@@ -9,6 +9,7 @@ const RunContext = @import("run_context.zig").RunContext;
 
 // Represents the Cairo VM.
 pub const CairoVM = struct {
+    allocator: *Allocator,
     // The run context.
     run_context: *RunContext,
     // The memory segment manager.
@@ -17,25 +18,33 @@ pub const CairoVM = struct {
     is_run_finished: bool,
 
     // Creates a new Cairo VM.
-    pub fn init(allocator: Allocator) !CairoVM {
+    pub fn init(allocator: *Allocator) !CairoVM {
         // Initialize the memory segment manager.
-        const memory_segment_manager = allocator.create(segments.MemorySegmentManager) catch unreachable;
-        memory_segment_manager.* = try segments.MemorySegmentManager.init(allocator);
-        // Cast the memory to a mutable pointer so we can mutate it.
-        const mutable_memory_segment_manager = @as(*segments.MemorySegmentManager, memory_segment_manager);
-
+        const memory_segment_manager = try segments.MemorySegmentManager.init(allocator);
         // Initialize the run context.
-        var run_context = try RunContext.new(allocator);
-        // Cast the run context to a mutable pointer so we can mutate it.
-        const mutable_run_context = @as(*RunContext, &run_context);
+        const run_context = try RunContext.init(allocator);
 
         return CairoVM{
-            .run_context = mutable_run_context,
-            .segments = mutable_memory_segment_manager,
+            .allocator = allocator,
+            .run_context = run_context,
+            .segments = memory_segment_manager,
             .is_run_finished = false,
         };
     }
 
     // Do a single step of the VM.
-    pub fn step(_: *CairoVM) !void {}
+    pub fn step(self: *CairoVM) !void {
+        // TODO: implement it.
+        // For now we just increase PC and finish the run immediately.
+        self.run_context.pc.offset += 1;
+        self.is_run_finished = true;
+    }
+
+    // Safe deallocation of the VM resources.
+    pub fn deinit(self: *CairoVM) void {
+        // Deallocate the memory segment manager.
+        self.segments.deinit();
+        // Deallocate the run context.
+        self.run_context.deinit();
+    }
 };
