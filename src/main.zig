@@ -4,14 +4,17 @@ const vm_core = @import("vm/core.zig");
 const RunContext = @import("vm/run_context.zig").RunContext;
 
 pub fn main() !void {
+    // *****************************************************************************
+    // *                        INITIALIZATION                                     *
+    // *****************************************************************************
     const stdout_file = std.io.getStdOut().writer();
     var bw = std.io.bufferedWriter(stdout_file);
     const stdout = bw.writer();
-
-    try stdout.print("Runing Cairo VM...\n", .{});
-
     // Define a memory allocator.
     var allocator = std.heap.page_allocator;
+
+    // Greetings message.
+    try stdout.print("Runing Cairo VM...\n", .{});
 
     // Create a new VM instance.
     var vm = try vm_core.CairoVM.init(&allocator);
@@ -22,9 +25,12 @@ pub fn main() !void {
 
     // Print the run context pc.
     try stdout.print("PC: {}\n", .{vm.run_context.pc});
-    //try stdout.print("AP: {}\n", .{vm.run_context.ap});
-    //try stdout.print("FP: {}\n", .{vm.run_context.fp});
+    try stdout.print("AP: {}\n", .{vm.run_context.ap});
+    try stdout.print("FP: {}\n", .{vm.run_context.fp});
 
+    // *****************************************************************************
+    // *               FREEING RESOURCES AND EXIT                                  *
+    // *****************************************************************************
     try bw.flush();
 }
 
