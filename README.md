@@ -6,6 +6,7 @@ Cairo VM in Zig ♒.
 
 ## TODOs
 
+- [ ] Add test coverage (investigate using [kcov](https://github.com/SimonKagstrom/kcov), [code coverage for zig article](https://zig.news/squeek502/code-coverage-for-zig-1dk1)).
 - [ ] Benchmark performances.
 - [ ] Enable usage as a library.
 - [ ] Fuzzing.
@@ -13,6 +14,7 @@ Cairo VM in Zig ♒.
 - [ ] Memory leaks detection (i.e use tools like [valgrind](https://valgrind.org/)).
 - [ ] Check [Zig style guide](https://ziglang.org/documentation/master/#Style-Guide) and apply it.
 - [ ] Go through the code and check carefully for memory safety issues, i.e make sure we have safe deallocation of memory everywhere.
+- [ ] Create documentation.
 
 ## 📦 Installation
 
