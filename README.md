@@ -6,10 +6,13 @@ Cairo VM in Zig ♒.
 
 ## TODOs
 
-- [ ] Benchmark performances
-- [ ] Enable usage as a library
-- [ ] Fuzzing
-- [ ] Differential testing against Cairo VM in Rust
+- [ ] Benchmark performances.
+- [ ] Enable usage as a library.
+- [ ] Fuzzing.
+- [ ] Differential testing against Cairo VM in Rust.
+- [ ] Memory leaks detection (i.e use tools like [valgrind](https://valgrind.org/)).
+- [ ] Check [Zig style guide](https://ziglang.org/documentation/master/#Style-Guide) and apply it.
+- [ ] Go through the code and check carefully for memory safety issues, i.e make sure we have safe deallocation of memory everywhere.
 
 ## 📦 Installation
 
