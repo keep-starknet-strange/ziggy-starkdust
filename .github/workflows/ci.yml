@@ -15,7 +15,7 @@ jobs:
       - name: Set up Zig
         uses: korandoru/setup-zig@v1
         with:
-          zig-version: 0.11.0
+          zig-version: master
 
       - name: Build
         run: zig build
@@ -28,7 +28,7 @@ jobs:
       - name: Set up Zig
         uses: korandoru/setup-zig@v1
         with:
-          zig-version: 0.11.0
+          zig-version: master
 
       - name: Lint
         run: zig fmt --check src/*.zig
@@ -41,7 +41,7 @@ jobs:
       - name: Set up Zig
         uses: korandoru/setup-zig@v1
         with:
-          zig-version: 0.11.0
+          zig-version: master
 
       - name: Test
         run: zig build test --summary all
