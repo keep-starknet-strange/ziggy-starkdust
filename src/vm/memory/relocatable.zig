@@ -10,11 +10,36 @@ pub const Relocatable = struct {
     // The offset in the memory segment.
     offset: u32,
 
+    // Creates a new Relocatable with the default values.
+    // # Returns
+    // A new Relocatable with the default values.
     pub fn default() Relocatable {
         return Relocatable{
             .segment_index = 0,
             .offset = 0,
         };
+    }
+
+    // Creates a new Relocatable.
+    // # Arguments
+    // - segment_index - The index of the memory segment.
+    // - offset - The offset in the memory segment.
+    // # Returns
+    // A new Relocatable.
+    pub fn new(segment_index: u32, offset: u32) Relocatable {
+        return Relocatable{
+            .segment_index = segment_index,
+            .offset = offset,
+        };
+    }
+
+    // Determines if this Relocatable is equal to another.
+    // # Arguments
+    // - other: The other Relocatable to compare to.
+    // # Returns
+    // `true` if they are equal, `false` otherwise.
+    pub fn eq(self: Relocatable, other: Relocatable) bool {
+        return self.segment_index == other.segment_index and self.offset == other.offset;
     }
 };
 
@@ -23,6 +48,37 @@ pub const Relocatable = struct {
 pub const MaybeRelocatable = union(enum) {
     relocatable: Relocatable,
     felt: starknet_felt.Felt252,
+
+    /// Determines if two `MaybeRelocatable` instances are equal.
+    ///
+    /// This method compares the variant type and the contained value. If both the variant
+    /// and the value are identical between the two instances, they are considered equal.
+    ///
+    /// ## Arguments:
+    ///   * other: The other `MaybeRelocatable` instance to compare against.
+    ///
+    /// ## Returns:
+    ///   * `true` if the two instances are equal.
+    ///   * `false` otherwise.
+    pub fn eq(self: MaybeRelocatable, other: MaybeRelocatable) bool {
+        // Switch on the type of `self`
+        return switch (self) {
+            // If `self` is of type `relocatable`
+            .relocatable => |self_value| switch (other) {
+                // Compare the `relocatable` values if both `self` and `other` are `relocatable`
+                .relocatable => |other_value| self_value.eq(other_value),
+                // If `self` is `relocatable` and `other` is `felt`, they are not equal
+                .felt => false,
+            },
+            // If `self` is of type `felt`
+            .felt => |self_value| switch (other) {
+                // Compare the `felt` values if both `self` and `other` are `felt`
+                .felt => self_value.equal(other.felt),
+                // If `self` is `felt` and `other` is `relocatable`, they are not equal
+                .relocatable => false,
+            },
+        };
+    }
 };
 
 // Creates a new MaybeRelocatable from a Relocatable.

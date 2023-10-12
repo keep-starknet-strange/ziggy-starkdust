@@ -5,6 +5,8 @@ const Allocator = std.mem.Allocator;
 
 // Local imports.
 const relocatable = @import("relocatable.zig");
+const CairoVMError = @import("../error.zig").CairoVMError;
+const starknet_felt = @import("../../math/fields/starknet.zig");
 
 // Representation of the VM memory.
 pub const Memory = struct {
@@ -31,4 +33,74 @@ pub const Memory = struct {
         };
         return memory;
     }
+
+    // Inserts a value into the memory at the given address.
+    // # Arguments
+    // - `address` - The address to insert the value at.
+    // - `value` - The value to insert.
+    pub fn set(self: *Memory, address: relocatable.Relocatable, value: relocatable.MaybeRelocatable) error{ InvalidMemoryAddress, MemoryOutOfBounds }!void {
+
+        // Check if the address is valid.
+        if (address.segment_index < 0) {
+            return CairoVMError.InvalidMemoryAddress;
+        }
+
+        // Insert the value into the memory.
+        self.data.put(address, value) catch {
+            return CairoVMError.MemoryOutOfBounds;
+        };
+
+        // TODO: Add all relevant checks.
+    }
+
+    // Get some value from the memory at the given address.
+    // # Arguments
+    // - `address` - The address to get the value from.
+    // # Returns
+    // The value at the given address.
+    pub fn get(self: *Memory, address: relocatable.Relocatable) error{MemoryOutOfBounds}!relocatable.MaybeRelocatable {
+        var maybe_value = self.data.get(address);
+        if (maybe_value == null) {
+            return CairoVMError.MemoryOutOfBounds;
+        }
+        return maybe_value.?;
+    }
 };
+
+test "memory get without value raises error" {
+    // Initialize an allocator.
+    // TODO: Consider using a testing allocator.
+    var allocator = std.heap.page_allocator;
+
+    // Initialize a memory instance.
+    var memory = try Memory.init(&allocator);
+
+    // Get a value from the memory at an address that doesn't exist.
+    _ = memory.get(relocatable.Relocatable.new(0, 0)) catch |err| {
+        // Assert that the error is the expected error.
+        try expect(err == error.MemoryOutOfBounds);
+        return;
+    };
+}
+
+test "memory set and get" {
+    // Initialize an allocator.
+    // Initialize an allocator.
+    // TODO: Consider using a testing allocator.
+    var allocator = std.heap.page_allocator;
+
+    // Initialize a memory instance.
+    var memory = try Memory.init(&allocator);
+
+    const address_1 = relocatable.Relocatable.new(0, 0);
+    const value_1 = relocatable.newFromFelt(starknet_felt.Felt252.one());
+
+    // Set a value into the memory.
+    _ = try memory.set(address_1, value_1);
+
+    // Get the value from the memory.
+    const maybe_value_1 = try memory.get(address_1);
+
+    // Assert that the value is the expected value.
+    try expect(maybe_value_1.eq(value_1));
+}

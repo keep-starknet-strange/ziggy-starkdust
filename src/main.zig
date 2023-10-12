@@ -2,6 +2,7 @@ const std = @import("std");
 const starknet_felt = @import("math/fields/starknet.zig");
 const vm_core = @import("vm/core.zig");
 const RunContext = @import("vm/run_context.zig").RunContext;
+const relocatable = @import("vm/memory/relocatable.zig");
 
 pub fn main() !void {
     // *****************************************************************************
@@ -27,6 +28,16 @@ pub fn main() !void {
     try stdout.print("PC: {}\n", .{vm.run_context.pc});
     try stdout.print("AP: {}\n", .{vm.run_context.ap});
     try stdout.print("FP: {}\n", .{vm.run_context.fp});
+
+    const address_1 = relocatable.Relocatable.new(0, 0);
+    const value_1 = relocatable.newFromFelt(starknet_felt.Felt252.fromInteger(158745829));
+
+    // Write a value to memory.
+    try vm.segments.memory.set(address_1, value_1);
+
+    const read_value = try vm.segments.memory.get(address_1);
+
+    try stdout.print("Value: {}\n", .{read_value.felt.toInteger()});
 
     // *****************************************************************************
     // *               FREEING RESOURCES AND EXIT                                  *
