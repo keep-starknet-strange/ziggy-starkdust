@@ -8,26 +8,21 @@ pub fn main() !void {
     // *****************************************************************************
     // *                        INITIALIZATION                                     *
     // *****************************************************************************
-    const stdout_file = std.io.getStdOut().writer();
-    var bw = std.io.bufferedWriter(stdout_file);
-    const stdout = bw.writer();
+
     // Define a memory allocator.
     var allocator = std.heap.page_allocator;
 
     // Greetings message.
-    try stdout.print("Runing Cairo VM...\n", .{});
+    std.debug.print("Runing Cairo VM...\n", .{});
 
     // Create a new VM instance.
     var vm = try vm_core.CairoVM.init(&allocator);
     defer vm.deinit(); // <-- This ensures that resources are freed when exiting the scope
 
-    // Run a step.
-    try vm.step();
-
     // Print the run context pc.
-    try stdout.print("PC: {}\n", .{vm.run_context.pc});
-    try stdout.print("AP: {}\n", .{vm.run_context.ap});
-    try stdout.print("FP: {}\n", .{vm.run_context.fp});
+    std.debug.print("PC: {}\n", .{vm.run_context.pc});
+    std.debug.print("AP: {}\n", .{vm.run_context.ap});
+    std.debug.print("FP: {}\n", .{vm.run_context.fp});
 
     const address_1 = relocatable.Relocatable.new(0, 0);
     const value_1 = relocatable.newFromFelt(starknet_felt.Felt252.fromInteger(158745829));
@@ -37,12 +32,10 @@ pub fn main() !void {
 
     const read_value = try vm.segments.memory.get(address_1);
 
-    try stdout.print("Value: {}\n", .{read_value.felt.toInteger()});
+    std.debug.print("Value: {}\n", .{read_value.felt.toInteger()});
 
-    // *****************************************************************************
-    // *               FREEING RESOURCES AND EXIT                                  *
-    // *****************************************************************************
-    try bw.flush();
+    // Run a step.
+    try vm.step();
 }
 
 // *****************************************************************************

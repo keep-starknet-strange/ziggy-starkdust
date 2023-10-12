@@ -10,6 +10,10 @@ const starknet_felt = @import("../../math/fields/starknet.zig");
 
 // Representation of the VM memory.
 pub const Memory = struct {
+    // ************************************************************
+    // *                        FIELDS                            *
+    // ************************************************************
+
     // The data in the memory.
     data: std.HashMap(relocatable.Relocatable, relocatable.MaybeRelocatable, std.hash_map.AutoContext(relocatable.Relocatable), std.hash_map.default_max_load_percentage),
     // The number of segments in the memory.
@@ -17,6 +21,10 @@ pub const Memory = struct {
     // Validated addresses are addresses that have been validated.
     // TODO: Consider merging this with `data` and benchmarking.
     validated_addresses: std.HashMap(relocatable.Relocatable, bool, std.hash_map.AutoContext(relocatable.Relocatable), std.hash_map.default_max_load_percentage),
+
+    // ************************************************************
+    // *             MEMORY ALLOCATION AND DEALLOCATION           *
+    // ************************************************************
 
     // Creates a new memory.
     // # Arguments
@@ -33,6 +41,17 @@ pub const Memory = struct {
         };
         return memory;
     }
+
+    // Safe deallocation of the memory.
+    pub fn deinit(self: *Memory) void {
+        // Clear the hash maps
+        self.data.deinit();
+        self.validated_addresses.deinit();
+    }
+
+    // ************************************************************
+    // *                        METHODS                           *
+    // ************************************************************
 
     // Inserts a value into the memory at the given address.
     // # Arguments

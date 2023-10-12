@@ -10,6 +10,11 @@ const relocatable = @import("relocatable.zig");
 // Also holds metadata useful for the relocation process of
 // the memory at the end of the VM run.
 pub const MemorySegmentManager = struct {
+
+    // ************************************************************
+    // *                        FIELDS                            *
+    // ************************************************************
+
     // The size of the used segments.
     segment_used_sizes: std.HashMap(u32, u32, std.hash_map.AutoContext(u32), std.hash_map.default_max_load_percentage),
     // The size of the segments.
@@ -19,6 +24,10 @@ pub const MemorySegmentManager = struct {
     // The public memory offsets.
     // TODO: Use correct type for this.
     public_memory_offsets: std.HashMap(u32, u32, std.hash_map.AutoContext(u32), std.hash_map.default_max_load_percentage),
+
+    // ************************************************************
+    // *             MEMORY ALLOCATION AND DEALLOCATION           *
+    // ************************************************************
 
     // Creates a new MemorySegmentManager.
     // # Arguments
@@ -46,7 +55,13 @@ pub const MemorySegmentManager = struct {
         self.segment_used_sizes.deinit();
         self.segment_sizes.deinit();
         self.public_memory_offsets.deinit();
+        // Deallocate the memory.
+        self.memory.deinit();
     }
+
+    // ************************************************************
+    // *                        METHODS                           *
+    // ************************************************************
 
     // Adds a memory segment and returns the first address of the new segment.
     pub fn addSegment(self: *MemorySegmentManager) relocatable.Relocatable {
@@ -62,6 +77,10 @@ pub const MemorySegmentManager = struct {
         return relocatable_address;
     }
 };
+
+// ************************************************************
+// *                         TESTS                            *
+// ************************************************************
 
 test "memory segment manager" {
     // Initialize an allocator.

@@ -1,4 +1,5 @@
 const starknet_felt = @import("../../math/fields/starknet.zig");
+const CairoVMError = @import("../error.zig").CairoVMError;
 
 // Relocatable in the Cairo VM represents an address
 // in some memory segment. When the VM finishes running,
@@ -77,6 +78,16 @@ pub const MaybeRelocatable = union(enum) {
                 // If `self` is `felt` and `other` is `relocatable`, they are not equal
                 .relocatable => false,
             },
+        };
+    }
+
+    // Return the value of the MaybeRelocatable as a Relocatable felt or error.
+    // # Returns
+    // The value of the MaybeRelocatable as a Relocatable felt or error.
+    pub fn intoFelt(self: MaybeRelocatable) error{TypeMismatchNotFelt}!starknet_felt.Felt252 {
+        return switch (self) {
+            .relocatable => CairoVMError.TypeMismatchNotFelt,
+            .felt => |felt| felt,
         };
     }
 };
