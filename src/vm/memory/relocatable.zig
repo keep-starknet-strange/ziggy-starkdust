@@ -1,3 +1,4 @@
+const std = @import("std");
 const starknet_felt = @import("../../math/fields/starknet.zig");
 const CairoVMError = @import("../error.zig").CairoVMError;
 
@@ -41,6 +42,45 @@ pub const Relocatable = struct {
     // `true` if they are equal, `false` otherwise.
     pub fn eq(self: Relocatable, other: Relocatable) bool {
         return self.segment_index == other.segment_index and self.offset == other.offset;
+    }
+
+    // Substract a u64 from a Relocatable and return a new Relocatable.
+    // # Arguments
+    // - other: The u64 to substract.
+    // # Returns
+    // A new Relocatable.
+    pub fn subUint(self: Relocatable, other: u64) !Relocatable {
+        if (self.offset < other) {
+            return error.RelocatableSubUsizeNegOffset;
+        }
+        return Relocatable{
+            .segment_index = self.segment_index,
+            .offset = self.offset - other,
+        };
+    }
+
+    // Add a u64 to a Relocatable and return a new Relocatable.
+    // # Arguments
+    // - other: The u64 to add.
+    // # Returns
+    // A new Relocatable.
+    pub fn addUint(self: Relocatable, other: u64) !Relocatable {
+        return Relocatable{
+            .segment_index = self.segment_index,
+            .offset = self.offset + other,
+        };
+    }
+
+    // Add a i64 to a Relocatable and return a new Relocatable.
+    // # Arguments
+    // - other: The i64 to add.
+    // # Returns
+    // A new Relocatable.
+    pub fn addInt(self: Relocatable, other: i64) !Relocatable {
+        if (other < 0) {
+            return self.subUint(@as(u64, @intCast(-other)));
+        }
+        return self.addUint(@as(u64, @intCast(other)));
     }
 };
 
@@ -136,4 +176,45 @@ pub fn fromU256(value: u256) MaybeRelocatable {
 // A new MaybeRelocatable.
 pub fn fromU64(value: u64) MaybeRelocatable {
     return fromU256(@as(u256, value));
+}
+
+// ************************************************************
+// *                         TESTS                            *
+// ************************************************************
+const expect = std.testing.expect;
+const expectEqual = std.testing.expectEqual;
+const expectError = std.testing.expectError;
+
+test "add uint" {
+    const relocatable = Relocatable.new(2, 4);
+    const result = relocatable.addUint(24);
+    const expected = Relocatable.new(2, 28);
+    try expectEqual(result, expected);
+}
+
+test "add int" {
+    const relocatable = Relocatable.new(2, 4);
+    const result = relocatable.addInt(24);
+    const expected = Relocatable.new(2, 28);
+    try expectEqual(result, expected);
+}
+
+test "add int negative" {
+    const relocatable = Relocatable.new(2, 4);
+    const result = relocatable.addInt(-4);
+    const expected = Relocatable.new(2, 0);
+    try expectEqual(result, expected);
+}
+
+test "sub uint" {
+    const relocatable = Relocatable.new(2, 4);
+    const result = relocatable.subUint(2);
+    const expected = Relocatable.new(2, 2);
+    try expectEqual(result, expected);
+}
+
+test "sub uint negative" {
+    const relocatable = Relocatable.new(2, 4);
+    const result = relocatable.subUint(6);
+    try expectError(error.RelocatableSubUsizeNegOffset, result);
 }

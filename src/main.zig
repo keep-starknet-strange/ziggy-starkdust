@@ -35,7 +35,7 @@ pub fn main() !void {
 
 test "vm" {
     _ = @import("vm/core.zig");
-    _ = @import("vm/instruction.zig");
+    _ = @import("vm/instructions.zig");
 }
 
 test "memory" {

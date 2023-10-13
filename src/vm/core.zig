@@ -5,9 +5,32 @@ const Allocator = std.mem.Allocator;
 
 // Local imports.
 const segments = @import("memory/segments.zig");
-const instruction = @import("instruction.zig");
+const relocatable = @import("memory/relocatable.zig");
+const instructions = @import("instructions.zig");
 const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
+
+// *****************************************************************************
+// *                       CUSTOM TYPES                                        *
+// *****************************************************************************
+
+const Operands = struct {
+    dst: relocatable.MaybeRelocatable,
+    res: relocatable.MaybeRelocatable,
+    op_0: relocatable.MaybeRelocatable,
+    op_1: relocatable.MaybeRelocatable,
+};
+
+const OperandsAddresses = struct {
+    dst_addr: relocatable.MaybeRelocatable,
+    op_0_addr: relocatable.MaybeRelocatable,
+    op_1_addr: relocatable.MaybeRelocatable,
+};
+
+const OperandsResult = struct {
+    operands: Operands,
+    addresses: OperandsAddresses,
+};
 
 // Represents the Cairo VM.
 pub const CairoVM = struct {
@@ -81,11 +104,48 @@ pub const CairoVM = struct {
         };
 
         // Then, we decode the instruction.
-        const decoded_instruction = try instruction.decode(encoded_instruction_u64);
-        _ = decoded_instruction;
+        const instruction = try instructions.decode(encoded_instruction_u64);
 
         // ************************************************************
         // *                    EXECUTE                               *
         // ************************************************************
+        return self.run_instruction(&instruction);
+    }
+
+    // Run a specific instruction.
+    // # Arguments
+    // - `instruction`: The instruction to run.
+    pub fn run_instruction(self: *CairoVM, instruction: *const instructions.Instruction) !void {
+        const operands_result = try self.compute_operands(instruction);
+        const operands = operands_result.operands;
+        _ = operands;
+        const operands_addresses = operands_result.addresses;
+        _ = operands_addresses;
+    }
+
+    // Compute the operands for a given instruction.
+    // # Arguments
+    // - `instruction`: The instruction to compute the operands for.
+    // # Returns
+    // - `Operands`: The operands for the instruction.
+    pub fn compute_operands(self: *CairoVM, instruction: *const instructions.Instruction) !OperandsResult {
+        _ = instruction;
+        _ = self;
+
+        const operands = Operands{
+            .dst = relocatable.fromU64(0),
+            .res = relocatable.fromU64(0),
+            .op_0 = relocatable.fromU64(0),
+            .op_1 = relocatable.fromU64(0),
+        };
+        const operands_addresses = OperandsAddresses{
+            .dst_addr = relocatable.fromU64(0),
+            .op_0_addr = relocatable.fromU64(0),
+            .op_1_addr = relocatable.fromU64(0),
+        };
+        return OperandsResult{
+            .operands = operands,
+            .addresses = operands_addresses,
+        };
     }
 };
