@@ -42,6 +42,11 @@ pub fn main() !void {
 // *                     VM TESTS                                              *
 // *****************************************************************************
 
+test "vm" {
+    _ = @import("vm/core.zig");
+    _ = @import("vm/instruction.zig");
+}
+
 test "memory" {
     _ = @import("vm/memory/memory.zig");
     _ = @import("vm/memory/segments.zig");

@@ -56,20 +56,33 @@ pub const CairoVM = struct {
     // ************************************************************
 
     // Do a single step of the VM.
+    // Process an instruction cycle using the typical fetch-decode-execute cycle.
     pub fn step(self: *CairoVM) error{ InstructionFetchingFailed, InstructionEncodingError }!void {
         // TODO: Run hints.
 
-        // Get the current instruction.
+        // ************************************************************
+        // *                    FETCH                                 *
+        // ************************************************************
+
+        // During the fetch stage, the instruction is fetched from the memory.
         const encoded_instruction = self.segments.memory.get(self.run_context.pc.*) catch {
             return CairoVMError.InstructionFetchingFailed;
         };
 
-        // Get the instruction as felt.
+        // ************************************************************
+        // *                    DECODE                                *
+        // ************************************************************
+
+        // During the decode stage, the instruction is decoded.
         const encoded_instruction_felt = encoded_instruction.intoFelt() catch {
             return CairoVMError.InstructionEncodingError;
         };
 
         // Print the instruction.
         std.debug.print("Instruction: {}\n", .{encoded_instruction_felt.toInteger()});
+
+        // ************************************************************
+        // *                    EXECUTE                               *
+        // ************************************************************
     }
 };

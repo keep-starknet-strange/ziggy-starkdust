@@ -7,9 +7,9 @@ const CairoVMError = @import("../error.zig").CairoVMError;
 // represented by a field element.
 pub const Relocatable = struct {
     // The index of the memory segment.
-    segment_index: u32,
+    segment_index: u64,
     // The offset in the memory segment.
-    offset: u32,
+    offset: u64,
 
     // Creates a new Relocatable with the default values.
     // # Returns
@@ -27,7 +27,7 @@ pub const Relocatable = struct {
     // - offset - The offset in the memory segment.
     // # Returns
     // A new Relocatable.
-    pub fn new(segment_index: u32, offset: u32) Relocatable {
+    pub fn new(segment_index: u64, offset: u64) Relocatable {
         return Relocatable{
             .segment_index = segment_index,
             .offset = offset,
