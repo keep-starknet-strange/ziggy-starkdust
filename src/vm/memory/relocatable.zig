@@ -121,7 +121,7 @@ pub const MaybeRelocatable = union(enum) {
         };
     }
 
-    // Return the value of the MaybeRelocatable as a Relocatable felt or error.
+    // Return the value of the MaybeRelocatable as a felt or error.
     // # Returns
     // The value of the MaybeRelocatable as a Relocatable felt or error.
     pub fn tryIntoFelt(self: MaybeRelocatable) error{TypeMismatchNotFelt}!starknet_felt.Felt252 {
@@ -131,13 +131,23 @@ pub const MaybeRelocatable = union(enum) {
         };
     }
 
-    // Return the value of the MaybeRelocatable as a Relocatable felt or error.
+    // Return the value of the MaybeRelocatable as a felt or error.
     // # Returns
     // The value of the MaybeRelocatable as a Relocatable felt or error.
     pub fn tryIntoU64(self: MaybeRelocatable) error{ TypeMismatchNotFelt, ValueTooLarge }!u64 {
         return switch (self) {
             .relocatable => CairoVMError.TypeMismatchNotFelt,
             .felt => |felt| felt.tryIntoU64(),
+        };
+    }
+
+    // Return the value of the MaybeRelocatable as a Relocatable.
+    // # Returns
+    // The value of the MaybeRelocatable as a Relocatable.
+    pub fn tryIntoRelocatable(self: MaybeRelocatable) !Relocatable {
+        return switch (self) {
+            .relocatable => |relocatable| relocatable,
+            .felt => error.TypeMismatchNotRelocatable,
         };
     }
 };

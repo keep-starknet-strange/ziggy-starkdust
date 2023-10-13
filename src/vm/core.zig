@@ -125,10 +125,11 @@ pub const CairoVM = struct {
 
         // Compute the OP 0 address and get value from the memory.
         const op_0_addr = try self.run_context.compute_op_0_addr(instruction);
-        const op_0_op = try self.segments.memory.get(op_0_addr);
+        // Here we use `catch null` because we want op_0_op to be optional since it's not always used.
+        const op_0_op = self.segments.memory.get(op_0_addr) catch null;
 
         // Compute the OP 1 address and get value from the memory.
-        const op_1_addr = try self.run_context.compute_op_1_addr(instruction, &op_0_op);
+        const op_1_addr = try self.run_context.compute_op_1_addr(instruction, op_0_op);
         const op_1_op = try self.segments.memory.get(op_1_addr);
         _ = op_1_op;
 
