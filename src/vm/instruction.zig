@@ -67,7 +67,7 @@ pub const Instruction = struct {
 // - encoded_instruction: 64-bit integer containing the encoded instruction
 // # Returns
 // Decoded Instruction struct, or an error if decoding fails
-pub fn decodeInstruction(encoded_instruction: u64) Error!Instruction {
+pub fn decode(encoded_instruction: u64) Error!Instruction {
     if (encoded_instruction & (1 << 63) != 0) return Error.NonZeroHighBit;
     const flags = @as(u16, @truncate(encoded_instruction >> 48));
     const offsets = @as(u48, @truncate(encoded_instruction));
@@ -214,7 +214,7 @@ test "decode flags call add jmp add imm fp fp" {
     //  0001 0100 1010 0111 = 0x14A7; offx = 0
 
     const encoded_instruction: u64 = 0x14A7800080008000;
-    const decoded_instruction = try decodeInstruction(encoded_instruction);
+    const decoded_instruction = try decode(encoded_instruction);
 
     try expectEqual(Register.FP, decoded_instruction.DstReg);
     try expectEqual(Register.FP, decoded_instruction.Op0Reg);
@@ -236,7 +236,7 @@ test "decode flags ret add1 jmp rel mul fp ap ap" {
     //	0010 1001 0100 1000 = 0x2948; offx = 0
 
     const encoded_instruction: u64 = 0x2948800080008000;
-    const decoded_instruction = try decodeInstruction(encoded_instruction);
+    const decoded_instruction = try decode(encoded_instruction);
 
     try expectEqual(Register.AP, decoded_instruction.DstReg);
     try expectEqual(Register.AP, decoded_instruction.Op0Reg);
@@ -256,7 +256,7 @@ test "decode flags assert add jnz mul ap ap ap" {
     //  0100 1010 0101 0000 = 0x4A50; offx = 0
 
     const encoded_instruction: u64 = 0x4A50800080008000;
-    const decoded_instruction = try decodeInstruction(encoded_instruction);
+    const decoded_instruction = try decode(encoded_instruction);
 
     try expectEqual(Register.AP, decoded_instruction.DstReg);
     try expectEqual(Register.AP, decoded_instruction.Op0Reg);
@@ -277,7 +277,7 @@ test "decode flags assert add2 jnz uncon op0 ap ap" {
     //  0100 0010 0000 0000 = 0x4200; offx = 0
 
     const encoded_instruction: u64 = 0x4200800080008000;
-    const decoded_instruction = try decodeInstruction(encoded_instruction);
+    const decoded_instruction = try decode(encoded_instruction);
 
     try expectEqual(Register.AP, decoded_instruction.DstReg);
     try expectEqual(Register.AP, decoded_instruction.Op0Reg);
@@ -298,7 +298,7 @@ test "decode flags nop regular regular op1 op0 ap ap" {
     //  0000 0000 0000 0000 = 0x0000; offx = 0
 
     const encoded_instruction: u64 = 0x0000800080008000;
-    const decoded_instruction = try decodeInstruction(encoded_instruction);
+    const decoded_instruction = try decode(encoded_instruction);
 
     try expectEqual(Register.AP, decoded_instruction.DstReg);
     try expectEqual(Register.AP, decoded_instruction.Op0Reg);
@@ -312,7 +312,7 @@ test "decode flags nop regular regular op1 op0 ap ap" {
 
 test "decode offset negative" {
     const encoded_instruction: u64 = 0x0000800180007FFF;
-    const decoded_instruction = try decodeInstruction(encoded_instruction);
+    const decoded_instruction = try decode(encoded_instruction);
     try expectEqual(@as(i16, -1), decoded_instruction.Off0);
     try expectEqual(@as(i16, 0), decoded_instruction.Off1);
     try expectEqual(@as(i16, 1), decoded_instruction.Off2);
@@ -320,30 +320,30 @@ test "decode offset negative" {
 
 test "non zero high bit" {
     const encoded_instruction: u64 = 0x94A7800080008000;
-    try expectError(Error.NonZeroHighBit, decodeInstruction(encoded_instruction));
+    try expectError(Error.NonZeroHighBit, decode(encoded_instruction));
 }
 
 test "invalid op1 reg" {
     const encoded_instruction: u64 = 0x294F800080008000;
-    try expectError(Error.InvalidOp1Reg, decodeInstruction(encoded_instruction));
+    try expectError(Error.InvalidOp1Reg, decode(encoded_instruction));
 }
 
 test "invalid pc update" {
     const encoded_instruction: u64 = 0x29A8800080008000;
-    try expectError(Error.InvalidPcUpdate, decodeInstruction(encoded_instruction));
+    try expectError(Error.InvalidPcUpdate, decode(encoded_instruction));
 }
 
 test "invalid res logic" {
     const encoded_instruction: u64 = 0x2968800080008000;
-    try expectError(Error.InvalidResLogic, decodeInstruction(encoded_instruction));
+    try expectError(Error.InvalidResLogic, decode(encoded_instruction));
 }
 
 test "invalid opcode" {
     const encoded_instruction: u64 = 0x3948800080008000;
-    try expectError(Error.InvalidOpcode, decodeInstruction(encoded_instruction));
+    try expectError(Error.InvalidOpcode, decode(encoded_instruction));
 }
 
 test "invalid ap update" {
     const encoded_instruction: u64 = 0x2D48800080008000;
-    try expectError(Error.InvalidApUpdate, decodeInstruction(encoded_instruction));
+    try expectError(Error.InvalidApUpdate, decode(encoded_instruction));
 }

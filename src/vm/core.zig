@@ -5,6 +5,7 @@ const Allocator = std.mem.Allocator;
 
 // Local imports.
 const segments = @import("memory/segments.zig");
+const instruction = @import("instruction.zig");
 const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
 
@@ -57,14 +58,13 @@ pub const CairoVM = struct {
 
     // Do a single step of the VM.
     // Process an instruction cycle using the typical fetch-decode-execute cycle.
-    pub fn step(self: *CairoVM) error{ InstructionFetchingFailed, InstructionEncodingError }!void {
+    pub fn step(self: *CairoVM) !void {
         // TODO: Run hints.
 
         // ************************************************************
         // *                    FETCH                                 *
         // ************************************************************
 
-        // During the fetch stage, the instruction is fetched from the memory.
         const encoded_instruction = self.segments.memory.get(self.run_context.pc.*) catch {
             return CairoVMError.InstructionFetchingFailed;
         };
@@ -73,13 +73,16 @@ pub const CairoVM = struct {
         // *                    DECODE                                *
         // ************************************************************
 
-        // During the decode stage, the instruction is decoded.
-        const encoded_instruction_felt = encoded_instruction.intoFelt() catch {
+        // First, we convert the encoded instruction to a u64.
+        // If the MaybeRelocatable is not a felt, this operation will fail.
+        // If the MaybeRelocatable is a felt but the value does not fit into a u64, this operation will fail.
+        const encoded_instruction_u64 = encoded_instruction.tryIntoU64() catch {
             return CairoVMError.InstructionEncodingError;
         };
 
-        // Print the instruction.
-        std.debug.print("Instruction: {}\n", .{encoded_instruction_felt.toInteger()});
+        // Then, we decode the instruction.
+        const decoded_instruction = try instruction.decode(encoded_instruction_u64);
+        _ = decoded_instruction;
 
         // ************************************************************
         // *                    EXECUTE                               *

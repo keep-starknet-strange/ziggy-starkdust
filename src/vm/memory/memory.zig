@@ -112,7 +112,7 @@ test "memory set and get" {
     var memory = try Memory.init(&allocator);
 
     const address_1 = relocatable.Relocatable.new(0, 0);
-    const value_1 = relocatable.newFromFelt(starknet_felt.Felt252.one());
+    const value_1 = relocatable.fromFelt(starknet_felt.Felt252.one());
 
     // Set a value into the memory.
     _ = try memory.set(address_1, value_1);

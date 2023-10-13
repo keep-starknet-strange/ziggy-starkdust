@@ -19,20 +19,11 @@ pub fn main() !void {
     var vm = try vm_core.CairoVM.init(&allocator);
     defer vm.deinit(); // <-- This ensures that resources are freed when exiting the scope
 
-    // Print the run context pc.
-    std.debug.print("PC: {}\n", .{vm.run_context.pc});
-    std.debug.print("AP: {}\n", .{vm.run_context.ap});
-    std.debug.print("FP: {}\n", .{vm.run_context.fp});
-
     const address_1 = relocatable.Relocatable.new(0, 0);
-    const value_1 = relocatable.newFromFelt(starknet_felt.Felt252.fromInteger(158745829));
+    const encoded_instruction = relocatable.fromU64(0x14A7800080008000);
 
     // Write a value to memory.
-    try vm.segments.memory.set(address_1, value_1);
-
-    const read_value = try vm.segments.memory.get(address_1);
-
-    std.debug.print("Value: {}\n", .{read_value.felt.toInteger()});
+    try vm.segments.memory.set(address_1, encoded_instruction);
 
     // Run a step.
     try vm.step();

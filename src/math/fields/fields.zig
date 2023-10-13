@@ -205,6 +205,19 @@ pub fn Field(comptime F: type, comptime mod: u256) type {
             return std.mem.readInt(u256, &bytes, std.builtin.Endian.Little);
         }
 
+        // Try to convert the field element into a u64.
+        // If the value is too large, return an error.
+        pub fn tryIntoU64(self: Self) !u64 {
+            const asU256 = self.toInteger();
+            // Check if the value is small enough to fit into a u64
+            if (asU256 > @as(u256, std.math.maxInt(u64))) {
+                return error.ValueTooLarge;
+            }
+
+            // Otherwise, it's safe to cast
+            return @as(u64, @intCast(asU256));
+        }
+
         pub fn legendre(a: Self) i2 {
             // Compute the Legendre symbol a|p using
             // Euler's criterion. p is a prime, a is
