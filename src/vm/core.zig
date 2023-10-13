@@ -14,22 +14,14 @@ const CairoVMError = @import("error.zig").CairoVMError;
 // *                       CUSTOM TYPES                                        *
 // *****************************************************************************
 
-const Operands = struct {
+const OperandsResult = struct {
     dst: relocatable.MaybeRelocatable,
     res: relocatable.MaybeRelocatable,
     op_0: relocatable.MaybeRelocatable,
     op_1: relocatable.MaybeRelocatable,
-};
-
-const OperandsAddresses = struct {
     dst_addr: relocatable.MaybeRelocatable,
     op_0_addr: relocatable.MaybeRelocatable,
     op_1_addr: relocatable.MaybeRelocatable,
-};
-
-const OperandsResult = struct {
-    operands: Operands,
-    addresses: OperandsAddresses,
 };
 
 // Represents the Cairo VM.
@@ -117,10 +109,7 @@ pub const CairoVM = struct {
     // - `instruction`: The instruction to run.
     pub fn run_instruction(self: *CairoVM, instruction: *const instructions.Instruction) !void {
         const operands_result = try self.compute_operands(instruction);
-        const operands = operands_result.operands;
-        _ = operands;
-        const operands_addresses = operands_result.addresses;
-        _ = operands_addresses;
+        _ = operands_result;
     }
 
     // Compute the operands for a given instruction.
@@ -129,23 +118,28 @@ pub const CairoVM = struct {
     // # Returns
     // - `Operands`: The operands for the instruction.
     pub fn compute_operands(self: *CairoVM, instruction: *const instructions.Instruction) !OperandsResult {
-        _ = instruction;
-        _ = self;
+        // Compute the destination address and get value from the memory.
+        const dst_addr = try self.run_context.compute_dst_addr(instruction);
+        const dst = try self.segments.memory.get(dst_addr);
+        _ = dst;
 
-        const operands = Operands{
+        // Compute the OP 0 address and get value from the memory.
+        const op_0_addr = try self.run_context.compute_op_0_addr(instruction);
+        const op_0_op = try self.segments.memory.get(op_0_addr);
+
+        // Compute the OP 1 address and get value from the memory.
+        const op_1_addr = try self.run_context.compute_op_1_addr(instruction, &op_0_op);
+        const op_1_op = try self.segments.memory.get(op_1_addr);
+        _ = op_1_op;
+
+        return OperandsResult{
             .dst = relocatable.fromU64(0),
             .res = relocatable.fromU64(0),
             .op_0 = relocatable.fromU64(0),
             .op_1 = relocatable.fromU64(0),
-        };
-        const operands_addresses = OperandsAddresses{
             .dst_addr = relocatable.fromU64(0),
             .op_0_addr = relocatable.fromU64(0),
             .op_1_addr = relocatable.fromU64(0),
-        };
-        return OperandsResult{
-            .operands = operands,
-            .addresses = operands_addresses,
         };
     }
 };

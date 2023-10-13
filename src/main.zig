@@ -26,7 +26,10 @@ pub fn main() !void {
     try vm.segments.memory.set(address_1, encoded_instruction);
 
     // Run a step.
-    try vm.step();
+    vm.step() catch |err| {
+        std.debug.print("Error: {}\n", .{err});
+        return;
+    };
 }
 
 // *****************************************************************************

@@ -23,10 +23,10 @@ const std = @import("std");
 const Error = error{
     NonZeroHighBit,
     InvalidOp1Reg,
-    InvalidPcUpdate,
-    InvalidResLogic,
+    Invalidpc_update,
+    Invalidres_logic,
     InvalidOpcode,
-    InvalidApUpdate,
+    Invalidap_update,
 };
 
 // *****************************************************************************
@@ -49,17 +49,17 @@ const Opcode = enum { NOp, AssertEq, Call, Ret };
 
 // Represents a decoded instruction.
 pub const Instruction = struct {
-    Off0: i16,
-    Off1: i16,
-    Off2: i16,
-    DstReg: Register,
-    Op0Reg: Register,
-    Op1Addr: Op1Src,
-    ResLogic: ResLogic,
-    PcUpdate: PcUpdate,
-    ApUpdate: ApUpdate,
-    FpUpdate: FpUpdate,
-    Opcode: Opcode,
+    off_0: i16,
+    off_1: i16,
+    off_2: i16,
+    dst_reg: Register,
+    op_0_reg: Register,
+    op_1_addr: Op1Src,
+    res_logic: ResLogic,
+    pc_update: PcUpdate,
+    ap_update: ApUpdate,
+    fp_update: FpUpdate,
+    opcode: Opcode,
 };
 
 // Decode a 64-bit instruction into its component parts.
@@ -74,20 +74,20 @@ pub fn decode(encoded_instruction: u64) Error!Instruction {
     const parsedNum = @as(u8, @truncate((flags >> 12) & 7));
     const opcode = try parseOpcode(parsedNum);
 
-    const pc_update = try parsePcUpdate(@as(u8, @truncate((flags >> 7) & 7)));
+    const pc_update = try parsepc_update(@as(u8, @truncate((flags >> 7) & 7)));
 
     return Instruction{
-        .Off0 = fromBiasedRepresentation(@as(u16, @truncate(offsets))),
-        .Off1 = fromBiasedRepresentation(@as(u16, @truncate(offsets >> 16))),
-        .Off2 = fromBiasedRepresentation(@as(u16, @truncate(offsets >> 32))),
-        .DstReg = if (flags & 1 != 0) Register.FP else Register.AP,
-        .Op0Reg = if (flags & 2 != 0) Register.FP else Register.AP,
-        .Op1Addr = try parseOp1Src(@as(u8, @truncate((flags >> 2) & 7))),
-        .ResLogic = try parseResLogic(@as(u8, @truncate((flags >> 5) & 3)), pc_update),
-        .PcUpdate = pc_update,
-        .ApUpdate = try parseApUpdate(@as(u8, @truncate((flags >> 10) & 3)), opcode),
-        .Opcode = opcode,
-        .FpUpdate = parseFpUpdate(opcode),
+        .off_0 = fromBiasedRepresentation(@as(u16, @truncate(offsets))),
+        .off_1 = fromBiasedRepresentation(@as(u16, @truncate(offsets >> 16))),
+        .off_2 = fromBiasedRepresentation(@as(u16, @truncate(offsets >> 32))),
+        .dst_reg = if (flags & 1 != 0) Register.FP else Register.AP,
+        .op_0_reg = if (flags & 2 != 0) Register.FP else Register.AP,
+        .op_1_addr = try parseOp1Src(@as(u8, @truncate((flags >> 2) & 7))),
+        .res_logic = try parseres_logic(@as(u8, @truncate((flags >> 5) & 3)), pc_update),
+        .pc_update = pc_update,
+        .ap_update = try parseap_update(@as(u8, @truncate((flags >> 10) & 3)), opcode),
+        .opcode = opcode,
+        .fp_update = parsefp_update(opcode),
     };
 }
 
@@ -121,13 +121,13 @@ fn parseOp1Src(op1_src_num: u8) Error!Op1Src {
     };
 }
 
-// Parse ResLogic from a 2-bit integer field.
+// Parse res_logic from a 2-bit integer field.
 // # Arguments
 // - res_logic_num: 2-bit integer field extracted from instruction
-// - pc_update: PcUpdate value of the current instruction
+// - pc_update: pc_update value of the current instruction
 // # Returns
-// Parsed ResLogic value, or an error if invalid
-fn parseResLogic(res_logic_num: u8, pc_update: PcUpdate) Error!ResLogic {
+// Parsed res_logic value, or an error if invalid
+fn parseres_logic(res_logic_num: u8, pc_update: PcUpdate) Error!ResLogic {
     return switch (res_logic_num) {
         0 => {
             if (pc_update == PcUpdate.Jnz) {
@@ -138,32 +138,32 @@ fn parseResLogic(res_logic_num: u8, pc_update: PcUpdate) Error!ResLogic {
         },
         1 => ResLogic.Add,
         2 => ResLogic.Mul,
-        else => Error.InvalidResLogic,
+        else => Error.Invalidres_logic,
     };
 }
 
-// Parse PcUpdate from a 3-bit integer field.
+// Parse pc_update from a 3-bit integer field.
 // # Arguments
 // - pc_update_num: 3-bit integer field extracted from instruction
 // # Returns
-// Parsed PcUpdate value, or an error if invalid
-fn parsePcUpdate(pc_update_num: u8) Error!PcUpdate {
+// Parsed pc_update value, or an error if invalid
+fn parsepc_update(pc_update_num: u8) Error!PcUpdate {
     return switch (pc_update_num) {
         0 => PcUpdate.Regular,
         1 => PcUpdate.Jump,
         2 => PcUpdate.JumpRel,
         4 => PcUpdate.Jnz,
-        else => Error.InvalidPcUpdate,
+        else => Error.Invalidpc_update,
     };
 }
 
-// Parse ApUpdate from a 2-bit integer field.
+// Parse ap_update from a 2-bit integer field.
 // # Arguments
 // - ap_update_num: 2-bit integer field extracted from instruction
 // - opcode: Opcode of the current instruction
 // # Returns
-// Parsed ApUpdate value, or an error if invalid
-fn parseApUpdate(ap_update_num: u8, opcode: Opcode) Error!ApUpdate {
+// Parsed ap_update value, or an error if invalid
+fn parseap_update(ap_update_num: u8, opcode: Opcode) Error!ApUpdate {
     return switch (ap_update_num) {
         0 => if (opcode == Opcode.Call) {
             return ApUpdate.Add2;
@@ -172,16 +172,16 @@ fn parseApUpdate(ap_update_num: u8, opcode: Opcode) Error!ApUpdate {
         },
         1 => ApUpdate.Add,
         2 => ApUpdate.Add1,
-        else => Error.InvalidApUpdate,
+        else => Error.Invalidap_update,
     };
 }
 
-// Parse FpUpdate based on the Opcode value.
+// Parse fp_update based on the Opcode value.
 // # Arguments
 // - opcode: Opcode of the current instruction
 // # Returns
-// Appropriate FpUpdate value
-fn parseFpUpdate(opcode: Opcode) FpUpdate {
+// Appropriate fp_update value
+fn parsefp_update(opcode: Opcode) FpUpdate {
     return switch (opcode) {
         Opcode.Call => FpUpdate.APPlus2,
         Opcode.Ret => FpUpdate.Dst,
@@ -216,14 +216,14 @@ test "decode flags call add jmp add imm fp fp" {
     const encoded_instruction: u64 = 0x14A7800080008000;
     const decoded_instruction = try decode(encoded_instruction);
 
-    try expectEqual(Register.FP, decoded_instruction.DstReg);
-    try expectEqual(Register.FP, decoded_instruction.Op0Reg);
-    try expectEqual(Op1Src.Imm, decoded_instruction.Op1Addr);
-    try expectEqual(ResLogic.Add, decoded_instruction.ResLogic);
-    try expectEqual(PcUpdate.Jump, decoded_instruction.PcUpdate);
-    try expectEqual(ApUpdate.Add, decoded_instruction.ApUpdate);
-    try expectEqual(Opcode.Call, decoded_instruction.Opcode);
-    try expectEqual(FpUpdate.APPlus2, decoded_instruction.FpUpdate);
+    try expectEqual(Register.FP, decoded_instruction.dst_reg);
+    try expectEqual(Register.FP, decoded_instruction.op_0_reg);
+    try expectEqual(Op1Src.Imm, decoded_instruction.op_1_addr);
+    try expectEqual(ResLogic.Add, decoded_instruction.res_logic);
+    try expectEqual(PcUpdate.Jump, decoded_instruction.pc_update);
+    try expectEqual(ApUpdate.Add, decoded_instruction.ap_update);
+    try expectEqual(Opcode.Call, decoded_instruction.opcode);
+    try expectEqual(FpUpdate.APPlus2, decoded_instruction.fp_update);
 }
 
 test "decode flags ret add1 jmp rel mul fp ap ap" {
@@ -238,14 +238,14 @@ test "decode flags ret add1 jmp rel mul fp ap ap" {
     const encoded_instruction: u64 = 0x2948800080008000;
     const decoded_instruction = try decode(encoded_instruction);
 
-    try expectEqual(Register.AP, decoded_instruction.DstReg);
-    try expectEqual(Register.AP, decoded_instruction.Op0Reg);
-    try expectEqual(Op1Src.FP, decoded_instruction.Op1Addr);
-    try expectEqual(ResLogic.Mul, decoded_instruction.ResLogic);
-    try expectEqual(PcUpdate.JumpRel, decoded_instruction.PcUpdate);
-    try expectEqual(ApUpdate.Add1, decoded_instruction.ApUpdate);
-    try expectEqual(Opcode.Ret, decoded_instruction.Opcode);
-    try expectEqual(FpUpdate.Dst, decoded_instruction.FpUpdate);
+    try expectEqual(Register.AP, decoded_instruction.dst_reg);
+    try expectEqual(Register.AP, decoded_instruction.op_0_reg);
+    try expectEqual(Op1Src.FP, decoded_instruction.op_1_addr);
+    try expectEqual(ResLogic.Mul, decoded_instruction.res_logic);
+    try expectEqual(PcUpdate.JumpRel, decoded_instruction.pc_update);
+    try expectEqual(ApUpdate.Add1, decoded_instruction.ap_update);
+    try expectEqual(Opcode.Ret, decoded_instruction.opcode);
+    try expectEqual(FpUpdate.Dst, decoded_instruction.fp_update);
 }
 
 test "decode flags assert add jnz mul ap ap ap" {
@@ -258,14 +258,14 @@ test "decode flags assert add jnz mul ap ap ap" {
     const encoded_instruction: u64 = 0x4A50800080008000;
     const decoded_instruction = try decode(encoded_instruction);
 
-    try expectEqual(Register.AP, decoded_instruction.DstReg);
-    try expectEqual(Register.AP, decoded_instruction.Op0Reg);
-    try expectEqual(Op1Src.AP, decoded_instruction.Op1Addr);
-    try expectEqual(ResLogic.Mul, decoded_instruction.ResLogic);
-    try expectEqual(PcUpdate.Jnz, decoded_instruction.PcUpdate);
-    try expectEqual(ApUpdate.Add1, decoded_instruction.ApUpdate);
-    try expectEqual(Opcode.AssertEq, decoded_instruction.Opcode);
-    try expectEqual(FpUpdate.Regular, decoded_instruction.FpUpdate);
+    try expectEqual(Register.AP, decoded_instruction.dst_reg);
+    try expectEqual(Register.AP, decoded_instruction.op_0_reg);
+    try expectEqual(Op1Src.AP, decoded_instruction.op_1_addr);
+    try expectEqual(ResLogic.Mul, decoded_instruction.res_logic);
+    try expectEqual(PcUpdate.Jnz, decoded_instruction.pc_update);
+    try expectEqual(ApUpdate.Add1, decoded_instruction.ap_update);
+    try expectEqual(Opcode.AssertEq, decoded_instruction.opcode);
+    try expectEqual(FpUpdate.Regular, decoded_instruction.fp_update);
 }
 
 test "decode flags assert add2 jnz uncon op0 ap ap" {
@@ -279,14 +279,14 @@ test "decode flags assert add2 jnz uncon op0 ap ap" {
     const encoded_instruction: u64 = 0x4200800080008000;
     const decoded_instruction = try decode(encoded_instruction);
 
-    try expectEqual(Register.AP, decoded_instruction.DstReg);
-    try expectEqual(Register.AP, decoded_instruction.Op0Reg);
-    try expectEqual(Op1Src.Op0, decoded_instruction.Op1Addr);
-    try expectEqual(ResLogic.Unconstrained, decoded_instruction.ResLogic);
-    try expectEqual(PcUpdate.Jnz, decoded_instruction.PcUpdate);
-    try expectEqual(ApUpdate.Regular, decoded_instruction.ApUpdate);
-    try expectEqual(Opcode.AssertEq, decoded_instruction.Opcode);
-    try expectEqual(FpUpdate.Regular, decoded_instruction.FpUpdate);
+    try expectEqual(Register.AP, decoded_instruction.dst_reg);
+    try expectEqual(Register.AP, decoded_instruction.op_0_reg);
+    try expectEqual(Op1Src.Op0, decoded_instruction.op_1_addr);
+    try expectEqual(ResLogic.Unconstrained, decoded_instruction.res_logic);
+    try expectEqual(PcUpdate.Jnz, decoded_instruction.pc_update);
+    try expectEqual(ApUpdate.Regular, decoded_instruction.ap_update);
+    try expectEqual(Opcode.AssertEq, decoded_instruction.opcode);
+    try expectEqual(FpUpdate.Regular, decoded_instruction.fp_update);
 }
 
 test "decode flags nop regular regular op1 op0 ap ap" {
@@ -300,22 +300,22 @@ test "decode flags nop regular regular op1 op0 ap ap" {
     const encoded_instruction: u64 = 0x0000800080008000;
     const decoded_instruction = try decode(encoded_instruction);
 
-    try expectEqual(Register.AP, decoded_instruction.DstReg);
-    try expectEqual(Register.AP, decoded_instruction.Op0Reg);
-    try expectEqual(Op1Src.Op0, decoded_instruction.Op1Addr);
-    try expectEqual(ResLogic.Op1, decoded_instruction.ResLogic);
-    try expectEqual(PcUpdate.Regular, decoded_instruction.PcUpdate);
-    try expectEqual(ApUpdate.Regular, decoded_instruction.ApUpdate);
-    try expectEqual(Opcode.NOp, decoded_instruction.Opcode);
-    try expectEqual(FpUpdate.Regular, decoded_instruction.FpUpdate);
+    try expectEqual(Register.AP, decoded_instruction.dst_reg);
+    try expectEqual(Register.AP, decoded_instruction.op_0_reg);
+    try expectEqual(Op1Src.Op0, decoded_instruction.op_1_addr);
+    try expectEqual(ResLogic.Op1, decoded_instruction.res_logic);
+    try expectEqual(PcUpdate.Regular, decoded_instruction.pc_update);
+    try expectEqual(ApUpdate.Regular, decoded_instruction.ap_update);
+    try expectEqual(Opcode.NOp, decoded_instruction.opcode);
+    try expectEqual(FpUpdate.Regular, decoded_instruction.fp_update);
 }
 
 test "decode offset negative" {
     const encoded_instruction: u64 = 0x0000800180007FFF;
     const decoded_instruction = try decode(encoded_instruction);
-    try expectEqual(@as(i16, -1), decoded_instruction.Off0);
-    try expectEqual(@as(i16, 0), decoded_instruction.Off1);
-    try expectEqual(@as(i16, 1), decoded_instruction.Off2);
+    try expectEqual(@as(i16, -1), decoded_instruction.off_0);
+    try expectEqual(@as(i16, 0), decoded_instruction.off_1);
+    try expectEqual(@as(i16, 1), decoded_instruction.off_2);
 }
 
 test "non zero high bit" {
@@ -330,12 +330,12 @@ test "invalid op1 reg" {
 
 test "invalid pc update" {
     const encoded_instruction: u64 = 0x29A8800080008000;
-    try expectError(Error.InvalidPcUpdate, decode(encoded_instruction));
+    try expectError(Error.Invalidpc_update, decode(encoded_instruction));
 }
 
 test "invalid res logic" {
     const encoded_instruction: u64 = 0x2968800080008000;
-    try expectError(Error.InvalidResLogic, decode(encoded_instruction));
+    try expectError(Error.Invalidres_logic, decode(encoded_instruction));
 }
 
 test "invalid opcode" {
@@ -345,5 +345,5 @@ test "invalid opcode" {
 
 test "invalid ap update" {
     const encoded_instruction: u64 = 0x2D48800080008000;
-    try expectError(Error.InvalidApUpdate, decode(encoded_instruction));
+    try expectError(Error.Invalidap_update, decode(encoded_instruction));
 }
