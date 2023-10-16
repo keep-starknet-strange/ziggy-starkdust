@@ -147,6 +147,30 @@ pub const CairoVM = struct {
     // Runs deductions for Op0, first runs builtin deductions, if this fails, attempts to deduce it based on dst and op1
     // Also returns res if it was also deduced in the process
     // Inserts the deduced operand
-    // Fails if Op0 was not deduced or if an error arose in the process
-    pub fn computeOp0Deductions() void {}
+    // Fails if Op0 was not deduced or if an error arose in the process.
+    // # Arguments
+    // - `op_0_addr`: The address of the operand to deduce.
+    // - `instruction`: The instruction to deduce the operand for.
+    // - `dst`: The destination.
+    // - `op1`: The op1.
+    pub fn computeOp0Deductions(self: *CairoVM, op_0_addr: relocatable.MaybeRelocatable, instruction: *const instructions.Instruction, dst: ?relocatable.MaybeRelocatable, op1: ?relocatable.MaybeRelocatable) void {
+        _ = op1;
+        _ = dst;
+        _ = instruction;
+        const op_o = try self.deduceMemoryCell(op_0_addr);
+        _ = op_o;
+    }
+
+    // Applies the corresponding builtin's deduction rules if addr's segment index corresponds to a builtin segment
+    // Returns null if there is no deduction for the address
+    // # Arguments
+    // - `address`: The address to deduce.
+    // # Returns
+    // - `MaybeRelocatable`: The deduced value.
+    // TODO: Implement this.
+    pub fn deduceMemoryCell(self: *CairoVM, address: relocatable.Relocatable) !?relocatable.MaybeRelocatable {
+        _ = address;
+        _ = self;
+        return null;
+    }
 };
