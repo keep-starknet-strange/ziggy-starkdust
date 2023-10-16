@@ -101,14 +101,14 @@ pub const CairoVM = struct {
         // ************************************************************
         // *                    EXECUTE                               *
         // ************************************************************
-        return self.run_instruction(&instruction);
+        return self.runInstruction(&instruction);
     }
 
     // Run a specific instruction.
     // # Arguments
     // - `instruction`: The instruction to run.
-    pub fn run_instruction(self: *CairoVM, instruction: *const instructions.Instruction) !void {
-        const operands_result = try self.compute_operands(instruction);
+    pub fn runInstruction(self: *CairoVM, instruction: *const instructions.Instruction) !void {
+        const operands_result = try self.computeOperands(instruction);
         _ = operands_result;
     }
 
@@ -117,7 +117,7 @@ pub const CairoVM = struct {
     // - `instruction`: The instruction to compute the operands for.
     // # Returns
     // - `Operands`: The operands for the instruction.
-    pub fn compute_operands(self: *CairoVM, instruction: *const instructions.Instruction) !OperandsResult {
+    pub fn computeOperands(self: *CairoVM, instruction: *const instructions.Instruction) !OperandsResult {
         // Compute the destination address and get value from the memory.
         const dst_addr = try self.run_context.compute_dst_addr(instruction);
         const dst = try self.segments.memory.get(dst_addr);
@@ -143,4 +143,10 @@ pub const CairoVM = struct {
             .op_1_addr = relocatable.fromU64(0),
         };
     }
+
+    // Runs deductions for Op0, first runs builtin deductions, if this fails, attempts to deduce it based on dst and op1
+    // Also returns res if it was also deduced in the process
+    // Inserts the deduced operand
+    // Fails if Op0 was not deduced or if an error arose in the process
+    pub fn computeOp0Deductions() void {}
 };
