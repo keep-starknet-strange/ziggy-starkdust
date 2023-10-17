@@ -1,8 +1,29 @@
+// Core imports.
 const std = @import("std");
+const builtin = @import("builtin");
+
+// Local imports.
 const starknet_felt = @import("math/fields/starknet.zig");
 const vm_core = @import("vm/core.zig");
 const RunContext = @import("vm/run_context.zig").RunContext;
 const relocatable = @import("vm/memory/relocatable.zig");
+const customlogFn = @import("log.zig").logFn;
+
+// *****************************************************************************
+// *                     GLOBAL CONFIGURATION                                  *
+// *****************************************************************************
+
+/// Standard library options.
+pub const std_options = struct {
+    /// Define the global log level.
+    /// TODO: Make this configurable.
+    pub const log_level = .debug;
+    /// Define the log scope levels for each library.
+    /// TODO: Make this configurable.
+    pub const log_scope_levels = &[_]std.log.ScopeLevel{};
+    // Define logFn to override the std implementation
+    pub const logFn = customlogFn;
+};
 
 pub fn main() !void {
     // *****************************************************************************
@@ -13,7 +34,7 @@ pub fn main() !void {
     var allocator = std.heap.page_allocator;
 
     // Greetings message.
-    std.debug.print("Runing Cairo VM...\n", .{});
+    std.log.debug("Runing Cairo VM...\n", .{});
 
     // Create a new VM instance.
     var vm = try vm_core.CairoVM.init(&allocator);
