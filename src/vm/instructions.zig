@@ -74,7 +74,7 @@ pub fn decode(encoded_instruction: u64) Error!Instruction {
     const parsedNum = @as(u8, @truncate((flags >> 12) & 7));
     const opcode = try parseOpcode(parsedNum);
 
-    const pc_update = try parsepc_update(@as(u8, @truncate((flags >> 7) & 7)));
+    const pc_update = try parsePcUpdate(@as(u8, @truncate((flags >> 7) & 7)));
 
     return Instruction{
         .off_0 = fromBiasedRepresentation(@as(u16, @truncate(offsets))),
@@ -83,11 +83,11 @@ pub fn decode(encoded_instruction: u64) Error!Instruction {
         .dst_reg = if (flags & 1 != 0) Register.FP else Register.AP,
         .op_0_reg = if (flags & 2 != 0) Register.FP else Register.AP,
         .op_1_addr = try parseOp1Src(@as(u8, @truncate((flags >> 2) & 7))),
-        .res_logic = try parseres_logic(@as(u8, @truncate((flags >> 5) & 3)), pc_update),
+        .res_logic = try parseResLogic(@as(u8, @truncate((flags >> 5) & 3)), pc_update),
         .pc_update = pc_update,
-        .ap_update = try parseap_update(@as(u8, @truncate((flags >> 10) & 3)), opcode),
+        .ap_update = try parseApUpdate(@as(u8, @truncate((flags >> 10) & 3)), opcode),
         .opcode = opcode,
-        .fp_update = parsefp_update(opcode),
+        .fp_update = parseFpUpdate(opcode),
     };
 }
 
@@ -127,7 +127,7 @@ fn parseOp1Src(op1_src_num: u8) Error!Op1Src {
 // - pc_update: pc_update value of the current instruction
 // # Returns
 // Parsed res_logic value, or an error if invalid
-fn parseres_logic(res_logic_num: u8, pc_update: PcUpdate) Error!ResLogic {
+fn parseResLogic(res_logic_num: u8, pc_update: PcUpdate) Error!ResLogic {
     return switch (res_logic_num) {
         0 => {
             if (pc_update == PcUpdate.Jnz) {
@@ -147,7 +147,7 @@ fn parseres_logic(res_logic_num: u8, pc_update: PcUpdate) Error!ResLogic {
 // - pc_update_num: 3-bit integer field extracted from instruction
 // # Returns
 // Parsed pc_update value, or an error if invalid
-fn parsepc_update(pc_update_num: u8) Error!PcUpdate {
+fn parsePcUpdate(pc_update_num: u8) Error!PcUpdate {
     return switch (pc_update_num) {
         0 => PcUpdate.Regular,
         1 => PcUpdate.Jump,
@@ -163,7 +163,7 @@ fn parsepc_update(pc_update_num: u8) Error!PcUpdate {
 // - opcode: Opcode of the current instruction
 // # Returns
 // Parsed ap_update value, or an error if invalid
-fn parseap_update(ap_update_num: u8, opcode: Opcode) Error!ApUpdate {
+fn parseApUpdate(ap_update_num: u8, opcode: Opcode) Error!ApUpdate {
     return switch (ap_update_num) {
         0 => if (opcode == Opcode.Call) {
             return ApUpdate.Add2;
@@ -181,7 +181,7 @@ fn parseap_update(ap_update_num: u8, opcode: Opcode) Error!ApUpdate {
 // - opcode: Opcode of the current instruction
 // # Returns
 // Appropriate fp_update value
-fn parsefp_update(opcode: Opcode) FpUpdate {
+fn parseFpUpdate(opcode: Opcode) FpUpdate {
     return switch (opcode) {
         Opcode.Call => FpUpdate.APPlus2,
         Opcode.Ret => FpUpdate.Dst,
