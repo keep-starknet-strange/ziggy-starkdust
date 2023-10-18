@@ -12,6 +12,20 @@ const DateTime = @import("time.zig").DateTime;
 // TODO: Make this configurable.
 const allocator = std.heap.page_allocator;
 
+/// Custom log function.
+/// This function is used to log messages with a custom format.
+/// The format is as follows:
+///    time={time} level={level} ({scope}) msg={message}
+/// Where:
+/// - {time} is the current time in ISO 8601 format.
+/// - {level} is the log level.
+/// - {scope} is the scope of the log message.
+/// - {message} is the message to log.
+/// # Arguments
+/// - `level` is the log level.
+/// - `scope` is the scope of the log message.
+/// - `format` is the format string.
+/// - `args` are the arguments to the format string.
 pub fn logFn(
     comptime level: std.log.Level,
     comptime scope: @TypeOf(.EnumLiteral),

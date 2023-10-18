@@ -8,13 +8,35 @@ const MaybeRelocatable = @import("memory/relocatable.zig").MaybeRelocatable;
 
 const Instruction = @import("instructions.zig").Instruction;
 
-// Contains the register states of the Cairo VM.
+/// Contains the register states of the Cairo VM.
 pub const RunContext = struct {
+    /// The allocator used to allocate the memory for the run context.
     allocator: *Allocator,
+    /// Program counter (pc) contains the address in memory of the current Cairo
+    /// instruction to be executed.
     pc: *Relocatable,
+    /// Allocation pointer (ap) , by convention, points to the first memory cell
+    /// that has not been used by the program so far. Many instructions may
+    /// increase its value by one to indicate that another memory cell has
+    /// been used by the instruction. Note that this is merely a convention –
+    /// the Cairo machine does not force that the memory cell ap has not been
+    /// used, and the programmer may decide to use it in different ways.
     ap: *Relocatable,
+    /// Frame pointer (fp) points to the beginning of the stack frame of the current function. The value of fp allows a stack-like behavior: When a
+    /// function starts, fp is set to be the same as the current ap, and when
+    /// the function returns, fp resumes its previous value. Thus, the value
+    /// of fp stays the same for all the instructions in the same invocation
+    /// of a function. Due to this property, fp may be used to address the
+    // function’s arguments and local variables. See more in Section 6.
     fp: *Relocatable,
 
+    /// Initialize the run context with default values.
+    /// # Arguments
+    /// - allocator: The allocator to use for allocating the memory for the run context.
+    /// # Returns
+    /// - The initialized run context.
+    /// # Errors
+    /// - If a memory allocation fails.
     pub fn init(allocator: *Allocator) !*RunContext {
         var run_context = try allocator.create(RunContext);
         run_context.* = RunContext{
@@ -29,6 +51,16 @@ pub const RunContext = struct {
         return run_context;
     }
 
+    /// Initialize the run context with the given values.
+    /// # Arguments
+    /// - allocator: The allocator to use for allocating the memory for the run context.
+    /// - pc: The initial value for the program counter.
+    /// - ap: The initial value for the allocation pointer.
+    /// - fp: The initial value for the frame pointer.
+    /// # Returns
+    /// - The initialized run context.
+    /// # Errors
+    /// - If a memory allocation fails.
     pub fn init_with_values(allocator: *Allocator, pc: Relocatable, ap: Relocatable, fp: Relocatable) !*RunContext {
         var run_context = try RunContext.init(allocator);
         run_context.pc.* = pc;
@@ -37,18 +69,18 @@ pub const RunContext = struct {
         return run_context;
     }
 
-    // Safe deallocation of the memory.
+    /// Safe deallocation of the memory.
     pub fn deinit(self: *RunContext) void {
         self.allocator.destroy(self.pc);
         self.allocator.destroy(self.ap);
         self.allocator.destroy(self.fp);
     }
 
-    // Compute dst address for a given instruction.
-    // # Arguments
-    // - instruction: The instruction to compute the dst address for.
-    // # Returns
-    // - The computed dst address.
+    /// Compute dst address for a given instruction.
+    /// # Arguments
+    /// - instruction: The instruction to compute the dst address for.
+    /// # Returns
+    /// - The computed dst address.
     pub fn compute_dst_addr(self: *RunContext, instruction: *const Instruction) !Relocatable {
         var base_addr = switch (instruction.dst_reg) {
             .AP => self.ap.*,
@@ -66,11 +98,11 @@ pub const RunContext = struct {
         }
     }
 
-    // Compute OP 0 address for a given instruction.
-    // # Arguments
-    // - instruction: The instruction to compute the OP 0 address for.
-    // # Returns
-    // - The computed OP 0 address.
+    /// Compute OP 0 address for a given instruction.
+    /// # Arguments
+    /// - instruction: The instruction to compute the OP 0 address for.
+    /// # Returns
+    /// - The computed OP 0 address.
     pub fn compute_op_0_addr(self: *RunContext, instruction: *const Instruction) !Relocatable {
         var base_addr = switch (instruction.op_0_reg) {
             .AP => self.ap.*,
@@ -88,11 +120,11 @@ pub const RunContext = struct {
         }
     }
 
-    // Compute OP 1 address for a given instruction.
-    // # Arguments
-    // - instruction: The instruction to compute the OP 1 address for.
-    // # Returns
-    // - The computed OP 1 address.
+    /// Compute OP 1 address for a given instruction.
+    /// # Arguments
+    /// - instruction: The instruction to compute the OP 1 address for.
+    /// # Returns
+    /// - The computed OP 1 address.
     pub fn compute_op_1_addr(self: *RunContext, instruction: *const Instruction, op_0: ?MaybeRelocatable) !Relocatable {
         var base_addr: Relocatable = undefined;
         switch (instruction.op_1_addr) {

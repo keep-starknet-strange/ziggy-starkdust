@@ -1,3 +1,4 @@
+// Core imports.
 const std = @import("std");
 
 //  Structure of the 63-bit that form the first word of each instruction.
@@ -19,7 +20,7 @@ const std = @import("std");
 // *                       CUSTOM ERROR TYPE                                   *
 // *****************************************************************************
 
-// Error type to represent different error conditions during instruction decoding.
+/// Error type to represent different error conditions during instruction decoding.
 const Error = error{
     NonZeroHighBit,
     InvalidOp1Reg,
@@ -47,7 +48,7 @@ const FpUpdate = enum { Regular, APPlus2, Dst };
 
 const Opcode = enum { NOp, AssertEq, Call, Ret };
 
-// Represents a decoded instruction.
+/// Represents a decoded instruction.
 pub const Instruction = struct {
     off_0: i16,
     off_1: i16,
@@ -62,11 +63,11 @@ pub const Instruction = struct {
     opcode: Opcode,
 };
 
-// Decode a 64-bit instruction into its component parts.
-// # Arguments
-// - encoded_instruction: 64-bit integer containing the encoded instruction
-// # Returns
-// Decoded Instruction struct, or an error if decoding fails
+/// Decode a 64-bit instruction into its component parts.
+/// # Arguments
+/// - encoded_instruction: 64-bit integer containing the encoded instruction
+/// # Returns
+/// Decoded Instruction struct, or an error if decoding fails
 pub fn decode(encoded_instruction: u64) Error!Instruction {
     if (encoded_instruction & (1 << 63) != 0) return Error.NonZeroHighBit;
     const flags = @as(u16, @truncate(encoded_instruction >> 48));
@@ -91,11 +92,11 @@ pub fn decode(encoded_instruction: u64) Error!Instruction {
     };
 }
 
-// Parse opcode from a 3-bit integer field.
-// # Arguments
-// - opcode_num: 3-bit integer field extracted from instruction
-// # Returns
-// Parsed Opcode value, or an error if invalid
+/// Parse opcode from a 3-bit integer field.
+/// # Arguments
+/// - opcode_num: 3-bit integer field extracted from instruction
+/// # Returns
+/// Parsed Opcode value, or an error if invalid
 fn parseOpcode(opcode_num: u8) Error!Opcode {
     return switch (opcode_num) {
         0 => Opcode.NOp,
@@ -106,11 +107,11 @@ fn parseOpcode(opcode_num: u8) Error!Opcode {
     };
 }
 
-// Parse Op1Src from a 3-bit integer field.
-// # Arguments
-// - op1_src_num: 3-bit integer field extracted from instruction
-// # Returns
-// Parsed Op1Src value, or an error if invalid
+/// Parse Op1Src from a 3-bit integer field.
+/// # Arguments
+/// - op1_src_num: 3-bit integer field extracted from instruction
+/// # Returns
+/// Parsed Op1Src value, or an error if invalid
 fn parseOp1Src(op1_src_num: u8) Error!Op1Src {
     return switch (op1_src_num) {
         0 => Op1Src.Op0,
@@ -121,12 +122,12 @@ fn parseOp1Src(op1_src_num: u8) Error!Op1Src {
     };
 }
 
-// Parse res_logic from a 2-bit integer field.
-// # Arguments
-// - res_logic_num: 2-bit integer field extracted from instruction
-// - pc_update: pc_update value of the current instruction
-// # Returns
-// Parsed res_logic value, or an error if invalid
+/// Parse res_logic from a 2-bit integer field.
+/// # Arguments
+/// - res_logic_num: 2-bit integer field extracted from instruction
+/// - pc_update: pc_update value of the current instruction
+/// # Returns
+/// Parsed res_logic value, or an error if invalid
 fn parseResLogic(res_logic_num: u8, pc_update: PcUpdate) Error!ResLogic {
     return switch (res_logic_num) {
         0 => {
@@ -142,11 +143,11 @@ fn parseResLogic(res_logic_num: u8, pc_update: PcUpdate) Error!ResLogic {
     };
 }
 
-// Parse pc_update from a 3-bit integer field.
-// # Arguments
-// - pc_update_num: 3-bit integer field extracted from instruction
-// # Returns
-// Parsed pc_update value, or an error if invalid
+/// Parse pc_update from a 3-bit integer field.
+/// # Arguments
+/// - pc_update_num: 3-bit integer field extracted from instruction
+/// # Returns
+/// Parsed pc_update value, or an error if invalid
 fn parsePcUpdate(pc_update_num: u8) Error!PcUpdate {
     return switch (pc_update_num) {
         0 => PcUpdate.Regular,
@@ -157,12 +158,12 @@ fn parsePcUpdate(pc_update_num: u8) Error!PcUpdate {
     };
 }
 
-// Parse ap_update from a 2-bit integer field.
-// # Arguments
-// - ap_update_num: 2-bit integer field extracted from instruction
-// - opcode: Opcode of the current instruction
-// # Returns
-// Parsed ap_update value, or an error if invalid
+/// Parse ap_update from a 2-bit integer field.
+/// # Arguments
+/// - ap_update_num: 2-bit integer field extracted from instruction
+/// - opcode: Opcode of the current instruction
+/// # Returns
+/// Parsed ap_update value, or an error if invalid
 fn parseApUpdate(ap_update_num: u8, opcode: Opcode) Error!ApUpdate {
     return switch (ap_update_num) {
         0 => if (opcode == Opcode.Call) {
@@ -176,11 +177,11 @@ fn parseApUpdate(ap_update_num: u8, opcode: Opcode) Error!ApUpdate {
     };
 }
 
-// Parse fp_update based on the Opcode value.
-// # Arguments
-// - opcode: Opcode of the current instruction
-// # Returns
-// Appropriate fp_update value
+/// Parse fp_update based on the Opcode value.
+/// # Arguments
+/// - opcode: Opcode of the current instruction
+/// # Returns
+/// Appropriate fp_update value
 fn parseFpUpdate(opcode: Opcode) FpUpdate {
     return switch (opcode) {
         Opcode.Call => FpUpdate.APPlus2,
@@ -189,11 +190,11 @@ fn parseFpUpdate(opcode: Opcode) FpUpdate {
     };
 }
 
-// Converts a biased 16-bit representation to a 16-bit signed integer.
-// # Arguments
-// - biased_repr: Biased representation as a 16-bit integer
-// # Returns
-// 16-bit signed integer
+/// Converts a biased 16-bit representation to a 16-bit signed integer.
+/// # Arguments
+/// - biased_repr: Biased representation as a 16-bit integer
+/// # Returns
+/// 16-bit signed integer
 pub fn fromBiasedRepresentation(biased_repr: u16) i16 {
     const as_i32 = @as(i32, @intCast(biased_repr));
     return @as(i16, @intCast(as_i32 - 32768));
