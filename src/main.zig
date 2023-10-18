@@ -7,7 +7,7 @@ const starknet_felt = @import("math/fields/starknet.zig");
 const vm_core = @import("vm/core.zig");
 const RunContext = @import("vm/run_context.zig").RunContext;
 const relocatable = @import("vm/memory/relocatable.zig");
-const customlogFn = @import("log.zig").logFn;
+const customlogFn = @import("utils/log.zig").logFn;
 
 // *****************************************************************************
 // *                     GLOBAL CONFIGURATION                                  *
@@ -79,4 +79,13 @@ test "relocatable" {
 test "fields" {
     _ = @import("math/fields/fields.zig");
     _ = @import("math/fields/starknet.zig");
+}
+
+// *****************************************************************************
+// *                     UTIL TESTS                                            *
+// *****************************************************************************
+
+test "util" {
+    _ = @import("utils/log.zig");
+    _ = @import("utils/time.zig");
 }
