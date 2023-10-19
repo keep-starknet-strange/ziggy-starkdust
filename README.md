@@ -23,13 +23,45 @@
 
 - [Zig](https://ziglang.org/)
 
-## Usage
+## 🔧 Build
 
 ```bash
-zig build run
+zig build
 ```
 
-### 🛠️ Testing
+## 🤖 Usage
+
+You can display the help message by running:
+
+```bash
+./zig-out/bin/cairo-zig --help
+```
+
+```text
+cairo-zig
+Version: 0.0.1
+Author: StarkWare & Contributors
+
+USAGE:
+  cairo-zig [OPTIONS]
+
+Cairo Virtual Machine written in Zig.
+Highly experimental, use at your own risk.
+
+COMMANDS:
+  execute   Execute a cairo program.
+
+OPTIONS:
+  -h, --help   Prints help information
+```
+
+### Run a cairo program
+
+```
+./zig-out/bin/cairo-zig execute --proof-mode=false
+```
+
+### 🧪 Testing
 
 ```bash
 zig build test --summary all
@@ -51,7 +83,7 @@ Here are some resources to help you get started:
 - [Cairo VM in Rust](https://github.com/lambdaclass/cairo-vm)
 - [Cairo VM in Go](https://github.com/lambdaclass/cairo-vm_in_go)
 
-## Acknowledgments
+## 🙏 Acknowledgments
 
 - The structure of the project and some initial code related to prime field functions is based on [verkle-cryto](https://github.com/jsign/verkle-crypto) repository by [jsign](https://github.com/jsign).
 - The design of the Cairo VM is inspired by [Cairo VM in Rust](https://github.com/lambdaclass/cairo-vm) and [Cairo VM in Go](https://github.com/lambdaclass/cairo-vm_in_go) by [lambdaclass](https://lambdaclass.com/).

@@ -18,7 +18,7 @@ pub const CairoVM = struct {
     // ************************************************************
 
     /// The memory allocator. Can be needed for the deallocation of the VM resources.
-    allocator: *Allocator,
+    allocator: *const Allocator,
     /// The run context.
     run_context: *RunContext,
     /// The memory segment manager.
@@ -37,7 +37,7 @@ pub const CairoVM = struct {
     /// - `CairoVM`: The created VM.
     /// # Errors
     /// - If a memory allocation fails.
-    pub fn init(allocator: *Allocator) !CairoVM {
+    pub fn init(allocator: *const Allocator) !CairoVM {
         // Initialize the memory segment manager.
         const memory_segment_manager = try segments.MemorySegmentManager.init(allocator);
         // Initialize the run context.

@@ -31,7 +31,7 @@ pub const Memory = struct {
     // - `allocator` - The allocator to use.
     // # Returns
     // The new memory.
-    pub fn init(allocator: *Allocator) !*Memory {
+    pub fn init(allocator: *const Allocator) !*Memory {
         var memory = try allocator.create(Memory);
 
         memory.* = Memory{

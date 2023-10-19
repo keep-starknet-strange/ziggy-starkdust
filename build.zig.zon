@@ -2,4 +2,10 @@
     .name = "cairo",
     .version = "0.0.1",
     .paths = .{""},
+    .dependencies = .{
+        .@"zig-cli" = .{
+            .url = "https://github.com/sam701/zig-cli/archive/ea92821a797bdefb5df41ce602f8c7f387bcfb93.tar.gz",
+            .hash = "122044525df0d1896556da08c5ed50b456a672a52ab86a65834bb1e27d3ae7a847f2",
+        },
+    },
 }

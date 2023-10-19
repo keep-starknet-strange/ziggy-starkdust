@@ -1,5 +1,8 @@
 const std = @import("std");
 
+const package_name = "sig";
+const package_path = "src/lib.zig";
+
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
 // runner.
@@ -15,6 +18,45 @@ pub fn build(b: *std.Build) void {
     // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
 
+    // Get dependency modules.
+    const dependencies_opts = .{ .target = target, .optimize = optimize };
+    const zig_cli_module = b.dependency("zig-cli", dependencies_opts).module("zig-cli");
+
+    // **************************************************************
+    // *               CAIRO-ZIG AS A MODULE                        *
+    // **************************************************************
+    // expose cairo-zig as a module
+    _ = b.addModule(package_name, .{
+        .source_file = .{ .path = package_path },
+        .dependencies = &.{
+            .{
+                .name = "zig-cli",
+                .module = zig_cli_module,
+            },
+        },
+    });
+
+    // **************************************************************
+    // *              CAIRO-ZIG AS A LIBRARY                        *
+    // **************************************************************
+    const lib = b.addStaticLibrary(.{
+        .name = "cairo-zig",
+        // In this case the main source file is merely a path, however, in more
+        // complicated build scripts, this could be a generated file.
+        .root_source_file = .{ .path = "src/lib.zig" },
+        .target = target,
+        .optimize = optimize,
+    });
+    // Add dependency modules to the library.
+    lib.addModule("zig-cli", zig_cli_module);
+    // This declares intent for the library to be installed into the standard
+    // location when the user invokes the "install" step (the default step when
+    // running `zig build`).
+    b.installArtifact(lib);
+
+    // **************************************************************
+    // *              CAIRO-ZIG AS AN EXECUTABLE                    *
+    // **************************************************************
     const exe = b.addExecutable(.{
         .name = "cairo-zig",
         // In this case the main source file is merely a path, however, in more
@@ -23,7 +65,8 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
     });
-
+    // Add dependency modules to the executable.
+    exe.addModule("zig-cli", zig_cli_module);
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
     // step when running `zig build`).

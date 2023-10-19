@@ -1,12 +1,8 @@
 // Core imports.
 const std = @import("std");
-const builtin = @import("builtin");
+const cmd = @import("cmd/cmd.zig");
 
 // Local imports.
-const starknet_felt = @import("math/fields/starknet.zig");
-const vm_core = @import("vm/core.zig");
-const RunContext = @import("vm/run_context.zig").RunContext;
-const relocatable = @import("vm/memory/relocatable.zig");
 const customlogFn = @import("utils/log.zig").logFn;
 
 // *****************************************************************************
@@ -26,31 +22,7 @@ pub const std_options = struct {
 };
 
 pub fn main() !void {
-    // *****************************************************************************
-    // *                        INITIALIZATION                                     *
-    // *****************************************************************************
-
-    // Define a memory allocator.
-    var allocator = std.heap.page_allocator;
-
-    // Greetings message.
-    std.log.debug("Runing Cairo VM...\n", .{});
-
-    // Create a new VM instance.
-    var vm = try vm_core.CairoVM.init(&allocator);
-    defer vm.deinit(); // <-- This ensures that resources are freed when exiting the scope
-
-    const address_1 = relocatable.Relocatable.new(0, 0);
-    const encoded_instruction = relocatable.fromU64(0x14A7800080008000);
-
-    // Write a value to memory.
-    try vm.segments.memory.set(address_1, encoded_instruction);
-
-    // Run a step.
-    vm.step() catch |err| {
-        std.debug.print("Error: {}\n", .{err});
-        return;
-    };
+    try cmd.run();
 }
 
 // *****************************************************************************

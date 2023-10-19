@@ -11,7 +11,7 @@ const Instruction = @import("instructions.zig").Instruction;
 /// Contains the register states of the Cairo VM.
 pub const RunContext = struct {
     /// The allocator used to allocate the memory for the run context.
-    allocator: *Allocator,
+    allocator: *const Allocator,
     /// Program counter (pc) contains the address in memory of the current Cairo
     /// instruction to be executed.
     pc: *Relocatable,
@@ -37,7 +37,7 @@ pub const RunContext = struct {
     /// - The initialized run context.
     /// # Errors
     /// - If a memory allocation fails.
-    pub fn init(allocator: *Allocator) !*RunContext {
+    pub fn init(allocator: *const Allocator) !*RunContext {
         var run_context = try allocator.create(RunContext);
         run_context.* = RunContext{
             .allocator = allocator,

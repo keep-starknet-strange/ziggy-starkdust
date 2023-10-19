@@ -34,7 +34,7 @@ pub const MemorySegmentManager = struct {
     // * `allocator` - The allocator to use for the HashMaps.
     // # Returns
     // A new MemorySegmentManager.
-    pub fn init(allocator: *Allocator) !*MemorySegmentManager {
+    pub fn init(allocator: *const Allocator) !*MemorySegmentManager {
         // Create the pointer to the MemorySegmentManager.
         var segment_manager = try allocator.create(MemorySegmentManager);
         // Initialize the values of the MemorySegmentManager struct.
