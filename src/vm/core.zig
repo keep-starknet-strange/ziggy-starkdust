@@ -68,7 +68,7 @@ pub const CairoVM = struct {
     pub fn step(self: *CairoVM) !void {
         // TODO: Run hints.
 
-        std.log.debug("Running instruction at pc: {d}", .{self.run_context.pc.*});
+        std.log.debug("Running instruction at pc: {}", .{self.run_context.pc.*});
 
         // ************************************************************
         // *                    FETCH                                 *

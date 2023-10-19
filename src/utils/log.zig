@@ -32,31 +32,22 @@ pub fn logFn(
     comptime format: []const u8,
     args: anytype,
 ) void {
-    _ = args;
-    const scope_prefix = "(" ++ switch (scope) {
-        .cairo_zig, std.log.default_log_scope => @tagName(scope),
-        else => if (@intFromEnum(level) <= @intFromEnum(std.log.Level.err))
-            @tagName(scope)
-        else
-            return,
-    } ++ ")";
 
-    // TODO: Error handling.
-    const time_log = DateTime.now().format(&allocator) catch unreachable;
-    defer allocator.free(time_log);
-    // TODO: Error handling.
-    const prefix = std.fmt.allocPrint(allocator, "time={s} level={s} {s} msg=", .{ time_log, level.asText(), scope_prefix }) catch unreachable;
-    defer allocator.free(prefix);
+    // Capture the current time in ISO 8601 format.
+    const time_str = DateTime.now().format(allocator) catch unreachable;
 
-    // Create a mutable slice
-    // +1 for the newline
-    var combined: []u8 = allocator.alloc(u8, prefix.len + format.len + 1) catch unreachable;
-    defer allocator.free(combined);
-
-    std.mem.copy(u8, combined[0..prefix.len], prefix);
-    std.mem.copy(u8, combined[prefix.len .. prefix.len + format.len], format);
-    combined[prefix.len + format.len] = '\n';
+    // Convert the log level and scope to string using @tagName.
+    const level_str = @tagName(level);
+    const scope_str = @tagName(scope);
 
     const stderr = std.io.getStdErr().writer();
-    nosuspend stderr.print("{s}", .{combined}) catch return; // Make sure format specifiers and arguments match
+
+    // Log the header
+    _ = stderr.print("time={s} level={s} ({s}) msg=", .{ time_str, level_str, scope_str }) catch unreachable;
+
+    // Log the main message
+    nosuspend stderr.print(format, args) catch return;
+
+    // Write a newline for better readability.
+    nosuspend stderr.writeAll("\n") catch return;
 }

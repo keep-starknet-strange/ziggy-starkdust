@@ -111,8 +111,8 @@ pub const DateTime = struct {
     /// # Returns
     ///
     /// A formatted string representing the date and time.
-    pub fn format(self: DateTime, allocator: *const std.mem.Allocator) ![]const u8 {
-        return try std.fmt.allocPrint(allocator.*, "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z", .{ self.year, self.month, self.day, self.hour, self.minute, self.second });
+    pub fn format(self: DateTime, allocator: std.mem.Allocator) ![]const u8 {
+        return try std.fmt.allocPrint(allocator, "{:04}-{:02}-{:02}T{:02}:{:02}:{:02}Z", .{ self.year, self.month, self.day, self.hour, self.minute, self.second });
     }
 };
 
@@ -136,7 +136,7 @@ test "format should work as expected" {
         .second = 11,
     };
 
-    const time_log = try datetime.format(&allocator);
+    const time_log = try datetime.format(allocator);
     defer allocator.free(time_log);
 
     // This test is currently failing; the minute should be zero-padded
