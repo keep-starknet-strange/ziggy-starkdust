@@ -1,8 +1,9 @@
-# cairo-zig
+<p align="center">
+  <img src="https://github.com/abdelhamidbakhta/cairo-zig/blob/main/docs/kit/logo/starknet-zig-logo.png?raw=true" alt="Logo"/>
+  <h1 align="center">cairo-zig</h1>
+</p>
 
-## 📝 Description
-
-Cairo VM in Zig ♒.
+> _Note that `cairo-zig` is still experimental. Breaking changes will be made before the first stable release. The library is also NOT audited or reviewed for security at the moment. Use at your own risk._
 
 ## TODOs
 
