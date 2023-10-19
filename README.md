@@ -48,6 +48,7 @@ Happy coding! 🎉
 - The design of the Cairo VM is inspired by [Cairo VM in Rust](https://github.com/lambdaclass/cairo-vm) and [Cairo VM in Go](https://github.com/lambdaclass/cairo-vm_in_go) by [lambdaclass](https://lambdaclass.com/).
 - Some cryptographic primitive code generation has been done using the amazing [fiat-crypto](https://github.com/mit-plv/fiat-crypto) by [mit-plv](https://github.com/mit-plv).
 - [sig](https://github.com/Syndica/sig) has been a great source of inspiration for the project structure and the way to use Zig.
+- [nektro](https://github.com/nektro/) for the [zig-time](https://github.com/nektro/zig-time) library.
 
 ## 📚 Resources
 
