@@ -33,8 +33,9 @@ pub fn logFn(
     args: anytype,
 ) void {
 
-    // Capture the current time in ISO 8601 format.
-    const time_str = DateTime.now().format(allocator) catch unreachable;
+    // Capture the current time in UTC format.
+    const utc_format = "YYYY-MM-DDTHH:mm:ss";
+    const time_str = DateTime.now().formatAlloc(allocator, utc_format) catch unreachable;
 
     // Convert the log level and scope to string using @tagName.
     const level_str = @tagName(level);
