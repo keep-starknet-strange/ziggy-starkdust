@@ -36,6 +36,7 @@ pub fn logFn(
     // Capture the current time in UTC format.
     const utc_format = "YYYY-MM-DDTHH:mm:ss";
     const time_str = DateTime.now().formatAlloc(allocator, utc_format) catch unreachable;
+    defer allocator.free(time_str); // Free the memory allocated by the allocator in `formatAlloc`.
 
     // Convert the log level and scope to string using @tagName.
     const level_str = @tagName(level);

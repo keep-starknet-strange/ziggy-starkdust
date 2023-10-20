@@ -13,7 +13,8 @@ pub const Memory = struct {
     // ************************************************************
     // *                        FIELDS                            *
     // ************************************************************
-
+    /// The allocator used to allocate the memory.
+    allocator: *const Allocator,
     // The data in the memory.
     data: std.HashMap(relocatable.Relocatable, relocatable.MaybeRelocatable, std.hash_map.AutoContext(relocatable.Relocatable), std.hash_map.default_max_load_percentage),
     // The number of segments in the memory.
@@ -35,6 +36,7 @@ pub const Memory = struct {
         var memory = try allocator.create(Memory);
 
         memory.* = Memory{
+            .allocator = allocator,
             .data = std.AutoHashMap(relocatable.Relocatable, relocatable.MaybeRelocatable).init(allocator.*),
             .num_segments = 0,
             .validated_addresses = std.AutoHashMap(relocatable.Relocatable, bool).init(allocator.*),
@@ -47,6 +49,8 @@ pub const Memory = struct {
         // Clear the hash maps
         self.data.deinit();
         self.validated_addresses.deinit();
+        // Deallocate self.
+        self.allocator.destroy(self);
     }
 
     // ************************************************************
@@ -88,11 +92,11 @@ pub const Memory = struct {
 
 test "memory get without value raises error" {
     // Initialize an allocator.
-    // TODO: Consider using a testing allocator.
-    var allocator = std.heap.page_allocator;
+    var allocator = std.testing.allocator;
 
     // Initialize a memory instance.
     var memory = try Memory.init(&allocator);
+    defer memory.deinit();
 
     // Get a value from the memory at an address that doesn't exist.
     _ = memory.get(relocatable.Relocatable.new(0, 0)) catch |err| {
@@ -104,12 +108,11 @@ test "memory get without value raises error" {
 
 test "memory set and get" {
     // Initialize an allocator.
-    // Initialize an allocator.
-    // TODO: Consider using a testing allocator.
-    var allocator = std.heap.page_allocator;
+    var allocator = std.testing.allocator;
 
     // Initialize a memory instance.
     var memory = try Memory.init(&allocator);
+    defer memory.deinit();
 
     const address_1 = relocatable.Relocatable.new(0, 0);
     const value_1 = relocatable.fromFelt(starknet_felt.Felt252.one());

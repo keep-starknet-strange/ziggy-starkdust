@@ -504,11 +504,11 @@ pub const Duration = struct {
 const expect = std.testing.expect;
 test "time format" {
     // Initialize an allocator.
-    // TODO: Consider using a testing allocator.
-    var allocator = std.heap.page_allocator;
+    var allocator = std.testing.allocator;
     const utc_format = "YYYY-MM-DDTHH:mm:ss";
     const dt = DateTime.initUnix(1697696484);
     const formatted_dt = try dt.formatAlloc(allocator, utc_format);
+    defer allocator.free(formatted_dt); // Free the memory allocated by the allocator.
     const expected_formatted_dt = "2023-10-19T06:21:24";
     try expect(std.mem.eql(u8, formatted_dt, expected_formatted_dt));
 }

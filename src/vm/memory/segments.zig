@@ -14,7 +14,8 @@ pub const MemorySegmentManager = struct {
     // ************************************************************
     // *                        FIELDS                            *
     // ************************************************************
-
+    /// The allocator used to allocate the memory.
+    allocator: *const Allocator,
     // The size of the used segments.
     segment_used_sizes: std.HashMap(u32, u32, std.hash_map.AutoContext(u32), std.hash_map.default_max_load_percentage),
     // The size of the segments.
@@ -39,6 +40,7 @@ pub const MemorySegmentManager = struct {
         var segment_manager = try allocator.create(MemorySegmentManager);
         // Initialize the values of the MemorySegmentManager struct.
         segment_manager.* = MemorySegmentManager{
+            .allocator = allocator,
             .segment_used_sizes = std.AutoHashMap(u32, u32).init(allocator.*),
             .segment_sizes = std.AutoHashMap(u32, u32).init(allocator.*),
             // Initialize the memory pointer.
@@ -57,6 +59,8 @@ pub const MemorySegmentManager = struct {
         self.public_memory_offsets.deinit();
         // Deallocate the memory.
         self.memory.deinit();
+        // Deallocate self.
+        self.allocator.destroy(self);
     }
 
     // ************************************************************
@@ -84,13 +88,13 @@ pub const MemorySegmentManager = struct {
 
 test "memory segment manager" {
     // Initialize an allocator.
-    // TODO: Consider using a testing allocator.
-    var allocator = std.heap.page_allocator;
+    var allocator = std.testing.allocator;
 
     // Initialize a memory segment manager.
     var memory_segment_manager = try MemorySegmentManager.init(&allocator);
+    defer memory_segment_manager.deinit();
 
-    // Allocate a memory segment.
+    //Allocate a memory segment.
     const relocatable_address_1 = memory_segment_manager.addSegment();
 
     // Check that the memory segment manager has one segment.

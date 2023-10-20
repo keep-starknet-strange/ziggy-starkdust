@@ -71,9 +71,12 @@ pub const RunContext = struct {
 
     /// Safe deallocation of the memory.
     pub fn deinit(self: *RunContext) void {
+        // Deallocate fields.
         self.allocator.destroy(self.pc);
         self.allocator.destroy(self.ap);
         self.allocator.destroy(self.fp);
+        // Deallocate self.
+        self.allocator.destroy(self);
     }
 
     /// Compute dst address for a given instruction.
@@ -166,15 +169,13 @@ const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
 
 test "compute_op1_addr for fp op1 addr" {
-    // Initialize an allocator.
-    // TODO: Consider using a testing allocator.
-    var allocator = std.heap.page_allocator;
+    var allocator = std.testing.allocator;
 
     const instruction =
         Instruction{ .off_0 = 1, .off_1 = 2, .off_2 = 3, .dst_reg = .FP, .op_0_reg = .AP, .op_1_addr = .FP, .res_logic = .Add, .pc_update = .Regular, .ap_update = .Regular, .fp_update = .Regular, .opcode = .NOp };
 
     const run_context = try RunContext.init_with_values(&allocator, Relocatable.new(0, 4), Relocatable.new(0, 5), Relocatable.new(0, 6));
-
+    defer run_context.deinit();
     const relocatable_addr = try run_context.compute_op_1_addr(&instruction, null);
 
     try expect(relocatable_addr.eq(Relocatable.new(0, 9)));

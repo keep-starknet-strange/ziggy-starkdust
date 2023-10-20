@@ -299,8 +299,7 @@ test "update pc regular no imm" {
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
     // Initialize an allocator.
-    // TODO: Consider using a testing allocator.
-    var allocator = std.heap.page_allocator;
+    var allocator = std.testing.allocator;
     var instruction = instructions.Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Regular;
     instruction.op_1_addr = instructions.Op1Src.AP;
@@ -327,8 +326,7 @@ test "update pc regular with imm" {
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
     // Initialize an allocator.
-    // TODO: Consider using a testing allocator.
-    var allocator = std.heap.page_allocator;
+    var allocator = std.testing.allocator;
     var instruction = instructions.Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Regular;
     instruction.op_1_addr = instructions.Op1Src.Imm;
@@ -355,8 +353,7 @@ test "update pc jump with operands res null" {
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
     // Initialize an allocator.
-    // TODO: Consider using a testing allocator.
-    var allocator = std.heap.page_allocator;
+    var allocator = std.testing.allocator;
     var instruction = instructions.Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Jump;
     var operands = OperandsResult.default();
@@ -377,8 +374,7 @@ test "update pc jump with operands res not relocatable" {
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
     // Initialize an allocator.
-    // TODO: Consider using a testing allocator.
-    var allocator = std.heap.page_allocator;
+    var allocator = std.testing.allocator;
     var instruction = instructions.Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Jump;
     var operands = OperandsResult.default();
@@ -399,8 +395,7 @@ test "update pc jump with operands res relocatable" {
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
     // Initialize an allocator.
-    // TODO: Consider using a testing allocator.
-    var allocator = std.heap.page_allocator;
+    var allocator = std.testing.allocator;
     var instruction = instructions.Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Jump;
     var operands = OperandsResult.default();
@@ -427,8 +422,7 @@ test "update pc jump rel with operands res null" {
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
     // Initialize an allocator.
-    // TODO: Consider using a testing allocator.
-    var allocator = std.heap.page_allocator;
+    var allocator = std.testing.allocator;
     var instruction = instructions.Instruction.default();
     instruction.pc_update = instructions.PcUpdate.JumpRel;
     var operands = OperandsResult.default();
@@ -449,8 +443,7 @@ test "update pc jump rel with operands res not felt" {
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
     // Initialize an allocator.
-    // TODO: Consider using a testing allocator.
-    var allocator = std.heap.page_allocator;
+    var allocator = std.testing.allocator;
     var instruction = instructions.Instruction.default();
     instruction.pc_update = instructions.PcUpdate.JumpRel;
     var operands = OperandsResult.default();
@@ -471,8 +464,7 @@ test "update pc jump rel with operands res felt" {
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
     // Initialize an allocator.
-    // TODO: Consider using a testing allocator.
-    var allocator = std.heap.page_allocator;
+    var allocator = std.testing.allocator;
     var instruction = instructions.Instruction.default();
     instruction.pc_update = instructions.PcUpdate.JumpRel;
     var operands = OperandsResult.default();
@@ -499,8 +491,7 @@ test "update pc update jnz with operands dst zero" {
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
     // Initialize an allocator.
-    // TODO: Consider using a testing allocator.
-    var allocator = std.heap.page_allocator;
+    var allocator = std.testing.allocator;
     var instruction = instructions.Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Jnz;
     var operands = OperandsResult.default();
@@ -527,8 +518,7 @@ test "update pc update jnz with operands dst not zero op1 not felt" {
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
     // Initialize an allocator.
-    // TODO: Consider using a testing allocator.
-    var allocator = std.heap.page_allocator;
+    var allocator = std.testing.allocator;
     var instruction = instructions.Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Jnz;
     var operands = OperandsResult.default();
@@ -550,8 +540,7 @@ test "update pc update jnz with operands dst not zero op1 felt" {
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
     // Initialize an allocator.
-    // TODO: Consider using a testing allocator.
-    var allocator = std.heap.page_allocator;
+    var allocator = std.testing.allocator;
     var instruction = instructions.Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Jnz;
     var operands = OperandsResult.default();
