@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>utils/time.zig - source view</title>
+    <link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAgklEQVR4AWMYWuD7EllJIM4G4g4g5oIJ/odhOJ8wToOxSTXgNxDHoeiBMfA4+wGShjyYOCkG/IGqWQziEzYAoUAeiF9D5U+DxEg14DRU7jWIT5IBIOdCxf+A+CQZAAoopEB7QJwBCBwHiip8UYmRdrAlDpIMgApwQZNnNii5Dq0MBgCxxycBnwEd+wAAAABJRU5ErkJggg==">
+    <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNTMgMTQwIj48ZyBmaWxsPSIjRjdBNDFEIj48Zz48cG9seWdvbiBwb2ludHM9IjQ2LDIyIDI4LDQ0IDE5LDMwIi8+PHBvbHlnb24gcG9pbnRzPSI0NiwyMiAzMywzMyAyOCw0NCAyMiw0NCAyMiw5NSAzMSw5NSAyMCwxMDAgMTIsMTE3IDAsMTE3IDAsMjIiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyIvPjxwb2x5Z29uIHBvaW50cz0iMzEsOTUgMTIsMTE3IDQsMTA2Ii8+PC9nPjxnPjxwb2x5Z29uIHBvaW50cz0iNTYsMjIgNjIsMzYgMzcsNDQiLz48cG9seWdvbiBwb2ludHM9IjU2LDIyIDExMSwyMiAxMTEsNDQgMzcsNDQgNTYsMzIiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyIvPjxwb2x5Z29uIHBvaW50cz0iMTE2LDk1IDk3LDExNyA5MCwxMDQiLz48cG9seWdvbiBwb2ludHM9IjExNiw5NSAxMDAsMTA0IDk3LDExNyA0MiwxMTcgNDIsOTUiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyIvPjxwb2x5Z29uIHBvaW50cz0iMTUwLDAgNTIsMTE3IDMsMTQwIDEwMSwyMiIvPjwvZz48Zz48cG9seWdvbiBwb2ludHM9IjE0MSwyMiAxNDAsNDAgMTIyLDQ1Ii8+PHBvbHlnb24gcG9pbnRzPSIxNTMsMjIgMTUzLDExNyAxMDYsMTE3IDEyMCwxMDUgMTI1LDk1IDEzMSw5NSAxMzEsNDUgMTIyLDQ1IDEzMiwzNiAxNDEsMjIiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyIvPjxwb2x5Z29uIHBvaW50cz0iMTI1LDk1IDEzMCwxMTAgMTA2LDExNyIvPjwvZz48L2c+PC9zdmc+">
+    <style>
+      body{
+        font-family: system-ui, -apple-system, Roboto, "Segoe UI", sans-serif;
+        margin: 0;
+        line-height: 1.5;
+      }
+
+      pre > code {
+        display: block;
+        overflow: auto;
+        line-height: normal;
+        margin: 0em;
+      }
+      .tok-kw {
+          color: #333;
+          font-weight: bold;
+      }
+      .tok-str {
+          color: #d14;
+      }
+      .tok-builtin {
+          color: #005C7A;
+      }
+      .tok-comment {
+          color: #545454;
+          font-style: italic;
+      }
+      .tok-fn {
+          color: #900;
+          font-weight: bold;
+      }
+      .tok-null {
+          color: #005C5C;
+      }
+      .tok-number {
+          color: #005C5C;
+      }
+      .tok-type {
+          color: #458;
+          font-weight: bold;
+      }
+      pre {
+        counter-reset: line;
+      }
+      pre .line:before {
+        counter-increment: line;
+        content: counter(line);
+        display: inline-block;
+        padding-right: 1em;
+        width: 2em;
+        text-align: right;
+        color: #999;
+      }
+      
+      .line {
+        width: 100%;
+        display: inline-block;
+      }
+      .line:target {
+        border-top: 1px solid #ccc;
+        border-bottom: 1px solid #ccc;
+        background: #fafafa;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body{
+            background:#222;
+            color: #ccc;
+        }
+        pre > code {
+            color: #ccc;
+            background: #222;
+            border: unset;
+        }
+        .line:target {
+            border-top: 1px solid #444;
+            border-bottom: 1px solid #444;
+            background: #333;
+        }
+        .tok-kw {
+            color: #eee;
+        }
+        .tok-str {
+            color: #2e5;
+        }
+        .tok-builtin {
+            color: #ff894c;
+        }
+        .tok-comment {
+            color: #aa7;
+        }
+        .tok-fn {
+            color: #B1A0F8;
+        }
+        .tok-null {
+            color: #ff8080;
+        }
+        .tok-number {
+            color: #ff8080;
+        }
+        .tok-type {
+            color: #68f;
+        }
+      }
+    </style>
+</head>
+<body>
+<pre><code><span class="line" id="L1"><span class="tok-comment">//  Source: https://github.com/nektro/zig-time/commit/ca9c0e6b644d74c1d549cc2c1ee22113aa021bd8</span>
+</span>
+<span class="line" id="L2"><span class="tok-comment">//</span>
+</span>
+<span class="line" id="L3"><span class="tok-comment">//  MIT License</span>
+</span>
+<span class="line" id="L4"><span class="tok-comment">//</span>
+</span>
+<span class="line" id="L5"><span class="tok-comment">//  Copyright (c) 2021 Meghan Denny</span>
+</span>
+<span class="line" id="L6"><span class="tok-comment">//</span>
+</span>
+<span class="line" id="L7"><span class="tok-comment">//  Permission is hereby granted, free of charge, to any person obtaining a copy of</span>
+</span>
+<span class="line" id="L8"><span class="tok-comment">//  this software and associated documentation files (the &quot;Software&quot;), to deal in</span>
+</span>
+<span class="line" id="L9"><span class="tok-comment">//  the Software without restriction, including without limitation the rights to</span>
+</span>
+<span class="line" id="L10"><span class="tok-comment">//  use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of</span>
+</span>
+<span class="line" id="L11"><span class="tok-comment">//  the Software, and to permit persons to whom the Software is furnished to do so,</span>
+</span>
+<span class="line" id="L12"><span class="tok-comment">//  subject to the following conditions:</span>
+</span>
+<span class="line" id="L13"><span class="tok-comment">//</span>
+</span>
+<span class="line" id="L14"><span class="tok-comment">//  The above copyright notice and this permission notice shall be included in all</span>
+</span>
+<span class="line" id="L15"><span class="tok-comment">//  copies or substantial portions of the Software.</span>
+</span>
+<span class="line" id="L16"><span class="tok-comment">//</span>
+</span>
+<span class="line" id="L17"><span class="tok-comment">//  THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+</span>
+<span class="line" id="L18"><span class="tok-comment">//  IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS</span>
+</span>
+<span class="line" id="L19"><span class="tok-comment">//  FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR</span>
+</span>
+<span class="line" id="L20"><span class="tok-comment">//  COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER</span>
+</span>
+<span class="line" id="L21"><span class="tok-comment">//  IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN</span>
+</span>
+<span class="line" id="L22"><span class="tok-comment">//  CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.</span>
+</span>
+<span class="line" id="L23"></span>
+<span class="line" id="L24"><span class="tok-kw">const</span> std = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;std&quot;</span>);</span>
+<span class="line" id="L25"><span class="tok-kw">const</span> string = []<span class="tok-kw">const</span> <span class="tok-type">u8</span>;</span>
+<span class="line" id="L26"><span class="tok-kw">const</span> time = <span class="tok-builtin">@This</span>();</span>
+<span class="line" id="L27"></span>
+<span class="line" id="L28"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> DateTime = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L29">    ms: <span class="tok-type">u16</span>,</span>
+<span class="line" id="L30">    seconds: <span class="tok-type">u16</span>,</span>
+<span class="line" id="L31">    minutes: <span class="tok-type">u16</span>,</span>
+<span class="line" id="L32">    hours: <span class="tok-type">u16</span>,</span>
+<span class="line" id="L33">    days: <span class="tok-type">u16</span>,</span>
+<span class="line" id="L34">    months: <span class="tok-type">u16</span>,</span>
+<span class="line" id="L35">    years: <span class="tok-type">u16</span>,</span>
+<span class="line" id="L36">    timezone: TimeZone,</span>
+<span class="line" id="L37">    weekday: WeekDay,</span>
+<span class="line" id="L38">    era: Era,</span>
+<span class="line" id="L39"></span>
+<span class="line" id="L40">    <span class="tok-kw">const</span> Self = <span class="tok-builtin">@This</span>();</span>
+<span class="line" id="L41"></span>
+<span class="line" id="L42">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">initUnixMs</span>(unix: <span class="tok-type">u64</span>) Self {</span>
+<span class="line" id="L43">        <span class="tok-kw">return</span> epoch_unix.addMs(unix);</span>
+<span class="line" id="L44">    }</span>
+<span class="line" id="L45"></span>
+<span class="line" id="L46">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">initUnix</span>(unix: <span class="tok-type">u64</span>) Self {</span>
+<span class="line" id="L47">        <span class="tok-kw">return</span> epoch_unix.addSecs(unix);</span>
+<span class="line" id="L48">    }</span>
+<span class="line" id="L49"></span>
+<span class="line" id="L50">    <span class="tok-comment">/// Caller asserts that this is &gt; epoch</span></span>
+<span class="line" id="L51">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">init</span>(year: <span class="tok-type">u16</span>, month: <span class="tok-type">u16</span>, day: <span class="tok-type">u16</span>, hr: <span class="tok-type">u16</span>, min: <span class="tok-type">u16</span>, sec: <span class="tok-type">u16</span>) Self {</span>
+<span class="line" id="L52">        <span class="tok-kw">return</span> epoch_unix</span>
+<span class="line" id="L53">            .addYears(year - epoch_unix.years)</span>
+<span class="line" id="L54">            .addMonths(month)</span>
+<span class="line" id="L55">            .addDays(day)</span>
+<span class="line" id="L56">            .addHours(hr)</span>
+<span class="line" id="L57">            .addMins(min)</span>
+<span class="line" id="L58">            .addSecs(sec);</span>
+<span class="line" id="L59">    }</span>
+<span class="line" id="L60"></span>
+<span class="line" id="L61">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">now</span>() Self {</span>
+<span class="line" id="L62">        <span class="tok-kw">return</span> initUnixMs(<span class="tok-builtin">@as</span>(<span class="tok-type">u64</span>, <span class="tok-builtin">@intCast</span>(std.time.milliTimestamp())));</span>
+<span class="line" id="L63">    }</span>
+<span class="line" id="L64"></span>
+<span class="line" id="L65">    <span class="tok-kw">pub</span> <span class="tok-kw">const</span> epoch_unix = Self{</span>
+<span class="line" id="L66">        .ms = <span class="tok-number">0</span>,</span>
+<span class="line" id="L67">        .seconds = <span class="tok-number">0</span>,</span>
+<span class="line" id="L68">        .minutes = <span class="tok-number">0</span>,</span>
+<span class="line" id="L69">        .hours = <span class="tok-number">0</span>,</span>
+<span class="line" id="L70">        .days = <span class="tok-number">0</span>,</span>
+<span class="line" id="L71">        .months = <span class="tok-number">0</span>,</span>
+<span class="line" id="L72">        .years = <span class="tok-number">1970</span>,</span>
+<span class="line" id="L73">        .timezone = .UTC,</span>
+<span class="line" id="L74">        .weekday = .Thu,</span>
+<span class="line" id="L75">        .era = .AD,</span>
+<span class="line" id="L76">    };</span>
+<span class="line" id="L77"></span>
+<span class="line" id="L78">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">eql</span>(self: Self, other: Self) <span class="tok-type">bool</span> {</span>
+<span class="line" id="L79">        <span class="tok-kw">return</span> self.ms == other.ms <span class="tok-kw">and</span></span>
+<span class="line" id="L80">            self.seconds == other.seconds <span class="tok-kw">and</span></span>
+<span class="line" id="L81">            self.minutes == other.minutes <span class="tok-kw">and</span></span>
+<span class="line" id="L82">            self.hours == other.hours <span class="tok-kw">and</span></span>
+<span class="line" id="L83">            self.days == other.days <span class="tok-kw">and</span></span>
+<span class="line" id="L84">            self.months == other.months <span class="tok-kw">and</span></span>
+<span class="line" id="L85">            self.years == other.years <span class="tok-kw">and</span></span>
+<span class="line" id="L86">            self.timezone == other.timezone <span class="tok-kw">and</span></span>
+<span class="line" id="L87">            self.weekday == other.weekday;</span>
+<span class="line" id="L88">    }</span>
+<span class="line" id="L89"></span>
+<span class="line" id="L90">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">addMs</span>(self: Self, count: <span class="tok-type">u64</span>) Self {</span>
+<span class="line" id="L91">        <span class="tok-kw">if</span> (count == <span class="tok-number">0</span>) <span class="tok-kw">return</span> self;</span>
+<span class="line" id="L92">        <span class="tok-kw">var</span> result = self;</span>
+<span class="line" id="L93">        result.ms += <span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-builtin">@intCast</span>(count % <span class="tok-number">1000</span>));</span>
+<span class="line" id="L94">        <span class="tok-kw">return</span> result.addSecs(count / <span class="tok-number">1000</span>);</span>
+<span class="line" id="L95">    }</span>
+<span class="line" id="L96"></span>
+<span class="line" id="L97">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">addSecs</span>(self: Self, count: <span class="tok-type">u64</span>) Self {</span>
+<span class="line" id="L98">        <span class="tok-kw">if</span> (count == <span class="tok-number">0</span>) <span class="tok-kw">return</span> self;</span>
+<span class="line" id="L99">        <span class="tok-kw">var</span> result = self;</span>
+<span class="line" id="L100">        result.seconds += <span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-builtin">@intCast</span>(count % <span class="tok-number">60</span>));</span>
+<span class="line" id="L101">        <span class="tok-kw">return</span> result.addMins(count / <span class="tok-number">60</span>);</span>
+<span class="line" id="L102">    }</span>
+<span class="line" id="L103"></span>
+<span class="line" id="L104">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">addMins</span>(self: Self, count: <span class="tok-type">u64</span>) Self {</span>
+<span class="line" id="L105">        <span class="tok-kw">if</span> (count == <span class="tok-number">0</span>) <span class="tok-kw">return</span> self;</span>
+<span class="line" id="L106">        <span class="tok-kw">var</span> result = self;</span>
+<span class="line" id="L107">        result.minutes += <span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-builtin">@intCast</span>(count % <span class="tok-number">60</span>));</span>
+<span class="line" id="L108">        <span class="tok-kw">return</span> result.addHours(count / <span class="tok-number">60</span>);</span>
+<span class="line" id="L109">    }</span>
+<span class="line" id="L110"></span>
+<span class="line" id="L111">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">addHours</span>(self: Self, count: <span class="tok-type">u64</span>) Self {</span>
+<span class="line" id="L112">        <span class="tok-kw">if</span> (count == <span class="tok-number">0</span>) <span class="tok-kw">return</span> self;</span>
+<span class="line" id="L113">        <span class="tok-kw">var</span> result = self;</span>
+<span class="line" id="L114">        result.hours += <span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-builtin">@intCast</span>(count % <span class="tok-number">24</span>));</span>
+<span class="line" id="L115">        <span class="tok-kw">return</span> result.addDays(count / <span class="tok-number">24</span>);</span>
+<span class="line" id="L116">    }</span>
+<span class="line" id="L117"></span>
+<span class="line" id="L118">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">addDays</span>(self: Self, count: <span class="tok-type">u64</span>) Self {</span>
+<span class="line" id="L119">        <span class="tok-kw">if</span> (count == <span class="tok-number">0</span>) <span class="tok-kw">return</span> self;</span>
+<span class="line" id="L120">        <span class="tok-kw">var</span> result = self;</span>
+<span class="line" id="L121">        <span class="tok-kw">var</span> input = count;</span>
+<span class="line" id="L122"></span>
+<span class="line" id="L123">        <span class="tok-kw">while</span> (<span class="tok-null">true</span>) {</span>
+<span class="line" id="L124">            <span class="tok-kw">const</span> year_len = result.daysThisYear();</span>
+<span class="line" id="L125">            <span class="tok-kw">if</span> (input &gt;= year_len) {</span>
+<span class="line" id="L126">                result.years += <span class="tok-number">1</span>;</span>
+<span class="line" id="L127">                input -= year_len;</span>
+<span class="line" id="L128">                result.incrementWeekday(year_len);</span>
+<span class="line" id="L129">                <span class="tok-kw">continue</span>;</span>
+<span class="line" id="L130">            }</span>
+<span class="line" id="L131">            <span class="tok-kw">break</span>;</span>
+<span class="line" id="L132">        }</span>
+<span class="line" id="L133">        <span class="tok-kw">while</span> (<span class="tok-null">true</span>) {</span>
+<span class="line" id="L134">            <span class="tok-kw">const</span> month_len = result.daysThisMonth();</span>
+<span class="line" id="L135">            <span class="tok-kw">if</span> (input &gt;= month_len) {</span>
+<span class="line" id="L136">                result.months += <span class="tok-number">1</span>;</span>
+<span class="line" id="L137">                input -= month_len;</span>
+<span class="line" id="L138">                result.incrementWeekday(month_len);</span>
+<span class="line" id="L139"></span>
+<span class="line" id="L140">                <span class="tok-kw">if</span> (result.months == <span class="tok-number">12</span>) {</span>
+<span class="line" id="L141">                    result.years += <span class="tok-number">1</span>;</span>
+<span class="line" id="L142">                    result.months = <span class="tok-number">0</span>;</span>
+<span class="line" id="L143">                }</span>
+<span class="line" id="L144">                <span class="tok-kw">continue</span>;</span>
+<span class="line" id="L145">            }</span>
+<span class="line" id="L146">            <span class="tok-kw">break</span>;</span>
+<span class="line" id="L147">        }</span>
+<span class="line" id="L148">        {</span>
+<span class="line" id="L149">            <span class="tok-kw">const</span> month_len = result.daysThisMonth();</span>
+<span class="line" id="L150">            <span class="tok-kw">if</span> (result.days + input &gt; month_len) {</span>
+<span class="line" id="L151">                <span class="tok-kw">const</span> left = month_len - result.days;</span>
+<span class="line" id="L152">                input -= left;</span>
+<span class="line" id="L153">                result.months += <span class="tok-number">1</span>;</span>
+<span class="line" id="L154">                result.days = <span class="tok-number">0</span>;</span>
+<span class="line" id="L155">                result.incrementWeekday(left);</span>
+<span class="line" id="L156">            }</span>
+<span class="line" id="L157">            result.days += <span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-builtin">@intCast</span>(input));</span>
+<span class="line" id="L158">            result.incrementWeekday(input);</span>
+<span class="line" id="L159"></span>
+<span class="line" id="L160">            <span class="tok-kw">if</span> (result.months == <span class="tok-number">12</span>) {</span>
+<span class="line" id="L161">                result.years += <span class="tok-number">1</span>;</span>
+<span class="line" id="L162">                result.months = <span class="tok-number">0</span>;</span>
+<span class="line" id="L163">            }</span>
+<span class="line" id="L164">        }</span>
+<span class="line" id="L165"></span>
+<span class="line" id="L166">        <span class="tok-kw">return</span> result;</span>
+<span class="line" id="L167">    }</span>
+<span class="line" id="L168"></span>
+<span class="line" id="L169">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">addMonths</span>(self: Self, count: <span class="tok-type">u64</span>) Self {</span>
+<span class="line" id="L170">        <span class="tok-kw">if</span> (count == <span class="tok-number">0</span>) <span class="tok-kw">return</span> self;</span>
+<span class="line" id="L171">        <span class="tok-kw">var</span> result = self;</span>
+<span class="line" id="L172">        <span class="tok-kw">var</span> input = count;</span>
+<span class="line" id="L173">        <span class="tok-kw">while</span> (input &gt; <span class="tok-number">0</span>) {</span>
+<span class="line" id="L174">            <span class="tok-kw">const</span> new = result.addDays(result.daysThisMonth());</span>
+<span class="line" id="L175">            result = new;</span>
+<span class="line" id="L176">            input -= <span class="tok-number">1</span>;</span>
+<span class="line" id="L177">        }</span>
+<span class="line" id="L178">        <span class="tok-kw">return</span> result;</span>
+<span class="line" id="L179">    }</span>
+<span class="line" id="L180"></span>
+<span class="line" id="L181">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">addYears</span>(self: Self, count: <span class="tok-type">u64</span>) Self {</span>
+<span class="line" id="L182">        <span class="tok-kw">if</span> (count == <span class="tok-number">0</span>) <span class="tok-kw">return</span> self;</span>
+<span class="line" id="L183">        <span class="tok-kw">return</span> self.addMonths(count * <span class="tok-number">12</span>);</span>
+<span class="line" id="L184">    }</span>
+<span class="line" id="L185"></span>
+<span class="line" id="L186">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">isLeapYear</span>(self: Self) <span class="tok-type">bool</span> {</span>
+<span class="line" id="L187">        <span class="tok-kw">return</span> time.isLeapYear(self.years);</span>
+<span class="line" id="L188">    }</span>
+<span class="line" id="L189"></span>
+<span class="line" id="L190">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">daysThisYear</span>(self: Self) <span class="tok-type">u16</span> {</span>
+<span class="line" id="L191">        <span class="tok-kw">return</span> time.daysInYear(self.years);</span>
+<span class="line" id="L192">    }</span>
+<span class="line" id="L193"></span>
+<span class="line" id="L194">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">daysThisMonth</span>(self: Self) <span class="tok-type">u16</span> {</span>
+<span class="line" id="L195">        <span class="tok-kw">return</span> self.daysInMonth(self.months);</span>
+<span class="line" id="L196">    }</span>
+<span class="line" id="L197"></span>
+<span class="line" id="L198">    <span class="tok-kw">fn</span> <span class="tok-fn">daysInMonth</span>(self: Self, month: <span class="tok-type">u16</span>) <span class="tok-type">u16</span> {</span>
+<span class="line" id="L199">        <span class="tok-kw">return</span> time.daysInMonth(self.years, month);</span>
+<span class="line" id="L200">    }</span>
+<span class="line" id="L201"></span>
+<span class="line" id="L202">    <span class="tok-kw">fn</span> <span class="tok-fn">incrementWeekday</span>(self: *Self, count: <span class="tok-type">u64</span>) <span class="tok-type">void</span> {</span>
+<span class="line" id="L203">        <span class="tok-kw">var</span> i = count % <span class="tok-number">7</span>;</span>
+<span class="line" id="L204">        <span class="tok-kw">while</span> (i &gt; <span class="tok-number">0</span>) : (i -= <span class="tok-number">1</span>) {</span>
+<span class="line" id="L205">            self.weekday = self.weekday.next();</span>
+<span class="line" id="L206">        }</span>
+<span class="line" id="L207">    }</span>
+<span class="line" id="L208"></span>
+<span class="line" id="L209">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">dayOfThisYear</span>(self: Self) <span class="tok-type">u16</span> {</span>
+<span class="line" id="L210">        <span class="tok-kw">var</span> ret: <span class="tok-type">u16</span> = <span class="tok-number">0</span>;</span>
+<span class="line" id="L211">        <span class="tok-kw">for</span> (<span class="tok-number">0</span>..self.months) |item| {</span>
+<span class="line" id="L212">            ret += self.daysInMonth(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-builtin">@intCast</span>(item)));</span>
+<span class="line" id="L213">        }</span>
+<span class="line" id="L214">        ret += self.days;</span>
+<span class="line" id="L215">        <span class="tok-kw">return</span> ret;</span>
+<span class="line" id="L216">    }</span>
+<span class="line" id="L217"></span>
+<span class="line" id="L218">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">toUnix</span>(self: Self) <span class="tok-type">u64</span> {</span>
+<span class="line" id="L219">        <span class="tok-kw">const</span> x = self.toUnixMilli();</span>
+<span class="line" id="L220">        <span class="tok-kw">return</span> x / <span class="tok-number">1000</span>;</span>
+<span class="line" id="L221">    }</span>
+<span class="line" id="L222"></span>
+<span class="line" id="L223">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">toUnixMilli</span>(self: Self) <span class="tok-type">u64</span> {</span>
+<span class="line" id="L224">        <span class="tok-kw">var</span> res: <span class="tok-type">u64</span> = <span class="tok-number">0</span>;</span>
+<span class="line" id="L225">        res += self.ms;</span>
+<span class="line" id="L226">        res += <span class="tok-builtin">@as</span>(<span class="tok-type">u64</span>, self.seconds) * std.time.ms_per_s;</span>
+<span class="line" id="L227">        res += <span class="tok-builtin">@as</span>(<span class="tok-type">u64</span>, self.minutes) * std.time.ms_per_min;</span>
+<span class="line" id="L228">        res += <span class="tok-builtin">@as</span>(<span class="tok-type">u64</span>, self.hours) * std.time.ms_per_hour;</span>
+<span class="line" id="L229">        res += self.daysSinceEpoch() * std.time.ms_per_day;</span>
+<span class="line" id="L230">        <span class="tok-kw">return</span> res;</span>
+<span class="line" id="L231">    }</span>
+<span class="line" id="L232"></span>
+<span class="line" id="L233">    <span class="tok-kw">fn</span> <span class="tok-fn">daysSinceEpoch</span>(self: Self) <span class="tok-type">u64</span> {</span>
+<span class="line" id="L234">        <span class="tok-kw">var</span> res: <span class="tok-type">u64</span> = <span class="tok-number">0</span>;</span>
+<span class="line" id="L235">        res += self.days;</span>
+<span class="line" id="L236">        <span class="tok-kw">for</span> (<span class="tok-number">0</span>..self.years - epoch_unix.years) |i| res += time.daysInYear(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-builtin">@intCast</span>(i)));</span>
+<span class="line" id="L237">        <span class="tok-kw">for</span> (<span class="tok-number">0</span>..self.months) |i| res += self.daysInMonth(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-builtin">@intCast</span>(i)));</span>
+<span class="line" id="L238">        <span class="tok-kw">return</span> res;</span>
+<span class="line" id="L239">    }</span>
+<span class="line" id="L240"></span>
+<span class="line" id="L241">    <span class="tok-comment">/// fmt is based on https://momentjs.com/docs/#/displaying/format/</span></span>
+<span class="line" id="L242">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">format</span>(self: Self, <span class="tok-kw">comptime</span> fmt: string, options: std.fmt.FormatOptions, writer: <span class="tok-kw">anytype</span>) !<span class="tok-type">void</span> {</span>
+<span class="line" id="L243">        _ = options;</span>
+<span class="line" id="L244"></span>
+<span class="line" id="L245">        <span class="tok-kw">if</span> (fmt.len == <span class="tok-number">0</span>) <span class="tok-builtin">@compileError</span>(<span class="tok-str">&quot;DateTime: format string can't be empty&quot;</span>);</span>
+<span class="line" id="L246"></span>
+<span class="line" id="L247">        <span class="tok-builtin">@setEvalBranchQuota</span>(<span class="tok-number">100000</span>);</span>
+<span class="line" id="L248"></span>
+<span class="line" id="L249">        <span class="tok-kw">comptime</span> <span class="tok-kw">var</span> s = <span class="tok-number">0</span>;</span>
+<span class="line" id="L250">        <span class="tok-kw">comptime</span> <span class="tok-kw">var</span> e = <span class="tok-number">0</span>;</span>
+<span class="line" id="L251">        <span class="tok-kw">comptime</span> <span class="tok-kw">var</span> next: ?FormatSeq = <span class="tok-null">null</span>;</span>
+<span class="line" id="L252">        <span class="tok-kw">inline</span> <span class="tok-kw">for</span> (fmt, <span class="tok-number">0</span>..) |c, i| {</span>
+<span class="line" id="L253">            e = i + <span class="tok-number">1</span>;</span>
+<span class="line" id="L254"></span>
+<span class="line" id="L255">            <span class="tok-kw">if</span> (<span class="tok-kw">comptime</span> std.meta.stringToEnum(FormatSeq, fmt[s..e])) |tag| {</span>
+<span class="line" id="L256">                next = tag;</span>
+<span class="line" id="L257">                <span class="tok-kw">if</span> (i &lt; fmt.len - <span class="tok-number">1</span>) <span class="tok-kw">continue</span>;</span>
+<span class="line" id="L258">            }</span>
+<span class="line" id="L259"></span>
+<span class="line" id="L260">            <span class="tok-kw">if</span> (next) |tag| {</span>
+<span class="line" id="L261">                <span class="tok-kw">switch</span> (tag) {</span>
+<span class="line" id="L262">                    .MM =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{:0&gt;2}&quot;</span>, .{self.months + <span class="tok-number">1</span>}),</span>
+<span class="line" id="L263">                    .M =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{}&quot;</span>, .{self.months + <span class="tok-number">1</span>}),</span>
+<span class="line" id="L264">                    .Mo =&gt; <span class="tok-kw">try</span> printOrdinal(writer, self.months + <span class="tok-number">1</span>),</span>
+<span class="line" id="L265">                    .MMM =&gt; <span class="tok-kw">try</span> printLongName(writer, self.months, &amp;[_]string{ <span class="tok-str">&quot;Jan&quot;</span>, <span class="tok-str">&quot;Feb&quot;</span>, <span class="tok-str">&quot;Mar&quot;</span>, <span class="tok-str">&quot;Apr&quot;</span>, <span class="tok-str">&quot;May&quot;</span>, <span class="tok-str">&quot;Jun&quot;</span>, <span class="tok-str">&quot;Jul&quot;</span>, <span class="tok-str">&quot;Aug&quot;</span>, <span class="tok-str">&quot;Sep&quot;</span>, <span class="tok-str">&quot;Oct&quot;</span>, <span class="tok-str">&quot;Nov&quot;</span>, <span class="tok-str">&quot;Dec&quot;</span> }),</span>
+<span class="line" id="L266">                    .MMMM =&gt; <span class="tok-kw">try</span> printLongName(writer, self.months, &amp;[_]string{ <span class="tok-str">&quot;January&quot;</span>, <span class="tok-str">&quot;February&quot;</span>, <span class="tok-str">&quot;March&quot;</span>, <span class="tok-str">&quot;April&quot;</span>, <span class="tok-str">&quot;May&quot;</span>, <span class="tok-str">&quot;June&quot;</span>, <span class="tok-str">&quot;July&quot;</span>, <span class="tok-str">&quot;August&quot;</span>, <span class="tok-str">&quot;September&quot;</span>, <span class="tok-str">&quot;October&quot;</span>, <span class="tok-str">&quot;November&quot;</span>, <span class="tok-str">&quot;December&quot;</span> }),</span>
+<span class="line" id="L267"></span>
+<span class="line" id="L268">                    .Q =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{}&quot;</span>, .{self.months / <span class="tok-number">3</span> + <span class="tok-number">1</span>}),</span>
+<span class="line" id="L269">                    .Qo =&gt; <span class="tok-kw">try</span> printOrdinal(writer, self.months / <span class="tok-number">3</span> + <span class="tok-number">1</span>),</span>
+<span class="line" id="L270"></span>
+<span class="line" id="L271">                    .D =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{}&quot;</span>, .{self.days + <span class="tok-number">1</span>}),</span>
+<span class="line" id="L272">                    .Do =&gt; <span class="tok-kw">try</span> printOrdinal(writer, self.days + <span class="tok-number">1</span>),</span>
+<span class="line" id="L273">                    .DD =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{:0&gt;2}&quot;</span>, .{self.days + <span class="tok-number">1</span>}),</span>
+<span class="line" id="L274"></span>
+<span class="line" id="L275">                    .DDD =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{}&quot;</span>, .{self.dayOfThisYear() + <span class="tok-number">1</span>}),</span>
+<span class="line" id="L276">                    .DDDo =&gt; <span class="tok-kw">try</span> printOrdinal(writer, self.dayOfThisYear() + <span class="tok-number">1</span>),</span>
+<span class="line" id="L277">                    .DDDD =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{:0&gt;3}&quot;</span>, .{self.dayOfThisYear() + <span class="tok-number">1</span>}),</span>
+<span class="line" id="L278"></span>
+<span class="line" id="L279">                    .d =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{}&quot;</span>, .{<span class="tok-builtin">@intFromEnum</span>(self.weekday)}),</span>
+<span class="line" id="L280">                    .do =&gt; <span class="tok-kw">try</span> printOrdinal(writer, <span class="tok-builtin">@intFromEnum</span>(self.weekday)),</span>
+<span class="line" id="L281">                    .dd =&gt; <span class="tok-kw">try</span> writer.writeAll(<span class="tok-builtin">@tagName</span>(self.weekday)[<span class="tok-number">0</span>..<span class="tok-number">2</span>]),</span>
+<span class="line" id="L282">                    .ddd =&gt; <span class="tok-kw">try</span> writer.writeAll(<span class="tok-builtin">@tagName</span>(self.weekday)),</span>
+<span class="line" id="L283">                    .dddd =&gt; <span class="tok-kw">try</span> printLongName(writer, <span class="tok-builtin">@intFromEnum</span>(self.weekday), &amp;[_]string{ <span class="tok-str">&quot;Sunday&quot;</span>, <span class="tok-str">&quot;Monday&quot;</span>, <span class="tok-str">&quot;Tuesday&quot;</span>, <span class="tok-str">&quot;Wednesday&quot;</span>, <span class="tok-str">&quot;Thursday&quot;</span>, <span class="tok-str">&quot;Friday&quot;</span>, <span class="tok-str">&quot;Saturday&quot;</span> }),</span>
+<span class="line" id="L284">                    .e =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{}&quot;</span>, .{<span class="tok-builtin">@intFromEnum</span>(self.weekday)}),</span>
+<span class="line" id="L285">                    .E =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{}&quot;</span>, .{<span class="tok-builtin">@intFromEnum</span>(self.weekday) + <span class="tok-number">1</span>}),</span>
+<span class="line" id="L286"></span>
+<span class="line" id="L287">                    .w =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{}&quot;</span>, .{self.dayOfThisYear() / <span class="tok-number">7</span> + <span class="tok-number">1</span>}),</span>
+<span class="line" id="L288">                    .wo =&gt; <span class="tok-kw">try</span> printOrdinal(writer, self.dayOfThisYear() / <span class="tok-number">7</span> + <span class="tok-number">1</span>),</span>
+<span class="line" id="L289">                    .ww =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{:0&gt;2}&quot;</span>, .{self.dayOfThisYear() / <span class="tok-number">7</span> + <span class="tok-number">1</span>}),</span>
+<span class="line" id="L290"></span>
+<span class="line" id="L291">                    .Y =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{}&quot;</span>, .{self.years + <span class="tok-number">10000</span>}),</span>
+<span class="line" id="L292">                    .YY =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{:0&gt;2}&quot;</span>, .{self.years % <span class="tok-number">100</span>}),</span>
+<span class="line" id="L293">                    .YYY =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{}&quot;</span>, .{self.years}),</span>
+<span class="line" id="L294">                    .YYYY =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{:0&gt;4}&quot;</span>, .{self.years}),</span>
+<span class="line" id="L295"></span>
+<span class="line" id="L296">                    .N =&gt; <span class="tok-kw">try</span> writer.writeAll(<span class="tok-builtin">@tagName</span>(self.era)),</span>
+<span class="line" id="L297">                    .NN =&gt; <span class="tok-kw">try</span> writer.writeAll(<span class="tok-str">&quot;Anno Domini&quot;</span>),</span>
+<span class="line" id="L298"></span>
+<span class="line" id="L299">                    .A =&gt; <span class="tok-kw">try</span> printLongName(writer, self.hours / <span class="tok-number">12</span>, &amp;[_]string{ <span class="tok-str">&quot;AM&quot;</span>, <span class="tok-str">&quot;PM&quot;</span> }),</span>
+<span class="line" id="L300">                    .a =&gt; <span class="tok-kw">try</span> printLongName(writer, self.hours / <span class="tok-number">12</span>, &amp;[_]string{ <span class="tok-str">&quot;am&quot;</span>, <span class="tok-str">&quot;pm&quot;</span> }),</span>
+<span class="line" id="L301"></span>
+<span class="line" id="L302">                    .H =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{}&quot;</span>, .{self.hours}),</span>
+<span class="line" id="L303">                    .HH =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{:0&gt;2}&quot;</span>, .{self.hours}),</span>
+<span class="line" id="L304">                    .h =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{}&quot;</span>, .{wrap(self.hours, <span class="tok-number">12</span>)}),</span>
+<span class="line" id="L305">                    .hh =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{:0&gt;2}&quot;</span>, .{wrap(self.hours, <span class="tok-number">12</span>)}),</span>
+<span class="line" id="L306">                    .k =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{}&quot;</span>, .{wrap(self.hours, <span class="tok-number">24</span>)}),</span>
+<span class="line" id="L307">                    .kk =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{:0&gt;2}&quot;</span>, .{wrap(self.hours, <span class="tok-number">24</span>)}),</span>
+<span class="line" id="L308"></span>
+<span class="line" id="L309">                    .m =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{}&quot;</span>, .{self.minutes}),</span>
+<span class="line" id="L310">                    .mm =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{:0&gt;2}&quot;</span>, .{self.minutes}),</span>
+<span class="line" id="L311"></span>
+<span class="line" id="L312">                    .s =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{}&quot;</span>, .{self.seconds}),</span>
+<span class="line" id="L313">                    .ss =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{:0&gt;2}&quot;</span>, .{self.seconds}),</span>
+<span class="line" id="L314"></span>
+<span class="line" id="L315">                    .S =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{}&quot;</span>, .{self.ms / <span class="tok-number">100</span>}),</span>
+<span class="line" id="L316">                    .SS =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{:0&gt;2}&quot;</span>, .{self.ms / <span class="tok-number">10</span>}),</span>
+<span class="line" id="L317">                    .SSS =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{:0&gt;3}&quot;</span>, .{self.ms}),</span>
+<span class="line" id="L318"></span>
+<span class="line" id="L319">                    .z =&gt; <span class="tok-kw">try</span> writer.writeAll(<span class="tok-builtin">@tagName</span>(self.timezone)),</span>
+<span class="line" id="L320">                    .Z =&gt; <span class="tok-kw">try</span> writer.writeAll(<span class="tok-str">&quot;+00:00&quot;</span>),</span>
+<span class="line" id="L321">                    .ZZ =&gt; <span class="tok-kw">try</span> writer.writeAll(<span class="tok-str">&quot;+0000&quot;</span>),</span>
+<span class="line" id="L322"></span>
+<span class="line" id="L323">                    .x =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{}&quot;</span>, .{self.toUnixMilli()}),</span>
+<span class="line" id="L324">                    .X =&gt; <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{}&quot;</span>, .{self.toUnix()}),</span>
+<span class="line" id="L325">                }</span>
+<span class="line" id="L326">                next = <span class="tok-null">null</span>;</span>
+<span class="line" id="L327">                s = i;</span>
+<span class="line" id="L328">            }</span>
+<span class="line" id="L329"></span>
+<span class="line" id="L330">            <span class="tok-kw">switch</span> (c) {</span>
+<span class="line" id="L331">                <span class="tok-str">','</span>,</span>
+<span class="line" id="L332">                <span class="tok-str">' '</span>,</span>
+<span class="line" id="L333">                <span class="tok-str">':'</span>,</span>
+<span class="line" id="L334">                <span class="tok-str">'-'</span>,</span>
+<span class="line" id="L335">                <span class="tok-str">'.'</span>,</span>
+<span class="line" id="L336">                <span class="tok-str">'T'</span>,</span>
+<span class="line" id="L337">                <span class="tok-str">'W'</span>,</span>
+<span class="line" id="L338">                =&gt; {</span>
+<span class="line" id="L339">                    <span class="tok-kw">try</span> writer.writeAll(&amp;.{c});</span>
+<span class="line" id="L340">                    s = i + <span class="tok-number">1</span>;</span>
+<span class="line" id="L341">                    <span class="tok-kw">continue</span>;</span>
+<span class="line" id="L342">                },</span>
+<span class="line" id="L343">                <span class="tok-kw">else</span> =&gt; {},</span>
+<span class="line" id="L344">            }</span>
+<span class="line" id="L345">        }</span>
+<span class="line" id="L346">    }</span>
+<span class="line" id="L347"></span>
+<span class="line" id="L348">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">formatAlloc</span>(self: Self, alloc: std.mem.Allocator, <span class="tok-kw">comptime</span> fmt: string) !string {</span>
+<span class="line" id="L349">        <span class="tok-kw">var</span> list = std.ArrayList(<span class="tok-type">u8</span>).init(alloc);</span>
+<span class="line" id="L350">        <span class="tok-kw">defer</span> list.deinit();</span>
+<span class="line" id="L351"></span>
+<span class="line" id="L352">        <span class="tok-kw">try</span> self.format(fmt, .{}, list.writer());</span>
+<span class="line" id="L353">        <span class="tok-kw">return</span> list.toOwnedSlice();</span>
+<span class="line" id="L354">    }</span>
+<span class="line" id="L355"></span>
+<span class="line" id="L356">    <span class="tok-kw">const</span> FormatSeq = <span class="tok-kw">enum</span> {</span>
+<span class="line" id="L357">        M, <span class="tok-comment">// 1 2 ... 11 12</span>
+</span>
+<span class="line" id="L358">        Mo, <span class="tok-comment">// 1st 2nd ... 11th 12th</span>
+</span>
+<span class="line" id="L359">        MM, <span class="tok-comment">// 01 02 ... 11 12</span>
+</span>
+<span class="line" id="L360">        MMM, <span class="tok-comment">// Jan Feb ... Nov Dec</span>
+</span>
+<span class="line" id="L361">        MMMM, <span class="tok-comment">// January February ... November December</span>
+</span>
+<span class="line" id="L362">        Q, <span class="tok-comment">// 1 2 3 4</span>
+</span>
+<span class="line" id="L363">        Qo, <span class="tok-comment">// 1st 2nd 3rd 4th</span>
+</span>
+<span class="line" id="L364">        D, <span class="tok-comment">// 1 2 ... 30 31</span>
+</span>
+<span class="line" id="L365">        Do, <span class="tok-comment">// 1st 2nd ... 30th 31st</span>
+</span>
+<span class="line" id="L366">        DD, <span class="tok-comment">// 01 02 ... 30 31</span>
+</span>
+<span class="line" id="L367">        DDD, <span class="tok-comment">// 1 2 ... 364 365</span>
+</span>
+<span class="line" id="L368">        DDDo, <span class="tok-comment">// 1st 2nd ... 364th 365th</span>
+</span>
+<span class="line" id="L369">        DDDD, <span class="tok-comment">// 001 002 ... 364 365</span>
+</span>
+<span class="line" id="L370">        d, <span class="tok-comment">// 0 1 ... 5 6</span>
+</span>
+<span class="line" id="L371">        do, <span class="tok-comment">// 0th 1st ... 5th 6th</span>
+</span>
+<span class="line" id="L372">        dd, <span class="tok-comment">// Su Mo ... Fr Sa</span>
+</span>
+<span class="line" id="L373">        ddd, <span class="tok-comment">// Sun Mon ... Fri Sat</span>
+</span>
+<span class="line" id="L374">        dddd, <span class="tok-comment">// Sunday Monday ... Friday Saturday</span>
+</span>
+<span class="line" id="L375">        e, <span class="tok-comment">// 0 1 ... 5 6 (locale)</span>
+</span>
+<span class="line" id="L376">        E, <span class="tok-comment">// 1 2 ... 6 7 (ISO)</span>
+</span>
+<span class="line" id="L377">        w, <span class="tok-comment">// 1 2 ... 52 53</span>
+</span>
+<span class="line" id="L378">        wo, <span class="tok-comment">// 1st 2nd ... 52nd 53rd</span>
+</span>
+<span class="line" id="L379">        ww, <span class="tok-comment">// 01 02 ... 52 53</span>
+</span>
+<span class="line" id="L380">        Y, <span class="tok-comment">// 11970 11971 ... 19999 20000 20001 (Holocene calendar)</span>
+</span>
+<span class="line" id="L381">        YY, <span class="tok-comment">// 70 71 ... 29 30</span>
+</span>
+<span class="line" id="L382">        YYY, <span class="tok-comment">// 1 2 ... 1970 1971 ... 2029 2030</span>
+</span>
+<span class="line" id="L383">        YYYY, <span class="tok-comment">// 0001 0002 ... 1970 1971 ... 2029 2030</span>
+</span>
+<span class="line" id="L384">        N, <span class="tok-comment">// BC AD</span>
+</span>
+<span class="line" id="L385">        NN, <span class="tok-comment">// Before Christ ... Anno Domini</span>
+</span>
+<span class="line" id="L386">        A, <span class="tok-comment">// AM PM</span>
+</span>
+<span class="line" id="L387">        a, <span class="tok-comment">// am pm</span>
+</span>
+<span class="line" id="L388">        H, <span class="tok-comment">// 0 1 ... 22 23</span>
+</span>
+<span class="line" id="L389">        HH, <span class="tok-comment">// 00 01 ... 22 23</span>
+</span>
+<span class="line" id="L390">        h, <span class="tok-comment">// 1 2 ... 11 12</span>
+</span>
+<span class="line" id="L391">        hh, <span class="tok-comment">// 01 02 ... 11 12</span>
+</span>
+<span class="line" id="L392">        k, <span class="tok-comment">// 1 2 ... 23 24</span>
+</span>
+<span class="line" id="L393">        kk, <span class="tok-comment">// 01 02 ... 23 24</span>
+</span>
+<span class="line" id="L394">        m, <span class="tok-comment">// 0 1 ... 58 59</span>
+</span>
+<span class="line" id="L395">        mm, <span class="tok-comment">// 00 01 ... 58 59</span>
+</span>
+<span class="line" id="L396">        s, <span class="tok-comment">// 0 1 ... 58 59</span>
+</span>
+<span class="line" id="L397">        ss, <span class="tok-comment">// 00 01 ... 58 59</span>
+</span>
+<span class="line" id="L398">        S, <span class="tok-comment">// 0 1 ... 8 9 (second fraction)</span>
+</span>
+<span class="line" id="L399">        SS, <span class="tok-comment">// 00 01 ... 98 99</span>
+</span>
+<span class="line" id="L400">        SSS, <span class="tok-comment">// 000 001 ... 998 999</span>
+</span>
+<span class="line" id="L401">        z, <span class="tok-comment">// EST CST ... MST PST</span>
+</span>
+<span class="line" id="L402">        Z, <span class="tok-comment">// -07:00 -06:00 ... +06:00 +07:00</span>
+</span>
+<span class="line" id="L403">        ZZ, <span class="tok-comment">// -0700 -0600 ... +0600 +0700</span>
+</span>
+<span class="line" id="L404">        x, <span class="tok-comment">// unix milli</span>
+</span>
+<span class="line" id="L405">        X, <span class="tok-comment">// unix</span>
+</span>
+<span class="line" id="L406">    };</span>
+<span class="line" id="L407"></span>
+<span class="line" id="L408">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">since</span>(self: Self, other_in_the_past: Self) Duration {</span>
+<span class="line" id="L409">        <span class="tok-kw">return</span> Duration{</span>
+<span class="line" id="L410">            .ms = self.toUnixMilli() - other_in_the_past.toUnixMilli(),</span>
+<span class="line" id="L411">        };</span>
+<span class="line" id="L412">    }</span>
+<span class="line" id="L413">};</span>
+<span class="line" id="L414"></span>
+<span class="line" id="L415"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> format = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L416">    <span class="tok-kw">pub</span> <span class="tok-kw">const</span> LT = <span class="tok-str">&quot;&quot;</span>;</span>
+<span class="line" id="L417">    <span class="tok-kw">pub</span> <span class="tok-kw">const</span> LTS = <span class="tok-str">&quot;&quot;</span>;</span>
+<span class="line" id="L418">    <span class="tok-kw">pub</span> <span class="tok-kw">const</span> L = <span class="tok-str">&quot;&quot;</span>;</span>
+<span class="line" id="L419">    <span class="tok-kw">pub</span> <span class="tok-kw">const</span> l = <span class="tok-str">&quot;&quot;</span>;</span>
+<span class="line" id="L420">    <span class="tok-kw">pub</span> <span class="tok-kw">const</span> LL = <span class="tok-str">&quot;&quot;</span>;</span>
+<span class="line" id="L421">    <span class="tok-kw">pub</span> <span class="tok-kw">const</span> ll = <span class="tok-str">&quot;&quot;</span>;</span>
+<span class="line" id="L422">    <span class="tok-kw">pub</span> <span class="tok-kw">const</span> LLL = <span class="tok-str">&quot;&quot;</span>;</span>
+<span class="line" id="L423">    <span class="tok-kw">pub</span> <span class="tok-kw">const</span> lll = <span class="tok-str">&quot;&quot;</span>;</span>
+<span class="line" id="L424">    <span class="tok-kw">pub</span> <span class="tok-kw">const</span> LLLL = <span class="tok-str">&quot;&quot;</span>;</span>
+<span class="line" id="L425">    <span class="tok-kw">pub</span> <span class="tok-kw">const</span> llll = <span class="tok-str">&quot;&quot;</span>;</span>
+<span class="line" id="L426">};</span>
+<span class="line" id="L427"></span>
+<span class="line" id="L428"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> TimeZone = <span class="tok-kw">enum</span> {</span>
+<span class="line" id="L429">    UTC,</span>
+<span class="line" id="L430">};</span>
+<span class="line" id="L431"></span>
+<span class="line" id="L432"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> WeekDay = <span class="tok-kw">enum</span> {</span>
+<span class="line" id="L433">    Sun,</span>
+<span class="line" id="L434">    Mon,</span>
+<span class="line" id="L435">    Tue,</span>
+<span class="line" id="L436">    Wed,</span>
+<span class="line" id="L437">    Thu,</span>
+<span class="line" id="L438">    Fri,</span>
+<span class="line" id="L439">    Sat,</span>
+<span class="line" id="L440"></span>
+<span class="line" id="L441">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">next</span>(self: WeekDay) WeekDay {</span>
+<span class="line" id="L442">        <span class="tok-kw">return</span> <span class="tok-kw">switch</span> (self) {</span>
+<span class="line" id="L443">            .Sun =&gt; .Mon,</span>
+<span class="line" id="L444">            .Mon =&gt; .Tue,</span>
+<span class="line" id="L445">            .Tue =&gt; .Wed,</span>
+<span class="line" id="L446">            .Wed =&gt; .Thu,</span>
+<span class="line" id="L447">            .Thu =&gt; .Fri,</span>
+<span class="line" id="L448">            .Fri =&gt; .Sat,</span>
+<span class="line" id="L449">            .Sat =&gt; .Sun,</span>
+<span class="line" id="L450">        };</span>
+<span class="line" id="L451">    }</span>
+<span class="line" id="L452">};</span>
+<span class="line" id="L453"></span>
+<span class="line" id="L454"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> Era = <span class="tok-kw">enum</span> {</span>
+<span class="line" id="L455">    <span class="tok-comment">// BC,</span>
+</span>
+<span class="line" id="L456">    AD,</span>
+<span class="line" id="L457">};</span>
+<span class="line" id="L458"></span>
+<span class="line" id="L459"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">isLeapYear</span>(year: <span class="tok-type">u16</span>) <span class="tok-type">bool</span> {</span>
+<span class="line" id="L460">    <span class="tok-kw">var</span> ret = <span class="tok-null">false</span>;</span>
+<span class="line" id="L461">    <span class="tok-kw">if</span> (year % <span class="tok-number">4</span> == <span class="tok-number">0</span>) ret = <span class="tok-null">true</span>;</span>
+<span class="line" id="L462">    <span class="tok-kw">if</span> (year % <span class="tok-number">100</span> == <span class="tok-number">0</span>) ret = <span class="tok-null">false</span>;</span>
+<span class="line" id="L463">    <span class="tok-kw">if</span> (year % <span class="tok-number">400</span> == <span class="tok-number">0</span>) ret = <span class="tok-null">true</span>;</span>
+<span class="line" id="L464">    <span class="tok-kw">return</span> ret;</span>
+<span class="line" id="L465">}</span>
+<span class="line" id="L466"></span>
+<span class="line" id="L467"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">daysInYear</span>(year: <span class="tok-type">u16</span>) <span class="tok-type">u16</span> {</span>
+<span class="line" id="L468">    <span class="tok-kw">return</span> <span class="tok-kw">if</span> (isLeapYear(year)) <span class="tok-number">366</span> <span class="tok-kw">else</span> <span class="tok-number">365</span>;</span>
+<span class="line" id="L469">}</span>
+<span class="line" id="L470"></span>
+<span class="line" id="L471"><span class="tok-kw">fn</span> <span class="tok-fn">daysInMonth</span>(year: <span class="tok-type">u16</span>, month: <span class="tok-type">u16</span>) <span class="tok-type">u16</span> {</span>
+<span class="line" id="L472">    <span class="tok-kw">const</span> norm = [<span class="tok-number">12</span>]<span class="tok-type">u16</span>{ <span class="tok-number">31</span>, <span class="tok-number">28</span>, <span class="tok-number">31</span>, <span class="tok-number">30</span>, <span class="tok-number">31</span>, <span class="tok-number">30</span>, <span class="tok-number">31</span>, <span class="tok-number">31</span>, <span class="tok-number">30</span>, <span class="tok-number">31</span>, <span class="tok-number">30</span>, <span class="tok-number">31</span> };</span>
+<span class="line" id="L473">    <span class="tok-kw">const</span> leap = [<span class="tok-number">12</span>]<span class="tok-type">u16</span>{ <span class="tok-number">31</span>, <span class="tok-number">29</span>, <span class="tok-number">31</span>, <span class="tok-number">30</span>, <span class="tok-number">31</span>, <span class="tok-number">30</span>, <span class="tok-number">31</span>, <span class="tok-number">31</span>, <span class="tok-number">30</span>, <span class="tok-number">31</span>, <span class="tok-number">30</span>, <span class="tok-number">31</span> };</span>
+<span class="line" id="L474">    <span class="tok-kw">const</span> month_days = <span class="tok-kw">if</span> (!isLeapYear(year)) norm <span class="tok-kw">else</span> leap;</span>
+<span class="line" id="L475">    <span class="tok-kw">return</span> month_days[month];</span>
+<span class="line" id="L476">}</span>
+<span class="line" id="L477"></span>
+<span class="line" id="L478"><span class="tok-kw">fn</span> <span class="tok-fn">printOrdinal</span>(writer: <span class="tok-kw">anytype</span>, num: <span class="tok-type">u16</span>) !<span class="tok-type">void</span> {</span>
+<span class="line" id="L479">    <span class="tok-kw">try</span> writer.print(<span class="tok-str">&quot;{}&quot;</span>, .{num});</span>
+<span class="line" id="L480">    <span class="tok-kw">try</span> writer.writeAll(<span class="tok-kw">switch</span> (num) {</span>
+<span class="line" id="L481">        <span class="tok-number">1</span> =&gt; <span class="tok-str">&quot;st&quot;</span>,</span>
+<span class="line" id="L482">        <span class="tok-number">2</span> =&gt; <span class="tok-str">&quot;nd&quot;</span>,</span>
+<span class="line" id="L483">        <span class="tok-number">3</span> =&gt; <span class="tok-str">&quot;rd&quot;</span>,</span>
+<span class="line" id="L484">        <span class="tok-kw">else</span> =&gt; <span class="tok-str">&quot;th&quot;</span>,</span>
+<span class="line" id="L485">    });</span>
+<span class="line" id="L486">}</span>
+<span class="line" id="L487"></span>
+<span class="line" id="L488"><span class="tok-kw">fn</span> <span class="tok-fn">printLongName</span>(writer: <span class="tok-kw">anytype</span>, index: <span class="tok-type">u16</span>, names: []<span class="tok-kw">const</span> string) !<span class="tok-type">void</span> {</span>
+<span class="line" id="L489">    <span class="tok-kw">try</span> writer.writeAll(names[index]);</span>
+<span class="line" id="L490">}</span>
+<span class="line" id="L491"></span>
+<span class="line" id="L492"><span class="tok-kw">fn</span> <span class="tok-fn">wrap</span>(val: <span class="tok-type">u16</span>, at: <span class="tok-type">u16</span>) <span class="tok-type">u16</span> {</span>
+<span class="line" id="L493">    <span class="tok-kw">var</span> tmp = val % at;</span>
+<span class="line" id="L494">    <span class="tok-kw">return</span> <span class="tok-kw">if</span> (tmp == <span class="tok-number">0</span>) at <span class="tok-kw">else</span> tmp;</span>
+<span class="line" id="L495">}</span>
+<span class="line" id="L496"></span>
+<span class="line" id="L497"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> Duration = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L498">    ms: <span class="tok-type">u64</span>,</span>
+<span class="line" id="L499">};</span>
+<span class="line" id="L500"></span>
+<span class="line" id="L501"><span class="tok-comment">// ************************************************************</span>
+</span>
+<span class="line" id="L502"><span class="tok-comment">// *                         TESTS                            *</span>
+</span>
+<span class="line" id="L503"><span class="tok-comment">// ************************************************************</span>
+</span>
+<span class="line" id="L504"><span class="tok-kw">const</span> expect = std.testing.expect;</span>
+<span class="line" id="L505"><span class="tok-kw">test</span> <span class="tok-str">&quot;time format&quot;</span> {</span>
+<span class="line" id="L506">    <span class="tok-comment">// Initialize an allocator.</span>
+</span>
+<span class="line" id="L507">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
+<span class="line" id="L508">    <span class="tok-kw">const</span> utc_format = <span class="tok-str">&quot;YYYY-MM-DDTHH:mm:ss&quot;</span>;</span>
+<span class="line" id="L509">    <span class="tok-kw">const</span> dt = DateTime.initUnix(<span class="tok-number">1697696484</span>);</span>
+<span class="line" id="L510">    <span class="tok-kw">const</span> formatted_dt = <span class="tok-kw">try</span> dt.formatAlloc(allocator, utc_format);</span>
+<span class="line" id="L511">    <span class="tok-kw">defer</span> allocator.free(formatted_dt); <span class="tok-comment">// Free the memory allocated by the allocator.</span>
+</span>
+<span class="line" id="L512">    <span class="tok-kw">const</span> expected_formatted_dt = <span class="tok-str">&quot;2023-10-19T06:21:24&quot;</span>;</span>
+<span class="line" id="L513">    <span class="tok-kw">try</span> expect(std.mem.eql(<span class="tok-type">u8</span>, formatted_dt, expected_formatted_dt));</span>
+<span class="line" id="L514">}</span>
+<span class="line" id="L515"></span>
+</code></pre></body>
+</html>
