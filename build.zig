@@ -3,6 +3,17 @@ const std = @import("std");
 const package_name = "sig";
 const package_path = "src/lib.zig";
 
+// Represents a dependency on an external package.
+const Dependency = struct {
+    name: []const u8,
+    module_name: []const u8,
+};
+
+// List of external dependencies that this package requires.
+const external_dependencies = [_]Dependency{
+    .{ .name = "zig-cli", .module_name = "zig-cli" },
+};
+
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
 // runner.
@@ -18,9 +29,23 @@ pub fn build(b: *std.Build) void {
     // set a preferred release mode, allowing the user to decide how to optimize.
     const optimize = b.standardOptimizeOption(.{});
 
+    // **************************************************************
+    // *            HANDLE DEPENDENCY MODULES                       *
+    // **************************************************************
+    var dependency_modules = std.ArrayList(*std.build.Module).init(b.allocator);
+    defer _ = dependency_modules.deinit();
+
     // Get dependency modules.
     const dependencies_opts = .{ .target = target, .optimize = optimize };
-    const zig_cli_module = b.dependency("zig-cli", dependencies_opts).module("zig-cli");
+    _ = dependencies_opts;
+    // Populate dependency modules.
+    for (external_dependencies) |dep| {
+        const dependency_opts = .{ .target = target, .optimize = optimize };
+        const module = b.dependency(dep.name, dependency_opts).module(dep.module_name);
+        _ = dependency_modules.append(module) catch unreachable;
+    }
+    // This array can be passed to add the dependencies to lib, executable, tests, etc using `addModule` function.
+    const dep_array = toModuleDependencyArray(b.allocator, dependency_modules.items, &external_dependencies) catch unreachable;
 
     // **************************************************************
     // *               CAIRO-ZIG AS A MODULE                        *
@@ -28,12 +53,7 @@ pub fn build(b: *std.Build) void {
     // expose cairo-zig as a module
     _ = b.addModule(package_name, .{
         .source_file = .{ .path = package_path },
-        .dependencies = &.{
-            .{
-                .name = "zig-cli",
-                .module = zig_cli_module,
-            },
-        },
+        .dependencies = dep_array,
     });
 
     // **************************************************************
@@ -48,7 +68,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     // Add dependency modules to the library.
-    lib.addModule("zig-cli", zig_cli_module);
+    for (dep_array) |mod| lib.addModule(mod.name, mod.module);
     // This declares intent for the library to be installed into the standard
     // location when the user invokes the "install" step (the default step when
     // running `zig build`).
@@ -66,7 +86,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     // Add dependency modules to the executable.
-    exe.addModule("zig-cli", zig_cli_module);
+    for (dep_array) |mod| exe.addModule(mod.name, mod.module);
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
     // step when running `zig build`).
@@ -103,7 +123,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     // Add dependency modules to the tests.
-    unit_tests.addModule("zig-cli", zig_cli_module);
+    for (dep_array) |mod| unit_tests.addModule(mod.name, mod.module);
 
     const run_unit_tests = b.addRunArtifact(unit_tests);
 
@@ -113,4 +133,25 @@ pub fn build(b: *std.Build) void {
     const test_step = b.step("test", "Run unit tests");
     test_step.dependOn(&lib.step);
     test_step.dependOn(&run_unit_tests.step);
+}
+
+/// Convert an array of Build.Module pointers to an array of Build.ModuleDependency.
+/// # Arguments
+/// * `allocator` - The allocator to use for the new array.
+/// * `modules` - The array of Build.Module pointers to convert.
+/// * `ext_deps` - The array of external dependencies.
+/// # Returns
+/// A new array of Build.ModuleDependency.
+fn toModuleDependencyArray(allocator: std.mem.Allocator, modules: []const *std.Build.Module, ext_deps: []const Dependency) ![]std.Build.ModuleDependency {
+    var deps = std.ArrayList(std.Build.ModuleDependency).init(allocator);
+    defer deps.deinit();
+
+    for (modules, 0..) |module_ptr, i| {
+        try deps.append(.{
+            .name = ext_deps[i].name,
+            .module = module_ptr,
+        });
+    }
+
+    return deps.toOwnedSlice();
 }
