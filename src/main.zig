@@ -21,43 +21,9 @@ pub const std_options = struct {
     pub const logFn = customlogFn;
 };
 
+// *****************************************************************************
+// *                     MAIN ENTRY POINT                                      *
+// *****************************************************************************
 pub fn main() !void {
     try cmd.run();
-}
-
-// *****************************************************************************
-// *                     VM TESTS                                              *
-// *****************************************************************************
-
-test "vm" {
-    _ = @import("vm/core.zig");
-    _ = @import("vm/instructions.zig");
-    _ = @import("vm/run_context.zig");
-}
-
-test "memory" {
-    _ = @import("vm/memory/memory.zig");
-    _ = @import("vm/memory/segments.zig");
-}
-
-test "relocatable" {
-    _ = @import("vm/memory/relocatable.zig");
-}
-
-// *****************************************************************************
-// *                     MATH TESTS                                            *
-// *****************************************************************************
-
-test "fields" {
-    _ = @import("math/fields/fields.zig");
-    _ = @import("math/fields/starknet.zig");
-}
-
-// *****************************************************************************
-// *                     UTIL TESTS                                            *
-// *****************************************************************************
-
-test "util" {
-    _ = @import("utils/log.zig");
-    _ = @import("utils/time.zig");
 }
