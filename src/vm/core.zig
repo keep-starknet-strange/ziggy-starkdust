@@ -226,6 +226,74 @@ pub const CairoVM = struct {
         }
     }
 
+    /// Updates the value of AP according to the executed instruction.
+    /// # Arguments
+    /// - `instruction`: The instruction that was executed.
+    /// - `operands`: The operands of the instruction.
+    pub fn updateAp(self: *CairoVM, instruction: *const instructions.Instruction, operands: OperandsResult) !void {
+        switch (instruction.ap_update) {
+            // *********************************************************
+            // *                      AP UPDATE ADD                    *
+            // *********************************************************
+            instructions.ApUpdate.Add => {
+                // Check that Res is not null.
+                if (operands.res == null) {
+                    return error.ApUpdateAddResUnconstrained;
+                }
+                // Update AP.
+                try self.run_context.ap.*.addMaybeRelocatableInplace(operands.res.?);
+            },
+            // *********************************************************
+            // *                    AP UPDATE ADD1                     *
+            // *********************************************************
+            instructions.ApUpdate.Add1 => {
+                self.run_context.ap.*.addUintInPlace(1);
+            },
+            // *********************************************************
+            // *                    AP UPDATE ADD2                     *
+            // *********************************************************
+            instructions.ApUpdate.Add2 => {
+                self.run_context.ap.*.addUintInPlace(2);
+            },
+            else => {},
+        }
+    }
+
+    /// Updates the value of AP according to the executed instruction.
+    /// # Arguments
+    /// - `instruction`: The instruction that was executed.
+    /// - `operands`: The operands of the instruction.
+    pub fn updateFp(self: *CairoVM, instruction: *const instructions.Instruction, operands: OperandsResult) !void {
+        switch (instruction.fp_update) {
+            // *********************************************************
+            // *                FP UPDATE AP PLUS 2                    *
+            // *********************************************************
+            instructions.FpUpdate.APPlus2 => {
+                // Update the FP.
+                // FP = AP + 2.
+                self.run_context.fp.*.offset = self.run_context.ap.*.offset + 2;
+            },
+            // *********************************************************
+            // *                    FP UPDATE DST                      *
+            // *********************************************************
+            instructions.FpUpdate.Dst => {
+                switch (operands.dst) {
+                    .relocatable => |rel| {
+                        // Update the FP.
+                        // FP = DST.
+                        self.run_context.fp.* = rel;
+                    },
+                    .felt => |f| {
+                        // Update the FP.
+                        // FP += DST.
+                        try self.run_context.fp.*.addFeltInPlace(f);
+                    },
+                }
+            },
+            else => {},
+        }
+    }
+
     // ************************************************************
     // *                    ACCESSORS                             *
     // ************************************************************
@@ -560,4 +628,156 @@ test "update pc update jnz with operands dst not zero op1 felt" {
     // ************************************************************
     const pc = vm.getPc();
     try expectEqual(pc.offset, 42);
+}
+
+test "update ap add with operands res unconstrained" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    var allocator = std.testing.allocator;
+    var instruction = instructions.Instruction.default();
+    instruction.ap_update = instructions.ApUpdate.Add;
+    var operands = OperandsResult.default();
+    operands.res = null; // Simulate unconstrained res
+    // Create a new VM instance.
+    var vm = try CairoVM.init(&allocator);
+    defer vm.deinit();
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    try expectError(error.ApUpdateAddResUnconstrained, vm.updateAp(&instruction, operands));
+}
+
+test "update ap add1" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    var allocator = std.testing.allocator;
+    var instruction = instructions.Instruction.default();
+    instruction.ap_update = instructions.ApUpdate.Add1;
+    var operands = OperandsResult.default();
+    // Create a new VM instance.
+    var vm = try CairoVM.init(&allocator);
+    defer vm.deinit();
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    try vm.updateAp(&instruction, operands);
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    // Verify the AP offset was incremented by 1.
+    const ap = vm.getAp();
+    try expectEqual(ap.offset, 1);
+}
+
+test "update ap add2" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    var allocator = std.testing.allocator;
+    var instruction = instructions.Instruction.default();
+    instruction.ap_update = instructions.ApUpdate.Add2;
+    var operands = OperandsResult.default();
+    // Create a new VM instance.
+    var vm = try CairoVM.init(&allocator);
+    defer vm.deinit();
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    try vm.updateAp(&instruction, operands);
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    // Verify the AP offset was incremented by 2.
+    const ap = vm.getAp();
+    try expectEqual(ap.offset, 2);
+}
+
+test "update fp appplus2" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    var allocator = std.testing.allocator;
+    var instruction = instructions.Instruction.default();
+    instruction.fp_update = instructions.FpUpdate.APPlus2;
+    var operands = OperandsResult.default();
+    // Create a new VM instance.
+    var vm = try CairoVM.init(&allocator);
+    defer vm.deinit();
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    try vm.updateFp(&instruction, operands);
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    // Verify the FP offset was incremented by 2.
+    const fp = vm.getFp();
+    try expectEqual(fp.offset, 2);
+}
+
+test "update fp dst relocatable" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    var allocator = std.testing.allocator;
+    var instruction = instructions.Instruction.default();
+    instruction.fp_update = instructions.FpUpdate.Dst;
+    var operands = OperandsResult.default();
+    operands.dst = relocatable.newFromRelocatable(relocatable.Relocatable.new(0, 42));
+    // Create a new VM instance.
+    var vm = try CairoVM.init(&allocator);
+    defer vm.deinit();
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    try vm.updateFp(&instruction, operands);
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    // Verify the FP offset was incremented by 2.
+    const fp = vm.getFp();
+    try expectEqual(fp.offset, 42);
+}
+
+test "update fp dst felt" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    var allocator = std.testing.allocator;
+    var instruction = instructions.Instruction.default();
+    instruction.fp_update = instructions.FpUpdate.Dst;
+    var operands = OperandsResult.default();
+    operands.dst = relocatable.fromU64(42);
+    // Create a new VM instance.
+    var vm = try CairoVM.init(&allocator);
+    defer vm.deinit();
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    try vm.updateFp(&instruction, operands);
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    // Verify the FP offset was incremented by 2.
+    const fp = vm.getFp();
+    try expectEqual(fp.offset, 42);
 }
