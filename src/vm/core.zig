@@ -173,23 +173,55 @@ pub const CairoVM = struct {
     /// - `instruction`: The instruction that was executed.
     /// - `operands`: The operands of the instruction.
     pub fn updatePc(self: *CairoVM, instruction: *const instructions.Instruction, operands: OperandsResult) !void {
-        _ = operands;
-
         switch (instruction.pc_update) {
+            // ************************************************************
+            // *                PC UPDATE REGULAR                         *
+            // ************************************************************
             instructions.PcUpdate.Regular => {
+                // Update the PC.
                 self.run_context.pc.*.addUintInPlace(instruction.size());
             },
+            // ************************************************************
+            // *                PC UPDATE JUMP                            *
+            // ************************************************************
             instructions.PcUpdate.Jump => {
-                // TODO: Implement this.
-                return;
+                // Check that the res is not null.
+                if (operands.res == null) {
+                    return error.ResUnconstrainedUsedWithPcUpdateJump;
+                }
+                // Check that the res is a relocatable.
+                const res = operands.res.?.tryIntoRelocatable() catch {
+                    return error.PcUpdateJumpResNotRelocatable;
+                };
+                // Update the PC.
+                self.run_context.pc.* = res;
             },
+            // ************************************************************
+            // *                PC UPDATE JUMP REL                        *
+            // ************************************************************
             instructions.PcUpdate.JumpRel => {
-                // TODO: Implement this.
-                return;
+                // Check that the res is not null.
+                if (operands.res == null) {
+                    return error.ResUnconstrainedUsedWithPcUpdateJumpRel;
+                }
+                // Check that the res is a felt.
+                const res = operands.res.?.tryIntoFelt() catch {
+                    return error.PcUpdateJumpRelResNotFelt;
+                };
+                // Update the PC.
+                try self.run_context.pc.*.addFeltInPlace(res);
             },
+            // ************************************************************
+            // *                PC UPDATE JNZ                            *
+            // ************************************************************
             instructions.PcUpdate.Jnz => {
-                // TODO: Implement this.
-                return;
+                if (operands.dst.isZero()) {
+                    // Update the PC.
+                    self.run_context.pc.*.addUintInPlace(instruction.size());
+                } else {
+                    // Update the PC.
+                    try self.run_context.pc.*.addMaybeRelocatableInplace(operands.op_1);
+                }
             },
         }
     }
@@ -234,7 +266,7 @@ pub const CairoVM = struct {
 /// Represents the operands for an instruction.
 const OperandsResult = struct {
     dst: relocatable.MaybeRelocatable,
-    res: relocatable.MaybeRelocatable,
+    res: ?relocatable.MaybeRelocatable,
     op_0: relocatable.MaybeRelocatable,
     op_1: relocatable.MaybeRelocatable,
     dst_addr: relocatable.MaybeRelocatable,
@@ -315,4 +347,228 @@ test "update pc regular with imm" {
     // ************************************************************
     const pc = vm.getPc();
     try expectEqual(pc.offset, 2);
+}
+
+test "update pc jump with operands res null" {
+
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    // TODO: Consider using a testing allocator.
+    var allocator = std.heap.page_allocator;
+    var instruction = instructions.Instruction.default();
+    instruction.pc_update = instructions.PcUpdate.Jump;
+    var operands = OperandsResult.default();
+    operands.res = null;
+    // Create a new VM instance.
+    var vm = try CairoVM.init(&allocator);
+    defer vm.deinit();
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    try expectError(error.ResUnconstrainedUsedWithPcUpdateJump, vm.updatePc(&instruction, operands));
+}
+
+test "update pc jump with operands res not relocatable" {
+
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    // TODO: Consider using a testing allocator.
+    var allocator = std.heap.page_allocator;
+    var instruction = instructions.Instruction.default();
+    instruction.pc_update = instructions.PcUpdate.Jump;
+    var operands = OperandsResult.default();
+    operands.res = relocatable.fromU64(0);
+    // Create a new VM instance.
+    var vm = try CairoVM.init(&allocator);
+    defer vm.deinit();
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    try expectError(error.PcUpdateJumpResNotRelocatable, vm.updatePc(&instruction, operands));
+}
+
+test "update pc jump with operands res relocatable" {
+
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    // TODO: Consider using a testing allocator.
+    var allocator = std.heap.page_allocator;
+    var instruction = instructions.Instruction.default();
+    instruction.pc_update = instructions.PcUpdate.Jump;
+    var operands = OperandsResult.default();
+    operands.res = relocatable.newFromRelocatable(relocatable.Relocatable.new(0, 42));
+    // Create a new VM instance.
+    var vm = try CairoVM.init(&allocator);
+    defer vm.deinit();
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    try vm.updatePc(&instruction, operands);
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    const pc = vm.getPc();
+    try expectEqual(pc.offset, 42);
+}
+
+test "update pc jump rel with operands res null" {
+
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    // TODO: Consider using a testing allocator.
+    var allocator = std.heap.page_allocator;
+    var instruction = instructions.Instruction.default();
+    instruction.pc_update = instructions.PcUpdate.JumpRel;
+    var operands = OperandsResult.default();
+    operands.res = null;
+    // Create a new VM instance.
+    var vm = try CairoVM.init(&allocator);
+    defer vm.deinit();
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    try expectError(error.ResUnconstrainedUsedWithPcUpdateJumpRel, vm.updatePc(&instruction, operands));
+}
+
+test "update pc jump rel with operands res not felt" {
+
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    // TODO: Consider using a testing allocator.
+    var allocator = std.heap.page_allocator;
+    var instruction = instructions.Instruction.default();
+    instruction.pc_update = instructions.PcUpdate.JumpRel;
+    var operands = OperandsResult.default();
+    operands.res = relocatable.newFromRelocatable(relocatable.Relocatable.new(0, 42));
+    // Create a new VM instance.
+    var vm = try CairoVM.init(&allocator);
+    defer vm.deinit();
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    try expectError(error.PcUpdateJumpRelResNotFelt, vm.updatePc(&instruction, operands));
+}
+
+test "update pc jump rel with operands res felt" {
+
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    // TODO: Consider using a testing allocator.
+    var allocator = std.heap.page_allocator;
+    var instruction = instructions.Instruction.default();
+    instruction.pc_update = instructions.PcUpdate.JumpRel;
+    var operands = OperandsResult.default();
+    operands.res = relocatable.fromU64(42);
+    // Create a new VM instance.
+    var vm = try CairoVM.init(&allocator);
+    defer vm.deinit();
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    try vm.updatePc(&instruction, operands);
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    const pc = vm.getPc();
+    try expectEqual(pc.offset, 42);
+}
+
+test "update pc update jnz with operands dst zero" {
+
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    // TODO: Consider using a testing allocator.
+    var allocator = std.heap.page_allocator;
+    var instruction = instructions.Instruction.default();
+    instruction.pc_update = instructions.PcUpdate.Jnz;
+    var operands = OperandsResult.default();
+    operands.dst = relocatable.fromU64(0);
+    // Create a new VM instance.
+    var vm = try CairoVM.init(&allocator);
+    defer vm.deinit();
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    try vm.updatePc(&instruction, operands);
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    const pc = vm.getPc();
+    try expectEqual(pc.offset, 2);
+}
+
+test "update pc update jnz with operands dst not zero op1 not felt" {
+
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    // TODO: Consider using a testing allocator.
+    var allocator = std.heap.page_allocator;
+    var instruction = instructions.Instruction.default();
+    instruction.pc_update = instructions.PcUpdate.Jnz;
+    var operands = OperandsResult.default();
+    operands.dst = relocatable.fromU64(1);
+    operands.op_1 = relocatable.newFromRelocatable(relocatable.Relocatable.new(0, 42));
+    // Create a new VM instance.
+    var vm = try CairoVM.init(&allocator);
+    defer vm.deinit();
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    try expectError(error.TypeMismatchNotFelt, vm.updatePc(&instruction, operands));
+}
+
+test "update pc update jnz with operands dst not zero op1 felt" {
+
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    // TODO: Consider using a testing allocator.
+    var allocator = std.heap.page_allocator;
+    var instruction = instructions.Instruction.default();
+    instruction.pc_update = instructions.PcUpdate.Jnz;
+    var operands = OperandsResult.default();
+    operands.dst = relocatable.fromU64(1);
+    operands.op_1 = relocatable.fromU64(42);
+    // Create a new VM instance.
+    var vm = try CairoVM.init(&allocator);
+    defer vm.deinit();
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    try vm.updatePc(&instruction, operands);
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    const pc = vm.getPc();
+    try expectEqual(pc.offset, 42);
 }

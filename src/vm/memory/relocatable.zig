@@ -1,5 +1,5 @@
 const std = @import("std");
-const starknet_felt = @import("../../math/fields/starknet.zig");
+const Felt252 = @import("../../math/fields/starknet.zig").Felt252;
 const CairoVMError = @import("../error.zig").CairoVMError;
 
 // Relocatable in the Cairo VM represents an address
@@ -91,13 +91,31 @@ pub const Relocatable = struct {
         }
         return self.addUint(@as(u64, @intCast(other)));
     }
+
+    /// Add a felt to this Relocatable, modifying it in place.
+    /// # Arguments
+    /// - self: Pointer to the Relocatable object to modify.
+    /// - other: The felt to add to `self.offset`.
+    pub fn addFeltInPlace(self: *Relocatable, other: Felt252) !void {
+        const new_offset_felt = Felt252.fromInteger(@as(u256, self.offset)).add(other);
+        const new_offset = try new_offset_felt.tryIntoU64();
+        self.offset = new_offset;
+    }
+
+    /// Performs additions if other contains a Felt value, fails otherwise.
+    /// # Arguments
+    /// - other - The other MaybeRelocatable to add.
+    pub fn addMaybeRelocatableInplace(self: *Relocatable, other: MaybeRelocatable) !void {
+        const other_as_felt = try other.tryIntoFelt();
+        try self.addFeltInPlace(other_as_felt);
+    }
 };
 
 // MaybeRelocatable is the type of the memory cells in the Cairo
 // VM. It can either be a Relocatable or a field element.
 pub const MaybeRelocatable = union(enum) {
     relocatable: Relocatable,
-    felt: starknet_felt.Felt252,
+    felt: Felt252,
 
     /// Determines if two `MaybeRelocatable` instances are equal.
     ///
@@ -130,19 +148,19 @@ pub const MaybeRelocatable = union(enum) {
         };
     }
 
-    // Return the value of the MaybeRelocatable as a felt or error.
-    // # Returns
-    // The value of the MaybeRelocatable as a Relocatable felt or error.
-    pub fn tryIntoFelt(self: MaybeRelocatable) error{TypeMismatchNotFelt}!starknet_felt.Felt252 {
+    /// Return the value of the MaybeRelocatable as a felt or error.
+    /// # Returns
+    /// The value of the MaybeRelocatable as a Relocatable felt or error.
+    pub fn tryIntoFelt(self: MaybeRelocatable) error{TypeMismatchNotFelt}!Felt252 {
         return switch (self) {
             .relocatable => CairoVMError.TypeMismatchNotFelt,
             .felt => |felt| felt,
         };
     }
 
-    // Return the value of the MaybeRelocatable as a felt or error.
-    // # Returns
-    // The value of the MaybeRelocatable as a Relocatable felt or error.
+    /// Return the value of the MaybeRelocatable as a felt or error.
+    /// # Returns
+    /// The value of the MaybeRelocatable as a Relocatable felt or error.
     pub fn tryIntoU64(self: MaybeRelocatable) error{ TypeMismatchNotFelt, ValueTooLarge }!u64 {
         return switch (self) {
             .relocatable => CairoVMError.TypeMismatchNotFelt,
@@ -150,13 +168,23 @@ pub const MaybeRelocatable = union(enum) {
         };
     }
 
-    // Return the value of the MaybeRelocatable as a Relocatable.
-    // # Returns
-    // The value of the MaybeRelocatable as a Relocatable.
+    /// Return the value of the MaybeRelocatable as a Relocatable.
+    /// # Returns
+    /// The value of the MaybeRelocatable as a Relocatable.
     pub fn tryIntoRelocatable(self: MaybeRelocatable) !Relocatable {
         return switch (self) {
             .relocatable => |relocatable| relocatable,
             .felt => error.TypeMismatchNotRelocatable,
+        };
+    }
+
+    /// Whether the MaybeRelocatable is zero or not.
+    /// # Returns
+    /// true if the MaybeRelocatable is zero, false otherwise.
+    pub fn isZero(self: MaybeRelocatable) bool {
+        return switch (self) {
+            .relocatable => false,
+            .felt => |felt| felt.isZero(),
         };
     }
 };
@@ -175,7 +203,7 @@ pub fn newFromRelocatable(relocatable: Relocatable) MaybeRelocatable {
 // - felt - The field element to create the MaybeRelocatable from.
 // # Returns
 // A new MaybeRelocatable.
-pub fn fromFelt(felt: starknet_felt.Felt252) MaybeRelocatable {
+pub fn fromFelt(felt: Felt252) MaybeRelocatable {
     return MaybeRelocatable{ .felt = felt };
 }
 
@@ -185,7 +213,7 @@ pub fn fromFelt(felt: starknet_felt.Felt252) MaybeRelocatable {
 // # Returns
 // A new MaybeRelocatable.
 pub fn fromU256(value: u256) MaybeRelocatable {
-    return MaybeRelocatable{ .felt = starknet_felt.Felt252.fromInteger(value) };
+    return MaybeRelocatable{ .felt = Felt252.fromInteger(value) };
 }
 
 // Creates a new MaybeRelocatable from a u64.
