@@ -1,6 +1,8 @@
 # OS-specific files
 **.DS_Store
 
+target/
+
 # Zig-specific build artifacts
 zig-cache/
 zig-out/
