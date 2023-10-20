@@ -1,14 +1,14 @@
 <p align="center">
-  <img src="https://github.com/abdelhamidbakhta/cairo-zig/blob/main/docs/kit/logo/starknet-zig-logo.png?raw=true" alt="Logo"/>
+  <img src="https://github.com/keep-starknet-strange/cairo-zig/blob/main/docs/kit/logo/starknet-zig-logo.png?raw=true" alt="Logo"/>
   <h1 align="center">cairo-zig</h1>
 </p>
 
 <div align="center">
 <br />
 
-[![GitHub Workflow Status](https://github.com/abdelhamidbakhta/cairo-zig/actions/workflows/test.yml/badge.svg)](https://github.com/abdelhamidbakhta/cairo-zig/actions/workflows/test.yml)
-[![Project license](https://img.shields.io/github/license/abdelhamidbakhta/cairo-zig.svg?style=flat-square)](LICENSE)
-[![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/abdelhamidbakhta/cairo-zig/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
+[![GitHub Workflow Status](https://github.com/keep-starknet-strange/cairo-zig/actions/workflows/test.yml/badge.svg)](https://github.com/keep-starknet-strange/cairo-zig/actions/workflows/test.yml)
+[![Project license](https://img.shields.io/github/license/keep-starknet-strange/cairo-zig.svg?style=flat-square)](LICENSE)
+[![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/keep-starknet-strange/cairo-zig/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
 
 </div>
 

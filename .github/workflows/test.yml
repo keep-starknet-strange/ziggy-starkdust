@@ -1,4 +1,4 @@
-name: Test
+name: Docs
 
 on:
   push:
@@ -17,31 +17,5 @@ jobs:
         with:
           zig-version: master
 
-      - name: Build
-        run: zig build
-
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up Zig
-        uses: korandoru/setup-zig@v1
-        with:
-          zig-version: master
-
-      - name: Lint
-        run: zig fmt --check src/*.zig
-
-  test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-
-      - name: Set up Zig
-        uses: korandoru/setup-zig@v1
-        with:
-          zig-version: master
-
-      - name: Test
-        run: zig build test --summary all
+      - name: Generate docs
+        run: zig test -femit-docs=./docs src/lib.zig

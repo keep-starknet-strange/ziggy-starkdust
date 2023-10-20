@@ -1,0 +1,28 @@
+name: Docs
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Zig
+        uses: korandoru/setup-zig@v1
+        with:
+          zig-version: master
+
+      - name: Generate docs
+        run: zig test -femit-docs=./docsite src/lib.zig
+
+      - name: Deploy
+        if: ${{ github.ref == 'refs/heads/main' }} && steps.check_changes.outcome == 'success'
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./docsite

@@ -1,7 +1,13 @@
 .{
     .name = "cairo",
     .version = "0.0.1",
-    .paths = .{""},
+    .paths = .{
+        "src",
+        "build.zig",
+        "build.zig.zon",
+        "LICENSE",
+        "README.md",
+    },
     .dependencies = .{
         .@"zig-cli" = .{
             .url = "https://github.com/sam701/zig-cli/archive/ea92821a797bdefb5df41ce602f8c7f387bcfb93.tar.gz",
