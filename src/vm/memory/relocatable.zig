@@ -71,6 +71,15 @@ pub const Relocatable = struct {
         };
     }
 
+    /// Add a u64 to this Relocatable, modifying it in place.
+    /// # Arguments
+    /// - self: Pointer to the Relocatable object to modify.
+    /// - other: The u64 to add to `self.offset`.
+    pub fn addUintInPlace(self: *Relocatable, other: u64) void {
+        // Modify the offset of the existing Relocatable object
+        self.offset += other;
+    }
+
     // Add a i64 to a Relocatable and return a new Relocatable.
     // # Arguments
     // - other: The i64 to add.

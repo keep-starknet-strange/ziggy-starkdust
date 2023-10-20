@@ -167,6 +167,64 @@ pub const CairoVM = struct {
         _ = self;
         return null;
     }
+
+    /// Updates the value of PC according to the executed instruction.
+    /// # Arguments
+    /// - `instruction`: The instruction that was executed.
+    /// - `operands`: The operands of the instruction.
+    pub fn updatePc(self: *CairoVM, instruction: *const instructions.Instruction, operands: OperandsResult) !void {
+        _ = operands;
+
+        switch (instruction.pc_update) {
+            instructions.PcUpdate.Regular => {
+                self.run_context.pc.*.addUintInPlace(instruction.size());
+            },
+            instructions.PcUpdate.Jump => {
+                // TODO: Implement this.
+                return;
+            },
+            instructions.PcUpdate.JumpRel => {
+                // TODO: Implement this.
+                return;
+            },
+            instructions.PcUpdate.Jnz => {
+                // TODO: Implement this.
+                return;
+            },
+        }
+    }
+
+    // ************************************************************
+    // *                    ACCESSORS                             *
+    // ************************************************************
+
+    /// Returns whether the run is finished or not.
+    /// # Returns
+    /// - `bool`: Whether the run is finished or not.
+    pub fn isRunFinished(self: *const CairoVM) bool {
+        return self.is_run_finished;
+    }
+
+    /// Returns the current ap.
+    /// # Returns
+    /// - `MaybeRelocatable`: The current ap.
+    pub fn getAp(self: *const CairoVM) relocatable.Relocatable {
+        return self.run_context.ap.*;
+    }
+
+    /// Returns the current fp.
+    /// # Returns
+    /// - `MaybeRelocatable`: The current fp.
+    pub fn getFp(self: *const CairoVM) relocatable.Relocatable {
+        return self.run_context.fp.*;
+    }
+
+    /// Returns the current pc.
+    /// # Returns
+    /// - `MaybeRelocatable`: The current pc.
+    pub fn getPc(self: *const CairoVM) relocatable.Relocatable {
+        return self.run_context.pc.*;
+    }
 };
 
 // *****************************************************************************
@@ -182,4 +240,79 @@ const OperandsResult = struct {
     dst_addr: relocatable.MaybeRelocatable,
     op_0_addr: relocatable.MaybeRelocatable,
     op_1_addr: relocatable.MaybeRelocatable,
+
+    /// Returns a default instance of the OperandsResult struct.
+    pub fn default() OperandsResult {
+        return OperandsResult{
+            .dst = relocatable.fromU64(0),
+            .res = relocatable.fromU64(0),
+            .op_0 = relocatable.fromU64(0),
+            .op_1 = relocatable.fromU64(0),
+            .dst_addr = relocatable.fromU64(0),
+            .op_0_addr = relocatable.fromU64(0),
+            .op_1_addr = relocatable.fromU64(0),
+        };
+    }
 };
+
+// ************************************************************
+// *                         TESTS                            *
+// ************************************************************
+const expectEqual = std.testing.expectEqual;
+const expectError = std.testing.expectError;
+
+test "update pc regular no imm" {
+
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    // TODO: Consider using a testing allocator.
+    var allocator = std.heap.page_allocator;
+    var instruction = instructions.Instruction.default();
+    instruction.pc_update = instructions.PcUpdate.Regular;
+    instruction.op_1_addr = instructions.Op1Src.AP;
+    const operands = OperandsResult.default();
+    // Create a new VM instance.
+    var vm = try CairoVM.init(&allocator);
+    defer vm.deinit();
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    try vm.updatePc(&instruction, operands);
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    const pc = vm.getPc();
+    try expectEqual(pc.offset, 1);
+}
+
+test "update pc regular with imm" {
+
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    // TODO: Consider using a testing allocator.
+    var allocator = std.heap.page_allocator;
+    var instruction = instructions.Instruction.default();
+    instruction.pc_update = instructions.PcUpdate.Regular;
+    instruction.op_1_addr = instructions.Op1Src.Imm;
+    const operands = OperandsResult.default();
+    // Create a new VM instance.
+    var vm = try CairoVM.init(&allocator);
+    defer vm.deinit();
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    try vm.updatePc(&instruction, operands);
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    const pc = vm.getPc();
+    try expectEqual(pc.offset, 2);
+}

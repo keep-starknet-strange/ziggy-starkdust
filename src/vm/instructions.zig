@@ -21,7 +21,7 @@ const std = @import("std");
 // *****************************************************************************
 
 /// Error type to represent different error conditions during instruction decoding.
-const Error = error{
+pub const Error = error{
     NonZeroHighBit,
     InvalidOp1Reg,
     Invalidpc_update,
@@ -34,19 +34,19 @@ const Error = error{
 // *                      CUSTOM TYPES DEFINITIONS                              *
 // *****************************************************************************
 
-const Register = enum { AP, FP };
+pub const Register = enum { AP, FP };
 
-const Op1Src = enum { Imm, AP, FP, Op0 };
+pub const Op1Src = enum { Imm, AP, FP, Op0 };
 
-const ResLogic = enum { Op1, Add, Mul, Unconstrained };
+pub const ResLogic = enum { Op1, Add, Mul, Unconstrained };
 
-const PcUpdate = enum { Regular, Jump, JumpRel, Jnz };
+pub const PcUpdate = enum { Regular, Jump, JumpRel, Jnz };
 
-const ApUpdate = enum { Regular, Add, Add1, Add2 };
+pub const ApUpdate = enum { Regular, Add, Add1, Add2 };
 
-const FpUpdate = enum { Regular, APPlus2, Dst };
+pub const FpUpdate = enum { Regular, APPlus2, Dst };
 
-const Opcode = enum { NOp, AssertEq, Call, Ret };
+pub const Opcode = enum { NOp, AssertEq, Call, Ret };
 
 /// Represents a decoded instruction.
 pub const Instruction = struct {
@@ -61,6 +61,27 @@ pub const Instruction = struct {
     ap_update: ApUpdate,
     fp_update: FpUpdate,
     opcode: Opcode,
+
+    /// Returns the size of an instruction.
+    /// # Returns
+    /// Size of the instruction.
+    pub fn size(self: Instruction) usize {
+        if (self.op_1_addr == Op1Src.Imm) {
+            return 2;
+        } else {
+            return 1;
+        }
+    }
+
+    /// Returns a default instruction.
+    pub fn default() Instruction {
+        //  0|  opcode|ap_update|pc_update|res_logic|op1_src|op0_reg|dst_reg
+        // 15|14 13 12|    11 10|  9  8  7|     6  5|4  3  2|      1|      0
+        //   |    CALL|      ADD|     JUMP|      ADD|    IMM|     FP|     FP
+        //  0  0  0  1      0  1   0  0  1      0  1 0  0  1       1       1
+        //  0001 0100 1010 0111 = 0x14A7; offx = 0
+        return decode(0x14A7800080008000) catch unreachable;
+    }
 };
 
 /// Decode a 64-bit instruction into its component parts.
