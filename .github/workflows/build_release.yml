@@ -1,0 +1,24 @@
+name: Build release mode
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  build-release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Zig
+        uses: korandoru/setup-zig@v1
+        with:
+          zig-version: master
+
+      - name: Build ReleaseFast
+        run: |
+          zig build -Doptimize=ReleaseFast
+          echo "Binary size:"
+          du -h ./zig-out/bin/cairo-zig

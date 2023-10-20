@@ -3,6 +3,15 @@
   <h1 align="center">cairo-zig</h1>
 </p>
 
+<div align="center">
+<br />
+
+[![GitHub Workflow Status](https://github.com/abdelhamidbakhta/cairo-zig/actions/workflows/test.yml/badge.svg)](https://github.com/abdelhamidbakhta/cairo-zig/actions/workflows/test.yml)
+[![Project license](https://img.shields.io/github/license/abdelhamidbakhta/cairo-zig.svg?style=flat-square)](LICENSE)
+[![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/abdelhamidbakhta/cairo-zig/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
+
+</div>
+
 > _Note that `cairo-zig` is still experimental. Breaking changes will be made before the first stable release. The library is also NOT audited or reviewed for security at the moment. Use at your own risk._
 
 ## TODOs
