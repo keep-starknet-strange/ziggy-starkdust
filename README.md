@@ -20,6 +20,8 @@
 
 - [Zig](https://ziglang.org/)
 
+Alternatively, if you have [nix](https://nixos.org/) installed, you can get the full development environment `nix develop`.
+
 ## 🔧 Build
 
 ```bash
