@@ -18,6 +18,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "bingcicle",
+      "name": "bing",
+      "avatar_url": "https://avatars.githubusercontent.com/u/25565268?v=4",
+      "profile": "https://bingcicle.github.io/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
