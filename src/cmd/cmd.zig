@@ -41,15 +41,24 @@ var execute_proof_mode_option = cli.Option{
 // Define the CLI app.
 var app = &cli.App{
     .name = "cairo-zig",
-    .description = "Cairo Virtual Machine written in Zig.\nHighly experimental, use at your own risk.",
+    .description =
+    \\Cairo Virtual Machine written in Zig.
+    \\Highly experimental, use at your own risk.
+    ,
     .version = "0.0.1",
     .author = "StarkWare & Contributors",
     .subcommands = &.{
-        &cli.Command{ .name = "execute", .help = "Execute a cairo program.", .description = 
-        \\Execute a cairo program with the virtual machine.
-        , .action = execute, .options = &.{
-            &execute_proof_mode_option,
-        } },
+        &cli.Command{
+            .name = "execute",
+            .help = "Execute a cairo program.",
+            .description =
+            \\Execute a cairo program with the virtual machine.
+            ,
+            .action = execute,
+            .options = &.{
+                &execute_proof_mode_option,
+            },
+        },
     },
 };
 
@@ -64,7 +73,7 @@ pub fn run() !void {
 
 // execute entrypoint
 fn execute(_: []const []const u8) !void {
-    std.log.debug("Runing Cairo VM...\n", .{});
+    std.log.debug("Running Cairo VM...\n", .{});
 
     // Create a new VM instance.
     var vm = try vm_core.CairoVM.init(&gpa_allocator);
