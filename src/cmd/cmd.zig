@@ -22,13 +22,16 @@ const gpa_allocator = gpa.allocator();
 // *                    CLI OPTIONS                           *
 // ************************************************************
 
+var config = struct {
+    proof_mode: bool = false,
+}{};
+
 var execute_proof_mode_option = cli.Option{
     .long_name = "proof-mode",
     .help = "Whether to run in proof mode or not.",
     .short_alias = 'p',
-    .value = cli.OptionValue{ .bool = false },
+    .value_ref = cli.mkRef(&config.proof_mode),
     .required = false,
-    .value_name = "Proof mode",
 };
 
 // ************************************************************
