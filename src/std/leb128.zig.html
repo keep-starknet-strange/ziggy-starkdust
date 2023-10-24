@@ -336,185 +336,189 @@
 <span class="line" id="L215">}</span>
 <span class="line" id="L216"></span>
 <span class="line" id="L217"><span class="tok-kw">test</span> <span class="tok-str">&quot;deserialize signed LEB128&quot;</span> {</span>
-<span class="line" id="L218">    <span class="tok-comment">// Truncated</span>
+<span class="line" id="L218">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L219"></span>
+<span class="line" id="L220">    <span class="tok-comment">// Truncated</span>
 </span>
-<span class="line" id="L219">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.EndOfStream, test_read_stream_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x80&quot;</span>));</span>
-<span class="line" id="L220"></span>
-<span class="line" id="L221">    <span class="tok-comment">// Overflow</span>
+<span class="line" id="L221">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.EndOfStream, test_read_stream_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x80&quot;</span>));</span>
+<span class="line" id="L222"></span>
+<span class="line" id="L223">    <span class="tok-comment">// Overflow</span>
 </span>
-<span class="line" id="L222">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_ileb128(<span class="tok-type">i8</span>, <span class="tok-str">&quot;\x80\x80\x40&quot;</span>));</span>
-<span class="line" id="L223">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_ileb128(<span class="tok-type">i16</span>, <span class="tok-str">&quot;\x80\x80\x80\x40&quot;</span>));</span>
-<span class="line" id="L224">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_ileb128(<span class="tok-type">i32</span>, <span class="tok-str">&quot;\x80\x80\x80\x80\x40&quot;</span>));</span>
-<span class="line" id="L225">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x80\x80\x80\x80\x80\x80\x80\x80\x80\x40&quot;</span>));</span>
-<span class="line" id="L226">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_ileb128(<span class="tok-type">i8</span>, <span class="tok-str">&quot;\xff\x7e&quot;</span>));</span>
-<span class="line" id="L227">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_ileb128(<span class="tok-type">i32</span>, <span class="tok-str">&quot;\x80\x80\x80\x80\x08&quot;</span>));</span>
-<span class="line" id="L228">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x80\x80\x80\x80\x80\x80\x80\x80\x80\x01&quot;</span>));</span>
-<span class="line" id="L229"></span>
-<span class="line" id="L230">    <span class="tok-comment">// Decode SLEB128</span>
+<span class="line" id="L224">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_ileb128(<span class="tok-type">i8</span>, <span class="tok-str">&quot;\x80\x80\x40&quot;</span>));</span>
+<span class="line" id="L225">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_ileb128(<span class="tok-type">i16</span>, <span class="tok-str">&quot;\x80\x80\x80\x40&quot;</span>));</span>
+<span class="line" id="L226">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_ileb128(<span class="tok-type">i32</span>, <span class="tok-str">&quot;\x80\x80\x80\x80\x40&quot;</span>));</span>
+<span class="line" id="L227">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x80\x80\x80\x80\x80\x80\x80\x80\x80\x40&quot;</span>));</span>
+<span class="line" id="L228">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_ileb128(<span class="tok-type">i8</span>, <span class="tok-str">&quot;\xff\x7e&quot;</span>));</span>
+<span class="line" id="L229">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_ileb128(<span class="tok-type">i32</span>, <span class="tok-str">&quot;\x80\x80\x80\x80\x08&quot;</span>));</span>
+<span class="line" id="L230">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x80\x80\x80\x80\x80\x80\x80\x80\x80\x01&quot;</span>));</span>
+<span class="line" id="L231"></span>
+<span class="line" id="L232">    <span class="tok-comment">// Decode SLEB128</span>
 </span>
-<span class="line" id="L231">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x00&quot;</span>)) == <span class="tok-number">0</span>);</span>
-<span class="line" id="L232">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x01&quot;</span>)) == <span class="tok-number">1</span>);</span>
-<span class="line" id="L233">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x3f&quot;</span>)) == <span class="tok-number">63</span>);</span>
-<span class="line" id="L234">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x40&quot;</span>)) == -<span class="tok-number">64</span>);</span>
-<span class="line" id="L235">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x41&quot;</span>)) == -<span class="tok-number">63</span>);</span>
-<span class="line" id="L236">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x7f&quot;</span>)) == -<span class="tok-number">1</span>);</span>
-<span class="line" id="L237">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x80\x01&quot;</span>)) == <span class="tok-number">128</span>);</span>
-<span class="line" id="L238">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x81\x01&quot;</span>)) == <span class="tok-number">129</span>);</span>
-<span class="line" id="L239">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\xff\x7e&quot;</span>)) == -<span class="tok-number">129</span>);</span>
-<span class="line" id="L240">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x80\x7f&quot;</span>)) == -<span class="tok-number">128</span>);</span>
-<span class="line" id="L241">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x81\x7f&quot;</span>)) == -<span class="tok-number">127</span>);</span>
-<span class="line" id="L242">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\xc0\x00&quot;</span>)) == <span class="tok-number">64</span>);</span>
-<span class="line" id="L243">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\xc7\x9f\x7f&quot;</span>)) == -<span class="tok-number">12345</span>);</span>
-<span class="line" id="L244">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i8</span>, <span class="tok-str">&quot;\xff\x7f&quot;</span>)) == -<span class="tok-number">1</span>);</span>
-<span class="line" id="L245">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i16</span>, <span class="tok-str">&quot;\xff\xff\x7f&quot;</span>)) == -<span class="tok-number">1</span>);</span>
-<span class="line" id="L246">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i32</span>, <span class="tok-str">&quot;\xff\xff\xff\xff\x7f&quot;</span>)) == -<span class="tok-number">1</span>);</span>
-<span class="line" id="L247">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i32</span>, <span class="tok-str">&quot;\x80\x80\x80\x80\x78&quot;</span>)) == -<span class="tok-number">0x80000000</span>);</span>
-<span class="line" id="L248">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x80\x80\x80\x80\x80\x80\x80\x80\x80\x7f&quot;</span>)) == <span class="tok-builtin">@as</span>(<span class="tok-type">i64</span>, <span class="tok-builtin">@bitCast</span>(<span class="tok-builtin">@as</span>(<span class="tok-type">u64</span>, <span class="tok-builtin">@intCast</span>(<span class="tok-number">0x8000000000000000</span>)))));</span>
-<span class="line" id="L249">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x80\x80\x80\x80\x80\x80\x80\x80\x40&quot;</span>)) == -<span class="tok-number">0x4000000000000000</span>);</span>
-<span class="line" id="L250">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x80\x80\x80\x80\x80\x80\x80\x80\x80\x7f&quot;</span>)) == -<span class="tok-number">0x8000000000000000</span>);</span>
-<span class="line" id="L251"></span>
-<span class="line" id="L252">    <span class="tok-comment">// Decode unnormalized SLEB128 with extra padding bytes.</span>
+<span class="line" id="L233">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x00&quot;</span>)) == <span class="tok-number">0</span>);</span>
+<span class="line" id="L234">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x01&quot;</span>)) == <span class="tok-number">1</span>);</span>
+<span class="line" id="L235">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x3f&quot;</span>)) == <span class="tok-number">63</span>);</span>
+<span class="line" id="L236">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x40&quot;</span>)) == -<span class="tok-number">64</span>);</span>
+<span class="line" id="L237">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x41&quot;</span>)) == -<span class="tok-number">63</span>);</span>
+<span class="line" id="L238">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x7f&quot;</span>)) == -<span class="tok-number">1</span>);</span>
+<span class="line" id="L239">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x80\x01&quot;</span>)) == <span class="tok-number">128</span>);</span>
+<span class="line" id="L240">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x81\x01&quot;</span>)) == <span class="tok-number">129</span>);</span>
+<span class="line" id="L241">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\xff\x7e&quot;</span>)) == -<span class="tok-number">129</span>);</span>
+<span class="line" id="L242">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x80\x7f&quot;</span>)) == -<span class="tok-number">128</span>);</span>
+<span class="line" id="L243">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x81\x7f&quot;</span>)) == -<span class="tok-number">127</span>);</span>
+<span class="line" id="L244">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\xc0\x00&quot;</span>)) == <span class="tok-number">64</span>);</span>
+<span class="line" id="L245">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\xc7\x9f\x7f&quot;</span>)) == -<span class="tok-number">12345</span>);</span>
+<span class="line" id="L246">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i8</span>, <span class="tok-str">&quot;\xff\x7f&quot;</span>)) == -<span class="tok-number">1</span>);</span>
+<span class="line" id="L247">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i16</span>, <span class="tok-str">&quot;\xff\xff\x7f&quot;</span>)) == -<span class="tok-number">1</span>);</span>
+<span class="line" id="L248">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i32</span>, <span class="tok-str">&quot;\xff\xff\xff\xff\x7f&quot;</span>)) == -<span class="tok-number">1</span>);</span>
+<span class="line" id="L249">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i32</span>, <span class="tok-str">&quot;\x80\x80\x80\x80\x78&quot;</span>)) == -<span class="tok-number">0x80000000</span>);</span>
+<span class="line" id="L250">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x80\x80\x80\x80\x80\x80\x80\x80\x80\x7f&quot;</span>)) == <span class="tok-builtin">@as</span>(<span class="tok-type">i64</span>, <span class="tok-builtin">@bitCast</span>(<span class="tok-builtin">@as</span>(<span class="tok-type">u64</span>, <span class="tok-builtin">@intCast</span>(<span class="tok-number">0x8000000000000000</span>)))));</span>
+<span class="line" id="L251">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x80\x80\x80\x80\x80\x80\x80\x80\x40&quot;</span>)) == -<span class="tok-number">0x4000000000000000</span>);</span>
+<span class="line" id="L252">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x80\x80\x80\x80\x80\x80\x80\x80\x80\x7f&quot;</span>)) == -<span class="tok-number">0x8000000000000000</span>);</span>
+<span class="line" id="L253"></span>
+<span class="line" id="L254">    <span class="tok-comment">// Decode unnormalized SLEB128 with extra padding bytes.</span>
 </span>
-<span class="line" id="L253">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x80\x00&quot;</span>)) == <span class="tok-number">0</span>);</span>
-<span class="line" id="L254">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x80\x80\x00&quot;</span>)) == <span class="tok-number">0</span>);</span>
-<span class="line" id="L255">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\xff\x00&quot;</span>)) == <span class="tok-number">0x7f</span>);</span>
-<span class="line" id="L256">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\xff\x80\x00&quot;</span>)) == <span class="tok-number">0x7f</span>);</span>
-<span class="line" id="L257">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x80\x81\x00&quot;</span>)) == <span class="tok-number">0x80</span>);</span>
-<span class="line" id="L258">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x80\x81\x80\x00&quot;</span>)) == <span class="tok-number">0x80</span>);</span>
-<span class="line" id="L259"></span>
-<span class="line" id="L260">    <span class="tok-comment">// Decode sequence of SLEB128 values</span>
+<span class="line" id="L255">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x80\x00&quot;</span>)) == <span class="tok-number">0</span>);</span>
+<span class="line" id="L256">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x80\x80\x00&quot;</span>)) == <span class="tok-number">0</span>);</span>
+<span class="line" id="L257">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\xff\x00&quot;</span>)) == <span class="tok-number">0x7f</span>);</span>
+<span class="line" id="L258">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\xff\x80\x00&quot;</span>)) == <span class="tok-number">0x7f</span>);</span>
+<span class="line" id="L259">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x80\x81\x00&quot;</span>)) == <span class="tok-number">0x80</span>);</span>
+<span class="line" id="L260">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_ileb128(<span class="tok-type">i64</span>, <span class="tok-str">&quot;\x80\x81\x80\x00&quot;</span>)) == <span class="tok-number">0x80</span>);</span>
+<span class="line" id="L261"></span>
+<span class="line" id="L262">    <span class="tok-comment">// Decode sequence of SLEB128 values</span>
 </span>
-<span class="line" id="L261">    <span class="tok-kw">try</span> test_read_ileb128_seq(<span class="tok-type">i64</span>, <span class="tok-number">4</span>, <span class="tok-str">&quot;\x81\x01\x3f\x80\x7f\x80\x80\x80\x00&quot;</span>);</span>
-<span class="line" id="L262">}</span>
-<span class="line" id="L263"></span>
-<span class="line" id="L264"><span class="tok-kw">test</span> <span class="tok-str">&quot;deserialize unsigned LEB128&quot;</span> {</span>
-<span class="line" id="L265">    <span class="tok-comment">// Truncated</span>
+<span class="line" id="L263">    <span class="tok-kw">try</span> test_read_ileb128_seq(<span class="tok-type">i64</span>, <span class="tok-number">4</span>, <span class="tok-str">&quot;\x81\x01\x3f\x80\x7f\x80\x80\x80\x00&quot;</span>);</span>
+<span class="line" id="L264">}</span>
+<span class="line" id="L265"></span>
+<span class="line" id="L266"><span class="tok-kw">test</span> <span class="tok-str">&quot;deserialize unsigned LEB128&quot;</span> {</span>
+<span class="line" id="L267">    <span class="tok-comment">// Truncated</span>
 </span>
-<span class="line" id="L266">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.EndOfStream, test_read_stream_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x80&quot;</span>));</span>
-<span class="line" id="L267"></span>
-<span class="line" id="L268">    <span class="tok-comment">// Overflow</span>
+<span class="line" id="L268">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.EndOfStream, test_read_stream_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x80&quot;</span>));</span>
+<span class="line" id="L269"></span>
+<span class="line" id="L270">    <span class="tok-comment">// Overflow</span>
 </span>
-<span class="line" id="L269">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_uleb128(<span class="tok-type">u8</span>, <span class="tok-str">&quot;\x80\x02&quot;</span>));</span>
-<span class="line" id="L270">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_uleb128(<span class="tok-type">u8</span>, <span class="tok-str">&quot;\x80\x80\x40&quot;</span>));</span>
-<span class="line" id="L271">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_uleb128(<span class="tok-type">u16</span>, <span class="tok-str">&quot;\x80\x80\x84&quot;</span>));</span>
-<span class="line" id="L272">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_uleb128(<span class="tok-type">u16</span>, <span class="tok-str">&quot;\x80\x80\x80\x40&quot;</span>));</span>
-<span class="line" id="L273">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_uleb128(<span class="tok-type">u32</span>, <span class="tok-str">&quot;\x80\x80\x80\x80\x90&quot;</span>));</span>
-<span class="line" id="L274">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_uleb128(<span class="tok-type">u32</span>, <span class="tok-str">&quot;\x80\x80\x80\x80\x40&quot;</span>));</span>
-<span class="line" id="L275">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x80\x80\x80\x80\x80\x80\x80\x80\x80\x40&quot;</span>));</span>
-<span class="line" id="L276"></span>
-<span class="line" id="L277">    <span class="tok-comment">// Decode ULEB128</span>
+<span class="line" id="L271">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_uleb128(<span class="tok-type">u8</span>, <span class="tok-str">&quot;\x80\x02&quot;</span>));</span>
+<span class="line" id="L272">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_uleb128(<span class="tok-type">u8</span>, <span class="tok-str">&quot;\x80\x80\x40&quot;</span>));</span>
+<span class="line" id="L273">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_uleb128(<span class="tok-type">u16</span>, <span class="tok-str">&quot;\x80\x80\x84&quot;</span>));</span>
+<span class="line" id="L274">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_uleb128(<span class="tok-type">u16</span>, <span class="tok-str">&quot;\x80\x80\x80\x40&quot;</span>));</span>
+<span class="line" id="L275">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_uleb128(<span class="tok-type">u32</span>, <span class="tok-str">&quot;\x80\x80\x80\x80\x90&quot;</span>));</span>
+<span class="line" id="L276">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_uleb128(<span class="tok-type">u32</span>, <span class="tok-str">&quot;\x80\x80\x80\x80\x40&quot;</span>));</span>
+<span class="line" id="L277">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.Overflow, test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x80\x80\x80\x80\x80\x80\x80\x80\x80\x40&quot;</span>));</span>
+<span class="line" id="L278"></span>
+<span class="line" id="L279">    <span class="tok-comment">// Decode ULEB128</span>
 </span>
-<span class="line" id="L278">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x00&quot;</span>)) == <span class="tok-number">0</span>);</span>
-<span class="line" id="L279">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x01&quot;</span>)) == <span class="tok-number">1</span>);</span>
-<span class="line" id="L280">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x3f&quot;</span>)) == <span class="tok-number">63</span>);</span>
-<span class="line" id="L281">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x40&quot;</span>)) == <span class="tok-number">64</span>);</span>
-<span class="line" id="L282">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x7f&quot;</span>)) == <span class="tok-number">0x7f</span>);</span>
-<span class="line" id="L283">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x80\x01&quot;</span>)) == <span class="tok-number">0x80</span>);</span>
-<span class="line" id="L284">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x81\x01&quot;</span>)) == <span class="tok-number">0x81</span>);</span>
-<span class="line" id="L285">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x90\x01&quot;</span>)) == <span class="tok-number">0x90</span>);</span>
-<span class="line" id="L286">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\xff\x01&quot;</span>)) == <span class="tok-number">0xff</span>);</span>
-<span class="line" id="L287">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x80\x02&quot;</span>)) == <span class="tok-number">0x100</span>);</span>
-<span class="line" id="L288">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x81\x02&quot;</span>)) == <span class="tok-number">0x101</span>);</span>
-<span class="line" id="L289">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x80\xc1\x80\x80\x10&quot;</span>)) == <span class="tok-number">4294975616</span>);</span>
-<span class="line" id="L290">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x80\x80\x80\x80\x80\x80\x80\x80\x80\x01&quot;</span>)) == <span class="tok-number">0x8000000000000000</span>);</span>
-<span class="line" id="L291"></span>
-<span class="line" id="L292">    <span class="tok-comment">// Decode ULEB128 with extra padding bytes</span>
+<span class="line" id="L280">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x00&quot;</span>)) == <span class="tok-number">0</span>);</span>
+<span class="line" id="L281">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x01&quot;</span>)) == <span class="tok-number">1</span>);</span>
+<span class="line" id="L282">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x3f&quot;</span>)) == <span class="tok-number">63</span>);</span>
+<span class="line" id="L283">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x40&quot;</span>)) == <span class="tok-number">64</span>);</span>
+<span class="line" id="L284">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x7f&quot;</span>)) == <span class="tok-number">0x7f</span>);</span>
+<span class="line" id="L285">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x80\x01&quot;</span>)) == <span class="tok-number">0x80</span>);</span>
+<span class="line" id="L286">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x81\x01&quot;</span>)) == <span class="tok-number">0x81</span>);</span>
+<span class="line" id="L287">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x90\x01&quot;</span>)) == <span class="tok-number">0x90</span>);</span>
+<span class="line" id="L288">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\xff\x01&quot;</span>)) == <span class="tok-number">0xff</span>);</span>
+<span class="line" id="L289">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x80\x02&quot;</span>)) == <span class="tok-number">0x100</span>);</span>
+<span class="line" id="L290">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x81\x02&quot;</span>)) == <span class="tok-number">0x101</span>);</span>
+<span class="line" id="L291">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x80\xc1\x80\x80\x10&quot;</span>)) == <span class="tok-number">4294975616</span>);</span>
+<span class="line" id="L292">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x80\x80\x80\x80\x80\x80\x80\x80\x80\x01&quot;</span>)) == <span class="tok-number">0x8000000000000000</span>);</span>
+<span class="line" id="L293"></span>
+<span class="line" id="L294">    <span class="tok-comment">// Decode ULEB128 with extra padding bytes</span>
 </span>
-<span class="line" id="L293">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x80\x00&quot;</span>)) == <span class="tok-number">0</span>);</span>
-<span class="line" id="L294">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x80\x80\x00&quot;</span>)) == <span class="tok-number">0</span>);</span>
-<span class="line" id="L295">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\xff\x00&quot;</span>)) == <span class="tok-number">0x7f</span>);</span>
-<span class="line" id="L296">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\xff\x80\x00&quot;</span>)) == <span class="tok-number">0x7f</span>);</span>
-<span class="line" id="L297">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x80\x81\x00&quot;</span>)) == <span class="tok-number">0x80</span>);</span>
-<span class="line" id="L298">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x80\x81\x80\x00&quot;</span>)) == <span class="tok-number">0x80</span>);</span>
-<span class="line" id="L299"></span>
-<span class="line" id="L300">    <span class="tok-comment">// Decode sequence of ULEB128 values</span>
+<span class="line" id="L295">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x80\x00&quot;</span>)) == <span class="tok-number">0</span>);</span>
+<span class="line" id="L296">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x80\x80\x00&quot;</span>)) == <span class="tok-number">0</span>);</span>
+<span class="line" id="L297">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\xff\x00&quot;</span>)) == <span class="tok-number">0x7f</span>);</span>
+<span class="line" id="L298">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\xff\x80\x00&quot;</span>)) == <span class="tok-number">0x7f</span>);</span>
+<span class="line" id="L299">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x80\x81\x00&quot;</span>)) == <span class="tok-number">0x80</span>);</span>
+<span class="line" id="L300">    <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> test_read_uleb128(<span class="tok-type">u64</span>, <span class="tok-str">&quot;\x80\x81\x80\x00&quot;</span>)) == <span class="tok-number">0x80</span>);</span>
+<span class="line" id="L301"></span>
+<span class="line" id="L302">    <span class="tok-comment">// Decode sequence of ULEB128 values</span>
 </span>
-<span class="line" id="L301">    <span class="tok-kw">try</span> test_read_uleb128_seq(<span class="tok-type">u64</span>, <span class="tok-number">4</span>, <span class="tok-str">&quot;\x81\x01\x3f\x80\x7f\x80\x80\x80\x00&quot;</span>);</span>
-<span class="line" id="L302">}</span>
-<span class="line" id="L303"></span>
-<span class="line" id="L304"><span class="tok-kw">fn</span> <span class="tok-fn">test_write_leb128</span>(value: <span class="tok-kw">anytype</span>) !<span class="tok-type">void</span> {</span>
-<span class="line" id="L305">    <span class="tok-kw">const</span> T = <span class="tok-builtin">@TypeOf</span>(value);</span>
-<span class="line" id="L306">    <span class="tok-kw">const</span> signedness = <span class="tok-builtin">@typeInfo</span>(T).Int.signedness;</span>
-<span class="line" id="L307">    <span class="tok-kw">const</span> t_signed = signedness == .signed;</span>
-<span class="line" id="L308"></span>
-<span class="line" id="L309">    <span class="tok-kw">const</span> writeStream = <span class="tok-kw">if</span> (t_signed) writeILEB128 <span class="tok-kw">else</span> writeULEB128;</span>
-<span class="line" id="L310">    <span class="tok-kw">const</span> readStream = <span class="tok-kw">if</span> (t_signed) readILEB128 <span class="tok-kw">else</span> readULEB128;</span>
-<span class="line" id="L311"></span>
-<span class="line" id="L312">    <span class="tok-comment">// decode to a larger bit size too, to ensure sign extension</span>
+<span class="line" id="L303">    <span class="tok-kw">try</span> test_read_uleb128_seq(<span class="tok-type">u64</span>, <span class="tok-number">4</span>, <span class="tok-str">&quot;\x81\x01\x3f\x80\x7f\x80\x80\x80\x00&quot;</span>);</span>
+<span class="line" id="L304">}</span>
+<span class="line" id="L305"></span>
+<span class="line" id="L306"><span class="tok-kw">fn</span> <span class="tok-fn">test_write_leb128</span>(value: <span class="tok-kw">anytype</span>) !<span class="tok-type">void</span> {</span>
+<span class="line" id="L307">    <span class="tok-kw">const</span> T = <span class="tok-builtin">@TypeOf</span>(value);</span>
+<span class="line" id="L308">    <span class="tok-kw">const</span> signedness = <span class="tok-builtin">@typeInfo</span>(T).Int.signedness;</span>
+<span class="line" id="L309">    <span class="tok-kw">const</span> t_signed = signedness == .signed;</span>
+<span class="line" id="L310"></span>
+<span class="line" id="L311">    <span class="tok-kw">const</span> writeStream = <span class="tok-kw">if</span> (t_signed) writeILEB128 <span class="tok-kw">else</span> writeULEB128;</span>
+<span class="line" id="L312">    <span class="tok-kw">const</span> readStream = <span class="tok-kw">if</span> (t_signed) readILEB128 <span class="tok-kw">else</span> readULEB128;</span>
+<span class="line" id="L313"></span>
+<span class="line" id="L314">    <span class="tok-comment">// decode to a larger bit size too, to ensure sign extension</span>
 </span>
-<span class="line" id="L313">    <span class="tok-comment">// is working as expected</span>
+<span class="line" id="L315">    <span class="tok-comment">// is working as expected</span>
 </span>
-<span class="line" id="L314">    <span class="tok-kw">const</span> larger_type_bits = ((<span class="tok-builtin">@typeInfo</span>(T).Int.bits + <span class="tok-number">8</span>) / <span class="tok-number">8</span>) * <span class="tok-number">8</span>;</span>
-<span class="line" id="L315">    <span class="tok-kw">const</span> B = std.meta.Int(signedness, larger_type_bits);</span>
-<span class="line" id="L316"></span>
-<span class="line" id="L317">    <span class="tok-kw">const</span> bytes_needed = bn: {</span>
-<span class="line" id="L318">        <span class="tok-kw">if</span> (<span class="tok-builtin">@typeInfo</span>(T).Int.bits &lt;= <span class="tok-number">7</span>) <span class="tok-kw">break</span> :bn <span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">1</span>);</span>
-<span class="line" id="L319"></span>
-<span class="line" id="L320">        <span class="tok-kw">const</span> unused_bits = <span class="tok-kw">if</span> (value &lt; <span class="tok-number">0</span>) <span class="tok-builtin">@clz</span>(~value) <span class="tok-kw">else</span> <span class="tok-builtin">@clz</span>(value);</span>
-<span class="line" id="L321">        <span class="tok-kw">const</span> used_bits: <span class="tok-type">u16</span> = (<span class="tok-builtin">@typeInfo</span>(T).Int.bits - unused_bits) + <span class="tok-builtin">@intFromBool</span>(t_signed);</span>
-<span class="line" id="L322">        <span class="tok-kw">if</span> (used_bits &lt;= <span class="tok-number">7</span>) <span class="tok-kw">break</span> :bn <span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">1</span>);</span>
-<span class="line" id="L323">        <span class="tok-kw">break</span> :bn ((used_bits + <span class="tok-number">6</span>) / <span class="tok-number">7</span>);</span>
-<span class="line" id="L324">    };</span>
-<span class="line" id="L325"></span>
-<span class="line" id="L326">    <span class="tok-kw">const</span> max_groups = <span class="tok-kw">if</span> (<span class="tok-builtin">@typeInfo</span>(T).Int.bits == <span class="tok-number">0</span>) <span class="tok-number">1</span> <span class="tok-kw">else</span> (<span class="tok-builtin">@typeInfo</span>(T).Int.bits + <span class="tok-number">6</span>) / <span class="tok-number">7</span>;</span>
+<span class="line" id="L316">    <span class="tok-kw">const</span> larger_type_bits = ((<span class="tok-builtin">@typeInfo</span>(T).Int.bits + <span class="tok-number">8</span>) / <span class="tok-number">8</span>) * <span class="tok-number">8</span>;</span>
+<span class="line" id="L317">    <span class="tok-kw">const</span> B = std.meta.Int(signedness, larger_type_bits);</span>
+<span class="line" id="L318"></span>
+<span class="line" id="L319">    <span class="tok-kw">const</span> bytes_needed = bn: {</span>
+<span class="line" id="L320">        <span class="tok-kw">if</span> (<span class="tok-builtin">@typeInfo</span>(T).Int.bits &lt;= <span class="tok-number">7</span>) <span class="tok-kw">break</span> :bn <span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">1</span>);</span>
+<span class="line" id="L321"></span>
+<span class="line" id="L322">        <span class="tok-kw">const</span> unused_bits = <span class="tok-kw">if</span> (value &lt; <span class="tok-number">0</span>) <span class="tok-builtin">@clz</span>(~value) <span class="tok-kw">else</span> <span class="tok-builtin">@clz</span>(value);</span>
+<span class="line" id="L323">        <span class="tok-kw">const</span> used_bits: <span class="tok-type">u16</span> = (<span class="tok-builtin">@typeInfo</span>(T).Int.bits - unused_bits) + <span class="tok-builtin">@intFromBool</span>(t_signed);</span>
+<span class="line" id="L324">        <span class="tok-kw">if</span> (used_bits &lt;= <span class="tok-number">7</span>) <span class="tok-kw">break</span> :bn <span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">1</span>);</span>
+<span class="line" id="L325">        <span class="tok-kw">break</span> :bn ((used_bits + <span class="tok-number">6</span>) / <span class="tok-number">7</span>);</span>
+<span class="line" id="L326">    };</span>
 <span class="line" id="L327"></span>
-<span class="line" id="L328">    <span class="tok-kw">var</span> buf: [max_groups]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L329">    <span class="tok-kw">var</span> fbs = std.io.fixedBufferStream(&amp;buf);</span>
-<span class="line" id="L330"></span>
-<span class="line" id="L331">    <span class="tok-comment">// stream write</span>
+<span class="line" id="L328">    <span class="tok-kw">const</span> max_groups = <span class="tok-kw">if</span> (<span class="tok-builtin">@typeInfo</span>(T).Int.bits == <span class="tok-number">0</span>) <span class="tok-number">1</span> <span class="tok-kw">else</span> (<span class="tok-builtin">@typeInfo</span>(T).Int.bits + <span class="tok-number">6</span>) / <span class="tok-number">7</span>;</span>
+<span class="line" id="L329"></span>
+<span class="line" id="L330">    <span class="tok-kw">var</span> buf: [max_groups]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L331">    <span class="tok-kw">var</span> fbs = std.io.fixedBufferStream(&amp;buf);</span>
+<span class="line" id="L332"></span>
+<span class="line" id="L333">    <span class="tok-comment">// stream write</span>
 </span>
-<span class="line" id="L332">    <span class="tok-kw">try</span> writeStream(fbs.writer(), value);</span>
-<span class="line" id="L333">    <span class="tok-kw">const</span> w1_pos = fbs.pos;</span>
-<span class="line" id="L334">    <span class="tok-kw">try</span> testing.expect(w1_pos == bytes_needed);</span>
-<span class="line" id="L335"></span>
-<span class="line" id="L336">    <span class="tok-comment">// stream read</span>
+<span class="line" id="L334">    <span class="tok-kw">try</span> writeStream(fbs.writer(), value);</span>
+<span class="line" id="L335">    <span class="tok-kw">const</span> w1_pos = fbs.pos;</span>
+<span class="line" id="L336">    <span class="tok-kw">try</span> testing.expect(w1_pos == bytes_needed);</span>
+<span class="line" id="L337"></span>
+<span class="line" id="L338">    <span class="tok-comment">// stream read</span>
 </span>
-<span class="line" id="L337">    fbs.pos = <span class="tok-number">0</span>;</span>
-<span class="line" id="L338">    <span class="tok-kw">const</span> sr = <span class="tok-kw">try</span> readStream(T, fbs.reader());</span>
-<span class="line" id="L339">    <span class="tok-kw">try</span> testing.expect(fbs.pos == w1_pos);</span>
-<span class="line" id="L340">    <span class="tok-kw">try</span> testing.expect(sr == value);</span>
-<span class="line" id="L341"></span>
-<span class="line" id="L342">    <span class="tok-comment">// bigger type stream read</span>
+<span class="line" id="L339">    fbs.pos = <span class="tok-number">0</span>;</span>
+<span class="line" id="L340">    <span class="tok-kw">const</span> sr = <span class="tok-kw">try</span> readStream(T, fbs.reader());</span>
+<span class="line" id="L341">    <span class="tok-kw">try</span> testing.expect(fbs.pos == w1_pos);</span>
+<span class="line" id="L342">    <span class="tok-kw">try</span> testing.expect(sr == value);</span>
+<span class="line" id="L343"></span>
+<span class="line" id="L344">    <span class="tok-comment">// bigger type stream read</span>
 </span>
-<span class="line" id="L343">    fbs.pos = <span class="tok-number">0</span>;</span>
-<span class="line" id="L344">    <span class="tok-kw">const</span> bsr = <span class="tok-kw">try</span> readStream(B, fbs.reader());</span>
-<span class="line" id="L345">    <span class="tok-kw">try</span> testing.expect(fbs.pos == w1_pos);</span>
-<span class="line" id="L346">    <span class="tok-kw">try</span> testing.expect(bsr == value);</span>
-<span class="line" id="L347">}</span>
-<span class="line" id="L348"></span>
-<span class="line" id="L349"><span class="tok-kw">test</span> <span class="tok-str">&quot;serialize unsigned LEB128&quot;</span> {</span>
-<span class="line" id="L350">    <span class="tok-kw">const</span> max_bits = <span class="tok-number">18</span>;</span>
-<span class="line" id="L351"></span>
-<span class="line" id="L352">    <span class="tok-kw">comptime</span> <span class="tok-kw">var</span> t = <span class="tok-number">0</span>;</span>
-<span class="line" id="L353">    <span class="tok-kw">inline</span> <span class="tok-kw">while</span> (t &lt;= max_bits) : (t += <span class="tok-number">1</span>) {</span>
-<span class="line" id="L354">        <span class="tok-kw">const</span> T = std.meta.Int(.unsigned, t);</span>
-<span class="line" id="L355">        <span class="tok-kw">const</span> min = std.math.minInt(T);</span>
-<span class="line" id="L356">        <span class="tok-kw">const</span> max = std.math.maxInt(T);</span>
-<span class="line" id="L357">        <span class="tok-kw">var</span> i = <span class="tok-builtin">@as</span>(std.meta.Int(.unsigned, <span class="tok-builtin">@typeInfo</span>(T).Int.bits + <span class="tok-number">1</span>), min);</span>
-<span class="line" id="L358"></span>
-<span class="line" id="L359">        <span class="tok-kw">while</span> (i &lt;= max) : (i += <span class="tok-number">1</span>) <span class="tok-kw">try</span> test_write_leb128(<span class="tok-builtin">@as</span>(T, <span class="tok-builtin">@intCast</span>(i)));</span>
-<span class="line" id="L360">    }</span>
-<span class="line" id="L361">}</span>
-<span class="line" id="L362"></span>
-<span class="line" id="L363"><span class="tok-kw">test</span> <span class="tok-str">&quot;serialize signed LEB128&quot;</span> {</span>
-<span class="line" id="L364">    <span class="tok-comment">// explicitly test i0 because starting `t` at 0</span>
-</span>
-<span class="line" id="L365">    <span class="tok-comment">// will break the while loop</span>
-</span>
-<span class="line" id="L366">    <span class="tok-kw">try</span> test_write_leb128(<span class="tok-builtin">@as</span>(<span class="tok-type">i0</span>, <span class="tok-number">0</span>));</span>
+<span class="line" id="L345">    fbs.pos = <span class="tok-number">0</span>;</span>
+<span class="line" id="L346">    <span class="tok-kw">const</span> bsr = <span class="tok-kw">try</span> readStream(B, fbs.reader());</span>
+<span class="line" id="L347">    <span class="tok-kw">try</span> testing.expect(fbs.pos == w1_pos);</span>
+<span class="line" id="L348">    <span class="tok-kw">try</span> testing.expect(bsr == value);</span>
+<span class="line" id="L349">}</span>
+<span class="line" id="L350"></span>
+<span class="line" id="L351"><span class="tok-kw">test</span> <span class="tok-str">&quot;serialize unsigned LEB128&quot;</span> {</span>
+<span class="line" id="L352">    <span class="tok-kw">const</span> max_bits = <span class="tok-number">18</span>;</span>
+<span class="line" id="L353"></span>
+<span class="line" id="L354">    <span class="tok-kw">comptime</span> <span class="tok-kw">var</span> t = <span class="tok-number">0</span>;</span>
+<span class="line" id="L355">    <span class="tok-kw">inline</span> <span class="tok-kw">while</span> (t &lt;= max_bits) : (t += <span class="tok-number">1</span>) {</span>
+<span class="line" id="L356">        <span class="tok-kw">const</span> T = std.meta.Int(.unsigned, t);</span>
+<span class="line" id="L357">        <span class="tok-kw">const</span> min = std.math.minInt(T);</span>
+<span class="line" id="L358">        <span class="tok-kw">const</span> max = std.math.maxInt(T);</span>
+<span class="line" id="L359">        <span class="tok-kw">var</span> i = <span class="tok-builtin">@as</span>(std.meta.Int(.unsigned, <span class="tok-builtin">@typeInfo</span>(T).Int.bits + <span class="tok-number">1</span>), min);</span>
+<span class="line" id="L360"></span>
+<span class="line" id="L361">        <span class="tok-kw">while</span> (i &lt;= max) : (i += <span class="tok-number">1</span>) <span class="tok-kw">try</span> test_write_leb128(<span class="tok-builtin">@as</span>(T, <span class="tok-builtin">@intCast</span>(i)));</span>
+<span class="line" id="L362">    }</span>
+<span class="line" id="L363">}</span>
+<span class="line" id="L364"></span>
+<span class="line" id="L365"><span class="tok-kw">test</span> <span class="tok-str">&quot;serialize signed LEB128&quot;</span> {</span>
+<span class="line" id="L366">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
 <span class="line" id="L367"></span>
-<span class="line" id="L368">    <span class="tok-kw">const</span> max_bits = <span class="tok-number">18</span>;</span>
-<span class="line" id="L369"></span>
-<span class="line" id="L370">    <span class="tok-kw">comptime</span> <span class="tok-kw">var</span> t = <span class="tok-number">1</span>;</span>
-<span class="line" id="L371">    <span class="tok-kw">inline</span> <span class="tok-kw">while</span> (t &lt;= max_bits) : (t += <span class="tok-number">1</span>) {</span>
-<span class="line" id="L372">        <span class="tok-kw">const</span> T = std.meta.Int(.signed, t);</span>
-<span class="line" id="L373">        <span class="tok-kw">const</span> min = std.math.minInt(T);</span>
-<span class="line" id="L374">        <span class="tok-kw">const</span> max = std.math.maxInt(T);</span>
-<span class="line" id="L375">        <span class="tok-kw">var</span> i = <span class="tok-builtin">@as</span>(std.meta.Int(.signed, <span class="tok-builtin">@typeInfo</span>(T).Int.bits + <span class="tok-number">1</span>), min);</span>
-<span class="line" id="L376"></span>
-<span class="line" id="L377">        <span class="tok-kw">while</span> (i &lt;= max) : (i += <span class="tok-number">1</span>) <span class="tok-kw">try</span> test_write_leb128(<span class="tok-builtin">@as</span>(T, <span class="tok-builtin">@intCast</span>(i)));</span>
-<span class="line" id="L378">    }</span>
-<span class="line" id="L379">}</span>
+<span class="line" id="L368">    <span class="tok-comment">// explicitly test i0 because starting `t` at 0</span>
+</span>
+<span class="line" id="L369">    <span class="tok-comment">// will break the while loop</span>
+</span>
+<span class="line" id="L370">    <span class="tok-kw">try</span> test_write_leb128(<span class="tok-builtin">@as</span>(<span class="tok-type">i0</span>, <span class="tok-number">0</span>));</span>
+<span class="line" id="L371"></span>
+<span class="line" id="L372">    <span class="tok-kw">const</span> max_bits = <span class="tok-number">18</span>;</span>
+<span class="line" id="L373"></span>
+<span class="line" id="L374">    <span class="tok-kw">comptime</span> <span class="tok-kw">var</span> t = <span class="tok-number">1</span>;</span>
+<span class="line" id="L375">    <span class="tok-kw">inline</span> <span class="tok-kw">while</span> (t &lt;= max_bits) : (t += <span class="tok-number">1</span>) {</span>
+<span class="line" id="L376">        <span class="tok-kw">const</span> T = std.meta.Int(.signed, t);</span>
+<span class="line" id="L377">        <span class="tok-kw">const</span> min = std.math.minInt(T);</span>
+<span class="line" id="L378">        <span class="tok-kw">const</span> max = std.math.maxInt(T);</span>
+<span class="line" id="L379">        <span class="tok-kw">var</span> i = <span class="tok-builtin">@as</span>(std.meta.Int(.signed, <span class="tok-builtin">@typeInfo</span>(T).Int.bits + <span class="tok-number">1</span>), min);</span>
 <span class="line" id="L380"></span>
+<span class="line" id="L381">        <span class="tok-kw">while</span> (i &lt;= max) : (i += <span class="tok-number">1</span>) <span class="tok-kw">try</span> test_write_leb128(<span class="tok-builtin">@as</span>(T, <span class="tok-builtin">@intCast</span>(i)));</span>
+<span class="line" id="L382">    }</span>
+<span class="line" id="L383">}</span>
+<span class="line" id="L384"></span>
 </code></pre></body>
 </html>

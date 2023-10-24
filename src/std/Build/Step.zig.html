@@ -387,7 +387,7 @@
 <span class="line" id="L273">    <span class="tok-kw">try</span> handleChildProcUnsupported(s, <span class="tok-null">null</span>, argv);</span>
 <span class="line" id="L274">    <span class="tok-kw">try</span> handleVerbose(s.owner, <span class="tok-null">null</span>, argv);</span>
 <span class="line" id="L275"></span>
-<span class="line" id="L276">    <span class="tok-kw">const</span> result = std.ChildProcess.exec(.{</span>
+<span class="line" id="L276">    <span class="tok-kw">const</span> result = std.ChildProcess.run(.{</span>
 <span class="line" id="L277">        .allocator = arena,</span>
 <span class="line" id="L278">        .argv = argv,</span>
 <span class="line" id="L279">    }) <span class="tok-kw">catch</span> |err| <span class="tok-kw">return</span> s.fail(<span class="tok-str">&quot;unable to spawn {s}: {s}&quot;</span>, .{ argv[<span class="tok-number">0</span>], <span class="tok-builtin">@errorName</span>(err) });</span>

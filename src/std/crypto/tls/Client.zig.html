@@ -1040,7 +1040,7 @@
 <span class="line" id="L881"><span class="tok-comment">/// The `iovecs` parameter is mutable because this function needs to mutate the fields in</span></span>
 <span class="line" id="L882"><span class="tok-comment">/// order to handle partial reads from the underlying stream layer.</span></span>
 <span class="line" id="L883"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">readv</span>(c: *Client, stream: <span class="tok-kw">anytype</span>, iovecs: []std.os.iovec) !<span class="tok-type">usize</span> {</span>
-<span class="line" id="L884">    <span class="tok-kw">return</span> readvAtLeast(c, stream, iovecs);</span>
+<span class="line" id="L884">    <span class="tok-kw">return</span> readvAtLeast(c, stream, iovecs, <span class="tok-number">1</span>);</span>
 <span class="line" id="L885">}</span>
 <span class="line" id="L886"></span>
 <span class="line" id="L887"><span class="tok-comment">/// Receives TLS-encrypted data from `stream`, which must conform to `StreamInterface`.</span></span>

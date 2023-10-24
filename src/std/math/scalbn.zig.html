@@ -121,13 +121,15 @@
 <span class="line" id="L7"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> scalbn = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;ldexp.zig&quot;</span>).ldexp;</span>
 <span class="line" id="L8"></span>
 <span class="line" id="L9"><span class="tok-kw">test</span> <span class="tok-str">&quot;math.scalbn&quot;</span> {</span>
-<span class="line" id="L10">    <span class="tok-comment">// Verify we are using base 2.</span>
+<span class="line" id="L10">    <span class="tok-kw">if</span> (<span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>).zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L11"></span>
+<span class="line" id="L12">    <span class="tok-comment">// Verify we are using base 2.</span>
 </span>
-<span class="line" id="L11">    <span class="tok-kw">try</span> expect(scalbn(<span class="tok-builtin">@as</span>(<span class="tok-type">f16</span>, <span class="tok-number">1.5</span>), <span class="tok-number">4</span>) == <span class="tok-number">24.0</span>);</span>
-<span class="line" id="L12">    <span class="tok-kw">try</span> expect(scalbn(<span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-number">1.5</span>), <span class="tok-number">4</span>) == <span class="tok-number">24.0</span>);</span>
-<span class="line" id="L13">    <span class="tok-kw">try</span> expect(scalbn(<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">1.5</span>), <span class="tok-number">4</span>) == <span class="tok-number">24.0</span>);</span>
-<span class="line" id="L14">    <span class="tok-kw">try</span> expect(scalbn(<span class="tok-builtin">@as</span>(<span class="tok-type">f128</span>, <span class="tok-number">1.5</span>), <span class="tok-number">4</span>) == <span class="tok-number">24.0</span>);</span>
-<span class="line" id="L15">}</span>
-<span class="line" id="L16"></span>
+<span class="line" id="L13">    <span class="tok-kw">try</span> expect(scalbn(<span class="tok-builtin">@as</span>(<span class="tok-type">f16</span>, <span class="tok-number">1.5</span>), <span class="tok-number">4</span>) == <span class="tok-number">24.0</span>);</span>
+<span class="line" id="L14">    <span class="tok-kw">try</span> expect(scalbn(<span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-number">1.5</span>), <span class="tok-number">4</span>) == <span class="tok-number">24.0</span>);</span>
+<span class="line" id="L15">    <span class="tok-kw">try</span> expect(scalbn(<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">1.5</span>), <span class="tok-number">4</span>) == <span class="tok-number">24.0</span>);</span>
+<span class="line" id="L16">    <span class="tok-kw">try</span> expect(scalbn(<span class="tok-builtin">@as</span>(<span class="tok-type">f128</span>, <span class="tok-number">1.5</span>), <span class="tok-number">4</span>) == <span class="tok-number">24.0</span>);</span>
+<span class="line" id="L17">}</span>
+<span class="line" id="L18"></span>
 </code></pre></body>
 </html>

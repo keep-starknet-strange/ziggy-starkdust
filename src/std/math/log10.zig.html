@@ -324,16 +324,15 @@
 </span>
 <span class="line" id="L172">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_c) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest; <span class="tok-comment">// TODO</span>
 </span>
-<span class="line" id="L173">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest; <span class="tok-comment">// TODO</span>
+<span class="line" id="L173">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_aarch64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest; <span class="tok-comment">// TODO</span>
 </span>
-<span class="line" id="L174">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_aarch64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest; <span class="tok-comment">// TODO</span>
+<span class="line" id="L174">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_sparc64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest; <span class="tok-comment">// TODO</span>
 </span>
-<span class="line" id="L175">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_sparc64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest; <span class="tok-comment">// TODO</span>
+<span class="line" id="L175">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_arm) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest; <span class="tok-comment">// TODO</span>
 </span>
-<span class="line" id="L176">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_arm) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest; <span class="tok-comment">// TODO</span>
+<span class="line" id="L176">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_llvm <span class="tok-kw">and</span> <span class="tok-kw">comptime</span> builtin.target.isWasm()) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest; <span class="tok-comment">// TODO</span>
 </span>
-<span class="line" id="L177">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_llvm <span class="tok-kw">and</span> <span class="tok-kw">comptime</span> builtin.target.isWasm()) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest; <span class="tok-comment">// TODO</span>
-</span>
+<span class="line" id="L177">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
 <span class="line" id="L178"></span>
 <span class="line" id="L179">    <span class="tok-kw">const</span> int_types = .{ <span class="tok-type">u8</span>, <span class="tok-type">u16</span>, <span class="tok-type">u32</span>, <span class="tok-type">u64</span>, <span class="tok-type">u128</span>, <span class="tok-type">u256</span>, <span class="tok-type">u512</span> };</span>
 <span class="line" id="L180">    <span class="tok-kw">const</span> max_log_values: [<span class="tok-number">7</span>]<span class="tok-type">usize</span> = .{ <span class="tok-number">2</span>, <span class="tok-number">4</span>, <span class="tok-number">9</span>, <span class="tok-number">19</span>, <span class="tok-number">38</span>, <span class="tok-number">77</span>, <span class="tok-number">154</span> };</span>

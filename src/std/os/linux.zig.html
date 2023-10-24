@@ -1166,7 +1166,7 @@
 <span class="line" id="L1030">    <span class="tok-kw">return</span> syscall2(.clock_settime, <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@bitCast</span>(<span class="tok-builtin">@as</span>(<span class="tok-type">isize</span>, clk_id))), <span class="tok-builtin">@intFromPtr</span>(tp));</span>
 <span class="line" id="L1031">}</span>
 <span class="line" id="L1032"></span>
-<span class="line" id="L1033"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">gettimeofday</span>(tv: *timeval, tz: *timezone) <span class="tok-type">usize</span> {</span>
+<span class="line" id="L1033"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">gettimeofday</span>(tv: ?*timeval, tz: ?*timezone) <span class="tok-type">usize</span> {</span>
 <span class="line" id="L1034">    <span class="tok-kw">return</span> syscall2(.gettimeofday, <span class="tok-builtin">@intFromPtr</span>(tv), <span class="tok-builtin">@intFromPtr</span>(tz));</span>
 <span class="line" id="L1035">}</span>
 <span class="line" id="L1036"></span>

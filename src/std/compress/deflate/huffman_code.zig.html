@@ -558,95 +558,97 @@
 <span class="line" id="L360">}</span>
 <span class="line" id="L361"></span>
 <span class="line" id="L362"><span class="tok-kw">test</span> <span class="tok-str">&quot;generate a Huffman code from an array of frequencies&quot;</span> {</span>
-<span class="line" id="L363">    <span class="tok-kw">var</span> freqs: [<span class="tok-number">19</span>]<span class="tok-type">u16</span> = [_]<span class="tok-type">u16</span>{</span>
-<span class="line" id="L364">        <span class="tok-number">8</span>, <span class="tok-comment">// 0</span>
+<span class="line" id="L363">    <span class="tok-kw">if</span> (<span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>).zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L364"></span>
+<span class="line" id="L365">    <span class="tok-kw">var</span> freqs: [<span class="tok-number">19</span>]<span class="tok-type">u16</span> = [_]<span class="tok-type">u16</span>{</span>
+<span class="line" id="L366">        <span class="tok-number">8</span>, <span class="tok-comment">// 0</span>
 </span>
-<span class="line" id="L365">        <span class="tok-number">1</span>, <span class="tok-comment">// 1</span>
+<span class="line" id="L367">        <span class="tok-number">1</span>, <span class="tok-comment">// 1</span>
 </span>
-<span class="line" id="L366">        <span class="tok-number">1</span>, <span class="tok-comment">// 2</span>
+<span class="line" id="L368">        <span class="tok-number">1</span>, <span class="tok-comment">// 2</span>
 </span>
-<span class="line" id="L367">        <span class="tok-number">2</span>, <span class="tok-comment">// 3</span>
+<span class="line" id="L369">        <span class="tok-number">2</span>, <span class="tok-comment">// 3</span>
 </span>
-<span class="line" id="L368">        <span class="tok-number">5</span>, <span class="tok-comment">// 4</span>
+<span class="line" id="L370">        <span class="tok-number">5</span>, <span class="tok-comment">// 4</span>
 </span>
-<span class="line" id="L369">        <span class="tok-number">10</span>, <span class="tok-comment">// 5</span>
+<span class="line" id="L371">        <span class="tok-number">10</span>, <span class="tok-comment">// 5</span>
 </span>
-<span class="line" id="L370">        <span class="tok-number">9</span>, <span class="tok-comment">// 6</span>
+<span class="line" id="L372">        <span class="tok-number">9</span>, <span class="tok-comment">// 6</span>
 </span>
-<span class="line" id="L371">        <span class="tok-number">1</span>, <span class="tok-comment">// 7</span>
+<span class="line" id="L373">        <span class="tok-number">1</span>, <span class="tok-comment">// 7</span>
 </span>
-<span class="line" id="L372">        <span class="tok-number">0</span>, <span class="tok-comment">// 8</span>
+<span class="line" id="L374">        <span class="tok-number">0</span>, <span class="tok-comment">// 8</span>
 </span>
-<span class="line" id="L373">        <span class="tok-number">0</span>, <span class="tok-comment">// 9</span>
+<span class="line" id="L375">        <span class="tok-number">0</span>, <span class="tok-comment">// 9</span>
 </span>
-<span class="line" id="L374">        <span class="tok-number">0</span>, <span class="tok-comment">// 10</span>
+<span class="line" id="L376">        <span class="tok-number">0</span>, <span class="tok-comment">// 10</span>
 </span>
-<span class="line" id="L375">        <span class="tok-number">0</span>, <span class="tok-comment">// 11</span>
+<span class="line" id="L377">        <span class="tok-number">0</span>, <span class="tok-comment">// 11</span>
 </span>
-<span class="line" id="L376">        <span class="tok-number">0</span>, <span class="tok-comment">// 12</span>
+<span class="line" id="L378">        <span class="tok-number">0</span>, <span class="tok-comment">// 12</span>
 </span>
-<span class="line" id="L377">        <span class="tok-number">0</span>, <span class="tok-comment">// 13</span>
+<span class="line" id="L379">        <span class="tok-number">0</span>, <span class="tok-comment">// 13</span>
 </span>
-<span class="line" id="L378">        <span class="tok-number">0</span>, <span class="tok-comment">// 14</span>
+<span class="line" id="L380">        <span class="tok-number">0</span>, <span class="tok-comment">// 14</span>
 </span>
-<span class="line" id="L379">        <span class="tok-number">0</span>, <span class="tok-comment">// 15</span>
+<span class="line" id="L381">        <span class="tok-number">0</span>, <span class="tok-comment">// 15</span>
 </span>
-<span class="line" id="L380">        <span class="tok-number">1</span>, <span class="tok-comment">// 16</span>
+<span class="line" id="L382">        <span class="tok-number">1</span>, <span class="tok-comment">// 16</span>
 </span>
-<span class="line" id="L381">        <span class="tok-number">3</span>, <span class="tok-comment">// 17</span>
+<span class="line" id="L383">        <span class="tok-number">3</span>, <span class="tok-comment">// 17</span>
 </span>
-<span class="line" id="L382">        <span class="tok-number">5</span>, <span class="tok-comment">// 18</span>
+<span class="line" id="L384">        <span class="tok-number">5</span>, <span class="tok-comment">// 18</span>
 </span>
-<span class="line" id="L383">    };</span>
-<span class="line" id="L384"></span>
-<span class="line" id="L385">    <span class="tok-kw">var</span> enc = <span class="tok-kw">try</span> newHuffmanEncoder(testing.allocator, freqs.len);</span>
-<span class="line" id="L386">    <span class="tok-kw">defer</span> enc.deinit();</span>
-<span class="line" id="L387">    enc.generate(freqs[<span class="tok-number">0</span>..], <span class="tok-number">7</span>);</span>
-<span class="line" id="L388"></span>
-<span class="line" id="L389">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">141</span>), enc.bitLength(freqs[<span class="tok-number">0</span>..]));</span>
+<span class="line" id="L385">    };</span>
+<span class="line" id="L386"></span>
+<span class="line" id="L387">    <span class="tok-kw">var</span> enc = <span class="tok-kw">try</span> newHuffmanEncoder(testing.allocator, freqs.len);</span>
+<span class="line" id="L388">    <span class="tok-kw">defer</span> enc.deinit();</span>
+<span class="line" id="L389">    enc.generate(freqs[<span class="tok-number">0</span>..], <span class="tok-number">7</span>);</span>
 <span class="line" id="L390"></span>
-<span class="line" id="L391">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), enc.codes[<span class="tok-number">0</span>].len);</span>
-<span class="line" id="L392">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">6</span>), enc.codes[<span class="tok-number">1</span>].len);</span>
-<span class="line" id="L393">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">6</span>), enc.codes[<span class="tok-number">2</span>].len);</span>
-<span class="line" id="L394">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">5</span>), enc.codes[<span class="tok-number">3</span>].len);</span>
-<span class="line" id="L395">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), enc.codes[<span class="tok-number">4</span>].len);</span>
-<span class="line" id="L396">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">2</span>), enc.codes[<span class="tok-number">5</span>].len);</span>
-<span class="line" id="L397">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">2</span>), enc.codes[<span class="tok-number">6</span>].len);</span>
-<span class="line" id="L398">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">6</span>), enc.codes[<span class="tok-number">7</span>].len);</span>
-<span class="line" id="L399">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), enc.codes[<span class="tok-number">8</span>].len);</span>
-<span class="line" id="L400">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), enc.codes[<span class="tok-number">9</span>].len);</span>
-<span class="line" id="L401">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), enc.codes[<span class="tok-number">10</span>].len);</span>
-<span class="line" id="L402">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), enc.codes[<span class="tok-number">11</span>].len);</span>
-<span class="line" id="L403">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), enc.codes[<span class="tok-number">12</span>].len);</span>
-<span class="line" id="L404">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), enc.codes[<span class="tok-number">13</span>].len);</span>
-<span class="line" id="L405">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), enc.codes[<span class="tok-number">14</span>].len);</span>
-<span class="line" id="L406">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), enc.codes[<span class="tok-number">15</span>].len);</span>
-<span class="line" id="L407">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">6</span>), enc.codes[<span class="tok-number">16</span>].len);</span>
-<span class="line" id="L408">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">5</span>), enc.codes[<span class="tok-number">17</span>].len);</span>
-<span class="line" id="L409">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), enc.codes[<span class="tok-number">18</span>].len);</span>
-<span class="line" id="L410"></span>
-<span class="line" id="L411">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">0x0</span>), enc.codes[<span class="tok-number">5</span>].code);</span>
-<span class="line" id="L412">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">0x2</span>), enc.codes[<span class="tok-number">6</span>].code);</span>
-<span class="line" id="L413">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">0x1</span>), enc.codes[<span class="tok-number">0</span>].code);</span>
-<span class="line" id="L414">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">0x5</span>), enc.codes[<span class="tok-number">4</span>].code);</span>
-<span class="line" id="L415">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">0x3</span>), enc.codes[<span class="tok-number">18</span>].code);</span>
-<span class="line" id="L416">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">0x7</span>), enc.codes[<span class="tok-number">3</span>].code);</span>
-<span class="line" id="L417">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">0x17</span>), enc.codes[<span class="tok-number">17</span>].code);</span>
-<span class="line" id="L418">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">0x0f</span>), enc.codes[<span class="tok-number">1</span>].code);</span>
-<span class="line" id="L419">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">0x2f</span>), enc.codes[<span class="tok-number">2</span>].code);</span>
-<span class="line" id="L420">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">0x1f</span>), enc.codes[<span class="tok-number">7</span>].code);</span>
-<span class="line" id="L421">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">0x3f</span>), enc.codes[<span class="tok-number">16</span>].code);</span>
-<span class="line" id="L422">}</span>
-<span class="line" id="L423"></span>
-<span class="line" id="L424"><span class="tok-kw">test</span> <span class="tok-str">&quot;generate a Huffman code for the fixed literal table specific to Deflate&quot;</span> {</span>
-<span class="line" id="L425">    <span class="tok-kw">var</span> enc = <span class="tok-kw">try</span> generateFixedLiteralEncoding(testing.allocator);</span>
-<span class="line" id="L426">    <span class="tok-kw">defer</span> enc.deinit();</span>
-<span class="line" id="L427">}</span>
-<span class="line" id="L428"></span>
-<span class="line" id="L429"><span class="tok-kw">test</span> <span class="tok-str">&quot;generate a Huffman code for the 30 possible relative offsets (LZ77 distances) of Deflate&quot;</span> {</span>
-<span class="line" id="L430">    <span class="tok-kw">var</span> enc = <span class="tok-kw">try</span> generateFixedOffsetEncoding(testing.allocator);</span>
-<span class="line" id="L431">    <span class="tok-kw">defer</span> enc.deinit();</span>
-<span class="line" id="L432">}</span>
-<span class="line" id="L433"></span>
+<span class="line" id="L391">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">141</span>), enc.bitLength(freqs[<span class="tok-number">0</span>..]));</span>
+<span class="line" id="L392"></span>
+<span class="line" id="L393">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), enc.codes[<span class="tok-number">0</span>].len);</span>
+<span class="line" id="L394">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">6</span>), enc.codes[<span class="tok-number">1</span>].len);</span>
+<span class="line" id="L395">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">6</span>), enc.codes[<span class="tok-number">2</span>].len);</span>
+<span class="line" id="L396">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">5</span>), enc.codes[<span class="tok-number">3</span>].len);</span>
+<span class="line" id="L397">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), enc.codes[<span class="tok-number">4</span>].len);</span>
+<span class="line" id="L398">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">2</span>), enc.codes[<span class="tok-number">5</span>].len);</span>
+<span class="line" id="L399">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">2</span>), enc.codes[<span class="tok-number">6</span>].len);</span>
+<span class="line" id="L400">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">6</span>), enc.codes[<span class="tok-number">7</span>].len);</span>
+<span class="line" id="L401">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), enc.codes[<span class="tok-number">8</span>].len);</span>
+<span class="line" id="L402">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), enc.codes[<span class="tok-number">9</span>].len);</span>
+<span class="line" id="L403">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), enc.codes[<span class="tok-number">10</span>].len);</span>
+<span class="line" id="L404">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), enc.codes[<span class="tok-number">11</span>].len);</span>
+<span class="line" id="L405">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), enc.codes[<span class="tok-number">12</span>].len);</span>
+<span class="line" id="L406">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), enc.codes[<span class="tok-number">13</span>].len);</span>
+<span class="line" id="L407">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), enc.codes[<span class="tok-number">14</span>].len);</span>
+<span class="line" id="L408">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), enc.codes[<span class="tok-number">15</span>].len);</span>
+<span class="line" id="L409">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">6</span>), enc.codes[<span class="tok-number">16</span>].len);</span>
+<span class="line" id="L410">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">5</span>), enc.codes[<span class="tok-number">17</span>].len);</span>
+<span class="line" id="L411">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), enc.codes[<span class="tok-number">18</span>].len);</span>
+<span class="line" id="L412"></span>
+<span class="line" id="L413">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">0x0</span>), enc.codes[<span class="tok-number">5</span>].code);</span>
+<span class="line" id="L414">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">0x2</span>), enc.codes[<span class="tok-number">6</span>].code);</span>
+<span class="line" id="L415">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">0x1</span>), enc.codes[<span class="tok-number">0</span>].code);</span>
+<span class="line" id="L416">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">0x5</span>), enc.codes[<span class="tok-number">4</span>].code);</span>
+<span class="line" id="L417">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">0x3</span>), enc.codes[<span class="tok-number">18</span>].code);</span>
+<span class="line" id="L418">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">0x7</span>), enc.codes[<span class="tok-number">3</span>].code);</span>
+<span class="line" id="L419">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">0x17</span>), enc.codes[<span class="tok-number">17</span>].code);</span>
+<span class="line" id="L420">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">0x0f</span>), enc.codes[<span class="tok-number">1</span>].code);</span>
+<span class="line" id="L421">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">0x2f</span>), enc.codes[<span class="tok-number">2</span>].code);</span>
+<span class="line" id="L422">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">0x1f</span>), enc.codes[<span class="tok-number">7</span>].code);</span>
+<span class="line" id="L423">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u16</span>, <span class="tok-number">0x3f</span>), enc.codes[<span class="tok-number">16</span>].code);</span>
+<span class="line" id="L424">}</span>
+<span class="line" id="L425"></span>
+<span class="line" id="L426"><span class="tok-kw">test</span> <span class="tok-str">&quot;generate a Huffman code for the fixed literal table specific to Deflate&quot;</span> {</span>
+<span class="line" id="L427">    <span class="tok-kw">var</span> enc = <span class="tok-kw">try</span> generateFixedLiteralEncoding(testing.allocator);</span>
+<span class="line" id="L428">    <span class="tok-kw">defer</span> enc.deinit();</span>
+<span class="line" id="L429">}</span>
+<span class="line" id="L430"></span>
+<span class="line" id="L431"><span class="tok-kw">test</span> <span class="tok-str">&quot;generate a Huffman code for the 30 possible relative offsets (LZ77 distances) of Deflate&quot;</span> {</span>
+<span class="line" id="L432">    <span class="tok-kw">var</span> enc = <span class="tok-kw">try</span> generateFixedOffsetEncoding(testing.allocator);</span>
+<span class="line" id="L433">    <span class="tok-kw">defer</span> enc.deinit();</span>
+<span class="line" id="L434">}</span>
+<span class="line" id="L435"></span>
 </code></pre></body>
 </html>

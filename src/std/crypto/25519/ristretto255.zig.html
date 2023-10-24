@@ -317,26 +317,28 @@
 <span class="line" id="L168">};</span>
 <span class="line" id="L169"></span>
 <span class="line" id="L170"><span class="tok-kw">test</span> <span class="tok-str">&quot;ristretto255&quot;</span> {</span>
-<span class="line" id="L171">    <span class="tok-kw">const</span> p = Ristretto255.basePoint;</span>
-<span class="line" id="L172">    <span class="tok-kw">var</span> buf: [<span class="tok-number">256</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L173">    <span class="tok-kw">try</span> std.testing.expectEqualStrings(<span class="tok-kw">try</span> std.fmt.bufPrint(&amp;buf, <span class="tok-str">&quot;{s}&quot;</span>, .{std.fmt.fmtSliceHexUpper(&amp;p.toBytes())}), <span class="tok-str">&quot;E2F2AE0A6ABC4E71A884A961C500515F58E30B6AA582DD8DB6A65945E08D2D76&quot;</span>);</span>
-<span class="line" id="L174"></span>
-<span class="line" id="L175">    <span class="tok-kw">var</span> r: [Ristretto255.encoded_length]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L176">    _ = <span class="tok-kw">try</span> fmt.hexToBytes(r[<span class="tok-number">0</span>..], <span class="tok-str">&quot;6a493210f7499cd17fecb510ae0cea23a110e8d5b901f8acadd3095c73a3b919&quot;</span>);</span>
-<span class="line" id="L177">    <span class="tok-kw">var</span> q = <span class="tok-kw">try</span> Ristretto255.fromBytes(r);</span>
-<span class="line" id="L178">    q = q.dbl().add(p);</span>
-<span class="line" id="L179">    <span class="tok-kw">try</span> std.testing.expectEqualStrings(<span class="tok-kw">try</span> std.fmt.bufPrint(&amp;buf, <span class="tok-str">&quot;{s}&quot;</span>, .{std.fmt.fmtSliceHexUpper(&amp;q.toBytes())}), <span class="tok-str">&quot;E882B131016B52C1D3337080187CF768423EFCCBB517BB495AB812C4160FF44E&quot;</span>);</span>
-<span class="line" id="L180"></span>
-<span class="line" id="L181">    <span class="tok-kw">const</span> s = [_]<span class="tok-type">u8</span>{<span class="tok-number">15</span>} ++ [_]<span class="tok-type">u8</span>{<span class="tok-number">0</span>} ** <span class="tok-number">31</span>;</span>
-<span class="line" id="L182">    <span class="tok-kw">const</span> w = <span class="tok-kw">try</span> p.mul(s);</span>
-<span class="line" id="L183">    <span class="tok-kw">try</span> std.testing.expectEqualStrings(<span class="tok-kw">try</span> std.fmt.bufPrint(&amp;buf, <span class="tok-str">&quot;{s}&quot;</span>, .{std.fmt.fmtSliceHexUpper(&amp;w.toBytes())}), <span class="tok-str">&quot;E0C418F7C8D9C4CDD7395B93EA124F3AD99021BB681DFC3302A9D99A2E53E64E&quot;</span>);</span>
-<span class="line" id="L184"></span>
-<span class="line" id="L185">    <span class="tok-kw">try</span> std.testing.expect(p.dbl().dbl().dbl().dbl().equivalent(w.add(p)));</span>
+<span class="line" id="L171">    <span class="tok-kw">if</span> (<span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>).zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L172"></span>
+<span class="line" id="L173">    <span class="tok-kw">const</span> p = Ristretto255.basePoint;</span>
+<span class="line" id="L174">    <span class="tok-kw">var</span> buf: [<span class="tok-number">256</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L175">    <span class="tok-kw">try</span> std.testing.expectEqualStrings(<span class="tok-kw">try</span> std.fmt.bufPrint(&amp;buf, <span class="tok-str">&quot;{s}&quot;</span>, .{std.fmt.fmtSliceHexUpper(&amp;p.toBytes())}), <span class="tok-str">&quot;E2F2AE0A6ABC4E71A884A961C500515F58E30B6AA582DD8DB6A65945E08D2D76&quot;</span>);</span>
+<span class="line" id="L176"></span>
+<span class="line" id="L177">    <span class="tok-kw">var</span> r: [Ristretto255.encoded_length]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L178">    _ = <span class="tok-kw">try</span> fmt.hexToBytes(r[<span class="tok-number">0</span>..], <span class="tok-str">&quot;6a493210f7499cd17fecb510ae0cea23a110e8d5b901f8acadd3095c73a3b919&quot;</span>);</span>
+<span class="line" id="L179">    <span class="tok-kw">var</span> q = <span class="tok-kw">try</span> Ristretto255.fromBytes(r);</span>
+<span class="line" id="L180">    q = q.dbl().add(p);</span>
+<span class="line" id="L181">    <span class="tok-kw">try</span> std.testing.expectEqualStrings(<span class="tok-kw">try</span> std.fmt.bufPrint(&amp;buf, <span class="tok-str">&quot;{s}&quot;</span>, .{std.fmt.fmtSliceHexUpper(&amp;q.toBytes())}), <span class="tok-str">&quot;E882B131016B52C1D3337080187CF768423EFCCBB517BB495AB812C4160FF44E&quot;</span>);</span>
+<span class="line" id="L182"></span>
+<span class="line" id="L183">    <span class="tok-kw">const</span> s = [_]<span class="tok-type">u8</span>{<span class="tok-number">15</span>} ++ [_]<span class="tok-type">u8</span>{<span class="tok-number">0</span>} ** <span class="tok-number">31</span>;</span>
+<span class="line" id="L184">    <span class="tok-kw">const</span> w = <span class="tok-kw">try</span> p.mul(s);</span>
+<span class="line" id="L185">    <span class="tok-kw">try</span> std.testing.expectEqualStrings(<span class="tok-kw">try</span> std.fmt.bufPrint(&amp;buf, <span class="tok-str">&quot;{s}&quot;</span>, .{std.fmt.fmtSliceHexUpper(&amp;w.toBytes())}), <span class="tok-str">&quot;E0C418F7C8D9C4CDD7395B93EA124F3AD99021BB681DFC3302A9D99A2E53E64E&quot;</span>);</span>
 <span class="line" id="L186"></span>
-<span class="line" id="L187">    <span class="tok-kw">const</span> h = [_]<span class="tok-type">u8</span>{<span class="tok-number">69</span>} ** <span class="tok-number">32</span> ++ [_]<span class="tok-type">u8</span>{<span class="tok-number">42</span>} ** <span class="tok-number">32</span>;</span>
-<span class="line" id="L188">    <span class="tok-kw">const</span> ph = Ristretto255.fromUniform(h);</span>
-<span class="line" id="L189">    <span class="tok-kw">try</span> std.testing.expectEqualStrings(<span class="tok-kw">try</span> std.fmt.bufPrint(&amp;buf, <span class="tok-str">&quot;{s}&quot;</span>, .{std.fmt.fmtSliceHexUpper(&amp;ph.toBytes())}), <span class="tok-str">&quot;DCCA54E037A4311EFBEEF413ACD21D35276518970B7A61DC88F8587B493D5E19&quot;</span>);</span>
-<span class="line" id="L190">}</span>
-<span class="line" id="L191"></span>
+<span class="line" id="L187">    <span class="tok-kw">try</span> std.testing.expect(p.dbl().dbl().dbl().dbl().equivalent(w.add(p)));</span>
+<span class="line" id="L188"></span>
+<span class="line" id="L189">    <span class="tok-kw">const</span> h = [_]<span class="tok-type">u8</span>{<span class="tok-number">69</span>} ** <span class="tok-number">32</span> ++ [_]<span class="tok-type">u8</span>{<span class="tok-number">42</span>} ** <span class="tok-number">32</span>;</span>
+<span class="line" id="L190">    <span class="tok-kw">const</span> ph = Ristretto255.fromUniform(h);</span>
+<span class="line" id="L191">    <span class="tok-kw">try</span> std.testing.expectEqualStrings(<span class="tok-kw">try</span> std.fmt.bufPrint(&amp;buf, <span class="tok-str">&quot;{s}&quot;</span>, .{std.fmt.fmtSliceHexUpper(&amp;ph.toBytes())}), <span class="tok-str">&quot;DCCA54E037A4311EFBEEF413ACD21D35276518970B7A61DC88F8587B493D5E19&quot;</span>);</span>
+<span class="line" id="L192">}</span>
+<span class="line" id="L193"></span>
 </code></pre></body>
 </html>
