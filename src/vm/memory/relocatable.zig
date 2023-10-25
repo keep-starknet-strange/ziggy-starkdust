@@ -28,7 +28,10 @@ pub const Relocatable = struct {
     // - offset - The offset in the memory segment.
     // # Returns
     // A new Relocatable.
-    pub fn new(segment_index: u64, offset: u64) Relocatable {
+    pub fn new(
+        segment_index: u64,
+        offset: u64,
+    ) Relocatable {
         return Relocatable{
             .segment_index = segment_index,
             .offset = offset,
@@ -40,7 +43,10 @@ pub const Relocatable = struct {
     // - other: The other Relocatable to compare to.
     // # Returns
     // `true` if they are equal, `false` otherwise.
-    pub fn eq(self: Relocatable, other: Relocatable) bool {
+    pub fn eq(
+        self: Relocatable,
+        other: Relocatable,
+    ) bool {
         return self.segment_index == other.segment_index and self.offset == other.offset;
     }
 
@@ -49,7 +55,10 @@ pub const Relocatable = struct {
     // - other: The u64 to substract.
     // # Returns
     // A new Relocatable.
-    pub fn subUint(self: Relocatable, other: u64) !Relocatable {
+    pub fn subUint(
+        self: Relocatable,
+        other: u64,
+    ) !Relocatable {
         if (self.offset < other) {
             return error.RelocatableSubUsizeNegOffset;
         }
@@ -64,7 +73,10 @@ pub const Relocatable = struct {
     // - other: The u64 to add.
     // # Returns
     // A new Relocatable.
-    pub fn addUint(self: Relocatable, other: u64) !Relocatable {
+    pub fn addUint(
+        self: Relocatable,
+        other: u64,
+    ) !Relocatable {
         return Relocatable{
             .segment_index = self.segment_index,
             .offset = self.offset + other,
@@ -75,7 +87,10 @@ pub const Relocatable = struct {
     /// # Arguments
     /// - self: Pointer to the Relocatable object to modify.
     /// - other: The u64 to add to `self.offset`.
-    pub fn addUintInPlace(self: *Relocatable, other: u64) void {
+    pub fn addUintInPlace(
+        self: *Relocatable,
+        other: u64,
+    ) void {
         // Modify the offset of the existing Relocatable object
         self.offset += other;
     }
@@ -85,19 +100,32 @@ pub const Relocatable = struct {
     // - other: The i64 to add.
     // # Returns
     // A new Relocatable.
-    pub fn addInt(self: Relocatable, other: i64) !Relocatable {
+    pub fn addInt(
+        self: Relocatable,
+        other: i64,
+    ) !Relocatable {
         if (other < 0) {
-            return self.subUint(@as(u64, @intCast(-other)));
+            return self.subUint(@as(u64, @intCast(
+                -other,
+            )));
         }
-        return self.addUint(@as(u64, @intCast(other)));
+        return self.addUint(@as(u64, @intCast(
+            other,
+        )));
     }
 
     /// Add a felt to this Relocatable, modifying it in place.
     /// # Arguments
     /// - self: Pointer to the Relocatable object to modify.
     /// - other: The felt to add to `self.offset`.
-    pub fn addFeltInPlace(self: *Relocatable, other: Felt252) !void {
-        const new_offset_felt = Felt252.fromInteger(@as(u256, self.offset)).add(other);
+    pub fn addFeltInPlace(
+        self: *Relocatable,
+        other: Felt252,
+    ) !void {
+        const new_offset_felt = Felt252.fromInteger(@as(
+            u256,
+            self.offset,
+        )).add(other);
         const new_offset = try new_offset_felt.tryIntoU64();
         self.offset = new_offset;
     }
@@ -105,7 +133,10 @@ pub const Relocatable = struct {
     /// Performs additions if other contains a Felt value, fails otherwise.
     /// # Arguments
     /// - other - The other MaybeRelocatable to add.
-    pub fn addMaybeRelocatableInplace(self: *Relocatable, other: MaybeRelocatable) !void {
+    pub fn addMaybeRelocatableInplace(
+        self: *Relocatable,
+        other: MaybeRelocatable,
+    ) !void {
         const other_as_felt = try other.tryIntoFelt();
         try self.addFeltInPlace(other_as_felt);
     }
@@ -128,7 +159,10 @@ pub const MaybeRelocatable = union(enum) {
     /// ## Returns:
     ///   * `true` if the two instances are equal.
     ///   * `false` otherwise.
-    pub fn eq(self: MaybeRelocatable, other: MaybeRelocatable) bool {
+    pub fn eq(
+        self: MaybeRelocatable,
+        other: MaybeRelocatable,
+    ) bool {
         // Switch on the type of `self`
         return switch (self) {
             // If `self` is of type `relocatable`
@@ -222,7 +256,10 @@ pub fn fromU256(value: u256) MaybeRelocatable {
 // # Returns
 // A new MaybeRelocatable.
 pub fn fromU64(value: u64) MaybeRelocatable {
-    return fromU256(@as(u256, value));
+    return fromU256(@as(
+        u256,
+        value,
+    ));
 }
 
 // ************************************************************
@@ -233,35 +270,77 @@ const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
 
 test "add uint" {
-    const relocatable = Relocatable.new(2, 4);
+    const relocatable = Relocatable.new(
+        2,
+        4,
+    );
     const result = relocatable.addUint(24);
-    const expected = Relocatable.new(2, 28);
-    try expectEqual(result, expected);
+    const expected = Relocatable.new(
+        2,
+        28,
+    );
+    try expectEqual(
+        result,
+        expected,
+    );
 }
 
 test "add int" {
-    const relocatable = Relocatable.new(2, 4);
+    const relocatable = Relocatable.new(
+        2,
+        4,
+    );
     const result = relocatable.addInt(24);
-    const expected = Relocatable.new(2, 28);
-    try expectEqual(result, expected);
+    const expected = Relocatable.new(
+        2,
+        28,
+    );
+    try expectEqual(
+        result,
+        expected,
+    );
 }
 
 test "add int negative" {
-    const relocatable = Relocatable.new(2, 4);
+    const relocatable = Relocatable.new(
+        2,
+        4,
+    );
     const result = relocatable.addInt(-4);
-    const expected = Relocatable.new(2, 0);
-    try expectEqual(result, expected);
+    const expected = Relocatable.new(
+        2,
+        0,
+    );
+    try expectEqual(
+        result,
+        expected,
+    );
 }
 
 test "sub uint" {
-    const relocatable = Relocatable.new(2, 4);
+    const relocatable = Relocatable.new(
+        2,
+        4,
+    );
     const result = relocatable.subUint(2);
-    const expected = Relocatable.new(2, 2);
-    try expectEqual(result, expected);
+    const expected = Relocatable.new(
+        2,
+        2,
+    );
+    try expectEqual(
+        result,
+        expected,
+    );
 }
 
 test "sub uint negative" {
-    const relocatable = Relocatable.new(2, 4);
+    const relocatable = Relocatable.new(
+        2,
+        4,
+    );
     const result = relocatable.subUint(6);
-    try expectError(error.RelocatableSubUsizeNegOffset, result);
+    try expectError(
+        error.RelocatableSubUsizeNegOffset,
+        result,
+    );
 }

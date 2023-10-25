@@ -13,16 +13,27 @@ pub const Dependency = struct {
 /// * `dependencies_opts` - The options to use when generating the dependency modules.
 /// # Returns
 /// A new array of Build.ModuleDependency.
-pub fn generateModuleDependencies(b: *std.Build, external_dependencies: []const Dependency, dependencies_opts: anytype) ![]std.Build.ModuleDependency {
+pub fn generateModuleDependencies(
+    b: *std.Build,
+    external_dependencies: []const Dependency,
+    dependencies_opts: anytype,
+) ![]std.Build.ModuleDependency {
     var dependency_modules = std.ArrayList(*std.build.Module).init(b.allocator);
     defer _ = dependency_modules.deinit();
 
     // Populate dependency modules.
     for (external_dependencies) |dep| {
-        const module = b.dependency(dep.name, dependencies_opts).module(dep.module_name);
+        const module = b.dependency(
+            dep.name,
+            dependencies_opts,
+        ).module(dep.module_name);
         _ = dependency_modules.append(module) catch unreachable;
     }
-    return try toModuleDependencyArray(b.allocator, dependency_modules.items, external_dependencies);
+    return try toModuleDependencyArray(
+        b.allocator,
+        dependency_modules.items,
+        external_dependencies,
+    );
 }
 
 /// Convert an array of Build.Module pointers to an array of Build.ModuleDependency.
@@ -32,11 +43,18 @@ pub fn generateModuleDependencies(b: *std.Build, external_dependencies: []const 
 /// * `ext_deps` - The array of external dependencies.
 /// # Returns
 /// A new array of Build.ModuleDependency.
-fn toModuleDependencyArray(allocator: std.mem.Allocator, modules: []const *std.Build.Module, ext_deps: []const Dependency) ![]std.Build.ModuleDependency {
+fn toModuleDependencyArray(
+    allocator: std.mem.Allocator,
+    modules: []const *std.Build.Module,
+    ext_deps: []const Dependency,
+) ![]std.Build.ModuleDependency {
     var deps = std.ArrayList(std.Build.ModuleDependency).init(allocator);
     defer deps.deinit();
 
-    for (modules, 0..) |module_ptr, i| {
+    for (
+        modules,
+        0..,
+    ) |module_ptr, i| {
         try deps.append(.{
             .name = ext_deps[i].name,
             .module = module_ptr,

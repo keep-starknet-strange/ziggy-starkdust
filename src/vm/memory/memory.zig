@@ -16,12 +16,22 @@ pub const Memory = struct {
     /// The allocator used to allocate the memory.
     allocator: *const Allocator,
     // The data in the memory.
-    data: std.HashMap(relocatable.Relocatable, relocatable.MaybeRelocatable, std.hash_map.AutoContext(relocatable.Relocatable), std.hash_map.default_max_load_percentage),
+    data: std.HashMap(
+        relocatable.Relocatable,
+        relocatable.MaybeRelocatable,
+        std.hash_map.AutoContext(relocatable.Relocatable),
+        std.hash_map.default_max_load_percentage,
+    ),
     // The number of segments in the memory.
     num_segments: u32,
     // Validated addresses are addresses that have been validated.
     // TODO: Consider merging this with `data` and benchmarking.
-    validated_addresses: std.HashMap(relocatable.Relocatable, bool, std.hash_map.AutoContext(relocatable.Relocatable), std.hash_map.default_max_load_percentage),
+    validated_addresses: std.HashMap(
+        relocatable.Relocatable,
+        bool,
+        std.hash_map.AutoContext(relocatable.Relocatable),
+        std.hash_map.default_max_load_percentage,
+    ),
 
     // ************************************************************
     // *             MEMORY ALLOCATION AND DEALLOCATION           *
@@ -37,9 +47,15 @@ pub const Memory = struct {
 
         memory.* = Memory{
             .allocator = allocator,
-            .data = std.AutoHashMap(relocatable.Relocatable, relocatable.MaybeRelocatable).init(allocator.*),
+            .data = std.AutoHashMap(
+                relocatable.Relocatable,
+                relocatable.MaybeRelocatable,
+            ).init(allocator.*),
             .num_segments = 0,
-            .validated_addresses = std.AutoHashMap(relocatable.Relocatable, bool).init(allocator.*),
+            .validated_addresses = std.AutoHashMap(
+                relocatable.Relocatable,
+                bool,
+            ).init(allocator.*),
         };
         return memory;
     }
@@ -61,7 +77,11 @@ pub const Memory = struct {
     // # Arguments
     // - `address` - The address to insert the value at.
     // - `value` - The value to insert.
-    pub fn set(self: *Memory, address: relocatable.Relocatable, value: relocatable.MaybeRelocatable) error{ InvalidMemoryAddress, MemoryOutOfBounds }!void {
+    pub fn set(
+        self: *Memory,
+        address: relocatable.Relocatable,
+        value: relocatable.MaybeRelocatable,
+    ) error{ InvalidMemoryAddress, MemoryOutOfBounds }!void {
 
         // Check if the address is valid.
         if (address.segment_index < 0) {
@@ -69,7 +89,10 @@ pub const Memory = struct {
         }
 
         // Insert the value into the memory.
-        self.data.put(address, value) catch {
+        self.data.put(
+            address,
+            value,
+        ) catch {
             return CairoVMError.MemoryOutOfBounds;
         };
 
@@ -81,7 +104,10 @@ pub const Memory = struct {
     // - `address` - The address to get the value from.
     // # Returns
     // The value at the given address.
-    pub fn get(self: *Memory, address: relocatable.Relocatable) error{MemoryOutOfBounds}!relocatable.MaybeRelocatable {
+    pub fn get(
+        self: *Memory,
+        address: relocatable.Relocatable,
+    ) error{MemoryOutOfBounds}!relocatable.MaybeRelocatable {
         var maybe_value = self.data.get(address);
         if (maybe_value == null) {
             return CairoVMError.MemoryOutOfBounds;
@@ -99,7 +125,10 @@ test "memory get without value raises error" {
     defer memory.deinit();
 
     // Get a value from the memory at an address that doesn't exist.
-    _ = memory.get(relocatable.Relocatable.new(0, 0)) catch |err| {
+    _ = memory.get(relocatable.Relocatable.new(
+        0,
+        0,
+    )) catch |err| {
         // Assert that the error is the expected error.
         try expect(err == error.MemoryOutOfBounds);
         return;
@@ -114,11 +143,17 @@ test "memory set and get" {
     var memory = try Memory.init(&allocator);
     defer memory.deinit();
 
-    const address_1 = relocatable.Relocatable.new(0, 0);
+    const address_1 = relocatable.Relocatable.new(
+        0,
+        0,
+    );
     const value_1 = relocatable.fromFelt(starknet_felt.Felt252.one());
 
     // Set a value into the memory.
-    _ = try memory.set(address_1, value_1);
+    _ = try memory.set(
+        address_1,
+        value_1,
+    );
 
     // Get the value from the memory.
     const maybe_value_1 = try memory.get(address_1);

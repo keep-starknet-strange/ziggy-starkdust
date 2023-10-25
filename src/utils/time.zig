@@ -48,7 +48,14 @@ pub const DateTime = struct {
     }
 
     /// Caller asserts that this is > epoch
-    pub fn init(year: u16, month: u16, day: u16, hr: u16, min: u16, sec: u16) Self {
+    pub fn init(
+        year: u16,
+        month: u16,
+        day: u16,
+        hr: u16,
+        min: u16,
+        sec: u16,
+    ) Self {
         return epoch_unix
             .addYears(year - epoch_unix.years)
             .addMonths(month)
@@ -59,7 +66,12 @@ pub const DateTime = struct {
     }
 
     pub fn now() Self {
-        return initUnixMs(@as(u64, @intCast(std.time.milliTimestamp())));
+        return initUnixMs(
+            @as(
+                u64,
+                @intCast(std.time.milliTimestamp()),
+            ),
+        );
     }
 
     pub const epoch_unix = Self{
@@ -75,7 +87,10 @@ pub const DateTime = struct {
         .era = .AD,
     };
 
-    pub fn eql(self: Self, other: Self) bool {
+    pub fn eql(
+        self: Self,
+        other: Self,
+    ) bool {
         return self.ms == other.ms and
             self.seconds == other.seconds and
             self.minutes == other.minutes and
@@ -87,35 +102,62 @@ pub const DateTime = struct {
             self.weekday == other.weekday;
     }
 
-    pub fn addMs(self: Self, count: u64) Self {
+    pub fn addMs(
+        self: Self,
+        count: u64,
+    ) Self {
         if (count == 0) return self;
         var result = self;
-        result.ms += @as(u16, @intCast(count % 1000));
+        result.ms += @as(
+            u16,
+            @intCast(count % 1000),
+        );
         return result.addSecs(count / 1000);
     }
 
-    pub fn addSecs(self: Self, count: u64) Self {
+    pub fn addSecs(
+        self: Self,
+        count: u64,
+    ) Self {
         if (count == 0) return self;
         var result = self;
-        result.seconds += @as(u16, @intCast(count % 60));
+        result.seconds += @as(
+            u16,
+            @intCast(count % 60),
+        );
         return result.addMins(count / 60);
     }
 
-    pub fn addMins(self: Self, count: u64) Self {
+    pub fn addMins(
+        self: Self,
+        count: u64,
+    ) Self {
         if (count == 0) return self;
         var result = self;
-        result.minutes += @as(u16, @intCast(count % 60));
+        result.minutes += @as(
+            u16,
+            @intCast(count % 60),
+        );
         return result.addHours(count / 60);
     }
 
-    pub fn addHours(self: Self, count: u64) Self {
+    pub fn addHours(
+        self: Self,
+        count: u64,
+    ) Self {
         if (count == 0) return self;
         var result = self;
-        result.hours += @as(u16, @intCast(count % 24));
+        result.hours += @as(
+            u16,
+            @intCast(count % 24),
+        );
         return result.addDays(count / 24);
     }
 
-    pub fn addDays(self: Self, count: u64) Self {
+    pub fn addDays(
+        self: Self,
+        count: u64,
+    ) Self {
         if (count == 0) return self;
         var result = self;
         var input = count;
@@ -154,7 +196,10 @@ pub const DateTime = struct {
                 result.days = 0;
                 result.incrementWeekday(left);
             }
-            result.days += @as(u16, @intCast(input));
+            result.days += @as(
+                u16,
+                @intCast(input),
+            );
             result.incrementWeekday(input);
 
             if (result.months == 12) {
@@ -166,7 +211,10 @@ pub const DateTime = struct {
         return result;
     }
 
-    pub fn addMonths(self: Self, count: u64) Self {
+    pub fn addMonths(
+        self: Self,
+        count: u64,
+    ) Self {
         if (count == 0) return self;
         var result = self;
         var input = count;
@@ -178,7 +226,10 @@ pub const DateTime = struct {
         return result;
     }
 
-    pub fn addYears(self: Self, count: u64) Self {
+    pub fn addYears(
+        self: Self,
+        count: u64,
+    ) Self {
         if (count == 0) return self;
         return self.addMonths(count * 12);
     }
@@ -195,11 +246,20 @@ pub const DateTime = struct {
         return self.daysInMonth(self.months);
     }
 
-    fn daysInMonth(self: Self, month: u16) u16 {
-        return time.daysInMonth(self.years, month);
+    fn daysInMonth(
+        self: Self,
+        month: u16,
+    ) u16 {
+        return time.daysInMonth(
+            self.years,
+            month,
+        );
     }
 
-    fn incrementWeekday(self: *Self, count: u64) void {
+    fn incrementWeekday(
+        self: *Self,
+        count: u64,
+    ) void {
         var i = count % 7;
         while (i > 0) : (i -= 1) {
             self.weekday = self.weekday.next();
@@ -209,7 +269,12 @@ pub const DateTime = struct {
     pub fn dayOfThisYear(self: Self) u16 {
         var ret: u16 = 0;
         for (0..self.months) |item| {
-            ret += self.daysInMonth(@as(u16, @intCast(item)));
+            ret += self.daysInMonth(
+                @as(
+                    u16,
+                    @intCast(item),
+                ),
+            );
         }
         ret += self.days;
         return ret;
@@ -223,9 +288,18 @@ pub const DateTime = struct {
     pub fn toUnixMilli(self: Self) u64 {
         var res: u64 = 0;
         res += self.ms;
-        res += @as(u64, self.seconds) * std.time.ms_per_s;
-        res += @as(u64, self.minutes) * std.time.ms_per_min;
-        res += @as(u64, self.hours) * std.time.ms_per_hour;
+        res += @as(
+            u64,
+            self.seconds,
+        ) * std.time.ms_per_s;
+        res += @as(
+            u64,
+            self.minutes,
+        ) * std.time.ms_per_min;
+        res += @as(
+            u64,
+            self.hours,
+        ) * std.time.ms_per_hour;
         res += self.daysSinceEpoch() * std.time.ms_per_day;
         return res;
     }
@@ -233,13 +307,28 @@ pub const DateTime = struct {
     fn daysSinceEpoch(self: Self) u64 {
         var res: u64 = 0;
         res += self.days;
-        for (0..self.years - epoch_unix.years) |i| res += time.daysInYear(@as(u16, @intCast(i)));
-        for (0..self.months) |i| res += self.daysInMonth(@as(u16, @intCast(i)));
+        for (0..self.years - epoch_unix.years) |i| res += time.daysInYear(
+            @as(
+                u16,
+                @intCast(i),
+            ),
+        );
+        for (0..self.months) |i| res += self.daysInMonth(
+            @as(
+                u16,
+                @intCast(i),
+            ),
+        );
         return res;
     }
 
     /// fmt is based on https://momentjs.com/docs/#/displaying/format/
-    pub fn format(self: Self, comptime fmt: string, options: std.fmt.FormatOptions, writer: anytype) !void {
+    pub fn format(
+        self: Self,
+        comptime fmt: string,
+        options: std.fmt.FormatOptions,
+        writer: anytype,
+    ) !void {
         _ = options;
 
         if (fmt.len == 0) @compileError("DateTime: format string can't be empty");
@@ -249,79 +338,216 @@ pub const DateTime = struct {
         comptime var s = 0;
         comptime var e = 0;
         comptime var next: ?FormatSeq = null;
-        inline for (fmt, 0..) |c, i| {
+        inline for (
+            fmt,
+            0..,
+        ) |c, i| {
             e = i + 1;
 
-            if (comptime std.meta.stringToEnum(FormatSeq, fmt[s..e])) |tag| {
+            if (comptime std.meta.stringToEnum(
+                FormatSeq,
+                fmt[s..e],
+            )) |tag| {
                 next = tag;
                 if (i < fmt.len - 1) continue;
             }
 
             if (next) |tag| {
                 switch (tag) {
-                    .MM => try writer.print("{:0>2}", .{self.months + 1}),
-                    .M => try writer.print("{}", .{self.months + 1}),
-                    .Mo => try printOrdinal(writer, self.months + 1),
-                    .MMM => try printLongName(writer, self.months, &[_]string{ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" }),
-                    .MMMM => try printLongName(writer, self.months, &[_]string{ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" }),
+                    .MM => try writer.print(
+                        "{:0>2}",
+                        .{self.months + 1},
+                    ),
+                    .M => try writer.print(
+                        "{}",
+                        .{self.months + 1},
+                    ),
+                    .Mo => try printOrdinal(
+                        writer,
+                        self.months + 1,
+                    ),
+                    .MMM => try printLongName(
+                        writer,
+                        self.months,
+                        &[_]string{ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" },
+                    ),
+                    .MMMM => try printLongName(
+                        writer,
+                        self.months,
+                        &[_]string{ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" },
+                    ),
 
-                    .Q => try writer.print("{}", .{self.months / 3 + 1}),
-                    .Qo => try printOrdinal(writer, self.months / 3 + 1),
+                    .Q => try writer.print(
+                        "{}",
+                        .{self.months / 3 + 1},
+                    ),
+                    .Qo => try printOrdinal(
+                        writer,
+                        self.months / 3 + 1,
+                    ),
 
-                    .D => try writer.print("{}", .{self.days + 1}),
-                    .Do => try printOrdinal(writer, self.days + 1),
-                    .DD => try writer.print("{:0>2}", .{self.days + 1}),
+                    .D => try writer.print(
+                        "{}",
+                        .{self.days + 1},
+                    ),
+                    .Do => try printOrdinal(
+                        writer,
+                        self.days + 1,
+                    ),
+                    .DD => try writer.print(
+                        "{:0>2}",
+                        .{self.days + 1},
+                    ),
 
-                    .DDD => try writer.print("{}", .{self.dayOfThisYear() + 1}),
-                    .DDDo => try printOrdinal(writer, self.dayOfThisYear() + 1),
-                    .DDDD => try writer.print("{:0>3}", .{self.dayOfThisYear() + 1}),
+                    .DDD => try writer.print(
+                        "{}",
+                        .{self.dayOfThisYear() + 1},
+                    ),
+                    .DDDo => try printOrdinal(
+                        writer,
+                        self.dayOfThisYear() + 1,
+                    ),
+                    .DDDD => try writer.print(
+                        "{:0>3}",
+                        .{self.dayOfThisYear() + 1},
+                    ),
 
-                    .d => try writer.print("{}", .{@intFromEnum(self.weekday)}),
-                    .do => try printOrdinal(writer, @intFromEnum(self.weekday)),
+                    .d => try writer.print(
+                        "{}",
+                        .{@intFromEnum(self.weekday)},
+                    ),
+                    .do => try printOrdinal(
+                        writer,
+                        @intFromEnum(self.weekday),
+                    ),
                     .dd => try writer.writeAll(@tagName(self.weekday)[0..2]),
                     .ddd => try writer.writeAll(@tagName(self.weekday)),
-                    .dddd => try printLongName(writer, @intFromEnum(self.weekday), &[_]string{ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" }),
-                    .e => try writer.print("{}", .{@intFromEnum(self.weekday)}),
-                    .E => try writer.print("{}", .{@intFromEnum(self.weekday) + 1}),
+                    .dddd => try printLongName(
+                        writer,
+                        @intFromEnum(self.weekday),
+                        &[_]string{ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" },
+                    ),
+                    .e => try writer.print(
+                        "{}",
+                        .{@intFromEnum(self.weekday)},
+                    ),
+                    .E => try writer.print(
+                        "{}",
+                        .{@intFromEnum(self.weekday) + 1},
+                    ),
 
-                    .w => try writer.print("{}", .{self.dayOfThisYear() / 7 + 1}),
-                    .wo => try printOrdinal(writer, self.dayOfThisYear() / 7 + 1),
-                    .ww => try writer.print("{:0>2}", .{self.dayOfThisYear() / 7 + 1}),
+                    .w => try writer.print(
+                        "{}",
+                        .{self.dayOfThisYear() / 7 + 1},
+                    ),
+                    .wo => try printOrdinal(
+                        writer,
+                        self.dayOfThisYear() / 7 + 1,
+                    ),
+                    .ww => try writer.print(
+                        "{:0>2}",
+                        .{self.dayOfThisYear() / 7 + 1},
+                    ),
 
-                    .Y => try writer.print("{}", .{self.years + 10000}),
-                    .YY => try writer.print("{:0>2}", .{self.years % 100}),
-                    .YYY => try writer.print("{}", .{self.years}),
-                    .YYYY => try writer.print("{:0>4}", .{self.years}),
+                    .Y => try writer.print(
+                        "{}",
+                        .{self.years + 10000},
+                    ),
+                    .YY => try writer.print(
+                        "{:0>2}",
+                        .{self.years % 100},
+                    ),
+                    .YYY => try writer.print(
+                        "{}",
+                        .{self.years},
+                    ),
+                    .YYYY => try writer.print(
+                        "{:0>4}",
+                        .{self.years},
+                    ),
 
                     .N => try writer.writeAll(@tagName(self.era)),
                     .NN => try writer.writeAll("Anno Domini"),
 
-                    .A => try printLongName(writer, self.hours / 12, &[_]string{ "AM", "PM" }),
-                    .a => try printLongName(writer, self.hours / 12, &[_]string{ "am", "pm" }),
+                    .A => try printLongName(
+                        writer,
+                        self.hours / 12,
+                        &[_]string{ "AM", "PM" },
+                    ),
+                    .a => try printLongName(
+                        writer,
+                        self.hours / 12,
+                        &[_]string{ "am", "pm" },
+                    ),
 
-                    .H => try writer.print("{}", .{self.hours}),
-                    .HH => try writer.print("{:0>2}", .{self.hours}),
-                    .h => try writer.print("{}", .{wrap(self.hours, 12)}),
-                    .hh => try writer.print("{:0>2}", .{wrap(self.hours, 12)}),
-                    .k => try writer.print("{}", .{wrap(self.hours, 24)}),
-                    .kk => try writer.print("{:0>2}", .{wrap(self.hours, 24)}),
+                    .H => try writer.print(
+                        "{}",
+                        .{self.hours},
+                    ),
+                    .HH => try writer.print(
+                        "{:0>2}",
+                        .{self.hours},
+                    ),
+                    .h => try writer.print("{}", .{wrap(
+                        self.hours,
+                        12,
+                    )}),
+                    .hh => try writer.print("{:0>2}", .{wrap(
+                        self.hours,
+                        12,
+                    )}),
+                    .k => try writer.print("{}", .{wrap(
+                        self.hours,
+                        24,
+                    )}),
+                    .kk => try writer.print("{:0>2}", .{wrap(
+                        self.hours,
+                        24,
+                    )}),
 
-                    .m => try writer.print("{}", .{self.minutes}),
-                    .mm => try writer.print("{:0>2}", .{self.minutes}),
+                    .m => try writer.print(
+                        "{}",
+                        .{self.minutes},
+                    ),
+                    .mm => try writer.print(
+                        "{:0>2}",
+                        .{self.minutes},
+                    ),
 
-                    .s => try writer.print("{}", .{self.seconds}),
-                    .ss => try writer.print("{:0>2}", .{self.seconds}),
+                    .s => try writer.print(
+                        "{}",
+                        .{self.seconds},
+                    ),
+                    .ss => try writer.print(
+                        "{:0>2}",
+                        .{self.seconds},
+                    ),
 
-                    .S => try writer.print("{}", .{self.ms / 100}),
-                    .SS => try writer.print("{:0>2}", .{self.ms / 10}),
-                    .SSS => try writer.print("{:0>3}", .{self.ms}),
+                    .S => try writer.print(
+                        "{}",
+                        .{self.ms / 100},
+                    ),
+                    .SS => try writer.print(
+                        "{:0>2}",
+                        .{self.ms / 10},
+                    ),
+                    .SSS => try writer.print(
+                        "{:0>3}",
+                        .{self.ms},
+                    ),
 
                     .z => try writer.writeAll(@tagName(self.timezone)),
                     .Z => try writer.writeAll("+00:00"),
                     .ZZ => try writer.writeAll("+0000"),
 
-                    .x => try writer.print("{}", .{self.toUnixMilli()}),
-                    .X => try writer.print("{}", .{self.toUnix()}),
+                    .x => try writer.print(
+                        "{}",
+                        .{self.toUnixMilli()},
+                    ),
+                    .X => try writer.print(
+                        "{}",
+                        .{self.toUnix()},
+                    ),
                 }
                 next = null;
                 s = i;
@@ -345,11 +571,19 @@ pub const DateTime = struct {
         }
     }
 
-    pub fn formatAlloc(self: Self, alloc: std.mem.Allocator, comptime fmt: string) !string {
+    pub fn formatAlloc(
+        self: Self,
+        alloc: std.mem.Allocator,
+        comptime fmt: string,
+    ) !string {
         var list = std.ArrayList(u8).init(alloc);
         defer list.deinit();
 
-        try self.format(fmt, .{}, list.writer());
+        try self.format(
+            fmt,
+            .{},
+            list.writer(),
+        );
         return list.toOwnedSlice();
     }
 
@@ -405,7 +639,10 @@ pub const DateTime = struct {
         X, // unix
     };
 
-    pub fn since(self: Self, other_in_the_past: Self) Duration {
+    pub fn since(
+        self: Self,
+        other_in_the_past: Self,
+    ) Duration {
         return Duration{
             .ms = self.toUnixMilli() - other_in_the_past.toUnixMilli(),
         };
@@ -468,15 +705,24 @@ pub fn daysInYear(year: u16) u16 {
     return if (isLeapYear(year)) 366 else 365;
 }
 
-fn daysInMonth(year: u16, month: u16) u16 {
+fn daysInMonth(
+    year: u16,
+    month: u16,
+) u16 {
     const norm = [12]u16{ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
     const leap = [12]u16{ 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
     const month_days = if (!isLeapYear(year)) norm else leap;
     return month_days[month];
 }
 
-fn printOrdinal(writer: anytype, num: u16) !void {
-    try writer.print("{}", .{num});
+fn printOrdinal(
+    writer: anytype,
+    num: u16,
+) !void {
+    try writer.print(
+        "{}",
+        .{num},
+    );
     try writer.writeAll(switch (num) {
         1 => "st",
         2 => "nd",
@@ -485,11 +731,18 @@ fn printOrdinal(writer: anytype, num: u16) !void {
     });
 }
 
-fn printLongName(writer: anytype, index: u16, names: []const string) !void {
+fn printLongName(
+    writer: anytype,
+    index: u16,
+    names: []const string,
+) !void {
     try writer.writeAll(names[index]);
 }
 
-fn wrap(val: u16, at: u16) u16 {
+fn wrap(
+    val: u16,
+    at: u16,
+) u16 {
     var tmp = val % at;
     return if (tmp == 0) at else tmp;
 }
@@ -507,8 +760,15 @@ test "time format" {
     var allocator = std.testing.allocator;
     const utc_format = "YYYY-MM-DDTHH:mm:ss";
     const dt = DateTime.initUnix(1697696484);
-    const formatted_dt = try dt.formatAlloc(allocator, utc_format);
+    const formatted_dt = try dt.formatAlloc(
+        allocator,
+        utc_format,
+    );
     defer allocator.free(formatted_dt); // Free the memory allocated by the allocator.
     const expected_formatted_dt = "2023-10-19T06:21:24";
-    try expect(std.mem.eql(u8, formatted_dt, expected_formatted_dt));
+    try expect(std.mem.eql(
+        u8,
+        formatted_dt,
+        expected_formatted_dt,
+    ));
 }

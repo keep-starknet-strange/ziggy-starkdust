@@ -61,7 +61,12 @@ pub const RunContext = struct {
     /// - The initialized run context.
     /// # Errors
     /// - If a memory allocation fails.
-    pub fn init_with_values(allocator: *Allocator, pc: Relocatable, ap: Relocatable, fp: Relocatable) !*RunContext {
+    pub fn init_with_values(
+        allocator: *Allocator,
+        pc: Relocatable,
+        ap: Relocatable,
+        fp: Relocatable,
+    ) !*RunContext {
         var run_context = try RunContext.init(allocator);
         run_context.pc.* = pc;
         run_context.ap.* = ap;
@@ -84,7 +89,10 @@ pub const RunContext = struct {
     /// - instruction: The instruction to compute the dst address for.
     /// # Returns
     /// - The computed dst address.
-    pub fn compute_dst_addr(self: *RunContext, instruction: *const Instruction) !Relocatable {
+    pub fn compute_dst_addr(
+        self: *RunContext,
+        instruction: *const Instruction,
+    ) !Relocatable {
         var base_addr = switch (instruction.dst_reg) {
             .AP => self.ap.*,
             .FP => self.fp.*,
@@ -92,11 +100,17 @@ pub const RunContext = struct {
 
         if (instruction.off_0 < 0) {
             // Convert i16 to u64 safely and then negate
-            const abs_offset = @as(u64, @intCast(-instruction.off_0));
+            const abs_offset = @as(
+                u64,
+                @intCast(-instruction.off_0),
+            );
             return try base_addr.subUint(abs_offset);
         } else {
             // Convert i16 to u64 safely
-            const offset = @as(u64, @intCast(instruction.off_2));
+            const offset = @as(
+                u64,
+                @intCast(instruction.off_2),
+            );
             return try base_addr.addUint(offset);
         }
     }
@@ -106,7 +120,10 @@ pub const RunContext = struct {
     /// - instruction: The instruction to compute the OP 0 address for.
     /// # Returns
     /// - The computed OP 0 address.
-    pub fn compute_op_0_addr(self: *RunContext, instruction: *const Instruction) !Relocatable {
+    pub fn compute_op_0_addr(
+        self: *RunContext,
+        instruction: *const Instruction,
+    ) !Relocatable {
         var base_addr = switch (instruction.op_0_reg) {
             .AP => self.ap.*,
             .FP => self.fp.*,
@@ -114,11 +131,17 @@ pub const RunContext = struct {
 
         if (instruction.off_1 < 0) {
             // Convert i16 to u64 safely and then negate
-            const abs_offset = @as(u64, @intCast(-instruction.off_1));
+            const abs_offset = @as(
+                u64,
+                @intCast(-instruction.off_1),
+            );
             return try base_addr.subUint(abs_offset);
         } else {
             // Convert i16 to u64 safely
-            const offset = @as(u64, @intCast(instruction.off_1));
+            const offset = @as(
+                u64,
+                @intCast(instruction.off_1),
+            );
             return try base_addr.addUint(offset);
         }
     }
@@ -128,7 +151,11 @@ pub const RunContext = struct {
     /// - instruction: The instruction to compute the OP 1 address for.
     /// # Returns
     /// - The computed OP 1 address.
-    pub fn compute_op_1_addr(self: *RunContext, instruction: *const Instruction, op_0: ?MaybeRelocatable) !Relocatable {
+    pub fn compute_op_1_addr(
+        self: *RunContext,
+        instruction: *const Instruction,
+        op_0: ?MaybeRelocatable,
+    ) !Relocatable {
         var base_addr: Relocatable = undefined;
         switch (instruction.op_1_addr) {
             .FP => base_addr = self.fp.*,
@@ -151,11 +178,17 @@ pub const RunContext = struct {
 
         if (instruction.off_2 < 0) {
             // Convert i16 to u64 safely and then negate
-            const abs_offset = @as(u64, @intCast(-instruction.off_2));
+            const abs_offset = @as(
+                u64,
+                @intCast(-instruction.off_2),
+            );
             return try base_addr.subUint(abs_offset);
         } else {
             // Convert i16 to u64 safely
-            const offset = @as(u64, @intCast(instruction.off_2));
+            const offset = @as(
+                u64,
+                @intCast(instruction.off_2),
+            );
             return try base_addr.addUint(offset);
         }
     }
@@ -174,9 +207,24 @@ test "compute_op1_addr for fp op1 addr" {
     const instruction =
         Instruction{ .off_0 = 1, .off_1 = 2, .off_2 = 3, .dst_reg = .FP, .op_0_reg = .AP, .op_1_addr = .FP, .res_logic = .Add, .pc_update = .Regular, .ap_update = .Regular, .fp_update = .Regular, .opcode = .NOp };
 
-    const run_context = try RunContext.init_with_values(&allocator, Relocatable.new(0, 4), Relocatable.new(0, 5), Relocatable.new(0, 6));
+    const run_context = try RunContext.init_with_values(&allocator, Relocatable.new(
+        0,
+        4,
+    ), Relocatable.new(
+        0,
+        5,
+    ), Relocatable.new(
+        0,
+        6,
+    ));
     defer run_context.deinit();
-    const relocatable_addr = try run_context.compute_op_1_addr(&instruction, null);
+    const relocatable_addr = try run_context.compute_op_1_addr(
+        &instruction,
+        null,
+    );
 
-    try expect(relocatable_addr.eq(Relocatable.new(0, 9)));
+    try expect(relocatable_addr.eq(Relocatable.new(
+        0,
+        9,
+    )));
 }

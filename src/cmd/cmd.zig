@@ -64,7 +64,10 @@ var app = &cli.App{
 
 /// Run the CLI app.
 pub fn run() !void {
-    return cli.run(app, gpa_allocator);
+    return cli.run(
+        app,
+        gpa_allocator,
+    );
 }
 
 // ************************************************************
@@ -73,21 +76,33 @@ pub fn run() !void {
 
 // execute entrypoint
 fn execute(_: []const []const u8) !void {
-    std.log.debug("Running Cairo VM...\n", .{});
+    std.log.debug(
+        "Running Cairo VM...\n",
+        .{},
+    );
 
     // Create a new VM instance.
     var vm = try vm_core.CairoVM.init(&gpa_allocator);
     defer vm.deinit(); // <-- This ensures that resources are freed when exiting the scope
 
-    const address_1 = relocatable.Relocatable.new(0, 0);
+    const address_1 = relocatable.Relocatable.new(
+        0,
+        0,
+    );
     const encoded_instruction = relocatable.fromU64(0x14A7800080008000);
 
     // Write a value to memory.
-    try vm.segments.memory.set(address_1, encoded_instruction);
+    try vm.segments.memory.set(
+        address_1,
+        encoded_instruction,
+    );
 
     // Run a step.
     vm.step() catch |err| {
-        std.debug.print("Error: {}\n", .{err});
+        std.debug.print(
+            "Error: {}\n",
+            .{err},
+        );
         return;
     };
 }
