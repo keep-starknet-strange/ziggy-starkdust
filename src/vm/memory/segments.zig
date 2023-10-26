@@ -66,7 +66,7 @@ pub const MemorySegmentManager = struct {
             ).init(allocator.*),
             // Initialize the memory pointer.
             .memory = try Memory.init(allocator),
-            .public_memory_offsets = std.AutoHashMap,
+            .public_memory_offsets = std.AutoHashMap(u32, u32).init(allocator.*),
         };
         // Return the pointer to the MemorySegmentManager.
         return segment_manager;
