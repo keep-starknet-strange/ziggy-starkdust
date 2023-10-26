@@ -11,6 +11,7 @@ const vm_core = @import("../vm/core.zig");
 const RunContext = @import("../vm/run_context.zig").RunContext;
 const relocatable = @import("../vm/memory/relocatable.zig");
 const Config = @import("../vm/config.zig").Config;
+const build_options = @import("../main.zig").build_options;
 
 // ************************************************************
 // *                 GLOBAL VARIABLES                         *
@@ -88,6 +89,11 @@ fn execute(_: []const []const u8) !void {
         "Running Cairo VM...\n",
         .{},
     );
+
+    if (build_options.disable_tracing and config.enable_trace) {
+        std.log.err("Tracing is disabled in this build.\n", .{});
+        return;
+    }
 
     // Create a new VM instance.
     var vm = try vm_core.CairoVM.init(&gpa_allocator, config);

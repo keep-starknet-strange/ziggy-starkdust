@@ -12,6 +12,7 @@ const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
+const build_options = @import("../main.zig").build_options;
 
 /// Represents the Cairo VM.
 pub const CairoVM = struct {
@@ -119,11 +120,14 @@ pub const CairoVM = struct {
         self: *CairoVM,
         instruction: *const instructions.Instruction,
     ) !void {
-        try self.trace_context.traceInstruction(.{
-            .pc = self.run_context.pc,
-            .ap = self.run_context.ap,
-            .fp = self.run_context.fp,
-        });
+        if (!build_options.disable_tracing) {
+            try self.trace_context.traceInstruction(.{
+                .pc = self.run_context.pc,
+                .ap = self.run_context.ap,
+                .fp = self.run_context.fp,
+            });
+        }
+
         const operands_result = try self.computeOperands(instruction);
         _ = operands_result;
     }
