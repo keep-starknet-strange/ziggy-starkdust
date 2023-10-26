@@ -16,7 +16,7 @@ pub const Relocatable = struct {
     // # Returns
     // A new Relocatable with the default values.
     pub fn default() Relocatable {
-        return Relocatable{
+        return .{
             .segment_index = 0,
             .offset = 0,
         };
@@ -32,7 +32,7 @@ pub const Relocatable = struct {
         segment_index: u64,
         offset: u64,
     ) Relocatable {
-        return Relocatable{
+        return .{
             .segment_index = segment_index,
             .offset = offset,
         };
@@ -62,7 +62,7 @@ pub const Relocatable = struct {
         if (self.offset < other) {
             return error.RelocatableSubUsizeNegOffset;
         }
-        return Relocatable{
+        return .{
             .segment_index = self.segment_index,
             .offset = self.offset - other,
         };
@@ -77,7 +77,7 @@ pub const Relocatable = struct {
         self: Relocatable,
         other: u64,
     ) !Relocatable {
-        return Relocatable{
+        return .{
             .segment_index = self.segment_index,
             .offset = self.offset + other,
         };
@@ -232,7 +232,7 @@ pub const MaybeRelocatable = union(enum) {
 // # Returns
 // A new MaybeRelocatable.
 pub fn newFromRelocatable(relocatable: Relocatable) MaybeRelocatable {
-    return MaybeRelocatable{ .relocatable = relocatable };
+    return .{ .relocatable = relocatable };
 }
 
 // Creates a new MaybeRelocatable from a field element.
@@ -241,7 +241,7 @@ pub fn newFromRelocatable(relocatable: Relocatable) MaybeRelocatable {
 // # Returns
 // A new MaybeRelocatable.
 pub fn fromFelt(felt: Felt252) MaybeRelocatable {
-    return MaybeRelocatable{ .felt = felt };
+    return .{ .felt = felt };
 }
 
 // Creates a new MaybeRelocatable from a u256.
@@ -250,7 +250,7 @@ pub fn fromFelt(felt: Felt252) MaybeRelocatable {
 // # Returns
 // A new MaybeRelocatable.
 pub fn fromU256(value: u256) MaybeRelocatable {
-    return MaybeRelocatable{ .felt = Felt252.fromInteger(value) };
+    return .{ .felt = Felt252.fromInteger(value) };
 }
 
 // Creates a new MaybeRelocatable from a u64.

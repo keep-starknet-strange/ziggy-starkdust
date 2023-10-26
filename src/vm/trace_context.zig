@@ -73,7 +73,7 @@ pub const TraceContext = struct {
             deinitFn = TraceDisabled.deinit;
         }
 
-        return TraceContext{
+        return .{
             .state = state,
             .traceInstructionFn = traceInstructionFn,
             .deinitFn = deinitFn,
@@ -102,8 +102,11 @@ const TraceEnabled = struct {
     entries: ArrayList(TraceContext.Entry),
 
     fn init(allocator: Allocator) !TraceEnabled {
-        return TraceEnabled{
-            .entries = try ArrayList(TraceContext.Entry).initCapacity(allocator, build_options.trace_initial_capacity),
+        return .{
+            .entries = try ArrayList(TraceContext.Entry).initCapacity(
+                allocator,
+                build_options.trace_initial_capacity,
+            ),
         };
     }
 

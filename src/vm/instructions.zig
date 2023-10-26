@@ -179,7 +179,7 @@ pub fn decode(encoded_instruction: u64) Error!Instruction {
         ),
     );
 
-    return Instruction{
+    return .{
         .off_0 = fromBiasedRepresentation(
             @as(
                 u16,
@@ -233,10 +233,10 @@ pub fn decode(encoded_instruction: u64) Error!Instruction {
 /// Parsed Opcode value, or an error if invalid
 fn parseOpcode(opcode_num: u8) Error!Opcode {
     return switch (opcode_num) {
-        0 => Opcode.NOp,
-        1 => Opcode.Call,
-        2 => Opcode.Ret,
-        4 => Opcode.AssertEq,
+        0 => .NOp,
+        1 => .Call,
+        2 => .Ret,
+        4 => .AssertEq,
         else => Error.InvalidOpcode,
     };
 }
@@ -248,10 +248,10 @@ fn parseOpcode(opcode_num: u8) Error!Opcode {
 /// Parsed Op1Src value, or an error if invalid
 fn parseOp1Src(op1_src_num: u8) Error!Op1Src {
     return switch (op1_src_num) {
-        0 => Op1Src.Op0,
-        1 => Op1Src.Imm,
-        2 => Op1Src.FP,
-        4 => Op1Src.AP,
+        0 => .Op0,
+        1 => .Imm,
+        2 => .FP,
+        4 => .AP,
         else => Error.InvalidOp1Reg,
     };
 }
@@ -268,14 +268,14 @@ fn parseResLogic(
 ) Error!ResLogic {
     return switch (res_logic_num) {
         0 => {
-            if (pc_update == PcUpdate.Jnz) {
-                return ResLogic.Unconstrained;
+            if (pc_update == .Jnz) {
+                return .Unconstrained;
             } else {
-                return ResLogic.Op1;
+                return .Op1;
             }
         },
-        1 => ResLogic.Add,
-        2 => ResLogic.Mul,
+        1 => .Add,
+        2 => .Mul,
         else => Error.Invalidres_logic,
     };
 }
@@ -287,10 +287,10 @@ fn parseResLogic(
 /// Parsed pc_update value, or an error if invalid
 fn parsePcUpdate(pc_update_num: u8) Error!PcUpdate {
     return switch (pc_update_num) {
-        0 => PcUpdate.Regular,
-        1 => PcUpdate.Jump,
-        2 => PcUpdate.JumpRel,
-        4 => PcUpdate.Jnz,
+        0 => .Regular,
+        1 => .Jump,
+        2 => .JumpRel,
+        4 => .Jnz,
         else => Error.Invalidpc_update,
     };
 }
@@ -306,13 +306,13 @@ fn parseApUpdate(
     opcode: Opcode,
 ) Error!ApUpdate {
     return switch (ap_update_num) {
-        0 => if (opcode == Opcode.Call) {
-            return ApUpdate.Add2;
+        0 => if (opcode == .Call) {
+            return .Add2;
         } else {
-            return ApUpdate.Regular;
+            return .Regular;
         },
-        1 => ApUpdate.Add,
-        2 => ApUpdate.Add1,
+        1 => .Add,
+        2 => .Add1,
         else => Error.Invalidap_update,
     };
 }
@@ -324,9 +324,9 @@ fn parseApUpdate(
 /// Appropriate fp_update value
 fn parseFpUpdate(opcode: Opcode) FpUpdate {
     return switch (opcode) {
-        Opcode.Call => FpUpdate.APPlus2,
-        Opcode.Ret => FpUpdate.Dst,
-        else => FpUpdate.Regular,
+        .Call => .APPlus2,
+        .Ret => .Dst,
+        else => .Regular,
     };
 }
 
