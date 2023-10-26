@@ -683,10 +683,13 @@ test "update pc update jnz with operands dst not zero op1 not felt" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    try expectError(error.TypeMismatchNotFelt, vm.updatePc(
-        &instruction,
-        operands,
-    ));
+    try expectError(
+        error.TypeMismatchNotFelt,
+        vm.updatePc(
+            &instruction,
+            operands,
+        ),
+    );
 }
 
 test "update pc update jnz with operands dst not zero op1 felt" {
