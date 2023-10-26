@@ -950,7 +950,6 @@ test "trace is enabled" {
     var vm = try CairoVM.init(
         &allocator,
         config,
-        4096,
     );
     defer vm.deinit();
 

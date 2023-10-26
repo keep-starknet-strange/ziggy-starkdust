@@ -11,7 +11,7 @@ const vm_core = @import("../vm/core.zig");
 const RunContext = @import("../vm/run_context.zig").RunContext;
 const relocatable = @import("../vm/memory/relocatable.zig");
 const Config = @import("../vm/config.zig").Config;
-const build_options = @import("../main.zig").build_options;
+const build_options = @import("../build_options.zig");
 
 // ************************************************************
 // *                 GLOBAL VARIABLES                         *
