@@ -90,7 +90,11 @@ fn execute(_: []const []const u8) !void {
     );
 
     // Create a new VM instance.
-    var vm = try vm_core.CairoVM.init(&gpa_allocator, config);
+    var vm = try vm_core.CairoVM.init(
+        &gpa_allocator,
+        config,
+        4096,
+    );
     defer vm.deinit(); // <-- This ensures that resources are freed when exiting the scope
 
     const address_1 = relocatable.Relocatable.new(
