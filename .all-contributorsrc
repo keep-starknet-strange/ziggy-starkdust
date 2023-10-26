@@ -54,6 +54,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "nils-mathieu",
+      "name": "Nils",
+      "avatar_url": "https://avatars.githubusercontent.com/u/80390054?v=4",
+      "profile": "https://nils-mathieu.fr/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
