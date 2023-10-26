@@ -11,6 +11,8 @@ const instructions = @import("instructions.zig");
 const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
 const Config = @import("config.zig").Config;
+const TraceContext = @import("trace_context.zig").TraceContext;
+const build_options = @import("../build_options.zig");
 
 /// Represents the Cairo VM.
 pub const CairoVM = struct {
@@ -28,7 +30,7 @@ pub const CairoVM = struct {
     /// Whether the run is finished or not.
     is_run_finished: bool,
     /// VM trace
-    trace: ?ArrayList(TraceEntry),
+    trace_context: TraceContext,
 
     // ************************************************************
     // *             MEMORY ALLOCATION AND DEALLOCATION           *
@@ -42,24 +44,23 @@ pub const CairoVM = struct {
     /// - `CairoVM`: The created VM.
     /// # Errors
     /// - If a memory allocation fails.
-    pub fn init(allocator: *const Allocator, config: Config) !CairoVM {
+    pub fn init(
+        allocator: *const Allocator,
+        config: Config,
+    ) !CairoVM {
         // Initialize the memory segment manager.
         const memory_segment_manager = try segments.MemorySegmentManager.init(allocator);
         // Initialize the run context.
         const run_context = try RunContext.init(allocator);
-
-        var trace: ?ArrayList(TraceEntry) = null;
-        if (config.enable_trace) {
-            // FIXME: https://github.com/keep-starknet-strange/cairo-zig/issues/30
-            trace = try ArrayList(TraceEntry).initCapacity(allocator.*, 4096);
-        }
+        // Initialize the trace context.
+        const trace_context = try TraceContext.init(allocator.*, config.enable_trace);
 
         return CairoVM{
             .allocator = allocator,
             .run_context = run_context,
             .segments = memory_segment_manager,
             .is_run_finished = false,
-            .trace = trace,
+            .trace_context = trace_context,
         };
     }
 
@@ -70,9 +71,7 @@ pub const CairoVM = struct {
         // Deallocate the run context.
         self.run_context.deinit();
         // Deallocate trace
-        if (self.trace) |trace| {
-            trace.deinit();
-        }
+        self.trace_context.deinit();
     }
 
     // ************************************************************
@@ -124,14 +123,14 @@ pub const CairoVM = struct {
         self: *CairoVM,
         instruction: *const instructions.Instruction,
     ) !void {
-        if (self.trace) |tracer| {
-            var mut_tracer = tracer;
-            try mut_tracer.append(TraceEntry{
+        if (!build_options.trace_disable) {
+            try self.trace_context.traceInstruction(.{
                 .pc = self.run_context.pc,
                 .ap = self.run_context.ap,
                 .fp = self.run_context.fp,
             });
         }
+
         const operands_result = try self.computeOperands(instruction);
         _ = operands_result;
     }
@@ -410,12 +409,6 @@ const OperandsResult = struct {
             .op_1_addr = relocatable.fromU64(0),
         };
     }
-};
-
-const TraceEntry = struct {
-    pc: *relocatable.Relocatable,
-    ap: *relocatable.Relocatable,
-    fp: *relocatable.Relocatable,
 };
 
 // ************************************************************
@@ -954,7 +947,10 @@ test "trace is enabled" {
     // Create a new VM instance.
     var config = Config{ .proof_mode = false, .enable_trace = true };
 
-    var vm = try CairoVM.init(&allocator, config);
+    var vm = try CairoVM.init(
+        &allocator,
+        config,
+    );
     defer vm.deinit();
 
     // ************************************************************
@@ -966,9 +962,7 @@ test "trace is enabled" {
     // *                      TEST CHECKS                         *
     // ************************************************************
     // Check that trace was initialized
-    const trace = vm.trace;
-
-    if (trace == null) {
+    if (!vm.trace_context.isEnabled()) {
         return error.TraceShouldHaveBeenEnabled;
     }
 }
@@ -993,9 +987,7 @@ test "trace is disabled" {
     // *                      TEST CHECKS                         *
     // ************************************************************
     // Check that trace was initialized
-    const trace = vm.trace;
-
-    if (trace != null) {
+    if (vm.trace_context.isEnabled()) {
         return error.TraceShouldHaveBeenDisabled;
     }
 }

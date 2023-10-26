@@ -34,49 +34,84 @@ pub const Error = error{
 // *                      CUSTOM TYPES DEFINITIONS                              *
 // *****************************************************************************
 
+/// Cairo has 2 address registers, called `ap` and `fp`,
+/// which are used for specifying which memory cells the instruction operates on.
 pub const Register = enum {
+    /// Allocation pointer - points to a yet-unused memory cell.
     AP,
+    /// Frame pointer - points to the frame of the current function
     FP,
 };
 
+/// The `Op1Src` enum provides definitions for operation sources, specifying
+/// where an operation retrieves its data from.
 pub const Op1Src = enum {
+    /// Represents an immediate value, for example, `[ap] = 123456789` - `op1 = [pc + 1]`.
     Imm,
+    /// Refers to the allocation pointer, which points to an unused memory cell - `op1 = [ap + off2]`.
     AP,
+    /// Refers to the frame pointer, which points to the current function's frame - `op1 = [fp + off2]`.
     FP,
+    /// Represents the result of the operation - `op1 = [op0]`.
     Op0,
 };
 
+/// The `ResLogic` constants represent different types of results in a program
 pub const ResLogic = enum {
+    /// Represents the result of the operation - `res = operand_1`.
     Op1,
+    /// Addition - `res = operand_0 + operand_1`.
     Add,
+    /// Multiplication - `res = operand_0 * operand_1`.
     Mul,
+    /// `res` is not constrained.
     Unconstrained,
 };
 
+/// The `PcUpdate` constants define different ways to update the program counter
 pub const PcUpdate = enum {
+    /// Regular update - Next `pc`: `pc + op_size`.
     Regular,
+    /// Absolute jump - Next `pc`: `res (jmp abs)`.
     Jump,
+    /// Relative jump - Next `pc`: `pc + res (jmp rel)`.
     JumpRel,
+    /// Jump Non-Zero - Next `pc`: `jnz_addr (jnz)`,
+    /// where `jnz_addr` is a complex expression, representing the `jnz` logic.
     Jnz,
 };
 
+/// The `ApUpdate` constants represent various ways of updating an address pointer
 pub const ApUpdate = enum {
+    /// Regular update - Next `ap`: `ap`.
     Regular,
+    /// Additional update using `pc` - Next `ap`: `ap + [pc + 1]`.
     Add,
+    /// Additional update with 1 as offset - Next `ap`: `ap + 1`.
     Add1,
+    /// Additional update with 2  as offset - Next `ap`: `ap + 2`.
     Add2,
 };
 
+/// The `FpUpdate` constants define different ways of updating the frame pointer
 pub const FpUpdate = enum {
+    /// Regular update - Next `fp`: `fp`.
     Regular,
+    /// Addition with a specific offset - Next `fp`: `ap + 2`.
     APPlus2,
+    /// Destination update - Next `fp`: `operand_dst`.
     Dst,
 };
 
+/// The `Opcode` constants represent different types of operations or instructions.
 pub const Opcode = enum {
+    /// No operation.
     NOp,
+    /// Equality assertion check.
     AssertEq,
+    /// Function calls.
     Call,
+    /// Returns.
     Ret,
 };
 
