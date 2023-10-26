@@ -3191,7 +3191,7 @@
 <span class="line" id="L2978">        assign_mul,</span>
 <span class="line" id="L2979">        <span class="tok-comment">/// `lhs /= rhs`. main_token is op.</span></span>
 <span class="line" id="L2980">        assign_div,</span>
-<span class="line" id="L2981">        <span class="tok-comment">/// `lhs *= rhs`. main_token is op.</span></span>
+<span class="line" id="L2981">        <span class="tok-comment">/// `lhs %= rhs`. main_token is op.</span></span>
 <span class="line" id="L2982">        assign_mod,</span>
 <span class="line" id="L2983">        <span class="tok-comment">/// `lhs += rhs`. main_token is op.</span></span>
 <span class="line" id="L2984">        assign_add,</span>
@@ -3438,7 +3438,7 @@
 <span class="line" id="L3225">        for_simple,</span>
 <span class="line" id="L3226">        <span class="tok-comment">/// `for (lhs[0..inputs]) lhs[inputs + 1] else lhs[inputs + 2]`. `For[rhs]`.</span></span>
 <span class="line" id="L3227">        @&quot;for&quot;,</span>
-<span class="line" id="L3228">        <span class="tok-comment">/// `lhs..rhs`.</span></span>
+<span class="line" id="L3228">        <span class="tok-comment">/// `lhs..rhs`. rhs can be omitted.</span></span>
 <span class="line" id="L3229">        for_range,</span>
 <span class="line" id="L3230">        <span class="tok-comment">/// `if (lhs) rhs`.</span></span>
 <span class="line" id="L3231">        <span class="tok-comment">/// `if (lhs) |a| rhs`.</span></span>
