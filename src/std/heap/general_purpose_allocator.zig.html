@@ -1193,412 +1193,408 @@
 <span class="line" id="L1042"><span class="tok-kw">const</span> test_config = Config{};</span>
 <span class="line" id="L1043"></span>
 <span class="line" id="L1044"><span class="tok-kw">test</span> <span class="tok-str">&quot;small allocations - free in same order&quot;</span> {</span>
-<span class="line" id="L1045">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L1046"></span>
-<span class="line" id="L1047">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
-<span class="line" id="L1048">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
-<span class="line" id="L1049">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
-<span class="line" id="L1050"></span>
-<span class="line" id="L1051">    <span class="tok-kw">var</span> list = std.ArrayList(*<span class="tok-type">u64</span>).init(std.testing.allocator);</span>
-<span class="line" id="L1052">    <span class="tok-kw">defer</span> list.deinit();</span>
-<span class="line" id="L1053"></span>
-<span class="line" id="L1054">    <span class="tok-kw">var</span> i: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
-<span class="line" id="L1055">    <span class="tok-kw">while</span> (i &lt; <span class="tok-number">513</span>) : (i += <span class="tok-number">1</span>) {</span>
-<span class="line" id="L1056">        <span class="tok-kw">const</span> ptr = <span class="tok-kw">try</span> allocator.create(<span class="tok-type">u64</span>);</span>
-<span class="line" id="L1057">        <span class="tok-kw">try</span> list.append(ptr);</span>
-<span class="line" id="L1058">    }</span>
-<span class="line" id="L1059"></span>
-<span class="line" id="L1060">    <span class="tok-kw">for</span> (list.items) |ptr| {</span>
-<span class="line" id="L1061">        allocator.destroy(ptr);</span>
-<span class="line" id="L1062">    }</span>
-<span class="line" id="L1063">}</span>
-<span class="line" id="L1064"></span>
-<span class="line" id="L1065"><span class="tok-kw">test</span> <span class="tok-str">&quot;small allocations - free in reverse order&quot;</span> {</span>
-<span class="line" id="L1066">    <span class="tok-kw">if</span> (<span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>).zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L1045">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
+<span class="line" id="L1046">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
+<span class="line" id="L1047">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
+<span class="line" id="L1048"></span>
+<span class="line" id="L1049">    <span class="tok-kw">var</span> list = std.ArrayList(*<span class="tok-type">u64</span>).init(std.testing.allocator);</span>
+<span class="line" id="L1050">    <span class="tok-kw">defer</span> list.deinit();</span>
+<span class="line" id="L1051"></span>
+<span class="line" id="L1052">    <span class="tok-kw">var</span> i: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
+<span class="line" id="L1053">    <span class="tok-kw">while</span> (i &lt; <span class="tok-number">513</span>) : (i += <span class="tok-number">1</span>) {</span>
+<span class="line" id="L1054">        <span class="tok-kw">const</span> ptr = <span class="tok-kw">try</span> allocator.create(<span class="tok-type">u64</span>);</span>
+<span class="line" id="L1055">        <span class="tok-kw">try</span> list.append(ptr);</span>
+<span class="line" id="L1056">    }</span>
+<span class="line" id="L1057"></span>
+<span class="line" id="L1058">    <span class="tok-kw">for</span> (list.items) |ptr| {</span>
+<span class="line" id="L1059">        allocator.destroy(ptr);</span>
+<span class="line" id="L1060">    }</span>
+<span class="line" id="L1061">}</span>
+<span class="line" id="L1062"></span>
+<span class="line" id="L1063"><span class="tok-kw">test</span> <span class="tok-str">&quot;small allocations - free in reverse order&quot;</span> {</span>
+<span class="line" id="L1064">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
+<span class="line" id="L1065">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
+<span class="line" id="L1066">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
 <span class="line" id="L1067"></span>
-<span class="line" id="L1068">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
-<span class="line" id="L1069">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
-<span class="line" id="L1070">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
-<span class="line" id="L1071"></span>
-<span class="line" id="L1072">    <span class="tok-kw">var</span> list = std.ArrayList(*<span class="tok-type">u64</span>).init(std.testing.allocator);</span>
-<span class="line" id="L1073">    <span class="tok-kw">defer</span> list.deinit();</span>
-<span class="line" id="L1074"></span>
-<span class="line" id="L1075">    <span class="tok-kw">var</span> i: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
-<span class="line" id="L1076">    <span class="tok-kw">while</span> (i &lt; <span class="tok-number">513</span>) : (i += <span class="tok-number">1</span>) {</span>
-<span class="line" id="L1077">        <span class="tok-kw">const</span> ptr = <span class="tok-kw">try</span> allocator.create(<span class="tok-type">u64</span>);</span>
-<span class="line" id="L1078">        <span class="tok-kw">try</span> list.append(ptr);</span>
+<span class="line" id="L1068">    <span class="tok-kw">var</span> list = std.ArrayList(*<span class="tok-type">u64</span>).init(std.testing.allocator);</span>
+<span class="line" id="L1069">    <span class="tok-kw">defer</span> list.deinit();</span>
+<span class="line" id="L1070"></span>
+<span class="line" id="L1071">    <span class="tok-kw">var</span> i: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
+<span class="line" id="L1072">    <span class="tok-kw">while</span> (i &lt; <span class="tok-number">513</span>) : (i += <span class="tok-number">1</span>) {</span>
+<span class="line" id="L1073">        <span class="tok-kw">const</span> ptr = <span class="tok-kw">try</span> allocator.create(<span class="tok-type">u64</span>);</span>
+<span class="line" id="L1074">        <span class="tok-kw">try</span> list.append(ptr);</span>
+<span class="line" id="L1075">    }</span>
+<span class="line" id="L1076"></span>
+<span class="line" id="L1077">    <span class="tok-kw">while</span> (list.popOrNull()) |ptr| {</span>
+<span class="line" id="L1078">        allocator.destroy(ptr);</span>
 <span class="line" id="L1079">    }</span>
-<span class="line" id="L1080"></span>
-<span class="line" id="L1081">    <span class="tok-kw">while</span> (list.popOrNull()) |ptr| {</span>
-<span class="line" id="L1082">        allocator.destroy(ptr);</span>
-<span class="line" id="L1083">    }</span>
-<span class="line" id="L1084">}</span>
-<span class="line" id="L1085"></span>
-<span class="line" id="L1086"><span class="tok-kw">test</span> <span class="tok-str">&quot;large allocations&quot;</span> {</span>
-<span class="line" id="L1087">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
-<span class="line" id="L1088">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
-<span class="line" id="L1089">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
-<span class="line" id="L1090"></span>
-<span class="line" id="L1091">    <span class="tok-kw">const</span> ptr1 = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u64</span>, <span class="tok-number">42768</span>);</span>
-<span class="line" id="L1092">    <span class="tok-kw">const</span> ptr2 = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u64</span>, <span class="tok-number">52768</span>);</span>
-<span class="line" id="L1093">    allocator.free(ptr1);</span>
-<span class="line" id="L1094">    <span class="tok-kw">const</span> ptr3 = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u64</span>, <span class="tok-number">62768</span>);</span>
-<span class="line" id="L1095">    allocator.free(ptr3);</span>
-<span class="line" id="L1096">    allocator.free(ptr2);</span>
-<span class="line" id="L1097">}</span>
-<span class="line" id="L1098"></span>
-<span class="line" id="L1099"><span class="tok-kw">test</span> <span class="tok-str">&quot;very large allocation&quot;</span> {</span>
-<span class="line" id="L1100">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
-<span class="line" id="L1101">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
-<span class="line" id="L1102">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
-<span class="line" id="L1103"></span>
-<span class="line" id="L1104">    <span class="tok-kw">try</span> std.testing.expectError(<span class="tok-kw">error</span>.OutOfMemory, allocator.alloc(<span class="tok-type">u8</span>, math.maxInt(<span class="tok-type">usize</span>)));</span>
-<span class="line" id="L1105">}</span>
-<span class="line" id="L1106"></span>
-<span class="line" id="L1107"><span class="tok-kw">test</span> <span class="tok-str">&quot;realloc&quot;</span> {</span>
-<span class="line" id="L1108">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
-<span class="line" id="L1109">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
-<span class="line" id="L1110">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
+<span class="line" id="L1080">}</span>
+<span class="line" id="L1081"></span>
+<span class="line" id="L1082"><span class="tok-kw">test</span> <span class="tok-str">&quot;large allocations&quot;</span> {</span>
+<span class="line" id="L1083">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
+<span class="line" id="L1084">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
+<span class="line" id="L1085">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
+<span class="line" id="L1086"></span>
+<span class="line" id="L1087">    <span class="tok-kw">const</span> ptr1 = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u64</span>, <span class="tok-number">42768</span>);</span>
+<span class="line" id="L1088">    <span class="tok-kw">const</span> ptr2 = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u64</span>, <span class="tok-number">52768</span>);</span>
+<span class="line" id="L1089">    allocator.free(ptr1);</span>
+<span class="line" id="L1090">    <span class="tok-kw">const</span> ptr3 = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u64</span>, <span class="tok-number">62768</span>);</span>
+<span class="line" id="L1091">    allocator.free(ptr3);</span>
+<span class="line" id="L1092">    allocator.free(ptr2);</span>
+<span class="line" id="L1093">}</span>
+<span class="line" id="L1094"></span>
+<span class="line" id="L1095"><span class="tok-kw">test</span> <span class="tok-str">&quot;very large allocation&quot;</span> {</span>
+<span class="line" id="L1096">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
+<span class="line" id="L1097">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
+<span class="line" id="L1098">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
+<span class="line" id="L1099"></span>
+<span class="line" id="L1100">    <span class="tok-kw">try</span> std.testing.expectError(<span class="tok-kw">error</span>.OutOfMemory, allocator.alloc(<span class="tok-type">u8</span>, math.maxInt(<span class="tok-type">usize</span>)));</span>
+<span class="line" id="L1101">}</span>
+<span class="line" id="L1102"></span>
+<span class="line" id="L1103"><span class="tok-kw">test</span> <span class="tok-str">&quot;realloc&quot;</span> {</span>
+<span class="line" id="L1104">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
+<span class="line" id="L1105">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
+<span class="line" id="L1106">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
+<span class="line" id="L1107"></span>
+<span class="line" id="L1108">    <span class="tok-kw">var</span> slice = <span class="tok-kw">try</span> allocator.alignedAlloc(<span class="tok-type">u8</span>, <span class="tok-builtin">@alignOf</span>(<span class="tok-type">u32</span>), <span class="tok-number">1</span>);</span>
+<span class="line" id="L1109">    <span class="tok-kw">defer</span> allocator.free(slice);</span>
+<span class="line" id="L1110">    slice[<span class="tok-number">0</span>] = <span class="tok-number">0x12</span>;</span>
 <span class="line" id="L1111"></span>
-<span class="line" id="L1112">    <span class="tok-kw">var</span> slice = <span class="tok-kw">try</span> allocator.alignedAlloc(<span class="tok-type">u8</span>, <span class="tok-builtin">@alignOf</span>(<span class="tok-type">u32</span>), <span class="tok-number">1</span>);</span>
-<span class="line" id="L1113">    <span class="tok-kw">defer</span> allocator.free(slice);</span>
-<span class="line" id="L1114">    slice[<span class="tok-number">0</span>] = <span class="tok-number">0x12</span>;</span>
-<span class="line" id="L1115"></span>
-<span class="line" id="L1116">    <span class="tok-comment">// This reallocation should keep its pointer address.</span>
+<span class="line" id="L1112">    <span class="tok-comment">// This reallocation should keep its pointer address.</span>
 </span>
-<span class="line" id="L1117">    <span class="tok-kw">const</span> old_slice = slice;</span>
-<span class="line" id="L1118">    slice = <span class="tok-kw">try</span> allocator.realloc(slice, <span class="tok-number">2</span>);</span>
-<span class="line" id="L1119">    <span class="tok-kw">try</span> std.testing.expect(old_slice.ptr == slice.ptr);</span>
-<span class="line" id="L1120">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">0</span>] == <span class="tok-number">0x12</span>);</span>
-<span class="line" id="L1121">    slice[<span class="tok-number">1</span>] = <span class="tok-number">0x34</span>;</span>
-<span class="line" id="L1122"></span>
-<span class="line" id="L1123">    <span class="tok-comment">// This requires upgrading to a larger size class</span>
+<span class="line" id="L1113">    <span class="tok-kw">const</span> old_slice = slice;</span>
+<span class="line" id="L1114">    slice = <span class="tok-kw">try</span> allocator.realloc(slice, <span class="tok-number">2</span>);</span>
+<span class="line" id="L1115">    <span class="tok-kw">try</span> std.testing.expect(old_slice.ptr == slice.ptr);</span>
+<span class="line" id="L1116">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">0</span>] == <span class="tok-number">0x12</span>);</span>
+<span class="line" id="L1117">    slice[<span class="tok-number">1</span>] = <span class="tok-number">0x34</span>;</span>
+<span class="line" id="L1118"></span>
+<span class="line" id="L1119">    <span class="tok-comment">// This requires upgrading to a larger size class</span>
 </span>
-<span class="line" id="L1124">    slice = <span class="tok-kw">try</span> allocator.realloc(slice, <span class="tok-number">17</span>);</span>
-<span class="line" id="L1125">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">0</span>] == <span class="tok-number">0x12</span>);</span>
-<span class="line" id="L1126">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">1</span>] == <span class="tok-number">0x34</span>);</span>
-<span class="line" id="L1127">}</span>
-<span class="line" id="L1128"></span>
-<span class="line" id="L1129"><span class="tok-kw">test</span> <span class="tok-str">&quot;shrink&quot;</span> {</span>
-<span class="line" id="L1130">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
-<span class="line" id="L1131">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
-<span class="line" id="L1132">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
-<span class="line" id="L1133"></span>
-<span class="line" id="L1134">    <span class="tok-kw">var</span> slice = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, <span class="tok-number">20</span>);</span>
-<span class="line" id="L1135">    <span class="tok-kw">defer</span> allocator.free(slice);</span>
-<span class="line" id="L1136"></span>
-<span class="line" id="L1137">    <span class="tok-builtin">@memset</span>(slice, <span class="tok-number">0x11</span>);</span>
-<span class="line" id="L1138"></span>
-<span class="line" id="L1139">    <span class="tok-kw">try</span> std.testing.expect(allocator.resize(slice, <span class="tok-number">17</span>));</span>
-<span class="line" id="L1140">    slice = slice[<span class="tok-number">0</span>..<span class="tok-number">17</span>];</span>
+<span class="line" id="L1120">    slice = <span class="tok-kw">try</span> allocator.realloc(slice, <span class="tok-number">17</span>);</span>
+<span class="line" id="L1121">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">0</span>] == <span class="tok-number">0x12</span>);</span>
+<span class="line" id="L1122">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">1</span>] == <span class="tok-number">0x34</span>);</span>
+<span class="line" id="L1123">}</span>
+<span class="line" id="L1124"></span>
+<span class="line" id="L1125"><span class="tok-kw">test</span> <span class="tok-str">&quot;shrink&quot;</span> {</span>
+<span class="line" id="L1126">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
+<span class="line" id="L1127">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
+<span class="line" id="L1128">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
+<span class="line" id="L1129"></span>
+<span class="line" id="L1130">    <span class="tok-kw">var</span> slice = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, <span class="tok-number">20</span>);</span>
+<span class="line" id="L1131">    <span class="tok-kw">defer</span> allocator.free(slice);</span>
+<span class="line" id="L1132"></span>
+<span class="line" id="L1133">    <span class="tok-builtin">@memset</span>(slice, <span class="tok-number">0x11</span>);</span>
+<span class="line" id="L1134"></span>
+<span class="line" id="L1135">    <span class="tok-kw">try</span> std.testing.expect(allocator.resize(slice, <span class="tok-number">17</span>));</span>
+<span class="line" id="L1136">    slice = slice[<span class="tok-number">0</span>..<span class="tok-number">17</span>];</span>
+<span class="line" id="L1137"></span>
+<span class="line" id="L1138">    <span class="tok-kw">for</span> (slice) |b| {</span>
+<span class="line" id="L1139">        <span class="tok-kw">try</span> std.testing.expect(b == <span class="tok-number">0x11</span>);</span>
+<span class="line" id="L1140">    }</span>
 <span class="line" id="L1141"></span>
-<span class="line" id="L1142">    <span class="tok-kw">for</span> (slice) |b| {</span>
-<span class="line" id="L1143">        <span class="tok-kw">try</span> std.testing.expect(b == <span class="tok-number">0x11</span>);</span>
-<span class="line" id="L1144">    }</span>
-<span class="line" id="L1145"></span>
-<span class="line" id="L1146">    <span class="tok-kw">try</span> std.testing.expect(allocator.resize(slice, <span class="tok-number">16</span>));</span>
-<span class="line" id="L1147">    slice = slice[<span class="tok-number">0</span>..<span class="tok-number">16</span>];</span>
-<span class="line" id="L1148"></span>
-<span class="line" id="L1149">    <span class="tok-kw">for</span> (slice) |b| {</span>
-<span class="line" id="L1150">        <span class="tok-kw">try</span> std.testing.expect(b == <span class="tok-number">0x11</span>);</span>
-<span class="line" id="L1151">    }</span>
-<span class="line" id="L1152">}</span>
-<span class="line" id="L1153"></span>
-<span class="line" id="L1154"><span class="tok-kw">test</span> <span class="tok-str">&quot;large object - grow&quot;</span> {</span>
-<span class="line" id="L1155">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
-<span class="line" id="L1156">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
-<span class="line" id="L1157">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
-<span class="line" id="L1158"></span>
-<span class="line" id="L1159">    <span class="tok-kw">var</span> slice1 = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, page_size * <span class="tok-number">2</span> - <span class="tok-number">20</span>);</span>
-<span class="line" id="L1160">    <span class="tok-kw">defer</span> allocator.free(slice1);</span>
+<span class="line" id="L1142">    <span class="tok-kw">try</span> std.testing.expect(allocator.resize(slice, <span class="tok-number">16</span>));</span>
+<span class="line" id="L1143">    slice = slice[<span class="tok-number">0</span>..<span class="tok-number">16</span>];</span>
+<span class="line" id="L1144"></span>
+<span class="line" id="L1145">    <span class="tok-kw">for</span> (slice) |b| {</span>
+<span class="line" id="L1146">        <span class="tok-kw">try</span> std.testing.expect(b == <span class="tok-number">0x11</span>);</span>
+<span class="line" id="L1147">    }</span>
+<span class="line" id="L1148">}</span>
+<span class="line" id="L1149"></span>
+<span class="line" id="L1150"><span class="tok-kw">test</span> <span class="tok-str">&quot;large object - grow&quot;</span> {</span>
+<span class="line" id="L1151">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
+<span class="line" id="L1152">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
+<span class="line" id="L1153">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
+<span class="line" id="L1154"></span>
+<span class="line" id="L1155">    <span class="tok-kw">var</span> slice1 = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, page_size * <span class="tok-number">2</span> - <span class="tok-number">20</span>);</span>
+<span class="line" id="L1156">    <span class="tok-kw">defer</span> allocator.free(slice1);</span>
+<span class="line" id="L1157"></span>
+<span class="line" id="L1158">    <span class="tok-kw">const</span> old = slice1;</span>
+<span class="line" id="L1159">    slice1 = <span class="tok-kw">try</span> allocator.realloc(slice1, page_size * <span class="tok-number">2</span> - <span class="tok-number">10</span>);</span>
+<span class="line" id="L1160">    <span class="tok-kw">try</span> std.testing.expect(slice1.ptr == old.ptr);</span>
 <span class="line" id="L1161"></span>
-<span class="line" id="L1162">    <span class="tok-kw">const</span> old = slice1;</span>
-<span class="line" id="L1163">    slice1 = <span class="tok-kw">try</span> allocator.realloc(slice1, page_size * <span class="tok-number">2</span> - <span class="tok-number">10</span>);</span>
-<span class="line" id="L1164">    <span class="tok-kw">try</span> std.testing.expect(slice1.ptr == old.ptr);</span>
-<span class="line" id="L1165"></span>
-<span class="line" id="L1166">    slice1 = <span class="tok-kw">try</span> allocator.realloc(slice1, page_size * <span class="tok-number">2</span>);</span>
-<span class="line" id="L1167">    <span class="tok-kw">try</span> std.testing.expect(slice1.ptr == old.ptr);</span>
-<span class="line" id="L1168"></span>
-<span class="line" id="L1169">    slice1 = <span class="tok-kw">try</span> allocator.realloc(slice1, page_size * <span class="tok-number">2</span> + <span class="tok-number">1</span>);</span>
-<span class="line" id="L1170">}</span>
-<span class="line" id="L1171"></span>
-<span class="line" id="L1172"><span class="tok-kw">test</span> <span class="tok-str">&quot;realloc small object to large object&quot;</span> {</span>
-<span class="line" id="L1173">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
-<span class="line" id="L1174">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
-<span class="line" id="L1175">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
-<span class="line" id="L1176"></span>
-<span class="line" id="L1177">    <span class="tok-kw">var</span> slice = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, <span class="tok-number">70</span>);</span>
-<span class="line" id="L1178">    <span class="tok-kw">defer</span> allocator.free(slice);</span>
-<span class="line" id="L1179">    slice[<span class="tok-number">0</span>] = <span class="tok-number">0x12</span>;</span>
-<span class="line" id="L1180">    slice[<span class="tok-number">60</span>] = <span class="tok-number">0x34</span>;</span>
-<span class="line" id="L1181"></span>
-<span class="line" id="L1182">    <span class="tok-comment">// This requires upgrading to a large object</span>
+<span class="line" id="L1162">    slice1 = <span class="tok-kw">try</span> allocator.realloc(slice1, page_size * <span class="tok-number">2</span>);</span>
+<span class="line" id="L1163">    <span class="tok-kw">try</span> std.testing.expect(slice1.ptr == old.ptr);</span>
+<span class="line" id="L1164"></span>
+<span class="line" id="L1165">    slice1 = <span class="tok-kw">try</span> allocator.realloc(slice1, page_size * <span class="tok-number">2</span> + <span class="tok-number">1</span>);</span>
+<span class="line" id="L1166">}</span>
+<span class="line" id="L1167"></span>
+<span class="line" id="L1168"><span class="tok-kw">test</span> <span class="tok-str">&quot;realloc small object to large object&quot;</span> {</span>
+<span class="line" id="L1169">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
+<span class="line" id="L1170">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
+<span class="line" id="L1171">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
+<span class="line" id="L1172"></span>
+<span class="line" id="L1173">    <span class="tok-kw">var</span> slice = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, <span class="tok-number">70</span>);</span>
+<span class="line" id="L1174">    <span class="tok-kw">defer</span> allocator.free(slice);</span>
+<span class="line" id="L1175">    slice[<span class="tok-number">0</span>] = <span class="tok-number">0x12</span>;</span>
+<span class="line" id="L1176">    slice[<span class="tok-number">60</span>] = <span class="tok-number">0x34</span>;</span>
+<span class="line" id="L1177"></span>
+<span class="line" id="L1178">    <span class="tok-comment">// This requires upgrading to a large object</span>
 </span>
-<span class="line" id="L1183">    <span class="tok-kw">const</span> large_object_size = page_size * <span class="tok-number">2</span> + <span class="tok-number">50</span>;</span>
-<span class="line" id="L1184">    slice = <span class="tok-kw">try</span> allocator.realloc(slice, large_object_size);</span>
-<span class="line" id="L1185">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">0</span>] == <span class="tok-number">0x12</span>);</span>
-<span class="line" id="L1186">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">60</span>] == <span class="tok-number">0x34</span>);</span>
-<span class="line" id="L1187">}</span>
-<span class="line" id="L1188"></span>
-<span class="line" id="L1189"><span class="tok-kw">test</span> <span class="tok-str">&quot;shrink large object to large object&quot;</span> {</span>
-<span class="line" id="L1190">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
-<span class="line" id="L1191">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
-<span class="line" id="L1192">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
-<span class="line" id="L1193"></span>
-<span class="line" id="L1194">    <span class="tok-kw">var</span> slice = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, page_size * <span class="tok-number">2</span> + <span class="tok-number">50</span>);</span>
-<span class="line" id="L1195">    <span class="tok-kw">defer</span> allocator.free(slice);</span>
-<span class="line" id="L1196">    slice[<span class="tok-number">0</span>] = <span class="tok-number">0x12</span>;</span>
-<span class="line" id="L1197">    slice[<span class="tok-number">60</span>] = <span class="tok-number">0x34</span>;</span>
-<span class="line" id="L1198"></span>
-<span class="line" id="L1199">    <span class="tok-kw">if</span> (!allocator.resize(slice, page_size * <span class="tok-number">2</span> + <span class="tok-number">1</span>)) <span class="tok-kw">return</span>;</span>
-<span class="line" id="L1200">    slice = slice.ptr[<span class="tok-number">0</span> .. page_size * <span class="tok-number">2</span> + <span class="tok-number">1</span>];</span>
-<span class="line" id="L1201">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">0</span>] == <span class="tok-number">0x12</span>);</span>
-<span class="line" id="L1202">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">60</span>] == <span class="tok-number">0x34</span>);</span>
-<span class="line" id="L1203"></span>
-<span class="line" id="L1204">    <span class="tok-kw">try</span> std.testing.expect(allocator.resize(slice, page_size * <span class="tok-number">2</span> + <span class="tok-number">1</span>));</span>
-<span class="line" id="L1205">    slice = slice[<span class="tok-number">0</span> .. page_size * <span class="tok-number">2</span> + <span class="tok-number">1</span>];</span>
+<span class="line" id="L1179">    <span class="tok-kw">const</span> large_object_size = page_size * <span class="tok-number">2</span> + <span class="tok-number">50</span>;</span>
+<span class="line" id="L1180">    slice = <span class="tok-kw">try</span> allocator.realloc(slice, large_object_size);</span>
+<span class="line" id="L1181">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">0</span>] == <span class="tok-number">0x12</span>);</span>
+<span class="line" id="L1182">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">60</span>] == <span class="tok-number">0x34</span>);</span>
+<span class="line" id="L1183">}</span>
+<span class="line" id="L1184"></span>
+<span class="line" id="L1185"><span class="tok-kw">test</span> <span class="tok-str">&quot;shrink large object to large object&quot;</span> {</span>
+<span class="line" id="L1186">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
+<span class="line" id="L1187">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
+<span class="line" id="L1188">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
+<span class="line" id="L1189"></span>
+<span class="line" id="L1190">    <span class="tok-kw">var</span> slice = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, page_size * <span class="tok-number">2</span> + <span class="tok-number">50</span>);</span>
+<span class="line" id="L1191">    <span class="tok-kw">defer</span> allocator.free(slice);</span>
+<span class="line" id="L1192">    slice[<span class="tok-number">0</span>] = <span class="tok-number">0x12</span>;</span>
+<span class="line" id="L1193">    slice[<span class="tok-number">60</span>] = <span class="tok-number">0x34</span>;</span>
+<span class="line" id="L1194"></span>
+<span class="line" id="L1195">    <span class="tok-kw">if</span> (!allocator.resize(slice, page_size * <span class="tok-number">2</span> + <span class="tok-number">1</span>)) <span class="tok-kw">return</span>;</span>
+<span class="line" id="L1196">    slice = slice.ptr[<span class="tok-number">0</span> .. page_size * <span class="tok-number">2</span> + <span class="tok-number">1</span>];</span>
+<span class="line" id="L1197">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">0</span>] == <span class="tok-number">0x12</span>);</span>
+<span class="line" id="L1198">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">60</span>] == <span class="tok-number">0x34</span>);</span>
+<span class="line" id="L1199"></span>
+<span class="line" id="L1200">    <span class="tok-kw">try</span> std.testing.expect(allocator.resize(slice, page_size * <span class="tok-number">2</span> + <span class="tok-number">1</span>));</span>
+<span class="line" id="L1201">    slice = slice[<span class="tok-number">0</span> .. page_size * <span class="tok-number">2</span> + <span class="tok-number">1</span>];</span>
+<span class="line" id="L1202">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">0</span>] == <span class="tok-number">0x12</span>);</span>
+<span class="line" id="L1203">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">60</span>] == <span class="tok-number">0x34</span>);</span>
+<span class="line" id="L1204"></span>
+<span class="line" id="L1205">    slice = <span class="tok-kw">try</span> allocator.realloc(slice, page_size * <span class="tok-number">2</span>);</span>
 <span class="line" id="L1206">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">0</span>] == <span class="tok-number">0x12</span>);</span>
 <span class="line" id="L1207">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">60</span>] == <span class="tok-number">0x34</span>);</span>
-<span class="line" id="L1208"></span>
-<span class="line" id="L1209">    slice = <span class="tok-kw">try</span> allocator.realloc(slice, page_size * <span class="tok-number">2</span>);</span>
-<span class="line" id="L1210">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">0</span>] == <span class="tok-number">0x12</span>);</span>
-<span class="line" id="L1211">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">60</span>] == <span class="tok-number">0x34</span>);</span>
-<span class="line" id="L1212">}</span>
-<span class="line" id="L1213"></span>
-<span class="line" id="L1214"><span class="tok-kw">test</span> <span class="tok-str">&quot;shrink large object to large object with larger alignment&quot;</span> {</span>
-<span class="line" id="L1215">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
-<span class="line" id="L1216">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
-<span class="line" id="L1217">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
+<span class="line" id="L1208">}</span>
+<span class="line" id="L1209"></span>
+<span class="line" id="L1210"><span class="tok-kw">test</span> <span class="tok-str">&quot;shrink large object to large object with larger alignment&quot;</span> {</span>
+<span class="line" id="L1211">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
+<span class="line" id="L1212">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
+<span class="line" id="L1213">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
+<span class="line" id="L1214"></span>
+<span class="line" id="L1215">    <span class="tok-kw">var</span> debug_buffer: [<span class="tok-number">1000</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L1216">    <span class="tok-kw">var</span> fba = std.heap.FixedBufferAllocator.init(&amp;debug_buffer);</span>
+<span class="line" id="L1217">    <span class="tok-kw">const</span> debug_allocator = fba.allocator();</span>
 <span class="line" id="L1218"></span>
-<span class="line" id="L1219">    <span class="tok-kw">var</span> debug_buffer: [<span class="tok-number">1000</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L1220">    <span class="tok-kw">var</span> fba = std.heap.FixedBufferAllocator.init(&amp;debug_buffer);</span>
-<span class="line" id="L1221">    <span class="tok-kw">const</span> debug_allocator = fba.allocator();</span>
+<span class="line" id="L1219">    <span class="tok-kw">const</span> alloc_size = page_size * <span class="tok-number">2</span> + <span class="tok-number">50</span>;</span>
+<span class="line" id="L1220">    <span class="tok-kw">var</span> slice = <span class="tok-kw">try</span> allocator.alignedAlloc(<span class="tok-type">u8</span>, <span class="tok-number">16</span>, alloc_size);</span>
+<span class="line" id="L1221">    <span class="tok-kw">defer</span> allocator.free(slice);</span>
 <span class="line" id="L1222"></span>
-<span class="line" id="L1223">    <span class="tok-kw">const</span> alloc_size = page_size * <span class="tok-number">2</span> + <span class="tok-number">50</span>;</span>
-<span class="line" id="L1224">    <span class="tok-kw">var</span> slice = <span class="tok-kw">try</span> allocator.alignedAlloc(<span class="tok-type">u8</span>, <span class="tok-number">16</span>, alloc_size);</span>
-<span class="line" id="L1225">    <span class="tok-kw">defer</span> allocator.free(slice);</span>
-<span class="line" id="L1226"></span>
-<span class="line" id="L1227">    <span class="tok-kw">const</span> big_alignment: <span class="tok-type">usize</span> = <span class="tok-kw">switch</span> (builtin.os.tag) {</span>
-<span class="line" id="L1228">        .windows =&gt; page_size * <span class="tok-number">32</span>, <span class="tok-comment">// Windows aligns to 64K.</span>
+<span class="line" id="L1223">    <span class="tok-kw">const</span> big_alignment: <span class="tok-type">usize</span> = <span class="tok-kw">switch</span> (builtin.os.tag) {</span>
+<span class="line" id="L1224">        .windows =&gt; page_size * <span class="tok-number">32</span>, <span class="tok-comment">// Windows aligns to 64K.</span>
 </span>
-<span class="line" id="L1229">        <span class="tok-kw">else</span> =&gt; page_size * <span class="tok-number">2</span>,</span>
-<span class="line" id="L1230">    };</span>
-<span class="line" id="L1231">    <span class="tok-comment">// This loop allocates until we find a page that is not aligned to the big</span>
+<span class="line" id="L1225">        <span class="tok-kw">else</span> =&gt; page_size * <span class="tok-number">2</span>,</span>
+<span class="line" id="L1226">    };</span>
+<span class="line" id="L1227">    <span class="tok-comment">// This loop allocates until we find a page that is not aligned to the big</span>
 </span>
-<span class="line" id="L1232">    <span class="tok-comment">// alignment. Then we shrink the allocation after the loop, but increase the</span>
+<span class="line" id="L1228">    <span class="tok-comment">// alignment. Then we shrink the allocation after the loop, but increase the</span>
 </span>
-<span class="line" id="L1233">    <span class="tok-comment">// alignment to the higher one, that we know will force it to realloc.</span>
+<span class="line" id="L1229">    <span class="tok-comment">// alignment to the higher one, that we know will force it to realloc.</span>
 </span>
-<span class="line" id="L1234">    <span class="tok-kw">var</span> stuff_to_free = std.ArrayList([]<span class="tok-kw">align</span>(<span class="tok-number">16</span>) <span class="tok-type">u8</span>).init(debug_allocator);</span>
-<span class="line" id="L1235">    <span class="tok-kw">while</span> (mem.isAligned(<span class="tok-builtin">@intFromPtr</span>(slice.ptr), big_alignment)) {</span>
-<span class="line" id="L1236">        <span class="tok-kw">try</span> stuff_to_free.append(slice);</span>
-<span class="line" id="L1237">        slice = <span class="tok-kw">try</span> allocator.alignedAlloc(<span class="tok-type">u8</span>, <span class="tok-number">16</span>, alloc_size);</span>
-<span class="line" id="L1238">    }</span>
-<span class="line" id="L1239">    <span class="tok-kw">while</span> (stuff_to_free.popOrNull()) |item| {</span>
-<span class="line" id="L1240">        allocator.free(item);</span>
-<span class="line" id="L1241">    }</span>
-<span class="line" id="L1242">    slice[<span class="tok-number">0</span>] = <span class="tok-number">0x12</span>;</span>
-<span class="line" id="L1243">    slice[<span class="tok-number">60</span>] = <span class="tok-number">0x34</span>;</span>
-<span class="line" id="L1244"></span>
-<span class="line" id="L1245">    slice = <span class="tok-kw">try</span> allocator.reallocAdvanced(slice, big_alignment, alloc_size / <span class="tok-number">2</span>);</span>
-<span class="line" id="L1246">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">0</span>] == <span class="tok-number">0x12</span>);</span>
-<span class="line" id="L1247">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">60</span>] == <span class="tok-number">0x34</span>);</span>
-<span class="line" id="L1248">}</span>
-<span class="line" id="L1249"></span>
-<span class="line" id="L1250"><span class="tok-kw">test</span> <span class="tok-str">&quot;realloc large object to small object&quot;</span> {</span>
-<span class="line" id="L1251">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
-<span class="line" id="L1252">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
-<span class="line" id="L1253">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
-<span class="line" id="L1254"></span>
-<span class="line" id="L1255">    <span class="tok-kw">var</span> slice = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, page_size * <span class="tok-number">2</span> + <span class="tok-number">50</span>);</span>
-<span class="line" id="L1256">    <span class="tok-kw">defer</span> allocator.free(slice);</span>
-<span class="line" id="L1257">    slice[<span class="tok-number">0</span>] = <span class="tok-number">0x12</span>;</span>
-<span class="line" id="L1258">    slice[<span class="tok-number">16</span>] = <span class="tok-number">0x34</span>;</span>
-<span class="line" id="L1259"></span>
-<span class="line" id="L1260">    slice = <span class="tok-kw">try</span> allocator.realloc(slice, <span class="tok-number">19</span>);</span>
-<span class="line" id="L1261">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">0</span>] == <span class="tok-number">0x12</span>);</span>
-<span class="line" id="L1262">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">16</span>] == <span class="tok-number">0x34</span>);</span>
-<span class="line" id="L1263">}</span>
-<span class="line" id="L1264"></span>
-<span class="line" id="L1265"><span class="tok-kw">test</span> <span class="tok-str">&quot;overridable mutexes&quot;</span> {</span>
-<span class="line" id="L1266">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(.{ .MutexType = std.Thread.Mutex }){</span>
-<span class="line" id="L1267">        .backing_allocator = std.testing.allocator,</span>
-<span class="line" id="L1268">        .mutex = std.Thread.Mutex{},</span>
-<span class="line" id="L1269">    };</span>
-<span class="line" id="L1270">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
-<span class="line" id="L1271">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
+<span class="line" id="L1230">    <span class="tok-kw">var</span> stuff_to_free = std.ArrayList([]<span class="tok-kw">align</span>(<span class="tok-number">16</span>) <span class="tok-type">u8</span>).init(debug_allocator);</span>
+<span class="line" id="L1231">    <span class="tok-kw">while</span> (mem.isAligned(<span class="tok-builtin">@intFromPtr</span>(slice.ptr), big_alignment)) {</span>
+<span class="line" id="L1232">        <span class="tok-kw">try</span> stuff_to_free.append(slice);</span>
+<span class="line" id="L1233">        slice = <span class="tok-kw">try</span> allocator.alignedAlloc(<span class="tok-type">u8</span>, <span class="tok-number">16</span>, alloc_size);</span>
+<span class="line" id="L1234">    }</span>
+<span class="line" id="L1235">    <span class="tok-kw">while</span> (stuff_to_free.popOrNull()) |item| {</span>
+<span class="line" id="L1236">        allocator.free(item);</span>
+<span class="line" id="L1237">    }</span>
+<span class="line" id="L1238">    slice[<span class="tok-number">0</span>] = <span class="tok-number">0x12</span>;</span>
+<span class="line" id="L1239">    slice[<span class="tok-number">60</span>] = <span class="tok-number">0x34</span>;</span>
+<span class="line" id="L1240"></span>
+<span class="line" id="L1241">    slice = <span class="tok-kw">try</span> allocator.reallocAdvanced(slice, big_alignment, alloc_size / <span class="tok-number">2</span>);</span>
+<span class="line" id="L1242">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">0</span>] == <span class="tok-number">0x12</span>);</span>
+<span class="line" id="L1243">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">60</span>] == <span class="tok-number">0x34</span>);</span>
+<span class="line" id="L1244">}</span>
+<span class="line" id="L1245"></span>
+<span class="line" id="L1246"><span class="tok-kw">test</span> <span class="tok-str">&quot;realloc large object to small object&quot;</span> {</span>
+<span class="line" id="L1247">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
+<span class="line" id="L1248">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
+<span class="line" id="L1249">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
+<span class="line" id="L1250"></span>
+<span class="line" id="L1251">    <span class="tok-kw">var</span> slice = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, page_size * <span class="tok-number">2</span> + <span class="tok-number">50</span>);</span>
+<span class="line" id="L1252">    <span class="tok-kw">defer</span> allocator.free(slice);</span>
+<span class="line" id="L1253">    slice[<span class="tok-number">0</span>] = <span class="tok-number">0x12</span>;</span>
+<span class="line" id="L1254">    slice[<span class="tok-number">16</span>] = <span class="tok-number">0x34</span>;</span>
+<span class="line" id="L1255"></span>
+<span class="line" id="L1256">    slice = <span class="tok-kw">try</span> allocator.realloc(slice, <span class="tok-number">19</span>);</span>
+<span class="line" id="L1257">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">0</span>] == <span class="tok-number">0x12</span>);</span>
+<span class="line" id="L1258">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">16</span>] == <span class="tok-number">0x34</span>);</span>
+<span class="line" id="L1259">}</span>
+<span class="line" id="L1260"></span>
+<span class="line" id="L1261"><span class="tok-kw">test</span> <span class="tok-str">&quot;overridable mutexes&quot;</span> {</span>
+<span class="line" id="L1262">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(.{ .MutexType = std.Thread.Mutex }){</span>
+<span class="line" id="L1263">        .backing_allocator = std.testing.allocator,</span>
+<span class="line" id="L1264">        .mutex = std.Thread.Mutex{},</span>
+<span class="line" id="L1265">    };</span>
+<span class="line" id="L1266">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
+<span class="line" id="L1267">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
+<span class="line" id="L1268"></span>
+<span class="line" id="L1269">    <span class="tok-kw">const</span> ptr = <span class="tok-kw">try</span> allocator.create(<span class="tok-type">i32</span>);</span>
+<span class="line" id="L1270">    <span class="tok-kw">defer</span> allocator.destroy(ptr);</span>
+<span class="line" id="L1271">}</span>
 <span class="line" id="L1272"></span>
-<span class="line" id="L1273">    <span class="tok-kw">const</span> ptr = <span class="tok-kw">try</span> allocator.create(<span class="tok-type">i32</span>);</span>
-<span class="line" id="L1274">    <span class="tok-kw">defer</span> allocator.destroy(ptr);</span>
-<span class="line" id="L1275">}</span>
-<span class="line" id="L1276"></span>
-<span class="line" id="L1277"><span class="tok-kw">test</span> <span class="tok-str">&quot;non-page-allocator backing allocator&quot;</span> {</span>
-<span class="line" id="L1278">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(.{}){ .backing_allocator = std.testing.allocator };</span>
-<span class="line" id="L1279">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
-<span class="line" id="L1280">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
+<span class="line" id="L1273"><span class="tok-kw">test</span> <span class="tok-str">&quot;non-page-allocator backing allocator&quot;</span> {</span>
+<span class="line" id="L1274">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(.{}){ .backing_allocator = std.testing.allocator };</span>
+<span class="line" id="L1275">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
+<span class="line" id="L1276">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
+<span class="line" id="L1277"></span>
+<span class="line" id="L1278">    <span class="tok-kw">const</span> ptr = <span class="tok-kw">try</span> allocator.create(<span class="tok-type">i32</span>);</span>
+<span class="line" id="L1279">    <span class="tok-kw">defer</span> allocator.destroy(ptr);</span>
+<span class="line" id="L1280">}</span>
 <span class="line" id="L1281"></span>
-<span class="line" id="L1282">    <span class="tok-kw">const</span> ptr = <span class="tok-kw">try</span> allocator.create(<span class="tok-type">i32</span>);</span>
-<span class="line" id="L1283">    <span class="tok-kw">defer</span> allocator.destroy(ptr);</span>
-<span class="line" id="L1284">}</span>
-<span class="line" id="L1285"></span>
-<span class="line" id="L1286"><span class="tok-kw">test</span> <span class="tok-str">&quot;realloc large object to larger alignment&quot;</span> {</span>
-<span class="line" id="L1287">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
-<span class="line" id="L1288">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
-<span class="line" id="L1289">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
+<span class="line" id="L1282"><span class="tok-kw">test</span> <span class="tok-str">&quot;realloc large object to larger alignment&quot;</span> {</span>
+<span class="line" id="L1283">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
+<span class="line" id="L1284">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
+<span class="line" id="L1285">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
+<span class="line" id="L1286"></span>
+<span class="line" id="L1287">    <span class="tok-kw">var</span> debug_buffer: [<span class="tok-number">1000</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L1288">    <span class="tok-kw">var</span> fba = std.heap.FixedBufferAllocator.init(&amp;debug_buffer);</span>
+<span class="line" id="L1289">    <span class="tok-kw">const</span> debug_allocator = fba.allocator();</span>
 <span class="line" id="L1290"></span>
-<span class="line" id="L1291">    <span class="tok-kw">var</span> debug_buffer: [<span class="tok-number">1000</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L1292">    <span class="tok-kw">var</span> fba = std.heap.FixedBufferAllocator.init(&amp;debug_buffer);</span>
-<span class="line" id="L1293">    <span class="tok-kw">const</span> debug_allocator = fba.allocator();</span>
-<span class="line" id="L1294"></span>
-<span class="line" id="L1295">    <span class="tok-kw">var</span> slice = <span class="tok-kw">try</span> allocator.alignedAlloc(<span class="tok-type">u8</span>, <span class="tok-number">16</span>, page_size * <span class="tok-number">2</span> + <span class="tok-number">50</span>);</span>
-<span class="line" id="L1296">    <span class="tok-kw">defer</span> allocator.free(slice);</span>
-<span class="line" id="L1297"></span>
-<span class="line" id="L1298">    <span class="tok-kw">const</span> big_alignment: <span class="tok-type">usize</span> = <span class="tok-kw">switch</span> (builtin.os.tag) {</span>
-<span class="line" id="L1299">        .windows =&gt; page_size * <span class="tok-number">32</span>, <span class="tok-comment">// Windows aligns to 64K.</span>
+<span class="line" id="L1291">    <span class="tok-kw">var</span> slice = <span class="tok-kw">try</span> allocator.alignedAlloc(<span class="tok-type">u8</span>, <span class="tok-number">16</span>, page_size * <span class="tok-number">2</span> + <span class="tok-number">50</span>);</span>
+<span class="line" id="L1292">    <span class="tok-kw">defer</span> allocator.free(slice);</span>
+<span class="line" id="L1293"></span>
+<span class="line" id="L1294">    <span class="tok-kw">const</span> big_alignment: <span class="tok-type">usize</span> = <span class="tok-kw">switch</span> (builtin.os.tag) {</span>
+<span class="line" id="L1295">        .windows =&gt; page_size * <span class="tok-number">32</span>, <span class="tok-comment">// Windows aligns to 64K.</span>
 </span>
-<span class="line" id="L1300">        <span class="tok-kw">else</span> =&gt; page_size * <span class="tok-number">2</span>,</span>
-<span class="line" id="L1301">    };</span>
-<span class="line" id="L1302">    <span class="tok-comment">// This loop allocates until we find a page that is not aligned to the big alignment.</span>
+<span class="line" id="L1296">        <span class="tok-kw">else</span> =&gt; page_size * <span class="tok-number">2</span>,</span>
+<span class="line" id="L1297">    };</span>
+<span class="line" id="L1298">    <span class="tok-comment">// This loop allocates until we find a page that is not aligned to the big alignment.</span>
 </span>
-<span class="line" id="L1303">    <span class="tok-kw">var</span> stuff_to_free = std.ArrayList([]<span class="tok-kw">align</span>(<span class="tok-number">16</span>) <span class="tok-type">u8</span>).init(debug_allocator);</span>
-<span class="line" id="L1304">    <span class="tok-kw">while</span> (mem.isAligned(<span class="tok-builtin">@intFromPtr</span>(slice.ptr), big_alignment)) {</span>
-<span class="line" id="L1305">        <span class="tok-kw">try</span> stuff_to_free.append(slice);</span>
-<span class="line" id="L1306">        slice = <span class="tok-kw">try</span> allocator.alignedAlloc(<span class="tok-type">u8</span>, <span class="tok-number">16</span>, page_size * <span class="tok-number">2</span> + <span class="tok-number">50</span>);</span>
-<span class="line" id="L1307">    }</span>
-<span class="line" id="L1308">    <span class="tok-kw">while</span> (stuff_to_free.popOrNull()) |item| {</span>
-<span class="line" id="L1309">        allocator.free(item);</span>
-<span class="line" id="L1310">    }</span>
-<span class="line" id="L1311">    slice[<span class="tok-number">0</span>] = <span class="tok-number">0x12</span>;</span>
-<span class="line" id="L1312">    slice[<span class="tok-number">16</span>] = <span class="tok-number">0x34</span>;</span>
+<span class="line" id="L1299">    <span class="tok-kw">var</span> stuff_to_free = std.ArrayList([]<span class="tok-kw">align</span>(<span class="tok-number">16</span>) <span class="tok-type">u8</span>).init(debug_allocator);</span>
+<span class="line" id="L1300">    <span class="tok-kw">while</span> (mem.isAligned(<span class="tok-builtin">@intFromPtr</span>(slice.ptr), big_alignment)) {</span>
+<span class="line" id="L1301">        <span class="tok-kw">try</span> stuff_to_free.append(slice);</span>
+<span class="line" id="L1302">        slice = <span class="tok-kw">try</span> allocator.alignedAlloc(<span class="tok-type">u8</span>, <span class="tok-number">16</span>, page_size * <span class="tok-number">2</span> + <span class="tok-number">50</span>);</span>
+<span class="line" id="L1303">    }</span>
+<span class="line" id="L1304">    <span class="tok-kw">while</span> (stuff_to_free.popOrNull()) |item| {</span>
+<span class="line" id="L1305">        allocator.free(item);</span>
+<span class="line" id="L1306">    }</span>
+<span class="line" id="L1307">    slice[<span class="tok-number">0</span>] = <span class="tok-number">0x12</span>;</span>
+<span class="line" id="L1308">    slice[<span class="tok-number">16</span>] = <span class="tok-number">0x34</span>;</span>
+<span class="line" id="L1309"></span>
+<span class="line" id="L1310">    slice = <span class="tok-kw">try</span> allocator.reallocAdvanced(slice, <span class="tok-number">32</span>, page_size * <span class="tok-number">2</span> + <span class="tok-number">100</span>);</span>
+<span class="line" id="L1311">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">0</span>] == <span class="tok-number">0x12</span>);</span>
+<span class="line" id="L1312">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">16</span>] == <span class="tok-number">0x34</span>);</span>
 <span class="line" id="L1313"></span>
-<span class="line" id="L1314">    slice = <span class="tok-kw">try</span> allocator.reallocAdvanced(slice, <span class="tok-number">32</span>, page_size * <span class="tok-number">2</span> + <span class="tok-number">100</span>);</span>
+<span class="line" id="L1314">    slice = <span class="tok-kw">try</span> allocator.reallocAdvanced(slice, <span class="tok-number">32</span>, page_size * <span class="tok-number">2</span> + <span class="tok-number">25</span>);</span>
 <span class="line" id="L1315">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">0</span>] == <span class="tok-number">0x12</span>);</span>
 <span class="line" id="L1316">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">16</span>] == <span class="tok-number">0x34</span>);</span>
 <span class="line" id="L1317"></span>
-<span class="line" id="L1318">    slice = <span class="tok-kw">try</span> allocator.reallocAdvanced(slice, <span class="tok-number">32</span>, page_size * <span class="tok-number">2</span> + <span class="tok-number">25</span>);</span>
+<span class="line" id="L1318">    slice = <span class="tok-kw">try</span> allocator.reallocAdvanced(slice, big_alignment, page_size * <span class="tok-number">2</span> + <span class="tok-number">100</span>);</span>
 <span class="line" id="L1319">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">0</span>] == <span class="tok-number">0x12</span>);</span>
 <span class="line" id="L1320">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">16</span>] == <span class="tok-number">0x34</span>);</span>
-<span class="line" id="L1321"></span>
-<span class="line" id="L1322">    slice = <span class="tok-kw">try</span> allocator.reallocAdvanced(slice, big_alignment, page_size * <span class="tok-number">2</span> + <span class="tok-number">100</span>);</span>
-<span class="line" id="L1323">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">0</span>] == <span class="tok-number">0x12</span>);</span>
-<span class="line" id="L1324">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">16</span>] == <span class="tok-number">0x34</span>);</span>
-<span class="line" id="L1325">}</span>
-<span class="line" id="L1326"></span>
-<span class="line" id="L1327"><span class="tok-kw">test</span> <span class="tok-str">&quot;large object shrinks to small but allocation fails during shrink&quot;</span> {</span>
-<span class="line" id="L1328">    <span class="tok-kw">var</span> failing_allocator = std.testing.FailingAllocator.init(std.heap.page_allocator, .{ .fail_index = <span class="tok-number">3</span> });</span>
-<span class="line" id="L1329">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(.{}){ .backing_allocator = failing_allocator.allocator() };</span>
-<span class="line" id="L1330">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
-<span class="line" id="L1331">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
-<span class="line" id="L1332"></span>
-<span class="line" id="L1333">    <span class="tok-kw">var</span> slice = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, page_size * <span class="tok-number">2</span> + <span class="tok-number">50</span>);</span>
-<span class="line" id="L1334">    <span class="tok-kw">defer</span> allocator.free(slice);</span>
-<span class="line" id="L1335">    slice[<span class="tok-number">0</span>] = <span class="tok-number">0x12</span>;</span>
-<span class="line" id="L1336">    slice[<span class="tok-number">3</span>] = <span class="tok-number">0x34</span>;</span>
-<span class="line" id="L1337"></span>
-<span class="line" id="L1338">    <span class="tok-comment">// Next allocation will fail in the backing allocator of the GeneralPurposeAllocator</span>
+<span class="line" id="L1321">}</span>
+<span class="line" id="L1322"></span>
+<span class="line" id="L1323"><span class="tok-kw">test</span> <span class="tok-str">&quot;large object shrinks to small but allocation fails during shrink&quot;</span> {</span>
+<span class="line" id="L1324">    <span class="tok-kw">var</span> failing_allocator = std.testing.FailingAllocator.init(std.heap.page_allocator, .{ .fail_index = <span class="tok-number">3</span> });</span>
+<span class="line" id="L1325">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(.{}){ .backing_allocator = failing_allocator.allocator() };</span>
+<span class="line" id="L1326">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
+<span class="line" id="L1327">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
+<span class="line" id="L1328"></span>
+<span class="line" id="L1329">    <span class="tok-kw">var</span> slice = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, page_size * <span class="tok-number">2</span> + <span class="tok-number">50</span>);</span>
+<span class="line" id="L1330">    <span class="tok-kw">defer</span> allocator.free(slice);</span>
+<span class="line" id="L1331">    slice[<span class="tok-number">0</span>] = <span class="tok-number">0x12</span>;</span>
+<span class="line" id="L1332">    slice[<span class="tok-number">3</span>] = <span class="tok-number">0x34</span>;</span>
+<span class="line" id="L1333"></span>
+<span class="line" id="L1334">    <span class="tok-comment">// Next allocation will fail in the backing allocator of the GeneralPurposeAllocator</span>
 </span>
-<span class="line" id="L1339"></span>
-<span class="line" id="L1340">    <span class="tok-kw">try</span> std.testing.expect(allocator.resize(slice, <span class="tok-number">4</span>));</span>
-<span class="line" id="L1341">    slice = slice[<span class="tok-number">0</span>..<span class="tok-number">4</span>];</span>
-<span class="line" id="L1342">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">0</span>] == <span class="tok-number">0x12</span>);</span>
-<span class="line" id="L1343">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">3</span>] == <span class="tok-number">0x34</span>);</span>
-<span class="line" id="L1344">}</span>
-<span class="line" id="L1345"></span>
-<span class="line" id="L1346"><span class="tok-kw">test</span> <span class="tok-str">&quot;objects of size 1024 and 2048&quot;</span> {</span>
-<span class="line" id="L1347">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
-<span class="line" id="L1348">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
-<span class="line" id="L1349">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
-<span class="line" id="L1350"></span>
-<span class="line" id="L1351">    <span class="tok-kw">const</span> slice = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, <span class="tok-number">1025</span>);</span>
-<span class="line" id="L1352">    <span class="tok-kw">const</span> slice2 = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, <span class="tok-number">3000</span>);</span>
+<span class="line" id="L1335"></span>
+<span class="line" id="L1336">    <span class="tok-kw">try</span> std.testing.expect(allocator.resize(slice, <span class="tok-number">4</span>));</span>
+<span class="line" id="L1337">    slice = slice[<span class="tok-number">0</span>..<span class="tok-number">4</span>];</span>
+<span class="line" id="L1338">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">0</span>] == <span class="tok-number">0x12</span>);</span>
+<span class="line" id="L1339">    <span class="tok-kw">try</span> std.testing.expect(slice[<span class="tok-number">3</span>] == <span class="tok-number">0x34</span>);</span>
+<span class="line" id="L1340">}</span>
+<span class="line" id="L1341"></span>
+<span class="line" id="L1342"><span class="tok-kw">test</span> <span class="tok-str">&quot;objects of size 1024 and 2048&quot;</span> {</span>
+<span class="line" id="L1343">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(test_config){};</span>
+<span class="line" id="L1344">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
+<span class="line" id="L1345">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
+<span class="line" id="L1346"></span>
+<span class="line" id="L1347">    <span class="tok-kw">const</span> slice = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, <span class="tok-number">1025</span>);</span>
+<span class="line" id="L1348">    <span class="tok-kw">const</span> slice2 = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, <span class="tok-number">3000</span>);</span>
+<span class="line" id="L1349"></span>
+<span class="line" id="L1350">    allocator.free(slice);</span>
+<span class="line" id="L1351">    allocator.free(slice2);</span>
+<span class="line" id="L1352">}</span>
 <span class="line" id="L1353"></span>
-<span class="line" id="L1354">    allocator.free(slice);</span>
-<span class="line" id="L1355">    allocator.free(slice2);</span>
-<span class="line" id="L1356">}</span>
-<span class="line" id="L1357"></span>
-<span class="line" id="L1358"><span class="tok-kw">test</span> <span class="tok-str">&quot;setting a memory cap&quot;</span> {</span>
-<span class="line" id="L1359">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(.{ .enable_memory_limit = <span class="tok-null">true</span> }){};</span>
-<span class="line" id="L1360">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
-<span class="line" id="L1361">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
-<span class="line" id="L1362"></span>
-<span class="line" id="L1363">    gpa.setRequestedMemoryLimit(<span class="tok-number">1010</span>);</span>
-<span class="line" id="L1364"></span>
-<span class="line" id="L1365">    <span class="tok-kw">const</span> small = <span class="tok-kw">try</span> allocator.create(<span class="tok-type">i32</span>);</span>
-<span class="line" id="L1366">    <span class="tok-kw">try</span> std.testing.expect(gpa.total_requested_bytes == <span class="tok-number">4</span>);</span>
-<span class="line" id="L1367"></span>
-<span class="line" id="L1368">    <span class="tok-kw">const</span> big = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, <span class="tok-number">1000</span>);</span>
-<span class="line" id="L1369">    <span class="tok-kw">try</span> std.testing.expect(gpa.total_requested_bytes == <span class="tok-number">1004</span>);</span>
-<span class="line" id="L1370"></span>
-<span class="line" id="L1371">    <span class="tok-kw">try</span> std.testing.expectError(<span class="tok-kw">error</span>.OutOfMemory, allocator.create(<span class="tok-type">u64</span>));</span>
-<span class="line" id="L1372"></span>
-<span class="line" id="L1373">    allocator.destroy(small);</span>
-<span class="line" id="L1374">    <span class="tok-kw">try</span> std.testing.expect(gpa.total_requested_bytes == <span class="tok-number">1000</span>);</span>
-<span class="line" id="L1375"></span>
-<span class="line" id="L1376">    allocator.free(big);</span>
-<span class="line" id="L1377">    <span class="tok-kw">try</span> std.testing.expect(gpa.total_requested_bytes == <span class="tok-number">0</span>);</span>
-<span class="line" id="L1378"></span>
-<span class="line" id="L1379">    <span class="tok-kw">const</span> exact = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, <span class="tok-number">1010</span>);</span>
-<span class="line" id="L1380">    <span class="tok-kw">try</span> std.testing.expect(gpa.total_requested_bytes == <span class="tok-number">1010</span>);</span>
-<span class="line" id="L1381">    allocator.free(exact);</span>
-<span class="line" id="L1382">}</span>
-<span class="line" id="L1383"></span>
-<span class="line" id="L1384"><span class="tok-kw">test</span> <span class="tok-str">&quot;double frees&quot;</span> {</span>
-<span class="line" id="L1385">    <span class="tok-comment">// use a GPA to back a GPA to check for leaks of the latter's metadata</span>
+<span class="line" id="L1354"><span class="tok-kw">test</span> <span class="tok-str">&quot;setting a memory cap&quot;</span> {</span>
+<span class="line" id="L1355">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(.{ .enable_memory_limit = <span class="tok-null">true</span> }){};</span>
+<span class="line" id="L1356">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
+<span class="line" id="L1357">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
+<span class="line" id="L1358"></span>
+<span class="line" id="L1359">    gpa.setRequestedMemoryLimit(<span class="tok-number">1010</span>);</span>
+<span class="line" id="L1360"></span>
+<span class="line" id="L1361">    <span class="tok-kw">const</span> small = <span class="tok-kw">try</span> allocator.create(<span class="tok-type">i32</span>);</span>
+<span class="line" id="L1362">    <span class="tok-kw">try</span> std.testing.expect(gpa.total_requested_bytes == <span class="tok-number">4</span>);</span>
+<span class="line" id="L1363"></span>
+<span class="line" id="L1364">    <span class="tok-kw">const</span> big = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, <span class="tok-number">1000</span>);</span>
+<span class="line" id="L1365">    <span class="tok-kw">try</span> std.testing.expect(gpa.total_requested_bytes == <span class="tok-number">1004</span>);</span>
+<span class="line" id="L1366"></span>
+<span class="line" id="L1367">    <span class="tok-kw">try</span> std.testing.expectError(<span class="tok-kw">error</span>.OutOfMemory, allocator.create(<span class="tok-type">u64</span>));</span>
+<span class="line" id="L1368"></span>
+<span class="line" id="L1369">    allocator.destroy(small);</span>
+<span class="line" id="L1370">    <span class="tok-kw">try</span> std.testing.expect(gpa.total_requested_bytes == <span class="tok-number">1000</span>);</span>
+<span class="line" id="L1371"></span>
+<span class="line" id="L1372">    allocator.free(big);</span>
+<span class="line" id="L1373">    <span class="tok-kw">try</span> std.testing.expect(gpa.total_requested_bytes == <span class="tok-number">0</span>);</span>
+<span class="line" id="L1374"></span>
+<span class="line" id="L1375">    <span class="tok-kw">const</span> exact = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, <span class="tok-number">1010</span>);</span>
+<span class="line" id="L1376">    <span class="tok-kw">try</span> std.testing.expect(gpa.total_requested_bytes == <span class="tok-number">1010</span>);</span>
+<span class="line" id="L1377">    allocator.free(exact);</span>
+<span class="line" id="L1378">}</span>
+<span class="line" id="L1379"></span>
+<span class="line" id="L1380"><span class="tok-kw">test</span> <span class="tok-str">&quot;double frees&quot;</span> {</span>
+<span class="line" id="L1381">    <span class="tok-comment">// use a GPA to back a GPA to check for leaks of the latter's metadata</span>
 </span>
-<span class="line" id="L1386">    <span class="tok-kw">var</span> backing_gpa = GeneralPurposeAllocator(.{ .safety = <span class="tok-null">true</span> }){};</span>
-<span class="line" id="L1387">    <span class="tok-kw">defer</span> std.testing.expect(backing_gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
-<span class="line" id="L1388"></span>
-<span class="line" id="L1389">    <span class="tok-kw">const</span> GPA = GeneralPurposeAllocator(.{ .safety = <span class="tok-null">true</span>, .never_unmap = <span class="tok-null">true</span>, .retain_metadata = <span class="tok-null">true</span> });</span>
-<span class="line" id="L1390">    <span class="tok-kw">var</span> gpa = GPA{ .backing_allocator = backing_gpa.allocator() };</span>
-<span class="line" id="L1391">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
-<span class="line" id="L1392">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
-<span class="line" id="L1393"></span>
-<span class="line" id="L1394">    <span class="tok-comment">// detect a small allocation double free, even though bucket is emptied</span>
+<span class="line" id="L1382">    <span class="tok-kw">var</span> backing_gpa = GeneralPurposeAllocator(.{ .safety = <span class="tok-null">true</span> }){};</span>
+<span class="line" id="L1383">    <span class="tok-kw">defer</span> std.testing.expect(backing_gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
+<span class="line" id="L1384"></span>
+<span class="line" id="L1385">    <span class="tok-kw">const</span> GPA = GeneralPurposeAllocator(.{ .safety = <span class="tok-null">true</span>, .never_unmap = <span class="tok-null">true</span>, .retain_metadata = <span class="tok-null">true</span> });</span>
+<span class="line" id="L1386">    <span class="tok-kw">var</span> gpa = GPA{ .backing_allocator = backing_gpa.allocator() };</span>
+<span class="line" id="L1387">    <span class="tok-kw">defer</span> std.testing.expect(gpa.deinit() == .ok) <span class="tok-kw">catch</span> <span class="tok-builtin">@panic</span>(<span class="tok-str">&quot;leak&quot;</span>);</span>
+<span class="line" id="L1388">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
+<span class="line" id="L1389"></span>
+<span class="line" id="L1390">    <span class="tok-comment">// detect a small allocation double free, even though bucket is emptied</span>
 </span>
-<span class="line" id="L1395">    <span class="tok-kw">const</span> index: <span class="tok-type">usize</span> = <span class="tok-number">6</span>;</span>
-<span class="line" id="L1396">    <span class="tok-kw">const</span> size_class: <span class="tok-type">usize</span> = <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">1</span>) &lt;&lt; <span class="tok-number">6</span>;</span>
-<span class="line" id="L1397">    <span class="tok-kw">const</span> small = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, size_class);</span>
-<span class="line" id="L1398">    <span class="tok-kw">try</span> std.testing.expect(GPA.searchBucket(&amp;gpa.buckets[index], <span class="tok-builtin">@intFromPtr</span>(small.ptr), gpa.cur_buckets[index]) != <span class="tok-null">null</span>);</span>
-<span class="line" id="L1399">    allocator.free(small);</span>
-<span class="line" id="L1400">    <span class="tok-kw">try</span> std.testing.expect(GPA.searchBucket(&amp;gpa.buckets[index], <span class="tok-builtin">@intFromPtr</span>(small.ptr), gpa.cur_buckets[index]) == <span class="tok-null">null</span>);</span>
-<span class="line" id="L1401">    <span class="tok-kw">try</span> std.testing.expect(GPA.searchBucket(&amp;gpa.empty_buckets, <span class="tok-builtin">@intFromPtr</span>(small.ptr), <span class="tok-null">null</span>) != <span class="tok-null">null</span>);</span>
-<span class="line" id="L1402"></span>
-<span class="line" id="L1403">    <span class="tok-comment">// detect a large allocation double free</span>
+<span class="line" id="L1391">    <span class="tok-kw">const</span> index: <span class="tok-type">usize</span> = <span class="tok-number">6</span>;</span>
+<span class="line" id="L1392">    <span class="tok-kw">const</span> size_class: <span class="tok-type">usize</span> = <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">1</span>) &lt;&lt; <span class="tok-number">6</span>;</span>
+<span class="line" id="L1393">    <span class="tok-kw">const</span> small = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, size_class);</span>
+<span class="line" id="L1394">    <span class="tok-kw">try</span> std.testing.expect(GPA.searchBucket(&amp;gpa.buckets[index], <span class="tok-builtin">@intFromPtr</span>(small.ptr), gpa.cur_buckets[index]) != <span class="tok-null">null</span>);</span>
+<span class="line" id="L1395">    allocator.free(small);</span>
+<span class="line" id="L1396">    <span class="tok-kw">try</span> std.testing.expect(GPA.searchBucket(&amp;gpa.buckets[index], <span class="tok-builtin">@intFromPtr</span>(small.ptr), gpa.cur_buckets[index]) == <span class="tok-null">null</span>);</span>
+<span class="line" id="L1397">    <span class="tok-kw">try</span> std.testing.expect(GPA.searchBucket(&amp;gpa.empty_buckets, <span class="tok-builtin">@intFromPtr</span>(small.ptr), <span class="tok-null">null</span>) != <span class="tok-null">null</span>);</span>
+<span class="line" id="L1398"></span>
+<span class="line" id="L1399">    <span class="tok-comment">// detect a large allocation double free</span>
 </span>
-<span class="line" id="L1404">    <span class="tok-kw">const</span> large = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, <span class="tok-number">2</span> * page_size);</span>
-<span class="line" id="L1405">    <span class="tok-kw">try</span> std.testing.expect(gpa.large_allocations.contains(<span class="tok-builtin">@intFromPtr</span>(large.ptr)));</span>
-<span class="line" id="L1406">    <span class="tok-kw">try</span> std.testing.expectEqual(gpa.large_allocations.getEntry(<span class="tok-builtin">@intFromPtr</span>(large.ptr)).?.value_ptr.bytes, large);</span>
-<span class="line" id="L1407">    allocator.free(large);</span>
-<span class="line" id="L1408">    <span class="tok-kw">try</span> std.testing.expect(gpa.large_allocations.contains(<span class="tok-builtin">@intFromPtr</span>(large.ptr)));</span>
-<span class="line" id="L1409">    <span class="tok-kw">try</span> std.testing.expect(gpa.large_allocations.getEntry(<span class="tok-builtin">@intFromPtr</span>(large.ptr)).?.value_ptr.freed);</span>
-<span class="line" id="L1410"></span>
-<span class="line" id="L1411">    <span class="tok-kw">const</span> normal_small = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, size_class);</span>
-<span class="line" id="L1412">    <span class="tok-kw">defer</span> allocator.free(normal_small);</span>
-<span class="line" id="L1413">    <span class="tok-kw">const</span> normal_large = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, <span class="tok-number">2</span> * page_size);</span>
-<span class="line" id="L1414">    <span class="tok-kw">defer</span> allocator.free(normal_large);</span>
-<span class="line" id="L1415"></span>
-<span class="line" id="L1416">    <span class="tok-comment">// check that flushing retained metadata doesn't disturb live allocations</span>
+<span class="line" id="L1400">    <span class="tok-kw">const</span> large = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, <span class="tok-number">2</span> * page_size);</span>
+<span class="line" id="L1401">    <span class="tok-kw">try</span> std.testing.expect(gpa.large_allocations.contains(<span class="tok-builtin">@intFromPtr</span>(large.ptr)));</span>
+<span class="line" id="L1402">    <span class="tok-kw">try</span> std.testing.expectEqual(gpa.large_allocations.getEntry(<span class="tok-builtin">@intFromPtr</span>(large.ptr)).?.value_ptr.bytes, large);</span>
+<span class="line" id="L1403">    allocator.free(large);</span>
+<span class="line" id="L1404">    <span class="tok-kw">try</span> std.testing.expect(gpa.large_allocations.contains(<span class="tok-builtin">@intFromPtr</span>(large.ptr)));</span>
+<span class="line" id="L1405">    <span class="tok-kw">try</span> std.testing.expect(gpa.large_allocations.getEntry(<span class="tok-builtin">@intFromPtr</span>(large.ptr)).?.value_ptr.freed);</span>
+<span class="line" id="L1406"></span>
+<span class="line" id="L1407">    <span class="tok-kw">const</span> normal_small = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, size_class);</span>
+<span class="line" id="L1408">    <span class="tok-kw">defer</span> allocator.free(normal_small);</span>
+<span class="line" id="L1409">    <span class="tok-kw">const</span> normal_large = <span class="tok-kw">try</span> allocator.alloc(<span class="tok-type">u8</span>, <span class="tok-number">2</span> * page_size);</span>
+<span class="line" id="L1410">    <span class="tok-kw">defer</span> allocator.free(normal_large);</span>
+<span class="line" id="L1411"></span>
+<span class="line" id="L1412">    <span class="tok-comment">// check that flushing retained metadata doesn't disturb live allocations</span>
 </span>
-<span class="line" id="L1417">    gpa.flushRetainedMetadata();</span>
-<span class="line" id="L1418">    <span class="tok-kw">try</span> std.testing.expect(gpa.empty_buckets.root == <span class="tok-null">null</span>);</span>
-<span class="line" id="L1419">    <span class="tok-kw">try</span> std.testing.expect(GPA.searchBucket(&amp;gpa.buckets[index], <span class="tok-builtin">@intFromPtr</span>(normal_small.ptr), gpa.cur_buckets[index]) != <span class="tok-null">null</span>);</span>
-<span class="line" id="L1420">    <span class="tok-kw">try</span> std.testing.expect(gpa.large_allocations.contains(<span class="tok-builtin">@intFromPtr</span>(normal_large.ptr)));</span>
-<span class="line" id="L1421">    <span class="tok-kw">try</span> std.testing.expect(!gpa.large_allocations.contains(<span class="tok-builtin">@intFromPtr</span>(large.ptr)));</span>
-<span class="line" id="L1422">}</span>
-<span class="line" id="L1423"></span>
-<span class="line" id="L1424"><span class="tok-kw">test</span> <span class="tok-str">&quot;bug 9995 fix, large allocs count requested size not backing size&quot;</span> {</span>
-<span class="line" id="L1425">    <span class="tok-comment">// with AtLeast, buffer likely to be larger than requested, especially when shrinking</span>
+<span class="line" id="L1413">    gpa.flushRetainedMetadata();</span>
+<span class="line" id="L1414">    <span class="tok-kw">try</span> std.testing.expect(gpa.empty_buckets.root == <span class="tok-null">null</span>);</span>
+<span class="line" id="L1415">    <span class="tok-kw">try</span> std.testing.expect(GPA.searchBucket(&amp;gpa.buckets[index], <span class="tok-builtin">@intFromPtr</span>(normal_small.ptr), gpa.cur_buckets[index]) != <span class="tok-null">null</span>);</span>
+<span class="line" id="L1416">    <span class="tok-kw">try</span> std.testing.expect(gpa.large_allocations.contains(<span class="tok-builtin">@intFromPtr</span>(normal_large.ptr)));</span>
+<span class="line" id="L1417">    <span class="tok-kw">try</span> std.testing.expect(!gpa.large_allocations.contains(<span class="tok-builtin">@intFromPtr</span>(large.ptr)));</span>
+<span class="line" id="L1418">}</span>
+<span class="line" id="L1419"></span>
+<span class="line" id="L1420"><span class="tok-kw">test</span> <span class="tok-str">&quot;bug 9995 fix, large allocs count requested size not backing size&quot;</span> {</span>
+<span class="line" id="L1421">    <span class="tok-comment">// with AtLeast, buffer likely to be larger than requested, especially when shrinking</span>
 </span>
-<span class="line" id="L1426">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(.{ .enable_memory_limit = <span class="tok-null">true</span> }){};</span>
-<span class="line" id="L1427">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
-<span class="line" id="L1428"></span>
-<span class="line" id="L1429">    <span class="tok-kw">var</span> buf = <span class="tok-kw">try</span> allocator.alignedAlloc(<span class="tok-type">u8</span>, <span class="tok-number">1</span>, page_size + <span class="tok-number">1</span>);</span>
-<span class="line" id="L1430">    <span class="tok-kw">try</span> std.testing.expect(gpa.total_requested_bytes == page_size + <span class="tok-number">1</span>);</span>
-<span class="line" id="L1431">    buf = <span class="tok-kw">try</span> allocator.realloc(buf, <span class="tok-number">1</span>);</span>
-<span class="line" id="L1432">    <span class="tok-kw">try</span> std.testing.expect(gpa.total_requested_bytes == <span class="tok-number">1</span>);</span>
-<span class="line" id="L1433">    buf = <span class="tok-kw">try</span> allocator.realloc(buf, <span class="tok-number">2</span>);</span>
-<span class="line" id="L1434">    <span class="tok-kw">try</span> std.testing.expect(gpa.total_requested_bytes == <span class="tok-number">2</span>);</span>
-<span class="line" id="L1435">}</span>
-<span class="line" id="L1436"></span>
+<span class="line" id="L1422">    <span class="tok-kw">var</span> gpa = GeneralPurposeAllocator(.{ .enable_memory_limit = <span class="tok-null">true</span> }){};</span>
+<span class="line" id="L1423">    <span class="tok-kw">const</span> allocator = gpa.allocator();</span>
+<span class="line" id="L1424"></span>
+<span class="line" id="L1425">    <span class="tok-kw">var</span> buf = <span class="tok-kw">try</span> allocator.alignedAlloc(<span class="tok-type">u8</span>, <span class="tok-number">1</span>, page_size + <span class="tok-number">1</span>);</span>
+<span class="line" id="L1426">    <span class="tok-kw">try</span> std.testing.expect(gpa.total_requested_bytes == page_size + <span class="tok-number">1</span>);</span>
+<span class="line" id="L1427">    buf = <span class="tok-kw">try</span> allocator.realloc(buf, <span class="tok-number">1</span>);</span>
+<span class="line" id="L1428">    <span class="tok-kw">try</span> std.testing.expect(gpa.total_requested_bytes == <span class="tok-number">1</span>);</span>
+<span class="line" id="L1429">    buf = <span class="tok-kw">try</span> allocator.realloc(buf, <span class="tok-number">2</span>);</span>
+<span class="line" id="L1430">    <span class="tok-kw">try</span> std.testing.expect(gpa.total_requested_bytes == <span class="tok-number">2</span>);</span>
+<span class="line" id="L1431">}</span>
+<span class="line" id="L1432"></span>
 </code></pre></body>
 </html>

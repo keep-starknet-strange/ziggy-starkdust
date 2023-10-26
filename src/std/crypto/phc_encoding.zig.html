@@ -476,36 +476,32 @@
 <span class="line" id="L351">}</span>
 <span class="line" id="L352"></span>
 <span class="line" id="L353"><span class="tok-kw">test</span> <span class="tok-str">&quot;phc format - empty input string&quot;</span> {</span>
-<span class="line" id="L354">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L355"></span>
-<span class="line" id="L356">    <span class="tok-kw">const</span> s = <span class="tok-str">&quot;&quot;</span>;</span>
-<span class="line" id="L357">    <span class="tok-kw">const</span> v = deserialize(<span class="tok-kw">struct</span> { alg_id: []<span class="tok-kw">const</span> <span class="tok-type">u8</span> }, s);</span>
-<span class="line" id="L358">    <span class="tok-kw">try</span> std.testing.expectError(Error.InvalidEncoding, v);</span>
-<span class="line" id="L359">}</span>
-<span class="line" id="L360"></span>
-<span class="line" id="L361"><span class="tok-kw">test</span> <span class="tok-str">&quot;phc format - hash without salt&quot;</span> {</span>
-<span class="line" id="L362">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L363"></span>
-<span class="line" id="L364">    <span class="tok-kw">const</span> s = <span class="tok-str">&quot;$scrypt&quot;</span>;</span>
-<span class="line" id="L365">    <span class="tok-kw">const</span> v = deserialize(<span class="tok-kw">struct</span> { alg_id: []<span class="tok-kw">const</span> <span class="tok-type">u8</span>, hash: BinValue(<span class="tok-number">16</span>) }, s);</span>
-<span class="line" id="L366">    <span class="tok-kw">try</span> std.testing.expectError(Error.InvalidEncoding, v);</span>
-<span class="line" id="L367">}</span>
-<span class="line" id="L368"></span>
-<span class="line" id="L369"><span class="tok-kw">test</span> <span class="tok-str">&quot;phc format - calcSize&quot;</span> {</span>
-<span class="line" id="L370">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L371"></span>
-<span class="line" id="L372">    <span class="tok-kw">const</span> s = <span class="tok-str">&quot;$scrypt$v=1$ln=15,r=8,p=1$c2FsdHNhbHQ$dGVzdHBhc3M&quot;</span>;</span>
-<span class="line" id="L373">    <span class="tok-kw">const</span> v = <span class="tok-kw">try</span> deserialize(<span class="tok-kw">struct</span> {</span>
-<span class="line" id="L374">        alg_id: []<span class="tok-kw">const</span> <span class="tok-type">u8</span>,</span>
-<span class="line" id="L375">        alg_version: <span class="tok-type">u16</span>,</span>
-<span class="line" id="L376">        ln: <span class="tok-type">u6</span>,</span>
-<span class="line" id="L377">        r: <span class="tok-type">u30</span>,</span>
-<span class="line" id="L378">        p: <span class="tok-type">u30</span>,</span>
-<span class="line" id="L379">        salt: BinValue(<span class="tok-number">8</span>),</span>
-<span class="line" id="L380">        hash: BinValue(<span class="tok-number">8</span>),</span>
-<span class="line" id="L381">    }, s);</span>
-<span class="line" id="L382">    <span class="tok-kw">try</span> std.testing.expectEqual(calcSize(v), s.len);</span>
-<span class="line" id="L383">}</span>
-<span class="line" id="L384"></span>
+<span class="line" id="L354">    <span class="tok-kw">const</span> s = <span class="tok-str">&quot;&quot;</span>;</span>
+<span class="line" id="L355">    <span class="tok-kw">const</span> v = deserialize(<span class="tok-kw">struct</span> { alg_id: []<span class="tok-kw">const</span> <span class="tok-type">u8</span> }, s);</span>
+<span class="line" id="L356">    <span class="tok-kw">try</span> std.testing.expectError(Error.InvalidEncoding, v);</span>
+<span class="line" id="L357">}</span>
+<span class="line" id="L358"></span>
+<span class="line" id="L359"><span class="tok-kw">test</span> <span class="tok-str">&quot;phc format - hash without salt&quot;</span> {</span>
+<span class="line" id="L360">    <span class="tok-kw">const</span> s = <span class="tok-str">&quot;$scrypt&quot;</span>;</span>
+<span class="line" id="L361">    <span class="tok-kw">const</span> v = deserialize(<span class="tok-kw">struct</span> { alg_id: []<span class="tok-kw">const</span> <span class="tok-type">u8</span>, hash: BinValue(<span class="tok-number">16</span>) }, s);</span>
+<span class="line" id="L362">    <span class="tok-kw">try</span> std.testing.expectError(Error.InvalidEncoding, v);</span>
+<span class="line" id="L363">}</span>
+<span class="line" id="L364"></span>
+<span class="line" id="L365"><span class="tok-kw">test</span> <span class="tok-str">&quot;phc format - calcSize&quot;</span> {</span>
+<span class="line" id="L366">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L367"></span>
+<span class="line" id="L368">    <span class="tok-kw">const</span> s = <span class="tok-str">&quot;$scrypt$v=1$ln=15,r=8,p=1$c2FsdHNhbHQ$dGVzdHBhc3M&quot;</span>;</span>
+<span class="line" id="L369">    <span class="tok-kw">const</span> v = <span class="tok-kw">try</span> deserialize(<span class="tok-kw">struct</span> {</span>
+<span class="line" id="L370">        alg_id: []<span class="tok-kw">const</span> <span class="tok-type">u8</span>,</span>
+<span class="line" id="L371">        alg_version: <span class="tok-type">u16</span>,</span>
+<span class="line" id="L372">        ln: <span class="tok-type">u6</span>,</span>
+<span class="line" id="L373">        r: <span class="tok-type">u30</span>,</span>
+<span class="line" id="L374">        p: <span class="tok-type">u30</span>,</span>
+<span class="line" id="L375">        salt: BinValue(<span class="tok-number">8</span>),</span>
+<span class="line" id="L376">        hash: BinValue(<span class="tok-number">8</span>),</span>
+<span class="line" id="L377">    }, s);</span>
+<span class="line" id="L378">    <span class="tok-kw">try</span> std.testing.expectEqual(calcSize(v), s.len);</span>
+<span class="line" id="L379">}</span>
+<span class="line" id="L380"></span>
 </code></pre></body>
 </html>

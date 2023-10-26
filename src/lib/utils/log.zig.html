@@ -157,29 +157,39 @@
 <span class="line" id="L36">    <span class="tok-comment">// Capture the current time in UTC format.</span>
 </span>
 <span class="line" id="L37">    <span class="tok-kw">const</span> utc_format = <span class="tok-str">&quot;YYYY-MM-DDTHH:mm:ss&quot;</span>;</span>
-<span class="line" id="L38">    <span class="tok-kw">const</span> time_str = DateTime.now().formatAlloc(allocator, utc_format) <span class="tok-kw">catch</span> <span class="tok-kw">unreachable</span>;</span>
-<span class="line" id="L39">    <span class="tok-kw">defer</span> allocator.free(time_str); <span class="tok-comment">// Free the memory allocated by the allocator in `formatAlloc`.</span>
+<span class="line" id="L38">    <span class="tok-kw">const</span> time_str = DateTime.now().formatAlloc(</span>
+<span class="line" id="L39">        allocator,</span>
+<span class="line" id="L40">        utc_format,</span>
+<span class="line" id="L41">    ) <span class="tok-kw">catch</span> <span class="tok-kw">unreachable</span>;</span>
+<span class="line" id="L42">    <span class="tok-kw">defer</span> allocator.free(time_str); <span class="tok-comment">// Free the memory allocated by the allocator in `formatAlloc`.</span>
 </span>
-<span class="line" id="L40"></span>
-<span class="line" id="L41">    <span class="tok-comment">// Convert the log level and scope to string using @tagName.</span>
+<span class="line" id="L43"></span>
+<span class="line" id="L44">    <span class="tok-comment">// Convert the log level and scope to string using @tagName.</span>
 </span>
-<span class="line" id="L42">    <span class="tok-kw">const</span> level_str = <span class="tok-builtin">@tagName</span>(level);</span>
-<span class="line" id="L43">    <span class="tok-kw">const</span> scope_str = <span class="tok-builtin">@tagName</span>(scope);</span>
-<span class="line" id="L44"></span>
-<span class="line" id="L45">    <span class="tok-kw">const</span> stderr = std.io.getStdErr().writer();</span>
-<span class="line" id="L46"></span>
-<span class="line" id="L47">    <span class="tok-comment">// Log the header</span>
-</span>
-<span class="line" id="L48">    _ = stderr.print(<span class="tok-str">&quot;time={s} level={s} ({s}) msg=&quot;</span>, .{ time_str, level_str, scope_str }) <span class="tok-kw">catch</span> <span class="tok-kw">unreachable</span>;</span>
+<span class="line" id="L45">    <span class="tok-kw">const</span> level_str = <span class="tok-builtin">@tagName</span>(level);</span>
+<span class="line" id="L46">    <span class="tok-kw">const</span> scope_str = <span class="tok-builtin">@tagName</span>(scope);</span>
+<span class="line" id="L47"></span>
+<span class="line" id="L48">    <span class="tok-kw">const</span> stderr = std.io.getStdErr().writer();</span>
 <span class="line" id="L49"></span>
-<span class="line" id="L50">    <span class="tok-comment">// Log the main message</span>
+<span class="line" id="L50">    <span class="tok-comment">// Log the header</span>
 </span>
-<span class="line" id="L51">    <span class="tok-kw">nosuspend</span> stderr.print(format, args) <span class="tok-kw">catch</span> <span class="tok-kw">return</span>;</span>
-<span class="line" id="L52"></span>
-<span class="line" id="L53">    <span class="tok-comment">// Write a newline for better readability.</span>
-</span>
-<span class="line" id="L54">    <span class="tok-kw">nosuspend</span> stderr.writeAll(<span class="tok-str">&quot;\n&quot;</span>) <span class="tok-kw">catch</span> <span class="tok-kw">return</span>;</span>
-<span class="line" id="L55">}</span>
+<span class="line" id="L51">    _ = stderr.print(<span class="tok-str">&quot;time={s} level={s} ({s}) msg=&quot;</span>, .{</span>
+<span class="line" id="L52">        time_str,</span>
+<span class="line" id="L53">        level_str,</span>
+<span class="line" id="L54">        scope_str,</span>
+<span class="line" id="L55">    }) <span class="tok-kw">catch</span> <span class="tok-kw">unreachable</span>;</span>
 <span class="line" id="L56"></span>
+<span class="line" id="L57">    <span class="tok-comment">// Log the main message</span>
+</span>
+<span class="line" id="L58">    <span class="tok-kw">nosuspend</span> stderr.print(</span>
+<span class="line" id="L59">        format,</span>
+<span class="line" id="L60">        args,</span>
+<span class="line" id="L61">    ) <span class="tok-kw">catch</span> <span class="tok-kw">return</span>;</span>
+<span class="line" id="L62"></span>
+<span class="line" id="L63">    <span class="tok-comment">// Write a newline for better readability.</span>
+</span>
+<span class="line" id="L64">    <span class="tok-kw">nosuspend</span> stderr.writeAll(<span class="tok-str">&quot;\n&quot;</span>) <span class="tok-kw">catch</span> <span class="tok-kw">return</span>;</span>
+<span class="line" id="L65">}</span>
+<span class="line" id="L66"></span>
 </code></pre></body>
 </html>

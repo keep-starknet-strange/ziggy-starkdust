@@ -1641,476 +1641,474 @@
 <span class="line" id="L1481">}</span>
 <span class="line" id="L1482"></span>
 <span class="line" id="L1483"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid utf8&quot;</span> {</span>
-<span class="line" id="L1484">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L1485"></span>
-<span class="line" id="L1486">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\x80&quot;</span>, &amp;.{</span>
-<span class="line" id="L1487">        .invalid,</span>
-<span class="line" id="L1488">    });</span>
-<span class="line" id="L1489">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xbf&quot;</span>, &amp;.{</span>
-<span class="line" id="L1490">        .invalid,</span>
-<span class="line" id="L1491">    });</span>
-<span class="line" id="L1492">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xf8&quot;</span>, &amp;.{</span>
-<span class="line" id="L1493">        .invalid,</span>
-<span class="line" id="L1494">    });</span>
-<span class="line" id="L1495">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xff&quot;</span>, &amp;.{</span>
-<span class="line" id="L1496">        .invalid,</span>
-<span class="line" id="L1497">    });</span>
-<span class="line" id="L1498">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xc2\xc0&quot;</span>, &amp;.{</span>
-<span class="line" id="L1499">        .invalid,</span>
-<span class="line" id="L1500">    });</span>
-<span class="line" id="L1501">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xe0&quot;</span>, &amp;.{</span>
-<span class="line" id="L1502">        .invalid,</span>
-<span class="line" id="L1503">    });</span>
-<span class="line" id="L1504">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xf0&quot;</span>, &amp;.{</span>
-<span class="line" id="L1505">        .invalid,</span>
-<span class="line" id="L1506">    });</span>
-<span class="line" id="L1507">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xf0\x90\x80\xc0&quot;</span>, &amp;.{</span>
-<span class="line" id="L1508">        .invalid,</span>
-<span class="line" id="L1509">    });</span>
-<span class="line" id="L1510">}</span>
-<span class="line" id="L1511"></span>
-<span class="line" id="L1512"><span class="tok-kw">test</span> <span class="tok-str">&quot;illegal unicode codepoints&quot;</span> {</span>
-<span class="line" id="L1513">    <span class="tok-comment">// unicode newline characters.U+0085, U+2028, U+2029</span>
+<span class="line" id="L1484">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\x80&quot;</span>, &amp;.{</span>
+<span class="line" id="L1485">        .invalid,</span>
+<span class="line" id="L1486">    });</span>
+<span class="line" id="L1487">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xbf&quot;</span>, &amp;.{</span>
+<span class="line" id="L1488">        .invalid,</span>
+<span class="line" id="L1489">    });</span>
+<span class="line" id="L1490">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xf8&quot;</span>, &amp;.{</span>
+<span class="line" id="L1491">        .invalid,</span>
+<span class="line" id="L1492">    });</span>
+<span class="line" id="L1493">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xff&quot;</span>, &amp;.{</span>
+<span class="line" id="L1494">        .invalid,</span>
+<span class="line" id="L1495">    });</span>
+<span class="line" id="L1496">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xc2\xc0&quot;</span>, &amp;.{</span>
+<span class="line" id="L1497">        .invalid,</span>
+<span class="line" id="L1498">    });</span>
+<span class="line" id="L1499">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xe0&quot;</span>, &amp;.{</span>
+<span class="line" id="L1500">        .invalid,</span>
+<span class="line" id="L1501">    });</span>
+<span class="line" id="L1502">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xf0&quot;</span>, &amp;.{</span>
+<span class="line" id="L1503">        .invalid,</span>
+<span class="line" id="L1504">    });</span>
+<span class="line" id="L1505">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xf0\x90\x80\xc0&quot;</span>, &amp;.{</span>
+<span class="line" id="L1506">        .invalid,</span>
+<span class="line" id="L1507">    });</span>
+<span class="line" id="L1508">}</span>
+<span class="line" id="L1509"></span>
+<span class="line" id="L1510"><span class="tok-kw">test</span> <span class="tok-str">&quot;illegal unicode codepoints&quot;</span> {</span>
+<span class="line" id="L1511">    <span class="tok-comment">// unicode newline characters.U+0085, U+2028, U+2029</span>
 </span>
-<span class="line" id="L1514">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xc2\x84&quot;</span>, &amp;.{});</span>
-<span class="line" id="L1515">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xc2\x85&quot;</span>, &amp;.{</span>
-<span class="line" id="L1516">        .invalid,</span>
-<span class="line" id="L1517">    });</span>
-<span class="line" id="L1518">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xc2\x86&quot;</span>, &amp;.{});</span>
-<span class="line" id="L1519">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xe2\x80\xa7&quot;</span>, &amp;.{});</span>
-<span class="line" id="L1520">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xe2\x80\xa8&quot;</span>, &amp;.{</span>
-<span class="line" id="L1521">        .invalid,</span>
-<span class="line" id="L1522">    });</span>
-<span class="line" id="L1523">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xe2\x80\xa9&quot;</span>, &amp;.{</span>
-<span class="line" id="L1524">        .invalid,</span>
-<span class="line" id="L1525">    });</span>
-<span class="line" id="L1526">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xe2\x80\xaa&quot;</span>, &amp;.{});</span>
-<span class="line" id="L1527">}</span>
-<span class="line" id="L1528"></span>
-<span class="line" id="L1529"><span class="tok-kw">test</span> <span class="tok-str">&quot;string identifier and builtin fns&quot;</span> {</span>
-<span class="line" id="L1530">    <span class="tok-kw">try</span> testTokenize(</span>
-<span class="line" id="L1531">        <span class="tok-str">\\const @&quot;if&quot; = @import(&quot;std&quot;);</span></span>
+<span class="line" id="L1512">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xc2\x84&quot;</span>, &amp;.{});</span>
+<span class="line" id="L1513">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xc2\x85&quot;</span>, &amp;.{</span>
+<span class="line" id="L1514">        .invalid,</span>
+<span class="line" id="L1515">    });</span>
+<span class="line" id="L1516">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xc2\x86&quot;</span>, &amp;.{});</span>
+<span class="line" id="L1517">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xe2\x80\xa7&quot;</span>, &amp;.{});</span>
+<span class="line" id="L1518">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xe2\x80\xa8&quot;</span>, &amp;.{</span>
+<span class="line" id="L1519">        .invalid,</span>
+<span class="line" id="L1520">    });</span>
+<span class="line" id="L1521">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xe2\x80\xa9&quot;</span>, &amp;.{</span>
+<span class="line" id="L1522">        .invalid,</span>
+<span class="line" id="L1523">    });</span>
+<span class="line" id="L1524">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\xe2\x80\xaa&quot;</span>, &amp;.{});</span>
+<span class="line" id="L1525">}</span>
+<span class="line" id="L1526"></span>
+<span class="line" id="L1527"><span class="tok-kw">test</span> <span class="tok-str">&quot;string identifier and builtin fns&quot;</span> {</span>
+<span class="line" id="L1528">    <span class="tok-kw">try</span> testTokenize(</span>
+<span class="line" id="L1529">        <span class="tok-str">\\const @&quot;if&quot; = @import(&quot;std&quot;);</span></span>
 
-<span class="line" id="L1532">    , &amp;.{</span>
-<span class="line" id="L1533">        .keyword_const,</span>
-<span class="line" id="L1534">        .identifier,</span>
-<span class="line" id="L1535">        .equal,</span>
-<span class="line" id="L1536">        .builtin,</span>
-<span class="line" id="L1537">        .l_paren,</span>
-<span class="line" id="L1538">        .string_literal,</span>
-<span class="line" id="L1539">        .r_paren,</span>
-<span class="line" id="L1540">        .semicolon,</span>
-<span class="line" id="L1541">    });</span>
-<span class="line" id="L1542">}</span>
-<span class="line" id="L1543"></span>
-<span class="line" id="L1544"><span class="tok-kw">test</span> <span class="tok-str">&quot;multiline string literal with literal tab&quot;</span> {</span>
-<span class="line" id="L1545">    <span class="tok-kw">try</span> testTokenize(</span>
-<span class="line" id="L1546">        <span class="tok-str">\\\\foo	bar</span></span>
+<span class="line" id="L1530">    , &amp;.{</span>
+<span class="line" id="L1531">        .keyword_const,</span>
+<span class="line" id="L1532">        .identifier,</span>
+<span class="line" id="L1533">        .equal,</span>
+<span class="line" id="L1534">        .builtin,</span>
+<span class="line" id="L1535">        .l_paren,</span>
+<span class="line" id="L1536">        .string_literal,</span>
+<span class="line" id="L1537">        .r_paren,</span>
+<span class="line" id="L1538">        .semicolon,</span>
+<span class="line" id="L1539">    });</span>
+<span class="line" id="L1540">}</span>
+<span class="line" id="L1541"></span>
+<span class="line" id="L1542"><span class="tok-kw">test</span> <span class="tok-str">&quot;multiline string literal with literal tab&quot;</span> {</span>
+<span class="line" id="L1543">    <span class="tok-kw">try</span> testTokenize(</span>
+<span class="line" id="L1544">        <span class="tok-str">\\\\foo	bar</span></span>
 
-<span class="line" id="L1547">    , &amp;.{</span>
-<span class="line" id="L1548">        .multiline_string_literal_line,</span>
-<span class="line" id="L1549">    });</span>
-<span class="line" id="L1550">}</span>
-<span class="line" id="L1551"></span>
-<span class="line" id="L1552"><span class="tok-kw">test</span> <span class="tok-str">&quot;comments with literal tab&quot;</span> {</span>
-<span class="line" id="L1553">    <span class="tok-kw">try</span> testTokenize(</span>
-<span class="line" id="L1554">        <span class="tok-str">\\//foo	bar</span></span>
+<span class="line" id="L1545">    , &amp;.{</span>
+<span class="line" id="L1546">        .multiline_string_literal_line,</span>
+<span class="line" id="L1547">    });</span>
+<span class="line" id="L1548">}</span>
+<span class="line" id="L1549"></span>
+<span class="line" id="L1550"><span class="tok-kw">test</span> <span class="tok-str">&quot;comments with literal tab&quot;</span> {</span>
+<span class="line" id="L1551">    <span class="tok-kw">try</span> testTokenize(</span>
+<span class="line" id="L1552">        <span class="tok-str">\\//foo	bar</span></span>
 
-<span class="line" id="L1555">        <span class="tok-str">\\//!foo	bar</span></span>
+<span class="line" id="L1553">        <span class="tok-str">\\//!foo	bar</span></span>
 
-<span class="line" id="L1556">        <span class="tok-str">\\///foo	bar</span></span>
+<span class="line" id="L1554">        <span class="tok-str">\\///foo	bar</span></span>
 
-<span class="line" id="L1557">        <span class="tok-str">\\//	foo</span></span>
+<span class="line" id="L1555">        <span class="tok-str">\\//	foo</span></span>
 
-<span class="line" id="L1558">        <span class="tok-str">\\///	foo</span></span>
+<span class="line" id="L1556">        <span class="tok-str">\\///	foo</span></span>
 
-<span class="line" id="L1559">        <span class="tok-str">\\///	/foo</span></span>
+<span class="line" id="L1557">        <span class="tok-str">\\///	/foo</span></span>
 
-<span class="line" id="L1560">    , &amp;.{</span>
-<span class="line" id="L1561">        .container_doc_comment,</span>
+<span class="line" id="L1558">    , &amp;.{</span>
+<span class="line" id="L1559">        .container_doc_comment,</span>
+<span class="line" id="L1560">        .doc_comment,</span>
+<span class="line" id="L1561">        .doc_comment,</span>
 <span class="line" id="L1562">        .doc_comment,</span>
-<span class="line" id="L1563">        .doc_comment,</span>
-<span class="line" id="L1564">        .doc_comment,</span>
-<span class="line" id="L1565">    });</span>
-<span class="line" id="L1566">}</span>
-<span class="line" id="L1567"></span>
-<span class="line" id="L1568"><span class="tok-kw">test</span> <span class="tok-str">&quot;pipe and then invalid&quot;</span> {</span>
-<span class="line" id="L1569">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;||=&quot;</span>, &amp;.{</span>
-<span class="line" id="L1570">        .pipe_pipe,</span>
-<span class="line" id="L1571">        .equal,</span>
-<span class="line" id="L1572">    });</span>
-<span class="line" id="L1573">}</span>
-<span class="line" id="L1574"></span>
-<span class="line" id="L1575"><span class="tok-kw">test</span> <span class="tok-str">&quot;line comment and doc comment&quot;</span> {</span>
-<span class="line" id="L1576">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L1577"></span>
-<span class="line" id="L1578">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//&quot;</span>, &amp;.{});</span>
-<span class="line" id="L1579">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;// a / b&quot;</span>, &amp;.{});</span>
-<span class="line" id="L1580">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;// /&quot;</span>, &amp;.{});</span>
-<span class="line" id="L1581">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;/// a&quot;</span>, &amp;.{.doc_comment});</span>
-<span class="line" id="L1582">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;///&quot;</span>, &amp;.{.doc_comment});</span>
-<span class="line" id="L1583">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;////&quot;</span>, &amp;.{});</span>
-<span class="line" id="L1584">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//!&quot;</span>, &amp;.{.container_doc_comment});</span>
-<span class="line" id="L1585">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//!!&quot;</span>, &amp;.{.container_doc_comment});</span>
-<span class="line" id="L1586">}</span>
-<span class="line" id="L1587"></span>
-<span class="line" id="L1588"><span class="tok-kw">test</span> <span class="tok-str">&quot;line comment followed by identifier&quot;</span> {</span>
-<span class="line" id="L1589">    <span class="tok-kw">try</span> testTokenize(</span>
-<span class="line" id="L1590">        <span class="tok-str">\\    Unexpected,</span></span>
+<span class="line" id="L1563">    });</span>
+<span class="line" id="L1564">}</span>
+<span class="line" id="L1565"></span>
+<span class="line" id="L1566"><span class="tok-kw">test</span> <span class="tok-str">&quot;pipe and then invalid&quot;</span> {</span>
+<span class="line" id="L1567">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;||=&quot;</span>, &amp;.{</span>
+<span class="line" id="L1568">        .pipe_pipe,</span>
+<span class="line" id="L1569">        .equal,</span>
+<span class="line" id="L1570">    });</span>
+<span class="line" id="L1571">}</span>
+<span class="line" id="L1572"></span>
+<span class="line" id="L1573"><span class="tok-kw">test</span> <span class="tok-str">&quot;line comment and doc comment&quot;</span> {</span>
+<span class="line" id="L1574">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L1575"></span>
+<span class="line" id="L1576">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//&quot;</span>, &amp;.{});</span>
+<span class="line" id="L1577">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;// a / b&quot;</span>, &amp;.{});</span>
+<span class="line" id="L1578">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;// /&quot;</span>, &amp;.{});</span>
+<span class="line" id="L1579">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;/// a&quot;</span>, &amp;.{.doc_comment});</span>
+<span class="line" id="L1580">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;///&quot;</span>, &amp;.{.doc_comment});</span>
+<span class="line" id="L1581">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;////&quot;</span>, &amp;.{});</span>
+<span class="line" id="L1582">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//!&quot;</span>, &amp;.{.container_doc_comment});</span>
+<span class="line" id="L1583">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//!!&quot;</span>, &amp;.{.container_doc_comment});</span>
+<span class="line" id="L1584">}</span>
+<span class="line" id="L1585"></span>
+<span class="line" id="L1586"><span class="tok-kw">test</span> <span class="tok-str">&quot;line comment followed by identifier&quot;</span> {</span>
+<span class="line" id="L1587">    <span class="tok-kw">try</span> testTokenize(</span>
+<span class="line" id="L1588">        <span class="tok-str">\\    Unexpected,</span></span>
 
-<span class="line" id="L1591">        <span class="tok-str">\\    // another</span></span>
+<span class="line" id="L1589">        <span class="tok-str">\\    // another</span></span>
 
-<span class="line" id="L1592">        <span class="tok-str">\\    Another,</span></span>
+<span class="line" id="L1590">        <span class="tok-str">\\    Another,</span></span>
 
-<span class="line" id="L1593">    , &amp;.{</span>
+<span class="line" id="L1591">    , &amp;.{</span>
+<span class="line" id="L1592">        .identifier,</span>
+<span class="line" id="L1593">        .comma,</span>
 <span class="line" id="L1594">        .identifier,</span>
 <span class="line" id="L1595">        .comma,</span>
-<span class="line" id="L1596">        .identifier,</span>
-<span class="line" id="L1597">        .comma,</span>
-<span class="line" id="L1598">    });</span>
-<span class="line" id="L1599">}</span>
-<span class="line" id="L1600"></span>
-<span class="line" id="L1601"><span class="tok-kw">test</span> <span class="tok-str">&quot;UTF-8 BOM is recognized and skipped&quot;</span> {</span>
-<span class="line" id="L1602">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;\xEF\xBB\xBFa;\n&quot;</span>, &amp;.{</span>
-<span class="line" id="L1603">        .identifier,</span>
-<span class="line" id="L1604">        .semicolon,</span>
-<span class="line" id="L1605">    });</span>
-<span class="line" id="L1606">}</span>
-<span class="line" id="L1607"></span>
-<span class="line" id="L1608"><span class="tok-kw">test</span> <span class="tok-str">&quot;correctly parse pointer assignment&quot;</span> {</span>
-<span class="line" id="L1609">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;b.*=3;\n&quot;</span>, &amp;.{</span>
-<span class="line" id="L1610">        .identifier,</span>
-<span class="line" id="L1611">        .period_asterisk,</span>
-<span class="line" id="L1612">        .equal,</span>
-<span class="line" id="L1613">        .number_literal,</span>
-<span class="line" id="L1614">        .semicolon,</span>
-<span class="line" id="L1615">    });</span>
-<span class="line" id="L1616">}</span>
-<span class="line" id="L1617"></span>
-<span class="line" id="L1618"><span class="tok-kw">test</span> <span class="tok-str">&quot;correctly parse pointer dereference followed by asterisk&quot;</span> {</span>
-<span class="line" id="L1619">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;\&quot;b\&quot;.* ** 10&quot;</span>, &amp;.{</span>
-<span class="line" id="L1620">        .string_literal,</span>
-<span class="line" id="L1621">        .period_asterisk,</span>
-<span class="line" id="L1622">        .asterisk_asterisk,</span>
-<span class="line" id="L1623">        .number_literal,</span>
-<span class="line" id="L1624">    });</span>
-<span class="line" id="L1625"></span>
-<span class="line" id="L1626">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;(\&quot;b\&quot;.*)** 10&quot;</span>, &amp;.{</span>
-<span class="line" id="L1627">        .l_paren,</span>
-<span class="line" id="L1628">        .string_literal,</span>
-<span class="line" id="L1629">        .period_asterisk,</span>
-<span class="line" id="L1630">        .r_paren,</span>
-<span class="line" id="L1631">        .asterisk_asterisk,</span>
-<span class="line" id="L1632">        .number_literal,</span>
-<span class="line" id="L1633">    });</span>
-<span class="line" id="L1634"></span>
-<span class="line" id="L1635">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;\&quot;b\&quot;.*** 10&quot;</span>, &amp;.{</span>
-<span class="line" id="L1636">        .string_literal,</span>
-<span class="line" id="L1637">        .invalid_periodasterisks,</span>
-<span class="line" id="L1638">        .asterisk_asterisk,</span>
-<span class="line" id="L1639">        .number_literal,</span>
-<span class="line" id="L1640">    });</span>
-<span class="line" id="L1641">}</span>
-<span class="line" id="L1642"></span>
-<span class="line" id="L1643"><span class="tok-kw">test</span> <span class="tok-str">&quot;range literals&quot;</span> {</span>
-<span class="line" id="L1644">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0...9&quot;</span>, &amp;.{ .number_literal, .ellipsis3, .number_literal });</span>
-<span class="line" id="L1645">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;'0'...'9'&quot;</span>, &amp;.{ .char_literal, .ellipsis3, .char_literal });</span>
-<span class="line" id="L1646">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x00...0x09&quot;</span>, &amp;.{ .number_literal, .ellipsis3, .number_literal });</span>
-<span class="line" id="L1647">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b00...0b11&quot;</span>, &amp;.{ .number_literal, .ellipsis3, .number_literal });</span>
-<span class="line" id="L1648">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o00...0o11&quot;</span>, &amp;.{ .number_literal, .ellipsis3, .number_literal });</span>
-<span class="line" id="L1649">}</span>
-<span class="line" id="L1650"></span>
-<span class="line" id="L1651"><span class="tok-kw">test</span> <span class="tok-str">&quot;number literals decimal&quot;</span> {</span>
-<span class="line" id="L1652">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L1653"></span>
-<span class="line" id="L1654">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1655">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1656">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;2&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1657">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;3&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1658">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;4&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1659">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;5&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1660">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;6&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1661">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;7&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1662">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;8&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1663">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;9&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1664">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1..&quot;</span>, &amp;.{ .number_literal, .ellipsis2 });</span>
-<span class="line" id="L1665">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0a&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1666">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;9b&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1667">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1z&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1668">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1z_1&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1669">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;9z3&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1670"></span>
-<span class="line" id="L1671">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0_0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1672">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0001&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1673">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;01234567890&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1674">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;012_345_6789_0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1675">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0_1_2_3_4_5_6_7_8_9_0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1676"></span>
-<span class="line" id="L1677">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;00_&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1678">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0_0_&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1679">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0__0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1680">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0_0f&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1681">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0_0_f&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1682">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0_0_f_00&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1683">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1_,&quot;</span>, &amp;.{ .number_literal, .comma });</span>
-<span class="line" id="L1684"></span>
-<span class="line" id="L1685">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0.0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1686">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1687">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;10.0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1688">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0e0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1689">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1e0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1690">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1e100&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1691">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0e100&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1692">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0e+100&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1693">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0e-100&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1694">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1_0_0_0.0_0_0_0_0_1e1_0_0_0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1695"></span>
-<span class="line" id="L1696">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.&quot;</span>, &amp;.{ .number_literal, .period });</span>
-<span class="line" id="L1697">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1e&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1698">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.e100&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1699">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0e1f0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1700">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0p100&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1701">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0p-100&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1702">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0p1f0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1703">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0_,&quot;</span>, &amp;.{ .number_literal, .comma });</span>
-<span class="line" id="L1704">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1_.0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1705">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1._&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1706">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.a&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1707">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.z&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1708">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1._0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1709">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.+&quot;</span>, &amp;.{ .number_literal, .period, .plus });</span>
-<span class="line" id="L1710">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1._+&quot;</span>, &amp;.{ .number_literal, .plus });</span>
-<span class="line" id="L1711">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1._e&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1712">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0e&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1713">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0e,&quot;</span>, &amp;.{ .number_literal, .comma });</span>
-<span class="line" id="L1714">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0e_&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1715">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0e+_&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1716">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0e-_&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1717">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0e0_+&quot;</span>, &amp;.{ .number_literal, .plus });</span>
-<span class="line" id="L1718">}</span>
-<span class="line" id="L1719"></span>
-<span class="line" id="L1720"><span class="tok-kw">test</span> <span class="tok-str">&quot;number literals binary&quot;</span> {</span>
-<span class="line" id="L1721">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1722">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b1&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1723">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b2&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1724">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b3&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1725">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b4&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1726">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b5&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1727">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b6&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1728">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b7&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1729">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b8&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1730">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b9&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1731">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0ba&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1732">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0bb&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1733">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0bc&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1734">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0bd&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1735">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0be&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1736">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0bf&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1737">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0bz&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1738"></span>
-<span class="line" id="L1739">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b0000_0000&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1740">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b1111_1111&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1741">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b10_10_10_10&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1742">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b0_1_0_1_0_1_0_1&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1743">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b1.&quot;</span>, &amp;.{ .number_literal, .period });</span>
-<span class="line" id="L1744">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b1.0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1745"></span>
-<span class="line" id="L1746">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0B0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1747">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b_&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1748">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b_0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1749">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b1_&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1750">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b0__1&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1751">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b0_1_&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1752">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b1e&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1753">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b1p&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1754">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b1e0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1755">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b1p0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1756">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b1_,&quot;</span>, &amp;.{ .number_literal, .comma });</span>
-<span class="line" id="L1757">}</span>
-<span class="line" id="L1758"></span>
-<span class="line" id="L1759"><span class="tok-kw">test</span> <span class="tok-str">&quot;number literals octal&quot;</span> {</span>
-<span class="line" id="L1760">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1761">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o1&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1762">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o2&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1763">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o3&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1764">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o4&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1765">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o5&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1766">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o6&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1767">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o7&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1768">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o8&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1769">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o9&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1770">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0oa&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1771">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0ob&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1772">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0oc&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1773">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0od&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1774">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0oe&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1775">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0of&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1776">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0oz&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1777"></span>
-<span class="line" id="L1778">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o01234567&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1779">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o0123_4567&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1780">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o01_23_45_67&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1781">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o0_1_2_3_4_5_6_7&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1782">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o7.&quot;</span>, &amp;.{ .number_literal, .period });</span>
-<span class="line" id="L1783">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o7.0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1784"></span>
-<span class="line" id="L1785">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0O0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1786">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o_&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1787">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o_0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1788">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o1_&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1789">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o0__1&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1790">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o0_1_&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1791">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o1e&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1792">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o1p&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1793">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o1e0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1794">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o1p0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1795">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o_,&quot;</span>, &amp;.{ .number_literal, .comma });</span>
-<span class="line" id="L1796">}</span>
-<span class="line" id="L1797"></span>
-<span class="line" id="L1798"><span class="tok-kw">test</span> <span class="tok-str">&quot;number literals hexadecimal&quot;</span> {</span>
-<span class="line" id="L1799">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1800">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x1&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1801">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x2&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1802">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x3&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1803">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x4&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1804">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x5&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1805">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x6&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1806">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x7&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1807">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x8&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1808">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x9&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1809">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xa&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1810">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xb&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1811">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xc&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1812">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xd&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1813">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xe&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1814">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xf&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1815">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xA&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1816">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xB&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1817">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xC&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1818">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xD&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1819">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xE&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1820">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xF&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1821">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0z&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1822">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xz&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1823"></span>
-<span class="line" id="L1824">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0123456789ABCDEF&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1825">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0123_4567_89AB_CDEF&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1826">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x01_23_45_67_89AB_CDE_F&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1827">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0_1_2_3_4_5_6_7_8_9_A_B_C_D_E_F&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1828"></span>
-<span class="line" id="L1829">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0X0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1830">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x_&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1831">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x_1&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1832">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x1_&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1833">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0__1&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1834">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0_1_&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1835">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x_,&quot;</span>, &amp;.{ .number_literal, .comma });</span>
-<span class="line" id="L1836"></span>
-<span class="line" id="L1837">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x1.0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1838">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xF.0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1839">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xF.F&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1840">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xF.Fp0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1841">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xF.FP0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1842">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x1p0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1843">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xfp0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1844">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x1.0+0xF.0&quot;</span>, &amp;.{ .number_literal, .plus, .number_literal });</span>
-<span class="line" id="L1845"></span>
-<span class="line" id="L1846">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x1.&quot;</span>, &amp;.{ .number_literal, .period });</span>
-<span class="line" id="L1847">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xF.&quot;</span>, &amp;.{ .number_literal, .period });</span>
-<span class="line" id="L1848">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x1.+0xF.&quot;</span>, &amp;.{ .number_literal, .period, .plus, .number_literal, .period });</span>
-<span class="line" id="L1849">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xff.p10&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1850"></span>
-<span class="line" id="L1851">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0123456.789ABCDEF&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1852">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0_123_456.789_ABC_DEF&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1853">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0_1_2_3_4_5_6.7_8_9_A_B_C_D_E_F&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1854">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0p0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1855">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0.0p0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1856">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xff.ffp10&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1857">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xff.ffP10&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1858">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xffp10&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1859">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xff_ff.ff_ffp1_0_0_0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1860">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xf_f_f_f.f_f_f_fp+1_000&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1861">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xf_f_f_f.f_f_f_fp-1_00_0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1862"></span>
-<span class="line" id="L1863">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x1e&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1864">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x1e0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1865">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x1p&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1866">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xfp0z1&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1867">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xff.ffpff&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1868">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0.p&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1869">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0.z&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1870">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0._&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1871">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0_.0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1872">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0_.0.0&quot;</span>, &amp;.{ .number_literal, .period, .number_literal });</span>
-<span class="line" id="L1873">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0._0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1874">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0.0_&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1875">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0_p0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1876">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0_.p0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1877">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0._p0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1878">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0.0_p0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1879">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0._0p0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1880">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0.0p_0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1881">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0.0p+_0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1882">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0.0p-_0&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1883">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0.0p0_&quot;</span>, &amp;.{.number_literal});</span>
-<span class="line" id="L1884">}</span>
-<span class="line" id="L1885"></span>
-<span class="line" id="L1886"><span class="tok-kw">test</span> <span class="tok-str">&quot;multi line string literal with only 1 backslash&quot;</span> {</span>
-<span class="line" id="L1887">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;x \\\n;&quot;</span>, &amp;.{ .identifier, .invalid, .semicolon });</span>
-<span class="line" id="L1888">}</span>
-<span class="line" id="L1889"></span>
-<span class="line" id="L1890"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid builtin identifiers&quot;</span> {</span>
-<span class="line" id="L1891">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;@()&quot;</span>, &amp;.{ .invalid, .l_paren, .r_paren });</span>
-<span class="line" id="L1892">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;@0()&quot;</span>, &amp;.{ .invalid, .number_literal, .l_paren, .r_paren });</span>
-<span class="line" id="L1893">}</span>
-<span class="line" id="L1894"></span>
-<span class="line" id="L1895"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid token with unfinished escape right before eof&quot;</span> {</span>
-<span class="line" id="L1896">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;\&quot;\\&quot;</span>, &amp;.{.invalid});</span>
-<span class="line" id="L1897">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;'\\&quot;</span>, &amp;.{.invalid});</span>
-<span class="line" id="L1898">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;'\\u&quot;</span>, &amp;.{.invalid});</span>
-<span class="line" id="L1899">}</span>
-<span class="line" id="L1900"></span>
-<span class="line" id="L1901"><span class="tok-kw">test</span> <span class="tok-str">&quot;saturating operators&quot;</span> {</span>
-<span class="line" id="L1902">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L1903"></span>
-<span class="line" id="L1904">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;&lt;&lt;&quot;</span>, &amp;.{.angle_bracket_angle_bracket_left});</span>
-<span class="line" id="L1905">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;&lt;&lt;|&quot;</span>, &amp;.{.angle_bracket_angle_bracket_left_pipe});</span>
-<span class="line" id="L1906">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;&lt;&lt;|=&quot;</span>, &amp;.{.angle_bracket_angle_bracket_left_pipe_equal});</span>
-<span class="line" id="L1907"></span>
-<span class="line" id="L1908">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;*&quot;</span>, &amp;.{.asterisk});</span>
-<span class="line" id="L1909">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;*|&quot;</span>, &amp;.{.asterisk_pipe});</span>
-<span class="line" id="L1910">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;*|=&quot;</span>, &amp;.{.asterisk_pipe_equal});</span>
-<span class="line" id="L1911"></span>
-<span class="line" id="L1912">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;+&quot;</span>, &amp;.{.plus});</span>
-<span class="line" id="L1913">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;+|&quot;</span>, &amp;.{.plus_pipe});</span>
-<span class="line" id="L1914">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;+|=&quot;</span>, &amp;.{.plus_pipe_equal});</span>
-<span class="line" id="L1915"></span>
-<span class="line" id="L1916">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;-&quot;</span>, &amp;.{.minus});</span>
-<span class="line" id="L1917">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;-|&quot;</span>, &amp;.{.minus_pipe});</span>
-<span class="line" id="L1918">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;-|=&quot;</span>, &amp;.{.minus_pipe_equal});</span>
-<span class="line" id="L1919">}</span>
-<span class="line" id="L1920"></span>
-<span class="line" id="L1921"><span class="tok-kw">test</span> <span class="tok-str">&quot;null byte before eof&quot;</span> {</span>
-<span class="line" id="L1922">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;123 \x00 456&quot;</span>, &amp;.{ .number_literal, .invalid, .number_literal });</span>
-<span class="line" id="L1923">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\x00&quot;</span>, &amp;.{.invalid});</span>
-<span class="line" id="L1924">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;\\\\\x00&quot;</span>, &amp;.{ .multiline_string_literal_line, .invalid });</span>
-<span class="line" id="L1925">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;\x00&quot;</span>, &amp;.{.invalid});</span>
-<span class="line" id="L1926">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;// NUL\x00\n&quot;</span>, &amp;.{.invalid});</span>
-<span class="line" id="L1927">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;///\x00\n&quot;</span>, &amp;.{ .doc_comment, .invalid });</span>
-<span class="line" id="L1928">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;/// NUL\x00\n&quot;</span>, &amp;.{ .doc_comment, .invalid });</span>
-<span class="line" id="L1929">}</span>
-<span class="line" id="L1930"></span>
-<span class="line" id="L1931"><span class="tok-kw">fn</span> <span class="tok-fn">testTokenize</span>(source: [:<span class="tok-number">0</span>]<span class="tok-kw">const</span> <span class="tok-type">u8</span>, expected_token_tags: []<span class="tok-kw">const</span> Token.Tag) !<span class="tok-type">void</span> {</span>
-<span class="line" id="L1932">    <span class="tok-kw">var</span> tokenizer = Tokenizer.init(source);</span>
-<span class="line" id="L1933">    <span class="tok-kw">for</span> (expected_token_tags) |expected_token_tag| {</span>
-<span class="line" id="L1934">        <span class="tok-kw">const</span> token = tokenizer.next();</span>
-<span class="line" id="L1935">        <span class="tok-kw">try</span> std.testing.expectEqual(expected_token_tag, token.tag);</span>
-<span class="line" id="L1936">    }</span>
-<span class="line" id="L1937">    <span class="tok-kw">const</span> last_token = tokenizer.next();</span>
-<span class="line" id="L1938">    <span class="tok-kw">try</span> std.testing.expectEqual(Token.Tag.eof, last_token.tag);</span>
-<span class="line" id="L1939">    <span class="tok-kw">try</span> std.testing.expectEqual(source.len, last_token.loc.start);</span>
-<span class="line" id="L1940">    <span class="tok-kw">try</span> std.testing.expectEqual(source.len, last_token.loc.end);</span>
-<span class="line" id="L1941">}</span>
-<span class="line" id="L1942"></span>
+<span class="line" id="L1596">    });</span>
+<span class="line" id="L1597">}</span>
+<span class="line" id="L1598"></span>
+<span class="line" id="L1599"><span class="tok-kw">test</span> <span class="tok-str">&quot;UTF-8 BOM is recognized and skipped&quot;</span> {</span>
+<span class="line" id="L1600">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;\xEF\xBB\xBFa;\n&quot;</span>, &amp;.{</span>
+<span class="line" id="L1601">        .identifier,</span>
+<span class="line" id="L1602">        .semicolon,</span>
+<span class="line" id="L1603">    });</span>
+<span class="line" id="L1604">}</span>
+<span class="line" id="L1605"></span>
+<span class="line" id="L1606"><span class="tok-kw">test</span> <span class="tok-str">&quot;correctly parse pointer assignment&quot;</span> {</span>
+<span class="line" id="L1607">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;b.*=3;\n&quot;</span>, &amp;.{</span>
+<span class="line" id="L1608">        .identifier,</span>
+<span class="line" id="L1609">        .period_asterisk,</span>
+<span class="line" id="L1610">        .equal,</span>
+<span class="line" id="L1611">        .number_literal,</span>
+<span class="line" id="L1612">        .semicolon,</span>
+<span class="line" id="L1613">    });</span>
+<span class="line" id="L1614">}</span>
+<span class="line" id="L1615"></span>
+<span class="line" id="L1616"><span class="tok-kw">test</span> <span class="tok-str">&quot;correctly parse pointer dereference followed by asterisk&quot;</span> {</span>
+<span class="line" id="L1617">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;\&quot;b\&quot;.* ** 10&quot;</span>, &amp;.{</span>
+<span class="line" id="L1618">        .string_literal,</span>
+<span class="line" id="L1619">        .period_asterisk,</span>
+<span class="line" id="L1620">        .asterisk_asterisk,</span>
+<span class="line" id="L1621">        .number_literal,</span>
+<span class="line" id="L1622">    });</span>
+<span class="line" id="L1623"></span>
+<span class="line" id="L1624">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;(\&quot;b\&quot;.*)** 10&quot;</span>, &amp;.{</span>
+<span class="line" id="L1625">        .l_paren,</span>
+<span class="line" id="L1626">        .string_literal,</span>
+<span class="line" id="L1627">        .period_asterisk,</span>
+<span class="line" id="L1628">        .r_paren,</span>
+<span class="line" id="L1629">        .asterisk_asterisk,</span>
+<span class="line" id="L1630">        .number_literal,</span>
+<span class="line" id="L1631">    });</span>
+<span class="line" id="L1632"></span>
+<span class="line" id="L1633">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;\&quot;b\&quot;.*** 10&quot;</span>, &amp;.{</span>
+<span class="line" id="L1634">        .string_literal,</span>
+<span class="line" id="L1635">        .invalid_periodasterisks,</span>
+<span class="line" id="L1636">        .asterisk_asterisk,</span>
+<span class="line" id="L1637">        .number_literal,</span>
+<span class="line" id="L1638">    });</span>
+<span class="line" id="L1639">}</span>
+<span class="line" id="L1640"></span>
+<span class="line" id="L1641"><span class="tok-kw">test</span> <span class="tok-str">&quot;range literals&quot;</span> {</span>
+<span class="line" id="L1642">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0...9&quot;</span>, &amp;.{ .number_literal, .ellipsis3, .number_literal });</span>
+<span class="line" id="L1643">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;'0'...'9'&quot;</span>, &amp;.{ .char_literal, .ellipsis3, .char_literal });</span>
+<span class="line" id="L1644">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x00...0x09&quot;</span>, &amp;.{ .number_literal, .ellipsis3, .number_literal });</span>
+<span class="line" id="L1645">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b00...0b11&quot;</span>, &amp;.{ .number_literal, .ellipsis3, .number_literal });</span>
+<span class="line" id="L1646">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o00...0o11&quot;</span>, &amp;.{ .number_literal, .ellipsis3, .number_literal });</span>
+<span class="line" id="L1647">}</span>
+<span class="line" id="L1648"></span>
+<span class="line" id="L1649"><span class="tok-kw">test</span> <span class="tok-str">&quot;number literals decimal&quot;</span> {</span>
+<span class="line" id="L1650">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L1651"></span>
+<span class="line" id="L1652">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1653">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1654">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;2&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1655">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;3&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1656">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;4&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1657">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;5&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1658">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;6&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1659">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;7&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1660">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;8&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1661">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;9&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1662">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1..&quot;</span>, &amp;.{ .number_literal, .ellipsis2 });</span>
+<span class="line" id="L1663">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0a&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1664">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;9b&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1665">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1z&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1666">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1z_1&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1667">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;9z3&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1668"></span>
+<span class="line" id="L1669">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0_0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1670">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0001&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1671">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;01234567890&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1672">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;012_345_6789_0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1673">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0_1_2_3_4_5_6_7_8_9_0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1674"></span>
+<span class="line" id="L1675">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;00_&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1676">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0_0_&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1677">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0__0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1678">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0_0f&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1679">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0_0_f&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1680">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0_0_f_00&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1681">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1_,&quot;</span>, &amp;.{ .number_literal, .comma });</span>
+<span class="line" id="L1682"></span>
+<span class="line" id="L1683">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0.0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1684">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1685">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;10.0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1686">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0e0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1687">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1e0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1688">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1e100&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1689">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0e100&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1690">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0e+100&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1691">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0e-100&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1692">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1_0_0_0.0_0_0_0_0_1e1_0_0_0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1693"></span>
+<span class="line" id="L1694">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.&quot;</span>, &amp;.{ .number_literal, .period });</span>
+<span class="line" id="L1695">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1e&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1696">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.e100&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1697">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0e1f0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1698">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0p100&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1699">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0p-100&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1700">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0p1f0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1701">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0_,&quot;</span>, &amp;.{ .number_literal, .comma });</span>
+<span class="line" id="L1702">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1_.0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1703">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1._&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1704">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.a&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1705">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.z&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1706">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1._0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1707">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.+&quot;</span>, &amp;.{ .number_literal, .period, .plus });</span>
+<span class="line" id="L1708">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1._+&quot;</span>, &amp;.{ .number_literal, .plus });</span>
+<span class="line" id="L1709">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1._e&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1710">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0e&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1711">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0e,&quot;</span>, &amp;.{ .number_literal, .comma });</span>
+<span class="line" id="L1712">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0e_&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1713">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0e+_&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1714">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0e-_&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1715">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;1.0e0_+&quot;</span>, &amp;.{ .number_literal, .plus });</span>
+<span class="line" id="L1716">}</span>
+<span class="line" id="L1717"></span>
+<span class="line" id="L1718"><span class="tok-kw">test</span> <span class="tok-str">&quot;number literals binary&quot;</span> {</span>
+<span class="line" id="L1719">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1720">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b1&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1721">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b2&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1722">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b3&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1723">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b4&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1724">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b5&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1725">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b6&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1726">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b7&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1727">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b8&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1728">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b9&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1729">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0ba&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1730">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0bb&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1731">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0bc&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1732">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0bd&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1733">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0be&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1734">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0bf&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1735">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0bz&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1736"></span>
+<span class="line" id="L1737">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b0000_0000&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1738">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b1111_1111&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1739">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b10_10_10_10&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1740">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b0_1_0_1_0_1_0_1&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1741">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b1.&quot;</span>, &amp;.{ .number_literal, .period });</span>
+<span class="line" id="L1742">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b1.0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1743"></span>
+<span class="line" id="L1744">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0B0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1745">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b_&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1746">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b_0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1747">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b1_&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1748">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b0__1&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1749">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b0_1_&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1750">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b1e&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1751">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b1p&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1752">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b1e0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1753">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b1p0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1754">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0b1_,&quot;</span>, &amp;.{ .number_literal, .comma });</span>
+<span class="line" id="L1755">}</span>
+<span class="line" id="L1756"></span>
+<span class="line" id="L1757"><span class="tok-kw">test</span> <span class="tok-str">&quot;number literals octal&quot;</span> {</span>
+<span class="line" id="L1758">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1759">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o1&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1760">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o2&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1761">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o3&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1762">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o4&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1763">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o5&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1764">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o6&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1765">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o7&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1766">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o8&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1767">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o9&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1768">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0oa&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1769">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0ob&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1770">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0oc&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1771">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0od&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1772">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0oe&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1773">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0of&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1774">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0oz&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1775"></span>
+<span class="line" id="L1776">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o01234567&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1777">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o0123_4567&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1778">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o01_23_45_67&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1779">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o0_1_2_3_4_5_6_7&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1780">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o7.&quot;</span>, &amp;.{ .number_literal, .period });</span>
+<span class="line" id="L1781">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o7.0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1782"></span>
+<span class="line" id="L1783">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0O0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1784">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o_&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1785">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o_0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1786">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o1_&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1787">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o0__1&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1788">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o0_1_&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1789">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o1e&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1790">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o1p&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1791">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o1e0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1792">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o1p0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1793">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0o_,&quot;</span>, &amp;.{ .number_literal, .comma });</span>
+<span class="line" id="L1794">}</span>
+<span class="line" id="L1795"></span>
+<span class="line" id="L1796"><span class="tok-kw">test</span> <span class="tok-str">&quot;number literals hexadecimal&quot;</span> {</span>
+<span class="line" id="L1797">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1798">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x1&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1799">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x2&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1800">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x3&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1801">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x4&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1802">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x5&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1803">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x6&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1804">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x7&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1805">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x8&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1806">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x9&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1807">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xa&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1808">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xb&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1809">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xc&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1810">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xd&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1811">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xe&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1812">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xf&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1813">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xA&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1814">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xB&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1815">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xC&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1816">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xD&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1817">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xE&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1818">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xF&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1819">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0z&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1820">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xz&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1821"></span>
+<span class="line" id="L1822">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0123456789ABCDEF&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1823">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0123_4567_89AB_CDEF&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1824">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x01_23_45_67_89AB_CDE_F&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1825">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0_1_2_3_4_5_6_7_8_9_A_B_C_D_E_F&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1826"></span>
+<span class="line" id="L1827">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0X0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1828">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x_&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1829">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x_1&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1830">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x1_&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1831">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0__1&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1832">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0_1_&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1833">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x_,&quot;</span>, &amp;.{ .number_literal, .comma });</span>
+<span class="line" id="L1834"></span>
+<span class="line" id="L1835">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x1.0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1836">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xF.0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1837">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xF.F&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1838">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xF.Fp0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1839">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xF.FP0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1840">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x1p0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1841">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xfp0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1842">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x1.0+0xF.0&quot;</span>, &amp;.{ .number_literal, .plus, .number_literal });</span>
+<span class="line" id="L1843"></span>
+<span class="line" id="L1844">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x1.&quot;</span>, &amp;.{ .number_literal, .period });</span>
+<span class="line" id="L1845">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xF.&quot;</span>, &amp;.{ .number_literal, .period });</span>
+<span class="line" id="L1846">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x1.+0xF.&quot;</span>, &amp;.{ .number_literal, .period, .plus, .number_literal, .period });</span>
+<span class="line" id="L1847">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xff.p10&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1848"></span>
+<span class="line" id="L1849">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0123456.789ABCDEF&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1850">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0_123_456.789_ABC_DEF&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1851">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0_1_2_3_4_5_6.7_8_9_A_B_C_D_E_F&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1852">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0p0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1853">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0.0p0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1854">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xff.ffp10&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1855">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xff.ffP10&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1856">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xffp10&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1857">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xff_ff.ff_ffp1_0_0_0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1858">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xf_f_f_f.f_f_f_fp+1_000&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1859">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xf_f_f_f.f_f_f_fp-1_00_0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1860"></span>
+<span class="line" id="L1861">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x1e&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1862">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x1e0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1863">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x1p&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1864">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xfp0z1&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1865">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0xff.ffpff&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1866">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0.p&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1867">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0.z&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1868">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0._&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1869">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0_.0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1870">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0_.0.0&quot;</span>, &amp;.{ .number_literal, .period, .number_literal });</span>
+<span class="line" id="L1871">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0._0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1872">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0.0_&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1873">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0_p0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1874">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0_.p0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1875">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0._p0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1876">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0.0_p0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1877">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0._0p0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1878">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0.0p_0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1879">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0.0p+_0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1880">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0.0p-_0&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1881">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;0x0.0p0_&quot;</span>, &amp;.{.number_literal});</span>
+<span class="line" id="L1882">}</span>
+<span class="line" id="L1883"></span>
+<span class="line" id="L1884"><span class="tok-kw">test</span> <span class="tok-str">&quot;multi line string literal with only 1 backslash&quot;</span> {</span>
+<span class="line" id="L1885">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;x \\\n;&quot;</span>, &amp;.{ .identifier, .invalid, .semicolon });</span>
+<span class="line" id="L1886">}</span>
+<span class="line" id="L1887"></span>
+<span class="line" id="L1888"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid builtin identifiers&quot;</span> {</span>
+<span class="line" id="L1889">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;@()&quot;</span>, &amp;.{ .invalid, .l_paren, .r_paren });</span>
+<span class="line" id="L1890">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;@0()&quot;</span>, &amp;.{ .invalid, .number_literal, .l_paren, .r_paren });</span>
+<span class="line" id="L1891">}</span>
+<span class="line" id="L1892"></span>
+<span class="line" id="L1893"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid token with unfinished escape right before eof&quot;</span> {</span>
+<span class="line" id="L1894">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;\&quot;\\&quot;</span>, &amp;.{.invalid});</span>
+<span class="line" id="L1895">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;'\\&quot;</span>, &amp;.{.invalid});</span>
+<span class="line" id="L1896">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;'\\u&quot;</span>, &amp;.{.invalid});</span>
+<span class="line" id="L1897">}</span>
+<span class="line" id="L1898"></span>
+<span class="line" id="L1899"><span class="tok-kw">test</span> <span class="tok-str">&quot;saturating operators&quot;</span> {</span>
+<span class="line" id="L1900">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L1901"></span>
+<span class="line" id="L1902">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;&lt;&lt;&quot;</span>, &amp;.{.angle_bracket_angle_bracket_left});</span>
+<span class="line" id="L1903">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;&lt;&lt;|&quot;</span>, &amp;.{.angle_bracket_angle_bracket_left_pipe});</span>
+<span class="line" id="L1904">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;&lt;&lt;|=&quot;</span>, &amp;.{.angle_bracket_angle_bracket_left_pipe_equal});</span>
+<span class="line" id="L1905"></span>
+<span class="line" id="L1906">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;*&quot;</span>, &amp;.{.asterisk});</span>
+<span class="line" id="L1907">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;*|&quot;</span>, &amp;.{.asterisk_pipe});</span>
+<span class="line" id="L1908">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;*|=&quot;</span>, &amp;.{.asterisk_pipe_equal});</span>
+<span class="line" id="L1909"></span>
+<span class="line" id="L1910">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;+&quot;</span>, &amp;.{.plus});</span>
+<span class="line" id="L1911">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;+|&quot;</span>, &amp;.{.plus_pipe});</span>
+<span class="line" id="L1912">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;+|=&quot;</span>, &amp;.{.plus_pipe_equal});</span>
+<span class="line" id="L1913"></span>
+<span class="line" id="L1914">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;-&quot;</span>, &amp;.{.minus});</span>
+<span class="line" id="L1915">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;-|&quot;</span>, &amp;.{.minus_pipe});</span>
+<span class="line" id="L1916">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;-|=&quot;</span>, &amp;.{.minus_pipe_equal});</span>
+<span class="line" id="L1917">}</span>
+<span class="line" id="L1918"></span>
+<span class="line" id="L1919"><span class="tok-kw">test</span> <span class="tok-str">&quot;null byte before eof&quot;</span> {</span>
+<span class="line" id="L1920">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;123 \x00 456&quot;</span>, &amp;.{ .number_literal, .invalid, .number_literal });</span>
+<span class="line" id="L1921">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;//\x00&quot;</span>, &amp;.{.invalid});</span>
+<span class="line" id="L1922">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;\\\\\x00&quot;</span>, &amp;.{ .multiline_string_literal_line, .invalid });</span>
+<span class="line" id="L1923">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;\x00&quot;</span>, &amp;.{.invalid});</span>
+<span class="line" id="L1924">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;// NUL\x00\n&quot;</span>, &amp;.{.invalid});</span>
+<span class="line" id="L1925">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;///\x00\n&quot;</span>, &amp;.{ .doc_comment, .invalid });</span>
+<span class="line" id="L1926">    <span class="tok-kw">try</span> testTokenize(<span class="tok-str">&quot;/// NUL\x00\n&quot;</span>, &amp;.{ .doc_comment, .invalid });</span>
+<span class="line" id="L1927">}</span>
+<span class="line" id="L1928"></span>
+<span class="line" id="L1929"><span class="tok-kw">fn</span> <span class="tok-fn">testTokenize</span>(source: [:<span class="tok-number">0</span>]<span class="tok-kw">const</span> <span class="tok-type">u8</span>, expected_token_tags: []<span class="tok-kw">const</span> Token.Tag) !<span class="tok-type">void</span> {</span>
+<span class="line" id="L1930">    <span class="tok-kw">var</span> tokenizer = Tokenizer.init(source);</span>
+<span class="line" id="L1931">    <span class="tok-kw">for</span> (expected_token_tags) |expected_token_tag| {</span>
+<span class="line" id="L1932">        <span class="tok-kw">const</span> token = tokenizer.next();</span>
+<span class="line" id="L1933">        <span class="tok-kw">try</span> std.testing.expectEqual(expected_token_tag, token.tag);</span>
+<span class="line" id="L1934">    }</span>
+<span class="line" id="L1935">    <span class="tok-kw">const</span> last_token = tokenizer.next();</span>
+<span class="line" id="L1936">    <span class="tok-kw">try</span> std.testing.expectEqual(Token.Tag.eof, last_token.tag);</span>
+<span class="line" id="L1937">    <span class="tok-kw">try</span> std.testing.expectEqual(source.len, last_token.loc.start);</span>
+<span class="line" id="L1938">    <span class="tok-kw">try</span> std.testing.expectEqual(source.len, last_token.loc.end);</span>
+<span class="line" id="L1939">}</span>
+<span class="line" id="L1940"></span>
 </code></pre></body>
 </html>

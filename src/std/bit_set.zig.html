@@ -1807,144 +1807,135 @@
 <span class="line" id="L1637">}</span>
 <span class="line" id="L1638"></span>
 <span class="line" id="L1639"><span class="tok-kw">test</span> <span class="tok-str">&quot;IntegerBitSet&quot;</span> {</span>
-<span class="line" id="L1640">    <span class="tok-kw">switch</span> (builtin.zig_backend) {</span>
-<span class="line" id="L1641">        .stage2_c, .stage2_x86_64 =&gt; <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest,</span>
-<span class="line" id="L1642">        <span class="tok-kw">else</span> =&gt; {},</span>
-<span class="line" id="L1643">    }</span>
-<span class="line" id="L1644"></span>
-<span class="line" id="L1645">    <span class="tok-kw">try</span> testStaticBitSet(IntegerBitSet(<span class="tok-number">0</span>));</span>
-<span class="line" id="L1646">    <span class="tok-kw">try</span> testStaticBitSet(IntegerBitSet(<span class="tok-number">1</span>));</span>
-<span class="line" id="L1647">    <span class="tok-kw">try</span> testStaticBitSet(IntegerBitSet(<span class="tok-number">2</span>));</span>
-<span class="line" id="L1648">    <span class="tok-kw">try</span> testStaticBitSet(IntegerBitSet(<span class="tok-number">5</span>));</span>
-<span class="line" id="L1649">    <span class="tok-kw">try</span> testStaticBitSet(IntegerBitSet(<span class="tok-number">8</span>));</span>
-<span class="line" id="L1650">    <span class="tok-kw">try</span> testStaticBitSet(IntegerBitSet(<span class="tok-number">32</span>));</span>
-<span class="line" id="L1651">    <span class="tok-kw">try</span> testStaticBitSet(IntegerBitSet(<span class="tok-number">64</span>));</span>
-<span class="line" id="L1652">    <span class="tok-kw">try</span> testStaticBitSet(IntegerBitSet(<span class="tok-number">127</span>));</span>
-<span class="line" id="L1653">}</span>
-<span class="line" id="L1654"></span>
-<span class="line" id="L1655"><span class="tok-kw">test</span> <span class="tok-str">&quot;ArrayBitSet&quot;</span> {</span>
-<span class="line" id="L1656">    <span class="tok-kw">switch</span> (builtin.zig_backend) {</span>
-<span class="line" id="L1657">        .stage2_x86_64 =&gt; <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest,</span>
-<span class="line" id="L1658">        <span class="tok-kw">else</span> =&gt; {},</span>
-<span class="line" id="L1659">    }</span>
-<span class="line" id="L1660"></span>
-<span class="line" id="L1661">    <span class="tok-kw">inline</span> <span class="tok-kw">for</span> (.{ <span class="tok-number">0</span>, <span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">31</span>, <span class="tok-number">32</span>, <span class="tok-number">33</span>, <span class="tok-number">63</span>, <span class="tok-number">64</span>, <span class="tok-number">65</span>, <span class="tok-number">254</span>, <span class="tok-number">500</span>, <span class="tok-number">3000</span> }) |size| {</span>
-<span class="line" id="L1662">        <span class="tok-kw">try</span> testStaticBitSet(ArrayBitSet(<span class="tok-type">u8</span>, size));</span>
-<span class="line" id="L1663">        <span class="tok-kw">try</span> testStaticBitSet(ArrayBitSet(<span class="tok-type">u16</span>, size));</span>
-<span class="line" id="L1664">        <span class="tok-kw">try</span> testStaticBitSet(ArrayBitSet(<span class="tok-type">u32</span>, size));</span>
-<span class="line" id="L1665">        <span class="tok-kw">try</span> testStaticBitSet(ArrayBitSet(<span class="tok-type">u64</span>, size));</span>
-<span class="line" id="L1666">        <span class="tok-kw">try</span> testStaticBitSet(ArrayBitSet(<span class="tok-type">u128</span>, size));</span>
-<span class="line" id="L1667">    }</span>
-<span class="line" id="L1668">}</span>
-<span class="line" id="L1669"></span>
-<span class="line" id="L1670"><span class="tok-kw">test</span> <span class="tok-str">&quot;DynamicBitSetUnmanaged&quot;</span> {</span>
-<span class="line" id="L1671">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L1672"></span>
-<span class="line" id="L1673">    <span class="tok-kw">const</span> allocator = std.testing.allocator;</span>
-<span class="line" id="L1674">    <span class="tok-kw">var</span> a = <span class="tok-kw">try</span> DynamicBitSetUnmanaged.initEmpty(allocator, <span class="tok-number">300</span>);</span>
-<span class="line" id="L1675">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), a.count());</span>
-<span class="line" id="L1676">    a.deinit(allocator);</span>
-<span class="line" id="L1677"></span>
-<span class="line" id="L1678">    a = <span class="tok-kw">try</span> DynamicBitSetUnmanaged.initEmpty(allocator, <span class="tok-number">0</span>);</span>
-<span class="line" id="L1679">    <span class="tok-kw">defer</span> a.deinit(allocator);</span>
-<span class="line" id="L1680">    <span class="tok-kw">for</span> ([_]<span class="tok-type">usize</span>{ <span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">31</span>, <span class="tok-number">32</span>, <span class="tok-number">33</span>, <span class="tok-number">0</span>, <span class="tok-number">65</span>, <span class="tok-number">64</span>, <span class="tok-number">63</span>, <span class="tok-number">500</span>, <span class="tok-number">254</span>, <span class="tok-number">3000</span> }) |size| {</span>
-<span class="line" id="L1681">        <span class="tok-kw">const</span> old_len = a.capacity();</span>
-<span class="line" id="L1682"></span>
-<span class="line" id="L1683">        <span class="tok-kw">var</span> empty = <span class="tok-kw">try</span> a.clone(allocator);</span>
-<span class="line" id="L1684">        <span class="tok-kw">defer</span> empty.deinit(allocator);</span>
-<span class="line" id="L1685">        <span class="tok-kw">try</span> testing.expectEqual(old_len, empty.capacity());</span>
-<span class="line" id="L1686">        <span class="tok-kw">var</span> i: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
-<span class="line" id="L1687">        <span class="tok-kw">while</span> (i &lt; old_len) : (i += <span class="tok-number">1</span>) {</span>
-<span class="line" id="L1688">            <span class="tok-kw">try</span> testing.expectEqual(a.isSet(i), empty.isSet(i));</span>
-<span class="line" id="L1689">        }</span>
-<span class="line" id="L1690"></span>
-<span class="line" id="L1691">        a.toggleSet(a); <span class="tok-comment">// zero a</span>
+<span class="line" id="L1640">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_c) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L1641">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L1642"></span>
+<span class="line" id="L1643">    <span class="tok-kw">try</span> testStaticBitSet(IntegerBitSet(<span class="tok-number">0</span>));</span>
+<span class="line" id="L1644">    <span class="tok-kw">try</span> testStaticBitSet(IntegerBitSet(<span class="tok-number">1</span>));</span>
+<span class="line" id="L1645">    <span class="tok-kw">try</span> testStaticBitSet(IntegerBitSet(<span class="tok-number">2</span>));</span>
+<span class="line" id="L1646">    <span class="tok-kw">try</span> testStaticBitSet(IntegerBitSet(<span class="tok-number">5</span>));</span>
+<span class="line" id="L1647">    <span class="tok-kw">try</span> testStaticBitSet(IntegerBitSet(<span class="tok-number">8</span>));</span>
+<span class="line" id="L1648">    <span class="tok-kw">try</span> testStaticBitSet(IntegerBitSet(<span class="tok-number">32</span>));</span>
+<span class="line" id="L1649">    <span class="tok-kw">try</span> testStaticBitSet(IntegerBitSet(<span class="tok-number">64</span>));</span>
+<span class="line" id="L1650">    <span class="tok-kw">try</span> testStaticBitSet(IntegerBitSet(<span class="tok-number">127</span>));</span>
+<span class="line" id="L1651">}</span>
+<span class="line" id="L1652"></span>
+<span class="line" id="L1653"><span class="tok-kw">test</span> <span class="tok-str">&quot;ArrayBitSet&quot;</span> {</span>
+<span class="line" id="L1654">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L1655"></span>
+<span class="line" id="L1656">    <span class="tok-kw">inline</span> <span class="tok-kw">for</span> (.{ <span class="tok-number">0</span>, <span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">31</span>, <span class="tok-number">32</span>, <span class="tok-number">33</span>, <span class="tok-number">63</span>, <span class="tok-number">64</span>, <span class="tok-number">65</span>, <span class="tok-number">254</span>, <span class="tok-number">500</span>, <span class="tok-number">3000</span> }) |size| {</span>
+<span class="line" id="L1657">        <span class="tok-kw">try</span> testStaticBitSet(ArrayBitSet(<span class="tok-type">u8</span>, size));</span>
+<span class="line" id="L1658">        <span class="tok-kw">try</span> testStaticBitSet(ArrayBitSet(<span class="tok-type">u16</span>, size));</span>
+<span class="line" id="L1659">        <span class="tok-kw">try</span> testStaticBitSet(ArrayBitSet(<span class="tok-type">u32</span>, size));</span>
+<span class="line" id="L1660">        <span class="tok-kw">try</span> testStaticBitSet(ArrayBitSet(<span class="tok-type">u64</span>, size));</span>
+<span class="line" id="L1661">        <span class="tok-kw">try</span> testStaticBitSet(ArrayBitSet(<span class="tok-type">u128</span>, size));</span>
+<span class="line" id="L1662">    }</span>
+<span class="line" id="L1663">}</span>
+<span class="line" id="L1664"></span>
+<span class="line" id="L1665"><span class="tok-kw">test</span> <span class="tok-str">&quot;DynamicBitSetUnmanaged&quot;</span> {</span>
+<span class="line" id="L1666">    <span class="tok-kw">const</span> allocator = std.testing.allocator;</span>
+<span class="line" id="L1667">    <span class="tok-kw">var</span> a = <span class="tok-kw">try</span> DynamicBitSetUnmanaged.initEmpty(allocator, <span class="tok-number">300</span>);</span>
+<span class="line" id="L1668">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), a.count());</span>
+<span class="line" id="L1669">    a.deinit(allocator);</span>
+<span class="line" id="L1670"></span>
+<span class="line" id="L1671">    a = <span class="tok-kw">try</span> DynamicBitSetUnmanaged.initEmpty(allocator, <span class="tok-number">0</span>);</span>
+<span class="line" id="L1672">    <span class="tok-kw">defer</span> a.deinit(allocator);</span>
+<span class="line" id="L1673">    <span class="tok-kw">for</span> ([_]<span class="tok-type">usize</span>{ <span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">31</span>, <span class="tok-number">32</span>, <span class="tok-number">33</span>, <span class="tok-number">0</span>, <span class="tok-number">65</span>, <span class="tok-number">64</span>, <span class="tok-number">63</span>, <span class="tok-number">500</span>, <span class="tok-number">254</span>, <span class="tok-number">3000</span> }) |size| {</span>
+<span class="line" id="L1674">        <span class="tok-kw">const</span> old_len = a.capacity();</span>
+<span class="line" id="L1675"></span>
+<span class="line" id="L1676">        <span class="tok-kw">var</span> empty = <span class="tok-kw">try</span> a.clone(allocator);</span>
+<span class="line" id="L1677">        <span class="tok-kw">defer</span> empty.deinit(allocator);</span>
+<span class="line" id="L1678">        <span class="tok-kw">try</span> testing.expectEqual(old_len, empty.capacity());</span>
+<span class="line" id="L1679">        <span class="tok-kw">var</span> i: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
+<span class="line" id="L1680">        <span class="tok-kw">while</span> (i &lt; old_len) : (i += <span class="tok-number">1</span>) {</span>
+<span class="line" id="L1681">            <span class="tok-kw">try</span> testing.expectEqual(a.isSet(i), empty.isSet(i));</span>
+<span class="line" id="L1682">        }</span>
+<span class="line" id="L1683"></span>
+<span class="line" id="L1684">        a.toggleSet(a); <span class="tok-comment">// zero a</span>
 </span>
-<span class="line" id="L1692">        empty.toggleSet(empty);</span>
-<span class="line" id="L1693"></span>
-<span class="line" id="L1694">        <span class="tok-kw">try</span> a.resize(allocator, size, <span class="tok-null">true</span>);</span>
-<span class="line" id="L1695">        <span class="tok-kw">try</span> empty.resize(allocator, size, <span class="tok-null">false</span>);</span>
+<span class="line" id="L1685">        empty.toggleSet(empty);</span>
+<span class="line" id="L1686"></span>
+<span class="line" id="L1687">        <span class="tok-kw">try</span> a.resize(allocator, size, <span class="tok-null">true</span>);</span>
+<span class="line" id="L1688">        <span class="tok-kw">try</span> empty.resize(allocator, size, <span class="tok-null">false</span>);</span>
+<span class="line" id="L1689"></span>
+<span class="line" id="L1690">        <span class="tok-kw">if</span> (size &gt; old_len) {</span>
+<span class="line" id="L1691">            <span class="tok-kw">try</span> testing.expectEqual(size - old_len, a.count());</span>
+<span class="line" id="L1692">        } <span class="tok-kw">else</span> {</span>
+<span class="line" id="L1693">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), a.count());</span>
+<span class="line" id="L1694">        }</span>
+<span class="line" id="L1695">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), empty.count());</span>
 <span class="line" id="L1696"></span>
-<span class="line" id="L1697">        <span class="tok-kw">if</span> (size &gt; old_len) {</span>
-<span class="line" id="L1698">            <span class="tok-kw">try</span> testing.expectEqual(size - old_len, a.count());</span>
-<span class="line" id="L1699">        } <span class="tok-kw">else</span> {</span>
-<span class="line" id="L1700">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), a.count());</span>
-<span class="line" id="L1701">        }</span>
-<span class="line" id="L1702">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), empty.count());</span>
-<span class="line" id="L1703"></span>
-<span class="line" id="L1704">        <span class="tok-kw">var</span> full = <span class="tok-kw">try</span> DynamicBitSetUnmanaged.initFull(allocator, size);</span>
-<span class="line" id="L1705">        <span class="tok-kw">defer</span> full.deinit(allocator);</span>
-<span class="line" id="L1706">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, size), full.count());</span>
-<span class="line" id="L1707"></span>
-<span class="line" id="L1708">        <span class="tok-kw">try</span> testEql(empty, full, size);</span>
-<span class="line" id="L1709">        {</span>
-<span class="line" id="L1710">            <span class="tok-kw">var</span> even = <span class="tok-kw">try</span> DynamicBitSetUnmanaged.initEmpty(allocator, size);</span>
-<span class="line" id="L1711">            <span class="tok-kw">defer</span> even.deinit(allocator);</span>
-<span class="line" id="L1712">            fillEven(&amp;even, size);</span>
-<span class="line" id="L1713"></span>
-<span class="line" id="L1714">            <span class="tok-kw">var</span> odd = <span class="tok-kw">try</span> DynamicBitSetUnmanaged.initEmpty(allocator, size);</span>
-<span class="line" id="L1715">            <span class="tok-kw">defer</span> odd.deinit(allocator);</span>
-<span class="line" id="L1716">            fillOdd(&amp;odd, size);</span>
+<span class="line" id="L1697">        <span class="tok-kw">var</span> full = <span class="tok-kw">try</span> DynamicBitSetUnmanaged.initFull(allocator, size);</span>
+<span class="line" id="L1698">        <span class="tok-kw">defer</span> full.deinit(allocator);</span>
+<span class="line" id="L1699">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, size), full.count());</span>
+<span class="line" id="L1700"></span>
+<span class="line" id="L1701">        <span class="tok-kw">try</span> testEql(empty, full, size);</span>
+<span class="line" id="L1702">        {</span>
+<span class="line" id="L1703">            <span class="tok-kw">var</span> even = <span class="tok-kw">try</span> DynamicBitSetUnmanaged.initEmpty(allocator, size);</span>
+<span class="line" id="L1704">            <span class="tok-kw">defer</span> even.deinit(allocator);</span>
+<span class="line" id="L1705">            fillEven(&amp;even, size);</span>
+<span class="line" id="L1706"></span>
+<span class="line" id="L1707">            <span class="tok-kw">var</span> odd = <span class="tok-kw">try</span> DynamicBitSetUnmanaged.initEmpty(allocator, size);</span>
+<span class="line" id="L1708">            <span class="tok-kw">defer</span> odd.deinit(allocator);</span>
+<span class="line" id="L1709">            fillOdd(&amp;odd, size);</span>
+<span class="line" id="L1710"></span>
+<span class="line" id="L1711">            <span class="tok-kw">try</span> testSubsetOf(empty, full, even, odd, size);</span>
+<span class="line" id="L1712">            <span class="tok-kw">try</span> testSupersetOf(empty, full, even, odd, size);</span>
+<span class="line" id="L1713">        }</span>
+<span class="line" id="L1714">        <span class="tok-kw">try</span> testBitSet(&amp;a, &amp;full, size);</span>
+<span class="line" id="L1715">    }</span>
+<span class="line" id="L1716">}</span>
 <span class="line" id="L1717"></span>
-<span class="line" id="L1718">            <span class="tok-kw">try</span> testSubsetOf(empty, full, even, odd, size);</span>
-<span class="line" id="L1719">            <span class="tok-kw">try</span> testSupersetOf(empty, full, even, odd, size);</span>
-<span class="line" id="L1720">        }</span>
-<span class="line" id="L1721">        <span class="tok-kw">try</span> testBitSet(&amp;a, &amp;full, size);</span>
-<span class="line" id="L1722">    }</span>
-<span class="line" id="L1723">}</span>
-<span class="line" id="L1724"></span>
-<span class="line" id="L1725"><span class="tok-kw">test</span> <span class="tok-str">&quot;DynamicBitSet&quot;</span> {</span>
-<span class="line" id="L1726">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L1727"></span>
-<span class="line" id="L1728">    <span class="tok-kw">const</span> allocator = std.testing.allocator;</span>
-<span class="line" id="L1729">    <span class="tok-kw">var</span> a = <span class="tok-kw">try</span> DynamicBitSet.initEmpty(allocator, <span class="tok-number">300</span>);</span>
-<span class="line" id="L1730">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), a.count());</span>
-<span class="line" id="L1731">    a.deinit();</span>
-<span class="line" id="L1732"></span>
-<span class="line" id="L1733">    a = <span class="tok-kw">try</span> DynamicBitSet.initEmpty(allocator, <span class="tok-number">0</span>);</span>
-<span class="line" id="L1734">    <span class="tok-kw">defer</span> a.deinit();</span>
-<span class="line" id="L1735">    <span class="tok-kw">for</span> ([_]<span class="tok-type">usize</span>{ <span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">31</span>, <span class="tok-number">32</span>, <span class="tok-number">33</span>, <span class="tok-number">0</span>, <span class="tok-number">65</span>, <span class="tok-number">64</span>, <span class="tok-number">63</span>, <span class="tok-number">500</span>, <span class="tok-number">254</span>, <span class="tok-number">3000</span> }) |size| {</span>
-<span class="line" id="L1736">        <span class="tok-kw">const</span> old_len = a.capacity();</span>
-<span class="line" id="L1737"></span>
-<span class="line" id="L1738">        <span class="tok-kw">var</span> tmp = <span class="tok-kw">try</span> a.clone(allocator);</span>
-<span class="line" id="L1739">        <span class="tok-kw">defer</span> tmp.deinit();</span>
-<span class="line" id="L1740">        <span class="tok-kw">try</span> testing.expectEqual(old_len, tmp.capacity());</span>
-<span class="line" id="L1741">        <span class="tok-kw">var</span> i: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
-<span class="line" id="L1742">        <span class="tok-kw">while</span> (i &lt; old_len) : (i += <span class="tok-number">1</span>) {</span>
-<span class="line" id="L1743">            <span class="tok-kw">try</span> testing.expectEqual(a.isSet(i), tmp.isSet(i));</span>
-<span class="line" id="L1744">        }</span>
-<span class="line" id="L1745"></span>
-<span class="line" id="L1746">        a.toggleSet(a); <span class="tok-comment">// zero a</span>
+<span class="line" id="L1718"><span class="tok-kw">test</span> <span class="tok-str">&quot;DynamicBitSet&quot;</span> {</span>
+<span class="line" id="L1719">    <span class="tok-kw">const</span> allocator = std.testing.allocator;</span>
+<span class="line" id="L1720">    <span class="tok-kw">var</span> a = <span class="tok-kw">try</span> DynamicBitSet.initEmpty(allocator, <span class="tok-number">300</span>);</span>
+<span class="line" id="L1721">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), a.count());</span>
+<span class="line" id="L1722">    a.deinit();</span>
+<span class="line" id="L1723"></span>
+<span class="line" id="L1724">    a = <span class="tok-kw">try</span> DynamicBitSet.initEmpty(allocator, <span class="tok-number">0</span>);</span>
+<span class="line" id="L1725">    <span class="tok-kw">defer</span> a.deinit();</span>
+<span class="line" id="L1726">    <span class="tok-kw">for</span> ([_]<span class="tok-type">usize</span>{ <span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">31</span>, <span class="tok-number">32</span>, <span class="tok-number">33</span>, <span class="tok-number">0</span>, <span class="tok-number">65</span>, <span class="tok-number">64</span>, <span class="tok-number">63</span>, <span class="tok-number">500</span>, <span class="tok-number">254</span>, <span class="tok-number">3000</span> }) |size| {</span>
+<span class="line" id="L1727">        <span class="tok-kw">const</span> old_len = a.capacity();</span>
+<span class="line" id="L1728"></span>
+<span class="line" id="L1729">        <span class="tok-kw">var</span> tmp = <span class="tok-kw">try</span> a.clone(allocator);</span>
+<span class="line" id="L1730">        <span class="tok-kw">defer</span> tmp.deinit();</span>
+<span class="line" id="L1731">        <span class="tok-kw">try</span> testing.expectEqual(old_len, tmp.capacity());</span>
+<span class="line" id="L1732">        <span class="tok-kw">var</span> i: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
+<span class="line" id="L1733">        <span class="tok-kw">while</span> (i &lt; old_len) : (i += <span class="tok-number">1</span>) {</span>
+<span class="line" id="L1734">            <span class="tok-kw">try</span> testing.expectEqual(a.isSet(i), tmp.isSet(i));</span>
+<span class="line" id="L1735">        }</span>
+<span class="line" id="L1736"></span>
+<span class="line" id="L1737">        a.toggleSet(a); <span class="tok-comment">// zero a</span>
 </span>
-<span class="line" id="L1747">        tmp.toggleSet(tmp); <span class="tok-comment">// zero tmp</span>
+<span class="line" id="L1738">        tmp.toggleSet(tmp); <span class="tok-comment">// zero tmp</span>
 </span>
-<span class="line" id="L1748"></span>
-<span class="line" id="L1749">        <span class="tok-kw">try</span> a.resize(size, <span class="tok-null">true</span>);</span>
-<span class="line" id="L1750">        <span class="tok-kw">try</span> tmp.resize(size, <span class="tok-null">false</span>);</span>
-<span class="line" id="L1751"></span>
-<span class="line" id="L1752">        <span class="tok-kw">if</span> (size &gt; old_len) {</span>
-<span class="line" id="L1753">            <span class="tok-kw">try</span> testing.expectEqual(size - old_len, a.count());</span>
-<span class="line" id="L1754">        } <span class="tok-kw">else</span> {</span>
-<span class="line" id="L1755">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), a.count());</span>
-<span class="line" id="L1756">        }</span>
-<span class="line" id="L1757">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), tmp.count());</span>
+<span class="line" id="L1739"></span>
+<span class="line" id="L1740">        <span class="tok-kw">try</span> a.resize(size, <span class="tok-null">true</span>);</span>
+<span class="line" id="L1741">        <span class="tok-kw">try</span> tmp.resize(size, <span class="tok-null">false</span>);</span>
+<span class="line" id="L1742"></span>
+<span class="line" id="L1743">        <span class="tok-kw">if</span> (size &gt; old_len) {</span>
+<span class="line" id="L1744">            <span class="tok-kw">try</span> testing.expectEqual(size - old_len, a.count());</span>
+<span class="line" id="L1745">        } <span class="tok-kw">else</span> {</span>
+<span class="line" id="L1746">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), a.count());</span>
+<span class="line" id="L1747">        }</span>
+<span class="line" id="L1748">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), tmp.count());</span>
+<span class="line" id="L1749"></span>
+<span class="line" id="L1750">        <span class="tok-kw">var</span> b = <span class="tok-kw">try</span> DynamicBitSet.initFull(allocator, size);</span>
+<span class="line" id="L1751">        <span class="tok-kw">defer</span> b.deinit();</span>
+<span class="line" id="L1752">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, size), b.count());</span>
+<span class="line" id="L1753"></span>
+<span class="line" id="L1754">        <span class="tok-kw">try</span> testEql(tmp, b, size);</span>
+<span class="line" id="L1755">        <span class="tok-kw">try</span> testBitSet(&amp;a, &amp;b, size);</span>
+<span class="line" id="L1756">    }</span>
+<span class="line" id="L1757">}</span>
 <span class="line" id="L1758"></span>
-<span class="line" id="L1759">        <span class="tok-kw">var</span> b = <span class="tok-kw">try</span> DynamicBitSet.initFull(allocator, size);</span>
-<span class="line" id="L1760">        <span class="tok-kw">defer</span> b.deinit();</span>
-<span class="line" id="L1761">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, size), b.count());</span>
-<span class="line" id="L1762"></span>
-<span class="line" id="L1763">        <span class="tok-kw">try</span> testEql(tmp, b, size);</span>
-<span class="line" id="L1764">        <span class="tok-kw">try</span> testBitSet(&amp;a, &amp;b, size);</span>
-<span class="line" id="L1765">    }</span>
-<span class="line" id="L1766">}</span>
-<span class="line" id="L1767"></span>
-<span class="line" id="L1768"><span class="tok-kw">test</span> <span class="tok-str">&quot;StaticBitSet&quot;</span> {</span>
-<span class="line" id="L1769">    <span class="tok-kw">try</span> testing.expectEqual(IntegerBitSet(<span class="tok-number">0</span>), StaticBitSet(<span class="tok-number">0</span>));</span>
-<span class="line" id="L1770">    <span class="tok-kw">try</span> testing.expectEqual(IntegerBitSet(<span class="tok-number">5</span>), StaticBitSet(<span class="tok-number">5</span>));</span>
-<span class="line" id="L1771">    <span class="tok-kw">try</span> testing.expectEqual(IntegerBitSet(<span class="tok-builtin">@bitSizeOf</span>(<span class="tok-type">usize</span>)), StaticBitSet(<span class="tok-builtin">@bitSizeOf</span>(<span class="tok-type">usize</span>)));</span>
-<span class="line" id="L1772">    <span class="tok-kw">try</span> testing.expectEqual(ArrayBitSet(<span class="tok-type">usize</span>, <span class="tok-builtin">@bitSizeOf</span>(<span class="tok-type">usize</span>) + <span class="tok-number">1</span>), StaticBitSet(<span class="tok-builtin">@bitSizeOf</span>(<span class="tok-type">usize</span>) + <span class="tok-number">1</span>));</span>
-<span class="line" id="L1773">    <span class="tok-kw">try</span> testing.expectEqual(ArrayBitSet(<span class="tok-type">usize</span>, <span class="tok-number">500</span>), StaticBitSet(<span class="tok-number">500</span>));</span>
-<span class="line" id="L1774">}</span>
-<span class="line" id="L1775"></span>
+<span class="line" id="L1759"><span class="tok-kw">test</span> <span class="tok-str">&quot;StaticBitSet&quot;</span> {</span>
+<span class="line" id="L1760">    <span class="tok-kw">try</span> testing.expectEqual(IntegerBitSet(<span class="tok-number">0</span>), StaticBitSet(<span class="tok-number">0</span>));</span>
+<span class="line" id="L1761">    <span class="tok-kw">try</span> testing.expectEqual(IntegerBitSet(<span class="tok-number">5</span>), StaticBitSet(<span class="tok-number">5</span>));</span>
+<span class="line" id="L1762">    <span class="tok-kw">try</span> testing.expectEqual(IntegerBitSet(<span class="tok-builtin">@bitSizeOf</span>(<span class="tok-type">usize</span>)), StaticBitSet(<span class="tok-builtin">@bitSizeOf</span>(<span class="tok-type">usize</span>)));</span>
+<span class="line" id="L1763">    <span class="tok-kw">try</span> testing.expectEqual(ArrayBitSet(<span class="tok-type">usize</span>, <span class="tok-builtin">@bitSizeOf</span>(<span class="tok-type">usize</span>) + <span class="tok-number">1</span>), StaticBitSet(<span class="tok-builtin">@bitSizeOf</span>(<span class="tok-type">usize</span>) + <span class="tok-number">1</span>));</span>
+<span class="line" id="L1764">    <span class="tok-kw">try</span> testing.expectEqual(ArrayBitSet(<span class="tok-type">usize</span>, <span class="tok-number">500</span>), StaticBitSet(<span class="tok-number">500</span>));</span>
+<span class="line" id="L1765">}</span>
+<span class="line" id="L1766"></span>
 </code></pre></body>
 </html>

@@ -490,54 +490,54 @@
 <span class="line" id="L324">        <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
 <span class="line" id="L325">    }</span>
 <span class="line" id="L326"></span>
-<span class="line" id="L327">    <span class="tok-kw">const</span> num_threads = <span class="tok-number">4</span>;</span>
+<span class="line" id="L327">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
 <span class="line" id="L328"></span>
-<span class="line" id="L329">    <span class="tok-kw">const</span> MultiWait = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L330">        mutex: Mutex = .{},</span>
-<span class="line" id="L331">        cond: Condition = .{},</span>
-<span class="line" id="L332">        threads: [num_threads]std.Thread = <span class="tok-null">undefined</span>,</span>
-<span class="line" id="L333">        spawn_count: std.math.IntFittingRange(<span class="tok-number">0</span>, num_threads) = <span class="tok-number">0</span>,</span>
-<span class="line" id="L334"></span>
-<span class="line" id="L335">        <span class="tok-kw">fn</span> <span class="tok-fn">run</span>(self: *<span class="tok-builtin">@This</span>()) <span class="tok-type">void</span> {</span>
-<span class="line" id="L336">            self.mutex.lock();</span>
-<span class="line" id="L337">            <span class="tok-kw">defer</span> self.mutex.unlock();</span>
-<span class="line" id="L338">            self.spawn_count += <span class="tok-number">1</span>;</span>
-<span class="line" id="L339"></span>
-<span class="line" id="L340">            self.cond.wait(&amp;self.mutex);</span>
-<span class="line" id="L341">            self.cond.timedWait(&amp;self.mutex, std.time.ns_per_ms) <span class="tok-kw">catch</span> {};</span>
-<span class="line" id="L342">            self.cond.signal();</span>
-<span class="line" id="L343">        }</span>
-<span class="line" id="L344">    };</span>
-<span class="line" id="L345"></span>
-<span class="line" id="L346">    <span class="tok-kw">var</span> multi_wait = MultiWait{};</span>
-<span class="line" id="L347">    <span class="tok-kw">for</span> (&amp;multi_wait.threads) |*t| {</span>
-<span class="line" id="L348">        t.* = <span class="tok-kw">try</span> std.Thread.spawn(.{}, MultiWait.run, .{&amp;multi_wait});</span>
-<span class="line" id="L349">    }</span>
-<span class="line" id="L350"></span>
-<span class="line" id="L351">    <span class="tok-kw">while</span> (<span class="tok-null">true</span>) {</span>
-<span class="line" id="L352">        std.time.sleep(<span class="tok-number">100</span> * std.time.ns_per_ms);</span>
-<span class="line" id="L353"></span>
-<span class="line" id="L354">        multi_wait.mutex.lock();</span>
-<span class="line" id="L355">        <span class="tok-kw">defer</span> multi_wait.mutex.unlock();</span>
-<span class="line" id="L356">        <span class="tok-comment">// Make sure all of the threads have finished spawning to avoid a deadlock.</span>
+<span class="line" id="L329">    <span class="tok-kw">const</span> num_threads = <span class="tok-number">4</span>;</span>
+<span class="line" id="L330"></span>
+<span class="line" id="L331">    <span class="tok-kw">const</span> MultiWait = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L332">        mutex: Mutex = .{},</span>
+<span class="line" id="L333">        cond: Condition = .{},</span>
+<span class="line" id="L334">        threads: [num_threads]std.Thread = <span class="tok-null">undefined</span>,</span>
+<span class="line" id="L335">        spawn_count: std.math.IntFittingRange(<span class="tok-number">0</span>, num_threads) = <span class="tok-number">0</span>,</span>
+<span class="line" id="L336"></span>
+<span class="line" id="L337">        <span class="tok-kw">fn</span> <span class="tok-fn">run</span>(self: *<span class="tok-builtin">@This</span>()) <span class="tok-type">void</span> {</span>
+<span class="line" id="L338">            self.mutex.lock();</span>
+<span class="line" id="L339">            <span class="tok-kw">defer</span> self.mutex.unlock();</span>
+<span class="line" id="L340">            self.spawn_count += <span class="tok-number">1</span>;</span>
+<span class="line" id="L341"></span>
+<span class="line" id="L342">            self.cond.wait(&amp;self.mutex);</span>
+<span class="line" id="L343">            self.cond.timedWait(&amp;self.mutex, std.time.ns_per_ms) <span class="tok-kw">catch</span> {};</span>
+<span class="line" id="L344">            self.cond.signal();</span>
+<span class="line" id="L345">        }</span>
+<span class="line" id="L346">    };</span>
+<span class="line" id="L347"></span>
+<span class="line" id="L348">    <span class="tok-kw">var</span> multi_wait = MultiWait{};</span>
+<span class="line" id="L349">    <span class="tok-kw">for</span> (&amp;multi_wait.threads) |*t| {</span>
+<span class="line" id="L350">        t.* = <span class="tok-kw">try</span> std.Thread.spawn(.{}, MultiWait.run, .{&amp;multi_wait});</span>
+<span class="line" id="L351">    }</span>
+<span class="line" id="L352"></span>
+<span class="line" id="L353">    <span class="tok-kw">while</span> (<span class="tok-null">true</span>) {</span>
+<span class="line" id="L354">        std.time.sleep(<span class="tok-number">100</span> * std.time.ns_per_ms);</span>
+<span class="line" id="L355"></span>
+<span class="line" id="L356">        multi_wait.mutex.lock();</span>
+<span class="line" id="L357">        <span class="tok-kw">defer</span> multi_wait.mutex.unlock();</span>
+<span class="line" id="L358">        <span class="tok-comment">// Make sure all of the threads have finished spawning to avoid a deadlock.</span>
 </span>
-<span class="line" id="L357">        <span class="tok-kw">if</span> (multi_wait.spawn_count == num_threads) <span class="tok-kw">break</span>;</span>
-<span class="line" id="L358">    }</span>
-<span class="line" id="L359"></span>
-<span class="line" id="L360">    multi_wait.cond.signal();</span>
-<span class="line" id="L361">    <span class="tok-kw">for</span> (multi_wait.threads) |t| {</span>
-<span class="line" id="L362">        t.join();</span>
-<span class="line" id="L363">    }</span>
-<span class="line" id="L364">}</span>
-<span class="line" id="L365"></span>
-<span class="line" id="L366"><span class="tok-kw">test</span> <span class="tok-str">&quot;Condition - signal&quot;</span> {</span>
-<span class="line" id="L367">    <span class="tok-comment">// This test requires spawning threads</span>
+<span class="line" id="L359">        <span class="tok-kw">if</span> (multi_wait.spawn_count == num_threads) <span class="tok-kw">break</span>;</span>
+<span class="line" id="L360">    }</span>
+<span class="line" id="L361"></span>
+<span class="line" id="L362">    multi_wait.cond.signal();</span>
+<span class="line" id="L363">    <span class="tok-kw">for</span> (multi_wait.threads) |t| {</span>
+<span class="line" id="L364">        t.join();</span>
+<span class="line" id="L365">    }</span>
+<span class="line" id="L366">}</span>
+<span class="line" id="L367"></span>
+<span class="line" id="L368"><span class="tok-kw">test</span> <span class="tok-str">&quot;Condition - signal&quot;</span> {</span>
+<span class="line" id="L369">    <span class="tok-comment">// This test requires spawning threads</span>
 </span>
-<span class="line" id="L368">    <span class="tok-kw">if</span> (builtin.single_threaded) {</span>
-<span class="line" id="L369">        <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L370">    }</span>
-<span class="line" id="L371"></span>
-<span class="line" id="L372">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L370">    <span class="tok-kw">if</span> (builtin.single_threaded) {</span>
+<span class="line" id="L371">        <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L372">    }</span>
 <span class="line" id="L373"></span>
 <span class="line" id="L374">    <span class="tok-kw">const</span> num_threads = <span class="tok-number">4</span>;</span>
 <span class="line" id="L375"></span>

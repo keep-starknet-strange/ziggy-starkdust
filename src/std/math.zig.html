@@ -1036,12 +1036,12 @@
 <span class="line" id="L903">}</span>
 <span class="line" id="L904"></span>
 <span class="line" id="L905"><span class="tok-kw">test</span> <span class="tok-str">&quot;mod&quot;</span> {</span>
-<span class="line" id="L906">    <span class="tok-kw">try</span> testMod();</span>
-<span class="line" id="L907">    <span class="tok-kw">try</span> <span class="tok-kw">comptime</span> testMod();</span>
-<span class="line" id="L908">}</span>
-<span class="line" id="L909"><span class="tok-kw">fn</span> <span class="tok-fn">testMod</span>() !<span class="tok-type">void</span> {</span>
-<span class="line" id="L910">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L911"></span>
+<span class="line" id="L906">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L907"></span>
+<span class="line" id="L908">    <span class="tok-kw">try</span> testMod();</span>
+<span class="line" id="L909">    <span class="tok-kw">try</span> <span class="tok-kw">comptime</span> testMod();</span>
+<span class="line" id="L910">}</span>
+<span class="line" id="L911"><span class="tok-kw">fn</span> <span class="tok-fn">testMod</span>() !<span class="tok-type">void</span> {</span>
 <span class="line" id="L912">    <span class="tok-kw">try</span> testing.expect((mod(<span class="tok-type">i32</span>, -<span class="tok-number">5</span>, <span class="tok-number">3</span>) <span class="tok-kw">catch</span> <span class="tok-kw">unreachable</span>) == <span class="tok-number">1</span>);</span>
 <span class="line" id="L913">    <span class="tok-kw">try</span> testing.expect((mod(<span class="tok-type">i32</span>, <span class="tok-number">5</span>, <span class="tok-number">3</span>) <span class="tok-kw">catch</span> <span class="tok-kw">unreachable</span>) == <span class="tok-number">2</span>);</span>
 <span class="line" id="L914">    <span class="tok-kw">try</span> testing.expectError(<span class="tok-kw">error</span>.NegativeDenominator, mod(<span class="tok-type">i32</span>, <span class="tok-number">10</span>, -<span class="tok-number">1</span>));</span>

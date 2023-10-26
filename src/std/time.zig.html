@@ -461,28 +461,26 @@
 <span class="line" id="L321">};</span>
 <span class="line" id="L322"></span>
 <span class="line" id="L323"><span class="tok-kw">test</span> <span class="tok-str">&quot;Timer + Instant&quot;</span> {</span>
-<span class="line" id="L324">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L324">    <span class="tok-kw">const</span> margin = ns_per_ms * <span class="tok-number">150</span>;</span>
 <span class="line" id="L325"></span>
-<span class="line" id="L326">    <span class="tok-kw">const</span> margin = ns_per_ms * <span class="tok-number">150</span>;</span>
-<span class="line" id="L327"></span>
-<span class="line" id="L328">    <span class="tok-kw">var</span> timer = <span class="tok-kw">try</span> Timer.start();</span>
-<span class="line" id="L329">    sleep(<span class="tok-number">10</span> * ns_per_ms);</span>
-<span class="line" id="L330">    <span class="tok-kw">const</span> time_0 = timer.read();</span>
-<span class="line" id="L331">    <span class="tok-kw">try</span> testing.expect(time_0 &gt; <span class="tok-number">0</span>);</span>
-<span class="line" id="L332">    <span class="tok-comment">// Tests should not depend on timings: skip test if outside margin.</span>
+<span class="line" id="L326">    <span class="tok-kw">var</span> timer = <span class="tok-kw">try</span> Timer.start();</span>
+<span class="line" id="L327">    sleep(<span class="tok-number">10</span> * ns_per_ms);</span>
+<span class="line" id="L328">    <span class="tok-kw">const</span> time_0 = timer.read();</span>
+<span class="line" id="L329">    <span class="tok-kw">try</span> testing.expect(time_0 &gt; <span class="tok-number">0</span>);</span>
+<span class="line" id="L330">    <span class="tok-comment">// Tests should not depend on timings: skip test if outside margin.</span>
 </span>
-<span class="line" id="L333">    <span class="tok-kw">if</span> (!(time_0 &lt; margin)) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L334"></span>
-<span class="line" id="L335">    <span class="tok-kw">const</span> time_1 = timer.lap();</span>
-<span class="line" id="L336">    <span class="tok-kw">try</span> testing.expect(time_1 &gt;= time_0);</span>
-<span class="line" id="L337"></span>
-<span class="line" id="L338">    timer.reset();</span>
-<span class="line" id="L339">    <span class="tok-kw">try</span> testing.expect(timer.read() &lt; time_1);</span>
-<span class="line" id="L340">}</span>
-<span class="line" id="L341"></span>
-<span class="line" id="L342"><span class="tok-kw">test</span> {</span>
-<span class="line" id="L343">    _ = epoch;</span>
-<span class="line" id="L344">}</span>
-<span class="line" id="L345"></span>
+<span class="line" id="L331">    <span class="tok-kw">if</span> (!(time_0 &lt; margin)) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L332"></span>
+<span class="line" id="L333">    <span class="tok-kw">const</span> time_1 = timer.lap();</span>
+<span class="line" id="L334">    <span class="tok-kw">try</span> testing.expect(time_1 &gt;= time_0);</span>
+<span class="line" id="L335"></span>
+<span class="line" id="L336">    timer.reset();</span>
+<span class="line" id="L337">    <span class="tok-kw">try</span> testing.expect(timer.read() &lt; time_1);</span>
+<span class="line" id="L338">}</span>
+<span class="line" id="L339"></span>
+<span class="line" id="L340"><span class="tok-kw">test</span> {</span>
+<span class="line" id="L341">    _ = epoch;</span>
+<span class="line" id="L342">}</span>
+<span class="line" id="L343"></span>
 </code></pre></body>
 </html>

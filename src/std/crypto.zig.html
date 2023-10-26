@@ -428,44 +428,42 @@
 <span class="line" id="L314">}</span>
 <span class="line" id="L315"></span>
 <span class="line" id="L316"><span class="tok-kw">test</span> <span class="tok-str">&quot;issue #4532: no index out of bounds&quot;</span> {</span>
-<span class="line" id="L317">    <span class="tok-kw">if</span> (<span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>).zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L318"></span>
-<span class="line" id="L319">    <span class="tok-kw">const</span> types = [_]<span class="tok-type">type</span>{</span>
-<span class="line" id="L320">        hash.Md5,</span>
-<span class="line" id="L321">        hash.Sha1,</span>
-<span class="line" id="L322">        hash.sha2.Sha224,</span>
-<span class="line" id="L323">        hash.sha2.Sha256,</span>
-<span class="line" id="L324">        hash.sha2.Sha384,</span>
-<span class="line" id="L325">        hash.sha2.Sha512,</span>
-<span class="line" id="L326">        hash.sha3.Sha3_224,</span>
-<span class="line" id="L327">        hash.sha3.Sha3_256,</span>
-<span class="line" id="L328">        hash.sha3.Sha3_384,</span>
-<span class="line" id="L329">        hash.sha3.Sha3_512,</span>
-<span class="line" id="L330">        hash.blake2.Blake2s128,</span>
-<span class="line" id="L331">        hash.blake2.Blake2s224,</span>
-<span class="line" id="L332">        hash.blake2.Blake2s256,</span>
-<span class="line" id="L333">        hash.blake2.Blake2b128,</span>
-<span class="line" id="L334">        hash.blake2.Blake2b256,</span>
-<span class="line" id="L335">        hash.blake2.Blake2b384,</span>
-<span class="line" id="L336">        hash.blake2.Blake2b512,</span>
-<span class="line" id="L337">    };</span>
-<span class="line" id="L338"></span>
-<span class="line" id="L339">    <span class="tok-kw">inline</span> <span class="tok-kw">for</span> (types) |Hasher| {</span>
-<span class="line" id="L340">        <span class="tok-kw">var</span> block = [_]<span class="tok-type">u8</span>{<span class="tok-str">'#'</span>} ** Hasher.block_length;</span>
-<span class="line" id="L341">        <span class="tok-kw">var</span> out1: [Hasher.digest_length]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L342">        <span class="tok-kw">var</span> out2: [Hasher.digest_length]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L343">        <span class="tok-kw">const</span> h0 = Hasher.init(.{});</span>
-<span class="line" id="L344">        <span class="tok-kw">var</span> h = h0;</span>
-<span class="line" id="L345">        h.update(block[<span class="tok-number">0</span>..]);</span>
-<span class="line" id="L346">        h.final(&amp;out1);</span>
-<span class="line" id="L347">        h = h0;</span>
-<span class="line" id="L348">        h.update(block[<span class="tok-number">0</span>..<span class="tok-number">1</span>]);</span>
-<span class="line" id="L349">        h.update(block[<span class="tok-number">1</span>..]);</span>
-<span class="line" id="L350">        h.final(&amp;out2);</span>
-<span class="line" id="L351"></span>
-<span class="line" id="L352">        <span class="tok-kw">try</span> std.testing.expectEqual(out1, out2);</span>
-<span class="line" id="L353">    }</span>
-<span class="line" id="L354">}</span>
-<span class="line" id="L355"></span>
+<span class="line" id="L317">    <span class="tok-kw">const</span> types = [_]<span class="tok-type">type</span>{</span>
+<span class="line" id="L318">        hash.Md5,</span>
+<span class="line" id="L319">        hash.Sha1,</span>
+<span class="line" id="L320">        hash.sha2.Sha224,</span>
+<span class="line" id="L321">        hash.sha2.Sha256,</span>
+<span class="line" id="L322">        hash.sha2.Sha384,</span>
+<span class="line" id="L323">        hash.sha2.Sha512,</span>
+<span class="line" id="L324">        hash.sha3.Sha3_224,</span>
+<span class="line" id="L325">        hash.sha3.Sha3_256,</span>
+<span class="line" id="L326">        hash.sha3.Sha3_384,</span>
+<span class="line" id="L327">        hash.sha3.Sha3_512,</span>
+<span class="line" id="L328">        hash.blake2.Blake2s128,</span>
+<span class="line" id="L329">        hash.blake2.Blake2s224,</span>
+<span class="line" id="L330">        hash.blake2.Blake2s256,</span>
+<span class="line" id="L331">        hash.blake2.Blake2b128,</span>
+<span class="line" id="L332">        hash.blake2.Blake2b256,</span>
+<span class="line" id="L333">        hash.blake2.Blake2b384,</span>
+<span class="line" id="L334">        hash.blake2.Blake2b512,</span>
+<span class="line" id="L335">    };</span>
+<span class="line" id="L336"></span>
+<span class="line" id="L337">    <span class="tok-kw">inline</span> <span class="tok-kw">for</span> (types) |Hasher| {</span>
+<span class="line" id="L338">        <span class="tok-kw">var</span> block = [_]<span class="tok-type">u8</span>{<span class="tok-str">'#'</span>} ** Hasher.block_length;</span>
+<span class="line" id="L339">        <span class="tok-kw">var</span> out1: [Hasher.digest_length]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L340">        <span class="tok-kw">var</span> out2: [Hasher.digest_length]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L341">        <span class="tok-kw">const</span> h0 = Hasher.init(.{});</span>
+<span class="line" id="L342">        <span class="tok-kw">var</span> h = h0;</span>
+<span class="line" id="L343">        h.update(block[<span class="tok-number">0</span>..]);</span>
+<span class="line" id="L344">        h.final(&amp;out1);</span>
+<span class="line" id="L345">        h = h0;</span>
+<span class="line" id="L346">        h.update(block[<span class="tok-number">0</span>..<span class="tok-number">1</span>]);</span>
+<span class="line" id="L347">        h.update(block[<span class="tok-number">1</span>..]);</span>
+<span class="line" id="L348">        h.final(&amp;out2);</span>
+<span class="line" id="L349"></span>
+<span class="line" id="L350">        <span class="tok-kw">try</span> std.testing.expectEqual(out1, out2);</span>
+<span class="line" id="L351">    }</span>
+<span class="line" id="L352">}</span>
+<span class="line" id="L353"></span>
 </code></pre></body>
 </html>

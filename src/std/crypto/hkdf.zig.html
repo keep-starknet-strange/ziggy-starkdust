@@ -187,24 +187,22 @@
 <span class="line" id="L72"><span class="tok-kw">const</span> htest = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;test.zig&quot;</span>);</span>
 <span class="line" id="L73"></span>
 <span class="line" id="L74"><span class="tok-kw">test</span> <span class="tok-str">&quot;Hkdf&quot;</span> {</span>
-<span class="line" id="L75">    <span class="tok-kw">if</span> (<span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>).zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L76"></span>
-<span class="line" id="L77">    <span class="tok-kw">const</span> ikm = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x0b</span>} ** <span class="tok-number">22</span>;</span>
-<span class="line" id="L78">    <span class="tok-kw">const</span> salt = [_]<span class="tok-type">u8</span>{ <span class="tok-number">0x00</span>, <span class="tok-number">0x01</span>, <span class="tok-number">0x02</span>, <span class="tok-number">0x03</span>, <span class="tok-number">0x04</span>, <span class="tok-number">0x05</span>, <span class="tok-number">0x06</span>, <span class="tok-number">0x07</span>, <span class="tok-number">0x08</span>, <span class="tok-number">0x09</span>, <span class="tok-number">0x0a</span>, <span class="tok-number">0x0b</span>, <span class="tok-number">0x0c</span> };</span>
-<span class="line" id="L79">    <span class="tok-kw">const</span> context = [_]<span class="tok-type">u8</span>{ <span class="tok-number">0xf0</span>, <span class="tok-number">0xf1</span>, <span class="tok-number">0xf2</span>, <span class="tok-number">0xf3</span>, <span class="tok-number">0xf4</span>, <span class="tok-number">0xf5</span>, <span class="tok-number">0xf6</span>, <span class="tok-number">0xf7</span>, <span class="tok-number">0xf8</span>, <span class="tok-number">0xf9</span> };</span>
-<span class="line" id="L80">    <span class="tok-kw">const</span> kdf = HkdfSha256;</span>
-<span class="line" id="L81">    <span class="tok-kw">const</span> prk = kdf.extract(&amp;salt, &amp;ikm);</span>
-<span class="line" id="L82">    <span class="tok-kw">try</span> htest.assertEqual(<span class="tok-str">&quot;077709362c2e32df0ddc3f0dc47bba6390b6c73bb50f9c3122ec844ad7c2b3e5&quot;</span>, &amp;prk);</span>
-<span class="line" id="L83">    <span class="tok-kw">var</span> out: [<span class="tok-number">42</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L84">    kdf.expand(&amp;out, &amp;context, prk);</span>
-<span class="line" id="L85">    <span class="tok-kw">try</span> htest.assertEqual(<span class="tok-str">&quot;3cb25f25faacd57a90434f64d0362f2a2d2d0a90cf1a5a4c5db02d56ecc4c5bf34007208d5b887185865&quot;</span>, &amp;out);</span>
-<span class="line" id="L86"></span>
-<span class="line" id="L87">    <span class="tok-kw">var</span> hkdf = kdf.extractInit(&amp;salt);</span>
-<span class="line" id="L88">    hkdf.update(&amp;ikm);</span>
-<span class="line" id="L89">    <span class="tok-kw">var</span> prk2: [kdf.prk_length]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L90">    hkdf.final(&amp;prk2);</span>
-<span class="line" id="L91">    <span class="tok-kw">try</span> htest.assertEqual(<span class="tok-str">&quot;077709362c2e32df0ddc3f0dc47bba6390b6c73bb50f9c3122ec844ad7c2b3e5&quot;</span>, &amp;prk2);</span>
-<span class="line" id="L92">}</span>
-<span class="line" id="L93"></span>
+<span class="line" id="L75">    <span class="tok-kw">const</span> ikm = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x0b</span>} ** <span class="tok-number">22</span>;</span>
+<span class="line" id="L76">    <span class="tok-kw">const</span> salt = [_]<span class="tok-type">u8</span>{ <span class="tok-number">0x00</span>, <span class="tok-number">0x01</span>, <span class="tok-number">0x02</span>, <span class="tok-number">0x03</span>, <span class="tok-number">0x04</span>, <span class="tok-number">0x05</span>, <span class="tok-number">0x06</span>, <span class="tok-number">0x07</span>, <span class="tok-number">0x08</span>, <span class="tok-number">0x09</span>, <span class="tok-number">0x0a</span>, <span class="tok-number">0x0b</span>, <span class="tok-number">0x0c</span> };</span>
+<span class="line" id="L77">    <span class="tok-kw">const</span> context = [_]<span class="tok-type">u8</span>{ <span class="tok-number">0xf0</span>, <span class="tok-number">0xf1</span>, <span class="tok-number">0xf2</span>, <span class="tok-number">0xf3</span>, <span class="tok-number">0xf4</span>, <span class="tok-number">0xf5</span>, <span class="tok-number">0xf6</span>, <span class="tok-number">0xf7</span>, <span class="tok-number">0xf8</span>, <span class="tok-number">0xf9</span> };</span>
+<span class="line" id="L78">    <span class="tok-kw">const</span> kdf = HkdfSha256;</span>
+<span class="line" id="L79">    <span class="tok-kw">const</span> prk = kdf.extract(&amp;salt, &amp;ikm);</span>
+<span class="line" id="L80">    <span class="tok-kw">try</span> htest.assertEqual(<span class="tok-str">&quot;077709362c2e32df0ddc3f0dc47bba6390b6c73bb50f9c3122ec844ad7c2b3e5&quot;</span>, &amp;prk);</span>
+<span class="line" id="L81">    <span class="tok-kw">var</span> out: [<span class="tok-number">42</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L82">    kdf.expand(&amp;out, &amp;context, prk);</span>
+<span class="line" id="L83">    <span class="tok-kw">try</span> htest.assertEqual(<span class="tok-str">&quot;3cb25f25faacd57a90434f64d0362f2a2d2d0a90cf1a5a4c5db02d56ecc4c5bf34007208d5b887185865&quot;</span>, &amp;out);</span>
+<span class="line" id="L84"></span>
+<span class="line" id="L85">    <span class="tok-kw">var</span> hkdf = kdf.extractInit(&amp;salt);</span>
+<span class="line" id="L86">    hkdf.update(&amp;ikm);</span>
+<span class="line" id="L87">    <span class="tok-kw">var</span> prk2: [kdf.prk_length]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L88">    hkdf.final(&amp;prk2);</span>
+<span class="line" id="L89">    <span class="tok-kw">try</span> htest.assertEqual(<span class="tok-str">&quot;077709362c2e32df0ddc3f0dc47bba6390b6c73bb50f9c3122ec844ad7c2b3e5&quot;</span>, &amp;prk2);</span>
+<span class="line" id="L90">}</span>
+<span class="line" id="L91"></span>
 </code></pre></body>
 </html>

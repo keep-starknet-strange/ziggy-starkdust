@@ -251,61 +251,57 @@
 <span class="line" id="L137">}</span>
 <span class="line" id="L138"></span>
 <span class="line" id="L139"><span class="tok-kw">test</span> <span class="tok-str">&quot;x25519 rfc7748 1,000 iterations&quot;</span> {</span>
-<span class="line" id="L140">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L141"></span>
-<span class="line" id="L142">    <span class="tok-comment">// These iteration tests are slow so we always skip them. Results have been verified.</span>
+<span class="line" id="L140">    <span class="tok-comment">// These iteration tests are slow so we always skip them. Results have been verified.</span>
 </span>
-<span class="line" id="L143">    <span class="tok-kw">if</span> (<span class="tok-null">true</span>) {</span>
-<span class="line" id="L144">        <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L145">    }</span>
-<span class="line" id="L146"></span>
-<span class="line" id="L147">    <span class="tok-kw">const</span> initial_value = [<span class="tok-number">32</span>]<span class="tok-type">u8</span>{ <span class="tok-number">0x09</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span> };</span>
-<span class="line" id="L148">    <span class="tok-kw">const</span> expected_output = [<span class="tok-number">32</span>]<span class="tok-type">u8</span>{ <span class="tok-number">0x68</span>, <span class="tok-number">0x4c</span>, <span class="tok-number">0xf5</span>, <span class="tok-number">0x9b</span>, <span class="tok-number">0xa8</span>, <span class="tok-number">0x33</span>, <span class="tok-number">0x09</span>, <span class="tok-number">0x55</span>, <span class="tok-number">0x28</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0xef</span>, <span class="tok-number">0x56</span>, <span class="tok-number">0x6f</span>, <span class="tok-number">0x2f</span>, <span class="tok-number">0x4d</span>, <span class="tok-number">0x3c</span>, <span class="tok-number">0x1c</span>, <span class="tok-number">0x38</span>, <span class="tok-number">0x87</span>, <span class="tok-number">0xc4</span>, <span class="tok-number">0x93</span>, <span class="tok-number">0x60</span>, <span class="tok-number">0xe3</span>, <span class="tok-number">0x87</span>, <span class="tok-number">0x5f</span>, <span class="tok-number">0x2e</span>, <span class="tok-number">0xb9</span>, <span class="tok-number">0x4d</span>, <span class="tok-number">0x99</span>, <span class="tok-number">0x53</span>, <span class="tok-number">0x2c</span>, <span class="tok-number">0x51</span> };</span>
-<span class="line" id="L149"></span>
-<span class="line" id="L150">    <span class="tok-kw">var</span> k: [<span class="tok-number">32</span>]<span class="tok-type">u8</span> = initial_value.*;</span>
-<span class="line" id="L151">    <span class="tok-kw">var</span> u: [<span class="tok-number">32</span>]<span class="tok-type">u8</span> = initial_value.*;</span>
-<span class="line" id="L152"></span>
-<span class="line" id="L153">    <span class="tok-kw">var</span> i: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
-<span class="line" id="L154">    <span class="tok-kw">while</span> (i &lt; <span class="tok-number">1000</span>) : (i += <span class="tok-number">1</span>) {</span>
-<span class="line" id="L155">        <span class="tok-kw">const</span> output = <span class="tok-kw">try</span> X25519.scalarmult(&amp;k, &amp;u);</span>
-<span class="line" id="L156">        u = k;</span>
-<span class="line" id="L157">        k = output;</span>
-<span class="line" id="L158">    }</span>
-<span class="line" id="L159"></span>
-<span class="line" id="L160">    <span class="tok-kw">try</span> std.testing.expectEqual(k, expected_output);</span>
-<span class="line" id="L161">}</span>
-<span class="line" id="L162"></span>
-<span class="line" id="L163"><span class="tok-kw">test</span> <span class="tok-str">&quot;x25519 rfc7748 1,000,000 iterations&quot;</span> {</span>
-<span class="line" id="L164">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L141">    <span class="tok-kw">if</span> (<span class="tok-null">true</span>) {</span>
+<span class="line" id="L142">        <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L143">    }</span>
+<span class="line" id="L144"></span>
+<span class="line" id="L145">    <span class="tok-kw">const</span> initial_value = [<span class="tok-number">32</span>]<span class="tok-type">u8</span>{ <span class="tok-number">0x09</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span> };</span>
+<span class="line" id="L146">    <span class="tok-kw">const</span> expected_output = [<span class="tok-number">32</span>]<span class="tok-type">u8</span>{ <span class="tok-number">0x68</span>, <span class="tok-number">0x4c</span>, <span class="tok-number">0xf5</span>, <span class="tok-number">0x9b</span>, <span class="tok-number">0xa8</span>, <span class="tok-number">0x33</span>, <span class="tok-number">0x09</span>, <span class="tok-number">0x55</span>, <span class="tok-number">0x28</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0xef</span>, <span class="tok-number">0x56</span>, <span class="tok-number">0x6f</span>, <span class="tok-number">0x2f</span>, <span class="tok-number">0x4d</span>, <span class="tok-number">0x3c</span>, <span class="tok-number">0x1c</span>, <span class="tok-number">0x38</span>, <span class="tok-number">0x87</span>, <span class="tok-number">0xc4</span>, <span class="tok-number">0x93</span>, <span class="tok-number">0x60</span>, <span class="tok-number">0xe3</span>, <span class="tok-number">0x87</span>, <span class="tok-number">0x5f</span>, <span class="tok-number">0x2e</span>, <span class="tok-number">0xb9</span>, <span class="tok-number">0x4d</span>, <span class="tok-number">0x99</span>, <span class="tok-number">0x53</span>, <span class="tok-number">0x2c</span>, <span class="tok-number">0x51</span> };</span>
+<span class="line" id="L147"></span>
+<span class="line" id="L148">    <span class="tok-kw">var</span> k: [<span class="tok-number">32</span>]<span class="tok-type">u8</span> = initial_value.*;</span>
+<span class="line" id="L149">    <span class="tok-kw">var</span> u: [<span class="tok-number">32</span>]<span class="tok-type">u8</span> = initial_value.*;</span>
+<span class="line" id="L150"></span>
+<span class="line" id="L151">    <span class="tok-kw">var</span> i: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
+<span class="line" id="L152">    <span class="tok-kw">while</span> (i &lt; <span class="tok-number">1000</span>) : (i += <span class="tok-number">1</span>) {</span>
+<span class="line" id="L153">        <span class="tok-kw">const</span> output = <span class="tok-kw">try</span> X25519.scalarmult(&amp;k, &amp;u);</span>
+<span class="line" id="L154">        u = k;</span>
+<span class="line" id="L155">        k = output;</span>
+<span class="line" id="L156">    }</span>
+<span class="line" id="L157"></span>
+<span class="line" id="L158">    <span class="tok-kw">try</span> std.testing.expectEqual(k, expected_output);</span>
+<span class="line" id="L159">}</span>
+<span class="line" id="L160"></span>
+<span class="line" id="L161"><span class="tok-kw">test</span> <span class="tok-str">&quot;x25519 rfc7748 1,000,000 iterations&quot;</span> {</span>
+<span class="line" id="L162">    <span class="tok-kw">if</span> (<span class="tok-null">true</span>) {</span>
+<span class="line" id="L163">        <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L164">    }</span>
 <span class="line" id="L165"></span>
-<span class="line" id="L166">    <span class="tok-kw">if</span> (<span class="tok-null">true</span>) {</span>
-<span class="line" id="L167">        <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L168">    }</span>
-<span class="line" id="L169"></span>
-<span class="line" id="L170">    <span class="tok-kw">const</span> initial_value = [<span class="tok-number">32</span>]<span class="tok-type">u8</span>{ <span class="tok-number">0x09</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span> };</span>
-<span class="line" id="L171">    <span class="tok-kw">const</span> expected_output = [<span class="tok-number">32</span>]<span class="tok-type">u8</span>{ <span class="tok-number">0x7c</span>, <span class="tok-number">0x39</span>, <span class="tok-number">0x11</span>, <span class="tok-number">0xe0</span>, <span class="tok-number">0xab</span>, <span class="tok-number">0x25</span>, <span class="tok-number">0x86</span>, <span class="tok-number">0xfd</span>, <span class="tok-number">0x86</span>, <span class="tok-number">0x44</span>, <span class="tok-number">0x97</span>, <span class="tok-number">0x29</span>, <span class="tok-number">0x7e</span>, <span class="tok-number">0x57</span>, <span class="tok-number">0x5e</span>, <span class="tok-number">0x6f</span>, <span class="tok-number">0x3b</span>, <span class="tok-number">0xc6</span>, <span class="tok-number">0x01</span>, <span class="tok-number">0xc0</span>, <span class="tok-number">0x88</span>, <span class="tok-number">0x3c</span>, <span class="tok-number">0x30</span>, <span class="tok-number">0xdf</span>, <span class="tok-number">0x5f</span>, <span class="tok-number">0x4d</span>, <span class="tok-number">0xd2</span>, <span class="tok-number">0xd2</span>, <span class="tok-number">0x4f</span>, <span class="tok-number">0x66</span>, <span class="tok-number">0x54</span>, <span class="tok-number">0x24</span> };</span>
-<span class="line" id="L172"></span>
-<span class="line" id="L173">    <span class="tok-kw">var</span> k: [<span class="tok-number">32</span>]<span class="tok-type">u8</span> = initial_value.*;</span>
-<span class="line" id="L174">    <span class="tok-kw">var</span> u: [<span class="tok-number">32</span>]<span class="tok-type">u8</span> = initial_value.*;</span>
-<span class="line" id="L175"></span>
-<span class="line" id="L176">    <span class="tok-kw">var</span> i: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
-<span class="line" id="L177">    <span class="tok-kw">while</span> (i &lt; <span class="tok-number">1000000</span>) : (i += <span class="tok-number">1</span>) {</span>
-<span class="line" id="L178">        <span class="tok-kw">const</span> output = <span class="tok-kw">try</span> X25519.scalarmult(&amp;k, &amp;u);</span>
-<span class="line" id="L179">        u = k;</span>
-<span class="line" id="L180">        k = output;</span>
-<span class="line" id="L181">    }</span>
-<span class="line" id="L182"></span>
-<span class="line" id="L183">    <span class="tok-kw">try</span> std.testing.expectEqual(k[<span class="tok-number">0</span>..], expected_output);</span>
-<span class="line" id="L184">}</span>
-<span class="line" id="L185"></span>
-<span class="line" id="L186"><span class="tok-kw">test</span> <span class="tok-str">&quot;edwards25519 -&gt; curve25519 map&quot;</span> {</span>
-<span class="line" id="L187">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L188"></span>
-<span class="line" id="L189">    <span class="tok-kw">const</span> ed_kp = <span class="tok-kw">try</span> crypto.sign.Ed25519.KeyPair.create([_]<span class="tok-type">u8</span>{<span class="tok-number">0x42</span>} ** <span class="tok-number">32</span>);</span>
-<span class="line" id="L190">    <span class="tok-kw">const</span> mont_kp = <span class="tok-kw">try</span> X25519.KeyPair.fromEd25519(ed_kp);</span>
-<span class="line" id="L191">    <span class="tok-kw">try</span> htest.assertEqual(<span class="tok-str">&quot;90e7595fc89e52fdfddce9c6a43d74dbf6047025ee0462d2d172e8b6a2841d6e&quot;</span>, &amp;mont_kp.secret_key);</span>
-<span class="line" id="L192">    <span class="tok-kw">try</span> htest.assertEqual(<span class="tok-str">&quot;cc4f2cdb695dd766f34118eb67b98652fed1d8bc49c330b119bbfa8a64989378&quot;</span>, &amp;mont_kp.public_key);</span>
-<span class="line" id="L193">}</span>
-<span class="line" id="L194"></span>
+<span class="line" id="L166">    <span class="tok-kw">const</span> initial_value = [<span class="tok-number">32</span>]<span class="tok-type">u8</span>{ <span class="tok-number">0x09</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span> };</span>
+<span class="line" id="L167">    <span class="tok-kw">const</span> expected_output = [<span class="tok-number">32</span>]<span class="tok-type">u8</span>{ <span class="tok-number">0x7c</span>, <span class="tok-number">0x39</span>, <span class="tok-number">0x11</span>, <span class="tok-number">0xe0</span>, <span class="tok-number">0xab</span>, <span class="tok-number">0x25</span>, <span class="tok-number">0x86</span>, <span class="tok-number">0xfd</span>, <span class="tok-number">0x86</span>, <span class="tok-number">0x44</span>, <span class="tok-number">0x97</span>, <span class="tok-number">0x29</span>, <span class="tok-number">0x7e</span>, <span class="tok-number">0x57</span>, <span class="tok-number">0x5e</span>, <span class="tok-number">0x6f</span>, <span class="tok-number">0x3b</span>, <span class="tok-number">0xc6</span>, <span class="tok-number">0x01</span>, <span class="tok-number">0xc0</span>, <span class="tok-number">0x88</span>, <span class="tok-number">0x3c</span>, <span class="tok-number">0x30</span>, <span class="tok-number">0xdf</span>, <span class="tok-number">0x5f</span>, <span class="tok-number">0x4d</span>, <span class="tok-number">0xd2</span>, <span class="tok-number">0xd2</span>, <span class="tok-number">0x4f</span>, <span class="tok-number">0x66</span>, <span class="tok-number">0x54</span>, <span class="tok-number">0x24</span> };</span>
+<span class="line" id="L168"></span>
+<span class="line" id="L169">    <span class="tok-kw">var</span> k: [<span class="tok-number">32</span>]<span class="tok-type">u8</span> = initial_value.*;</span>
+<span class="line" id="L170">    <span class="tok-kw">var</span> u: [<span class="tok-number">32</span>]<span class="tok-type">u8</span> = initial_value.*;</span>
+<span class="line" id="L171"></span>
+<span class="line" id="L172">    <span class="tok-kw">var</span> i: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
+<span class="line" id="L173">    <span class="tok-kw">while</span> (i &lt; <span class="tok-number">1000000</span>) : (i += <span class="tok-number">1</span>) {</span>
+<span class="line" id="L174">        <span class="tok-kw">const</span> output = <span class="tok-kw">try</span> X25519.scalarmult(&amp;k, &amp;u);</span>
+<span class="line" id="L175">        u = k;</span>
+<span class="line" id="L176">        k = output;</span>
+<span class="line" id="L177">    }</span>
+<span class="line" id="L178"></span>
+<span class="line" id="L179">    <span class="tok-kw">try</span> std.testing.expectEqual(k[<span class="tok-number">0</span>..], expected_output);</span>
+<span class="line" id="L180">}</span>
+<span class="line" id="L181"></span>
+<span class="line" id="L182"><span class="tok-kw">test</span> <span class="tok-str">&quot;edwards25519 -&gt; curve25519 map&quot;</span> {</span>
+<span class="line" id="L183">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L184"></span>
+<span class="line" id="L185">    <span class="tok-kw">const</span> ed_kp = <span class="tok-kw">try</span> crypto.sign.Ed25519.KeyPair.create([_]<span class="tok-type">u8</span>{<span class="tok-number">0x42</span>} ** <span class="tok-number">32</span>);</span>
+<span class="line" id="L186">    <span class="tok-kw">const</span> mont_kp = <span class="tok-kw">try</span> X25519.KeyPair.fromEd25519(ed_kp);</span>
+<span class="line" id="L187">    <span class="tok-kw">try</span> htest.assertEqual(<span class="tok-str">&quot;90e7595fc89e52fdfddce9c6a43d74dbf6047025ee0462d2d172e8b6a2841d6e&quot;</span>, &amp;mont_kp.secret_key);</span>
+<span class="line" id="L188">    <span class="tok-kw">try</span> htest.assertEqual(<span class="tok-str">&quot;cc4f2cdb695dd766f34118eb67b98652fed1d8bc49c330b119bbfa8a64989378&quot;</span>, &amp;mont_kp.public_key);</span>
+<span class="line" id="L189">}</span>
+<span class="line" id="L190"></span>
 </code></pre></body>
 </html>

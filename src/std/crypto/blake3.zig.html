@@ -846,21 +846,19 @@
 <span class="line" id="L682">}</span>
 <span class="line" id="L683"></span>
 <span class="line" id="L684"><span class="tok-kw">test</span> <span class="tok-str">&quot;BLAKE3 reference test cases&quot;</span> {</span>
-<span class="line" id="L685">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L686"></span>
-<span class="line" id="L687">    <span class="tok-kw">var</span> hash_state = Blake3.init(.{});</span>
-<span class="line" id="L688">    <span class="tok-kw">const</span> hash = &amp;hash_state;</span>
-<span class="line" id="L689">    <span class="tok-kw">var</span> keyed_hash_state = Blake3.init(.{ .key = reference_test.key.* });</span>
-<span class="line" id="L690">    <span class="tok-kw">const</span> keyed_hash = &amp;keyed_hash_state;</span>
-<span class="line" id="L691">    <span class="tok-kw">var</span> derive_key_state = Blake3.initKdf(reference_test.context_string, .{});</span>
-<span class="line" id="L692">    <span class="tok-kw">const</span> derive_key = &amp;derive_key_state;</span>
-<span class="line" id="L693"></span>
-<span class="line" id="L694">    <span class="tok-kw">for</span> (reference_test.cases) |t| {</span>
-<span class="line" id="L695">        <span class="tok-kw">try</span> testBlake3(hash, t.input_len, t.hash.*);</span>
-<span class="line" id="L696">        <span class="tok-kw">try</span> testBlake3(keyed_hash, t.input_len, t.keyed_hash.*);</span>
-<span class="line" id="L697">        <span class="tok-kw">try</span> testBlake3(derive_key, t.input_len, t.derive_key.*);</span>
-<span class="line" id="L698">    }</span>
-<span class="line" id="L699">}</span>
-<span class="line" id="L700"></span>
+<span class="line" id="L685">    <span class="tok-kw">var</span> hash_state = Blake3.init(.{});</span>
+<span class="line" id="L686">    <span class="tok-kw">const</span> hash = &amp;hash_state;</span>
+<span class="line" id="L687">    <span class="tok-kw">var</span> keyed_hash_state = Blake3.init(.{ .key = reference_test.key.* });</span>
+<span class="line" id="L688">    <span class="tok-kw">const</span> keyed_hash = &amp;keyed_hash_state;</span>
+<span class="line" id="L689">    <span class="tok-kw">var</span> derive_key_state = Blake3.initKdf(reference_test.context_string, .{});</span>
+<span class="line" id="L690">    <span class="tok-kw">const</span> derive_key = &amp;derive_key_state;</span>
+<span class="line" id="L691"></span>
+<span class="line" id="L692">    <span class="tok-kw">for</span> (reference_test.cases) |t| {</span>
+<span class="line" id="L693">        <span class="tok-kw">try</span> testBlake3(hash, t.input_len, t.hash.*);</span>
+<span class="line" id="L694">        <span class="tok-kw">try</span> testBlake3(keyed_hash, t.input_len, t.keyed_hash.*);</span>
+<span class="line" id="L695">        <span class="tok-kw">try</span> testBlake3(derive_key, t.input_len, t.derive_key.*);</span>
+<span class="line" id="L696">    }</span>
+<span class="line" id="L697">}</span>
+<span class="line" id="L698"></span>
 </code></pre></body>
 </html>

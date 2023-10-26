@@ -588,128 +588,126 @@
 <span class="line" id="L409">}</span>
 <span class="line" id="L410"></span>
 <span class="line" id="L411"><span class="tok-kw">test</span> <span class="tok-str">&quot;SegmentedList basic usage&quot;</span> {</span>
-<span class="line" id="L412">    <span class="tok-kw">if</span> (<span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>).zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L413"></span>
-<span class="line" id="L414">    <span class="tok-kw">try</span> testSegmentedList(<span class="tok-number">0</span>);</span>
-<span class="line" id="L415">    <span class="tok-kw">try</span> testSegmentedList(<span class="tok-number">1</span>);</span>
-<span class="line" id="L416">    <span class="tok-kw">try</span> testSegmentedList(<span class="tok-number">2</span>);</span>
-<span class="line" id="L417">    <span class="tok-kw">try</span> testSegmentedList(<span class="tok-number">4</span>);</span>
-<span class="line" id="L418">    <span class="tok-kw">try</span> testSegmentedList(<span class="tok-number">8</span>);</span>
-<span class="line" id="L419">    <span class="tok-kw">try</span> testSegmentedList(<span class="tok-number">16</span>);</span>
-<span class="line" id="L420">}</span>
-<span class="line" id="L421"></span>
-<span class="line" id="L422"><span class="tok-kw">fn</span> <span class="tok-fn">testSegmentedList</span>(<span class="tok-kw">comptime</span> prealloc: <span class="tok-type">usize</span>) !<span class="tok-type">void</span> {</span>
-<span class="line" id="L423">    <span class="tok-kw">var</span> list = SegmentedList(<span class="tok-type">i32</span>, prealloc){};</span>
-<span class="line" id="L424">    <span class="tok-kw">defer</span> list.deinit(testing.allocator);</span>
-<span class="line" id="L425"></span>
-<span class="line" id="L426">    {</span>
-<span class="line" id="L427">        <span class="tok-kw">var</span> i: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
-<span class="line" id="L428">        <span class="tok-kw">while</span> (i &lt; <span class="tok-number">100</span>) : (i += <span class="tok-number">1</span>) {</span>
-<span class="line" id="L429">            <span class="tok-kw">try</span> list.append(testing.allocator, <span class="tok-builtin">@as</span>(<span class="tok-type">i32</span>, <span class="tok-builtin">@intCast</span>(i + <span class="tok-number">1</span>)));</span>
-<span class="line" id="L430">            <span class="tok-kw">try</span> testing.expect(list.len == i + <span class="tok-number">1</span>);</span>
-<span class="line" id="L431">        }</span>
-<span class="line" id="L432">    }</span>
-<span class="line" id="L433"></span>
-<span class="line" id="L434">    {</span>
-<span class="line" id="L435">        <span class="tok-kw">var</span> i: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
-<span class="line" id="L436">        <span class="tok-kw">while</span> (i &lt; <span class="tok-number">100</span>) : (i += <span class="tok-number">1</span>) {</span>
-<span class="line" id="L437">            <span class="tok-kw">try</span> testing.expect(list.at(i).* == <span class="tok-builtin">@as</span>(<span class="tok-type">i32</span>, <span class="tok-builtin">@intCast</span>(i + <span class="tok-number">1</span>)));</span>
-<span class="line" id="L438">        }</span>
-<span class="line" id="L439">    }</span>
-<span class="line" id="L440"></span>
-<span class="line" id="L441">    {</span>
-<span class="line" id="L442">        <span class="tok-kw">var</span> it = list.iterator(<span class="tok-number">0</span>);</span>
-<span class="line" id="L443">        <span class="tok-kw">var</span> x: <span class="tok-type">i32</span> = <span class="tok-number">0</span>;</span>
-<span class="line" id="L444">        <span class="tok-kw">while</span> (it.next()) |item| {</span>
-<span class="line" id="L445">            x += <span class="tok-number">1</span>;</span>
-<span class="line" id="L446">            <span class="tok-kw">try</span> testing.expect(item.* == x);</span>
-<span class="line" id="L447">        }</span>
-<span class="line" id="L448">        <span class="tok-kw">try</span> testing.expect(x == <span class="tok-number">100</span>);</span>
-<span class="line" id="L449">        <span class="tok-kw">while</span> (it.prev()) |item| : (x -= <span class="tok-number">1</span>) {</span>
-<span class="line" id="L450">            <span class="tok-kw">try</span> testing.expect(item.* == x);</span>
-<span class="line" id="L451">        }</span>
-<span class="line" id="L452">        <span class="tok-kw">try</span> testing.expect(x == <span class="tok-number">0</span>);</span>
-<span class="line" id="L453">    }</span>
-<span class="line" id="L454"></span>
-<span class="line" id="L455">    {</span>
-<span class="line" id="L456">        <span class="tok-kw">var</span> it = list.constIterator(<span class="tok-number">0</span>);</span>
-<span class="line" id="L457">        <span class="tok-kw">var</span> x: <span class="tok-type">i32</span> = <span class="tok-number">0</span>;</span>
-<span class="line" id="L458">        <span class="tok-kw">while</span> (it.next()) |item| {</span>
-<span class="line" id="L459">            x += <span class="tok-number">1</span>;</span>
-<span class="line" id="L460">            <span class="tok-kw">try</span> testing.expect(item.* == x);</span>
-<span class="line" id="L461">        }</span>
-<span class="line" id="L462">        <span class="tok-kw">try</span> testing.expect(x == <span class="tok-number">100</span>);</span>
-<span class="line" id="L463">        <span class="tok-kw">while</span> (it.prev()) |item| : (x -= <span class="tok-number">1</span>) {</span>
-<span class="line" id="L464">            <span class="tok-kw">try</span> testing.expect(item.* == x);</span>
-<span class="line" id="L465">        }</span>
-<span class="line" id="L466">        <span class="tok-kw">try</span> testing.expect(x == <span class="tok-number">0</span>);</span>
-<span class="line" id="L467">    }</span>
-<span class="line" id="L468"></span>
-<span class="line" id="L469">    <span class="tok-kw">try</span> testing.expect(list.pop().? == <span class="tok-number">100</span>);</span>
-<span class="line" id="L470">    <span class="tok-kw">try</span> testing.expect(list.len == <span class="tok-number">99</span>);</span>
-<span class="line" id="L471"></span>
-<span class="line" id="L472">    <span class="tok-kw">try</span> list.appendSlice(testing.allocator, &amp;[_]<span class="tok-type">i32</span>{ <span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">3</span> });</span>
-<span class="line" id="L473">    <span class="tok-kw">try</span> testing.expect(list.len == <span class="tok-number">102</span>);</span>
-<span class="line" id="L474">    <span class="tok-kw">try</span> testing.expect(list.pop().? == <span class="tok-number">3</span>);</span>
-<span class="line" id="L475">    <span class="tok-kw">try</span> testing.expect(list.pop().? == <span class="tok-number">2</span>);</span>
-<span class="line" id="L476">    <span class="tok-kw">try</span> testing.expect(list.pop().? == <span class="tok-number">1</span>);</span>
-<span class="line" id="L477">    <span class="tok-kw">try</span> testing.expect(list.len == <span class="tok-number">99</span>);</span>
-<span class="line" id="L478"></span>
-<span class="line" id="L479">    <span class="tok-kw">try</span> list.appendSlice(testing.allocator, &amp;[_]<span class="tok-type">i32</span>{});</span>
-<span class="line" id="L480">    <span class="tok-kw">try</span> testing.expect(list.len == <span class="tok-number">99</span>);</span>
-<span class="line" id="L481"></span>
-<span class="line" id="L482">    {</span>
-<span class="line" id="L483">        <span class="tok-kw">var</span> i: <span class="tok-type">i32</span> = <span class="tok-number">99</span>;</span>
-<span class="line" id="L484">        <span class="tok-kw">while</span> (list.pop()) |item| : (i -= <span class="tok-number">1</span>) {</span>
-<span class="line" id="L485">            <span class="tok-kw">try</span> testing.expect(item == i);</span>
-<span class="line" id="L486">            list.shrinkCapacity(testing.allocator, list.len);</span>
-<span class="line" id="L487">        }</span>
-<span class="line" id="L488">    }</span>
-<span class="line" id="L489"></span>
-<span class="line" id="L490">    {</span>
-<span class="line" id="L491">        <span class="tok-kw">var</span> control: [<span class="tok-number">100</span>]<span class="tok-type">i32</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L492">        <span class="tok-kw">var</span> dest: [<span class="tok-number">100</span>]<span class="tok-type">i32</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L493"></span>
-<span class="line" id="L494">        <span class="tok-kw">var</span> i: <span class="tok-type">i32</span> = <span class="tok-number">0</span>;</span>
-<span class="line" id="L495">        <span class="tok-kw">while</span> (i &lt; <span class="tok-number">100</span>) : (i += <span class="tok-number">1</span>) {</span>
-<span class="line" id="L496">            <span class="tok-kw">try</span> list.append(testing.allocator, i + <span class="tok-number">1</span>);</span>
-<span class="line" id="L497">            control[<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@intCast</span>(i))] = i + <span class="tok-number">1</span>;</span>
-<span class="line" id="L498">        }</span>
-<span class="line" id="L499"></span>
-<span class="line" id="L500">        <span class="tok-builtin">@memset</span>(dest[<span class="tok-number">0</span>..], <span class="tok-number">0</span>);</span>
-<span class="line" id="L501">        list.writeToSlice(dest[<span class="tok-number">0</span>..], <span class="tok-number">0</span>);</span>
-<span class="line" id="L502">        <span class="tok-kw">try</span> testing.expect(mem.eql(<span class="tok-type">i32</span>, control[<span class="tok-number">0</span>..], dest[<span class="tok-number">0</span>..]));</span>
-<span class="line" id="L503"></span>
-<span class="line" id="L504">        <span class="tok-builtin">@memset</span>(dest[<span class="tok-number">0</span>..], <span class="tok-number">0</span>);</span>
-<span class="line" id="L505">        list.writeToSlice(dest[<span class="tok-number">50</span>..], <span class="tok-number">50</span>);</span>
-<span class="line" id="L506">        <span class="tok-kw">try</span> testing.expect(mem.eql(<span class="tok-type">i32</span>, control[<span class="tok-number">50</span>..], dest[<span class="tok-number">50</span>..]));</span>
-<span class="line" id="L507">    }</span>
-<span class="line" id="L508"></span>
-<span class="line" id="L509">    <span class="tok-kw">try</span> list.setCapacity(testing.allocator, <span class="tok-number">0</span>);</span>
-<span class="line" id="L510">}</span>
-<span class="line" id="L511"></span>
-<span class="line" id="L512"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.segmented_list clearRetainingCapacity&quot;</span> {</span>
-<span class="line" id="L513">    <span class="tok-kw">var</span> list = SegmentedList(<span class="tok-type">i32</span>, <span class="tok-number">1</span>){};</span>
-<span class="line" id="L514">    <span class="tok-kw">defer</span> list.deinit(testing.allocator);</span>
-<span class="line" id="L515"></span>
-<span class="line" id="L516">    <span class="tok-kw">try</span> list.appendSlice(testing.allocator, &amp;[_]<span class="tok-type">i32</span>{ <span class="tok-number">4</span>, <span class="tok-number">5</span> });</span>
-<span class="line" id="L517">    list.clearRetainingCapacity();</span>
-<span class="line" id="L518">    <span class="tok-kw">try</span> list.append(testing.allocator, <span class="tok-number">6</span>);</span>
-<span class="line" id="L519">    <span class="tok-kw">try</span> testing.expect(list.at(<span class="tok-number">0</span>).* == <span class="tok-number">6</span>);</span>
-<span class="line" id="L520">    <span class="tok-kw">try</span> testing.expect(list.len == <span class="tok-number">1</span>);</span>
-<span class="line" id="L521">    list.clearRetainingCapacity();</span>
-<span class="line" id="L522">    <span class="tok-kw">try</span> testing.expect(list.len == <span class="tok-number">0</span>);</span>
-<span class="line" id="L523">}</span>
-<span class="line" id="L524"></span>
-<span class="line" id="L525"><span class="tok-comment">/// TODO look into why this std.math function was changed in</span></span>
-<span class="line" id="L526"><span class="tok-comment">/// fc9430f56798a53f9393a697f4ccd6bf9981b970.</span></span>
-<span class="line" id="L527"><span class="tok-kw">fn</span> <span class="tok-fn">log2_int_ceil</span>(<span class="tok-kw">comptime</span> T: <span class="tok-type">type</span>, x: T) std.math.Log2Int(T) {</span>
-<span class="line" id="L528">    assert(x != <span class="tok-number">0</span>);</span>
-<span class="line" id="L529">    <span class="tok-kw">const</span> log2_val = std.math.log2_int(T, x);</span>
-<span class="line" id="L530">    <span class="tok-kw">if</span> (<span class="tok-builtin">@as</span>(T, <span class="tok-number">1</span>) &lt;&lt; log2_val == x)</span>
-<span class="line" id="L531">        <span class="tok-kw">return</span> log2_val;</span>
-<span class="line" id="L532">    <span class="tok-kw">return</span> log2_val + <span class="tok-number">1</span>;</span>
-<span class="line" id="L533">}</span>
-<span class="line" id="L534"></span>
+<span class="line" id="L412">    <span class="tok-kw">try</span> testSegmentedList(<span class="tok-number">0</span>);</span>
+<span class="line" id="L413">    <span class="tok-kw">try</span> testSegmentedList(<span class="tok-number">1</span>);</span>
+<span class="line" id="L414">    <span class="tok-kw">try</span> testSegmentedList(<span class="tok-number">2</span>);</span>
+<span class="line" id="L415">    <span class="tok-kw">try</span> testSegmentedList(<span class="tok-number">4</span>);</span>
+<span class="line" id="L416">    <span class="tok-kw">try</span> testSegmentedList(<span class="tok-number">8</span>);</span>
+<span class="line" id="L417">    <span class="tok-kw">try</span> testSegmentedList(<span class="tok-number">16</span>);</span>
+<span class="line" id="L418">}</span>
+<span class="line" id="L419"></span>
+<span class="line" id="L420"><span class="tok-kw">fn</span> <span class="tok-fn">testSegmentedList</span>(<span class="tok-kw">comptime</span> prealloc: <span class="tok-type">usize</span>) !<span class="tok-type">void</span> {</span>
+<span class="line" id="L421">    <span class="tok-kw">var</span> list = SegmentedList(<span class="tok-type">i32</span>, prealloc){};</span>
+<span class="line" id="L422">    <span class="tok-kw">defer</span> list.deinit(testing.allocator);</span>
+<span class="line" id="L423"></span>
+<span class="line" id="L424">    {</span>
+<span class="line" id="L425">        <span class="tok-kw">var</span> i: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
+<span class="line" id="L426">        <span class="tok-kw">while</span> (i &lt; <span class="tok-number">100</span>) : (i += <span class="tok-number">1</span>) {</span>
+<span class="line" id="L427">            <span class="tok-kw">try</span> list.append(testing.allocator, <span class="tok-builtin">@as</span>(<span class="tok-type">i32</span>, <span class="tok-builtin">@intCast</span>(i + <span class="tok-number">1</span>)));</span>
+<span class="line" id="L428">            <span class="tok-kw">try</span> testing.expect(list.len == i + <span class="tok-number">1</span>);</span>
+<span class="line" id="L429">        }</span>
+<span class="line" id="L430">    }</span>
+<span class="line" id="L431"></span>
+<span class="line" id="L432">    {</span>
+<span class="line" id="L433">        <span class="tok-kw">var</span> i: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
+<span class="line" id="L434">        <span class="tok-kw">while</span> (i &lt; <span class="tok-number">100</span>) : (i += <span class="tok-number">1</span>) {</span>
+<span class="line" id="L435">            <span class="tok-kw">try</span> testing.expect(list.at(i).* == <span class="tok-builtin">@as</span>(<span class="tok-type">i32</span>, <span class="tok-builtin">@intCast</span>(i + <span class="tok-number">1</span>)));</span>
+<span class="line" id="L436">        }</span>
+<span class="line" id="L437">    }</span>
+<span class="line" id="L438"></span>
+<span class="line" id="L439">    {</span>
+<span class="line" id="L440">        <span class="tok-kw">var</span> it = list.iterator(<span class="tok-number">0</span>);</span>
+<span class="line" id="L441">        <span class="tok-kw">var</span> x: <span class="tok-type">i32</span> = <span class="tok-number">0</span>;</span>
+<span class="line" id="L442">        <span class="tok-kw">while</span> (it.next()) |item| {</span>
+<span class="line" id="L443">            x += <span class="tok-number">1</span>;</span>
+<span class="line" id="L444">            <span class="tok-kw">try</span> testing.expect(item.* == x);</span>
+<span class="line" id="L445">        }</span>
+<span class="line" id="L446">        <span class="tok-kw">try</span> testing.expect(x == <span class="tok-number">100</span>);</span>
+<span class="line" id="L447">        <span class="tok-kw">while</span> (it.prev()) |item| : (x -= <span class="tok-number">1</span>) {</span>
+<span class="line" id="L448">            <span class="tok-kw">try</span> testing.expect(item.* == x);</span>
+<span class="line" id="L449">        }</span>
+<span class="line" id="L450">        <span class="tok-kw">try</span> testing.expect(x == <span class="tok-number">0</span>);</span>
+<span class="line" id="L451">    }</span>
+<span class="line" id="L452"></span>
+<span class="line" id="L453">    {</span>
+<span class="line" id="L454">        <span class="tok-kw">var</span> it = list.constIterator(<span class="tok-number">0</span>);</span>
+<span class="line" id="L455">        <span class="tok-kw">var</span> x: <span class="tok-type">i32</span> = <span class="tok-number">0</span>;</span>
+<span class="line" id="L456">        <span class="tok-kw">while</span> (it.next()) |item| {</span>
+<span class="line" id="L457">            x += <span class="tok-number">1</span>;</span>
+<span class="line" id="L458">            <span class="tok-kw">try</span> testing.expect(item.* == x);</span>
+<span class="line" id="L459">        }</span>
+<span class="line" id="L460">        <span class="tok-kw">try</span> testing.expect(x == <span class="tok-number">100</span>);</span>
+<span class="line" id="L461">        <span class="tok-kw">while</span> (it.prev()) |item| : (x -= <span class="tok-number">1</span>) {</span>
+<span class="line" id="L462">            <span class="tok-kw">try</span> testing.expect(item.* == x);</span>
+<span class="line" id="L463">        }</span>
+<span class="line" id="L464">        <span class="tok-kw">try</span> testing.expect(x == <span class="tok-number">0</span>);</span>
+<span class="line" id="L465">    }</span>
+<span class="line" id="L466"></span>
+<span class="line" id="L467">    <span class="tok-kw">try</span> testing.expect(list.pop().? == <span class="tok-number">100</span>);</span>
+<span class="line" id="L468">    <span class="tok-kw">try</span> testing.expect(list.len == <span class="tok-number">99</span>);</span>
+<span class="line" id="L469"></span>
+<span class="line" id="L470">    <span class="tok-kw">try</span> list.appendSlice(testing.allocator, &amp;[_]<span class="tok-type">i32</span>{ <span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">3</span> });</span>
+<span class="line" id="L471">    <span class="tok-kw">try</span> testing.expect(list.len == <span class="tok-number">102</span>);</span>
+<span class="line" id="L472">    <span class="tok-kw">try</span> testing.expect(list.pop().? == <span class="tok-number">3</span>);</span>
+<span class="line" id="L473">    <span class="tok-kw">try</span> testing.expect(list.pop().? == <span class="tok-number">2</span>);</span>
+<span class="line" id="L474">    <span class="tok-kw">try</span> testing.expect(list.pop().? == <span class="tok-number">1</span>);</span>
+<span class="line" id="L475">    <span class="tok-kw">try</span> testing.expect(list.len == <span class="tok-number">99</span>);</span>
+<span class="line" id="L476"></span>
+<span class="line" id="L477">    <span class="tok-kw">try</span> list.appendSlice(testing.allocator, &amp;[_]<span class="tok-type">i32</span>{});</span>
+<span class="line" id="L478">    <span class="tok-kw">try</span> testing.expect(list.len == <span class="tok-number">99</span>);</span>
+<span class="line" id="L479"></span>
+<span class="line" id="L480">    {</span>
+<span class="line" id="L481">        <span class="tok-kw">var</span> i: <span class="tok-type">i32</span> = <span class="tok-number">99</span>;</span>
+<span class="line" id="L482">        <span class="tok-kw">while</span> (list.pop()) |item| : (i -= <span class="tok-number">1</span>) {</span>
+<span class="line" id="L483">            <span class="tok-kw">try</span> testing.expect(item == i);</span>
+<span class="line" id="L484">            list.shrinkCapacity(testing.allocator, list.len);</span>
+<span class="line" id="L485">        }</span>
+<span class="line" id="L486">    }</span>
+<span class="line" id="L487"></span>
+<span class="line" id="L488">    {</span>
+<span class="line" id="L489">        <span class="tok-kw">var</span> control: [<span class="tok-number">100</span>]<span class="tok-type">i32</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L490">        <span class="tok-kw">var</span> dest: [<span class="tok-number">100</span>]<span class="tok-type">i32</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L491"></span>
+<span class="line" id="L492">        <span class="tok-kw">var</span> i: <span class="tok-type">i32</span> = <span class="tok-number">0</span>;</span>
+<span class="line" id="L493">        <span class="tok-kw">while</span> (i &lt; <span class="tok-number">100</span>) : (i += <span class="tok-number">1</span>) {</span>
+<span class="line" id="L494">            <span class="tok-kw">try</span> list.append(testing.allocator, i + <span class="tok-number">1</span>);</span>
+<span class="line" id="L495">            control[<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@intCast</span>(i))] = i + <span class="tok-number">1</span>;</span>
+<span class="line" id="L496">        }</span>
+<span class="line" id="L497"></span>
+<span class="line" id="L498">        <span class="tok-builtin">@memset</span>(dest[<span class="tok-number">0</span>..], <span class="tok-number">0</span>);</span>
+<span class="line" id="L499">        list.writeToSlice(dest[<span class="tok-number">0</span>..], <span class="tok-number">0</span>);</span>
+<span class="line" id="L500">        <span class="tok-kw">try</span> testing.expect(mem.eql(<span class="tok-type">i32</span>, control[<span class="tok-number">0</span>..], dest[<span class="tok-number">0</span>..]));</span>
+<span class="line" id="L501"></span>
+<span class="line" id="L502">        <span class="tok-builtin">@memset</span>(dest[<span class="tok-number">0</span>..], <span class="tok-number">0</span>);</span>
+<span class="line" id="L503">        list.writeToSlice(dest[<span class="tok-number">50</span>..], <span class="tok-number">50</span>);</span>
+<span class="line" id="L504">        <span class="tok-kw">try</span> testing.expect(mem.eql(<span class="tok-type">i32</span>, control[<span class="tok-number">50</span>..], dest[<span class="tok-number">50</span>..]));</span>
+<span class="line" id="L505">    }</span>
+<span class="line" id="L506"></span>
+<span class="line" id="L507">    <span class="tok-kw">try</span> list.setCapacity(testing.allocator, <span class="tok-number">0</span>);</span>
+<span class="line" id="L508">}</span>
+<span class="line" id="L509"></span>
+<span class="line" id="L510"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.segmented_list clearRetainingCapacity&quot;</span> {</span>
+<span class="line" id="L511">    <span class="tok-kw">var</span> list = SegmentedList(<span class="tok-type">i32</span>, <span class="tok-number">1</span>){};</span>
+<span class="line" id="L512">    <span class="tok-kw">defer</span> list.deinit(testing.allocator);</span>
+<span class="line" id="L513"></span>
+<span class="line" id="L514">    <span class="tok-kw">try</span> list.appendSlice(testing.allocator, &amp;[_]<span class="tok-type">i32</span>{ <span class="tok-number">4</span>, <span class="tok-number">5</span> });</span>
+<span class="line" id="L515">    list.clearRetainingCapacity();</span>
+<span class="line" id="L516">    <span class="tok-kw">try</span> list.append(testing.allocator, <span class="tok-number">6</span>);</span>
+<span class="line" id="L517">    <span class="tok-kw">try</span> testing.expect(list.at(<span class="tok-number">0</span>).* == <span class="tok-number">6</span>);</span>
+<span class="line" id="L518">    <span class="tok-kw">try</span> testing.expect(list.len == <span class="tok-number">1</span>);</span>
+<span class="line" id="L519">    list.clearRetainingCapacity();</span>
+<span class="line" id="L520">    <span class="tok-kw">try</span> testing.expect(list.len == <span class="tok-number">0</span>);</span>
+<span class="line" id="L521">}</span>
+<span class="line" id="L522"></span>
+<span class="line" id="L523"><span class="tok-comment">/// TODO look into why this std.math function was changed in</span></span>
+<span class="line" id="L524"><span class="tok-comment">/// fc9430f56798a53f9393a697f4ccd6bf9981b970.</span></span>
+<span class="line" id="L525"><span class="tok-kw">fn</span> <span class="tok-fn">log2_int_ceil</span>(<span class="tok-kw">comptime</span> T: <span class="tok-type">type</span>, x: T) std.math.Log2Int(T) {</span>
+<span class="line" id="L526">    assert(x != <span class="tok-number">0</span>);</span>
+<span class="line" id="L527">    <span class="tok-kw">const</span> log2_val = std.math.log2_int(T, x);</span>
+<span class="line" id="L528">    <span class="tok-kw">if</span> (<span class="tok-builtin">@as</span>(T, <span class="tok-number">1</span>) &lt;&lt; log2_val == x)</span>
+<span class="line" id="L529">        <span class="tok-kw">return</span> log2_val;</span>
+<span class="line" id="L530">    <span class="tok-kw">return</span> log2_val + <span class="tok-number">1</span>;</span>
+<span class="line" id="L531">}</span>
+<span class="line" id="L532"></span>
 </code></pre></body>
 </html>

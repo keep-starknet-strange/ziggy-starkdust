@@ -636,47 +636,45 @@
 <span class="line" id="L505">}</span>
 <span class="line" id="L506"></span>
 <span class="line" id="L507"><span class="tok-kw">test</span> <span class="tok-str">&quot;LinearFifo&quot;</span> {</span>
-<span class="line" id="L508">    <span class="tok-kw">if</span> (<span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>).zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L509"></span>
-<span class="line" id="L510">    <span class="tok-kw">inline</span> <span class="tok-kw">for</span> ([_]<span class="tok-type">type</span>{ <span class="tok-type">u1</span>, <span class="tok-type">u8</span>, <span class="tok-type">u16</span>, <span class="tok-type">u64</span> }) |T| {</span>
-<span class="line" id="L511">        <span class="tok-kw">inline</span> <span class="tok-kw">for</span> ([_]LinearFifoBufferType{ LinearFifoBufferType{ .Static = <span class="tok-number">32</span> }, .Slice, .Dynamic }) |bt| {</span>
-<span class="line" id="L512">            <span class="tok-kw">const</span> FifoType = LinearFifo(T, bt);</span>
-<span class="line" id="L513">            <span class="tok-kw">var</span> buf: <span class="tok-kw">if</span> (bt == .Slice) [<span class="tok-number">32</span>]T <span class="tok-kw">else</span> <span class="tok-type">void</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L514">            <span class="tok-kw">var</span> fifo = <span class="tok-kw">switch</span> (bt) {</span>
-<span class="line" id="L515">                .Static =&gt; FifoType.init(),</span>
-<span class="line" id="L516">                .Slice =&gt; FifoType.init(buf[<span class="tok-number">0</span>..]),</span>
-<span class="line" id="L517">                .Dynamic =&gt; FifoType.init(testing.allocator),</span>
-<span class="line" id="L518">            };</span>
-<span class="line" id="L519">            <span class="tok-kw">defer</span> fifo.deinit();</span>
-<span class="line" id="L520"></span>
-<span class="line" id="L521">            <span class="tok-kw">try</span> fifo.write(&amp;[_]T{ <span class="tok-number">0</span>, <span class="tok-number">1</span>, <span class="tok-number">1</span>, <span class="tok-number">0</span>, <span class="tok-number">1</span> });</span>
-<span class="line" id="L522">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">5</span>), fifo.readableLength());</span>
-<span class="line" id="L523"></span>
-<span class="line" id="L524">            {</span>
-<span class="line" id="L525">                <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(T, <span class="tok-number">0</span>), fifo.readItem().?);</span>
-<span class="line" id="L526">                <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(T, <span class="tok-number">1</span>), fifo.readItem().?);</span>
+<span class="line" id="L508">    <span class="tok-kw">inline</span> <span class="tok-kw">for</span> ([_]<span class="tok-type">type</span>{ <span class="tok-type">u1</span>, <span class="tok-type">u8</span>, <span class="tok-type">u16</span>, <span class="tok-type">u64</span> }) |T| {</span>
+<span class="line" id="L509">        <span class="tok-kw">inline</span> <span class="tok-kw">for</span> ([_]LinearFifoBufferType{ LinearFifoBufferType{ .Static = <span class="tok-number">32</span> }, .Slice, .Dynamic }) |bt| {</span>
+<span class="line" id="L510">            <span class="tok-kw">const</span> FifoType = LinearFifo(T, bt);</span>
+<span class="line" id="L511">            <span class="tok-kw">var</span> buf: <span class="tok-kw">if</span> (bt == .Slice) [<span class="tok-number">32</span>]T <span class="tok-kw">else</span> <span class="tok-type">void</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L512">            <span class="tok-kw">var</span> fifo = <span class="tok-kw">switch</span> (bt) {</span>
+<span class="line" id="L513">                .Static =&gt; FifoType.init(),</span>
+<span class="line" id="L514">                .Slice =&gt; FifoType.init(buf[<span class="tok-number">0</span>..]),</span>
+<span class="line" id="L515">                .Dynamic =&gt; FifoType.init(testing.allocator),</span>
+<span class="line" id="L516">            };</span>
+<span class="line" id="L517">            <span class="tok-kw">defer</span> fifo.deinit();</span>
+<span class="line" id="L518"></span>
+<span class="line" id="L519">            <span class="tok-kw">try</span> fifo.write(&amp;[_]T{ <span class="tok-number">0</span>, <span class="tok-number">1</span>, <span class="tok-number">1</span>, <span class="tok-number">0</span>, <span class="tok-number">1</span> });</span>
+<span class="line" id="L520">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">5</span>), fifo.readableLength());</span>
+<span class="line" id="L521"></span>
+<span class="line" id="L522">            {</span>
+<span class="line" id="L523">                <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(T, <span class="tok-number">0</span>), fifo.readItem().?);</span>
+<span class="line" id="L524">                <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(T, <span class="tok-number">1</span>), fifo.readItem().?);</span>
+<span class="line" id="L525">                <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(T, <span class="tok-number">1</span>), fifo.readItem().?);</span>
+<span class="line" id="L526">                <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(T, <span class="tok-number">0</span>), fifo.readItem().?);</span>
 <span class="line" id="L527">                <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(T, <span class="tok-number">1</span>), fifo.readItem().?);</span>
-<span class="line" id="L528">                <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(T, <span class="tok-number">0</span>), fifo.readItem().?);</span>
-<span class="line" id="L529">                <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(T, <span class="tok-number">1</span>), fifo.readItem().?);</span>
-<span class="line" id="L530">                <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), fifo.readableLength());</span>
-<span class="line" id="L531">            }</span>
-<span class="line" id="L532"></span>
-<span class="line" id="L533">            {</span>
+<span class="line" id="L528">                <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), fifo.readableLength());</span>
+<span class="line" id="L529">            }</span>
+<span class="line" id="L530"></span>
+<span class="line" id="L531">            {</span>
+<span class="line" id="L532">                <span class="tok-kw">try</span> fifo.writeItem(<span class="tok-number">1</span>);</span>
+<span class="line" id="L533">                <span class="tok-kw">try</span> fifo.writeItem(<span class="tok-number">1</span>);</span>
 <span class="line" id="L534">                <span class="tok-kw">try</span> fifo.writeItem(<span class="tok-number">1</span>);</span>
-<span class="line" id="L535">                <span class="tok-kw">try</span> fifo.writeItem(<span class="tok-number">1</span>);</span>
-<span class="line" id="L536">                <span class="tok-kw">try</span> fifo.writeItem(<span class="tok-number">1</span>);</span>
-<span class="line" id="L537">                <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), fifo.readableLength());</span>
-<span class="line" id="L538">            }</span>
-<span class="line" id="L539"></span>
-<span class="line" id="L540">            {</span>
-<span class="line" id="L541">                <span class="tok-kw">var</span> readBuf: [<span class="tok-number">3</span>]T = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L542">                <span class="tok-kw">const</span> n = fifo.read(&amp;readBuf);</span>
-<span class="line" id="L543">                <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), n); <span class="tok-comment">// NOTE: It should be the number of items.</span>
+<span class="line" id="L535">                <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), fifo.readableLength());</span>
+<span class="line" id="L536">            }</span>
+<span class="line" id="L537"></span>
+<span class="line" id="L538">            {</span>
+<span class="line" id="L539">                <span class="tok-kw">var</span> readBuf: [<span class="tok-number">3</span>]T = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L540">                <span class="tok-kw">const</span> n = fifo.read(&amp;readBuf);</span>
+<span class="line" id="L541">                <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), n); <span class="tok-comment">// NOTE: It should be the number of items.</span>
 </span>
-<span class="line" id="L544">            }</span>
-<span class="line" id="L545">        }</span>
-<span class="line" id="L546">    }</span>
-<span class="line" id="L547">}</span>
-<span class="line" id="L548"></span>
+<span class="line" id="L542">            }</span>
+<span class="line" id="L543">        }</span>
+<span class="line" id="L544">    }</span>
+<span class="line" id="L545">}</span>
+<span class="line" id="L546"></span>
 </code></pre></body>
 </html>

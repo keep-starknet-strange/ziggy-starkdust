@@ -999,83 +999,71 @@
 <span class="line" id="L862">}</span>
 <span class="line" id="L863"></span>
 <span class="line" id="L864"><span class="tok-kw">test</span> <span class="tok-str">&quot;xxhash64&quot;</span> {</span>
-<span class="line" id="L865">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L866"></span>
-<span class="line" id="L867">    <span class="tok-kw">const</span> H = XxHash64;</span>
-<span class="line" id="L868">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;&quot;</span>, <span class="tok-number">0xef46db3751d8e999</span>);</span>
-<span class="line" id="L869">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;a&quot;</span>, <span class="tok-number">0xd24ec4f1a98c6e5b</span>);</span>
-<span class="line" id="L870">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;abc&quot;</span>, <span class="tok-number">0x44bc2cf5ad770999</span>);</span>
-<span class="line" id="L871">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;message digest&quot;</span>, <span class="tok-number">0x066ed728fceeb3be</span>);</span>
-<span class="line" id="L872">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;abcdefghijklmnopqrstuvwxyz&quot;</span>, <span class="tok-number">0xcfe1f278fa89835c</span>);</span>
-<span class="line" id="L873">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&quot;</span>, <span class="tok-number">0xaaa46907d3047814</span>);</span>
-<span class="line" id="L874">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;12345678901234567890123456789012345678901234567890123456789012345678901234567890&quot;</span>, <span class="tok-number">0xe04a477f19ee145d</span>);</span>
-<span class="line" id="L875">}</span>
-<span class="line" id="L876"></span>
-<span class="line" id="L877"><span class="tok-kw">test</span> <span class="tok-str">&quot;xxhash64 smhasher&quot;</span> {</span>
-<span class="line" id="L878">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L879"></span>
-<span class="line" id="L880">    <span class="tok-kw">const</span> Test = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L881">        <span class="tok-kw">fn</span> <span class="tok-fn">do</span>() !<span class="tok-type">void</span> {</span>
-<span class="line" id="L882">            <span class="tok-kw">try</span> expectEqual(verify.smhasher(XxHash64.hash), <span class="tok-number">0x024B7CF4</span>);</span>
-<span class="line" id="L883">        }</span>
-<span class="line" id="L884">    };</span>
-<span class="line" id="L885">    <span class="tok-kw">try</span> Test.do();</span>
-<span class="line" id="L886">    <span class="tok-builtin">@setEvalBranchQuota</span>(<span class="tok-number">75000</span>);</span>
-<span class="line" id="L887">    <span class="tok-kw">comptime</span> <span class="tok-kw">try</span> Test.do();</span>
-<span class="line" id="L888">}</span>
-<span class="line" id="L889"></span>
-<span class="line" id="L890"><span class="tok-kw">test</span> <span class="tok-str">&quot;xxhash64 iterative api&quot;</span> {</span>
-<span class="line" id="L891">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L892"></span>
-<span class="line" id="L893">    <span class="tok-kw">const</span> Test = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L894">        <span class="tok-kw">fn</span> <span class="tok-fn">do</span>() !<span class="tok-type">void</span> {</span>
-<span class="line" id="L895">            <span class="tok-kw">try</span> verify.iterativeApi(XxHash64);</span>
-<span class="line" id="L896">        }</span>
-<span class="line" id="L897">    };</span>
-<span class="line" id="L898">    <span class="tok-kw">try</span> Test.do();</span>
-<span class="line" id="L899">    <span class="tok-builtin">@setEvalBranchQuota</span>(<span class="tok-number">30000</span>);</span>
-<span class="line" id="L900">    <span class="tok-kw">comptime</span> <span class="tok-kw">try</span> Test.do();</span>
-<span class="line" id="L901">}</span>
-<span class="line" id="L902"></span>
-<span class="line" id="L903"><span class="tok-kw">test</span> <span class="tok-str">&quot;xxhash32&quot;</span> {</span>
-<span class="line" id="L904">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L905"></span>
-<span class="line" id="L906">    <span class="tok-kw">const</span> H = XxHash32;</span>
-<span class="line" id="L907"></span>
-<span class="line" id="L908">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;&quot;</span>, <span class="tok-number">0x02cc5d05</span>);</span>
-<span class="line" id="L909">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;a&quot;</span>, <span class="tok-number">0x550d7456</span>);</span>
-<span class="line" id="L910">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;abc&quot;</span>, <span class="tok-number">0x32d153ff</span>);</span>
-<span class="line" id="L911">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;message digest&quot;</span>, <span class="tok-number">0x7c948494</span>);</span>
-<span class="line" id="L912">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;abcdefghijklmnopqrstuvwxyz&quot;</span>, <span class="tok-number">0x63a14d5f</span>);</span>
-<span class="line" id="L913">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&quot;</span>, <span class="tok-number">0x9c285e64</span>);</span>
-<span class="line" id="L914">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;12345678901234567890123456789012345678901234567890123456789012345678901234567890&quot;</span>, <span class="tok-number">0x9c05f475</span>);</span>
-<span class="line" id="L915">}</span>
-<span class="line" id="L916"></span>
-<span class="line" id="L917"><span class="tok-kw">test</span> <span class="tok-str">&quot;xxhash32 smhasher&quot;</span> {</span>
-<span class="line" id="L918">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L865">    <span class="tok-kw">const</span> H = XxHash64;</span>
+<span class="line" id="L866">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;&quot;</span>, <span class="tok-number">0xef46db3751d8e999</span>);</span>
+<span class="line" id="L867">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;a&quot;</span>, <span class="tok-number">0xd24ec4f1a98c6e5b</span>);</span>
+<span class="line" id="L868">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;abc&quot;</span>, <span class="tok-number">0x44bc2cf5ad770999</span>);</span>
+<span class="line" id="L869">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;message digest&quot;</span>, <span class="tok-number">0x066ed728fceeb3be</span>);</span>
+<span class="line" id="L870">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;abcdefghijklmnopqrstuvwxyz&quot;</span>, <span class="tok-number">0xcfe1f278fa89835c</span>);</span>
+<span class="line" id="L871">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&quot;</span>, <span class="tok-number">0xaaa46907d3047814</span>);</span>
+<span class="line" id="L872">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;12345678901234567890123456789012345678901234567890123456789012345678901234567890&quot;</span>, <span class="tok-number">0xe04a477f19ee145d</span>);</span>
+<span class="line" id="L873">}</span>
+<span class="line" id="L874"></span>
+<span class="line" id="L875"><span class="tok-kw">test</span> <span class="tok-str">&quot;xxhash64 smhasher&quot;</span> {</span>
+<span class="line" id="L876">    <span class="tok-kw">const</span> Test = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L877">        <span class="tok-kw">fn</span> <span class="tok-fn">do</span>() !<span class="tok-type">void</span> {</span>
+<span class="line" id="L878">            <span class="tok-kw">try</span> expectEqual(verify.smhasher(XxHash64.hash), <span class="tok-number">0x024B7CF4</span>);</span>
+<span class="line" id="L879">        }</span>
+<span class="line" id="L880">    };</span>
+<span class="line" id="L881">    <span class="tok-kw">try</span> Test.do();</span>
+<span class="line" id="L882">    <span class="tok-builtin">@setEvalBranchQuota</span>(<span class="tok-number">75000</span>);</span>
+<span class="line" id="L883">    <span class="tok-kw">comptime</span> <span class="tok-kw">try</span> Test.do();</span>
+<span class="line" id="L884">}</span>
+<span class="line" id="L885"></span>
+<span class="line" id="L886"><span class="tok-kw">test</span> <span class="tok-str">&quot;xxhash64 iterative api&quot;</span> {</span>
+<span class="line" id="L887">    <span class="tok-kw">const</span> Test = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L888">        <span class="tok-kw">fn</span> <span class="tok-fn">do</span>() !<span class="tok-type">void</span> {</span>
+<span class="line" id="L889">            <span class="tok-kw">try</span> verify.iterativeApi(XxHash64);</span>
+<span class="line" id="L890">        }</span>
+<span class="line" id="L891">    };</span>
+<span class="line" id="L892">    <span class="tok-kw">try</span> Test.do();</span>
+<span class="line" id="L893">    <span class="tok-builtin">@setEvalBranchQuota</span>(<span class="tok-number">30000</span>);</span>
+<span class="line" id="L894">    <span class="tok-kw">comptime</span> <span class="tok-kw">try</span> Test.do();</span>
+<span class="line" id="L895">}</span>
+<span class="line" id="L896"></span>
+<span class="line" id="L897"><span class="tok-kw">test</span> <span class="tok-str">&quot;xxhash32&quot;</span> {</span>
+<span class="line" id="L898">    <span class="tok-kw">const</span> H = XxHash32;</span>
+<span class="line" id="L899"></span>
+<span class="line" id="L900">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;&quot;</span>, <span class="tok-number">0x02cc5d05</span>);</span>
+<span class="line" id="L901">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;a&quot;</span>, <span class="tok-number">0x550d7456</span>);</span>
+<span class="line" id="L902">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;abc&quot;</span>, <span class="tok-number">0x32d153ff</span>);</span>
+<span class="line" id="L903">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;message digest&quot;</span>, <span class="tok-number">0x7c948494</span>);</span>
+<span class="line" id="L904">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;abcdefghijklmnopqrstuvwxyz&quot;</span>, <span class="tok-number">0x63a14d5f</span>);</span>
+<span class="line" id="L905">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789&quot;</span>, <span class="tok-number">0x9c285e64</span>);</span>
+<span class="line" id="L906">    <span class="tok-kw">try</span> testExpect(H, <span class="tok-number">0</span>, <span class="tok-str">&quot;12345678901234567890123456789012345678901234567890123456789012345678901234567890&quot;</span>, <span class="tok-number">0x9c05f475</span>);</span>
+<span class="line" id="L907">}</span>
+<span class="line" id="L908"></span>
+<span class="line" id="L909"><span class="tok-kw">test</span> <span class="tok-str">&quot;xxhash32 smhasher&quot;</span> {</span>
+<span class="line" id="L910">    <span class="tok-kw">const</span> Test = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L911">        <span class="tok-kw">fn</span> <span class="tok-fn">do</span>() !<span class="tok-type">void</span> {</span>
+<span class="line" id="L912">            <span class="tok-kw">try</span> expectEqual(verify.smhasher(XxHash32.hash), <span class="tok-number">0xBA88B743</span>);</span>
+<span class="line" id="L913">        }</span>
+<span class="line" id="L914">    };</span>
+<span class="line" id="L915">    <span class="tok-kw">try</span> Test.do();</span>
+<span class="line" id="L916">    <span class="tok-builtin">@setEvalBranchQuota</span>(<span class="tok-number">75000</span>);</span>
+<span class="line" id="L917">    <span class="tok-kw">comptime</span> <span class="tok-kw">try</span> Test.do();</span>
+<span class="line" id="L918">}</span>
 <span class="line" id="L919"></span>
-<span class="line" id="L920">    <span class="tok-kw">const</span> Test = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L921">        <span class="tok-kw">fn</span> <span class="tok-fn">do</span>() !<span class="tok-type">void</span> {</span>
-<span class="line" id="L922">            <span class="tok-kw">try</span> expectEqual(verify.smhasher(XxHash32.hash), <span class="tok-number">0xBA88B743</span>);</span>
-<span class="line" id="L923">        }</span>
-<span class="line" id="L924">    };</span>
-<span class="line" id="L925">    <span class="tok-kw">try</span> Test.do();</span>
-<span class="line" id="L926">    <span class="tok-builtin">@setEvalBranchQuota</span>(<span class="tok-number">75000</span>);</span>
-<span class="line" id="L927">    <span class="tok-kw">comptime</span> <span class="tok-kw">try</span> Test.do();</span>
-<span class="line" id="L928">}</span>
-<span class="line" id="L929"></span>
-<span class="line" id="L930"><span class="tok-kw">test</span> <span class="tok-str">&quot;xxhash32 iterative api&quot;</span> {</span>
-<span class="line" id="L931">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L932"></span>
-<span class="line" id="L933">    <span class="tok-kw">const</span> Test = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L934">        <span class="tok-kw">fn</span> <span class="tok-fn">do</span>() !<span class="tok-type">void</span> {</span>
-<span class="line" id="L935">            <span class="tok-kw">try</span> verify.iterativeApi(XxHash32);</span>
-<span class="line" id="L936">        }</span>
-<span class="line" id="L937">    };</span>
-<span class="line" id="L938">    <span class="tok-kw">try</span> Test.do();</span>
-<span class="line" id="L939">    <span class="tok-builtin">@setEvalBranchQuota</span>(<span class="tok-number">30000</span>);</span>
-<span class="line" id="L940">    <span class="tok-kw">comptime</span> <span class="tok-kw">try</span> Test.do();</span>
-<span class="line" id="L941">}</span>
-<span class="line" id="L942"></span>
+<span class="line" id="L920"><span class="tok-kw">test</span> <span class="tok-str">&quot;xxhash32 iterative api&quot;</span> {</span>
+<span class="line" id="L921">    <span class="tok-kw">const</span> Test = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L922">        <span class="tok-kw">fn</span> <span class="tok-fn">do</span>() !<span class="tok-type">void</span> {</span>
+<span class="line" id="L923">            <span class="tok-kw">try</span> verify.iterativeApi(XxHash32);</span>
+<span class="line" id="L924">        }</span>
+<span class="line" id="L925">    };</span>
+<span class="line" id="L926">    <span class="tok-kw">try</span> Test.do();</span>
+<span class="line" id="L927">    <span class="tok-builtin">@setEvalBranchQuota</span>(<span class="tok-number">30000</span>);</span>
+<span class="line" id="L928">    <span class="tok-kw">comptime</span> <span class="tok-kw">try</span> Test.do();</span>
+<span class="line" id="L929">}</span>
+<span class="line" id="L930"></span>
 </code></pre></body>
 </html>

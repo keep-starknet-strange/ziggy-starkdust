@@ -309,86 +309,84 @@
 <span class="line" id="L175"><span class="tok-comment">// SHA256=164ef0897b4cbec63abf1b57f069f3599bd0fb7c72c2a4dee21bd7e03ec9af67</span>
 </span>
 <span class="line" id="L176"><span class="tok-kw">test</span> <span class="tok-str">&quot;compressed data&quot;</span> {</span>
-<span class="line" id="L177">    <span class="tok-kw">if</span> (<span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>).zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L178"></span>
-<span class="line" id="L179">    <span class="tok-kw">try</span> testReader(</span>
-<span class="line" id="L180">        <span class="tok-builtin">@embedFile</span>(<span class="tok-str">&quot;testdata/rfc1952.txt.gz&quot;</span>),</span>
-<span class="line" id="L181">        <span class="tok-builtin">@embedFile</span>(<span class="tok-str">&quot;testdata/rfc1952.txt&quot;</span>),</span>
-<span class="line" id="L182">    );</span>
-<span class="line" id="L183">}</span>
-<span class="line" id="L184"></span>
-<span class="line" id="L185"><span class="tok-kw">test</span> <span class="tok-str">&quot;sanity checks&quot;</span> {</span>
-<span class="line" id="L186">    <span class="tok-comment">// Truncated header</span>
+<span class="line" id="L177">    <span class="tok-kw">try</span> testReader(</span>
+<span class="line" id="L178">        <span class="tok-builtin">@embedFile</span>(<span class="tok-str">&quot;testdata/rfc1952.txt.gz&quot;</span>),</span>
+<span class="line" id="L179">        <span class="tok-builtin">@embedFile</span>(<span class="tok-str">&quot;testdata/rfc1952.txt&quot;</span>),</span>
+<span class="line" id="L180">    );</span>
+<span class="line" id="L181">}</span>
+<span class="line" id="L182"></span>
+<span class="line" id="L183"><span class="tok-kw">test</span> <span class="tok-str">&quot;sanity checks&quot;</span> {</span>
+<span class="line" id="L184">    <span class="tok-comment">// Truncated header</span>
 </span>
-<span class="line" id="L187">    <span class="tok-kw">try</span> testing.expectError(</span>
-<span class="line" id="L188">        <span class="tok-kw">error</span>.EndOfStream,</span>
-<span class="line" id="L189">        testReader(&amp;[_]<span class="tok-type">u8</span>{ <span class="tok-number">0x1f</span>, <span class="tok-number">0x8B</span> }, <span class="tok-str">&quot;&quot;</span>),</span>
-<span class="line" id="L190">    );</span>
-<span class="line" id="L191">    <span class="tok-comment">// Wrong CM</span>
+<span class="line" id="L185">    <span class="tok-kw">try</span> testing.expectError(</span>
+<span class="line" id="L186">        <span class="tok-kw">error</span>.EndOfStream,</span>
+<span class="line" id="L187">        testReader(&amp;[_]<span class="tok-type">u8</span>{ <span class="tok-number">0x1f</span>, <span class="tok-number">0x8B</span> }, <span class="tok-str">&quot;&quot;</span>),</span>
+<span class="line" id="L188">    );</span>
+<span class="line" id="L189">    <span class="tok-comment">// Wrong CM</span>
 </span>
-<span class="line" id="L192">    <span class="tok-kw">try</span> testing.expectError(</span>
-<span class="line" id="L193">        <span class="tok-kw">error</span>.InvalidCompression,</span>
-<span class="line" id="L194">        testReader(&amp;[_]<span class="tok-type">u8</span>{</span>
-<span class="line" id="L195">            <span class="tok-number">0x1f</span>, <span class="tok-number">0x8b</span>, <span class="tok-number">0x09</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>,</span>
-<span class="line" id="L196">            <span class="tok-number">0x00</span>, <span class="tok-number">0x03</span>,</span>
-<span class="line" id="L197">        }, <span class="tok-str">&quot;&quot;</span>),</span>
-<span class="line" id="L198">    );</span>
-<span class="line" id="L199">    <span class="tok-comment">// Wrong checksum</span>
+<span class="line" id="L190">    <span class="tok-kw">try</span> testing.expectError(</span>
+<span class="line" id="L191">        <span class="tok-kw">error</span>.InvalidCompression,</span>
+<span class="line" id="L192">        testReader(&amp;[_]<span class="tok-type">u8</span>{</span>
+<span class="line" id="L193">            <span class="tok-number">0x1f</span>, <span class="tok-number">0x8b</span>, <span class="tok-number">0x09</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>,</span>
+<span class="line" id="L194">            <span class="tok-number">0x00</span>, <span class="tok-number">0x03</span>,</span>
+<span class="line" id="L195">        }, <span class="tok-str">&quot;&quot;</span>),</span>
+<span class="line" id="L196">    );</span>
+<span class="line" id="L197">    <span class="tok-comment">// Wrong checksum</span>
 </span>
-<span class="line" id="L200">    <span class="tok-kw">try</span> testing.expectError(</span>
-<span class="line" id="L201">        <span class="tok-kw">error</span>.WrongChecksum,</span>
-<span class="line" id="L202">        testReader(&amp;[_]<span class="tok-type">u8</span>{</span>
-<span class="line" id="L203">            <span class="tok-number">0x1f</span>, <span class="tok-number">0x8b</span>, <span class="tok-number">0x08</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>,</span>
-<span class="line" id="L204">            <span class="tok-number">0x00</span>, <span class="tok-number">0x03</span>, <span class="tok-number">0x03</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x01</span>,</span>
-<span class="line" id="L205">            <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>,</span>
-<span class="line" id="L206">        }, <span class="tok-str">&quot;&quot;</span>),</span>
-<span class="line" id="L207">    );</span>
-<span class="line" id="L208">    <span class="tok-comment">// Truncated checksum</span>
+<span class="line" id="L198">    <span class="tok-kw">try</span> testing.expectError(</span>
+<span class="line" id="L199">        <span class="tok-kw">error</span>.WrongChecksum,</span>
+<span class="line" id="L200">        testReader(&amp;[_]<span class="tok-type">u8</span>{</span>
+<span class="line" id="L201">            <span class="tok-number">0x1f</span>, <span class="tok-number">0x8b</span>, <span class="tok-number">0x08</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>,</span>
+<span class="line" id="L202">            <span class="tok-number">0x00</span>, <span class="tok-number">0x03</span>, <span class="tok-number">0x03</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x01</span>,</span>
+<span class="line" id="L203">            <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>,</span>
+<span class="line" id="L204">        }, <span class="tok-str">&quot;&quot;</span>),</span>
+<span class="line" id="L205">    );</span>
+<span class="line" id="L206">    <span class="tok-comment">// Truncated checksum</span>
 </span>
-<span class="line" id="L209">    <span class="tok-kw">try</span> testing.expectError(</span>
-<span class="line" id="L210">        <span class="tok-kw">error</span>.EndOfStream,</span>
-<span class="line" id="L211">        testReader(&amp;[_]<span class="tok-type">u8</span>{</span>
-<span class="line" id="L212">            <span class="tok-number">0x1f</span>, <span class="tok-number">0x8b</span>, <span class="tok-number">0x08</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>,</span>
-<span class="line" id="L213">            <span class="tok-number">0x00</span>, <span class="tok-number">0x03</span>, <span class="tok-number">0x03</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>,</span>
-<span class="line" id="L214">        }, <span class="tok-str">&quot;&quot;</span>),</span>
-<span class="line" id="L215">    );</span>
-<span class="line" id="L216">    <span class="tok-comment">// Wrong initial size</span>
+<span class="line" id="L207">    <span class="tok-kw">try</span> testing.expectError(</span>
+<span class="line" id="L208">        <span class="tok-kw">error</span>.EndOfStream,</span>
+<span class="line" id="L209">        testReader(&amp;[_]<span class="tok-type">u8</span>{</span>
+<span class="line" id="L210">            <span class="tok-number">0x1f</span>, <span class="tok-number">0x8b</span>, <span class="tok-number">0x08</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>,</span>
+<span class="line" id="L211">            <span class="tok-number">0x00</span>, <span class="tok-number">0x03</span>, <span class="tok-number">0x03</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>,</span>
+<span class="line" id="L212">        }, <span class="tok-str">&quot;&quot;</span>),</span>
+<span class="line" id="L213">    );</span>
+<span class="line" id="L214">    <span class="tok-comment">// Wrong initial size</span>
 </span>
-<span class="line" id="L217">    <span class="tok-kw">try</span> testing.expectError(</span>
-<span class="line" id="L218">        <span class="tok-kw">error</span>.CorruptedData,</span>
-<span class="line" id="L219">        testReader(&amp;[_]<span class="tok-type">u8</span>{</span>
-<span class="line" id="L220">            <span class="tok-number">0x1f</span>, <span class="tok-number">0x8b</span>, <span class="tok-number">0x08</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>,</span>
-<span class="line" id="L221">            <span class="tok-number">0x00</span>, <span class="tok-number">0x03</span>, <span class="tok-number">0x03</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>,</span>
-<span class="line" id="L222">            <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x01</span>,</span>
-<span class="line" id="L223">        }, <span class="tok-str">&quot;&quot;</span>),</span>
-<span class="line" id="L224">    );</span>
-<span class="line" id="L225">    <span class="tok-comment">// Truncated initial size field</span>
+<span class="line" id="L215">    <span class="tok-kw">try</span> testing.expectError(</span>
+<span class="line" id="L216">        <span class="tok-kw">error</span>.CorruptedData,</span>
+<span class="line" id="L217">        testReader(&amp;[_]<span class="tok-type">u8</span>{</span>
+<span class="line" id="L218">            <span class="tok-number">0x1f</span>, <span class="tok-number">0x8b</span>, <span class="tok-number">0x08</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>,</span>
+<span class="line" id="L219">            <span class="tok-number">0x00</span>, <span class="tok-number">0x03</span>, <span class="tok-number">0x03</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>,</span>
+<span class="line" id="L220">            <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x01</span>,</span>
+<span class="line" id="L221">        }, <span class="tok-str">&quot;&quot;</span>),</span>
+<span class="line" id="L222">    );</span>
+<span class="line" id="L223">    <span class="tok-comment">// Truncated initial size field</span>
 </span>
-<span class="line" id="L226">    <span class="tok-kw">try</span> testing.expectError(</span>
-<span class="line" id="L227">        <span class="tok-kw">error</span>.EndOfStream,</span>
-<span class="line" id="L228">        testReader(&amp;[_]<span class="tok-type">u8</span>{</span>
-<span class="line" id="L229">            <span class="tok-number">0x1f</span>, <span class="tok-number">0x8b</span>, <span class="tok-number">0x08</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>,</span>
-<span class="line" id="L230">            <span class="tok-number">0x00</span>, <span class="tok-number">0x03</span>, <span class="tok-number">0x03</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>,</span>
-<span class="line" id="L231">            <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>,</span>
-<span class="line" id="L232">        }, <span class="tok-str">&quot;&quot;</span>),</span>
-<span class="line" id="L233">    );</span>
-<span class="line" id="L234">}</span>
-<span class="line" id="L235"></span>
-<span class="line" id="L236"><span class="tok-kw">test</span> <span class="tok-str">&quot;header checksum&quot;</span> {</span>
-<span class="line" id="L237">    <span class="tok-kw">try</span> testReader(&amp;[_]<span class="tok-type">u8</span>{</span>
-<span class="line" id="L238">        <span class="tok-comment">// GZIP header</span>
+<span class="line" id="L224">    <span class="tok-kw">try</span> testing.expectError(</span>
+<span class="line" id="L225">        <span class="tok-kw">error</span>.EndOfStream,</span>
+<span class="line" id="L226">        testReader(&amp;[_]<span class="tok-type">u8</span>{</span>
+<span class="line" id="L227">            <span class="tok-number">0x1f</span>, <span class="tok-number">0x8b</span>, <span class="tok-number">0x08</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>,</span>
+<span class="line" id="L228">            <span class="tok-number">0x00</span>, <span class="tok-number">0x03</span>, <span class="tok-number">0x03</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>,</span>
+<span class="line" id="L229">            <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>,</span>
+<span class="line" id="L230">        }, <span class="tok-str">&quot;&quot;</span>),</span>
+<span class="line" id="L231">    );</span>
+<span class="line" id="L232">}</span>
+<span class="line" id="L233"></span>
+<span class="line" id="L234"><span class="tok-kw">test</span> <span class="tok-str">&quot;header checksum&quot;</span> {</span>
+<span class="line" id="L235">    <span class="tok-kw">try</span> testReader(&amp;[_]<span class="tok-type">u8</span>{</span>
+<span class="line" id="L236">        <span class="tok-comment">// GZIP header</span>
 </span>
-<span class="line" id="L239">        <span class="tok-number">0x1f</span>, <span class="tok-number">0x8b</span>, <span class="tok-number">0x08</span>, <span class="tok-number">0x12</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x09</span>, <span class="tok-number">0x6e</span>, <span class="tok-number">0x88</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0xff</span>, <span class="tok-number">0x48</span>, <span class="tok-number">0x65</span>, <span class="tok-number">0x6c</span>, <span class="tok-number">0x6c</span>, <span class="tok-number">0x6f</span>, <span class="tok-number">0x00</span>,</span>
-<span class="line" id="L240"></span>
-<span class="line" id="L241">        <span class="tok-comment">// header.FHCRC (should cover entire header)</span>
+<span class="line" id="L237">        <span class="tok-number">0x1f</span>, <span class="tok-number">0x8b</span>, <span class="tok-number">0x08</span>, <span class="tok-number">0x12</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x09</span>, <span class="tok-number">0x6e</span>, <span class="tok-number">0x88</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0xff</span>, <span class="tok-number">0x48</span>, <span class="tok-number">0x65</span>, <span class="tok-number">0x6c</span>, <span class="tok-number">0x6c</span>, <span class="tok-number">0x6f</span>, <span class="tok-number">0x00</span>,</span>
+<span class="line" id="L238"></span>
+<span class="line" id="L239">        <span class="tok-comment">// header.FHCRC (should cover entire header)</span>
 </span>
-<span class="line" id="L242">        <span class="tok-number">0x99</span>, <span class="tok-number">0xd6</span>,</span>
-<span class="line" id="L243"></span>
-<span class="line" id="L244">        <span class="tok-comment">// GZIP data</span>
+<span class="line" id="L240">        <span class="tok-number">0x99</span>, <span class="tok-number">0xd6</span>,</span>
+<span class="line" id="L241"></span>
+<span class="line" id="L242">        <span class="tok-comment">// GZIP data</span>
 </span>
-<span class="line" id="L245">        <span class="tok-number">0x01</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0xff</span>, <span class="tok-number">0xff</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>,</span>
-<span class="line" id="L246">    }, <span class="tok-str">&quot;&quot;</span>);</span>
-<span class="line" id="L247">}</span>
-<span class="line" id="L248"></span>
+<span class="line" id="L243">        <span class="tok-number">0x01</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0xff</span>, <span class="tok-number">0xff</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>, <span class="tok-number">0x00</span>,</span>
+<span class="line" id="L244">    }, <span class="tok-str">&quot;&quot;</span>);</span>
+<span class="line" id="L245">}</span>
+<span class="line" id="L246"></span>
 </code></pre></body>
 </html>

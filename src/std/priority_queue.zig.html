@@ -502,247 +502,245 @@
 <span class="line" id="L385">}</span>
 <span class="line" id="L386"></span>
 <span class="line" id="L387"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: fromOwnedSlice&quot;</span> {</span>
-<span class="line" id="L388">    <span class="tok-kw">if</span> (<span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>).zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L389"></span>
-<span class="line" id="L390">    <span class="tok-kw">const</span> items = [_]<span class="tok-type">u32</span>{ <span class="tok-number">15</span>, <span class="tok-number">7</span>, <span class="tok-number">21</span>, <span class="tok-number">14</span>, <span class="tok-number">13</span>, <span class="tok-number">22</span>, <span class="tok-number">12</span>, <span class="tok-number">6</span>, <span class="tok-number">7</span>, <span class="tok-number">25</span>, <span class="tok-number">5</span>, <span class="tok-number">24</span>, <span class="tok-number">11</span>, <span class="tok-number">16</span>, <span class="tok-number">15</span>, <span class="tok-number">24</span>, <span class="tok-number">2</span>, <span class="tok-number">1</span> };</span>
-<span class="line" id="L391">    <span class="tok-kw">const</span> heap_items = <span class="tok-kw">try</span> testing.allocator.dupe(<span class="tok-type">u32</span>, items[<span class="tok-number">0</span>..]);</span>
-<span class="line" id="L392">    <span class="tok-kw">var</span> queue = PQlt.fromOwnedSlice(testing.allocator, heap_items[<span class="tok-number">0</span>..], {});</span>
-<span class="line" id="L393">    <span class="tok-kw">defer</span> queue.deinit();</span>
-<span class="line" id="L394"></span>
-<span class="line" id="L395">    <span class="tok-kw">const</span> sorted_items = [_]<span class="tok-type">u32</span>{ <span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">5</span>, <span class="tok-number">6</span>, <span class="tok-number">7</span>, <span class="tok-number">7</span>, <span class="tok-number">11</span>, <span class="tok-number">12</span>, <span class="tok-number">13</span>, <span class="tok-number">14</span>, <span class="tok-number">15</span>, <span class="tok-number">15</span>, <span class="tok-number">16</span>, <span class="tok-number">21</span>, <span class="tok-number">22</span>, <span class="tok-number">24</span>, <span class="tok-number">24</span>, <span class="tok-number">25</span> };</span>
-<span class="line" id="L396">    <span class="tok-kw">for</span> (sorted_items) |e| {</span>
-<span class="line" id="L397">        <span class="tok-kw">try</span> expectEqual(e, queue.remove());</span>
-<span class="line" id="L398">    }</span>
-<span class="line" id="L399">}</span>
-<span class="line" id="L400"></span>
-<span class="line" id="L401"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: add and remove max heap&quot;</span> {</span>
-<span class="line" id="L402">    <span class="tok-kw">var</span> queue = PQgt.init(testing.allocator, {});</span>
-<span class="line" id="L403">    <span class="tok-kw">defer</span> queue.deinit();</span>
-<span class="line" id="L404"></span>
-<span class="line" id="L405">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">54</span>);</span>
-<span class="line" id="L406">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">12</span>);</span>
-<span class="line" id="L407">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">7</span>);</span>
-<span class="line" id="L408">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">23</span>);</span>
-<span class="line" id="L409">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">25</span>);</span>
-<span class="line" id="L410">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">13</span>);</span>
-<span class="line" id="L411">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">54</span>), queue.remove());</span>
-<span class="line" id="L412">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">25</span>), queue.remove());</span>
-<span class="line" id="L413">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">23</span>), queue.remove());</span>
-<span class="line" id="L414">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">13</span>), queue.remove());</span>
-<span class="line" id="L415">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">12</span>), queue.remove());</span>
-<span class="line" id="L416">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">7</span>), queue.remove());</span>
-<span class="line" id="L417">}</span>
-<span class="line" id="L418"></span>
-<span class="line" id="L419"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: add and remove same max heap&quot;</span> {</span>
-<span class="line" id="L420">    <span class="tok-kw">var</span> queue = PQgt.init(testing.allocator, {});</span>
-<span class="line" id="L421">    <span class="tok-kw">defer</span> queue.deinit();</span>
-<span class="line" id="L422"></span>
-<span class="line" id="L423">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">1</span>);</span>
-<span class="line" id="L424">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">1</span>);</span>
-<span class="line" id="L425">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">2</span>);</span>
-<span class="line" id="L426">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">2</span>);</span>
-<span class="line" id="L427">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">1</span>);</span>
-<span class="line" id="L428">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">1</span>);</span>
-<span class="line" id="L429">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">2</span>), queue.remove());</span>
-<span class="line" id="L430">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">2</span>), queue.remove());</span>
+<span class="line" id="L388">    <span class="tok-kw">const</span> items = [_]<span class="tok-type">u32</span>{ <span class="tok-number">15</span>, <span class="tok-number">7</span>, <span class="tok-number">21</span>, <span class="tok-number">14</span>, <span class="tok-number">13</span>, <span class="tok-number">22</span>, <span class="tok-number">12</span>, <span class="tok-number">6</span>, <span class="tok-number">7</span>, <span class="tok-number">25</span>, <span class="tok-number">5</span>, <span class="tok-number">24</span>, <span class="tok-number">11</span>, <span class="tok-number">16</span>, <span class="tok-number">15</span>, <span class="tok-number">24</span>, <span class="tok-number">2</span>, <span class="tok-number">1</span> };</span>
+<span class="line" id="L389">    <span class="tok-kw">const</span> heap_items = <span class="tok-kw">try</span> testing.allocator.dupe(<span class="tok-type">u32</span>, items[<span class="tok-number">0</span>..]);</span>
+<span class="line" id="L390">    <span class="tok-kw">var</span> queue = PQlt.fromOwnedSlice(testing.allocator, heap_items[<span class="tok-number">0</span>..], {});</span>
+<span class="line" id="L391">    <span class="tok-kw">defer</span> queue.deinit();</span>
+<span class="line" id="L392"></span>
+<span class="line" id="L393">    <span class="tok-kw">const</span> sorted_items = [_]<span class="tok-type">u32</span>{ <span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">5</span>, <span class="tok-number">6</span>, <span class="tok-number">7</span>, <span class="tok-number">7</span>, <span class="tok-number">11</span>, <span class="tok-number">12</span>, <span class="tok-number">13</span>, <span class="tok-number">14</span>, <span class="tok-number">15</span>, <span class="tok-number">15</span>, <span class="tok-number">16</span>, <span class="tok-number">21</span>, <span class="tok-number">22</span>, <span class="tok-number">24</span>, <span class="tok-number">24</span>, <span class="tok-number">25</span> };</span>
+<span class="line" id="L394">    <span class="tok-kw">for</span> (sorted_items) |e| {</span>
+<span class="line" id="L395">        <span class="tok-kw">try</span> expectEqual(e, queue.remove());</span>
+<span class="line" id="L396">    }</span>
+<span class="line" id="L397">}</span>
+<span class="line" id="L398"></span>
+<span class="line" id="L399"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: add and remove max heap&quot;</span> {</span>
+<span class="line" id="L400">    <span class="tok-kw">var</span> queue = PQgt.init(testing.allocator, {});</span>
+<span class="line" id="L401">    <span class="tok-kw">defer</span> queue.deinit();</span>
+<span class="line" id="L402"></span>
+<span class="line" id="L403">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">54</span>);</span>
+<span class="line" id="L404">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">12</span>);</span>
+<span class="line" id="L405">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">7</span>);</span>
+<span class="line" id="L406">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">23</span>);</span>
+<span class="line" id="L407">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">25</span>);</span>
+<span class="line" id="L408">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">13</span>);</span>
+<span class="line" id="L409">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">54</span>), queue.remove());</span>
+<span class="line" id="L410">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">25</span>), queue.remove());</span>
+<span class="line" id="L411">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">23</span>), queue.remove());</span>
+<span class="line" id="L412">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">13</span>), queue.remove());</span>
+<span class="line" id="L413">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">12</span>), queue.remove());</span>
+<span class="line" id="L414">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">7</span>), queue.remove());</span>
+<span class="line" id="L415">}</span>
+<span class="line" id="L416"></span>
+<span class="line" id="L417"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: add and remove same max heap&quot;</span> {</span>
+<span class="line" id="L418">    <span class="tok-kw">var</span> queue = PQgt.init(testing.allocator, {});</span>
+<span class="line" id="L419">    <span class="tok-kw">defer</span> queue.deinit();</span>
+<span class="line" id="L420"></span>
+<span class="line" id="L421">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">1</span>);</span>
+<span class="line" id="L422">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">1</span>);</span>
+<span class="line" id="L423">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">2</span>);</span>
+<span class="line" id="L424">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">2</span>);</span>
+<span class="line" id="L425">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">1</span>);</span>
+<span class="line" id="L426">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">1</span>);</span>
+<span class="line" id="L427">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">2</span>), queue.remove());</span>
+<span class="line" id="L428">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">2</span>), queue.remove());</span>
+<span class="line" id="L429">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1</span>), queue.remove());</span>
+<span class="line" id="L430">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1</span>), queue.remove());</span>
 <span class="line" id="L431">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1</span>), queue.remove());</span>
 <span class="line" id="L432">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1</span>), queue.remove());</span>
-<span class="line" id="L433">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1</span>), queue.remove());</span>
-<span class="line" id="L434">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1</span>), queue.remove());</span>
-<span class="line" id="L435">}</span>
-<span class="line" id="L436"></span>
-<span class="line" id="L437"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: iterator&quot;</span> {</span>
-<span class="line" id="L438">    <span class="tok-kw">var</span> queue = PQlt.init(testing.allocator, {});</span>
-<span class="line" id="L439">    <span class="tok-kw">var</span> map = std.AutoHashMap(<span class="tok-type">u32</span>, <span class="tok-type">void</span>).init(testing.allocator);</span>
-<span class="line" id="L440">    <span class="tok-kw">defer</span> {</span>
-<span class="line" id="L441">        queue.deinit();</span>
-<span class="line" id="L442">        map.deinit();</span>
-<span class="line" id="L443">    }</span>
-<span class="line" id="L444"></span>
-<span class="line" id="L445">    <span class="tok-kw">const</span> items = [_]<span class="tok-type">u32</span>{ <span class="tok-number">54</span>, <span class="tok-number">12</span>, <span class="tok-number">7</span>, <span class="tok-number">23</span>, <span class="tok-number">25</span>, <span class="tok-number">13</span> };</span>
-<span class="line" id="L446">    <span class="tok-kw">for</span> (items) |e| {</span>
-<span class="line" id="L447">        _ = <span class="tok-kw">try</span> queue.add(e);</span>
-<span class="line" id="L448">        <span class="tok-kw">try</span> map.put(e, {});</span>
-<span class="line" id="L449">    }</span>
-<span class="line" id="L450"></span>
-<span class="line" id="L451">    <span class="tok-kw">var</span> it = queue.iterator();</span>
-<span class="line" id="L452">    <span class="tok-kw">while</span> (it.next()) |e| {</span>
-<span class="line" id="L453">        _ = map.remove(e);</span>
-<span class="line" id="L454">    }</span>
-<span class="line" id="L455"></span>
-<span class="line" id="L456">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), map.count());</span>
-<span class="line" id="L457">}</span>
-<span class="line" id="L458"></span>
-<span class="line" id="L459"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: remove at index&quot;</span> {</span>
-<span class="line" id="L460">    <span class="tok-kw">var</span> queue = PQlt.init(testing.allocator, {});</span>
-<span class="line" id="L461">    <span class="tok-kw">defer</span> queue.deinit();</span>
-<span class="line" id="L462"></span>
-<span class="line" id="L463">    <span class="tok-kw">const</span> items = [_]<span class="tok-type">u32</span>{ <span class="tok-number">2</span>, <span class="tok-number">1</span>, <span class="tok-number">8</span>, <span class="tok-number">9</span>, <span class="tok-number">3</span>, <span class="tok-number">4</span>, <span class="tok-number">5</span> };</span>
-<span class="line" id="L464">    <span class="tok-kw">for</span> (items) |e| {</span>
-<span class="line" id="L465">        _ = <span class="tok-kw">try</span> queue.add(e);</span>
-<span class="line" id="L466">    }</span>
-<span class="line" id="L467"></span>
-<span class="line" id="L468">    <span class="tok-kw">var</span> it = queue.iterator();</span>
-<span class="line" id="L469">    <span class="tok-kw">var</span> idx: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
-<span class="line" id="L470">    <span class="tok-kw">const</span> two_idx = <span class="tok-kw">while</span> (it.next()) |elem| {</span>
-<span class="line" id="L471">        <span class="tok-kw">if</span> (elem == <span class="tok-number">2</span>)</span>
-<span class="line" id="L472">            <span class="tok-kw">break</span> idx;</span>
-<span class="line" id="L473">        idx += <span class="tok-number">1</span>;</span>
-<span class="line" id="L474">    } <span class="tok-kw">else</span> <span class="tok-kw">unreachable</span>;</span>
-<span class="line" id="L475">    <span class="tok-kw">var</span> sorted_items = [_]<span class="tok-type">u32</span>{ <span class="tok-number">1</span>, <span class="tok-number">3</span>, <span class="tok-number">4</span>, <span class="tok-number">5</span>, <span class="tok-number">8</span>, <span class="tok-number">9</span> };</span>
-<span class="line" id="L476">    <span class="tok-kw">try</span> expectEqual(queue.removeIndex(two_idx), <span class="tok-number">2</span>);</span>
-<span class="line" id="L477"></span>
-<span class="line" id="L478">    <span class="tok-kw">var</span> i: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
-<span class="line" id="L479">    <span class="tok-kw">while</span> (queue.removeOrNull()) |n| : (i += <span class="tok-number">1</span>) {</span>
-<span class="line" id="L480">        <span class="tok-kw">try</span> expectEqual(n, sorted_items[i]);</span>
-<span class="line" id="L481">    }</span>
-<span class="line" id="L482">    <span class="tok-kw">try</span> expectEqual(queue.removeOrNull(), <span class="tok-null">null</span>);</span>
-<span class="line" id="L483">}</span>
-<span class="line" id="L484"></span>
-<span class="line" id="L485"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: iterator while empty&quot;</span> {</span>
-<span class="line" id="L486">    <span class="tok-kw">var</span> queue = PQlt.init(testing.allocator, {});</span>
-<span class="line" id="L487">    <span class="tok-kw">defer</span> queue.deinit();</span>
+<span class="line" id="L433">}</span>
+<span class="line" id="L434"></span>
+<span class="line" id="L435"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: iterator&quot;</span> {</span>
+<span class="line" id="L436">    <span class="tok-kw">var</span> queue = PQlt.init(testing.allocator, {});</span>
+<span class="line" id="L437">    <span class="tok-kw">var</span> map = std.AutoHashMap(<span class="tok-type">u32</span>, <span class="tok-type">void</span>).init(testing.allocator);</span>
+<span class="line" id="L438">    <span class="tok-kw">defer</span> {</span>
+<span class="line" id="L439">        queue.deinit();</span>
+<span class="line" id="L440">        map.deinit();</span>
+<span class="line" id="L441">    }</span>
+<span class="line" id="L442"></span>
+<span class="line" id="L443">    <span class="tok-kw">const</span> items = [_]<span class="tok-type">u32</span>{ <span class="tok-number">54</span>, <span class="tok-number">12</span>, <span class="tok-number">7</span>, <span class="tok-number">23</span>, <span class="tok-number">25</span>, <span class="tok-number">13</span> };</span>
+<span class="line" id="L444">    <span class="tok-kw">for</span> (items) |e| {</span>
+<span class="line" id="L445">        _ = <span class="tok-kw">try</span> queue.add(e);</span>
+<span class="line" id="L446">        <span class="tok-kw">try</span> map.put(e, {});</span>
+<span class="line" id="L447">    }</span>
+<span class="line" id="L448"></span>
+<span class="line" id="L449">    <span class="tok-kw">var</span> it = queue.iterator();</span>
+<span class="line" id="L450">    <span class="tok-kw">while</span> (it.next()) |e| {</span>
+<span class="line" id="L451">        _ = map.remove(e);</span>
+<span class="line" id="L452">    }</span>
+<span class="line" id="L453"></span>
+<span class="line" id="L454">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), map.count());</span>
+<span class="line" id="L455">}</span>
+<span class="line" id="L456"></span>
+<span class="line" id="L457"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: remove at index&quot;</span> {</span>
+<span class="line" id="L458">    <span class="tok-kw">var</span> queue = PQlt.init(testing.allocator, {});</span>
+<span class="line" id="L459">    <span class="tok-kw">defer</span> queue.deinit();</span>
+<span class="line" id="L460"></span>
+<span class="line" id="L461">    <span class="tok-kw">const</span> items = [_]<span class="tok-type">u32</span>{ <span class="tok-number">2</span>, <span class="tok-number">1</span>, <span class="tok-number">8</span>, <span class="tok-number">9</span>, <span class="tok-number">3</span>, <span class="tok-number">4</span>, <span class="tok-number">5</span> };</span>
+<span class="line" id="L462">    <span class="tok-kw">for</span> (items) |e| {</span>
+<span class="line" id="L463">        _ = <span class="tok-kw">try</span> queue.add(e);</span>
+<span class="line" id="L464">    }</span>
+<span class="line" id="L465"></span>
+<span class="line" id="L466">    <span class="tok-kw">var</span> it = queue.iterator();</span>
+<span class="line" id="L467">    <span class="tok-kw">var</span> idx: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
+<span class="line" id="L468">    <span class="tok-kw">const</span> two_idx = <span class="tok-kw">while</span> (it.next()) |elem| {</span>
+<span class="line" id="L469">        <span class="tok-kw">if</span> (elem == <span class="tok-number">2</span>)</span>
+<span class="line" id="L470">            <span class="tok-kw">break</span> idx;</span>
+<span class="line" id="L471">        idx += <span class="tok-number">1</span>;</span>
+<span class="line" id="L472">    } <span class="tok-kw">else</span> <span class="tok-kw">unreachable</span>;</span>
+<span class="line" id="L473">    <span class="tok-kw">var</span> sorted_items = [_]<span class="tok-type">u32</span>{ <span class="tok-number">1</span>, <span class="tok-number">3</span>, <span class="tok-number">4</span>, <span class="tok-number">5</span>, <span class="tok-number">8</span>, <span class="tok-number">9</span> };</span>
+<span class="line" id="L474">    <span class="tok-kw">try</span> expectEqual(queue.removeIndex(two_idx), <span class="tok-number">2</span>);</span>
+<span class="line" id="L475"></span>
+<span class="line" id="L476">    <span class="tok-kw">var</span> i: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
+<span class="line" id="L477">    <span class="tok-kw">while</span> (queue.removeOrNull()) |n| : (i += <span class="tok-number">1</span>) {</span>
+<span class="line" id="L478">        <span class="tok-kw">try</span> expectEqual(n, sorted_items[i]);</span>
+<span class="line" id="L479">    }</span>
+<span class="line" id="L480">    <span class="tok-kw">try</span> expectEqual(queue.removeOrNull(), <span class="tok-null">null</span>);</span>
+<span class="line" id="L481">}</span>
+<span class="line" id="L482"></span>
+<span class="line" id="L483"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: iterator while empty&quot;</span> {</span>
+<span class="line" id="L484">    <span class="tok-kw">var</span> queue = PQlt.init(testing.allocator, {});</span>
+<span class="line" id="L485">    <span class="tok-kw">defer</span> queue.deinit();</span>
+<span class="line" id="L486"></span>
+<span class="line" id="L487">    <span class="tok-kw">var</span> it = queue.iterator();</span>
 <span class="line" id="L488"></span>
-<span class="line" id="L489">    <span class="tok-kw">var</span> it = queue.iterator();</span>
-<span class="line" id="L490"></span>
-<span class="line" id="L491">    <span class="tok-kw">try</span> expectEqual(it.next(), <span class="tok-null">null</span>);</span>
-<span class="line" id="L492">}</span>
-<span class="line" id="L493"></span>
-<span class="line" id="L494"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: shrinkAndFree&quot;</span> {</span>
-<span class="line" id="L495">    <span class="tok-kw">var</span> queue = PQlt.init(testing.allocator, {});</span>
-<span class="line" id="L496">    <span class="tok-kw">defer</span> queue.deinit();</span>
-<span class="line" id="L497"></span>
-<span class="line" id="L498">    <span class="tok-kw">try</span> queue.ensureTotalCapacity(<span class="tok-number">4</span>);</span>
-<span class="line" id="L499">    <span class="tok-kw">try</span> expect(queue.capacity() &gt;= <span class="tok-number">4</span>);</span>
-<span class="line" id="L500"></span>
-<span class="line" id="L501">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">1</span>);</span>
-<span class="line" id="L502">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">2</span>);</span>
-<span class="line" id="L503">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">3</span>);</span>
-<span class="line" id="L504">    <span class="tok-kw">try</span> expect(queue.capacity() &gt;= <span class="tok-number">4</span>);</span>
-<span class="line" id="L505">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), queue.len);</span>
-<span class="line" id="L506"></span>
-<span class="line" id="L507">    queue.shrinkAndFree(<span class="tok-number">3</span>);</span>
-<span class="line" id="L508">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), queue.capacity());</span>
-<span class="line" id="L509">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), queue.len);</span>
-<span class="line" id="L510"></span>
-<span class="line" id="L511">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1</span>), queue.remove());</span>
-<span class="line" id="L512">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">2</span>), queue.remove());</span>
-<span class="line" id="L513">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">3</span>), queue.remove());</span>
-<span class="line" id="L514">    <span class="tok-kw">try</span> expect(queue.removeOrNull() == <span class="tok-null">null</span>);</span>
-<span class="line" id="L515">}</span>
-<span class="line" id="L516"></span>
-<span class="line" id="L517"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: update min heap&quot;</span> {</span>
-<span class="line" id="L518">    <span class="tok-kw">var</span> queue = PQlt.init(testing.allocator, {});</span>
-<span class="line" id="L519">    <span class="tok-kw">defer</span> queue.deinit();</span>
-<span class="line" id="L520"></span>
-<span class="line" id="L521">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">55</span>);</span>
-<span class="line" id="L522">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">44</span>);</span>
-<span class="line" id="L523">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">11</span>);</span>
-<span class="line" id="L524">    <span class="tok-kw">try</span> queue.update(<span class="tok-number">55</span>, <span class="tok-number">5</span>);</span>
-<span class="line" id="L525">    <span class="tok-kw">try</span> queue.update(<span class="tok-number">44</span>, <span class="tok-number">4</span>);</span>
-<span class="line" id="L526">    <span class="tok-kw">try</span> queue.update(<span class="tok-number">11</span>, <span class="tok-number">1</span>);</span>
-<span class="line" id="L527">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1</span>), queue.remove());</span>
-<span class="line" id="L528">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">4</span>), queue.remove());</span>
-<span class="line" id="L529">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">5</span>), queue.remove());</span>
-<span class="line" id="L530">}</span>
-<span class="line" id="L531"></span>
-<span class="line" id="L532"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: update same min heap&quot;</span> {</span>
-<span class="line" id="L533">    <span class="tok-kw">var</span> queue = PQlt.init(testing.allocator, {});</span>
-<span class="line" id="L534">    <span class="tok-kw">defer</span> queue.deinit();</span>
-<span class="line" id="L535"></span>
-<span class="line" id="L536">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">1</span>);</span>
-<span class="line" id="L537">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">1</span>);</span>
-<span class="line" id="L538">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">2</span>);</span>
-<span class="line" id="L539">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">2</span>);</span>
-<span class="line" id="L540">    <span class="tok-kw">try</span> queue.update(<span class="tok-number">1</span>, <span class="tok-number">5</span>);</span>
-<span class="line" id="L541">    <span class="tok-kw">try</span> queue.update(<span class="tok-number">2</span>, <span class="tok-number">4</span>);</span>
-<span class="line" id="L542">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1</span>), queue.remove());</span>
-<span class="line" id="L543">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">2</span>), queue.remove());</span>
-<span class="line" id="L544">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">4</span>), queue.remove());</span>
-<span class="line" id="L545">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">5</span>), queue.remove());</span>
-<span class="line" id="L546">}</span>
-<span class="line" id="L547"></span>
-<span class="line" id="L548"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: update max heap&quot;</span> {</span>
-<span class="line" id="L549">    <span class="tok-kw">var</span> queue = PQgt.init(testing.allocator, {});</span>
-<span class="line" id="L550">    <span class="tok-kw">defer</span> queue.deinit();</span>
-<span class="line" id="L551"></span>
-<span class="line" id="L552">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">55</span>);</span>
-<span class="line" id="L553">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">44</span>);</span>
-<span class="line" id="L554">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">11</span>);</span>
-<span class="line" id="L555">    <span class="tok-kw">try</span> queue.update(<span class="tok-number">55</span>, <span class="tok-number">5</span>);</span>
-<span class="line" id="L556">    <span class="tok-kw">try</span> queue.update(<span class="tok-number">44</span>, <span class="tok-number">1</span>);</span>
-<span class="line" id="L557">    <span class="tok-kw">try</span> queue.update(<span class="tok-number">11</span>, <span class="tok-number">4</span>);</span>
-<span class="line" id="L558">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">5</span>), queue.remove());</span>
-<span class="line" id="L559">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">4</span>), queue.remove());</span>
-<span class="line" id="L560">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1</span>), queue.remove());</span>
-<span class="line" id="L561">}</span>
-<span class="line" id="L562"></span>
-<span class="line" id="L563"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: update same max heap&quot;</span> {</span>
-<span class="line" id="L564">    <span class="tok-kw">var</span> queue = PQgt.init(testing.allocator, {});</span>
-<span class="line" id="L565">    <span class="tok-kw">defer</span> queue.deinit();</span>
-<span class="line" id="L566"></span>
-<span class="line" id="L567">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">1</span>);</span>
-<span class="line" id="L568">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">1</span>);</span>
-<span class="line" id="L569">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">2</span>);</span>
-<span class="line" id="L570">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">2</span>);</span>
-<span class="line" id="L571">    <span class="tok-kw">try</span> queue.update(<span class="tok-number">1</span>, <span class="tok-number">5</span>);</span>
-<span class="line" id="L572">    <span class="tok-kw">try</span> queue.update(<span class="tok-number">2</span>, <span class="tok-number">4</span>);</span>
-<span class="line" id="L573">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">5</span>), queue.remove());</span>
-<span class="line" id="L574">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">4</span>), queue.remove());</span>
-<span class="line" id="L575">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">2</span>), queue.remove());</span>
-<span class="line" id="L576">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1</span>), queue.remove());</span>
-<span class="line" id="L577">}</span>
-<span class="line" id="L578"></span>
-<span class="line" id="L579"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: update after remove&quot;</span> {</span>
-<span class="line" id="L580">    <span class="tok-kw">var</span> queue = PQlt.init(testing.allocator, {});</span>
-<span class="line" id="L581">    <span class="tok-kw">defer</span> queue.deinit();</span>
-<span class="line" id="L582"></span>
-<span class="line" id="L583">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">1</span>);</span>
-<span class="line" id="L584">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1</span>), queue.remove());</span>
-<span class="line" id="L585">    <span class="tok-kw">try</span> expectError(<span class="tok-kw">error</span>.ElementNotFound, queue.update(<span class="tok-number">1</span>, <span class="tok-number">1</span>));</span>
-<span class="line" id="L586">}</span>
-<span class="line" id="L587"></span>
-<span class="line" id="L588"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: siftUp in remove&quot;</span> {</span>
-<span class="line" id="L589">    <span class="tok-kw">var</span> queue = PQlt.init(testing.allocator, {});</span>
-<span class="line" id="L590">    <span class="tok-kw">defer</span> queue.deinit();</span>
+<span class="line" id="L489">    <span class="tok-kw">try</span> expectEqual(it.next(), <span class="tok-null">null</span>);</span>
+<span class="line" id="L490">}</span>
+<span class="line" id="L491"></span>
+<span class="line" id="L492"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: shrinkAndFree&quot;</span> {</span>
+<span class="line" id="L493">    <span class="tok-kw">var</span> queue = PQlt.init(testing.allocator, {});</span>
+<span class="line" id="L494">    <span class="tok-kw">defer</span> queue.deinit();</span>
+<span class="line" id="L495"></span>
+<span class="line" id="L496">    <span class="tok-kw">try</span> queue.ensureTotalCapacity(<span class="tok-number">4</span>);</span>
+<span class="line" id="L497">    <span class="tok-kw">try</span> expect(queue.capacity() &gt;= <span class="tok-number">4</span>);</span>
+<span class="line" id="L498"></span>
+<span class="line" id="L499">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">1</span>);</span>
+<span class="line" id="L500">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">2</span>);</span>
+<span class="line" id="L501">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">3</span>);</span>
+<span class="line" id="L502">    <span class="tok-kw">try</span> expect(queue.capacity() &gt;= <span class="tok-number">4</span>);</span>
+<span class="line" id="L503">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), queue.len);</span>
+<span class="line" id="L504"></span>
+<span class="line" id="L505">    queue.shrinkAndFree(<span class="tok-number">3</span>);</span>
+<span class="line" id="L506">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), queue.capacity());</span>
+<span class="line" id="L507">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), queue.len);</span>
+<span class="line" id="L508"></span>
+<span class="line" id="L509">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1</span>), queue.remove());</span>
+<span class="line" id="L510">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">2</span>), queue.remove());</span>
+<span class="line" id="L511">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">3</span>), queue.remove());</span>
+<span class="line" id="L512">    <span class="tok-kw">try</span> expect(queue.removeOrNull() == <span class="tok-null">null</span>);</span>
+<span class="line" id="L513">}</span>
+<span class="line" id="L514"></span>
+<span class="line" id="L515"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: update min heap&quot;</span> {</span>
+<span class="line" id="L516">    <span class="tok-kw">var</span> queue = PQlt.init(testing.allocator, {});</span>
+<span class="line" id="L517">    <span class="tok-kw">defer</span> queue.deinit();</span>
+<span class="line" id="L518"></span>
+<span class="line" id="L519">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">55</span>);</span>
+<span class="line" id="L520">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">44</span>);</span>
+<span class="line" id="L521">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">11</span>);</span>
+<span class="line" id="L522">    <span class="tok-kw">try</span> queue.update(<span class="tok-number">55</span>, <span class="tok-number">5</span>);</span>
+<span class="line" id="L523">    <span class="tok-kw">try</span> queue.update(<span class="tok-number">44</span>, <span class="tok-number">4</span>);</span>
+<span class="line" id="L524">    <span class="tok-kw">try</span> queue.update(<span class="tok-number">11</span>, <span class="tok-number">1</span>);</span>
+<span class="line" id="L525">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1</span>), queue.remove());</span>
+<span class="line" id="L526">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">4</span>), queue.remove());</span>
+<span class="line" id="L527">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">5</span>), queue.remove());</span>
+<span class="line" id="L528">}</span>
+<span class="line" id="L529"></span>
+<span class="line" id="L530"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: update same min heap&quot;</span> {</span>
+<span class="line" id="L531">    <span class="tok-kw">var</span> queue = PQlt.init(testing.allocator, {});</span>
+<span class="line" id="L532">    <span class="tok-kw">defer</span> queue.deinit();</span>
+<span class="line" id="L533"></span>
+<span class="line" id="L534">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">1</span>);</span>
+<span class="line" id="L535">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">1</span>);</span>
+<span class="line" id="L536">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">2</span>);</span>
+<span class="line" id="L537">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">2</span>);</span>
+<span class="line" id="L538">    <span class="tok-kw">try</span> queue.update(<span class="tok-number">1</span>, <span class="tok-number">5</span>);</span>
+<span class="line" id="L539">    <span class="tok-kw">try</span> queue.update(<span class="tok-number">2</span>, <span class="tok-number">4</span>);</span>
+<span class="line" id="L540">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1</span>), queue.remove());</span>
+<span class="line" id="L541">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">2</span>), queue.remove());</span>
+<span class="line" id="L542">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">4</span>), queue.remove());</span>
+<span class="line" id="L543">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">5</span>), queue.remove());</span>
+<span class="line" id="L544">}</span>
+<span class="line" id="L545"></span>
+<span class="line" id="L546"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: update max heap&quot;</span> {</span>
+<span class="line" id="L547">    <span class="tok-kw">var</span> queue = PQgt.init(testing.allocator, {});</span>
+<span class="line" id="L548">    <span class="tok-kw">defer</span> queue.deinit();</span>
+<span class="line" id="L549"></span>
+<span class="line" id="L550">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">55</span>);</span>
+<span class="line" id="L551">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">44</span>);</span>
+<span class="line" id="L552">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">11</span>);</span>
+<span class="line" id="L553">    <span class="tok-kw">try</span> queue.update(<span class="tok-number">55</span>, <span class="tok-number">5</span>);</span>
+<span class="line" id="L554">    <span class="tok-kw">try</span> queue.update(<span class="tok-number">44</span>, <span class="tok-number">1</span>);</span>
+<span class="line" id="L555">    <span class="tok-kw">try</span> queue.update(<span class="tok-number">11</span>, <span class="tok-number">4</span>);</span>
+<span class="line" id="L556">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">5</span>), queue.remove());</span>
+<span class="line" id="L557">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">4</span>), queue.remove());</span>
+<span class="line" id="L558">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1</span>), queue.remove());</span>
+<span class="line" id="L559">}</span>
+<span class="line" id="L560"></span>
+<span class="line" id="L561"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: update same max heap&quot;</span> {</span>
+<span class="line" id="L562">    <span class="tok-kw">var</span> queue = PQgt.init(testing.allocator, {});</span>
+<span class="line" id="L563">    <span class="tok-kw">defer</span> queue.deinit();</span>
+<span class="line" id="L564"></span>
+<span class="line" id="L565">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">1</span>);</span>
+<span class="line" id="L566">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">1</span>);</span>
+<span class="line" id="L567">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">2</span>);</span>
+<span class="line" id="L568">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">2</span>);</span>
+<span class="line" id="L569">    <span class="tok-kw">try</span> queue.update(<span class="tok-number">1</span>, <span class="tok-number">5</span>);</span>
+<span class="line" id="L570">    <span class="tok-kw">try</span> queue.update(<span class="tok-number">2</span>, <span class="tok-number">4</span>);</span>
+<span class="line" id="L571">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">5</span>), queue.remove());</span>
+<span class="line" id="L572">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">4</span>), queue.remove());</span>
+<span class="line" id="L573">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">2</span>), queue.remove());</span>
+<span class="line" id="L574">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1</span>), queue.remove());</span>
+<span class="line" id="L575">}</span>
+<span class="line" id="L576"></span>
+<span class="line" id="L577"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: update after remove&quot;</span> {</span>
+<span class="line" id="L578">    <span class="tok-kw">var</span> queue = PQlt.init(testing.allocator, {});</span>
+<span class="line" id="L579">    <span class="tok-kw">defer</span> queue.deinit();</span>
+<span class="line" id="L580"></span>
+<span class="line" id="L581">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">1</span>);</span>
+<span class="line" id="L582">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1</span>), queue.remove());</span>
+<span class="line" id="L583">    <span class="tok-kw">try</span> expectError(<span class="tok-kw">error</span>.ElementNotFound, queue.update(<span class="tok-number">1</span>, <span class="tok-number">1</span>));</span>
+<span class="line" id="L584">}</span>
+<span class="line" id="L585"></span>
+<span class="line" id="L586"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: siftUp in remove&quot;</span> {</span>
+<span class="line" id="L587">    <span class="tok-kw">var</span> queue = PQlt.init(testing.allocator, {});</span>
+<span class="line" id="L588">    <span class="tok-kw">defer</span> queue.deinit();</span>
+<span class="line" id="L589"></span>
+<span class="line" id="L590">    <span class="tok-kw">try</span> queue.addSlice(&amp;.{ <span class="tok-number">0</span>, <span class="tok-number">1</span>, <span class="tok-number">100</span>, <span class="tok-number">2</span>, <span class="tok-number">3</span>, <span class="tok-number">101</span>, <span class="tok-number">102</span>, <span class="tok-number">4</span>, <span class="tok-number">5</span>, <span class="tok-number">6</span>, <span class="tok-number">7</span>, <span class="tok-number">103</span>, <span class="tok-number">104</span>, <span class="tok-number">105</span>, <span class="tok-number">106</span>, <span class="tok-number">8</span> });</span>
 <span class="line" id="L591"></span>
-<span class="line" id="L592">    <span class="tok-kw">try</span> queue.addSlice(&amp;.{ <span class="tok-number">0</span>, <span class="tok-number">1</span>, <span class="tok-number">100</span>, <span class="tok-number">2</span>, <span class="tok-number">3</span>, <span class="tok-number">101</span>, <span class="tok-number">102</span>, <span class="tok-number">4</span>, <span class="tok-number">5</span>, <span class="tok-number">6</span>, <span class="tok-number">7</span>, <span class="tok-number">103</span>, <span class="tok-number">104</span>, <span class="tok-number">105</span>, <span class="tok-number">106</span>, <span class="tok-number">8</span> });</span>
+<span class="line" id="L592">    _ = queue.removeIndex(std.mem.indexOfScalar(<span class="tok-type">u32</span>, queue.items[<span class="tok-number">0</span>..queue.len], <span class="tok-number">102</span>).?);</span>
 <span class="line" id="L593"></span>
-<span class="line" id="L594">    _ = queue.removeIndex(std.mem.indexOfScalar(<span class="tok-type">u32</span>, queue.items[<span class="tok-number">0</span>..queue.len], <span class="tok-number">102</span>).?);</span>
-<span class="line" id="L595"></span>
-<span class="line" id="L596">    <span class="tok-kw">const</span> sorted_items = [_]<span class="tok-type">u32</span>{ <span class="tok-number">0</span>, <span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">3</span>, <span class="tok-number">4</span>, <span class="tok-number">5</span>, <span class="tok-number">6</span>, <span class="tok-number">7</span>, <span class="tok-number">8</span>, <span class="tok-number">100</span>, <span class="tok-number">101</span>, <span class="tok-number">103</span>, <span class="tok-number">104</span>, <span class="tok-number">105</span>, <span class="tok-number">106</span> };</span>
-<span class="line" id="L597">    <span class="tok-kw">for</span> (sorted_items) |e| {</span>
-<span class="line" id="L598">        <span class="tok-kw">try</span> expectEqual(e, queue.remove());</span>
-<span class="line" id="L599">    }</span>
-<span class="line" id="L600">}</span>
-<span class="line" id="L601"></span>
-<span class="line" id="L602"><span class="tok-kw">fn</span> <span class="tok-fn">contextLessThan</span>(context: []<span class="tok-kw">const</span> <span class="tok-type">u32</span>, a: <span class="tok-type">usize</span>, b: <span class="tok-type">usize</span>) Order {</span>
-<span class="line" id="L603">    <span class="tok-kw">return</span> std.math.order(context[a], context[b]);</span>
-<span class="line" id="L604">}</span>
+<span class="line" id="L594">    <span class="tok-kw">const</span> sorted_items = [_]<span class="tok-type">u32</span>{ <span class="tok-number">0</span>, <span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">3</span>, <span class="tok-number">4</span>, <span class="tok-number">5</span>, <span class="tok-number">6</span>, <span class="tok-number">7</span>, <span class="tok-number">8</span>, <span class="tok-number">100</span>, <span class="tok-number">101</span>, <span class="tok-number">103</span>, <span class="tok-number">104</span>, <span class="tok-number">105</span>, <span class="tok-number">106</span> };</span>
+<span class="line" id="L595">    <span class="tok-kw">for</span> (sorted_items) |e| {</span>
+<span class="line" id="L596">        <span class="tok-kw">try</span> expectEqual(e, queue.remove());</span>
+<span class="line" id="L597">    }</span>
+<span class="line" id="L598">}</span>
+<span class="line" id="L599"></span>
+<span class="line" id="L600"><span class="tok-kw">fn</span> <span class="tok-fn">contextLessThan</span>(context: []<span class="tok-kw">const</span> <span class="tok-type">u32</span>, a: <span class="tok-type">usize</span>, b: <span class="tok-type">usize</span>) Order {</span>
+<span class="line" id="L601">    <span class="tok-kw">return</span> std.math.order(context[a], context[b]);</span>
+<span class="line" id="L602">}</span>
+<span class="line" id="L603"></span>
+<span class="line" id="L604"><span class="tok-kw">const</span> CPQlt = PriorityQueue(<span class="tok-type">usize</span>, []<span class="tok-kw">const</span> <span class="tok-type">u32</span>, contextLessThan);</span>
 <span class="line" id="L605"></span>
-<span class="line" id="L606"><span class="tok-kw">const</span> CPQlt = PriorityQueue(<span class="tok-type">usize</span>, []<span class="tok-kw">const</span> <span class="tok-type">u32</span>, contextLessThan);</span>
-<span class="line" id="L607"></span>
-<span class="line" id="L608"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: add and remove min heap with contextful comparator&quot;</span> {</span>
-<span class="line" id="L609">    <span class="tok-kw">const</span> context = [_]<span class="tok-type">u32</span>{ <span class="tok-number">5</span>, <span class="tok-number">3</span>, <span class="tok-number">4</span>, <span class="tok-number">2</span>, <span class="tok-number">2</span>, <span class="tok-number">8</span>, <span class="tok-number">0</span> };</span>
-<span class="line" id="L610"></span>
-<span class="line" id="L611">    <span class="tok-kw">var</span> queue = CPQlt.init(testing.allocator, context[<span class="tok-number">0</span>..]);</span>
-<span class="line" id="L612">    <span class="tok-kw">defer</span> queue.deinit();</span>
-<span class="line" id="L613"></span>
-<span class="line" id="L614">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">0</span>);</span>
-<span class="line" id="L615">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">1</span>);</span>
-<span class="line" id="L616">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">2</span>);</span>
-<span class="line" id="L617">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">3</span>);</span>
-<span class="line" id="L618">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">4</span>);</span>
-<span class="line" id="L619">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">5</span>);</span>
-<span class="line" id="L620">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">6</span>);</span>
-<span class="line" id="L621">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">6</span>), queue.remove());</span>
-<span class="line" id="L622">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">4</span>), queue.remove());</span>
-<span class="line" id="L623">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), queue.remove());</span>
-<span class="line" id="L624">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">1</span>), queue.remove());</span>
-<span class="line" id="L625">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">2</span>), queue.remove());</span>
-<span class="line" id="L626">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), queue.remove());</span>
-<span class="line" id="L627">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">5</span>), queue.remove());</span>
-<span class="line" id="L628">}</span>
-<span class="line" id="L629"></span>
+<span class="line" id="L606"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.PriorityQueue: add and remove min heap with contextful comparator&quot;</span> {</span>
+<span class="line" id="L607">    <span class="tok-kw">const</span> context = [_]<span class="tok-type">u32</span>{ <span class="tok-number">5</span>, <span class="tok-number">3</span>, <span class="tok-number">4</span>, <span class="tok-number">2</span>, <span class="tok-number">2</span>, <span class="tok-number">8</span>, <span class="tok-number">0</span> };</span>
+<span class="line" id="L608"></span>
+<span class="line" id="L609">    <span class="tok-kw">var</span> queue = CPQlt.init(testing.allocator, context[<span class="tok-number">0</span>..]);</span>
+<span class="line" id="L610">    <span class="tok-kw">defer</span> queue.deinit();</span>
+<span class="line" id="L611"></span>
+<span class="line" id="L612">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">0</span>);</span>
+<span class="line" id="L613">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">1</span>);</span>
+<span class="line" id="L614">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">2</span>);</span>
+<span class="line" id="L615">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">3</span>);</span>
+<span class="line" id="L616">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">4</span>);</span>
+<span class="line" id="L617">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">5</span>);</span>
+<span class="line" id="L618">    <span class="tok-kw">try</span> queue.add(<span class="tok-number">6</span>);</span>
+<span class="line" id="L619">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">6</span>), queue.remove());</span>
+<span class="line" id="L620">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">4</span>), queue.remove());</span>
+<span class="line" id="L621">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), queue.remove());</span>
+<span class="line" id="L622">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">1</span>), queue.remove());</span>
+<span class="line" id="L623">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">2</span>), queue.remove());</span>
+<span class="line" id="L624">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), queue.remove());</span>
+<span class="line" id="L625">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">5</span>), queue.remove());</span>
+<span class="line" id="L626">}</span>
+<span class="line" id="L627"></span>
 </code></pre></body>
 </html>

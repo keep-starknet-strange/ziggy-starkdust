@@ -700,395 +700,379 @@
 <span class="line" id="L583">}</span>
 <span class="line" id="L584"></span>
 <span class="line" id="L585"><span class="tok-kw">test</span> <span class="tok-str">&quot;basic usage&quot;</span> {</span>
-<span class="line" id="L586">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L586">    <span class="tok-kw">const</span> ally = testing.allocator;</span>
 <span class="line" id="L587"></span>
-<span class="line" id="L588">    <span class="tok-kw">const</span> ally = testing.allocator;</span>
-<span class="line" id="L589"></span>
-<span class="line" id="L590">    <span class="tok-kw">const</span> Foo = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L591">        a: <span class="tok-type">u32</span>,</span>
-<span class="line" id="L592">        b: []<span class="tok-kw">const</span> <span class="tok-type">u8</span>,</span>
-<span class="line" id="L593">        c: <span class="tok-type">u8</span>,</span>
-<span class="line" id="L594">    };</span>
-<span class="line" id="L595"></span>
-<span class="line" id="L596">    <span class="tok-kw">var</span> list = MultiArrayList(Foo){};</span>
-<span class="line" id="L597">    <span class="tok-kw">defer</span> list.deinit(ally);</span>
+<span class="line" id="L588">    <span class="tok-kw">const</span> Foo = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L589">        a: <span class="tok-type">u32</span>,</span>
+<span class="line" id="L590">        b: []<span class="tok-kw">const</span> <span class="tok-type">u8</span>,</span>
+<span class="line" id="L591">        c: <span class="tok-type">u8</span>,</span>
+<span class="line" id="L592">    };</span>
+<span class="line" id="L593"></span>
+<span class="line" id="L594">    <span class="tok-kw">var</span> list = MultiArrayList(Foo){};</span>
+<span class="line" id="L595">    <span class="tok-kw">defer</span> list.deinit(ally);</span>
+<span class="line" id="L596"></span>
+<span class="line" id="L597">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), list.items(.a).len);</span>
 <span class="line" id="L598"></span>
-<span class="line" id="L599">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), list.items(.a).len);</span>
+<span class="line" id="L599">    <span class="tok-kw">try</span> list.ensureTotalCapacity(ally, <span class="tok-number">2</span>);</span>
 <span class="line" id="L600"></span>
-<span class="line" id="L601">    <span class="tok-kw">try</span> list.ensureTotalCapacity(ally, <span class="tok-number">2</span>);</span>
-<span class="line" id="L602"></span>
-<span class="line" id="L603">    list.appendAssumeCapacity(.{</span>
-<span class="line" id="L604">        .a = <span class="tok-number">1</span>,</span>
-<span class="line" id="L605">        .b = <span class="tok-str">&quot;foobar&quot;</span>,</span>
-<span class="line" id="L606">        .c = <span class="tok-str">'a'</span>,</span>
-<span class="line" id="L607">    });</span>
-<span class="line" id="L608"></span>
-<span class="line" id="L609">    list.appendAssumeCapacity(.{</span>
-<span class="line" id="L610">        .a = <span class="tok-number">2</span>,</span>
-<span class="line" id="L611">        .b = <span class="tok-str">&quot;zigzag&quot;</span>,</span>
-<span class="line" id="L612">        .c = <span class="tok-str">'b'</span>,</span>
-<span class="line" id="L613">    });</span>
-<span class="line" id="L614"></span>
-<span class="line" id="L615">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u32</span>, list.items(.a), &amp;[_]<span class="tok-type">u32</span>{ <span class="tok-number">1</span>, <span class="tok-number">2</span> });</span>
-<span class="line" id="L616">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u8</span>, list.items(.c), &amp;[_]<span class="tok-type">u8</span>{ <span class="tok-str">'a'</span>, <span class="tok-str">'b'</span> });</span>
-<span class="line" id="L617"></span>
-<span class="line" id="L618">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">2</span>), list.items(.b).len);</span>
-<span class="line" id="L619">    <span class="tok-kw">try</span> testing.expectEqualStrings(<span class="tok-str">&quot;foobar&quot;</span>, list.items(.b)[<span class="tok-number">0</span>]);</span>
-<span class="line" id="L620">    <span class="tok-kw">try</span> testing.expectEqualStrings(<span class="tok-str">&quot;zigzag&quot;</span>, list.items(.b)[<span class="tok-number">1</span>]);</span>
-<span class="line" id="L621"></span>
-<span class="line" id="L622">    <span class="tok-kw">try</span> list.append(ally, .{</span>
-<span class="line" id="L623">        .a = <span class="tok-number">3</span>,</span>
-<span class="line" id="L624">        .b = <span class="tok-str">&quot;fizzbuzz&quot;</span>,</span>
-<span class="line" id="L625">        .c = <span class="tok-str">'c'</span>,</span>
-<span class="line" id="L626">    });</span>
-<span class="line" id="L627"></span>
-<span class="line" id="L628">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u32</span>, list.items(.a), &amp;[_]<span class="tok-type">u32</span>{ <span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">3</span> });</span>
-<span class="line" id="L629">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u8</span>, list.items(.c), &amp;[_]<span class="tok-type">u8</span>{ <span class="tok-str">'a'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'c'</span> });</span>
-<span class="line" id="L630"></span>
-<span class="line" id="L631">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), list.items(.b).len);</span>
-<span class="line" id="L632">    <span class="tok-kw">try</span> testing.expectEqualStrings(<span class="tok-str">&quot;foobar&quot;</span>, list.items(.b)[<span class="tok-number">0</span>]);</span>
-<span class="line" id="L633">    <span class="tok-kw">try</span> testing.expectEqualStrings(<span class="tok-str">&quot;zigzag&quot;</span>, list.items(.b)[<span class="tok-number">1</span>]);</span>
-<span class="line" id="L634">    <span class="tok-kw">try</span> testing.expectEqualStrings(<span class="tok-str">&quot;fizzbuzz&quot;</span>, list.items(.b)[<span class="tok-number">2</span>]);</span>
-<span class="line" id="L635"></span>
-<span class="line" id="L636">    <span class="tok-comment">// Add 6 more things to force a capacity increase.</span>
+<span class="line" id="L601">    list.appendAssumeCapacity(.{</span>
+<span class="line" id="L602">        .a = <span class="tok-number">1</span>,</span>
+<span class="line" id="L603">        .b = <span class="tok-str">&quot;foobar&quot;</span>,</span>
+<span class="line" id="L604">        .c = <span class="tok-str">'a'</span>,</span>
+<span class="line" id="L605">    });</span>
+<span class="line" id="L606"></span>
+<span class="line" id="L607">    list.appendAssumeCapacity(.{</span>
+<span class="line" id="L608">        .a = <span class="tok-number">2</span>,</span>
+<span class="line" id="L609">        .b = <span class="tok-str">&quot;zigzag&quot;</span>,</span>
+<span class="line" id="L610">        .c = <span class="tok-str">'b'</span>,</span>
+<span class="line" id="L611">    });</span>
+<span class="line" id="L612"></span>
+<span class="line" id="L613">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u32</span>, list.items(.a), &amp;[_]<span class="tok-type">u32</span>{ <span class="tok-number">1</span>, <span class="tok-number">2</span> });</span>
+<span class="line" id="L614">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u8</span>, list.items(.c), &amp;[_]<span class="tok-type">u8</span>{ <span class="tok-str">'a'</span>, <span class="tok-str">'b'</span> });</span>
+<span class="line" id="L615"></span>
+<span class="line" id="L616">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">2</span>), list.items(.b).len);</span>
+<span class="line" id="L617">    <span class="tok-kw">try</span> testing.expectEqualStrings(<span class="tok-str">&quot;foobar&quot;</span>, list.items(.b)[<span class="tok-number">0</span>]);</span>
+<span class="line" id="L618">    <span class="tok-kw">try</span> testing.expectEqualStrings(<span class="tok-str">&quot;zigzag&quot;</span>, list.items(.b)[<span class="tok-number">1</span>]);</span>
+<span class="line" id="L619"></span>
+<span class="line" id="L620">    <span class="tok-kw">try</span> list.append(ally, .{</span>
+<span class="line" id="L621">        .a = <span class="tok-number">3</span>,</span>
+<span class="line" id="L622">        .b = <span class="tok-str">&quot;fizzbuzz&quot;</span>,</span>
+<span class="line" id="L623">        .c = <span class="tok-str">'c'</span>,</span>
+<span class="line" id="L624">    });</span>
+<span class="line" id="L625"></span>
+<span class="line" id="L626">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u32</span>, list.items(.a), &amp;[_]<span class="tok-type">u32</span>{ <span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">3</span> });</span>
+<span class="line" id="L627">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u8</span>, list.items(.c), &amp;[_]<span class="tok-type">u8</span>{ <span class="tok-str">'a'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'c'</span> });</span>
+<span class="line" id="L628"></span>
+<span class="line" id="L629">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), list.items(.b).len);</span>
+<span class="line" id="L630">    <span class="tok-kw">try</span> testing.expectEqualStrings(<span class="tok-str">&quot;foobar&quot;</span>, list.items(.b)[<span class="tok-number">0</span>]);</span>
+<span class="line" id="L631">    <span class="tok-kw">try</span> testing.expectEqualStrings(<span class="tok-str">&quot;zigzag&quot;</span>, list.items(.b)[<span class="tok-number">1</span>]);</span>
+<span class="line" id="L632">    <span class="tok-kw">try</span> testing.expectEqualStrings(<span class="tok-str">&quot;fizzbuzz&quot;</span>, list.items(.b)[<span class="tok-number">2</span>]);</span>
+<span class="line" id="L633"></span>
+<span class="line" id="L634">    <span class="tok-comment">// Add 6 more things to force a capacity increase.</span>
 </span>
-<span class="line" id="L637">    <span class="tok-kw">var</span> i: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
-<span class="line" id="L638">    <span class="tok-kw">while</span> (i &lt; <span class="tok-number">6</span>) : (i += <span class="tok-number">1</span>) {</span>
-<span class="line" id="L639">        <span class="tok-kw">try</span> list.append(ally, .{</span>
-<span class="line" id="L640">            .a = <span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-builtin">@intCast</span>(<span class="tok-number">4</span> + i)),</span>
-<span class="line" id="L641">            .b = <span class="tok-str">&quot;whatever&quot;</span>,</span>
-<span class="line" id="L642">            .c = <span class="tok-builtin">@as</span>(<span class="tok-type">u8</span>, <span class="tok-builtin">@intCast</span>(<span class="tok-str">'d'</span> + i)),</span>
-<span class="line" id="L643">        });</span>
-<span class="line" id="L644">    }</span>
-<span class="line" id="L645"></span>
-<span class="line" id="L646">    <span class="tok-kw">try</span> testing.expectEqualSlices(</span>
-<span class="line" id="L647">        <span class="tok-type">u32</span>,</span>
-<span class="line" id="L648">        &amp;[_]<span class="tok-type">u32</span>{ <span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">3</span>, <span class="tok-number">4</span>, <span class="tok-number">5</span>, <span class="tok-number">6</span>, <span class="tok-number">7</span>, <span class="tok-number">8</span>, <span class="tok-number">9</span> },</span>
-<span class="line" id="L649">        list.items(.a),</span>
-<span class="line" id="L650">    );</span>
-<span class="line" id="L651">    <span class="tok-kw">try</span> testing.expectEqualSlices(</span>
-<span class="line" id="L652">        <span class="tok-type">u8</span>,</span>
-<span class="line" id="L653">        &amp;[_]<span class="tok-type">u8</span>{ <span class="tok-str">'a'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'d'</span>, <span class="tok-str">'e'</span>, <span class="tok-str">'f'</span>, <span class="tok-str">'g'</span>, <span class="tok-str">'h'</span>, <span class="tok-str">'i'</span> },</span>
-<span class="line" id="L654">        list.items(.c),</span>
-<span class="line" id="L655">    );</span>
+<span class="line" id="L635">    <span class="tok-kw">var</span> i: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
+<span class="line" id="L636">    <span class="tok-kw">while</span> (i &lt; <span class="tok-number">6</span>) : (i += <span class="tok-number">1</span>) {</span>
+<span class="line" id="L637">        <span class="tok-kw">try</span> list.append(ally, .{</span>
+<span class="line" id="L638">            .a = <span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-builtin">@intCast</span>(<span class="tok-number">4</span> + i)),</span>
+<span class="line" id="L639">            .b = <span class="tok-str">&quot;whatever&quot;</span>,</span>
+<span class="line" id="L640">            .c = <span class="tok-builtin">@as</span>(<span class="tok-type">u8</span>, <span class="tok-builtin">@intCast</span>(<span class="tok-str">'d'</span> + i)),</span>
+<span class="line" id="L641">        });</span>
+<span class="line" id="L642">    }</span>
+<span class="line" id="L643"></span>
+<span class="line" id="L644">    <span class="tok-kw">try</span> testing.expectEqualSlices(</span>
+<span class="line" id="L645">        <span class="tok-type">u32</span>,</span>
+<span class="line" id="L646">        &amp;[_]<span class="tok-type">u32</span>{ <span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">3</span>, <span class="tok-number">4</span>, <span class="tok-number">5</span>, <span class="tok-number">6</span>, <span class="tok-number">7</span>, <span class="tok-number">8</span>, <span class="tok-number">9</span> },</span>
+<span class="line" id="L647">        list.items(.a),</span>
+<span class="line" id="L648">    );</span>
+<span class="line" id="L649">    <span class="tok-kw">try</span> testing.expectEqualSlices(</span>
+<span class="line" id="L650">        <span class="tok-type">u8</span>,</span>
+<span class="line" id="L651">        &amp;[_]<span class="tok-type">u8</span>{ <span class="tok-str">'a'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'d'</span>, <span class="tok-str">'e'</span>, <span class="tok-str">'f'</span>, <span class="tok-str">'g'</span>, <span class="tok-str">'h'</span>, <span class="tok-str">'i'</span> },</span>
+<span class="line" id="L652">        list.items(.c),</span>
+<span class="line" id="L653">    );</span>
+<span class="line" id="L654"></span>
+<span class="line" id="L655">    list.shrinkAndFree(ally, <span class="tok-number">3</span>);</span>
 <span class="line" id="L656"></span>
-<span class="line" id="L657">    list.shrinkAndFree(ally, <span class="tok-number">3</span>);</span>
-<span class="line" id="L658"></span>
-<span class="line" id="L659">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u32</span>, list.items(.a), &amp;[_]<span class="tok-type">u32</span>{ <span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">3</span> });</span>
-<span class="line" id="L660">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u8</span>, list.items(.c), &amp;[_]<span class="tok-type">u8</span>{ <span class="tok-str">'a'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'c'</span> });</span>
-<span class="line" id="L661"></span>
-<span class="line" id="L662">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), list.items(.b).len);</span>
-<span class="line" id="L663">    <span class="tok-kw">try</span> testing.expectEqualStrings(<span class="tok-str">&quot;foobar&quot;</span>, list.items(.b)[<span class="tok-number">0</span>]);</span>
-<span class="line" id="L664">    <span class="tok-kw">try</span> testing.expectEqualStrings(<span class="tok-str">&quot;zigzag&quot;</span>, list.items(.b)[<span class="tok-number">1</span>]);</span>
-<span class="line" id="L665">    <span class="tok-kw">try</span> testing.expectEqualStrings(<span class="tok-str">&quot;fizzbuzz&quot;</span>, list.items(.b)[<span class="tok-number">2</span>]);</span>
-<span class="line" id="L666"></span>
-<span class="line" id="L667">    list.set(<span class="tok-kw">try</span> list.addOne(ally), .{</span>
-<span class="line" id="L668">        .a = <span class="tok-number">4</span>,</span>
-<span class="line" id="L669">        .b = <span class="tok-str">&quot;xnopyt&quot;</span>,</span>
-<span class="line" id="L670">        .c = <span class="tok-str">'d'</span>,</span>
-<span class="line" id="L671">    });</span>
-<span class="line" id="L672">    <span class="tok-kw">try</span> testing.expectEqualStrings(<span class="tok-str">&quot;xnopyt&quot;</span>, list.pop().b);</span>
-<span class="line" id="L673">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(?<span class="tok-type">u8</span>, <span class="tok-str">'c'</span>), <span class="tok-kw">if</span> (list.popOrNull()) |elem| elem.c <span class="tok-kw">else</span> <span class="tok-null">null</span>);</span>
-<span class="line" id="L674">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">2</span>), list.pop().a);</span>
-<span class="line" id="L675">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u8</span>, <span class="tok-str">'a'</span>), list.pop().c);</span>
-<span class="line" id="L676">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(?Foo, <span class="tok-null">null</span>), list.popOrNull());</span>
-<span class="line" id="L677">}</span>
-<span class="line" id="L678"></span>
-<span class="line" id="L679"><span class="tok-comment">// This was observed to fail on aarch64 with LLVM 11, when the capacityInBytes</span>
+<span class="line" id="L657">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u32</span>, list.items(.a), &amp;[_]<span class="tok-type">u32</span>{ <span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">3</span> });</span>
+<span class="line" id="L658">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u8</span>, list.items(.c), &amp;[_]<span class="tok-type">u8</span>{ <span class="tok-str">'a'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'c'</span> });</span>
+<span class="line" id="L659"></span>
+<span class="line" id="L660">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), list.items(.b).len);</span>
+<span class="line" id="L661">    <span class="tok-kw">try</span> testing.expectEqualStrings(<span class="tok-str">&quot;foobar&quot;</span>, list.items(.b)[<span class="tok-number">0</span>]);</span>
+<span class="line" id="L662">    <span class="tok-kw">try</span> testing.expectEqualStrings(<span class="tok-str">&quot;zigzag&quot;</span>, list.items(.b)[<span class="tok-number">1</span>]);</span>
+<span class="line" id="L663">    <span class="tok-kw">try</span> testing.expectEqualStrings(<span class="tok-str">&quot;fizzbuzz&quot;</span>, list.items(.b)[<span class="tok-number">2</span>]);</span>
+<span class="line" id="L664"></span>
+<span class="line" id="L665">    list.set(<span class="tok-kw">try</span> list.addOne(ally), .{</span>
+<span class="line" id="L666">        .a = <span class="tok-number">4</span>,</span>
+<span class="line" id="L667">        .b = <span class="tok-str">&quot;xnopyt&quot;</span>,</span>
+<span class="line" id="L668">        .c = <span class="tok-str">'d'</span>,</span>
+<span class="line" id="L669">    });</span>
+<span class="line" id="L670">    <span class="tok-kw">try</span> testing.expectEqualStrings(<span class="tok-str">&quot;xnopyt&quot;</span>, list.pop().b);</span>
+<span class="line" id="L671">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(?<span class="tok-type">u8</span>, <span class="tok-str">'c'</span>), <span class="tok-kw">if</span> (list.popOrNull()) |elem| elem.c <span class="tok-kw">else</span> <span class="tok-null">null</span>);</span>
+<span class="line" id="L672">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">2</span>), list.pop().a);</span>
+<span class="line" id="L673">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u8</span>, <span class="tok-str">'a'</span>), list.pop().c);</span>
+<span class="line" id="L674">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(?Foo, <span class="tok-null">null</span>), list.popOrNull());</span>
+<span class="line" id="L675">}</span>
+<span class="line" id="L676"></span>
+<span class="line" id="L677"><span class="tok-comment">// This was observed to fail on aarch64 with LLVM 11, when the capacityInBytes</span>
 </span>
-<span class="line" id="L680"><span class="tok-comment">// function used the @reduce code path.</span>
+<span class="line" id="L678"><span class="tok-comment">// function used the @reduce code path.</span>
 </span>
-<span class="line" id="L681"><span class="tok-kw">test</span> <span class="tok-str">&quot;regression test for @reduce bug&quot;</span> {</span>
-<span class="line" id="L682">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L683"></span>
-<span class="line" id="L684">    <span class="tok-kw">const</span> ally = testing.allocator;</span>
-<span class="line" id="L685">    <span class="tok-kw">var</span> list = MultiArrayList(<span class="tok-kw">struct</span> {</span>
-<span class="line" id="L686">        tag: std.zig.Token.Tag,</span>
-<span class="line" id="L687">        start: <span class="tok-type">u32</span>,</span>
-<span class="line" id="L688">    }){};</span>
-<span class="line" id="L689">    <span class="tok-kw">defer</span> list.deinit(ally);</span>
-<span class="line" id="L690"></span>
-<span class="line" id="L691">    <span class="tok-kw">try</span> list.ensureTotalCapacity(ally, <span class="tok-number">20</span>);</span>
-<span class="line" id="L692"></span>
-<span class="line" id="L693">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .keyword_const, .start = <span class="tok-number">0</span> });</span>
-<span class="line" id="L694">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .identifier, .start = <span class="tok-number">6</span> });</span>
-<span class="line" id="L695">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .equal, .start = <span class="tok-number">10</span> });</span>
-<span class="line" id="L696">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .builtin, .start = <span class="tok-number">12</span> });</span>
-<span class="line" id="L697">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .l_paren, .start = <span class="tok-number">19</span> });</span>
-<span class="line" id="L698">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .string_literal, .start = <span class="tok-number">20</span> });</span>
-<span class="line" id="L699">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .r_paren, .start = <span class="tok-number">25</span> });</span>
-<span class="line" id="L700">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .semicolon, .start = <span class="tok-number">26</span> });</span>
-<span class="line" id="L701">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .keyword_pub, .start = <span class="tok-number">29</span> });</span>
-<span class="line" id="L702">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .keyword_fn, .start = <span class="tok-number">33</span> });</span>
-<span class="line" id="L703">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .identifier, .start = <span class="tok-number">36</span> });</span>
-<span class="line" id="L704">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .l_paren, .start = <span class="tok-number">40</span> });</span>
-<span class="line" id="L705">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .r_paren, .start = <span class="tok-number">41</span> });</span>
-<span class="line" id="L706">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .identifier, .start = <span class="tok-number">43</span> });</span>
-<span class="line" id="L707">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .bang, .start = <span class="tok-number">51</span> });</span>
-<span class="line" id="L708">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .identifier, .start = <span class="tok-number">52</span> });</span>
-<span class="line" id="L709">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .l_brace, .start = <span class="tok-number">57</span> });</span>
-<span class="line" id="L710">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .identifier, .start = <span class="tok-number">63</span> });</span>
-<span class="line" id="L711">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .period, .start = <span class="tok-number">66</span> });</span>
-<span class="line" id="L712">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .identifier, .start = <span class="tok-number">67</span> });</span>
-<span class="line" id="L713">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .period, .start = <span class="tok-number">70</span> });</span>
-<span class="line" id="L714">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .identifier, .start = <span class="tok-number">71</span> });</span>
-<span class="line" id="L715">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .l_paren, .start = <span class="tok-number">75</span> });</span>
-<span class="line" id="L716">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .string_literal, .start = <span class="tok-number">76</span> });</span>
-<span class="line" id="L717">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .comma, .start = <span class="tok-number">113</span> });</span>
-<span class="line" id="L718">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .period, .start = <span class="tok-number">115</span> });</span>
-<span class="line" id="L719">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .l_brace, .start = <span class="tok-number">116</span> });</span>
-<span class="line" id="L720">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .r_brace, .start = <span class="tok-number">117</span> });</span>
-<span class="line" id="L721">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .r_paren, .start = <span class="tok-number">118</span> });</span>
-<span class="line" id="L722">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .semicolon, .start = <span class="tok-number">119</span> });</span>
-<span class="line" id="L723">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .r_brace, .start = <span class="tok-number">121</span> });</span>
-<span class="line" id="L724">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .eof, .start = <span class="tok-number">123</span> });</span>
-<span class="line" id="L725"></span>
-<span class="line" id="L726">    <span class="tok-kw">const</span> tags = list.items(.tag);</span>
-<span class="line" id="L727">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">1</span>], .identifier);</span>
-<span class="line" id="L728">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">2</span>], .equal);</span>
-<span class="line" id="L729">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">3</span>], .builtin);</span>
-<span class="line" id="L730">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">4</span>], .l_paren);</span>
-<span class="line" id="L731">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">5</span>], .string_literal);</span>
-<span class="line" id="L732">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">6</span>], .r_paren);</span>
-<span class="line" id="L733">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">7</span>], .semicolon);</span>
-<span class="line" id="L734">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">8</span>], .keyword_pub);</span>
-<span class="line" id="L735">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">9</span>], .keyword_fn);</span>
-<span class="line" id="L736">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">10</span>], .identifier);</span>
-<span class="line" id="L737">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">11</span>], .l_paren);</span>
-<span class="line" id="L738">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">12</span>], .r_paren);</span>
-<span class="line" id="L739">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">13</span>], .identifier);</span>
-<span class="line" id="L740">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">14</span>], .bang);</span>
-<span class="line" id="L741">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">15</span>], .identifier);</span>
-<span class="line" id="L742">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">16</span>], .l_brace);</span>
-<span class="line" id="L743">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">17</span>], .identifier);</span>
-<span class="line" id="L744">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">18</span>], .period);</span>
-<span class="line" id="L745">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">19</span>], .identifier);</span>
-<span class="line" id="L746">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">20</span>], .period);</span>
-<span class="line" id="L747">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">21</span>], .identifier);</span>
-<span class="line" id="L748">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">22</span>], .l_paren);</span>
-<span class="line" id="L749">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">23</span>], .string_literal);</span>
-<span class="line" id="L750">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">24</span>], .comma);</span>
-<span class="line" id="L751">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">25</span>], .period);</span>
-<span class="line" id="L752">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">26</span>], .l_brace);</span>
-<span class="line" id="L753">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">27</span>], .r_brace);</span>
-<span class="line" id="L754">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">28</span>], .r_paren);</span>
-<span class="line" id="L755">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">29</span>], .semicolon);</span>
-<span class="line" id="L756">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">30</span>], .r_brace);</span>
-<span class="line" id="L757">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">31</span>], .eof);</span>
-<span class="line" id="L758">}</span>
-<span class="line" id="L759"></span>
-<span class="line" id="L760"><span class="tok-kw">test</span> <span class="tok-str">&quot;ensure capacity on empty list&quot;</span> {</span>
-<span class="line" id="L761">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L762"></span>
-<span class="line" id="L763">    <span class="tok-kw">const</span> ally = testing.allocator;</span>
-<span class="line" id="L764"></span>
-<span class="line" id="L765">    <span class="tok-kw">const</span> Foo = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L766">        a: <span class="tok-type">u32</span>,</span>
-<span class="line" id="L767">        b: <span class="tok-type">u8</span>,</span>
-<span class="line" id="L768">    };</span>
-<span class="line" id="L769"></span>
-<span class="line" id="L770">    <span class="tok-kw">var</span> list = MultiArrayList(Foo){};</span>
-<span class="line" id="L771">    <span class="tok-kw">defer</span> list.deinit(ally);</span>
-<span class="line" id="L772"></span>
-<span class="line" id="L773">    <span class="tok-kw">try</span> list.ensureTotalCapacity(ally, <span class="tok-number">2</span>);</span>
-<span class="line" id="L774">    list.appendAssumeCapacity(.{ .a = <span class="tok-number">1</span>, .b = <span class="tok-number">2</span> });</span>
-<span class="line" id="L775">    list.appendAssumeCapacity(.{ .a = <span class="tok-number">3</span>, .b = <span class="tok-number">4</span> });</span>
-<span class="line" id="L776"></span>
-<span class="line" id="L777">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u32</span>, &amp;[_]<span class="tok-type">u32</span>{ <span class="tok-number">1</span>, <span class="tok-number">3</span> }, list.items(.a));</span>
-<span class="line" id="L778">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u8</span>, &amp;[_]<span class="tok-type">u8</span>{ <span class="tok-number">2</span>, <span class="tok-number">4</span> }, list.items(.b));</span>
-<span class="line" id="L779"></span>
-<span class="line" id="L780">    list.len = <span class="tok-number">0</span>;</span>
-<span class="line" id="L781">    list.appendAssumeCapacity(.{ .a = <span class="tok-number">5</span>, .b = <span class="tok-number">6</span> });</span>
-<span class="line" id="L782">    list.appendAssumeCapacity(.{ .a = <span class="tok-number">7</span>, .b = <span class="tok-number">8</span> });</span>
+<span class="line" id="L679"><span class="tok-kw">test</span> <span class="tok-str">&quot;regression test for @reduce bug&quot;</span> {</span>
+<span class="line" id="L680">    <span class="tok-kw">const</span> ally = testing.allocator;</span>
+<span class="line" id="L681">    <span class="tok-kw">var</span> list = MultiArrayList(<span class="tok-kw">struct</span> {</span>
+<span class="line" id="L682">        tag: std.zig.Token.Tag,</span>
+<span class="line" id="L683">        start: <span class="tok-type">u32</span>,</span>
+<span class="line" id="L684">    }){};</span>
+<span class="line" id="L685">    <span class="tok-kw">defer</span> list.deinit(ally);</span>
+<span class="line" id="L686"></span>
+<span class="line" id="L687">    <span class="tok-kw">try</span> list.ensureTotalCapacity(ally, <span class="tok-number">20</span>);</span>
+<span class="line" id="L688"></span>
+<span class="line" id="L689">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .keyword_const, .start = <span class="tok-number">0</span> });</span>
+<span class="line" id="L690">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .identifier, .start = <span class="tok-number">6</span> });</span>
+<span class="line" id="L691">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .equal, .start = <span class="tok-number">10</span> });</span>
+<span class="line" id="L692">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .builtin, .start = <span class="tok-number">12</span> });</span>
+<span class="line" id="L693">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .l_paren, .start = <span class="tok-number">19</span> });</span>
+<span class="line" id="L694">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .string_literal, .start = <span class="tok-number">20</span> });</span>
+<span class="line" id="L695">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .r_paren, .start = <span class="tok-number">25</span> });</span>
+<span class="line" id="L696">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .semicolon, .start = <span class="tok-number">26</span> });</span>
+<span class="line" id="L697">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .keyword_pub, .start = <span class="tok-number">29</span> });</span>
+<span class="line" id="L698">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .keyword_fn, .start = <span class="tok-number">33</span> });</span>
+<span class="line" id="L699">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .identifier, .start = <span class="tok-number">36</span> });</span>
+<span class="line" id="L700">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .l_paren, .start = <span class="tok-number">40</span> });</span>
+<span class="line" id="L701">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .r_paren, .start = <span class="tok-number">41</span> });</span>
+<span class="line" id="L702">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .identifier, .start = <span class="tok-number">43</span> });</span>
+<span class="line" id="L703">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .bang, .start = <span class="tok-number">51</span> });</span>
+<span class="line" id="L704">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .identifier, .start = <span class="tok-number">52</span> });</span>
+<span class="line" id="L705">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .l_brace, .start = <span class="tok-number">57</span> });</span>
+<span class="line" id="L706">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .identifier, .start = <span class="tok-number">63</span> });</span>
+<span class="line" id="L707">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .period, .start = <span class="tok-number">66</span> });</span>
+<span class="line" id="L708">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .identifier, .start = <span class="tok-number">67</span> });</span>
+<span class="line" id="L709">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .period, .start = <span class="tok-number">70</span> });</span>
+<span class="line" id="L710">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .identifier, .start = <span class="tok-number">71</span> });</span>
+<span class="line" id="L711">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .l_paren, .start = <span class="tok-number">75</span> });</span>
+<span class="line" id="L712">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .string_literal, .start = <span class="tok-number">76</span> });</span>
+<span class="line" id="L713">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .comma, .start = <span class="tok-number">113</span> });</span>
+<span class="line" id="L714">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .period, .start = <span class="tok-number">115</span> });</span>
+<span class="line" id="L715">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .l_brace, .start = <span class="tok-number">116</span> });</span>
+<span class="line" id="L716">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .r_brace, .start = <span class="tok-number">117</span> });</span>
+<span class="line" id="L717">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .r_paren, .start = <span class="tok-number">118</span> });</span>
+<span class="line" id="L718">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .semicolon, .start = <span class="tok-number">119</span> });</span>
+<span class="line" id="L719">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .r_brace, .start = <span class="tok-number">121</span> });</span>
+<span class="line" id="L720">    <span class="tok-kw">try</span> list.append(ally, .{ .tag = .eof, .start = <span class="tok-number">123</span> });</span>
+<span class="line" id="L721"></span>
+<span class="line" id="L722">    <span class="tok-kw">const</span> tags = list.items(.tag);</span>
+<span class="line" id="L723">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">1</span>], .identifier);</span>
+<span class="line" id="L724">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">2</span>], .equal);</span>
+<span class="line" id="L725">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">3</span>], .builtin);</span>
+<span class="line" id="L726">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">4</span>], .l_paren);</span>
+<span class="line" id="L727">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">5</span>], .string_literal);</span>
+<span class="line" id="L728">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">6</span>], .r_paren);</span>
+<span class="line" id="L729">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">7</span>], .semicolon);</span>
+<span class="line" id="L730">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">8</span>], .keyword_pub);</span>
+<span class="line" id="L731">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">9</span>], .keyword_fn);</span>
+<span class="line" id="L732">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">10</span>], .identifier);</span>
+<span class="line" id="L733">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">11</span>], .l_paren);</span>
+<span class="line" id="L734">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">12</span>], .r_paren);</span>
+<span class="line" id="L735">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">13</span>], .identifier);</span>
+<span class="line" id="L736">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">14</span>], .bang);</span>
+<span class="line" id="L737">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">15</span>], .identifier);</span>
+<span class="line" id="L738">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">16</span>], .l_brace);</span>
+<span class="line" id="L739">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">17</span>], .identifier);</span>
+<span class="line" id="L740">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">18</span>], .period);</span>
+<span class="line" id="L741">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">19</span>], .identifier);</span>
+<span class="line" id="L742">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">20</span>], .period);</span>
+<span class="line" id="L743">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">21</span>], .identifier);</span>
+<span class="line" id="L744">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">22</span>], .l_paren);</span>
+<span class="line" id="L745">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">23</span>], .string_literal);</span>
+<span class="line" id="L746">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">24</span>], .comma);</span>
+<span class="line" id="L747">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">25</span>], .period);</span>
+<span class="line" id="L748">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">26</span>], .l_brace);</span>
+<span class="line" id="L749">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">27</span>], .r_brace);</span>
+<span class="line" id="L750">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">28</span>], .r_paren);</span>
+<span class="line" id="L751">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">29</span>], .semicolon);</span>
+<span class="line" id="L752">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">30</span>], .r_brace);</span>
+<span class="line" id="L753">    <span class="tok-kw">try</span> testing.expectEqual(tags[<span class="tok-number">31</span>], .eof);</span>
+<span class="line" id="L754">}</span>
+<span class="line" id="L755"></span>
+<span class="line" id="L756"><span class="tok-kw">test</span> <span class="tok-str">&quot;ensure capacity on empty list&quot;</span> {</span>
+<span class="line" id="L757">    <span class="tok-kw">const</span> ally = testing.allocator;</span>
+<span class="line" id="L758"></span>
+<span class="line" id="L759">    <span class="tok-kw">const</span> Foo = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L760">        a: <span class="tok-type">u32</span>,</span>
+<span class="line" id="L761">        b: <span class="tok-type">u8</span>,</span>
+<span class="line" id="L762">    };</span>
+<span class="line" id="L763"></span>
+<span class="line" id="L764">    <span class="tok-kw">var</span> list = MultiArrayList(Foo){};</span>
+<span class="line" id="L765">    <span class="tok-kw">defer</span> list.deinit(ally);</span>
+<span class="line" id="L766"></span>
+<span class="line" id="L767">    <span class="tok-kw">try</span> list.ensureTotalCapacity(ally, <span class="tok-number">2</span>);</span>
+<span class="line" id="L768">    list.appendAssumeCapacity(.{ .a = <span class="tok-number">1</span>, .b = <span class="tok-number">2</span> });</span>
+<span class="line" id="L769">    list.appendAssumeCapacity(.{ .a = <span class="tok-number">3</span>, .b = <span class="tok-number">4</span> });</span>
+<span class="line" id="L770"></span>
+<span class="line" id="L771">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u32</span>, &amp;[_]<span class="tok-type">u32</span>{ <span class="tok-number">1</span>, <span class="tok-number">3</span> }, list.items(.a));</span>
+<span class="line" id="L772">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u8</span>, &amp;[_]<span class="tok-type">u8</span>{ <span class="tok-number">2</span>, <span class="tok-number">4</span> }, list.items(.b));</span>
+<span class="line" id="L773"></span>
+<span class="line" id="L774">    list.len = <span class="tok-number">0</span>;</span>
+<span class="line" id="L775">    list.appendAssumeCapacity(.{ .a = <span class="tok-number">5</span>, .b = <span class="tok-number">6</span> });</span>
+<span class="line" id="L776">    list.appendAssumeCapacity(.{ .a = <span class="tok-number">7</span>, .b = <span class="tok-number">8</span> });</span>
+<span class="line" id="L777"></span>
+<span class="line" id="L778">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u32</span>, &amp;[_]<span class="tok-type">u32</span>{ <span class="tok-number">5</span>, <span class="tok-number">7</span> }, list.items(.a));</span>
+<span class="line" id="L779">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u8</span>, &amp;[_]<span class="tok-type">u8</span>{ <span class="tok-number">6</span>, <span class="tok-number">8</span> }, list.items(.b));</span>
+<span class="line" id="L780"></span>
+<span class="line" id="L781">    list.len = <span class="tok-number">0</span>;</span>
+<span class="line" id="L782">    <span class="tok-kw">try</span> list.ensureTotalCapacity(ally, <span class="tok-number">16</span>);</span>
 <span class="line" id="L783"></span>
-<span class="line" id="L784">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u32</span>, &amp;[_]<span class="tok-type">u32</span>{ <span class="tok-number">5</span>, <span class="tok-number">7</span> }, list.items(.a));</span>
-<span class="line" id="L785">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u8</span>, &amp;[_]<span class="tok-type">u8</span>{ <span class="tok-number">6</span>, <span class="tok-number">8</span> }, list.items(.b));</span>
+<span class="line" id="L784">    list.appendAssumeCapacity(.{ .a = <span class="tok-number">9</span>, .b = <span class="tok-number">10</span> });</span>
+<span class="line" id="L785">    list.appendAssumeCapacity(.{ .a = <span class="tok-number">11</span>, .b = <span class="tok-number">12</span> });</span>
 <span class="line" id="L786"></span>
-<span class="line" id="L787">    list.len = <span class="tok-number">0</span>;</span>
-<span class="line" id="L788">    <span class="tok-kw">try</span> list.ensureTotalCapacity(ally, <span class="tok-number">16</span>);</span>
-<span class="line" id="L789"></span>
-<span class="line" id="L790">    list.appendAssumeCapacity(.{ .a = <span class="tok-number">9</span>, .b = <span class="tok-number">10</span> });</span>
-<span class="line" id="L791">    list.appendAssumeCapacity(.{ .a = <span class="tok-number">11</span>, .b = <span class="tok-number">12</span> });</span>
-<span class="line" id="L792"></span>
-<span class="line" id="L793">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u32</span>, &amp;[_]<span class="tok-type">u32</span>{ <span class="tok-number">9</span>, <span class="tok-number">11</span> }, list.items(.a));</span>
-<span class="line" id="L794">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u8</span>, &amp;[_]<span class="tok-type">u8</span>{ <span class="tok-number">10</span>, <span class="tok-number">12</span> }, list.items(.b));</span>
-<span class="line" id="L795">}</span>
-<span class="line" id="L796"></span>
-<span class="line" id="L797"><span class="tok-kw">test</span> <span class="tok-str">&quot;insert elements&quot;</span> {</span>
-<span class="line" id="L798">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L799"></span>
-<span class="line" id="L800">    <span class="tok-kw">const</span> ally = testing.allocator;</span>
+<span class="line" id="L787">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u32</span>, &amp;[_]<span class="tok-type">u32</span>{ <span class="tok-number">9</span>, <span class="tok-number">11</span> }, list.items(.a));</span>
+<span class="line" id="L788">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u8</span>, &amp;[_]<span class="tok-type">u8</span>{ <span class="tok-number">10</span>, <span class="tok-number">12</span> }, list.items(.b));</span>
+<span class="line" id="L789">}</span>
+<span class="line" id="L790"></span>
+<span class="line" id="L791"><span class="tok-kw">test</span> <span class="tok-str">&quot;insert elements&quot;</span> {</span>
+<span class="line" id="L792">    <span class="tok-kw">const</span> ally = testing.allocator;</span>
+<span class="line" id="L793"></span>
+<span class="line" id="L794">    <span class="tok-kw">const</span> Foo = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L795">        a: <span class="tok-type">u8</span>,</span>
+<span class="line" id="L796">        b: <span class="tok-type">u32</span>,</span>
+<span class="line" id="L797">    };</span>
+<span class="line" id="L798"></span>
+<span class="line" id="L799">    <span class="tok-kw">var</span> list = MultiArrayList(Foo){};</span>
+<span class="line" id="L800">    <span class="tok-kw">defer</span> list.deinit(ally);</span>
 <span class="line" id="L801"></span>
-<span class="line" id="L802">    <span class="tok-kw">const</span> Foo = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L803">        a: <span class="tok-type">u8</span>,</span>
-<span class="line" id="L804">        b: <span class="tok-type">u32</span>,</span>
-<span class="line" id="L805">    };</span>
-<span class="line" id="L806"></span>
-<span class="line" id="L807">    <span class="tok-kw">var</span> list = MultiArrayList(Foo){};</span>
-<span class="line" id="L808">    <span class="tok-kw">defer</span> list.deinit(ally);</span>
+<span class="line" id="L802">    <span class="tok-kw">try</span> list.insert(ally, <span class="tok-number">0</span>, .{ .a = <span class="tok-number">1</span>, .b = <span class="tok-number">2</span> });</span>
+<span class="line" id="L803">    <span class="tok-kw">try</span> list.ensureUnusedCapacity(ally, <span class="tok-number">1</span>);</span>
+<span class="line" id="L804">    list.insertAssumeCapacity(<span class="tok-number">1</span>, .{ .a = <span class="tok-number">2</span>, .b = <span class="tok-number">3</span> });</span>
+<span class="line" id="L805"></span>
+<span class="line" id="L806">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u8</span>, &amp;[_]<span class="tok-type">u8</span>{ <span class="tok-number">1</span>, <span class="tok-number">2</span> }, list.items(.a));</span>
+<span class="line" id="L807">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u32</span>, &amp;[_]<span class="tok-type">u32</span>{ <span class="tok-number">2</span>, <span class="tok-number">3</span> }, list.items(.b));</span>
+<span class="line" id="L808">}</span>
 <span class="line" id="L809"></span>
-<span class="line" id="L810">    <span class="tok-kw">try</span> list.insert(ally, <span class="tok-number">0</span>, .{ .a = <span class="tok-number">1</span>, .b = <span class="tok-number">2</span> });</span>
-<span class="line" id="L811">    <span class="tok-kw">try</span> list.ensureUnusedCapacity(ally, <span class="tok-number">1</span>);</span>
-<span class="line" id="L812">    list.insertAssumeCapacity(<span class="tok-number">1</span>, .{ .a = <span class="tok-number">2</span>, .b = <span class="tok-number">3</span> });</span>
-<span class="line" id="L813"></span>
-<span class="line" id="L814">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u8</span>, &amp;[_]<span class="tok-type">u8</span>{ <span class="tok-number">1</span>, <span class="tok-number">2</span> }, list.items(.a));</span>
-<span class="line" id="L815">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u32</span>, &amp;[_]<span class="tok-type">u32</span>{ <span class="tok-number">2</span>, <span class="tok-number">3</span> }, list.items(.b));</span>
-<span class="line" id="L816">}</span>
+<span class="line" id="L810"><span class="tok-kw">test</span> <span class="tok-str">&quot;union&quot;</span> {</span>
+<span class="line" id="L811">    <span class="tok-kw">const</span> ally = testing.allocator;</span>
+<span class="line" id="L812"></span>
+<span class="line" id="L813">    <span class="tok-kw">const</span> Foo = <span class="tok-kw">union</span>(<span class="tok-kw">enum</span>) {</span>
+<span class="line" id="L814">        a: <span class="tok-type">u32</span>,</span>
+<span class="line" id="L815">        b: []<span class="tok-kw">const</span> <span class="tok-type">u8</span>,</span>
+<span class="line" id="L816">    };</span>
 <span class="line" id="L817"></span>
-<span class="line" id="L818"><span class="tok-kw">test</span> <span class="tok-str">&quot;union&quot;</span> {</span>
-<span class="line" id="L819">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L818">    <span class="tok-kw">var</span> list = MultiArrayList(Foo){};</span>
+<span class="line" id="L819">    <span class="tok-kw">defer</span> list.deinit(ally);</span>
 <span class="line" id="L820"></span>
-<span class="line" id="L821">    <span class="tok-kw">const</span> ally = testing.allocator;</span>
+<span class="line" id="L821">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), list.items(.tags).len);</span>
 <span class="line" id="L822"></span>
-<span class="line" id="L823">    <span class="tok-kw">const</span> Foo = <span class="tok-kw">union</span>(<span class="tok-kw">enum</span>) {</span>
-<span class="line" id="L824">        a: <span class="tok-type">u32</span>,</span>
-<span class="line" id="L825">        b: []<span class="tok-kw">const</span> <span class="tok-type">u8</span>,</span>
-<span class="line" id="L826">    };</span>
+<span class="line" id="L823">    <span class="tok-kw">try</span> list.ensureTotalCapacity(ally, <span class="tok-number">2</span>);</span>
+<span class="line" id="L824"></span>
+<span class="line" id="L825">    list.appendAssumeCapacity(.{ .a = <span class="tok-number">1</span> });</span>
+<span class="line" id="L826">    list.appendAssumeCapacity(.{ .b = <span class="tok-str">&quot;zigzag&quot;</span> });</span>
 <span class="line" id="L827"></span>
-<span class="line" id="L828">    <span class="tok-kw">var</span> list = MultiArrayList(Foo){};</span>
-<span class="line" id="L829">    <span class="tok-kw">defer</span> list.deinit(ally);</span>
+<span class="line" id="L828">    <span class="tok-kw">try</span> testing.expectEqualSlices(meta.Tag(Foo), list.items(.tags), &amp;.{ .a, .b });</span>
+<span class="line" id="L829">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">2</span>), list.items(.tags).len);</span>
 <span class="line" id="L830"></span>
-<span class="line" id="L831">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), list.items(.tags).len);</span>
-<span class="line" id="L832"></span>
-<span class="line" id="L833">    <span class="tok-kw">try</span> list.ensureTotalCapacity(ally, <span class="tok-number">2</span>);</span>
+<span class="line" id="L831">    list.appendAssumeCapacity(.{ .b = <span class="tok-str">&quot;foobar&quot;</span> });</span>
+<span class="line" id="L832">    <span class="tok-kw">try</span> testing.expectEqualStrings(<span class="tok-str">&quot;zigzag&quot;</span>, list.items(.data)[<span class="tok-number">1</span>].b);</span>
+<span class="line" id="L833">    <span class="tok-kw">try</span> testing.expectEqualStrings(<span class="tok-str">&quot;foobar&quot;</span>, list.items(.data)[<span class="tok-number">2</span>].b);</span>
 <span class="line" id="L834"></span>
-<span class="line" id="L835">    list.appendAssumeCapacity(.{ .a = <span class="tok-number">1</span> });</span>
-<span class="line" id="L836">    list.appendAssumeCapacity(.{ .b = <span class="tok-str">&quot;zigzag&quot;</span> });</span>
-<span class="line" id="L837"></span>
-<span class="line" id="L838">    <span class="tok-kw">try</span> testing.expectEqualSlices(meta.Tag(Foo), list.items(.tags), &amp;.{ .a, .b });</span>
-<span class="line" id="L839">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">2</span>), list.items(.tags).len);</span>
-<span class="line" id="L840"></span>
-<span class="line" id="L841">    list.appendAssumeCapacity(.{ .b = <span class="tok-str">&quot;foobar&quot;</span> });</span>
-<span class="line" id="L842">    <span class="tok-kw">try</span> testing.expectEqualStrings(<span class="tok-str">&quot;zigzag&quot;</span>, list.items(.data)[<span class="tok-number">1</span>].b);</span>
-<span class="line" id="L843">    <span class="tok-kw">try</span> testing.expectEqualStrings(<span class="tok-str">&quot;foobar&quot;</span>, list.items(.data)[<span class="tok-number">2</span>].b);</span>
-<span class="line" id="L844"></span>
-<span class="line" id="L845">    <span class="tok-comment">// Add 6 more things to force a capacity increase.</span>
+<span class="line" id="L835">    <span class="tok-comment">// Add 6 more things to force a capacity increase.</span>
 </span>
-<span class="line" id="L846">    <span class="tok-kw">for</span> (<span class="tok-number">0</span>..<span class="tok-number">6</span>) |i| {</span>
-<span class="line" id="L847">        <span class="tok-kw">try</span> list.append(ally, .{ .a = <span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-builtin">@intCast</span>(<span class="tok-number">4</span> + i)) });</span>
-<span class="line" id="L848">    }</span>
-<span class="line" id="L849"></span>
-<span class="line" id="L850">    <span class="tok-kw">try</span> testing.expectEqualSlices(</span>
-<span class="line" id="L851">        meta.Tag(Foo),</span>
-<span class="line" id="L852">        &amp;.{ .a, .b, .b, .a, .a, .a, .a, .a, .a },</span>
-<span class="line" id="L853">        list.items(.tags),</span>
-<span class="line" id="L854">    );</span>
-<span class="line" id="L855">    <span class="tok-kw">try</span> testing.expectEqual(list.get(<span class="tok-number">0</span>), .{ .a = <span class="tok-number">1</span> });</span>
-<span class="line" id="L856">    <span class="tok-kw">try</span> testing.expectEqual(list.get(<span class="tok-number">1</span>), .{ .b = <span class="tok-str">&quot;zigzag&quot;</span> });</span>
-<span class="line" id="L857">    <span class="tok-kw">try</span> testing.expectEqual(list.get(<span class="tok-number">2</span>), .{ .b = <span class="tok-str">&quot;foobar&quot;</span> });</span>
-<span class="line" id="L858">    <span class="tok-kw">try</span> testing.expectEqual(list.get(<span class="tok-number">3</span>), .{ .a = <span class="tok-number">4</span> });</span>
-<span class="line" id="L859">    <span class="tok-kw">try</span> testing.expectEqual(list.get(<span class="tok-number">4</span>), .{ .a = <span class="tok-number">5</span> });</span>
-<span class="line" id="L860">    <span class="tok-kw">try</span> testing.expectEqual(list.get(<span class="tok-number">5</span>), .{ .a = <span class="tok-number">6</span> });</span>
-<span class="line" id="L861">    <span class="tok-kw">try</span> testing.expectEqual(list.get(<span class="tok-number">6</span>), .{ .a = <span class="tok-number">7</span> });</span>
-<span class="line" id="L862">    <span class="tok-kw">try</span> testing.expectEqual(list.get(<span class="tok-number">7</span>), .{ .a = <span class="tok-number">8</span> });</span>
-<span class="line" id="L863">    <span class="tok-kw">try</span> testing.expectEqual(list.get(<span class="tok-number">8</span>), .{ .a = <span class="tok-number">9</span> });</span>
+<span class="line" id="L836">    <span class="tok-kw">for</span> (<span class="tok-number">0</span>..<span class="tok-number">6</span>) |i| {</span>
+<span class="line" id="L837">        <span class="tok-kw">try</span> list.append(ally, .{ .a = <span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-builtin">@intCast</span>(<span class="tok-number">4</span> + i)) });</span>
+<span class="line" id="L838">    }</span>
+<span class="line" id="L839"></span>
+<span class="line" id="L840">    <span class="tok-kw">try</span> testing.expectEqualSlices(</span>
+<span class="line" id="L841">        meta.Tag(Foo),</span>
+<span class="line" id="L842">        &amp;.{ .a, .b, .b, .a, .a, .a, .a, .a, .a },</span>
+<span class="line" id="L843">        list.items(.tags),</span>
+<span class="line" id="L844">    );</span>
+<span class="line" id="L845">    <span class="tok-kw">try</span> testing.expectEqual(list.get(<span class="tok-number">0</span>), .{ .a = <span class="tok-number">1</span> });</span>
+<span class="line" id="L846">    <span class="tok-kw">try</span> testing.expectEqual(list.get(<span class="tok-number">1</span>), .{ .b = <span class="tok-str">&quot;zigzag&quot;</span> });</span>
+<span class="line" id="L847">    <span class="tok-kw">try</span> testing.expectEqual(list.get(<span class="tok-number">2</span>), .{ .b = <span class="tok-str">&quot;foobar&quot;</span> });</span>
+<span class="line" id="L848">    <span class="tok-kw">try</span> testing.expectEqual(list.get(<span class="tok-number">3</span>), .{ .a = <span class="tok-number">4</span> });</span>
+<span class="line" id="L849">    <span class="tok-kw">try</span> testing.expectEqual(list.get(<span class="tok-number">4</span>), .{ .a = <span class="tok-number">5</span> });</span>
+<span class="line" id="L850">    <span class="tok-kw">try</span> testing.expectEqual(list.get(<span class="tok-number">5</span>), .{ .a = <span class="tok-number">6</span> });</span>
+<span class="line" id="L851">    <span class="tok-kw">try</span> testing.expectEqual(list.get(<span class="tok-number">6</span>), .{ .a = <span class="tok-number">7</span> });</span>
+<span class="line" id="L852">    <span class="tok-kw">try</span> testing.expectEqual(list.get(<span class="tok-number">7</span>), .{ .a = <span class="tok-number">8</span> });</span>
+<span class="line" id="L853">    <span class="tok-kw">try</span> testing.expectEqual(list.get(<span class="tok-number">8</span>), .{ .a = <span class="tok-number">9</span> });</span>
+<span class="line" id="L854"></span>
+<span class="line" id="L855">    list.shrinkAndFree(ally, <span class="tok-number">3</span>);</span>
+<span class="line" id="L856"></span>
+<span class="line" id="L857">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), list.items(.tags).len);</span>
+<span class="line" id="L858">    <span class="tok-kw">try</span> testing.expectEqualSlices(meta.Tag(Foo), list.items(.tags), &amp;.{ .a, .b, .b });</span>
+<span class="line" id="L859"></span>
+<span class="line" id="L860">    <span class="tok-kw">try</span> testing.expectEqual(list.get(<span class="tok-number">0</span>), .{ .a = <span class="tok-number">1</span> });</span>
+<span class="line" id="L861">    <span class="tok-kw">try</span> testing.expectEqual(list.get(<span class="tok-number">1</span>), .{ .b = <span class="tok-str">&quot;zigzag&quot;</span> });</span>
+<span class="line" id="L862">    <span class="tok-kw">try</span> testing.expectEqual(list.get(<span class="tok-number">2</span>), .{ .b = <span class="tok-str">&quot;foobar&quot;</span> });</span>
+<span class="line" id="L863">}</span>
 <span class="line" id="L864"></span>
-<span class="line" id="L865">    list.shrinkAndFree(ally, <span class="tok-number">3</span>);</span>
-<span class="line" id="L866"></span>
-<span class="line" id="L867">    <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), list.items(.tags).len);</span>
-<span class="line" id="L868">    <span class="tok-kw">try</span> testing.expectEqualSlices(meta.Tag(Foo), list.items(.tags), &amp;.{ .a, .b, .b });</span>
-<span class="line" id="L869"></span>
-<span class="line" id="L870">    <span class="tok-kw">try</span> testing.expectEqual(list.get(<span class="tok-number">0</span>), .{ .a = <span class="tok-number">1</span> });</span>
-<span class="line" id="L871">    <span class="tok-kw">try</span> testing.expectEqual(list.get(<span class="tok-number">1</span>), .{ .b = <span class="tok-str">&quot;zigzag&quot;</span> });</span>
-<span class="line" id="L872">    <span class="tok-kw">try</span> testing.expectEqual(list.get(<span class="tok-number">2</span>), .{ .b = <span class="tok-str">&quot;foobar&quot;</span> });</span>
-<span class="line" id="L873">}</span>
-<span class="line" id="L874"></span>
-<span class="line" id="L875"><span class="tok-kw">test</span> <span class="tok-str">&quot;sorting a span&quot;</span> {</span>
-<span class="line" id="L876">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L877"></span>
-<span class="line" id="L878">    <span class="tok-kw">var</span> list: MultiArrayList(<span class="tok-kw">struct</span> { score: <span class="tok-type">u32</span>, chr: <span class="tok-type">u8</span> }) = .{};</span>
-<span class="line" id="L879">    <span class="tok-kw">defer</span> list.deinit(testing.allocator);</span>
-<span class="line" id="L880"></span>
-<span class="line" id="L881">    <span class="tok-kw">try</span> list.ensureTotalCapacity(testing.allocator, <span class="tok-number">42</span>);</span>
-<span class="line" id="L882">    <span class="tok-kw">for</span> (</span>
-<span class="line" id="L883">        <span class="tok-comment">// zig fmt: off</span>
+<span class="line" id="L865"><span class="tok-kw">test</span> <span class="tok-str">&quot;sorting a span&quot;</span> {</span>
+<span class="line" id="L866">    <span class="tok-kw">var</span> list: MultiArrayList(<span class="tok-kw">struct</span> { score: <span class="tok-type">u32</span>, chr: <span class="tok-type">u8</span> }) = .{};</span>
+<span class="line" id="L867">    <span class="tok-kw">defer</span> list.deinit(testing.allocator);</span>
+<span class="line" id="L868"></span>
+<span class="line" id="L869">    <span class="tok-kw">try</span> list.ensureTotalCapacity(testing.allocator, <span class="tok-number">42</span>);</span>
+<span class="line" id="L870">    <span class="tok-kw">for</span> (</span>
+<span class="line" id="L871">        <span class="tok-comment">// zig fmt: off</span>
 </span>
-<span class="line" id="L884">        [<span class="tok-number">42</span>]<span class="tok-type">u8</span>{ <span class="tok-str">'b'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'c'</span> },</span>
-<span class="line" id="L885">        [<span class="tok-number">42</span>]<span class="tok-type">u32</span>{ <span class="tok-number">1</span>,   <span class="tok-number">1</span>,   <span class="tok-number">1</span>,   <span class="tok-number">2</span>,   <span class="tok-number">2</span>,   <span class="tok-number">2</span>,   <span class="tok-number">3</span>,   <span class="tok-number">3</span>,   <span class="tok-number">4</span>,   <span class="tok-number">3</span>,   <span class="tok-number">5</span>,   <span class="tok-number">4</span>,   <span class="tok-number">6</span>,   <span class="tok-number">4</span>,   <span class="tok-number">7</span>,   <span class="tok-number">5</span>,   <span class="tok-number">6</span>,   <span class="tok-number">5</span>,   <span class="tok-number">6</span>,   <span class="tok-number">7</span>,   <span class="tok-number">7</span>,   <span class="tok-number">8</span>,   <span class="tok-number">8</span>,   <span class="tok-number">8</span>,   <span class="tok-number">9</span>,   <span class="tok-number">9</span>,  <span class="tok-number">10</span>,   <span class="tok-number">9</span>,  <span class="tok-number">10</span>,  <span class="tok-number">11</span>,  <span class="tok-number">10</span>,  <span class="tok-number">12</span>,  <span class="tok-number">11</span>,  <span class="tok-number">13</span>,  <span class="tok-number">11</span>,  <span class="tok-number">14</span>,  <span class="tok-number">12</span>,  <span class="tok-number">13</span>,  <span class="tok-number">12</span>,  <span class="tok-number">13</span>,  <span class="tok-number">14</span>,  <span class="tok-number">14</span> },</span>
-<span class="line" id="L886">        <span class="tok-comment">// zig fmt: on</span>
+<span class="line" id="L872">        [<span class="tok-number">42</span>]<span class="tok-type">u8</span>{ <span class="tok-str">'b'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'b'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'c'</span>, <span class="tok-str">'a'</span>, <span class="tok-str">'c'</span> },</span>
+<span class="line" id="L873">        [<span class="tok-number">42</span>]<span class="tok-type">u32</span>{ <span class="tok-number">1</span>,   <span class="tok-number">1</span>,   <span class="tok-number">1</span>,   <span class="tok-number">2</span>,   <span class="tok-number">2</span>,   <span class="tok-number">2</span>,   <span class="tok-number">3</span>,   <span class="tok-number">3</span>,   <span class="tok-number">4</span>,   <span class="tok-number">3</span>,   <span class="tok-number">5</span>,   <span class="tok-number">4</span>,   <span class="tok-number">6</span>,   <span class="tok-number">4</span>,   <span class="tok-number">7</span>,   <span class="tok-number">5</span>,   <span class="tok-number">6</span>,   <span class="tok-number">5</span>,   <span class="tok-number">6</span>,   <span class="tok-number">7</span>,   <span class="tok-number">7</span>,   <span class="tok-number">8</span>,   <span class="tok-number">8</span>,   <span class="tok-number">8</span>,   <span class="tok-number">9</span>,   <span class="tok-number">9</span>,  <span class="tok-number">10</span>,   <span class="tok-number">9</span>,  <span class="tok-number">10</span>,  <span class="tok-number">11</span>,  <span class="tok-number">10</span>,  <span class="tok-number">12</span>,  <span class="tok-number">11</span>,  <span class="tok-number">13</span>,  <span class="tok-number">11</span>,  <span class="tok-number">14</span>,  <span class="tok-number">12</span>,  <span class="tok-number">13</span>,  <span class="tok-number">12</span>,  <span class="tok-number">13</span>,  <span class="tok-number">14</span>,  <span class="tok-number">14</span> },</span>
+<span class="line" id="L874">        <span class="tok-comment">// zig fmt: on</span>
 </span>
-<span class="line" id="L887">    ) |chr, score| {</span>
-<span class="line" id="L888">        list.appendAssumeCapacity(.{ .chr = chr, .score = score });</span>
-<span class="line" id="L889">    }</span>
-<span class="line" id="L890"></span>
-<span class="line" id="L891">    <span class="tok-kw">const</span> sliced = list.slice();</span>
-<span class="line" id="L892">    list.sortSpan(<span class="tok-number">6</span>, <span class="tok-number">21</span>, <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L893">        chars: []<span class="tok-kw">const</span> <span class="tok-type">u8</span>,</span>
-<span class="line" id="L894"></span>
-<span class="line" id="L895">        <span class="tok-kw">fn</span> <span class="tok-fn">lessThan</span>(ctx: <span class="tok-builtin">@This</span>(), a: <span class="tok-type">usize</span>, b: <span class="tok-type">usize</span>) <span class="tok-type">bool</span> {</span>
-<span class="line" id="L896">            <span class="tok-kw">return</span> ctx.chars[a] &lt; ctx.chars[b];</span>
-<span class="line" id="L897">        }</span>
-<span class="line" id="L898">    }{ .chars = sliced.items(.chr) });</span>
-<span class="line" id="L899"></span>
-<span class="line" id="L900">    <span class="tok-kw">var</span> i: <span class="tok-type">u32</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L901">    <span class="tok-kw">var</span> j: <span class="tok-type">u32</span> = <span class="tok-number">6</span>;</span>
-<span class="line" id="L902">    <span class="tok-kw">var</span> c: <span class="tok-type">u8</span> = <span class="tok-str">'a'</span>;</span>
-<span class="line" id="L903"></span>
-<span class="line" id="L904">    <span class="tok-kw">while</span> (j &lt; <span class="tok-number">21</span>) {</span>
-<span class="line" id="L905">        i = j;</span>
-<span class="line" id="L906">        j += <span class="tok-number">5</span>;</span>
-<span class="line" id="L907">        <span class="tok-kw">var</span> n: <span class="tok-type">u32</span> = <span class="tok-number">3</span>;</span>
-<span class="line" id="L908">        <span class="tok-kw">for</span> (sliced.items(.chr)[i..j], sliced.items(.score)[i..j]) |chr, score| {</span>
-<span class="line" id="L909">            <span class="tok-kw">try</span> testing.expectEqual(score, n);</span>
-<span class="line" id="L910">            <span class="tok-kw">try</span> testing.expectEqual(chr, c);</span>
-<span class="line" id="L911">            n += <span class="tok-number">1</span>;</span>
-<span class="line" id="L912">        }</span>
-<span class="line" id="L913">        c += <span class="tok-number">1</span>;</span>
-<span class="line" id="L914">    }</span>
-<span class="line" id="L915">}</span>
-<span class="line" id="L916"></span>
-<span class="line" id="L917"><span class="tok-kw">test</span> <span class="tok-str">&quot;0 sized struct field&quot;</span> {</span>
-<span class="line" id="L918">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L919"></span>
-<span class="line" id="L920">    <span class="tok-kw">const</span> ally = testing.allocator;</span>
-<span class="line" id="L921"></span>
-<span class="line" id="L922">    <span class="tok-kw">const</span> Foo = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L923">        a: <span class="tok-type">u0</span>,</span>
-<span class="line" id="L924">        b: <span class="tok-type">f32</span>,</span>
-<span class="line" id="L925">    };</span>
+<span class="line" id="L875">    ) |chr, score| {</span>
+<span class="line" id="L876">        list.appendAssumeCapacity(.{ .chr = chr, .score = score });</span>
+<span class="line" id="L877">    }</span>
+<span class="line" id="L878"></span>
+<span class="line" id="L879">    <span class="tok-kw">const</span> sliced = list.slice();</span>
+<span class="line" id="L880">    list.sortSpan(<span class="tok-number">6</span>, <span class="tok-number">21</span>, <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L881">        chars: []<span class="tok-kw">const</span> <span class="tok-type">u8</span>,</span>
+<span class="line" id="L882"></span>
+<span class="line" id="L883">        <span class="tok-kw">fn</span> <span class="tok-fn">lessThan</span>(ctx: <span class="tok-builtin">@This</span>(), a: <span class="tok-type">usize</span>, b: <span class="tok-type">usize</span>) <span class="tok-type">bool</span> {</span>
+<span class="line" id="L884">            <span class="tok-kw">return</span> ctx.chars[a] &lt; ctx.chars[b];</span>
+<span class="line" id="L885">        }</span>
+<span class="line" id="L886">    }{ .chars = sliced.items(.chr) });</span>
+<span class="line" id="L887"></span>
+<span class="line" id="L888">    <span class="tok-kw">var</span> i: <span class="tok-type">u32</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L889">    <span class="tok-kw">var</span> j: <span class="tok-type">u32</span> = <span class="tok-number">6</span>;</span>
+<span class="line" id="L890">    <span class="tok-kw">var</span> c: <span class="tok-type">u8</span> = <span class="tok-str">'a'</span>;</span>
+<span class="line" id="L891"></span>
+<span class="line" id="L892">    <span class="tok-kw">while</span> (j &lt; <span class="tok-number">21</span>) {</span>
+<span class="line" id="L893">        i = j;</span>
+<span class="line" id="L894">        j += <span class="tok-number">5</span>;</span>
+<span class="line" id="L895">        <span class="tok-kw">var</span> n: <span class="tok-type">u32</span> = <span class="tok-number">3</span>;</span>
+<span class="line" id="L896">        <span class="tok-kw">for</span> (sliced.items(.chr)[i..j], sliced.items(.score)[i..j]) |chr, score| {</span>
+<span class="line" id="L897">            <span class="tok-kw">try</span> testing.expectEqual(score, n);</span>
+<span class="line" id="L898">            <span class="tok-kw">try</span> testing.expectEqual(chr, c);</span>
+<span class="line" id="L899">            n += <span class="tok-number">1</span>;</span>
+<span class="line" id="L900">        }</span>
+<span class="line" id="L901">        c += <span class="tok-number">1</span>;</span>
+<span class="line" id="L902">    }</span>
+<span class="line" id="L903">}</span>
+<span class="line" id="L904"></span>
+<span class="line" id="L905"><span class="tok-kw">test</span> <span class="tok-str">&quot;0 sized struct field&quot;</span> {</span>
+<span class="line" id="L906">    <span class="tok-kw">const</span> ally = testing.allocator;</span>
+<span class="line" id="L907"></span>
+<span class="line" id="L908">    <span class="tok-kw">const</span> Foo = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L909">        a: <span class="tok-type">u0</span>,</span>
+<span class="line" id="L910">        b: <span class="tok-type">f32</span>,</span>
+<span class="line" id="L911">    };</span>
+<span class="line" id="L912"></span>
+<span class="line" id="L913">    <span class="tok-kw">var</span> list = MultiArrayList(Foo){};</span>
+<span class="line" id="L914">    <span class="tok-kw">defer</span> list.deinit(ally);</span>
+<span class="line" id="L915"></span>
+<span class="line" id="L916">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u0</span>, &amp;[_]<span class="tok-type">u0</span>{}, list.items(.a));</span>
+<span class="line" id="L917">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">f32</span>, &amp;[_]<span class="tok-type">f32</span>{}, list.items(.b));</span>
+<span class="line" id="L918"></span>
+<span class="line" id="L919">    <span class="tok-kw">try</span> list.append(ally, .{ .a = <span class="tok-number">0</span>, .b = <span class="tok-number">42.0</span> });</span>
+<span class="line" id="L920">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u0</span>, &amp;[_]<span class="tok-type">u0</span>{<span class="tok-number">0</span>}, list.items(.a));</span>
+<span class="line" id="L921">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">f32</span>, &amp;[_]<span class="tok-type">f32</span>{<span class="tok-number">42.0</span>}, list.items(.b));</span>
+<span class="line" id="L922"></span>
+<span class="line" id="L923">    <span class="tok-kw">try</span> list.insert(ally, <span class="tok-number">0</span>, .{ .a = <span class="tok-number">0</span>, .b = -<span class="tok-number">1.0</span> });</span>
+<span class="line" id="L924">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u0</span>, &amp;[_]<span class="tok-type">u0</span>{ <span class="tok-number">0</span>, <span class="tok-number">0</span> }, list.items(.a));</span>
+<span class="line" id="L925">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">f32</span>, &amp;[_]<span class="tok-type">f32</span>{ -<span class="tok-number">1.0</span>, <span class="tok-number">42.0</span> }, list.items(.b));</span>
 <span class="line" id="L926"></span>
-<span class="line" id="L927">    <span class="tok-kw">var</span> list = MultiArrayList(Foo){};</span>
-<span class="line" id="L928">    <span class="tok-kw">defer</span> list.deinit(ally);</span>
-<span class="line" id="L929"></span>
-<span class="line" id="L930">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u0</span>, &amp;[_]<span class="tok-type">u0</span>{}, list.items(.a));</span>
-<span class="line" id="L931">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">f32</span>, &amp;[_]<span class="tok-type">f32</span>{}, list.items(.b));</span>
-<span class="line" id="L932"></span>
-<span class="line" id="L933">    <span class="tok-kw">try</span> list.append(ally, .{ .a = <span class="tok-number">0</span>, .b = <span class="tok-number">42.0</span> });</span>
-<span class="line" id="L934">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u0</span>, &amp;[_]<span class="tok-type">u0</span>{<span class="tok-number">0</span>}, list.items(.a));</span>
-<span class="line" id="L935">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">f32</span>, &amp;[_]<span class="tok-type">f32</span>{<span class="tok-number">42.0</span>}, list.items(.b));</span>
-<span class="line" id="L936"></span>
-<span class="line" id="L937">    <span class="tok-kw">try</span> list.insert(ally, <span class="tok-number">0</span>, .{ .a = <span class="tok-number">0</span>, .b = -<span class="tok-number">1.0</span> });</span>
-<span class="line" id="L938">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u0</span>, &amp;[_]<span class="tok-type">u0</span>{ <span class="tok-number">0</span>, <span class="tok-number">0</span> }, list.items(.a));</span>
-<span class="line" id="L939">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">f32</span>, &amp;[_]<span class="tok-type">f32</span>{ -<span class="tok-number">1.0</span>, <span class="tok-number">42.0</span> }, list.items(.b));</span>
-<span class="line" id="L940"></span>
-<span class="line" id="L941">    list.swapRemove(list.len - <span class="tok-number">1</span>);</span>
-<span class="line" id="L942">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u0</span>, &amp;[_]<span class="tok-type">u0</span>{<span class="tok-number">0</span>}, list.items(.a));</span>
-<span class="line" id="L943">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">f32</span>, &amp;[_]<span class="tok-type">f32</span>{-<span class="tok-number">1.0</span>}, list.items(.b));</span>
-<span class="line" id="L944">}</span>
-<span class="line" id="L945"></span>
-<span class="line" id="L946"><span class="tok-kw">test</span> <span class="tok-str">&quot;0 sized struct&quot;</span> {</span>
-<span class="line" id="L947">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L948"></span>
-<span class="line" id="L949">    <span class="tok-kw">const</span> ally = testing.allocator;</span>
-<span class="line" id="L950"></span>
-<span class="line" id="L951">    <span class="tok-kw">const</span> Foo = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L952">        a: <span class="tok-type">u0</span>,</span>
-<span class="line" id="L953">    };</span>
-<span class="line" id="L954"></span>
-<span class="line" id="L955">    <span class="tok-kw">var</span> list = MultiArrayList(Foo){};</span>
-<span class="line" id="L956">    <span class="tok-kw">defer</span> list.deinit(ally);</span>
-<span class="line" id="L957"></span>
-<span class="line" id="L958">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u0</span>, &amp;[_]<span class="tok-type">u0</span>{}, list.items(.a));</span>
-<span class="line" id="L959"></span>
-<span class="line" id="L960">    <span class="tok-kw">try</span> list.append(ally, .{ .a = <span class="tok-number">0</span> });</span>
-<span class="line" id="L961">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u0</span>, &amp;[_]<span class="tok-type">u0</span>{<span class="tok-number">0</span>}, list.items(.a));</span>
-<span class="line" id="L962"></span>
-<span class="line" id="L963">    <span class="tok-kw">try</span> list.insert(ally, <span class="tok-number">0</span>, .{ .a = <span class="tok-number">0</span> });</span>
-<span class="line" id="L964">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u0</span>, &amp;[_]<span class="tok-type">u0</span>{ <span class="tok-number">0</span>, <span class="tok-number">0</span> }, list.items(.a));</span>
-<span class="line" id="L965"></span>
-<span class="line" id="L966">    list.swapRemove(list.len - <span class="tok-number">1</span>);</span>
-<span class="line" id="L967">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u0</span>, &amp;[_]<span class="tok-type">u0</span>{<span class="tok-number">0</span>}, list.items(.a));</span>
-<span class="line" id="L968">}</span>
-<span class="line" id="L969"></span>
+<span class="line" id="L927">    list.swapRemove(list.len - <span class="tok-number">1</span>);</span>
+<span class="line" id="L928">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u0</span>, &amp;[_]<span class="tok-type">u0</span>{<span class="tok-number">0</span>}, list.items(.a));</span>
+<span class="line" id="L929">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">f32</span>, &amp;[_]<span class="tok-type">f32</span>{-<span class="tok-number">1.0</span>}, list.items(.b));</span>
+<span class="line" id="L930">}</span>
+<span class="line" id="L931"></span>
+<span class="line" id="L932"><span class="tok-kw">test</span> <span class="tok-str">&quot;0 sized struct&quot;</span> {</span>
+<span class="line" id="L933">    <span class="tok-kw">const</span> ally = testing.allocator;</span>
+<span class="line" id="L934"></span>
+<span class="line" id="L935">    <span class="tok-kw">const</span> Foo = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L936">        a: <span class="tok-type">u0</span>,</span>
+<span class="line" id="L937">    };</span>
+<span class="line" id="L938"></span>
+<span class="line" id="L939">    <span class="tok-kw">var</span> list = MultiArrayList(Foo){};</span>
+<span class="line" id="L940">    <span class="tok-kw">defer</span> list.deinit(ally);</span>
+<span class="line" id="L941"></span>
+<span class="line" id="L942">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u0</span>, &amp;[_]<span class="tok-type">u0</span>{}, list.items(.a));</span>
+<span class="line" id="L943"></span>
+<span class="line" id="L944">    <span class="tok-kw">try</span> list.append(ally, .{ .a = <span class="tok-number">0</span> });</span>
+<span class="line" id="L945">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u0</span>, &amp;[_]<span class="tok-type">u0</span>{<span class="tok-number">0</span>}, list.items(.a));</span>
+<span class="line" id="L946"></span>
+<span class="line" id="L947">    <span class="tok-kw">try</span> list.insert(ally, <span class="tok-number">0</span>, .{ .a = <span class="tok-number">0</span> });</span>
+<span class="line" id="L948">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u0</span>, &amp;[_]<span class="tok-type">u0</span>{ <span class="tok-number">0</span>, <span class="tok-number">0</span> }, list.items(.a));</span>
+<span class="line" id="L949"></span>
+<span class="line" id="L950">    list.swapRemove(list.len - <span class="tok-number">1</span>);</span>
+<span class="line" id="L951">    <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u0</span>, &amp;[_]<span class="tok-type">u0</span>{<span class="tok-number">0</span>}, list.items(.a));</span>
+<span class="line" id="L952">}</span>
+<span class="line" id="L953"></span>
 </code></pre></body>
 </html>

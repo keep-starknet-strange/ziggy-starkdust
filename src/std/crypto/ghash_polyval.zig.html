@@ -628,23 +628,21 @@
 <span class="line" id="L476">}</span>
 <span class="line" id="L477"></span>
 <span class="line" id="L478"><span class="tok-kw">test</span> <span class="tok-str">&quot;polyval&quot;</span> {</span>
-<span class="line" id="L479">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L480"></span>
-<span class="line" id="L481">    <span class="tok-kw">const</span> key = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x42</span>} ** <span class="tok-number">16</span>;</span>
-<span class="line" id="L482">    <span class="tok-kw">const</span> m = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x69</span>} ** <span class="tok-number">256</span>;</span>
-<span class="line" id="L483"></span>
-<span class="line" id="L484">    <span class="tok-kw">var</span> st = Polyval.init(&amp;key);</span>
-<span class="line" id="L485">    st.update(&amp;m);</span>
-<span class="line" id="L486">    <span class="tok-kw">var</span> out: [<span class="tok-number">16</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L487">    st.final(&amp;out);</span>
-<span class="line" id="L488">    <span class="tok-kw">try</span> htest.assertEqual(<span class="tok-str">&quot;0713c82b170eef25c8955ddf72c85ccb&quot;</span>, &amp;out);</span>
-<span class="line" id="L489"></span>
-<span class="line" id="L490">    st = Polyval.init(&amp;key);</span>
-<span class="line" id="L491">    st.update(m[<span class="tok-number">0</span>..<span class="tok-number">100</span>]);</span>
-<span class="line" id="L492">    st.update(m[<span class="tok-number">100</span>..]);</span>
-<span class="line" id="L493">    st.final(&amp;out);</span>
-<span class="line" id="L494">    <span class="tok-kw">try</span> htest.assertEqual(<span class="tok-str">&quot;0713c82b170eef25c8955ddf72c85ccb&quot;</span>, &amp;out);</span>
-<span class="line" id="L495">}</span>
-<span class="line" id="L496"></span>
+<span class="line" id="L479">    <span class="tok-kw">const</span> key = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x42</span>} ** <span class="tok-number">16</span>;</span>
+<span class="line" id="L480">    <span class="tok-kw">const</span> m = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x69</span>} ** <span class="tok-number">256</span>;</span>
+<span class="line" id="L481"></span>
+<span class="line" id="L482">    <span class="tok-kw">var</span> st = Polyval.init(&amp;key);</span>
+<span class="line" id="L483">    st.update(&amp;m);</span>
+<span class="line" id="L484">    <span class="tok-kw">var</span> out: [<span class="tok-number">16</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L485">    st.final(&amp;out);</span>
+<span class="line" id="L486">    <span class="tok-kw">try</span> htest.assertEqual(<span class="tok-str">&quot;0713c82b170eef25c8955ddf72c85ccb&quot;</span>, &amp;out);</span>
+<span class="line" id="L487"></span>
+<span class="line" id="L488">    st = Polyval.init(&amp;key);</span>
+<span class="line" id="L489">    st.update(m[<span class="tok-number">0</span>..<span class="tok-number">100</span>]);</span>
+<span class="line" id="L490">    st.update(m[<span class="tok-number">100</span>..]);</span>
+<span class="line" id="L491">    st.final(&amp;out);</span>
+<span class="line" id="L492">    <span class="tok-kw">try</span> htest.assertEqual(<span class="tok-str">&quot;0713c82b170eef25c8955ddf72c85ccb&quot;</span>, &amp;out);</span>
+<span class="line" id="L493">}</span>
+<span class="line" id="L494"></span>
 </code></pre></body>
 </html>

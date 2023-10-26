@@ -739,338 +739,328 @@
 <span class="line" id="L622">}</span>
 <span class="line" id="L623"></span>
 <span class="line" id="L624"><span class="tok-kw">test</span> <span class="tok-str">&quot;argon2d&quot;</span> {</span>
-<span class="line" id="L625">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L626"></span>
-<span class="line" id="L627">    <span class="tok-kw">const</span> password = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x01</span>} ** <span class="tok-number">32</span>;</span>
-<span class="line" id="L628">    <span class="tok-kw">const</span> salt = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x02</span>} ** <span class="tok-number">16</span>;</span>
-<span class="line" id="L629">    <span class="tok-kw">const</span> secret = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x03</span>} ** <span class="tok-number">8</span>;</span>
-<span class="line" id="L630">    <span class="tok-kw">const</span> ad = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x04</span>} ** <span class="tok-number">12</span>;</span>
-<span class="line" id="L631"></span>
-<span class="line" id="L632">    <span class="tok-kw">var</span> dk: [<span class="tok-number">32</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L633">    <span class="tok-kw">try</span> kdf(</span>
-<span class="line" id="L634">        std.testing.allocator,</span>
-<span class="line" id="L635">        &amp;dk,</span>
-<span class="line" id="L636">        &amp;password,</span>
-<span class="line" id="L637">        &amp;salt,</span>
-<span class="line" id="L638">        .{ .t = <span class="tok-number">3</span>, .m = <span class="tok-number">32</span>, .p = <span class="tok-number">4</span>, .secret = &amp;secret, .ad = &amp;ad },</span>
-<span class="line" id="L639">        .argon2d,</span>
-<span class="line" id="L640">    );</span>
-<span class="line" id="L641"></span>
-<span class="line" id="L642">    <span class="tok-kw">const</span> want = [_]<span class="tok-type">u8</span>{</span>
-<span class="line" id="L643">        <span class="tok-number">0x51</span>, <span class="tok-number">0x2b</span>, <span class="tok-number">0x39</span>, <span class="tok-number">0x1b</span>, <span class="tok-number">0x6f</span>, <span class="tok-number">0x11</span>, <span class="tok-number">0x62</span>, <span class="tok-number">0x97</span>,</span>
-<span class="line" id="L644">        <span class="tok-number">0x53</span>, <span class="tok-number">0x71</span>, <span class="tok-number">0xd3</span>, <span class="tok-number">0x09</span>, <span class="tok-number">0x19</span>, <span class="tok-number">0x73</span>, <span class="tok-number">0x42</span>, <span class="tok-number">0x94</span>,</span>
-<span class="line" id="L645">        <span class="tok-number">0xf8</span>, <span class="tok-number">0x68</span>, <span class="tok-number">0xe3</span>, <span class="tok-number">0xbe</span>, <span class="tok-number">0x39</span>, <span class="tok-number">0x84</span>, <span class="tok-number">0xf3</span>, <span class="tok-number">0xc1</span>,</span>
-<span class="line" id="L646">        <span class="tok-number">0xa1</span>, <span class="tok-number">0x3a</span>, <span class="tok-number">0x4d</span>, <span class="tok-number">0xb9</span>, <span class="tok-number">0xfa</span>, <span class="tok-number">0xbe</span>, <span class="tok-number">0x4a</span>, <span class="tok-number">0xcb</span>,</span>
-<span class="line" id="L647">    };</span>
-<span class="line" id="L648">    <span class="tok-kw">try</span> std.testing.expectEqualSlices(<span class="tok-type">u8</span>, &amp;dk, &amp;want);</span>
-<span class="line" id="L649">}</span>
-<span class="line" id="L650"></span>
-<span class="line" id="L651"><span class="tok-kw">test</span> <span class="tok-str">&quot;argon2i&quot;</span> {</span>
-<span class="line" id="L652">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L653"></span>
-<span class="line" id="L654">    <span class="tok-kw">const</span> password = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x01</span>} ** <span class="tok-number">32</span>;</span>
-<span class="line" id="L655">    <span class="tok-kw">const</span> salt = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x02</span>} ** <span class="tok-number">16</span>;</span>
-<span class="line" id="L656">    <span class="tok-kw">const</span> secret = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x03</span>} ** <span class="tok-number">8</span>;</span>
-<span class="line" id="L657">    <span class="tok-kw">const</span> ad = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x04</span>} ** <span class="tok-number">12</span>;</span>
-<span class="line" id="L658"></span>
-<span class="line" id="L659">    <span class="tok-kw">var</span> dk: [<span class="tok-number">32</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L660">    <span class="tok-kw">try</span> kdf(</span>
-<span class="line" id="L661">        std.testing.allocator,</span>
-<span class="line" id="L662">        &amp;dk,</span>
-<span class="line" id="L663">        &amp;password,</span>
-<span class="line" id="L664">        &amp;salt,</span>
-<span class="line" id="L665">        .{ .t = <span class="tok-number">3</span>, .m = <span class="tok-number">32</span>, .p = <span class="tok-number">4</span>, .secret = &amp;secret, .ad = &amp;ad },</span>
-<span class="line" id="L666">        .argon2i,</span>
-<span class="line" id="L667">    );</span>
-<span class="line" id="L668"></span>
-<span class="line" id="L669">    <span class="tok-kw">const</span> want = [_]<span class="tok-type">u8</span>{</span>
-<span class="line" id="L670">        <span class="tok-number">0xc8</span>, <span class="tok-number">0x14</span>, <span class="tok-number">0xd9</span>, <span class="tok-number">0xd1</span>, <span class="tok-number">0xdc</span>, <span class="tok-number">0x7f</span>, <span class="tok-number">0x37</span>, <span class="tok-number">0xaa</span>,</span>
-<span class="line" id="L671">        <span class="tok-number">0x13</span>, <span class="tok-number">0xf0</span>, <span class="tok-number">0xd7</span>, <span class="tok-number">0x7f</span>, <span class="tok-number">0x24</span>, <span class="tok-number">0x94</span>, <span class="tok-number">0xbd</span>, <span class="tok-number">0xa1</span>,</span>
-<span class="line" id="L672">        <span class="tok-number">0xc8</span>, <span class="tok-number">0xde</span>, <span class="tok-number">0x6b</span>, <span class="tok-number">0x01</span>, <span class="tok-number">0x6d</span>, <span class="tok-number">0xd3</span>, <span class="tok-number">0x88</span>, <span class="tok-number">0xd2</span>,</span>
-<span class="line" id="L673">        <span class="tok-number">0x99</span>, <span class="tok-number">0x52</span>, <span class="tok-number">0xa4</span>, <span class="tok-number">0xc4</span>, <span class="tok-number">0x67</span>, <span class="tok-number">0x2b</span>, <span class="tok-number">0x6c</span>, <span class="tok-number">0xe8</span>,</span>
-<span class="line" id="L674">    };</span>
-<span class="line" id="L675">    <span class="tok-kw">try</span> std.testing.expectEqualSlices(<span class="tok-type">u8</span>, &amp;dk, &amp;want);</span>
-<span class="line" id="L676">}</span>
-<span class="line" id="L677"></span>
-<span class="line" id="L678"><span class="tok-kw">test</span> <span class="tok-str">&quot;argon2id&quot;</span> {</span>
-<span class="line" id="L679">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L680"></span>
-<span class="line" id="L681">    <span class="tok-kw">const</span> password = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x01</span>} ** <span class="tok-number">32</span>;</span>
-<span class="line" id="L682">    <span class="tok-kw">const</span> salt = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x02</span>} ** <span class="tok-number">16</span>;</span>
-<span class="line" id="L683">    <span class="tok-kw">const</span> secret = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x03</span>} ** <span class="tok-number">8</span>;</span>
-<span class="line" id="L684">    <span class="tok-kw">const</span> ad = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x04</span>} ** <span class="tok-number">12</span>;</span>
-<span class="line" id="L685"></span>
-<span class="line" id="L686">    <span class="tok-kw">var</span> dk: [<span class="tok-number">32</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L687">    <span class="tok-kw">try</span> kdf(</span>
-<span class="line" id="L688">        std.testing.allocator,</span>
-<span class="line" id="L689">        &amp;dk,</span>
-<span class="line" id="L690">        &amp;password,</span>
-<span class="line" id="L691">        &amp;salt,</span>
-<span class="line" id="L692">        .{ .t = <span class="tok-number">3</span>, .m = <span class="tok-number">32</span>, .p = <span class="tok-number">4</span>, .secret = &amp;secret, .ad = &amp;ad },</span>
-<span class="line" id="L693">        .argon2id,</span>
-<span class="line" id="L694">    );</span>
-<span class="line" id="L695"></span>
-<span class="line" id="L696">    <span class="tok-kw">const</span> want = [_]<span class="tok-type">u8</span>{</span>
-<span class="line" id="L697">        <span class="tok-number">0x0d</span>, <span class="tok-number">0x64</span>, <span class="tok-number">0x0d</span>, <span class="tok-number">0xf5</span>, <span class="tok-number">0x8d</span>, <span class="tok-number">0x78</span>, <span class="tok-number">0x76</span>, <span class="tok-number">0x6c</span>,</span>
-<span class="line" id="L698">        <span class="tok-number">0x08</span>, <span class="tok-number">0xc0</span>, <span class="tok-number">0x37</span>, <span class="tok-number">0xa3</span>, <span class="tok-number">0x4a</span>, <span class="tok-number">0x8b</span>, <span class="tok-number">0x53</span>, <span class="tok-number">0xc9</span>,</span>
-<span class="line" id="L699">        <span class="tok-number">0xd0</span>, <span class="tok-number">0x1e</span>, <span class="tok-number">0xf0</span>, <span class="tok-number">0x45</span>, <span class="tok-number">0x2d</span>, <span class="tok-number">0x75</span>, <span class="tok-number">0xb6</span>, <span class="tok-number">0x5e</span>,</span>
-<span class="line" id="L700">        <span class="tok-number">0xb5</span>, <span class="tok-number">0x25</span>, <span class="tok-number">0x20</span>, <span class="tok-number">0xe9</span>, <span class="tok-number">0x6b</span>, <span class="tok-number">0x01</span>, <span class="tok-number">0xe6</span>, <span class="tok-number">0x59</span>,</span>
-<span class="line" id="L701">    };</span>
-<span class="line" id="L702">    <span class="tok-kw">try</span> std.testing.expectEqualSlices(<span class="tok-type">u8</span>, &amp;dk, &amp;want);</span>
-<span class="line" id="L703">}</span>
-<span class="line" id="L704"></span>
-<span class="line" id="L705"><span class="tok-kw">test</span> <span class="tok-str">&quot;kdf&quot;</span> {</span>
-<span class="line" id="L706">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L707"></span>
-<span class="line" id="L708">    <span class="tok-kw">const</span> password = <span class="tok-str">&quot;password&quot;</span>;</span>
-<span class="line" id="L709">    <span class="tok-kw">const</span> salt = <span class="tok-str">&quot;somesalt&quot;</span>;</span>
-<span class="line" id="L710"></span>
-<span class="line" id="L711">    <span class="tok-kw">const</span> TestVector = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L712">        mode: Mode,</span>
-<span class="line" id="L713">        time: <span class="tok-type">u32</span>,</span>
-<span class="line" id="L714">        memory: <span class="tok-type">u32</span>,</span>
-<span class="line" id="L715">        threads: <span class="tok-type">u8</span>,</span>
-<span class="line" id="L716">        hash: []<span class="tok-kw">const</span> <span class="tok-type">u8</span>,</span>
-<span class="line" id="L717">    };</span>
-<span class="line" id="L718">    <span class="tok-kw">const</span> test_vectors = [_]TestVector{</span>
-<span class="line" id="L719">        .{</span>
-<span class="line" id="L720">            .mode = .argon2i,</span>
-<span class="line" id="L721">            .time = <span class="tok-number">1</span>,</span>
-<span class="line" id="L722">            .memory = <span class="tok-number">64</span>,</span>
-<span class="line" id="L723">            .threads = <span class="tok-number">1</span>,</span>
-<span class="line" id="L724">            .hash = <span class="tok-str">&quot;b9c401d1844a67d50eae3967dc28870b22e508092e861a37&quot;</span>,</span>
-<span class="line" id="L725">        },</span>
-<span class="line" id="L726">        .{</span>
-<span class="line" id="L727">            .mode = .argon2d,</span>
-<span class="line" id="L728">            .time = <span class="tok-number">1</span>,</span>
-<span class="line" id="L729">            .memory = <span class="tok-number">64</span>,</span>
-<span class="line" id="L730">            .threads = <span class="tok-number">1</span>,</span>
-<span class="line" id="L731">            .hash = <span class="tok-str">&quot;8727405fd07c32c78d64f547f24150d3f2e703a89f981a19&quot;</span>,</span>
-<span class="line" id="L732">        },</span>
-<span class="line" id="L733">        .{</span>
-<span class="line" id="L734">            .mode = .argon2id,</span>
-<span class="line" id="L735">            .time = <span class="tok-number">1</span>,</span>
-<span class="line" id="L736">            .memory = <span class="tok-number">64</span>,</span>
-<span class="line" id="L737">            .threads = <span class="tok-number">1</span>,</span>
-<span class="line" id="L738">            .hash = <span class="tok-str">&quot;655ad15eac652dc59f7170a7332bf49b8469be1fdb9c28bb&quot;</span>,</span>
-<span class="line" id="L739">        },</span>
-<span class="line" id="L740">        .{</span>
-<span class="line" id="L741">            .mode = .argon2i,</span>
-<span class="line" id="L742">            .time = <span class="tok-number">2</span>,</span>
-<span class="line" id="L743">            .memory = <span class="tok-number">64</span>,</span>
-<span class="line" id="L744">            .threads = <span class="tok-number">1</span>,</span>
-<span class="line" id="L745">            .hash = <span class="tok-str">&quot;8cf3d8f76a6617afe35fac48eb0b7433a9a670ca4a07ed64&quot;</span>,</span>
-<span class="line" id="L746">        },</span>
-<span class="line" id="L747">        .{</span>
-<span class="line" id="L748">            .mode = .argon2d,</span>
-<span class="line" id="L749">            .time = <span class="tok-number">2</span>,</span>
-<span class="line" id="L750">            .memory = <span class="tok-number">64</span>,</span>
-<span class="line" id="L751">            .threads = <span class="tok-number">1</span>,</span>
-<span class="line" id="L752">            .hash = <span class="tok-str">&quot;3be9ec79a69b75d3752acb59a1fbb8b295a46529c48fbb75&quot;</span>,</span>
-<span class="line" id="L753">        },</span>
-<span class="line" id="L754">        .{</span>
-<span class="line" id="L755">            .mode = .argon2id,</span>
-<span class="line" id="L756">            .time = <span class="tok-number">2</span>,</span>
-<span class="line" id="L757">            .memory = <span class="tok-number">64</span>,</span>
-<span class="line" id="L758">            .threads = <span class="tok-number">1</span>,</span>
-<span class="line" id="L759">            .hash = <span class="tok-str">&quot;068d62b26455936aa6ebe60060b0a65870dbfa3ddf8d41f7&quot;</span>,</span>
-<span class="line" id="L760">        },</span>
-<span class="line" id="L761">        .{</span>
-<span class="line" id="L762">            .mode = .argon2i,</span>
-<span class="line" id="L763">            .time = <span class="tok-number">2</span>,</span>
-<span class="line" id="L764">            .memory = <span class="tok-number">64</span>,</span>
-<span class="line" id="L765">            .threads = <span class="tok-number">2</span>,</span>
-<span class="line" id="L766">            .hash = <span class="tok-str">&quot;2089f3e78a799720f80af806553128f29b132cafe40d059f&quot;</span>,</span>
-<span class="line" id="L767">        },</span>
-<span class="line" id="L768">        .{</span>
-<span class="line" id="L769">            .mode = .argon2d,</span>
-<span class="line" id="L770">            .time = <span class="tok-number">2</span>,</span>
-<span class="line" id="L771">            .memory = <span class="tok-number">64</span>,</span>
-<span class="line" id="L772">            .threads = <span class="tok-number">2</span>,</span>
-<span class="line" id="L773">            .hash = <span class="tok-str">&quot;68e2462c98b8bc6bb60ec68db418ae2c9ed24fc6748a40e9&quot;</span>,</span>
-<span class="line" id="L774">        },</span>
-<span class="line" id="L775">        .{</span>
-<span class="line" id="L776">            .mode = .argon2id,</span>
-<span class="line" id="L777">            .time = <span class="tok-number">2</span>,</span>
-<span class="line" id="L778">            .memory = <span class="tok-number">64</span>,</span>
-<span class="line" id="L779">            .threads = <span class="tok-number">2</span>,</span>
-<span class="line" id="L780">            .hash = <span class="tok-str">&quot;350ac37222f436ccb5c0972f1ebd3bf6b958bf2071841362&quot;</span>,</span>
-<span class="line" id="L781">        },</span>
-<span class="line" id="L782">        .{</span>
-<span class="line" id="L783">            .mode = .argon2i,</span>
-<span class="line" id="L784">            .time = <span class="tok-number">3</span>,</span>
-<span class="line" id="L785">            .memory = <span class="tok-number">256</span>,</span>
-<span class="line" id="L786">            .threads = <span class="tok-number">2</span>,</span>
-<span class="line" id="L787">            .hash = <span class="tok-str">&quot;f5bbf5d4c3836af13193053155b73ec7476a6a2eb93fd5e6&quot;</span>,</span>
-<span class="line" id="L788">        },</span>
-<span class="line" id="L789">        .{</span>
-<span class="line" id="L790">            .mode = .argon2d,</span>
-<span class="line" id="L791">            .time = <span class="tok-number">3</span>,</span>
-<span class="line" id="L792">            .memory = <span class="tok-number">256</span>,</span>
-<span class="line" id="L793">            .threads = <span class="tok-number">2</span>,</span>
-<span class="line" id="L794">            .hash = <span class="tok-str">&quot;f4f0669218eaf3641f39cc97efb915721102f4b128211ef2&quot;</span>,</span>
-<span class="line" id="L795">        },</span>
-<span class="line" id="L796">        .{</span>
-<span class="line" id="L797">            .mode = .argon2id,</span>
-<span class="line" id="L798">            .time = <span class="tok-number">3</span>,</span>
-<span class="line" id="L799">            .memory = <span class="tok-number">256</span>,</span>
-<span class="line" id="L800">            .threads = <span class="tok-number">2</span>,</span>
-<span class="line" id="L801">            .hash = <span class="tok-str">&quot;4668d30ac4187e6878eedeacf0fd83c5a0a30db2cc16ef0b&quot;</span>,</span>
-<span class="line" id="L802">        },</span>
-<span class="line" id="L803">        .{</span>
-<span class="line" id="L804">            .mode = .argon2i,</span>
-<span class="line" id="L805">            .time = <span class="tok-number">4</span>,</span>
-<span class="line" id="L806">            .memory = <span class="tok-number">4096</span>,</span>
-<span class="line" id="L807">            .threads = <span class="tok-number">4</span>,</span>
-<span class="line" id="L808">            .hash = <span class="tok-str">&quot;a11f7b7f3f93f02ad4bddb59ab62d121e278369288a0d0e7&quot;</span>,</span>
-<span class="line" id="L809">        },</span>
-<span class="line" id="L810">        .{</span>
-<span class="line" id="L811">            .mode = .argon2d,</span>
-<span class="line" id="L812">            .time = <span class="tok-number">4</span>,</span>
-<span class="line" id="L813">            .memory = <span class="tok-number">4096</span>,</span>
-<span class="line" id="L814">            .threads = <span class="tok-number">4</span>,</span>
-<span class="line" id="L815">            .hash = <span class="tok-str">&quot;935598181aa8dc2b720914aa6435ac8d3e3a4210c5b0fb2d&quot;</span>,</span>
-<span class="line" id="L816">        },</span>
-<span class="line" id="L817">        .{</span>
-<span class="line" id="L818">            .mode = .argon2id,</span>
-<span class="line" id="L819">            .time = <span class="tok-number">4</span>,</span>
-<span class="line" id="L820">            .memory = <span class="tok-number">4096</span>,</span>
-<span class="line" id="L821">            .threads = <span class="tok-number">4</span>,</span>
-<span class="line" id="L822">            .hash = <span class="tok-str">&quot;145db9733a9f4ee43edf33c509be96b934d505a4efb33c5a&quot;</span>,</span>
-<span class="line" id="L823">        },</span>
-<span class="line" id="L824">        .{</span>
-<span class="line" id="L825">            .mode = .argon2i,</span>
-<span class="line" id="L826">            .time = <span class="tok-number">4</span>,</span>
-<span class="line" id="L827">            .memory = <span class="tok-number">1024</span>,</span>
-<span class="line" id="L828">            .threads = <span class="tok-number">8</span>,</span>
-<span class="line" id="L829">            .hash = <span class="tok-str">&quot;0cdd3956aa35e6b475a7b0c63488822f774f15b43f6e6e17&quot;</span>,</span>
-<span class="line" id="L830">        },</span>
-<span class="line" id="L831">        .{</span>
-<span class="line" id="L832">            .mode = .argon2d,</span>
-<span class="line" id="L833">            .time = <span class="tok-number">4</span>,</span>
-<span class="line" id="L834">            .memory = <span class="tok-number">1024</span>,</span>
-<span class="line" id="L835">            .threads = <span class="tok-number">8</span>,</span>
-<span class="line" id="L836">            .hash = <span class="tok-str">&quot;83604fc2ad0589b9d055578f4d3cc55bc616df3578a896e9&quot;</span>,</span>
-<span class="line" id="L837">        },</span>
-<span class="line" id="L838">        .{</span>
-<span class="line" id="L839">            .mode = .argon2id,</span>
-<span class="line" id="L840">            .time = <span class="tok-number">4</span>,</span>
-<span class="line" id="L841">            .memory = <span class="tok-number">1024</span>,</span>
-<span class="line" id="L842">            .threads = <span class="tok-number">8</span>,</span>
-<span class="line" id="L843">            .hash = <span class="tok-str">&quot;8dafa8e004f8ea96bf7c0f93eecf67a6047476143d15577f&quot;</span>,</span>
-<span class="line" id="L844">        },</span>
-<span class="line" id="L845">        .{</span>
-<span class="line" id="L846">            .mode = .argon2i,</span>
-<span class="line" id="L847">            .time = <span class="tok-number">2</span>,</span>
-<span class="line" id="L848">            .memory = <span class="tok-number">64</span>,</span>
-<span class="line" id="L849">            .threads = <span class="tok-number">3</span>,</span>
-<span class="line" id="L850">            .hash = <span class="tok-str">&quot;5cab452fe6b8479c8661def8cd703b611a3905a6d5477fe6&quot;</span>,</span>
-<span class="line" id="L851">        },</span>
-<span class="line" id="L852">        .{</span>
-<span class="line" id="L853">            .mode = .argon2d,</span>
-<span class="line" id="L854">            .time = <span class="tok-number">2</span>,</span>
-<span class="line" id="L855">            .memory = <span class="tok-number">64</span>,</span>
-<span class="line" id="L856">            .threads = <span class="tok-number">3</span>,</span>
-<span class="line" id="L857">            .hash = <span class="tok-str">&quot;22474a423bda2ccd36ec9afd5119e5c8949798cadf659f51&quot;</span>,</span>
-<span class="line" id="L858">        },</span>
-<span class="line" id="L859">        .{</span>
-<span class="line" id="L860">            .mode = .argon2id,</span>
-<span class="line" id="L861">            .time = <span class="tok-number">2</span>,</span>
-<span class="line" id="L862">            .memory = <span class="tok-number">64</span>,</span>
-<span class="line" id="L863">            .threads = <span class="tok-number">3</span>,</span>
-<span class="line" id="L864">            .hash = <span class="tok-str">&quot;4a15b31aec7c2590b87d1f520be7d96f56658172deaa3079&quot;</span>,</span>
-<span class="line" id="L865">        },</span>
-<span class="line" id="L866">        .{</span>
-<span class="line" id="L867">            .mode = .argon2i,</span>
-<span class="line" id="L868">            .time = <span class="tok-number">3</span>,</span>
-<span class="line" id="L869">            .memory = <span class="tok-number">1024</span>,</span>
-<span class="line" id="L870">            .threads = <span class="tok-number">6</span>,</span>
-<span class="line" id="L871">            .hash = <span class="tok-str">&quot;d236b29c2b2a09babee842b0dec6aa1e83ccbdea8023dced&quot;</span>,</span>
-<span class="line" id="L872">        },</span>
-<span class="line" id="L873">        .{</span>
-<span class="line" id="L874">            .mode = .argon2d,</span>
-<span class="line" id="L875">            .time = <span class="tok-number">3</span>,</span>
-<span class="line" id="L876">            .memory = <span class="tok-number">1024</span>,</span>
-<span class="line" id="L877">            .threads = <span class="tok-number">6</span>,</span>
-<span class="line" id="L878">            .hash = <span class="tok-str">&quot;a3351b0319a53229152023d9206902f4ef59661cdca89481&quot;</span>,</span>
-<span class="line" id="L879">        },</span>
-<span class="line" id="L880">        .{</span>
-<span class="line" id="L881">            .mode = .argon2id,</span>
-<span class="line" id="L882">            .time = <span class="tok-number">3</span>,</span>
-<span class="line" id="L883">            .memory = <span class="tok-number">1024</span>,</span>
-<span class="line" id="L884">            .threads = <span class="tok-number">6</span>,</span>
-<span class="line" id="L885">            .hash = <span class="tok-str">&quot;1640b932f4b60e272f5d2207b9a9c626ffa1bd88d2349016&quot;</span>,</span>
-<span class="line" id="L886">        },</span>
-<span class="line" id="L887">    };</span>
-<span class="line" id="L888">    <span class="tok-kw">for</span> (test_vectors) |v| {</span>
-<span class="line" id="L889">        <span class="tok-kw">var</span> want: [<span class="tok-number">24</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L890">        _ = <span class="tok-kw">try</span> std.fmt.hexToBytes(&amp;want, v.hash);</span>
-<span class="line" id="L891"></span>
-<span class="line" id="L892">        <span class="tok-kw">var</span> dk: [<span class="tok-number">24</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L893">        <span class="tok-kw">try</span> kdf(</span>
-<span class="line" id="L894">            std.testing.allocator,</span>
-<span class="line" id="L895">            &amp;dk,</span>
-<span class="line" id="L896">            password,</span>
-<span class="line" id="L897">            salt,</span>
-<span class="line" id="L898">            .{ .t = v.time, .m = v.memory, .p = v.threads },</span>
-<span class="line" id="L899">            v.mode,</span>
-<span class="line" id="L900">        );</span>
-<span class="line" id="L901"></span>
-<span class="line" id="L902">        <span class="tok-kw">try</span> std.testing.expectEqualSlices(<span class="tok-type">u8</span>, &amp;dk, &amp;want);</span>
-<span class="line" id="L903">    }</span>
-<span class="line" id="L904">}</span>
-<span class="line" id="L905"></span>
-<span class="line" id="L906"><span class="tok-kw">test</span> <span class="tok-str">&quot;phc format hasher&quot;</span> {</span>
-<span class="line" id="L907">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L908"></span>
-<span class="line" id="L909">    <span class="tok-kw">const</span> allocator = std.testing.allocator;</span>
-<span class="line" id="L910">    <span class="tok-kw">const</span> password = <span class="tok-str">&quot;testpass&quot;</span>;</span>
-<span class="line" id="L911"></span>
-<span class="line" id="L912">    <span class="tok-kw">var</span> buf: [<span class="tok-number">128</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L913">    <span class="tok-kw">const</span> hash = <span class="tok-kw">try</span> PhcFormatHasher.create(</span>
-<span class="line" id="L914">        allocator,</span>
-<span class="line" id="L915">        password,</span>
-<span class="line" id="L916">        .{ .t = <span class="tok-number">3</span>, .m = <span class="tok-number">32</span>, .p = <span class="tok-number">4</span> },</span>
-<span class="line" id="L917">        .argon2id,</span>
-<span class="line" id="L918">        &amp;buf,</span>
-<span class="line" id="L919">    );</span>
-<span class="line" id="L920">    <span class="tok-kw">try</span> PhcFormatHasher.verify(allocator, hash, password);</span>
-<span class="line" id="L921">}</span>
-<span class="line" id="L922"></span>
-<span class="line" id="L923"><span class="tok-kw">test</span> <span class="tok-str">&quot;password hash and password verify&quot;</span> {</span>
-<span class="line" id="L924">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L925"></span>
-<span class="line" id="L926">    <span class="tok-kw">const</span> allocator = std.testing.allocator;</span>
-<span class="line" id="L927">    <span class="tok-kw">const</span> password = <span class="tok-str">&quot;testpass&quot;</span>;</span>
-<span class="line" id="L928"></span>
-<span class="line" id="L929">    <span class="tok-kw">var</span> buf: [<span class="tok-number">128</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L930">    <span class="tok-kw">const</span> hash = <span class="tok-kw">try</span> strHash(</span>
-<span class="line" id="L931">        password,</span>
-<span class="line" id="L932">        .{ .allocator = allocator, .params = .{ .t = <span class="tok-number">3</span>, .m = <span class="tok-number">32</span>, .p = <span class="tok-number">4</span> } },</span>
-<span class="line" id="L933">        &amp;buf,</span>
-<span class="line" id="L934">    );</span>
-<span class="line" id="L935">    <span class="tok-kw">try</span> strVerify(hash, password, .{ .allocator = allocator });</span>
-<span class="line" id="L936">}</span>
+<span class="line" id="L625">    <span class="tok-kw">const</span> password = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x01</span>} ** <span class="tok-number">32</span>;</span>
+<span class="line" id="L626">    <span class="tok-kw">const</span> salt = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x02</span>} ** <span class="tok-number">16</span>;</span>
+<span class="line" id="L627">    <span class="tok-kw">const</span> secret = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x03</span>} ** <span class="tok-number">8</span>;</span>
+<span class="line" id="L628">    <span class="tok-kw">const</span> ad = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x04</span>} ** <span class="tok-number">12</span>;</span>
+<span class="line" id="L629"></span>
+<span class="line" id="L630">    <span class="tok-kw">var</span> dk: [<span class="tok-number">32</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L631">    <span class="tok-kw">try</span> kdf(</span>
+<span class="line" id="L632">        std.testing.allocator,</span>
+<span class="line" id="L633">        &amp;dk,</span>
+<span class="line" id="L634">        &amp;password,</span>
+<span class="line" id="L635">        &amp;salt,</span>
+<span class="line" id="L636">        .{ .t = <span class="tok-number">3</span>, .m = <span class="tok-number">32</span>, .p = <span class="tok-number">4</span>, .secret = &amp;secret, .ad = &amp;ad },</span>
+<span class="line" id="L637">        .argon2d,</span>
+<span class="line" id="L638">    );</span>
+<span class="line" id="L639"></span>
+<span class="line" id="L640">    <span class="tok-kw">const</span> want = [_]<span class="tok-type">u8</span>{</span>
+<span class="line" id="L641">        <span class="tok-number">0x51</span>, <span class="tok-number">0x2b</span>, <span class="tok-number">0x39</span>, <span class="tok-number">0x1b</span>, <span class="tok-number">0x6f</span>, <span class="tok-number">0x11</span>, <span class="tok-number">0x62</span>, <span class="tok-number">0x97</span>,</span>
+<span class="line" id="L642">        <span class="tok-number">0x53</span>, <span class="tok-number">0x71</span>, <span class="tok-number">0xd3</span>, <span class="tok-number">0x09</span>, <span class="tok-number">0x19</span>, <span class="tok-number">0x73</span>, <span class="tok-number">0x42</span>, <span class="tok-number">0x94</span>,</span>
+<span class="line" id="L643">        <span class="tok-number">0xf8</span>, <span class="tok-number">0x68</span>, <span class="tok-number">0xe3</span>, <span class="tok-number">0xbe</span>, <span class="tok-number">0x39</span>, <span class="tok-number">0x84</span>, <span class="tok-number">0xf3</span>, <span class="tok-number">0xc1</span>,</span>
+<span class="line" id="L644">        <span class="tok-number">0xa1</span>, <span class="tok-number">0x3a</span>, <span class="tok-number">0x4d</span>, <span class="tok-number">0xb9</span>, <span class="tok-number">0xfa</span>, <span class="tok-number">0xbe</span>, <span class="tok-number">0x4a</span>, <span class="tok-number">0xcb</span>,</span>
+<span class="line" id="L645">    };</span>
+<span class="line" id="L646">    <span class="tok-kw">try</span> std.testing.expectEqualSlices(<span class="tok-type">u8</span>, &amp;dk, &amp;want);</span>
+<span class="line" id="L647">}</span>
+<span class="line" id="L648"></span>
+<span class="line" id="L649"><span class="tok-kw">test</span> <span class="tok-str">&quot;argon2i&quot;</span> {</span>
+<span class="line" id="L650">    <span class="tok-kw">const</span> password = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x01</span>} ** <span class="tok-number">32</span>;</span>
+<span class="line" id="L651">    <span class="tok-kw">const</span> salt = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x02</span>} ** <span class="tok-number">16</span>;</span>
+<span class="line" id="L652">    <span class="tok-kw">const</span> secret = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x03</span>} ** <span class="tok-number">8</span>;</span>
+<span class="line" id="L653">    <span class="tok-kw">const</span> ad = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x04</span>} ** <span class="tok-number">12</span>;</span>
+<span class="line" id="L654"></span>
+<span class="line" id="L655">    <span class="tok-kw">var</span> dk: [<span class="tok-number">32</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L656">    <span class="tok-kw">try</span> kdf(</span>
+<span class="line" id="L657">        std.testing.allocator,</span>
+<span class="line" id="L658">        &amp;dk,</span>
+<span class="line" id="L659">        &amp;password,</span>
+<span class="line" id="L660">        &amp;salt,</span>
+<span class="line" id="L661">        .{ .t = <span class="tok-number">3</span>, .m = <span class="tok-number">32</span>, .p = <span class="tok-number">4</span>, .secret = &amp;secret, .ad = &amp;ad },</span>
+<span class="line" id="L662">        .argon2i,</span>
+<span class="line" id="L663">    );</span>
+<span class="line" id="L664"></span>
+<span class="line" id="L665">    <span class="tok-kw">const</span> want = [_]<span class="tok-type">u8</span>{</span>
+<span class="line" id="L666">        <span class="tok-number">0xc8</span>, <span class="tok-number">0x14</span>, <span class="tok-number">0xd9</span>, <span class="tok-number">0xd1</span>, <span class="tok-number">0xdc</span>, <span class="tok-number">0x7f</span>, <span class="tok-number">0x37</span>, <span class="tok-number">0xaa</span>,</span>
+<span class="line" id="L667">        <span class="tok-number">0x13</span>, <span class="tok-number">0xf0</span>, <span class="tok-number">0xd7</span>, <span class="tok-number">0x7f</span>, <span class="tok-number">0x24</span>, <span class="tok-number">0x94</span>, <span class="tok-number">0xbd</span>, <span class="tok-number">0xa1</span>,</span>
+<span class="line" id="L668">        <span class="tok-number">0xc8</span>, <span class="tok-number">0xde</span>, <span class="tok-number">0x6b</span>, <span class="tok-number">0x01</span>, <span class="tok-number">0x6d</span>, <span class="tok-number">0xd3</span>, <span class="tok-number">0x88</span>, <span class="tok-number">0xd2</span>,</span>
+<span class="line" id="L669">        <span class="tok-number">0x99</span>, <span class="tok-number">0x52</span>, <span class="tok-number">0xa4</span>, <span class="tok-number">0xc4</span>, <span class="tok-number">0x67</span>, <span class="tok-number">0x2b</span>, <span class="tok-number">0x6c</span>, <span class="tok-number">0xe8</span>,</span>
+<span class="line" id="L670">    };</span>
+<span class="line" id="L671">    <span class="tok-kw">try</span> std.testing.expectEqualSlices(<span class="tok-type">u8</span>, &amp;dk, &amp;want);</span>
+<span class="line" id="L672">}</span>
+<span class="line" id="L673"></span>
+<span class="line" id="L674"><span class="tok-kw">test</span> <span class="tok-str">&quot;argon2id&quot;</span> {</span>
+<span class="line" id="L675">    <span class="tok-kw">const</span> password = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x01</span>} ** <span class="tok-number">32</span>;</span>
+<span class="line" id="L676">    <span class="tok-kw">const</span> salt = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x02</span>} ** <span class="tok-number">16</span>;</span>
+<span class="line" id="L677">    <span class="tok-kw">const</span> secret = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x03</span>} ** <span class="tok-number">8</span>;</span>
+<span class="line" id="L678">    <span class="tok-kw">const</span> ad = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x04</span>} ** <span class="tok-number">12</span>;</span>
+<span class="line" id="L679"></span>
+<span class="line" id="L680">    <span class="tok-kw">var</span> dk: [<span class="tok-number">32</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L681">    <span class="tok-kw">try</span> kdf(</span>
+<span class="line" id="L682">        std.testing.allocator,</span>
+<span class="line" id="L683">        &amp;dk,</span>
+<span class="line" id="L684">        &amp;password,</span>
+<span class="line" id="L685">        &amp;salt,</span>
+<span class="line" id="L686">        .{ .t = <span class="tok-number">3</span>, .m = <span class="tok-number">32</span>, .p = <span class="tok-number">4</span>, .secret = &amp;secret, .ad = &amp;ad },</span>
+<span class="line" id="L687">        .argon2id,</span>
+<span class="line" id="L688">    );</span>
+<span class="line" id="L689"></span>
+<span class="line" id="L690">    <span class="tok-kw">const</span> want = [_]<span class="tok-type">u8</span>{</span>
+<span class="line" id="L691">        <span class="tok-number">0x0d</span>, <span class="tok-number">0x64</span>, <span class="tok-number">0x0d</span>, <span class="tok-number">0xf5</span>, <span class="tok-number">0x8d</span>, <span class="tok-number">0x78</span>, <span class="tok-number">0x76</span>, <span class="tok-number">0x6c</span>,</span>
+<span class="line" id="L692">        <span class="tok-number">0x08</span>, <span class="tok-number">0xc0</span>, <span class="tok-number">0x37</span>, <span class="tok-number">0xa3</span>, <span class="tok-number">0x4a</span>, <span class="tok-number">0x8b</span>, <span class="tok-number">0x53</span>, <span class="tok-number">0xc9</span>,</span>
+<span class="line" id="L693">        <span class="tok-number">0xd0</span>, <span class="tok-number">0x1e</span>, <span class="tok-number">0xf0</span>, <span class="tok-number">0x45</span>, <span class="tok-number">0x2d</span>, <span class="tok-number">0x75</span>, <span class="tok-number">0xb6</span>, <span class="tok-number">0x5e</span>,</span>
+<span class="line" id="L694">        <span class="tok-number">0xb5</span>, <span class="tok-number">0x25</span>, <span class="tok-number">0x20</span>, <span class="tok-number">0xe9</span>, <span class="tok-number">0x6b</span>, <span class="tok-number">0x01</span>, <span class="tok-number">0xe6</span>, <span class="tok-number">0x59</span>,</span>
+<span class="line" id="L695">    };</span>
+<span class="line" id="L696">    <span class="tok-kw">try</span> std.testing.expectEqualSlices(<span class="tok-type">u8</span>, &amp;dk, &amp;want);</span>
+<span class="line" id="L697">}</span>
+<span class="line" id="L698"></span>
+<span class="line" id="L699"><span class="tok-kw">test</span> <span class="tok-str">&quot;kdf&quot;</span> {</span>
+<span class="line" id="L700">    <span class="tok-kw">const</span> password = <span class="tok-str">&quot;password&quot;</span>;</span>
+<span class="line" id="L701">    <span class="tok-kw">const</span> salt = <span class="tok-str">&quot;somesalt&quot;</span>;</span>
+<span class="line" id="L702"></span>
+<span class="line" id="L703">    <span class="tok-kw">const</span> TestVector = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L704">        mode: Mode,</span>
+<span class="line" id="L705">        time: <span class="tok-type">u32</span>,</span>
+<span class="line" id="L706">        memory: <span class="tok-type">u32</span>,</span>
+<span class="line" id="L707">        threads: <span class="tok-type">u8</span>,</span>
+<span class="line" id="L708">        hash: []<span class="tok-kw">const</span> <span class="tok-type">u8</span>,</span>
+<span class="line" id="L709">    };</span>
+<span class="line" id="L710">    <span class="tok-kw">const</span> test_vectors = [_]TestVector{</span>
+<span class="line" id="L711">        .{</span>
+<span class="line" id="L712">            .mode = .argon2i,</span>
+<span class="line" id="L713">            .time = <span class="tok-number">1</span>,</span>
+<span class="line" id="L714">            .memory = <span class="tok-number">64</span>,</span>
+<span class="line" id="L715">            .threads = <span class="tok-number">1</span>,</span>
+<span class="line" id="L716">            .hash = <span class="tok-str">&quot;b9c401d1844a67d50eae3967dc28870b22e508092e861a37&quot;</span>,</span>
+<span class="line" id="L717">        },</span>
+<span class="line" id="L718">        .{</span>
+<span class="line" id="L719">            .mode = .argon2d,</span>
+<span class="line" id="L720">            .time = <span class="tok-number">1</span>,</span>
+<span class="line" id="L721">            .memory = <span class="tok-number">64</span>,</span>
+<span class="line" id="L722">            .threads = <span class="tok-number">1</span>,</span>
+<span class="line" id="L723">            .hash = <span class="tok-str">&quot;8727405fd07c32c78d64f547f24150d3f2e703a89f981a19&quot;</span>,</span>
+<span class="line" id="L724">        },</span>
+<span class="line" id="L725">        .{</span>
+<span class="line" id="L726">            .mode = .argon2id,</span>
+<span class="line" id="L727">            .time = <span class="tok-number">1</span>,</span>
+<span class="line" id="L728">            .memory = <span class="tok-number">64</span>,</span>
+<span class="line" id="L729">            .threads = <span class="tok-number">1</span>,</span>
+<span class="line" id="L730">            .hash = <span class="tok-str">&quot;655ad15eac652dc59f7170a7332bf49b8469be1fdb9c28bb&quot;</span>,</span>
+<span class="line" id="L731">        },</span>
+<span class="line" id="L732">        .{</span>
+<span class="line" id="L733">            .mode = .argon2i,</span>
+<span class="line" id="L734">            .time = <span class="tok-number">2</span>,</span>
+<span class="line" id="L735">            .memory = <span class="tok-number">64</span>,</span>
+<span class="line" id="L736">            .threads = <span class="tok-number">1</span>,</span>
+<span class="line" id="L737">            .hash = <span class="tok-str">&quot;8cf3d8f76a6617afe35fac48eb0b7433a9a670ca4a07ed64&quot;</span>,</span>
+<span class="line" id="L738">        },</span>
+<span class="line" id="L739">        .{</span>
+<span class="line" id="L740">            .mode = .argon2d,</span>
+<span class="line" id="L741">            .time = <span class="tok-number">2</span>,</span>
+<span class="line" id="L742">            .memory = <span class="tok-number">64</span>,</span>
+<span class="line" id="L743">            .threads = <span class="tok-number">1</span>,</span>
+<span class="line" id="L744">            .hash = <span class="tok-str">&quot;3be9ec79a69b75d3752acb59a1fbb8b295a46529c48fbb75&quot;</span>,</span>
+<span class="line" id="L745">        },</span>
+<span class="line" id="L746">        .{</span>
+<span class="line" id="L747">            .mode = .argon2id,</span>
+<span class="line" id="L748">            .time = <span class="tok-number">2</span>,</span>
+<span class="line" id="L749">            .memory = <span class="tok-number">64</span>,</span>
+<span class="line" id="L750">            .threads = <span class="tok-number">1</span>,</span>
+<span class="line" id="L751">            .hash = <span class="tok-str">&quot;068d62b26455936aa6ebe60060b0a65870dbfa3ddf8d41f7&quot;</span>,</span>
+<span class="line" id="L752">        },</span>
+<span class="line" id="L753">        .{</span>
+<span class="line" id="L754">            .mode = .argon2i,</span>
+<span class="line" id="L755">            .time = <span class="tok-number">2</span>,</span>
+<span class="line" id="L756">            .memory = <span class="tok-number">64</span>,</span>
+<span class="line" id="L757">            .threads = <span class="tok-number">2</span>,</span>
+<span class="line" id="L758">            .hash = <span class="tok-str">&quot;2089f3e78a799720f80af806553128f29b132cafe40d059f&quot;</span>,</span>
+<span class="line" id="L759">        },</span>
+<span class="line" id="L760">        .{</span>
+<span class="line" id="L761">            .mode = .argon2d,</span>
+<span class="line" id="L762">            .time = <span class="tok-number">2</span>,</span>
+<span class="line" id="L763">            .memory = <span class="tok-number">64</span>,</span>
+<span class="line" id="L764">            .threads = <span class="tok-number">2</span>,</span>
+<span class="line" id="L765">            .hash = <span class="tok-str">&quot;68e2462c98b8bc6bb60ec68db418ae2c9ed24fc6748a40e9&quot;</span>,</span>
+<span class="line" id="L766">        },</span>
+<span class="line" id="L767">        .{</span>
+<span class="line" id="L768">            .mode = .argon2id,</span>
+<span class="line" id="L769">            .time = <span class="tok-number">2</span>,</span>
+<span class="line" id="L770">            .memory = <span class="tok-number">64</span>,</span>
+<span class="line" id="L771">            .threads = <span class="tok-number">2</span>,</span>
+<span class="line" id="L772">            .hash = <span class="tok-str">&quot;350ac37222f436ccb5c0972f1ebd3bf6b958bf2071841362&quot;</span>,</span>
+<span class="line" id="L773">        },</span>
+<span class="line" id="L774">        .{</span>
+<span class="line" id="L775">            .mode = .argon2i,</span>
+<span class="line" id="L776">            .time = <span class="tok-number">3</span>,</span>
+<span class="line" id="L777">            .memory = <span class="tok-number">256</span>,</span>
+<span class="line" id="L778">            .threads = <span class="tok-number">2</span>,</span>
+<span class="line" id="L779">            .hash = <span class="tok-str">&quot;f5bbf5d4c3836af13193053155b73ec7476a6a2eb93fd5e6&quot;</span>,</span>
+<span class="line" id="L780">        },</span>
+<span class="line" id="L781">        .{</span>
+<span class="line" id="L782">            .mode = .argon2d,</span>
+<span class="line" id="L783">            .time = <span class="tok-number">3</span>,</span>
+<span class="line" id="L784">            .memory = <span class="tok-number">256</span>,</span>
+<span class="line" id="L785">            .threads = <span class="tok-number">2</span>,</span>
+<span class="line" id="L786">            .hash = <span class="tok-str">&quot;f4f0669218eaf3641f39cc97efb915721102f4b128211ef2&quot;</span>,</span>
+<span class="line" id="L787">        },</span>
+<span class="line" id="L788">        .{</span>
+<span class="line" id="L789">            .mode = .argon2id,</span>
+<span class="line" id="L790">            .time = <span class="tok-number">3</span>,</span>
+<span class="line" id="L791">            .memory = <span class="tok-number">256</span>,</span>
+<span class="line" id="L792">            .threads = <span class="tok-number">2</span>,</span>
+<span class="line" id="L793">            .hash = <span class="tok-str">&quot;4668d30ac4187e6878eedeacf0fd83c5a0a30db2cc16ef0b&quot;</span>,</span>
+<span class="line" id="L794">        },</span>
+<span class="line" id="L795">        .{</span>
+<span class="line" id="L796">            .mode = .argon2i,</span>
+<span class="line" id="L797">            .time = <span class="tok-number">4</span>,</span>
+<span class="line" id="L798">            .memory = <span class="tok-number">4096</span>,</span>
+<span class="line" id="L799">            .threads = <span class="tok-number">4</span>,</span>
+<span class="line" id="L800">            .hash = <span class="tok-str">&quot;a11f7b7f3f93f02ad4bddb59ab62d121e278369288a0d0e7&quot;</span>,</span>
+<span class="line" id="L801">        },</span>
+<span class="line" id="L802">        .{</span>
+<span class="line" id="L803">            .mode = .argon2d,</span>
+<span class="line" id="L804">            .time = <span class="tok-number">4</span>,</span>
+<span class="line" id="L805">            .memory = <span class="tok-number">4096</span>,</span>
+<span class="line" id="L806">            .threads = <span class="tok-number">4</span>,</span>
+<span class="line" id="L807">            .hash = <span class="tok-str">&quot;935598181aa8dc2b720914aa6435ac8d3e3a4210c5b0fb2d&quot;</span>,</span>
+<span class="line" id="L808">        },</span>
+<span class="line" id="L809">        .{</span>
+<span class="line" id="L810">            .mode = .argon2id,</span>
+<span class="line" id="L811">            .time = <span class="tok-number">4</span>,</span>
+<span class="line" id="L812">            .memory = <span class="tok-number">4096</span>,</span>
+<span class="line" id="L813">            .threads = <span class="tok-number">4</span>,</span>
+<span class="line" id="L814">            .hash = <span class="tok-str">&quot;145db9733a9f4ee43edf33c509be96b934d505a4efb33c5a&quot;</span>,</span>
+<span class="line" id="L815">        },</span>
+<span class="line" id="L816">        .{</span>
+<span class="line" id="L817">            .mode = .argon2i,</span>
+<span class="line" id="L818">            .time = <span class="tok-number">4</span>,</span>
+<span class="line" id="L819">            .memory = <span class="tok-number">1024</span>,</span>
+<span class="line" id="L820">            .threads = <span class="tok-number">8</span>,</span>
+<span class="line" id="L821">            .hash = <span class="tok-str">&quot;0cdd3956aa35e6b475a7b0c63488822f774f15b43f6e6e17&quot;</span>,</span>
+<span class="line" id="L822">        },</span>
+<span class="line" id="L823">        .{</span>
+<span class="line" id="L824">            .mode = .argon2d,</span>
+<span class="line" id="L825">            .time = <span class="tok-number">4</span>,</span>
+<span class="line" id="L826">            .memory = <span class="tok-number">1024</span>,</span>
+<span class="line" id="L827">            .threads = <span class="tok-number">8</span>,</span>
+<span class="line" id="L828">            .hash = <span class="tok-str">&quot;83604fc2ad0589b9d055578f4d3cc55bc616df3578a896e9&quot;</span>,</span>
+<span class="line" id="L829">        },</span>
+<span class="line" id="L830">        .{</span>
+<span class="line" id="L831">            .mode = .argon2id,</span>
+<span class="line" id="L832">            .time = <span class="tok-number">4</span>,</span>
+<span class="line" id="L833">            .memory = <span class="tok-number">1024</span>,</span>
+<span class="line" id="L834">            .threads = <span class="tok-number">8</span>,</span>
+<span class="line" id="L835">            .hash = <span class="tok-str">&quot;8dafa8e004f8ea96bf7c0f93eecf67a6047476143d15577f&quot;</span>,</span>
+<span class="line" id="L836">        },</span>
+<span class="line" id="L837">        .{</span>
+<span class="line" id="L838">            .mode = .argon2i,</span>
+<span class="line" id="L839">            .time = <span class="tok-number">2</span>,</span>
+<span class="line" id="L840">            .memory = <span class="tok-number">64</span>,</span>
+<span class="line" id="L841">            .threads = <span class="tok-number">3</span>,</span>
+<span class="line" id="L842">            .hash = <span class="tok-str">&quot;5cab452fe6b8479c8661def8cd703b611a3905a6d5477fe6&quot;</span>,</span>
+<span class="line" id="L843">        },</span>
+<span class="line" id="L844">        .{</span>
+<span class="line" id="L845">            .mode = .argon2d,</span>
+<span class="line" id="L846">            .time = <span class="tok-number">2</span>,</span>
+<span class="line" id="L847">            .memory = <span class="tok-number">64</span>,</span>
+<span class="line" id="L848">            .threads = <span class="tok-number">3</span>,</span>
+<span class="line" id="L849">            .hash = <span class="tok-str">&quot;22474a423bda2ccd36ec9afd5119e5c8949798cadf659f51&quot;</span>,</span>
+<span class="line" id="L850">        },</span>
+<span class="line" id="L851">        .{</span>
+<span class="line" id="L852">            .mode = .argon2id,</span>
+<span class="line" id="L853">            .time = <span class="tok-number">2</span>,</span>
+<span class="line" id="L854">            .memory = <span class="tok-number">64</span>,</span>
+<span class="line" id="L855">            .threads = <span class="tok-number">3</span>,</span>
+<span class="line" id="L856">            .hash = <span class="tok-str">&quot;4a15b31aec7c2590b87d1f520be7d96f56658172deaa3079&quot;</span>,</span>
+<span class="line" id="L857">        },</span>
+<span class="line" id="L858">        .{</span>
+<span class="line" id="L859">            .mode = .argon2i,</span>
+<span class="line" id="L860">            .time = <span class="tok-number">3</span>,</span>
+<span class="line" id="L861">            .memory = <span class="tok-number">1024</span>,</span>
+<span class="line" id="L862">            .threads = <span class="tok-number">6</span>,</span>
+<span class="line" id="L863">            .hash = <span class="tok-str">&quot;d236b29c2b2a09babee842b0dec6aa1e83ccbdea8023dced&quot;</span>,</span>
+<span class="line" id="L864">        },</span>
+<span class="line" id="L865">        .{</span>
+<span class="line" id="L866">            .mode = .argon2d,</span>
+<span class="line" id="L867">            .time = <span class="tok-number">3</span>,</span>
+<span class="line" id="L868">            .memory = <span class="tok-number">1024</span>,</span>
+<span class="line" id="L869">            .threads = <span class="tok-number">6</span>,</span>
+<span class="line" id="L870">            .hash = <span class="tok-str">&quot;a3351b0319a53229152023d9206902f4ef59661cdca89481&quot;</span>,</span>
+<span class="line" id="L871">        },</span>
+<span class="line" id="L872">        .{</span>
+<span class="line" id="L873">            .mode = .argon2id,</span>
+<span class="line" id="L874">            .time = <span class="tok-number">3</span>,</span>
+<span class="line" id="L875">            .memory = <span class="tok-number">1024</span>,</span>
+<span class="line" id="L876">            .threads = <span class="tok-number">6</span>,</span>
+<span class="line" id="L877">            .hash = <span class="tok-str">&quot;1640b932f4b60e272f5d2207b9a9c626ffa1bd88d2349016&quot;</span>,</span>
+<span class="line" id="L878">        },</span>
+<span class="line" id="L879">    };</span>
+<span class="line" id="L880">    <span class="tok-kw">for</span> (test_vectors) |v| {</span>
+<span class="line" id="L881">        <span class="tok-kw">var</span> want: [<span class="tok-number">24</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L882">        _ = <span class="tok-kw">try</span> std.fmt.hexToBytes(&amp;want, v.hash);</span>
+<span class="line" id="L883"></span>
+<span class="line" id="L884">        <span class="tok-kw">var</span> dk: [<span class="tok-number">24</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L885">        <span class="tok-kw">try</span> kdf(</span>
+<span class="line" id="L886">            std.testing.allocator,</span>
+<span class="line" id="L887">            &amp;dk,</span>
+<span class="line" id="L888">            password,</span>
+<span class="line" id="L889">            salt,</span>
+<span class="line" id="L890">            .{ .t = v.time, .m = v.memory, .p = v.threads },</span>
+<span class="line" id="L891">            v.mode,</span>
+<span class="line" id="L892">        );</span>
+<span class="line" id="L893"></span>
+<span class="line" id="L894">        <span class="tok-kw">try</span> std.testing.expectEqualSlices(<span class="tok-type">u8</span>, &amp;dk, &amp;want);</span>
+<span class="line" id="L895">    }</span>
+<span class="line" id="L896">}</span>
+<span class="line" id="L897"></span>
+<span class="line" id="L898"><span class="tok-kw">test</span> <span class="tok-str">&quot;phc format hasher&quot;</span> {</span>
+<span class="line" id="L899">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L900"></span>
+<span class="line" id="L901">    <span class="tok-kw">const</span> allocator = std.testing.allocator;</span>
+<span class="line" id="L902">    <span class="tok-kw">const</span> password = <span class="tok-str">&quot;testpass&quot;</span>;</span>
+<span class="line" id="L903"></span>
+<span class="line" id="L904">    <span class="tok-kw">var</span> buf: [<span class="tok-number">128</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L905">    <span class="tok-kw">const</span> hash = <span class="tok-kw">try</span> PhcFormatHasher.create(</span>
+<span class="line" id="L906">        allocator,</span>
+<span class="line" id="L907">        password,</span>
+<span class="line" id="L908">        .{ .t = <span class="tok-number">3</span>, .m = <span class="tok-number">32</span>, .p = <span class="tok-number">4</span> },</span>
+<span class="line" id="L909">        .argon2id,</span>
+<span class="line" id="L910">        &amp;buf,</span>
+<span class="line" id="L911">    );</span>
+<span class="line" id="L912">    <span class="tok-kw">try</span> PhcFormatHasher.verify(allocator, hash, password);</span>
+<span class="line" id="L913">}</span>
+<span class="line" id="L914"></span>
+<span class="line" id="L915"><span class="tok-kw">test</span> <span class="tok-str">&quot;password hash and password verify&quot;</span> {</span>
+<span class="line" id="L916">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L917"></span>
+<span class="line" id="L918">    <span class="tok-kw">const</span> allocator = std.testing.allocator;</span>
+<span class="line" id="L919">    <span class="tok-kw">const</span> password = <span class="tok-str">&quot;testpass&quot;</span>;</span>
+<span class="line" id="L920"></span>
+<span class="line" id="L921">    <span class="tok-kw">var</span> buf: [<span class="tok-number">128</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L922">    <span class="tok-kw">const</span> hash = <span class="tok-kw">try</span> strHash(</span>
+<span class="line" id="L923">        password,</span>
+<span class="line" id="L924">        .{ .allocator = allocator, .params = .{ .t = <span class="tok-number">3</span>, .m = <span class="tok-number">32</span>, .p = <span class="tok-number">4</span> } },</span>
+<span class="line" id="L925">        &amp;buf,</span>
+<span class="line" id="L926">    );</span>
+<span class="line" id="L927">    <span class="tok-kw">try</span> strVerify(hash, password, .{ .allocator = allocator });</span>
+<span class="line" id="L928">}</span>
+<span class="line" id="L929"></span>
+<span class="line" id="L930"><span class="tok-kw">test</span> <span class="tok-str">&quot;kdf derived key length&quot;</span> {</span>
+<span class="line" id="L931">    <span class="tok-kw">const</span> allocator = std.testing.allocator;</span>
+<span class="line" id="L932"></span>
+<span class="line" id="L933">    <span class="tok-kw">const</span> password = <span class="tok-str">&quot;testpass&quot;</span>;</span>
+<span class="line" id="L934">    <span class="tok-kw">const</span> salt = <span class="tok-str">&quot;saltsalt&quot;</span>;</span>
+<span class="line" id="L935">    <span class="tok-kw">const</span> params = Params{ .t = <span class="tok-number">3</span>, .m = <span class="tok-number">32</span>, .p = <span class="tok-number">4</span> };</span>
+<span class="line" id="L936">    <span class="tok-kw">const</span> mode = Mode.argon2id;</span>
 <span class="line" id="L937"></span>
-<span class="line" id="L938"><span class="tok-kw">test</span> <span class="tok-str">&quot;kdf derived key length&quot;</span> {</span>
-<span class="line" id="L939">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L938">    <span class="tok-kw">var</span> dk1: [<span class="tok-number">11</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L939">    <span class="tok-kw">try</span> kdf(allocator, &amp;dk1, password, salt, params, mode);</span>
 <span class="line" id="L940"></span>
-<span class="line" id="L941">    <span class="tok-kw">const</span> allocator = std.testing.allocator;</span>
-<span class="line" id="L942"></span>
-<span class="line" id="L943">    <span class="tok-kw">const</span> password = <span class="tok-str">&quot;testpass&quot;</span>;</span>
-<span class="line" id="L944">    <span class="tok-kw">const</span> salt = <span class="tok-str">&quot;saltsalt&quot;</span>;</span>
-<span class="line" id="L945">    <span class="tok-kw">const</span> params = Params{ .t = <span class="tok-number">3</span>, .m = <span class="tok-number">32</span>, .p = <span class="tok-number">4</span> };</span>
-<span class="line" id="L946">    <span class="tok-kw">const</span> mode = Mode.argon2id;</span>
+<span class="line" id="L941">    <span class="tok-kw">var</span> dk2: [<span class="tok-number">77</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L942">    <span class="tok-kw">try</span> kdf(allocator, &amp;dk2, password, salt, params, mode);</span>
+<span class="line" id="L943"></span>
+<span class="line" id="L944">    <span class="tok-kw">var</span> dk3: [<span class="tok-number">111</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L945">    <span class="tok-kw">try</span> kdf(allocator, &amp;dk3, password, salt, params, mode);</span>
+<span class="line" id="L946">}</span>
 <span class="line" id="L947"></span>
-<span class="line" id="L948">    <span class="tok-kw">var</span> dk1: [<span class="tok-number">11</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L949">    <span class="tok-kw">try</span> kdf(allocator, &amp;dk1, password, salt, params, mode);</span>
-<span class="line" id="L950"></span>
-<span class="line" id="L951">    <span class="tok-kw">var</span> dk2: [<span class="tok-number">77</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L952">    <span class="tok-kw">try</span> kdf(allocator, &amp;dk2, password, salt, params, mode);</span>
-<span class="line" id="L953"></span>
-<span class="line" id="L954">    <span class="tok-kw">var</span> dk3: [<span class="tok-number">111</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L955">    <span class="tok-kw">try</span> kdf(allocator, &amp;dk3, password, salt, params, mode);</span>
-<span class="line" id="L956">}</span>
-<span class="line" id="L957"></span>
 </code></pre></body>
 </html>
