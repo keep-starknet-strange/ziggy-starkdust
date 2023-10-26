@@ -49,7 +49,7 @@ pub const CairoVM = struct {
 
         var trace: ?ArrayList(TraceEntry) = null;
         if (config.enable_trace) {
-            trace = ArrayList(TraceEntry).init(allocator.*);
+            trace = try ArrayList(TraceEntry).initCapacity(allocator.*, 4096);
         }
 
         return CairoVM{
