@@ -2,7 +2,7 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 
-const build_options = @import("../main.zig").build_options;
+const build_options = @import("../build_options.zig");
 const Relocatable = @import("./memory/relocatable.zig").Relocatable;
 
 /// The inner state of the `TraceContext`.

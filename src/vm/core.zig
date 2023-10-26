@@ -12,7 +12,7 @@ const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
-const build_options = @import("../main.zig").build_options;
+const build_options = @import("../build_options.zig");
 
 /// Represents the Cairo VM.
 pub const CairoVM = struct {
