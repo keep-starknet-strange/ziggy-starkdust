@@ -1,1 +1,1 @@
-var modules =[{"name":"lib","file":0,"main":66,"table":{"builtin":2,"lib":0,"std":1}},{"name":"std","file":0,"main":69,"table":{}},{"name":"builtin","file":0,"main":31834,"table":{}}];
+var modules =[{"name":"lib","file":0,"main":66,"table":{"std":1,"lib":0,"builtin":2}},{"name":"std","file":0,"main":69,"table":{}},{"name":"builtin","file":0,"main":31834,"table":{}}];
