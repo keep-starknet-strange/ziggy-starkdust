@@ -10,6 +10,7 @@ const cli = @import("zig-cli");
 const vm_core = @import("../vm/core.zig");
 const RunContext = @import("../vm/run_context.zig").RunContext;
 const relocatable = @import("../vm/memory/relocatable.zig");
+const Config = @import("../vm/config.zig").Config;
 
 // ************************************************************
 // *                 GLOBAL VARIABLES                         *
@@ -21,11 +22,6 @@ const gpa_allocator = gpa.allocator();
 // ************************************************************
 // *                    CLI OPTIONS                           *
 // ************************************************************
-
-pub const Config = struct {
-    proof_mode: bool,
-    enable_trace: bool,
-};
 
 var config = Config{ .proof_mode = false, .enable_trace = false };
 
