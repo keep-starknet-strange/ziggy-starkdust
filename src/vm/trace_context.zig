@@ -29,12 +29,6 @@ pub const TraceContext = struct {
         fp: *Relocatable,
     };
 
-    /// This boolean should generally not be used directly. Instead, function dispatch should
-    /// be used.
-    ///
-    /// This is mainly used for actors outside of the tracing system to know whether it is
-    /// enabled or not (e.g. tests).
-    enabled: bool,
     /// The current state of the tracing context.
     state: State,
 
@@ -79,7 +73,6 @@ pub const TraceContext = struct {
         }
 
         return TraceContext{
-            .enabled = enable,
             .state = state,
             .traceInstructionFn = traceInstructionFn,
             .deinitFn = deinitFn,
@@ -94,6 +87,11 @@ pub const TraceContext = struct {
     /// Records a new entry in the tracing context.
     pub fn traceInstruction(self: *TraceContext, entry: TraceContext.Entry) !void {
         try self.traceInstructionFn(&self.state, entry);
+    }
+
+    /// Returns whether tracing is enabled.
+    pub fn isEnabled(self: *const TraceContext) bool {
+        return self.traceInstructionFn == TraceEnabled.traceInstruction;
     }
 };
 

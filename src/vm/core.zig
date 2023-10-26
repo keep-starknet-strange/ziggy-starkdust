@@ -952,7 +952,7 @@ test "trace is enabled" {
     // *                      TEST CHECKS                         *
     // ************************************************************
     // Check that trace was initialized
-    if (!vm.trace_context.enabled) {
+    if (!vm.trace_context.isEnabled()) {
         return error.TraceShouldHaveBeenEnabled;
     }
 }
@@ -977,7 +977,7 @@ test "trace is disabled" {
     // *                      TEST CHECKS                         *
     // ************************************************************
     // Check that trace was initialized
-    if (vm.trace_context.enabled) {
+    if (vm.trace_context.isEnabled()) {
         return error.TraceShouldHaveBeenDisabled;
     }
 }
