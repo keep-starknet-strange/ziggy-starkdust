@@ -10,6 +10,7 @@ const cli = @import("zig-cli");
 const vm_core = @import("../vm/core.zig");
 const RunContext = @import("../vm/run_context.zig").RunContext;
 const relocatable = @import("../vm/memory/relocatable.zig");
+const Config = @import("../vm/config.zig").Config;
 
 // ************************************************************
 // *                 GLOBAL VARIABLES                         *
@@ -22,15 +23,21 @@ const gpa_allocator = gpa.allocator();
 // *                    CLI OPTIONS                           *
 // ************************************************************
 
-var config = struct {
-    proof_mode: bool = false,
-}{};
+var config = Config{ .proof_mode = false, .enable_trace = false };
 
 var execute_proof_mode_option = cli.Option{
     .long_name = "proof-mode",
     .help = "Whether to run in proof mode or not.",
     .short_alias = 'p',
     .value_ref = cli.mkRef(&config.proof_mode),
+    .required = false,
+};
+
+var enable_trace = cli.Option{
+    .long_name = "enable-trace",
+    .help = "Enable trace mode",
+    .short_alias = 't',
+    .value_ref = cli.mkRef(&config.enable_trace),
     .required = false,
 };
 
@@ -57,6 +64,7 @@ var app = &cli.App{
             .action = execute,
             .options = &.{
                 &execute_proof_mode_option,
+                &enable_trace,
             },
         },
     },
@@ -82,7 +90,7 @@ fn execute(_: []const []const u8) !void {
     );
 
     // Create a new VM instance.
-    var vm = try vm_core.CairoVM.init(&gpa_allocator);
+    var vm = try vm_core.CairoVM.init(&gpa_allocator, config);
     defer vm.deinit(); // <-- This ensures that resources are freed when exiting the scope
 
     const address_1 = relocatable.Relocatable.new(
