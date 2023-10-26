@@ -11,6 +11,7 @@ const vm_core = @import("../vm/core.zig");
 const RunContext = @import("../vm/run_context.zig").RunContext;
 const relocatable = @import("../vm/memory/relocatable.zig");
 const Config = @import("../vm/config.zig").Config;
+const build_options = @import("../build_options.zig");
 
 // ************************************************************
 // *                 GLOBAL VARIABLES                         *
@@ -82,6 +83,14 @@ pub fn run() !void {
 // *                       CLI COMMANDS                       *
 // ************************************************************
 
+/// Errors that occur because the user misused the CLI.
+const UsageError = error{
+    /// Occurs when the user requests a config that is not supported by the current build.
+    ///
+    /// For example because execution traces are globally disabled.
+    IncompatibleBuildOptions,
+};
+
 // execute entrypoint
 fn execute(_: []const []const u8) !void {
     std.log.debug(
@@ -89,11 +98,15 @@ fn execute(_: []const []const u8) !void {
         .{},
     );
 
+    if (build_options.trace_disable and config.enable_trace) {
+        std.log.err("Tracing is disabled in this build.\n", .{});
+        return UsageError.IncompatibleBuildOptions;
+    }
+
     // Create a new VM instance.
     var vm = try vm_core.CairoVM.init(
         &gpa_allocator,
         config,
-        4096,
     );
     defer vm.deinit(); // <-- This ensures that resources are freed when exiting the scope
 

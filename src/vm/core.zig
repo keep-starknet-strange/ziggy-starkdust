@@ -11,6 +11,8 @@ const instructions = @import("instructions.zig");
 const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
 const Config = @import("config.zig").Config;
+const TraceContext = @import("trace_context.zig").TraceContext;
+const build_options = @import("../build_options.zig");
 
 /// Represents the Cairo VM.
 pub const CairoVM = struct {
@@ -28,7 +30,7 @@ pub const CairoVM = struct {
     /// Whether the run is finished or not.
     is_run_finished: bool,
     /// VM trace
-    trace: ?ArrayList(TraceEntry),
+    trace_context: TraceContext,
 
     // ************************************************************
     // *             MEMORY ALLOCATION AND DEALLOCATION           *
@@ -45,24 +47,20 @@ pub const CairoVM = struct {
     pub fn init(
         allocator: *const Allocator,
         config: Config,
-        comptime trace_entries_initial_capacity: usize,
     ) !CairoVM {
         // Initialize the memory segment manager.
         const memory_segment_manager = try segments.MemorySegmentManager.init(allocator);
         // Initialize the run context.
         const run_context = try RunContext.init(allocator);
-
-        var trace: ?ArrayList(TraceEntry) = null;
-        if (config.enable_trace) {
-            trace = try ArrayList(TraceEntry).initCapacity(allocator.*, trace_entries_initial_capacity);
-        }
+        // Initialize the trace context.
+        const trace_context = try TraceContext.init(allocator.*, config.enable_trace);
 
         return CairoVM{
             .allocator = allocator,
             .run_context = run_context,
             .segments = memory_segment_manager,
             .is_run_finished = false,
-            .trace = trace,
+            .trace_context = trace_context,
         };
     }
 
@@ -73,9 +71,7 @@ pub const CairoVM = struct {
         // Deallocate the run context.
         self.run_context.deinit();
         // Deallocate trace
-        if (self.trace) |trace| {
-            trace.deinit();
-        }
+        self.trace_context.deinit();
     }
 
     // ************************************************************
@@ -127,14 +123,14 @@ pub const CairoVM = struct {
         self: *CairoVM,
         instruction: *const instructions.Instruction,
     ) !void {
-        if (self.trace) |tracer| {
-            var mut_tracer = tracer;
-            try mut_tracer.append(TraceEntry{
+        if (!build_options.trace_disable) {
+            try self.trace_context.traceInstruction(.{
                 .pc = self.run_context.pc,
                 .ap = self.run_context.ap,
                 .fp = self.run_context.fp,
             });
         }
+
         const operands_result = try self.computeOperands(instruction);
         _ = operands_result;
     }
@@ -415,12 +411,6 @@ const OperandsResult = struct {
     }
 };
 
-const TraceEntry = struct {
-    pc: *relocatable.Relocatable,
-    ap: *relocatable.Relocatable,
-    fp: *relocatable.Relocatable,
-};
-
 // ************************************************************
 // *                         TESTS                            *
 // ************************************************************
@@ -439,7 +429,7 @@ test "update pc regular no imm" {
     instruction.op_1_addr = instructions.Op1Src.AP;
     const operands = OperandsResult.default();
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, .{}, 4096);
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -472,7 +462,7 @@ test "update pc regular with imm" {
     instruction.op_1_addr = instructions.Op1Src.Imm;
     const operands = OperandsResult.default();
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, .{}, 4096);
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -505,7 +495,7 @@ test "update pc jump with operands res null" {
     var operands = OperandsResult.default();
     operands.res = null;
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, .{}, 4096);
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -529,7 +519,7 @@ test "update pc jump with operands res not relocatable" {
     var operands = OperandsResult.default();
     operands.res = relocatable.fromU64(0);
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, .{}, 4096);
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -556,7 +546,7 @@ test "update pc jump with operands res relocatable" {
         42,
     ));
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, .{}, 4096);
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -589,7 +579,7 @@ test "update pc jump rel with operands res null" {
     var operands = OperandsResult.default();
     operands.res = null;
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, .{}, 4096);
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -616,7 +606,7 @@ test "update pc jump rel with operands res not felt" {
         42,
     ));
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, .{}, 4096);
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -640,7 +630,7 @@ test "update pc jump rel with operands res felt" {
     var operands = OperandsResult.default();
     operands.res = relocatable.fromU64(42);
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, .{}, 4096);
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -673,7 +663,7 @@ test "update pc update jnz with operands dst zero" {
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(0);
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, .{}, 4096);
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -710,7 +700,7 @@ test "update pc update jnz with operands dst not zero op1 not felt" {
         42,
     ));
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, .{}, 4096);
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -738,7 +728,7 @@ test "update pc update jnz with operands dst not zero op1 felt" {
     operands.dst = relocatable.fromU64(1);
     operands.op_1 = relocatable.fromU64(42);
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, .{}, 4096);
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -770,7 +760,7 @@ test "update ap add with operands res unconstrained" {
     var operands = OperandsResult.default();
     operands.res = null; // Simulate unconstrained res
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, .{}, 4096);
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -792,7 +782,7 @@ test "update ap add1" {
     instruction.ap_update = instructions.ApUpdate.Add1;
     var operands = OperandsResult.default();
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, .{}, 4096);
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -824,7 +814,7 @@ test "update ap add2" {
     instruction.ap_update = instructions.ApUpdate.Add2;
     var operands = OperandsResult.default();
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, .{}, 4096);
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -856,7 +846,7 @@ test "update fp appplus2" {
     instruction.fp_update = instructions.FpUpdate.APPlus2;
     var operands = OperandsResult.default();
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, .{}, 4096);
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -892,7 +882,7 @@ test "update fp dst relocatable" {
         42,
     ));
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, .{}, 4096);
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -925,7 +915,7 @@ test "update fp dst felt" {
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(42);
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, .{}, 4096);
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -960,7 +950,6 @@ test "trace is enabled" {
     var vm = try CairoVM.init(
         &allocator,
         config,
-        4096,
     );
     defer vm.deinit();
 
@@ -973,9 +962,7 @@ test "trace is enabled" {
     // *                      TEST CHECKS                         *
     // ************************************************************
     // Check that trace was initialized
-    const trace = vm.trace;
-
-    if (trace == null) {
+    if (!vm.trace_context.isEnabled()) {
         return error.TraceShouldHaveBeenEnabled;
     }
 }
@@ -988,7 +975,7 @@ test "trace is disabled" {
     var allocator = std.testing.allocator;
 
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, .{}, 4096);
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -1000,9 +987,7 @@ test "trace is disabled" {
     // *                      TEST CHECKS                         *
     // ************************************************************
     // Check that trace was initialized
-    const trace = vm.trace;
-
-    if (trace != null) {
+    if (vm.trace_context.isEnabled()) {
         return error.TraceShouldHaveBeenDisabled;
     }
 }
