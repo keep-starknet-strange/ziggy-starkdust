@@ -52,7 +52,13 @@ pub const CairoVM = struct {
             trace = ArrayList(TraceEntry).init(allocator.*);
         }
 
-        return CairoVM{ .allocator = allocator, .run_context = run_context, .segments = memory_segment_manager, .is_run_finished = false, .trace = trace };
+        return CairoVM{
+            .allocator = allocator,
+            .run_context = run_context,
+            .segments = memory_segment_manager,
+            .is_run_finished = false,
+            .trace = trace,
+        };
     }
 
     /// Safe deallocation of the VM resources.
@@ -62,8 +68,8 @@ pub const CairoVM = struct {
         // Deallocate the run context.
         self.run_context.deinit();
         // Deallocate trace
-        if (self.trace != null) {
-            self.trace.?.deinit();
+        if (self.trace) |trace| {
+            trace.deinit();
         }
     }
 
@@ -118,7 +124,11 @@ pub const CairoVM = struct {
     ) !void {
         if (self.trace) |tracer| {
             var mut_tracer = tracer;
-            try mut_tracer.append(TraceEntry{ .pc = self.run_context.pc, .ap = self.run_context.ap, .fp = self.run_context.fp });
+            try mut_tracer.append(TraceEntry{
+                .pc = self.run_context.pc,
+                .ap = self.run_context.ap,
+                .fp = self.run_context.fp,
+            });
         }
         const operands_result = try self.computeOperands(instruction);
         _ = operands_result;
@@ -1008,11 +1018,12 @@ test "trace is enabled" {
     var allocator = std.testing.allocator;
 
     // Create a new VM instance.
-var config = Config{
+    var config = Config{
         .enable_trace = true,
         .proof_mode = false,
     };
-    var vm = try CairoVM.init(&allocator, config);   defer vm.deinit();
+    var vm = try CairoVM.init(&allocator, config);
+    defer vm.deinit();
 
     // ************************************************************
     // *                      TEST BODY                           *
