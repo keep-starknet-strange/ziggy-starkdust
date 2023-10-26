@@ -88,7 +88,7 @@ const UsageError = error{
     /// Occurs when the user requests a config that is not supported by the current build.
     ///
     /// For example because execution traces are globally disabled.
-    incompatibleBuildOptions,
+    IncompatibleBuildOptions,
 };
 
 // execute entrypoint
@@ -100,7 +100,7 @@ fn execute(_: []const []const u8) !void {
 
     if (build_options.trace_disable and config.enable_trace) {
         std.log.err("Tracing is disabled in this build.\n", .{});
-        return UsageError.incompatibleBuildOptions;
+        return UsageError.IncompatibleBuildOptions;
     }
 
     // Create a new VM instance.
