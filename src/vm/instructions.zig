@@ -34,19 +34,51 @@ pub const Error = error{
 // *                      CUSTOM TYPES DEFINITIONS                              *
 // *****************************************************************************
 
-pub const Register = enum { AP, FP };
+pub const Register = enum {
+    AP,
+    FP,
+};
 
-pub const Op1Src = enum { Imm, AP, FP, Op0 };
+pub const Op1Src = enum {
+    Imm,
+    AP,
+    FP,
+    Op0,
+};
 
-pub const ResLogic = enum { Op1, Add, Mul, Unconstrained };
+pub const ResLogic = enum {
+    Op1,
+    Add,
+    Mul,
+    Unconstrained,
+};
 
-pub const PcUpdate = enum { Regular, Jump, JumpRel, Jnz };
+pub const PcUpdate = enum {
+    Regular,
+    Jump,
+    JumpRel,
+    Jnz,
+};
 
-pub const ApUpdate = enum { Regular, Add, Add1, Add2 };
+pub const ApUpdate = enum {
+    Regular,
+    Add,
+    Add1,
+    Add2,
+};
 
-pub const FpUpdate = enum { Regular, APPlus2, Dst };
+pub const FpUpdate = enum {
+    Regular,
+    APPlus2,
+    Dst,
+};
 
-pub const Opcode = enum { NOp, AssertEq, Call, Ret };
+pub const Opcode = enum {
+    NOp,
+    AssertEq,
+    Call,
+    Ret,
+};
 
 /// Represents a decoded instruction.
 pub const Instruction = struct {

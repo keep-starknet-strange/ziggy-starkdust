@@ -48,7 +48,11 @@ pub fn logFn(
     const stderr = std.io.getStdErr().writer();
 
     // Log the header
-    _ = stderr.print("time={s} level={s} ({s}) msg=", .{ time_str, level_str, scope_str }) catch unreachable;
+    _ = stderr.print("time={s} level={s} ({s}) msg=", .{
+        time_str,
+        level_str,
+        scope_str,
+    }) catch unreachable;
 
     // Log the main message
     nosuspend stderr.print(

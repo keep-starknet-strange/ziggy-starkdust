@@ -81,7 +81,10 @@ pub const Memory = struct {
         self: *Memory,
         address: relocatable.Relocatable,
         value: relocatable.MaybeRelocatable,
-    ) error{ InvalidMemoryAddress, MemoryOutOfBounds }!void {
+    ) error{
+        InvalidMemoryAddress,
+        MemoryOutOfBounds,
+    }!void {
 
         // Check if the address is valid.
         if (address.segment_index < 0) {

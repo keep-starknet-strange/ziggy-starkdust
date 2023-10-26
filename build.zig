@@ -5,7 +5,10 @@ const package_path = "src/lib.zig";
 
 // List of external dependencies that this package requires.
 const external_dependencies = [_]build_helpers.Dependency{
-    .{ .name = "zig-cli", .module_name = "zig-cli" },
+    .{
+        .name = "zig-cli",
+        .module_name = "zig-cli",
+    },
 };
 
 // Although this function looks imperative, note that its job is to
@@ -26,7 +29,10 @@ pub fn build(b: *std.Build) void {
     // **************************************************************
     // *            HANDLE DEPENDENCY MODULES                       *
     // **************************************************************
-    const dependencies_opts = .{ .target = target, .optimize = optimize };
+    const dependencies_opts = .{
+        .target = target,
+        .optimize = optimize,
+    };
 
     // This array can be passed to add the dependencies to lib, executable, tests, etc using `addModule` function.
     const deps = build_helpers.generateModuleDependencies(

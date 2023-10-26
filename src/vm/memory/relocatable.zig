@@ -195,7 +195,10 @@ pub const MaybeRelocatable = union(enum) {
     /// Return the value of the MaybeRelocatable as a felt or error.
     /// # Returns
     /// The value of the MaybeRelocatable as a Relocatable felt or error.
-    pub fn tryIntoU64(self: MaybeRelocatable) error{ TypeMismatchNotFelt, ValueTooLarge }!u64 {
+    pub fn tryIntoU64(self: MaybeRelocatable) error{
+        TypeMismatchNotFelt,
+        ValueTooLarge,
+    }!u64 {
         return switch (self) {
             .relocatable => CairoVMError.TypeMismatchNotFelt,
             .felt => |felt| felt.tryIntoU64(),

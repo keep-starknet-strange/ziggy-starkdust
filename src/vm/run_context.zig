@@ -205,7 +205,19 @@ test "compute_op1_addr for fp op1 addr" {
     var allocator = std.testing.allocator;
 
     const instruction =
-        Instruction{ .off_0 = 1, .off_1 = 2, .off_2 = 3, .dst_reg = .FP, .op_0_reg = .AP, .op_1_addr = .FP, .res_logic = .Add, .pc_update = .Regular, .ap_update = .Regular, .fp_update = .Regular, .opcode = .NOp };
+        Instruction{
+        .off_0 = 1,
+        .off_1 = 2,
+        .off_2 = 3,
+        .dst_reg = .FP,
+        .op_0_reg = .AP,
+        .op_1_addr = .FP,
+        .res_logic = .Add,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
+    };
 
     const run_context = try RunContext.init_with_values(
         &allocator,

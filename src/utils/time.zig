@@ -369,12 +369,38 @@ pub const DateTime = struct {
                     .MMM => try printLongName(
                         writer,
                         self.months,
-                        &[_]string{ "Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec" },
+                        &[_]string{
+                            "Jan",
+                            "Feb",
+                            "Mar",
+                            "Apr",
+                            "May",
+                            "Jun",
+                            "Jul",
+                            "Aug",
+                            "Sep",
+                            "Oct",
+                            "Nov",
+                            "Dec",
+                        },
                     ),
                     .MMMM => try printLongName(
                         writer,
                         self.months,
-                        &[_]string{ "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December" },
+                        &[_]string{
+                            "January",
+                            "February",
+                            "March",
+                            "April",
+                            "May",
+                            "June",
+                            "July",
+                            "August",
+                            "September",
+                            "October",
+                            "November",
+                            "December",
+                        },
                     ),
 
                     .Q => try writer.print(
@@ -425,7 +451,15 @@ pub const DateTime = struct {
                     .dddd => try printLongName(
                         writer,
                         @intFromEnum(self.weekday),
-                        &[_]string{ "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday" },
+                        &[_]string{
+                            "Sunday",
+                            "Monday",
+                            "Tuesday",
+                            "Wednesday",
+                            "Thursday",
+                            "Friday",
+                            "Saturday",
+                        },
                     ),
                     .e => try writer.print(
                         "{}",
@@ -472,12 +506,18 @@ pub const DateTime = struct {
                     .A => try printLongName(
                         writer,
                         self.hours / 12,
-                        &[_]string{ "AM", "PM" },
+                        &[_]string{
+                            "AM",
+                            "PM",
+                        },
                     ),
                     .a => try printLongName(
                         writer,
                         self.hours / 12,
-                        &[_]string{ "am", "pm" },
+                        &[_]string{
+                            "am",
+                            "pm",
+                        },
                     ),
 
                     .H => try writer.print(
@@ -709,8 +749,34 @@ fn daysInMonth(
     year: u16,
     month: u16,
 ) u16 {
-    const norm = [12]u16{ 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
-    const leap = [12]u16{ 31, 29, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+    const norm = [12]u16{
+        31,
+        28,
+        31,
+        30,
+        31,
+        30,
+        31,
+        31,
+        30,
+        31,
+        30,
+        31,
+    };
+    const leap = [12]u16{
+        31,
+        29,
+        31,
+        30,
+        31,
+        30,
+        31,
+        31,
+        30,
+        31,
+        30,
+        31,
+    };
     const month_days = if (!isLeapYear(year)) norm else leap;
     return month_days[month];
 }
