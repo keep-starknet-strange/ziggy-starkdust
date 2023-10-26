@@ -35,7 +35,10 @@ pub fn logFn(
 
     // Capture the current time in UTC format.
     const utc_format = "YYYY-MM-DDTHH:mm:ss";
-    const time_str = DateTime.now().formatAlloc(allocator, utc_format) catch unreachable;
+    const time_str = DateTime.now().formatAlloc(
+        allocator,
+        utc_format,
+    ) catch unreachable;
     defer allocator.free(time_str); // Free the memory allocated by the allocator in `formatAlloc`.
 
     // Convert the log level and scope to string using @tagName.
@@ -45,10 +48,17 @@ pub fn logFn(
     const stderr = std.io.getStdErr().writer();
 
     // Log the header
-    _ = stderr.print("time={s} level={s} ({s}) msg=", .{ time_str, level_str, scope_str }) catch unreachable;
+    _ = stderr.print("time={s} level={s} ({s}) msg=", .{
+        time_str,
+        level_str,
+        scope_str,
+    }) catch unreachable;
 
     // Log the main message
-    nosuspend stderr.print(format, args) catch return;
+    nosuspend stderr.print(
+        format,
+        args,
+    ) catch return;
 
     // Write a newline for better readability.
     nosuspend stderr.writeAll("\n") catch return;

@@ -68,7 +68,10 @@ pub const CairoVM = struct {
     pub fn step(self: *CairoVM) !void {
         // TODO: Run hints.
 
-        std.log.debug("Running instruction at pc: {}", .{self.run_context.pc.*});
+        std.log.debug(
+            "Running instruction at pc: {}",
+            .{self.run_context.pc.*},
+        );
 
         // ************************************************************
         // *                    FETCH                                 *
@@ -101,7 +104,10 @@ pub const CairoVM = struct {
     /// Run a specific instruction.
     // # Arguments
     /// - `instruction`: The instruction to run.
-    pub fn runInstruction(self: *CairoVM, instruction: *const instructions.Instruction) !void {
+    pub fn runInstruction(
+        self: *CairoVM,
+        instruction: *const instructions.Instruction,
+    ) !void {
         const operands_result = try self.computeOperands(instruction);
         _ = operands_result;
     }
@@ -111,7 +117,10 @@ pub const CairoVM = struct {
     /// - `instruction`: The instruction to compute the operands for.
     /// # Returns
     /// - `Operands`: The operands for the instruction.
-    pub fn computeOperands(self: *CairoVM, instruction: *const instructions.Instruction) !OperandsResult {
+    pub fn computeOperands(
+        self: *CairoVM,
+        instruction: *const instructions.Instruction,
+    ) !OperandsResult {
         // Compute the destination address and get value from the memory.
         const dst_addr = try self.run_context.compute_dst_addr(instruction);
         const dst = try self.segments.memory.get(dst_addr);
@@ -123,7 +132,10 @@ pub const CairoVM = struct {
         const op_0_op = self.segments.memory.get(op_0_addr) catch null;
 
         // Compute the OP 1 address and get value from the memory.
-        const op_1_addr = try self.run_context.compute_op_1_addr(instruction, op_0_op);
+        const op_1_addr = try self.run_context.compute_op_1_addr(
+            instruction,
+            op_0_op,
+        );
         const op_1_op = try self.segments.memory.get(op_1_addr);
         _ = op_1_op;
 
@@ -147,7 +159,13 @@ pub const CairoVM = struct {
     /// - `instruction`: The instruction to deduce the operand for.
     /// - `dst`: The destination.
     /// - `op1`: The op1.
-    pub fn computeOp0Deductions(self: *CairoVM, op_0_addr: relocatable.MaybeRelocatable, instruction: *const instructions.Instruction, dst: ?relocatable.MaybeRelocatable, op1: ?relocatable.MaybeRelocatable) void {
+    pub fn computeOp0Deductions(
+        self: *CairoVM,
+        op_0_addr: relocatable.MaybeRelocatable,
+        instruction: *const instructions.Instruction,
+        dst: ?relocatable.MaybeRelocatable,
+        op1: ?relocatable.MaybeRelocatable,
+    ) void {
         _ = op1;
         _ = dst;
         _ = instruction;
@@ -162,7 +180,10 @@ pub const CairoVM = struct {
     /// # Returns
     /// - `MaybeRelocatable`: The deduced value.
     /// TODO: Implement this.
-    pub fn deduceMemoryCell(self: *CairoVM, address: relocatable.Relocatable) !?relocatable.MaybeRelocatable {
+    pub fn deduceMemoryCell(
+        self: *CairoVM,
+        address: relocatable.Relocatable,
+    ) !?relocatable.MaybeRelocatable {
         _ = address;
         _ = self;
         return null;
@@ -172,7 +193,11 @@ pub const CairoVM = struct {
     /// # Arguments
     /// - `instruction`: The instruction that was executed.
     /// - `operands`: The operands of the instruction.
-    pub fn updatePc(self: *CairoVM, instruction: *const instructions.Instruction, operands: OperandsResult) !void {
+    pub fn updatePc(
+        self: *CairoVM,
+        instruction: *const instructions.Instruction,
+        operands: OperandsResult,
+    ) !void {
         switch (instruction.pc_update) {
             // ************************************************************
             // *                PC UPDATE REGULAR                         *
@@ -230,7 +255,11 @@ pub const CairoVM = struct {
     /// # Arguments
     /// - `instruction`: The instruction that was executed.
     /// - `operands`: The operands of the instruction.
-    pub fn updateAp(self: *CairoVM, instruction: *const instructions.Instruction, operands: OperandsResult) !void {
+    pub fn updateAp(
+        self: *CairoVM,
+        instruction: *const instructions.Instruction,
+        operands: OperandsResult,
+    ) !void {
         switch (instruction.ap_update) {
             // *********************************************************
             // *                      AP UPDATE ADD                    *
@@ -263,7 +292,11 @@ pub const CairoVM = struct {
     /// # Arguments
     /// - `instruction`: The instruction that was executed.
     /// - `operands`: The operands of the instruction.
-    pub fn updateFp(self: *CairoVM, instruction: *const instructions.Instruction, operands: OperandsResult) !void {
+    pub fn updateFp(
+        self: *CairoVM,
+        instruction: *const instructions.Instruction,
+        operands: OperandsResult,
+    ) !void {
         switch (instruction.fp_update) {
             // *********************************************************
             // *                FP UPDATE AP PLUS 2                    *
@@ -379,13 +412,19 @@ test "update pc regular no imm" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    try vm.updatePc(&instruction, operands);
+    try vm.updatePc(
+        &instruction,
+        operands,
+    );
 
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
     const pc = vm.getPc();
-    try expectEqual(pc.offset, 1);
+    try expectEqual(
+        pc.offset,
+        1,
+    );
 }
 
 test "update pc regular with imm" {
@@ -406,13 +445,19 @@ test "update pc regular with imm" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    try vm.updatePc(&instruction, operands);
+    try vm.updatePc(
+        &instruction,
+        operands,
+    );
 
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
     const pc = vm.getPc();
-    try expectEqual(pc.offset, 2);
+    try expectEqual(
+        pc.offset,
+        2,
+    );
 }
 
 test "update pc jump with operands res null" {
@@ -433,7 +478,10 @@ test "update pc jump with operands res null" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    try expectError(error.ResUnconstrainedUsedWithPcUpdateJump, vm.updatePc(&instruction, operands));
+    try expectError(error.ResUnconstrainedUsedWithPcUpdateJump, vm.updatePc(
+        &instruction,
+        operands,
+    ));
 }
 
 test "update pc jump with operands res not relocatable" {
@@ -454,7 +502,10 @@ test "update pc jump with operands res not relocatable" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    try expectError(error.PcUpdateJumpResNotRelocatable, vm.updatePc(&instruction, operands));
+    try expectError(error.PcUpdateJumpResNotRelocatable, vm.updatePc(
+        &instruction,
+        operands,
+    ));
 }
 
 test "update pc jump with operands res relocatable" {
@@ -467,7 +518,10 @@ test "update pc jump with operands res relocatable" {
     var instruction = instructions.Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Jump;
     var operands = OperandsResult.default();
-    operands.res = relocatable.newFromRelocatable(relocatable.Relocatable.new(0, 42));
+    operands.res = relocatable.newFromRelocatable(relocatable.Relocatable.new(
+        0,
+        42,
+    ));
     // Create a new VM instance.
     var vm = try CairoVM.init(&allocator);
     defer vm.deinit();
@@ -475,13 +529,19 @@ test "update pc jump with operands res relocatable" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    try vm.updatePc(&instruction, operands);
+    try vm.updatePc(
+        &instruction,
+        operands,
+    );
 
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
     const pc = vm.getPc();
-    try expectEqual(pc.offset, 42);
+    try expectEqual(
+        pc.offset,
+        42,
+    );
 }
 
 test "update pc jump rel with operands res null" {
@@ -502,7 +562,10 @@ test "update pc jump rel with operands res null" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    try expectError(error.ResUnconstrainedUsedWithPcUpdateJumpRel, vm.updatePc(&instruction, operands));
+    try expectError(error.ResUnconstrainedUsedWithPcUpdateJumpRel, vm.updatePc(
+        &instruction,
+        operands,
+    ));
 }
 
 test "update pc jump rel with operands res not felt" {
@@ -515,7 +578,10 @@ test "update pc jump rel with operands res not felt" {
     var instruction = instructions.Instruction.default();
     instruction.pc_update = instructions.PcUpdate.JumpRel;
     var operands = OperandsResult.default();
-    operands.res = relocatable.newFromRelocatable(relocatable.Relocatable.new(0, 42));
+    operands.res = relocatable.newFromRelocatable(relocatable.Relocatable.new(
+        0,
+        42,
+    ));
     // Create a new VM instance.
     var vm = try CairoVM.init(&allocator);
     defer vm.deinit();
@@ -523,7 +589,10 @@ test "update pc jump rel with operands res not felt" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    try expectError(error.PcUpdateJumpRelResNotFelt, vm.updatePc(&instruction, operands));
+    try expectError(error.PcUpdateJumpRelResNotFelt, vm.updatePc(
+        &instruction,
+        operands,
+    ));
 }
 
 test "update pc jump rel with operands res felt" {
@@ -544,13 +613,19 @@ test "update pc jump rel with operands res felt" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    try vm.updatePc(&instruction, operands);
+    try vm.updatePc(
+        &instruction,
+        operands,
+    );
 
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
     const pc = vm.getPc();
-    try expectEqual(pc.offset, 42);
+    try expectEqual(
+        pc.offset,
+        42,
+    );
 }
 
 test "update pc update jnz with operands dst zero" {
@@ -571,13 +646,19 @@ test "update pc update jnz with operands dst zero" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    try vm.updatePc(&instruction, operands);
+    try vm.updatePc(
+        &instruction,
+        operands,
+    );
 
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
     const pc = vm.getPc();
-    try expectEqual(pc.offset, 2);
+    try expectEqual(
+        pc.offset,
+        2,
+    );
 }
 
 test "update pc update jnz with operands dst not zero op1 not felt" {
@@ -591,7 +672,10 @@ test "update pc update jnz with operands dst not zero op1 not felt" {
     instruction.pc_update = instructions.PcUpdate.Jnz;
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(1);
-    operands.op_1 = relocatable.newFromRelocatable(relocatable.Relocatable.new(0, 42));
+    operands.op_1 = relocatable.newFromRelocatable(relocatable.Relocatable.new(
+        0,
+        42,
+    ));
     // Create a new VM instance.
     var vm = try CairoVM.init(&allocator);
     defer vm.deinit();
@@ -599,7 +683,13 @@ test "update pc update jnz with operands dst not zero op1 not felt" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    try expectError(error.TypeMismatchNotFelt, vm.updatePc(&instruction, operands));
+    try expectError(
+        error.TypeMismatchNotFelt,
+        vm.updatePc(
+            &instruction,
+            operands,
+        ),
+    );
 }
 
 test "update pc update jnz with operands dst not zero op1 felt" {
@@ -621,13 +711,19 @@ test "update pc update jnz with operands dst not zero op1 felt" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    try vm.updatePc(&instruction, operands);
+    try vm.updatePc(
+        &instruction,
+        operands,
+    );
 
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
     const pc = vm.getPc();
-    try expectEqual(pc.offset, 42);
+    try expectEqual(
+        pc.offset,
+        42,
+    );
 }
 
 test "update ap add with operands res unconstrained" {
@@ -647,7 +743,10 @@ test "update ap add with operands res unconstrained" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    try expectError(error.ApUpdateAddResUnconstrained, vm.updateAp(&instruction, operands));
+    try expectError(error.ApUpdateAddResUnconstrained, vm.updateAp(
+        &instruction,
+        operands,
+    ));
 }
 
 test "update ap add1" {
@@ -666,14 +765,20 @@ test "update ap add1" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    try vm.updateAp(&instruction, operands);
+    try vm.updateAp(
+        &instruction,
+        operands,
+    );
 
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
     // Verify the AP offset was incremented by 1.
     const ap = vm.getAp();
-    try expectEqual(ap.offset, 1);
+    try expectEqual(
+        ap.offset,
+        1,
+    );
 }
 
 test "update ap add2" {
@@ -692,14 +797,20 @@ test "update ap add2" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    try vm.updateAp(&instruction, operands);
+    try vm.updateAp(
+        &instruction,
+        operands,
+    );
 
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
     // Verify the AP offset was incremented by 2.
     const ap = vm.getAp();
-    try expectEqual(ap.offset, 2);
+    try expectEqual(
+        ap.offset,
+        2,
+    );
 }
 
 test "update fp appplus2" {
@@ -718,14 +829,20 @@ test "update fp appplus2" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    try vm.updateFp(&instruction, operands);
+    try vm.updateFp(
+        &instruction,
+        operands,
+    );
 
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
     // Verify the FP offset was incremented by 2.
     const fp = vm.getFp();
-    try expectEqual(fp.offset, 2);
+    try expectEqual(
+        fp.offset,
+        2,
+    );
 }
 
 test "update fp dst relocatable" {
@@ -737,7 +854,10 @@ test "update fp dst relocatable" {
     var instruction = instructions.Instruction.default();
     instruction.fp_update = instructions.FpUpdate.Dst;
     var operands = OperandsResult.default();
-    operands.dst = relocatable.newFromRelocatable(relocatable.Relocatable.new(0, 42));
+    operands.dst = relocatable.newFromRelocatable(relocatable.Relocatable.new(
+        0,
+        42,
+    ));
     // Create a new VM instance.
     var vm = try CairoVM.init(&allocator);
     defer vm.deinit();
@@ -745,14 +865,20 @@ test "update fp dst relocatable" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    try vm.updateFp(&instruction, operands);
+    try vm.updateFp(
+        &instruction,
+        operands,
+    );
 
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
     // Verify the FP offset was incremented by 2.
     const fp = vm.getFp();
-    try expectEqual(fp.offset, 42);
+    try expectEqual(
+        fp.offset,
+        42,
+    );
 }
 
 test "update fp dst felt" {
@@ -772,12 +898,18 @@ test "update fp dst felt" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    try vm.updateFp(&instruction, operands);
+    try vm.updateFp(
+        &instruction,
+        operands,
+    );
 
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
     // Verify the FP offset was incremented by 2.
     const fp = vm.getFp();
-    try expectEqual(fp.offset, 42);
+    try expectEqual(
+        fp.offset,
+        42,
+    );
 }

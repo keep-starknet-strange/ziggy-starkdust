@@ -5,7 +5,10 @@ const package_path = "src/lib.zig";
 
 // List of external dependencies that this package requires.
 const external_dependencies = [_]build_helpers.Dependency{
-    .{ .name = "zig-cli", .module_name = "zig-cli" },
+    .{
+        .name = "zig-cli",
+        .module_name = "zig-cli",
+    },
 };
 
 // Although this function looks imperative, note that its job is to
@@ -26,10 +29,17 @@ pub fn build(b: *std.Build) void {
     // **************************************************************
     // *            HANDLE DEPENDENCY MODULES                       *
     // **************************************************************
-    const dependencies_opts = .{ .target = target, .optimize = optimize };
+    const dependencies_opts = .{
+        .target = target,
+        .optimize = optimize,
+    };
 
     // This array can be passed to add the dependencies to lib, executable, tests, etc using `addModule` function.
-    const deps = build_helpers.generateModuleDependencies(b, &external_dependencies, dependencies_opts) catch unreachable;
+    const deps = build_helpers.generateModuleDependencies(
+        b,
+        &external_dependencies,
+        dependencies_opts,
+    ) catch unreachable;
 
     // **************************************************************
     // *               CAIRO-ZIG AS A MODULE                        *
@@ -52,7 +62,10 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     // Add dependency modules to the library.
-    for (deps) |mod| lib.addModule(mod.name, mod.module);
+    for (deps) |mod| lib.addModule(
+        mod.name,
+        mod.module,
+    );
     // This declares intent for the library to be installed into the standard
     // location when the user invokes the "install" step (the default step when
     // running `zig build`).
@@ -70,7 +83,10 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     // Add dependency modules to the executable.
-    for (deps) |mod| exe.addModule(mod.name, mod.module);
+    for (deps) |mod| exe.addModule(
+        mod.name,
+        mod.module,
+    );
     // This declares intent for the executable to be installed into the
     // standard location when the user invokes the "install" step (the default
     // step when running `zig build`).
@@ -96,7 +112,10 @@ pub fn build(b: *std.Build) void {
     // This creates a build step. It will be visible in the `zig build --help` menu,
     // and can be selected like this: `zig build run`
     // This will evaluate the `run` step rather than the default, which is "install".
-    const run_step = b.step("run", "Run the app");
+    const run_step = b.step(
+        "run",
+        "Run the app",
+    );
     run_step.dependOn(&run_cmd.step);
 
     // Creates a step for unit testing. This only builds the test executable
@@ -107,14 +126,20 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     // Add dependency modules to the tests.
-    for (deps) |mod| unit_tests.addModule(mod.name, mod.module);
+    for (deps) |mod| unit_tests.addModule(
+        mod.name,
+        mod.module,
+    );
 
     const run_unit_tests = b.addRunArtifact(unit_tests);
 
     // Similar to creating the run step earlier, this exposes a `test` step to
     // the `zig build --help` menu, providing a way for the user to request
     // running the unit tests.
-    const test_step = b.step("test", "Run unit tests");
+    const test_step = b.step(
+        "test",
+        "Run unit tests",
+    );
     test_step.dependOn(&lib.step);
     test_step.dependOn(&run_unit_tests.step);
 }

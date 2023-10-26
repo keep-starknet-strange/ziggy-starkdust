@@ -17,14 +17,29 @@ pub const MemorySegmentManager = struct {
     /// The allocator used to allocate the memory.
     allocator: *const Allocator,
     // The size of the used segments.
-    segment_used_sizes: std.HashMap(u32, u32, std.hash_map.AutoContext(u32), std.hash_map.default_max_load_percentage),
+    segment_used_sizes: std.HashMap(
+        u32,
+        u32,
+        std.hash_map.AutoContext(u32),
+        std.hash_map.default_max_load_percentage,
+    ),
     // The size of the segments.
-    segment_sizes: std.HashMap(u32, u32, std.hash_map.AutoContext(u32), std.hash_map.default_max_load_percentage),
+    segment_sizes: std.HashMap(
+        u32,
+        u32,
+        std.hash_map.AutoContext(u32),
+        std.hash_map.default_max_load_percentage,
+    ),
     // The memory.
     memory: *Memory,
     // The public memory offsets.
     // TODO: Use correct type for this.
-    public_memory_offsets: std.HashMap(u32, u32, std.hash_map.AutoContext(u32), std.hash_map.default_max_load_percentage),
+    public_memory_offsets: std.HashMap(
+        u32,
+        u32,
+        std.hash_map.AutoContext(u32),
+        std.hash_map.default_max_load_percentage,
+    ),
 
     // ************************************************************
     // *             MEMORY ALLOCATION AND DEALLOCATION           *
@@ -41,8 +56,14 @@ pub const MemorySegmentManager = struct {
         // Initialize the values of the MemorySegmentManager struct.
         segment_manager.* = MemorySegmentManager{
             .allocator = allocator,
-            .segment_used_sizes = std.AutoHashMap(u32, u32).init(allocator.*),
-            .segment_sizes = std.AutoHashMap(u32, u32).init(allocator.*),
+            .segment_used_sizes = std.AutoHashMap(
+                u32,
+                u32,
+            ).init(allocator.*),
+            .segment_sizes = std.AutoHashMap(
+                u32,
+                u32,
+            ).init(allocator.*),
             // Initialize the memory pointer.
             .memory = try Memory.init(allocator),
             .public_memory_offsets = std.AutoHashMap(u32, u32).init(allocator.*),
