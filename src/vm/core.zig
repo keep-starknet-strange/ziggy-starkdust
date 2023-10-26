@@ -37,6 +37,7 @@ pub const CairoVM = struct {
     /// Creates a new Cairo VM.
     /// # Arguments
     /// - `allocator`: The allocator to use for the VM.
+    /// - `config`: Configurations used to initialize the VM.
     /// # Returns
     /// - `CairoVM`: The created VM.
     /// # Errors
@@ -49,6 +50,7 @@ pub const CairoVM = struct {
 
         var trace: ?ArrayList(TraceEntry) = null;
         if (config.enable_trace) {
+            // FIXME: https://github.com/keep-starknet-strange/cairo-zig/issues/30
             trace = try ArrayList(TraceEntry).initCapacity(allocator.*, 4096);
         }
 
@@ -950,8 +952,7 @@ test "trace is enabled" {
     var allocator = std.testing.allocator;
 
     // Create a new VM instance.
-    var config = Config{ .proof_mode = false, .enable_trace = false };
-    config.enable_trace = true;
+    var config = Config{ .proof_mode = false, .enable_trace = true };
 
     var vm = try CairoVM.init(&allocator, config);
     defer vm.deinit();
