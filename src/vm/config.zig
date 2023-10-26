@@ -4,10 +4,8 @@
 
 /// Config used to initiate CairoVM
 pub const Config = struct {
-    proof_mode: bool,
-    enable_trace: bool,
-
-    pub fn default() Config {
-        return Config{ .proof_mode = false, .enable_trace = false };
-    }
+    /// Generate a proof for execution of the program
+    proof_mode: bool = false,
+    /// When enabled trace is generated
+    enable_trace: bool = false,
 };

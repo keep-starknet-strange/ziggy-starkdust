@@ -434,7 +434,7 @@ test "update pc regular no imm" {
     instruction.op_1_addr = instructions.Op1Src.AP;
     const operands = OperandsResult.default();
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, Config.default());
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -467,7 +467,7 @@ test "update pc regular with imm" {
     instruction.op_1_addr = instructions.Op1Src.Imm;
     const operands = OperandsResult.default();
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, Config.default());
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -500,7 +500,7 @@ test "update pc jump with operands res null" {
     var operands = OperandsResult.default();
     operands.res = null;
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, Config.default());
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -524,7 +524,7 @@ test "update pc jump with operands res not relocatable" {
     var operands = OperandsResult.default();
     operands.res = relocatable.fromU64(0);
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, Config.default());
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -551,7 +551,7 @@ test "update pc jump with operands res relocatable" {
         42,
     ));
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, Config.default());
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -584,7 +584,7 @@ test "update pc jump rel with operands res null" {
     var operands = OperandsResult.default();
     operands.res = null;
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, Config.default());
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -611,7 +611,7 @@ test "update pc jump rel with operands res not felt" {
         42,
     ));
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, Config.default());
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -635,7 +635,7 @@ test "update pc jump rel with operands res felt" {
     var operands = OperandsResult.default();
     operands.res = relocatable.fromU64(42);
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, Config.default());
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -668,7 +668,7 @@ test "update pc update jnz with operands dst zero" {
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(0);
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, Config.default());
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -705,7 +705,7 @@ test "update pc update jnz with operands dst not zero op1 not felt" {
         42,
     ));
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, Config.default());
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -733,7 +733,7 @@ test "update pc update jnz with operands dst not zero op1 felt" {
     operands.dst = relocatable.fromU64(1);
     operands.op_1 = relocatable.fromU64(42);
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, Config.default());
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -765,7 +765,7 @@ test "update ap add with operands res unconstrained" {
     var operands = OperandsResult.default();
     operands.res = null; // Simulate unconstrained res
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, Config.default());
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -787,7 +787,7 @@ test "update ap add1" {
     instruction.ap_update = instructions.ApUpdate.Add1;
     var operands = OperandsResult.default();
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, Config.default());
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -819,7 +819,7 @@ test "update ap add2" {
     instruction.ap_update = instructions.ApUpdate.Add2;
     var operands = OperandsResult.default();
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, Config.default());
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -851,7 +851,7 @@ test "update fp appplus2" {
     instruction.fp_update = instructions.FpUpdate.APPlus2;
     var operands = OperandsResult.default();
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, Config.default());
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -887,7 +887,7 @@ test "update fp dst relocatable" {
         42,
     ));
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, Config.default());
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -920,7 +920,7 @@ test "update fp dst felt" {
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(42);
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, Config.default());
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
@@ -950,7 +950,7 @@ test "trace is enabled" {
     var allocator = std.testing.allocator;
 
     // Create a new VM instance.
-    var config = Config.default();
+    var config = Config{ .proof_mode = false, .enable_trace = false };
     config.enable_trace = true;
 
     var vm = try CairoVM.init(&allocator, config);
@@ -980,7 +980,7 @@ test "trace is disabled" {
     var allocator = std.testing.allocator;
 
     // Create a new VM instance.
-    var vm = try CairoVM.init(&allocator, Config.default());
+    var vm = try CairoVM.init(&allocator, .{});
     defer vm.deinit();
 
     // ************************************************************
