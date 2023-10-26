@@ -90,13 +90,16 @@ fn execute(_: []const []const u8) !void {
         .{},
     );
 
-    if (build_options.disable_tracing and config.enable_trace) {
+    if (build_options.trace_disable and config.enable_trace) {
         std.log.err("Tracing is disabled in this build.\n", .{});
         return;
     }
 
     // Create a new VM instance.
-    var vm = try vm_core.CairoVM.init(&gpa_allocator, config);
+    var vm = try vm_core.CairoVM.init(
+        &gpa_allocator,
+        config,
+    );
     defer vm.deinit(); // <-- This ensures that resources are freed when exiting the scope
 
     const address_1 = relocatable.Relocatable.new(

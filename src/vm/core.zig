@@ -44,7 +44,10 @@ pub const CairoVM = struct {
     /// - `CairoVM`: The created VM.
     /// # Errors
     /// - If a memory allocation fails.
-    pub fn init(allocator: *const Allocator, config: Config) !CairoVM {
+    pub fn init(
+        allocator: *const Allocator,
+        config: Config,
+    ) !CairoVM {
         // Initialize the memory segment manager.
         const memory_segment_manager = try segments.MemorySegmentManager.init(allocator);
         // Initialize the run context.
@@ -120,7 +123,7 @@ pub const CairoVM = struct {
         self: *CairoVM,
         instruction: *const instructions.Instruction,
     ) !void {
-        if (!build_options.disable_tracing) {
+        if (!build_options.trace_disable) {
             try self.trace_context.traceInstruction(.{
                 .pc = self.run_context.pc,
                 .ap = self.run_context.ap,
@@ -944,7 +947,11 @@ test "trace is enabled" {
     // Create a new VM instance.
     var config = Config{ .proof_mode = false, .enable_trace = true };
 
-    var vm = try CairoVM.init(&allocator, config);
+    var vm = try CairoVM.init(
+        &allocator,
+        config,
+        4096,
+    );
     defer vm.deinit();
 
     // ************************************************************

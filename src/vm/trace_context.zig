@@ -2,6 +2,7 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 
+const build_options = @import("../main.zig").build_options;
 const Relocatable = @import("./memory/relocatable.zig").Relocatable;
 
 /// The inner state of the `TraceContext`.
@@ -102,7 +103,7 @@ const TraceEnabled = struct {
 
     fn init(allocator: Allocator) !TraceEnabled {
         return TraceEnabled{
-            .entries = ArrayList(TraceContext.Entry).init(allocator),
+            .entries = try ArrayList(TraceContext.Entry).initCapacity(allocator, build_options.trace_initial_capacity),
         };
     }
 
