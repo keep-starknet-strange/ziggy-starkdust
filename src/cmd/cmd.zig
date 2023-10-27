@@ -105,7 +105,7 @@ fn execute(_: []const []const u8) !void {
 
     // Create a new VM instance.
     var vm = try vm_core.CairoVM.init(
-        &gpa_allocator,
+        gpa_allocator,
         config,
     );
     defer vm.deinit(); // <-- This ensures that resources are freed when exiting the scope

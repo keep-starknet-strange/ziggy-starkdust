@@ -14,7 +14,7 @@ pub const Memory = struct {
     // *                        FIELDS                            *
     // ************************************************************
     /// The allocator used to allocate the memory.
-    allocator: *const Allocator,
+    allocator: Allocator,
     // The data in the memory.
     data: std.HashMap(
         relocatable.Relocatable,
@@ -42,7 +42,7 @@ pub const Memory = struct {
     // - `allocator` - The allocator to use.
     // # Returns
     // The new memory.
-    pub fn init(allocator: *const Allocator) !*Memory {
+    pub fn init(allocator: Allocator) !*Memory {
         var memory = try allocator.create(Memory);
 
         memory.* = Memory{
@@ -50,12 +50,12 @@ pub const Memory = struct {
             .data = std.AutoHashMap(
                 relocatable.Relocatable,
                 relocatable.MaybeRelocatable,
-            ).init(allocator.*),
+            ).init(allocator),
             .num_segments = 0,
             .validated_addresses = std.AutoHashMap(
                 relocatable.Relocatable,
                 bool,
-            ).init(allocator.*),
+            ).init(allocator),
         };
         return memory;
     }
@@ -124,7 +124,7 @@ test "memory get without value raises error" {
     var allocator = std.testing.allocator;
 
     // Initialize a memory instance.
-    var memory = try Memory.init(&allocator);
+    var memory = try Memory.init(allocator);
     defer memory.deinit();
 
     // Get a value from the memory at an address that doesn't exist.
@@ -143,7 +143,7 @@ test "memory set and get" {
     var allocator = std.testing.allocator;
 
     // Initialize a memory instance.
-    var memory = try Memory.init(&allocator);
+    var memory = try Memory.init(allocator);
     defer memory.deinit();
 
     const address_1 = relocatable.Relocatable.new(

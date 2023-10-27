@@ -25,7 +25,6 @@ const CELLS_PER_BITWISE: u64 = 5;
 const BITWISE_TOTAL_N_BITS = 251;
 const BITWISE_INPUT_CELLS_PER_INSTANCE = 2;
 
-
 /// Retrieve the felt in memory that an address denotes as an integer.
 /// # Arguments
 /// - address: The address belonging to the Bitwise builtin's segment
@@ -44,14 +43,14 @@ fn getValue(address: Relocatable, memory: *Memory) Error!u256 {
     if (felt.toInteger() > std.math.pow(u256, 2, BITWISE_TOTAL_N_BITS)) {
         return Error.UnsupportedNumberOfBits;
     }
-    
+
     return felt.toInteger();
 }
 
 /// Compute the auto-deduction rule for Bitwise
 /// # Arguments
 /// - address: The address belonging to the Bitwise builtin's segment
-/// - memory: The cairo memory where addresses are looked up 
+/// - memory: The cairo memory where addresses are looked up
 /// # Returns
 /// The deduced value as a `MaybeRelocatable`
 pub fn deduce(address: Relocatable, memory: *Memory) Error!MaybeRelocatable {
@@ -86,12 +85,11 @@ pub fn deduce(address: Relocatable, memory: *Memory) Error!MaybeRelocatable {
 const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
 
-
 test "deduce when address.offset less than BITWISE_INPUT_CELLS_PER_INSTANCE" {
 
     // given
     var allocator = std.testing.allocator;
-    var mem = try Memory.init(&allocator);
+    var mem = try Memory.init(allocator);
     defer mem.deinit();
 
     // when
@@ -99,59 +97,53 @@ test "deduce when address.offset less than BITWISE_INPUT_CELLS_PER_INSTANCE" {
 
     // then
     try expectError(Error.InvalidBitwiseIndex, deduce(address, mem));
-
 }
 
 test "deduce when address points to nothing in memory" {
 
     // given
     var allocator = std.testing.allocator;
-    var mem = try Memory.init(&allocator);
+    var mem = try Memory.init(allocator);
     defer mem.deinit();
 
     // when
-    var address = Relocatable.new(0,3);
+    var address = Relocatable.new(0, 3);
 
     // then
     try expectError(Error.InvalidAddressForBitwise, deduce(address, mem));
-
 }
 
 test "deduce when address points to relocatable variant of MaybeRelocatable " {
 
     // given
     var allocator = std.testing.allocator;
-    var mem = try Memory.init(&allocator);
+    var mem = try Memory.init(allocator);
     defer mem.deinit();
 
     // when
-    var address = Relocatable.new(0,3);
+    var address = Relocatable.new(0, 3);
 
     try mem.set(Relocatable.new(0, 5), newFromRelocatable(address));
 
     // then
     try expectError(Error.InvalidAddressForBitwise, deduce(address, mem));
-
 }
-
 
 test "deduce when address points to felt greater than BITWISE_TOTAL_N_BITS" {
 
     // given
     const number = std.math.pow(u256, 2, BITWISE_TOTAL_N_BITS) + 1;
     var allocator = std.testing.allocator;
-    var mem = try Memory.init(&allocator);
+    var mem = try Memory.init(allocator);
     defer mem.deinit();
 
     // when
-    var address = Relocatable.new(0,3);
+    var address = Relocatable.new(0, 3);
 
     try mem.set(Relocatable.new(0, 0), fromFelt(Felt252.fromInteger(number)));
 
     // then
     try expectError(Error.UnsupportedNumberOfBits, deduce(address, mem));
-
-    
 }
 
 // happy path tests graciously ported from https://github.com/lambdaclass/cairo-vm_in_go/blob/main/pkg/builtins/bitwise_test.go#L13
@@ -159,7 +151,7 @@ test "valid bitwise and" {
 
     // given
     var allocator = std.testing.allocator;
-    var mem = try Memory.init(&allocator);
+    var mem = try Memory.init(allocator);
     defer mem.deinit();
 
     // when
@@ -179,7 +171,7 @@ test "valid bitwise xor" {
 
     // given
     var allocator = std.testing.allocator;
-    var mem = try Memory.init(&allocator);
+    var mem = try Memory.init(allocator);
     defer mem.deinit();
 
     // when
@@ -199,7 +191,7 @@ test "valid bitwise or" {
 
     // given
     var allocator = std.testing.allocator;
-    var mem = try Memory.init(&allocator);
+    var mem = try Memory.init(allocator);
     defer mem.deinit();
 
     // when

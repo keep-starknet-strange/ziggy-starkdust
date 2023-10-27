@@ -1,6 +1,6 @@
 const std = @import("std");
 const build_helpers = @import("build_helpers.zig");
-const package_name = "sig";
+const package_name = "cairo-zig";
 const package_path = "src/lib.zig";
 
 // List of external dependencies that this package requires.
