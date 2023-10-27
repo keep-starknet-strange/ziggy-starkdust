@@ -162,9 +162,9 @@
 <span class="line" id="L45">            .ap = <span class="tok-kw">try</span> allocator.create(Relocatable),</span>
 <span class="line" id="L46">            .fp = <span class="tok-kw">try</span> allocator.create(Relocatable),</span>
 <span class="line" id="L47">        };</span>
-<span class="line" id="L48">        run_context.pc.* = Relocatable.default();</span>
-<span class="line" id="L49">        run_context.ap.* = Relocatable.default();</span>
-<span class="line" id="L50">        run_context.fp.* = Relocatable.default();</span>
+<span class="line" id="L48">        run_context.pc.* = .{};</span>
+<span class="line" id="L49">        run_context.ap.* = .{};</span>
+<span class="line" id="L50">        run_context.fp.* = .{};</span>
 <span class="line" id="L51">        <span class="tok-kw">return</span> run_context;</span>
 <span class="line" id="L52">    }</span>
 <span class="line" id="L53"></span>
