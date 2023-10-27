@@ -1,8 +1,10 @@
 // Core imports.
 const std = @import("std");
+const print = @import("std").debug.print;
 const expect = @import("std").testing.expect;
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
+const starknet_felt = @import("../math/fields/starknet.zig");
 
 // Local imports.
 const segments = @import("memory/segments.zig");
@@ -13,6 +15,7 @@ const CairoVMError = @import("error.zig").CairoVMError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
+const Instruction = @import("instructions.zig").Instruction;
 
 /// Represents the Cairo VM.
 pub const CairoVM = struct {
@@ -147,12 +150,11 @@ pub const CairoVM = struct {
         // Compute the destination address and get value from the memory.
         const dst_addr = try self.run_context.compute_dst_addr(instruction);
         const dst = try self.segments.memory.get(dst_addr);
-        _ = dst;
 
         // Compute the OP 0 address and get value from the memory.
         const op_0_addr = try self.run_context.compute_op_0_addr(instruction);
         // Here we use `catch null` because we want op_0_op to be optional since it's not always used.
-        const op_0_op = self.segments.memory.get(op_0_addr) catch null;
+        const op_0_op = try self.segments.memory.get(op_0_addr);
 
         // Compute the OP 1 address and get value from the memory.
         const op_1_addr = try self.run_context.compute_op_1_addr(
@@ -160,23 +162,78 @@ pub const CairoVM = struct {
             op_0_op,
         );
         const op_1_op = try self.segments.memory.get(op_1_addr);
-        _ = op_1_op;
 
-        return .{
-            .dst = relocatable.fromU64(0),
-            .res = relocatable.fromU64(0),
-            .op_0 = relocatable.fromU64(0),
-            .op_1 = relocatable.fromU64(0),
-            .dst_addr = relocatable.fromU64(0),
-            .op_0_addr = relocatable.fromU64(0),
-            .op_1_addr = relocatable.fromU64(0),
+        const res = try self.computeRes(instruction, op_0_op, op_1_op);
+        _ = res;
+
+        // Deduce the operands if they haven't been successfully retrieved from memory.
+
+        // const op_0: ?relocatable.MaybeRelocatable = null;
+        // if (op_0_op == null) {
+        //     const deduced_op_0 = try self.computeOp0Deductions(op_0_addr, instruction, dst, op_1_op);
+        //     op_0 = deduced_op_0;
+        // } else {
+        //     op_0 = op_0_op;
+        // }
+
+        // const op_1: ?relocatable.MaybeRelocatable = null;
+        // if (op_1_op == null) {
+        //     const deduced_op_1 = try self.computeOp1Deductions(op_1_addr, instruction, dst, op_1_op);
+        //     op_1 = deduced_op_1;
+        // } else {
+        //     op_1 = op_1_op;
+        // }
+
+        return OperandsResult{
+            .dst = dst,
+            .res = relocatable.fromU64(5),
+            .op_0 = op_0_op,
+            .op_1 = op_1_op,
+            .dst_addr = dst_addr,
+            .op_0_addr = op_0_addr,
+            .op_1_addr = op_1_addr,
         };
     }
 
-    /// Runs deductions for Op0, first runs builtin deductions, if this fails, attempts to deduce it based on dst and op1
-    /// Also returns res if it was also deduced in the process
-    /// Inserts the deduced operand
-    /// Fails if Op0 was not deduced or if an error arose in the process.
+    // Runs deductions for Op0, first runs builtin deductions, if this fails, attempts to deduce it based on dst and op1
+    // Also returns res if it was also deduced in the process
+    // Inserts the deduced operand
+    // Fails if Op0 was not deduced or if an error arose in the process.
+    // # Arguments
+    // - `op_0_addr`: The address of the operand to deduce.
+    // - `instruction`: The instruction to deduce the operand for.
+    // - `dst`: The destination.
+    // - `op1`: The op1.
+    // pub fn computeOp0Deductions(self: *CairoVM, op_0_addr: relocatable.Relocatable, instruction: *const Instruction, dst: ?relocatable.MaybeRelocatable, op_1: ?relocatable.MaybeRelocatable) !relocatable.MaybeRelocatable {
+    //     const op_0_deduced_from_mem_cell = try self.deduceMemoryCell(op_0_addr);
+    //     if (op_0_deduced_from_mem_cell == null) {
+    //         const op_0_result = self.deduceOp0(instruction, dst, op_1);
+    //         return op_0_result;
+    //     } else {
+    //         return op_0_deduced_from_mem_cell;
+    //     }
+    // }
+
+    // pub fn deduceOp0(self: *CairoVM, instruction: *const Instruction, dst: ?relocatable.MaybeRelocatable, op_1: ?relocatable.MaybeRelocatable) ?Op0Result {
+    //     switch (instruction.opcode) {
+    //         .Call => Op0Result{
+    //             .op_0 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(self.run_context.pc.*.offset + instruction.size())),
+    //             .res = null,
+    //         },
+    //         .AssertEq => {
+    //             if (instruction.res_logic == instructions.ResLogic.Add) &(dst) & (op_1){return Op0Result{
+    //                 .op_0 = dst.? - op_1.?,
+    //                 .res = null,
+    //             }};
+    //         },
+    //         else => Op0Result{
+    //             .op_0 = null,
+    //             .res = null,
+    //         },
+    //     }
+    // }
+
+    /// Compute the result operand for a given instruction on op 0 and op 1.
     /// # Arguments
     /// - `op_0_addr`: The address of the operand to deduce.
     /// - `instruction`: The instruction to deduce the operand for.
@@ -194,7 +251,61 @@ pub const CairoVM = struct {
         _ = instruction;
         const op_o = try self.deduceMemoryCell(op_0_addr);
         _ = op_o;
+    /// - `instruction`: The instruction to compute the operands for.
+    /// - `op_0`: The operand 0.
+    /// - `op_1`: The operand 1.
+    /// # Returns
+    /// - `res`: The result of the operation.
+    pub fn computeRes(self: *CairoVM, instruction: *const Instruction, op_0: relocatable.MaybeRelocatable, op_1: relocatable.MaybeRelocatable) error{ AddRelocToRelocForbidden, MulRelocForbidden, TypeMismatchNotFelt, TypeMismatchNotRelocatable, ValueTooLarge }!relocatable.MaybeRelocatable {
+        _ = self;
+
+        var res = switch (instruction.res_logic) {
+            instructions.ResLogic.Op1 => op_1,
+            instructions.ResLogic.Add => {
+                if (op_0.isRelocatable() and op_1.isRelocatable()) {
+                    return error.AddRelocToRelocForbidden;
+                } else if (op_0.isRelocatable() and !op_1.isRelocatable()) {
+                    var op_0_reloc = try op_0.tryIntoRelocatable();
+                    var op_1_felt = try op_1.tryIntoFelt();
+                    try op_0_reloc.addFeltInPlace(op_1_felt);
+                    return relocatable.newFromRelocatable(op_0_reloc);
+                } else if (op_1.isRelocatable() and !op_0.isRelocatable()) {
+                    var op_1_reloc = try op_1.tryIntoRelocatable();
+                    var op_0_felt = try op_0.tryIntoFelt();
+                    try op_1_reloc.addFeltInPlace(op_0_felt);
+                    return relocatable.newFromRelocatable(op_1_reloc);
+                } else {
+                    var op_0_felt = try op_0.tryIntoFelt();
+                    var op_1_felt = try op_1.tryIntoFelt();
+                    return relocatable.fromFelt(op_0_felt.add(op_1_felt));
+                }
+            },
+            instructions.ResLogic.Mul => {
+                if (!op_0.isRelocatable() and !op_1.isRelocatable()) {
+                    var op_0_felt = try op_0.tryIntoFelt();
+                    var op_1_felt = try op_1.tryIntoFelt();
+                    return relocatable.fromFelt(op_0_felt.mul(op_1_felt));
+                } else {
+                    return error.MulRelocForbidden;
+                }
+            },
+            instructions.ResLogic.Unconstrained => null,
+        };
+        return res.?;
     }
+
+    // pub fn computeOp1Deductions(self: *CairoVM, op_0_addr: relocatable.MaybeRelocatable, instruction: *const Instruction, dst: ?relocatable.MaybeRelocatable, op_1: ?relocatable.MaybeRelocatable) !MaybeRelocatable {
+    //     const deduced_op_0 = try self.deduceMemoryCell(op_0_addr);
+    //     const op_0 = switch (deduced_op_0) {
+    //         .null => {
+    //             const deduced_op_0 = try self.deduceOp0(instruction, &dst.?, &op_1.?);
+    //         },
+    //         else => {
+    //             return deduced_op_0;
+    //         },
+    //     };
+    //     return op_o;
+    // }
 
     /// Applies the corresponding builtin's deduction rules if addr's segment index corresponds to a builtin segment
     /// Returns null if there is no deduction for the address
@@ -393,9 +504,9 @@ const OperandsResult = struct {
     res: ?relocatable.MaybeRelocatable,
     op_0: relocatable.MaybeRelocatable,
     op_1: relocatable.MaybeRelocatable,
-    dst_addr: relocatable.MaybeRelocatable,
-    op_0_addr: relocatable.MaybeRelocatable,
-    op_1_addr: relocatable.MaybeRelocatable,
+    dst_addr: relocatable.Relocatable,
+    op_0_addr: relocatable.Relocatable,
+    op_1_addr: relocatable.Relocatable,
 
     /// Returns a default instance of the OperandsResult struct.
     pub fn default() OperandsResult {
@@ -404,11 +515,16 @@ const OperandsResult = struct {
             .res = relocatable.fromU64(0),
             .op_0 = relocatable.fromU64(0),
             .op_1 = relocatable.fromU64(0),
-            .dst_addr = relocatable.fromU64(0),
-            .op_0_addr = relocatable.fromU64(0),
-            .op_1_addr = relocatable.fromU64(0),
+            .dst_addr = relocatable.Relocatable.default(),
+            .op_0_addr = relocatable.Relocatable.default(),
+            .op_1_addr = relocatable.Relocatable.default(),
         };
     }
+};
+
+const Op0Result = struct {
+    op_0: relocatable.MaybeRelocatable,
+    res: relocatable.MaybeRelocatable,
 };
 
 // ************************************************************
@@ -424,7 +540,7 @@ test "update pc regular no imm" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Regular;
     instruction.op_1_addr = instructions.Op1Src.AP;
     const operands = OperandsResult.default();
@@ -457,7 +573,7 @@ test "update pc regular with imm" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Regular;
     instruction.op_1_addr = instructions.Op1Src.Imm;
     const operands = OperandsResult.default();
@@ -490,7 +606,7 @@ test "update pc jump with operands res null" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Jump;
     var operands = OperandsResult.default();
     operands.res = null;
@@ -514,7 +630,7 @@ test "update pc jump with operands res not relocatable" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Jump;
     var operands = OperandsResult.default();
     operands.res = relocatable.fromU64(0);
@@ -538,7 +654,7 @@ test "update pc jump with operands res relocatable" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Jump;
     var operands = OperandsResult.default();
     operands.res = relocatable.newFromRelocatable(relocatable.Relocatable.new(
@@ -574,7 +690,7 @@ test "update pc jump rel with operands res null" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.pc_update = instructions.PcUpdate.JumpRel;
     var operands = OperandsResult.default();
     operands.res = null;
@@ -598,7 +714,7 @@ test "update pc jump rel with operands res not felt" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.pc_update = instructions.PcUpdate.JumpRel;
     var operands = OperandsResult.default();
     operands.res = relocatable.newFromRelocatable(relocatable.Relocatable.new(
@@ -625,7 +741,7 @@ test "update pc jump rel with operands res felt" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.pc_update = instructions.PcUpdate.JumpRel;
     var operands = OperandsResult.default();
     operands.res = relocatable.fromU64(42);
@@ -658,7 +774,7 @@ test "update pc update jnz with operands dst zero" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Jnz;
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(0);
@@ -691,7 +807,7 @@ test "update pc update jnz with operands dst not zero op1 not felt" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Jnz;
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(1);
@@ -722,7 +838,7 @@ test "update pc update jnz with operands dst not zero op1 felt" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Jnz;
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(1);
@@ -755,7 +871,7 @@ test "update ap add with operands res unconstrained" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.ap_update = instructions.ApUpdate.Add;
     var operands = OperandsResult.default();
     operands.res = null; // Simulate unconstrained res
@@ -778,7 +894,7 @@ test "update ap add1" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.ap_update = instructions.ApUpdate.Add1;
     var operands = OperandsResult.default();
     // Create a new VM instance.
@@ -810,7 +926,7 @@ test "update ap add2" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.ap_update = instructions.ApUpdate.Add2;
     var operands = OperandsResult.default();
     // Create a new VM instance.
@@ -842,7 +958,7 @@ test "update fp appplus2" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.fp_update = instructions.FpUpdate.APPlus2;
     var operands = OperandsResult.default();
     // Create a new VM instance.
@@ -874,7 +990,7 @@ test "update fp dst relocatable" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.fp_update = instructions.FpUpdate.Dst;
     var operands = OperandsResult.default();
     operands.dst = relocatable.newFromRelocatable(relocatable.Relocatable.new(
@@ -910,7 +1026,7 @@ test "update fp dst felt" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.fp_update = instructions.FpUpdate.Dst;
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(42);
@@ -990,4 +1106,82 @@ test "trace is disabled" {
     if (vm.trace_context.isEnabled()) {
         return error.TraceShouldHaveBeenDisabled;
     }
+}
+
+test "set get value in vm memory" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    var allocator = std.testing.allocator;
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(&allocator);
+    defer vm.deinit();
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    _ = vm.segments.addSegment();
+    _ = vm.segments.addSegment();
+
+    const address = relocatable.Relocatable.new(1, 0);
+    const value = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(42));
+
+    _ = try vm.segments.memory.set(address, value);
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    // Verify the value is correctly set to 42.
+    const actual_value = try vm.segments.memory.get(address);
+    const expected_value = value;
+    try expectEqual(expected_value, actual_value);
+}
+
+test "compute operands add ap" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    var allocator = std.testing.allocator;
+    var instruction = Instruction{ .off_0 = 0, .off_1 = 1, .off_2 = 2, .dst_reg = instructions.Register.AP, .op_0_reg = instructions.Register.AP, .op_1_addr = instructions.Op1Src.AP, .res_logic = instructions.ResLogic.Add, .pc_update = instructions.PcUpdate.Regular, .ap_update = instructions.ApUpdate.Regular, .fp_update = instructions.FpUpdate.Regular, .opcode = instructions.Opcode.NOp };
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(&allocator);
+    defer vm.deinit();
+
+    vm.run_context.ap.* = relocatable.Relocatable.new(1, 0);
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    _ = vm.segments.addSegment();
+    _ = vm.segments.addSegment();
+
+    const address_dst = relocatable.Relocatable.new(1, 0);
+    const value_dst = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(5));
+    const address_op0 = relocatable.Relocatable.new(1, 1);
+    const value_op0 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+    const address_op1 = relocatable.Relocatable.new(1, 2);
+    const value_op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+
+    _ = try vm.segments.memory.set(address_dst, value_dst);
+    _ = try vm.segments.memory.set(address_op0, value_op0);
+    _ = try vm.segments.memory.set(address_op1, value_op1);
+
+    const actual_operands = try vm.computeOperands(&instruction);
+    const expected_operands = OperandsResult{
+        .dst = value_dst,
+        .res = value_dst,
+        .op_0 = value_op0,
+        .op_1 = value_op1,
+        .dst_addr = address_dst,
+        .op_0_addr = address_op0,
+        .op_1_addr = address_op1,
+    };
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    try expectEqual(expected_operands, actual_operands);
 }
