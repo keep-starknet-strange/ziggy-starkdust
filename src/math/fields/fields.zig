@@ -19,7 +19,7 @@ pub fn Field(
                 &bz,
                 [_]u8{0} ** BytesSize,
             );
-            break :val Self{ .fe = bz };
+            break :val .{ .fe = bz };
         };
 
         fe: F.MontgomeryDomainFieldElement,
@@ -44,7 +44,7 @@ pub fn Field(
                 nonMont,
             );
 
-            return Self{ .fe = mont };
+            return .{ .fe = mont };
         }
 
         pub fn zero() Self {
@@ -55,7 +55,7 @@ pub fn Field(
             const oneValue = comptime blk: {
                 var baseOne: F.MontgomeryDomainFieldElement = undefined;
                 F.setOne(&baseOne);
-                break :blk Self{ .fe = baseOne };
+                break :blk .{ .fe = baseOne };
             };
             return oneValue;
         }
@@ -120,7 +120,7 @@ pub fn Field(
                 self.fe,
                 other.fe,
             );
-            return Self{ .fe = ret };
+            return .{ .fe = ret };
         }
 
         pub fn sub(
@@ -133,7 +133,7 @@ pub fn Field(
                 self.fe,
                 other.fe,
             );
-            return Self{ .fe = ret };
+            return .{ .fe = ret };
         }
 
         pub fn mul(
@@ -146,7 +146,7 @@ pub fn Field(
                 self.fe,
                 other.fe,
             );
-            return Self{ .fe = ret };
+            return .{ .fe = ret };
         }
 
         pub fn mulBy5(self: Self) Self {
@@ -166,7 +166,7 @@ pub fn Field(
                 ret,
                 self.fe,
             );
-            return Self{ .fe = ret };
+            return .{ .fe = ret };
         }
 
         pub fn neg(self: Self) Self {
@@ -176,7 +176,7 @@ pub fn Field(
                 base_zero.fe,
                 self.fe,
             );
-            return Self{ .fe = ret };
+            return .{ .fe = ret };
         }
 
         pub fn isZero(self: Self) bool {

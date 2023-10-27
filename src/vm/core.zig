@@ -162,7 +162,7 @@ pub const CairoVM = struct {
         const op_1_op = try self.segments.memory.get(op_1_addr);
         _ = op_1_op;
 
-        return OperandsResult{
+        return .{
             .dst = relocatable.fromU64(0),
             .res = relocatable.fromU64(0),
             .op_0 = relocatable.fromU64(0),
@@ -399,7 +399,7 @@ const OperandsResult = struct {
 
     /// Returns a default instance of the OperandsResult struct.
     pub fn default() OperandsResult {
-        return OperandsResult{
+        return .{
             .dst = relocatable.fromU64(0),
             .res = relocatable.fromU64(0),
             .op_0 = relocatable.fromU64(0),
