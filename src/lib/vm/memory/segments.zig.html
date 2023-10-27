@@ -137,7 +137,7 @@
 <span class="line" id="L16">    <span class="tok-comment">// ************************************************************</span>
 </span>
 <span class="line" id="L17">    <span class="tok-comment">/// The allocator used to allocate the memory.</span></span>
-<span class="line" id="L18">    allocator: *<span class="tok-kw">const</span> Allocator,</span>
+<span class="line" id="L18">    allocator: Allocator,</span>
 <span class="line" id="L19">    <span class="tok-comment">// The size of the used segments.</span>
 </span>
 <span class="line" id="L20">    segment_used_sizes: std.HashMap(</span>
@@ -185,7 +185,7 @@
 </span>
 <span class="line" id="L52">    <span class="tok-comment">// A new MemorySegmentManager.</span>
 </span>
-<span class="line" id="L53">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">init</span>(allocator: *<span class="tok-kw">const</span> Allocator) !*MemorySegmentManager {</span>
+<span class="line" id="L53">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">init</span>(allocator: Allocator) !*MemorySegmentManager {</span>
 <span class="line" id="L54">        <span class="tok-comment">// Create the pointer to the MemorySegmentManager.</span>
 </span>
 <span class="line" id="L55">        <span class="tok-kw">var</span> segment_manager = <span class="tok-kw">try</span> allocator.create(MemorySegmentManager);</span>
@@ -196,15 +196,15 @@
 <span class="line" id="L59">            .segment_used_sizes = std.AutoHashMap(</span>
 <span class="line" id="L60">                <span class="tok-type">u32</span>,</span>
 <span class="line" id="L61">                <span class="tok-type">u32</span>,</span>
-<span class="line" id="L62">            ).init(allocator.*),</span>
+<span class="line" id="L62">            ).init(allocator),</span>
 <span class="line" id="L63">            .segment_sizes = std.AutoHashMap(</span>
 <span class="line" id="L64">                <span class="tok-type">u32</span>,</span>
 <span class="line" id="L65">                <span class="tok-type">u32</span>,</span>
-<span class="line" id="L66">            ).init(allocator.*),</span>
+<span class="line" id="L66">            ).init(allocator),</span>
 <span class="line" id="L67">            <span class="tok-comment">// Initialize the memory pointer.</span>
 </span>
 <span class="line" id="L68">            .memory = <span class="tok-kw">try</span> Memory.init(allocator),</span>
-<span class="line" id="L69">            .public_memory_offsets = std.AutoHashMap(<span class="tok-type">u32</span>, <span class="tok-type">u32</span>).init(allocator.*),</span>
+<span class="line" id="L69">            .public_memory_offsets = std.AutoHashMap(<span class="tok-type">u32</span>, <span class="tok-type">u32</span>).init(allocator),</span>
 <span class="line" id="L70">        };</span>
 <span class="line" id="L71">        <span class="tok-comment">// Return the pointer to the MemorySegmentManager.</span>
 </span>
@@ -266,7 +266,7 @@
 <span class="line" id="L113"></span>
 <span class="line" id="L114">    <span class="tok-comment">// Initialize a memory segment manager.</span>
 </span>
-<span class="line" id="L115">    <span class="tok-kw">var</span> memory_segment_manager = <span class="tok-kw">try</span> MemorySegmentManager.init(&amp;allocator);</span>
+<span class="line" id="L115">    <span class="tok-kw">var</span> memory_segment_manager = <span class="tok-kw">try</span> MemorySegmentManager.init(allocator);</span>
 <span class="line" id="L116">    <span class="tok-kw">defer</span> memory_segment_manager.deinit();</span>
 <span class="line" id="L117"></span>
 <span class="line" id="L118">    <span class="tok-comment">//Allocate a memory segment.</span>

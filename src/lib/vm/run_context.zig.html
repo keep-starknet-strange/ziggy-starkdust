@@ -127,7 +127,7 @@
 <span class="line" id="L11"><span class="tok-comment">/// Contains the register states of the Cairo VM.</span></span>
 <span class="line" id="L12"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> RunContext = <span class="tok-kw">struct</span> {</span>
 <span class="line" id="L13">    <span class="tok-comment">/// The allocator used to allocate the memory for the run context.</span></span>
-<span class="line" id="L14">    allocator: *<span class="tok-kw">const</span> Allocator,</span>
+<span class="line" id="L14">    allocator: Allocator,</span>
 <span class="line" id="L15">    <span class="tok-comment">/// Program counter (pc) contains the address in memory of the current Cairo</span></span>
 <span class="line" id="L16">    <span class="tok-comment">/// instruction to be executed.</span></span>
 <span class="line" id="L17">    pc: *Relocatable,</span>
@@ -154,7 +154,7 @@
 <span class="line" id="L37">    <span class="tok-comment">/// - The initialized run context.</span></span>
 <span class="line" id="L38">    <span class="tok-comment">/// # Errors</span></span>
 <span class="line" id="L39">    <span class="tok-comment">/// - If a memory allocation fails.</span></span>
-<span class="line" id="L40">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">init</span>(allocator: *<span class="tok-kw">const</span> Allocator) !*RunContext {</span>
+<span class="line" id="L40">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">init</span>(allocator: Allocator) !*RunContext {</span>
 <span class="line" id="L41">        <span class="tok-kw">var</span> run_context = <span class="tok-kw">try</span> allocator.create(RunContext);</span>
 <span class="line" id="L42">        run_context.* = RunContext{</span>
 <span class="line" id="L43">            .allocator = allocator,</span>
@@ -179,7 +179,7 @@
 <span class="line" id="L62">    <span class="tok-comment">/// # Errors</span></span>
 <span class="line" id="L63">    <span class="tok-comment">/// - If a memory allocation fails.</span></span>
 <span class="line" id="L64">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">init_with_values</span>(</span>
-<span class="line" id="L65">        allocator: *Allocator,</span>
+<span class="line" id="L65">        allocator: Allocator,</span>
 <span class="line" id="L66">        pc: Relocatable,</span>
 <span class="line" id="L67">        ap: Relocatable,</span>
 <span class="line" id="L68">        fp: Relocatable,</span>
@@ -348,7 +348,7 @@
 <span class="line" id="L220">    };</span>
 <span class="line" id="L221"></span>
 <span class="line" id="L222">    <span class="tok-kw">const</span> run_context = <span class="tok-kw">try</span> RunContext.init_with_values(</span>
-<span class="line" id="L223">        &amp;allocator,</span>
+<span class="line" id="L223">        allocator,</span>
 <span class="line" id="L224">        Relocatable.new(</span>
 <span class="line" id="L225">            <span class="tok-number">0</span>,</span>
 <span class="line" id="L226">            <span class="tok-number">4</span>,</span>
