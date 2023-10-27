@@ -350,6 +350,56 @@ pub const CairoVM = struct {
         }
     }
 
+    /// Attempts to deduce `op1` and `res` for an instruction, given `dst` and `op0`.
+    ///
+    /// # Arguments
+    ///
+    /// - `inst`: The instruction to deduce `op1` and `res` for.
+    ///
+    /// - `dst`: The destination of the instruction.
+    ///
+    /// - `op0`: The first operand of the instruction.
+    ///
+    /// # Returns
+    ///
+    /// - `Tuple`: A tuple containing the deduced `op1` and `res`.
+    fn deduce_op1(self: *const CairoVM, inst: *const instructions.Instruction, dst: ?*const relocatable.MaybeRelocatable, op0: ?*const relocatable.MaybeRelocatable) !std.meta.Tuple(&[_]type{ ?relocatable.MaybeRelocatable, ?relocatable.MaybeRelocatable }) {
+        _ = self;
+
+        if (inst.opcode != .AssertEq) {
+            return .{ null, null };
+        }
+
+        switch (inst.res_logic) {
+            .Op1 => if (dst) |dst_val| {
+                return .{ dst_val.*, dst_val.* };
+            },
+            .Add => if (dst) |dst_val| {
+                if (op0) |op0_val| {
+                    return .{ try dst_val.sub(op0_val.*), dst_val.* };
+                }
+            },
+            .Mul => if (dst) |dst_val| {
+                if (op0) |op0_val| {
+                    switch (op0_val.*) {
+                        .felt => |op0_val_felt| {
+                            switch (dst_val.*) {
+                                .felt => |dst_val_felt| {
+                                    return .{ relocatable.fromFelt(try dst_val_felt.div(op0_val_felt)), dst_val.* };
+                                },
+                                else => {},
+                            }
+                        },
+                        else => {},
+                    }
+                }
+            },
+            else => {},
+        }
+
+        return .{ null, null };
+    }
+
     // ************************************************************
     // *                    ACCESSORS                             *
     // ************************************************************
@@ -990,4 +1040,31 @@ test "trace is disabled" {
     if (vm.trace_context.isEnabled()) {
         return error.TraceShouldHaveBeenDisabled;
     }
+}
+
+test "deduce_op1 when opcode == .Call" {
+    var allocator = std.testing.allocator;
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    const instruction = instructions.Instruction{
+        .off_0 = 1,
+        .off_1 = 2,
+        .off_2 = 3,
+        .dst_reg = .FP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Jump,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .Call,
+    };
+
+    const op1_and_result = try vm.deduce_op1(&instruction, null, null);
+    const op1 = op1_and_result[0];
+    const result = op1_and_result[1];
+
+    try expectEqual(op1, null);
+    try expectEqual(result, null);
 }

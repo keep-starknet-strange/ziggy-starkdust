@@ -40,6 +40,17 @@ pub const Relocatable = struct {
         return self.segment_index == other.segment_index and self.offset == other.offset;
     }
 
+    /// Attempts to subtract a `Relocatable` from another.
+    ///
+    /// This method fails if `self` and other` are not from the same segment.
+    pub fn sub(self: Relocatable, other: Relocatable) !Relocatable {
+        if (self.segment_index != other.segment_index) {
+            return error.TypeMismatchNotRelocatable;
+        }
+
+        return subUint(self, other.offset);
+    }
+
     // Substract a u64 from a Relocatable and return a new Relocatable.
     // # Arguments
     // - other: The u64 to substract.
@@ -170,6 +181,23 @@ pub const MaybeRelocatable = union(enum) {
                 .relocatable => false,
             },
         };
+    }
+
+    /// Subtracts a `MaybeRelocatable` from this one and returns the new value.
+    ///
+    /// Only values of the same type may be subtracted. Specifically, attempting to
+    /// subtract a `.felt` with a `.relocatable` will result in an error.
+    pub fn sub(self: MaybeRelocatable, other: MaybeRelocatable) !MaybeRelocatable {
+        switch (self) {
+            .felt => |self_value| switch (other) {
+                .felt => |other_value| return fromFelt(self_value.sub(other_value)),
+                .relocatable => return error.TypeMismatchNotFelt,
+            },
+            .relocatable => |self_value| switch (other) {
+                .felt => return error.TypeMismatchNotFelt,
+                .relocatable => |other_value| return newFromRelocatable(try self_value.sub(other_value)),
+            },
+        }
     }
 
     /// Return the value of the MaybeRelocatable as a felt or error.
