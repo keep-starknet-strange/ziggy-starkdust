@@ -168,7 +168,7 @@ pub const CairoVM = struct {
         // Deduce the operands if they haven't been successfully retrieved from memory.
         // TODO: Implement this.
 
-        return OperandsResult{
+        return .{
             .dst = dst,
             .res = res,
             .op_0 = op_0_op,
