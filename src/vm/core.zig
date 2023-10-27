@@ -9,6 +9,7 @@ const starknet_felt = @import("../math/fields/starknet.zig");
 const segments = @import("memory/segments.zig");
 const relocatable = @import("memory/relocatable.zig");
 const MaybeRelocatable = relocatable.MaybeRelocatable;
+const Relocatable = relocatable.Relocatable;
 const instructions = @import("instructions.zig");
 const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
@@ -211,7 +212,7 @@ pub const CairoVM = struct {
     /// TODO: Implement this.
     pub fn deduceMemoryCell(
         self: *CairoVM,
-        address: relocatable.Relocatable,
+        address: Relocatable,
     ) !?MaybeRelocatable {
         _ = address;
         _ = self;
@@ -370,21 +371,21 @@ pub const CairoVM = struct {
     /// Returns the current ap.
     /// # Returns
     /// - `MaybeRelocatable`: The current ap.
-    pub fn getAp(self: *const CairoVM) relocatable.Relocatable {
+    pub fn getAp(self: *const CairoVM) Relocatable {
         return self.run_context.ap.*;
     }
 
     /// Returns the current fp.
     /// # Returns
     /// - `MaybeRelocatable`: The current fp.
-    pub fn getFp(self: *const CairoVM) relocatable.Relocatable {
+    pub fn getFp(self: *const CairoVM) Relocatable {
         return self.run_context.fp.*;
     }
 
     /// Returns the current pc.
     /// # Returns
     /// - `MaybeRelocatable`: The current pc.
-    pub fn getPc(self: *const CairoVM) relocatable.Relocatable {
+    pub fn getPc(self: *const CairoVM) Relocatable {
         return self.run_context.pc.*;
     }
 };
@@ -490,9 +491,9 @@ const OperandsResult = struct {
     res: ?MaybeRelocatable,
     op_0: MaybeRelocatable,
     op_1: MaybeRelocatable,
-    dst_addr: relocatable.Relocatable,
-    op_0_addr: relocatable.Relocatable,
-    op_1_addr: relocatable.Relocatable,
+    dst_addr: Relocatable,
+    op_0_addr: Relocatable,
+    op_1_addr: Relocatable,
 
     /// Returns a default instance of the OperandsResult struct.
     pub fn default() OperandsResult {
@@ -643,7 +644,7 @@ test "update pc jump with operands res relocatable" {
     var instruction = Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Jump;
     var operands = OperandsResult.default();
-    operands.res = relocatable.newFromRelocatable(relocatable.Relocatable.new(
+    operands.res = relocatable.newFromRelocatable(Relocatable.new(
         0,
         42,
     ));
@@ -703,7 +704,7 @@ test "update pc jump rel with operands res not felt" {
     var instruction = Instruction.default();
     instruction.pc_update = instructions.PcUpdate.JumpRel;
     var operands = OperandsResult.default();
-    operands.res = relocatable.newFromRelocatable(relocatable.Relocatable.new(
+    operands.res = relocatable.newFromRelocatable(Relocatable.new(
         0,
         42,
     ));
@@ -797,7 +798,7 @@ test "update pc update jnz with operands dst not zero op1 not felt" {
     instruction.pc_update = instructions.PcUpdate.Jnz;
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(1);
-    operands.op_1 = relocatable.newFromRelocatable(relocatable.Relocatable.new(
+    operands.op_1 = relocatable.newFromRelocatable(Relocatable.new(
         0,
         42,
     ));
@@ -979,7 +980,7 @@ test "update fp dst relocatable" {
     var instruction = Instruction.default();
     instruction.fp_update = instructions.FpUpdate.Dst;
     var operands = OperandsResult.default();
-    operands.dst = relocatable.newFromRelocatable(relocatable.Relocatable.new(
+    operands.dst = relocatable.newFromRelocatable(Relocatable.new(
         0,
         42,
     ));
@@ -1111,7 +1112,7 @@ test "set get value in vm memory" {
     _ = vm.segments.addSegment();
     _ = vm.segments.addSegment();
 
-    const address = relocatable.Relocatable.new(1, 0);
+    const address = Relocatable.new(1, 0);
     const value = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(42));
 
     _ = try vm.segments.memory.set(address, value);
@@ -1149,7 +1150,7 @@ test "compute res op1 works" {
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
 
-    vm.run_context.ap.* = relocatable.Relocatable.new(1, 0);
+    vm.run_context.ap.* = Relocatable.new(1, 0);
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
@@ -1190,7 +1191,7 @@ test "compute res add felts works" {
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
 
-    vm.run_context.ap.* = relocatable.Relocatable.new(1, 0);
+    vm.run_context.ap.* = Relocatable.new(1, 0);
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
@@ -1231,18 +1232,18 @@ test "compute res add felt to offset works" {
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
 
-    vm.run_context.ap.* = relocatable.Relocatable.new(1, 0);
+    vm.run_context.ap.* = Relocatable.new(1, 0);
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
 
-    const value_op0 = relocatable.Relocatable.new(1, 1);
+    const value_op0 = Relocatable.new(1, 1);
     const op0 = relocatable.newFromRelocatable(value_op0);
 
     const op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
 
     const actual_res = try computeRes(&instruction, op0, op1);
-    const res = relocatable.Relocatable.new(1, 4);
+    const res = Relocatable.new(1, 4);
     const expected_res = relocatable.newFromRelocatable(res);
 
     // ************************************************************
@@ -1275,13 +1276,13 @@ test "compute res add fails two relocs" {
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
 
-    vm.run_context.ap.* = relocatable.Relocatable.new(1, 0);
+    vm.run_context.ap.* = Relocatable.new(1, 0);
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
 
-    const value_op0 = relocatable.Relocatable.new(1, 0);
-    const value_op1 = relocatable.Relocatable.new(1, 1);
+    const value_op0 = Relocatable.new(1, 0);
+    const value_op1 = Relocatable.new(1, 1);
 
     const op0 = relocatable.newFromRelocatable(value_op0);
     const op1 = relocatable.newFromRelocatable(value_op1);
@@ -1316,7 +1317,7 @@ test "compute res mul works" {
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
 
-    vm.run_context.ap.* = relocatable.Relocatable.new(1, 0);
+    vm.run_context.ap.* = Relocatable.new(1, 0);
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
@@ -1357,13 +1358,13 @@ test "compute res mul fails two relocs" {
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
 
-    vm.run_context.ap.* = relocatable.Relocatable.new(1, 0);
+    vm.run_context.ap.* = Relocatable.new(1, 0);
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
 
-    const value_op0 = relocatable.Relocatable.new(1, 0);
-    const value_op1 = relocatable.Relocatable.new(1, 1);
+    const value_op0 = Relocatable.new(1, 0);
+    const value_op1 = Relocatable.new(1, 1);
 
     const op0 = relocatable.newFromRelocatable(value_op0);
     const op1 = relocatable.newFromRelocatable(value_op1);
@@ -1398,12 +1399,12 @@ test "compute res mul fails felt and reloc" {
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
 
-    vm.run_context.ap.* = relocatable.Relocatable.new(1, 0);
+    vm.run_context.ap.* = Relocatable.new(1, 0);
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
 
-    const value_op0 = relocatable.Relocatable.new(1, 0);
+    const value_op0 = Relocatable.new(1, 0);
     const op0 = relocatable.newFromRelocatable(value_op0);
     const op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
 
