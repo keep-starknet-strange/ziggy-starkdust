@@ -1,5 +1,6 @@
 # Move to Zig package-ecosystem when it's ready.
-# Tracking issue: https://github.com/dependabot/dependabot-core/issues/8166
+# FIXME: https://github.com/keep-starknet-strange/cairo-zig/issues/48
+# Dependabot Tracking issue: https://github.com/dependabot/dependabot-core/issues/8166
 version: 2
 updates:
   - package-ecosystem: github-actions
