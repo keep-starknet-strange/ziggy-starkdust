@@ -159,6 +159,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://nils-mathieu.fr/"><img src="https://avatars.githubusercontent.com/u/80390054?v=4?s=100" width="100px;" alt="Nils"/><br /><sub><b>Nils</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/cairo-zig/commits?author=nils-mathieu" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/jobez"><img src="https://avatars.githubusercontent.com/u/615197?v=4?s=100" width="100px;" alt="johann bestowrous"/><br /><sub><b>johann bestowrous</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/cairo-zig/commits?author=jobez" title="Code">💻</a></td>
     </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/lana-shanghai"><img src="https://avatars.githubusercontent.com/u/31368580?v=4?s=100" width="100px;" alt="lanaivina"/><br /><sub><b>lanaivina</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/cairo-zig/commits?author=lana-shanghai" title="Code">💻</a></td>
+    </tr>
   </tbody>
 </table>
 
