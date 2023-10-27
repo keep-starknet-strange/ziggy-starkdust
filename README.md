@@ -157,6 +157,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/tcoratger"><img src="https://avatars.githubusercontent.com/u/60488569?v=4?s=100" width="100px;" alt="Thomas Coratger"/><br /><sub><b>Thomas Coratger</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/cairo-zig/commits?author=tcoratger" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/lambda-0x"><img src="https://avatars.githubusercontent.com/u/87354252?v=4?s=100" width="100px;" alt="lambda-0x"/><br /><sub><b>lambda-0x</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/cairo-zig/commits?author=lambda-0x" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://nils-mathieu.fr/"><img src="https://avatars.githubusercontent.com/u/80390054?v=4?s=100" width="100px;" alt="Nils"/><br /><sub><b>Nils</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/cairo-zig/commits?author=nils-mathieu" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/jobez"><img src="https://avatars.githubusercontent.com/u/615197?v=4?s=100" width="100px;" alt="johann bestowrous"/><br /><sub><b>johann bestowrous</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/cairo-zig/commits?author=jobez" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
