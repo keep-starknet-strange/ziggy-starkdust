@@ -1,10 +1,13 @@
 // Core imports.
 const std = @import("std");
 const expect = @import("std").testing.expect;
+const expectEqual = @import("std").testing.expectEqual;
 const Allocator = std.mem.Allocator;
 
 // Local imports.
 const relocatable = @import("relocatable.zig");
+const MaybeRelocatable = relocatable.MaybeRelocatable;
+const Relocatable = relocatable.Relocatable;
 const CairoVMError = @import("../error.zig").CairoVMError;
 const starknet_felt = @import("../../math/fields/starknet.zig");
 
@@ -17,9 +20,9 @@ pub const Memory = struct {
     allocator: Allocator,
     // The data in the memory.
     data: std.HashMap(
-        relocatable.Relocatable,
-        relocatable.MaybeRelocatable,
-        std.hash_map.AutoContext(relocatable.Relocatable),
+        Relocatable,
+        MaybeRelocatable,
+        std.hash_map.AutoContext(Relocatable),
         std.hash_map.default_max_load_percentage,
     ),
     // The number of segments in the memory.
@@ -27,9 +30,9 @@ pub const Memory = struct {
     // Validated addresses are addresses that have been validated.
     // TODO: Consider merging this with `data` and benchmarking.
     validated_addresses: std.HashMap(
-        relocatable.Relocatable,
+        Relocatable,
         bool,
-        std.hash_map.AutoContext(relocatable.Relocatable),
+        std.hash_map.AutoContext(Relocatable),
         std.hash_map.default_max_load_percentage,
     ),
 
@@ -48,12 +51,12 @@ pub const Memory = struct {
         memory.* = Memory{
             .allocator = allocator,
             .data = std.AutoHashMap(
-                relocatable.Relocatable,
-                relocatable.MaybeRelocatable,
+                Relocatable,
+                MaybeRelocatable,
             ).init(allocator),
             .num_segments = 0,
             .validated_addresses = std.AutoHashMap(
-                relocatable.Relocatable,
+                Relocatable,
                 bool,
             ).init(allocator),
         };
@@ -79,8 +82,8 @@ pub const Memory = struct {
     // - `value` - The value to insert.
     pub fn set(
         self: *Memory,
-        address: relocatable.Relocatable,
-        value: relocatable.MaybeRelocatable,
+        address: Relocatable,
+        value: MaybeRelocatable,
     ) error{
         InvalidMemoryAddress,
         MemoryOutOfBounds,
@@ -109,8 +112,8 @@ pub const Memory = struct {
     // The value at the given address.
     pub fn get(
         self: *Memory,
-        address: relocatable.Relocatable,
-    ) error{MemoryOutOfBounds}!relocatable.MaybeRelocatable {
+        address: Relocatable,
+    ) error{MemoryOutOfBounds}!MaybeRelocatable {
         var maybe_value = self.data.get(address);
         if (maybe_value == null) {
             return CairoVMError.MemoryOutOfBounds;
@@ -120,6 +123,9 @@ pub const Memory = struct {
 };
 
 test "memory get without value raises error" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
 
@@ -127,8 +133,11 @@ test "memory get without value raises error" {
     var memory = try Memory.init(allocator);
     defer memory.deinit();
 
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
     // Get a value from the memory at an address that doesn't exist.
-    _ = memory.get(relocatable.Relocatable.new(
+    _ = memory.get(Relocatable.new(
         0,
         0,
     )) catch |err| {
@@ -139,6 +148,9 @@ test "memory get without value raises error" {
 }
 
 test "memory set and get" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
 
@@ -146,7 +158,10 @@ test "memory set and get" {
     var memory = try Memory.init(allocator);
     defer memory.deinit();
 
-    const address_1 = relocatable.Relocatable.new(
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    const address_1 = Relocatable.new(
         0,
         0,
     );
@@ -161,6 +176,9 @@ test "memory set and get" {
     // Get the value from the memory.
     const maybe_value_1 = try memory.get(address_1);
 
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
     // Assert that the value is the expected value.
     try expect(maybe_value_1.eq(value_1));
 }

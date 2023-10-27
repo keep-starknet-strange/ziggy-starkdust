@@ -242,6 +242,16 @@ pub const MaybeRelocatable = union(enum) {
             .felt => |felt| felt.isZero(),
         };
     }
+
+    /// Whether the MaybeRelocatable is a relocatable or not.
+    /// # Returns
+    /// true if the MaybeRelocatable is a relocatable, false otherwise.
+    pub fn isRelocatable(self: MaybeRelocatable) bool {
+        return switch (self) {
+            .relocatable => true,
+            .felt => false,
+        };
+    }
 };
 
 // Creates a new MaybeRelocatable from a Relocatable.

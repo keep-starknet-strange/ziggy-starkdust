@@ -3,16 +3,20 @@ const std = @import("std");
 const expect = @import("std").testing.expect;
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
+const starknet_felt = @import("../math/fields/starknet.zig");
 
 // Local imports.
 const segments = @import("memory/segments.zig");
 const relocatable = @import("memory/relocatable.zig");
+const MaybeRelocatable = relocatable.MaybeRelocatable;
+const Relocatable = relocatable.Relocatable;
 const instructions = @import("instructions.zig");
 const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
+const Instruction = @import("instructions.zig").Instruction;
 
 /// Represents the Cairo VM.
 pub const CairoVM = struct {
@@ -147,12 +151,12 @@ pub const CairoVM = struct {
         // Compute the destination address and get value from the memory.
         const dst_addr = try self.run_context.compute_dst_addr(instruction);
         const dst = try self.segments.memory.get(dst_addr);
-        _ = dst;
 
         // Compute the OP 0 address and get value from the memory.
         const op_0_addr = try self.run_context.compute_op_0_addr(instruction);
         // Here we use `catch null` because we want op_0_op to be optional since it's not always used.
-        const op_0_op = self.segments.memory.get(op_0_addr) catch null;
+        // TODO: identify if we need to use try or catch here.
+        const op_0_op = try self.segments.memory.get(op_0_addr);
 
         // Compute the OP 1 address and get value from the memory.
         const op_1_addr = try self.run_context.compute_op_1_addr(
@@ -160,16 +164,20 @@ pub const CairoVM = struct {
             op_0_op,
         );
         const op_1_op = try self.segments.memory.get(op_1_addr);
-        _ = op_1_op;
+
+        const res = try computeRes(instruction, op_0_op, op_1_op);
+
+        // Deduce the operands if they haven't been successfully retrieved from memory.
+        // TODO: Implement this.
 
         return .{
-            .dst = relocatable.fromU64(0),
-            .res = relocatable.fromU64(0),
-            .op_0 = relocatable.fromU64(0),
-            .op_1 = relocatable.fromU64(0),
-            .dst_addr = relocatable.fromU64(0),
-            .op_0_addr = relocatable.fromU64(0),
-            .op_1_addr = relocatable.fromU64(0),
+            .dst = dst,
+            .res = res,
+            .op_0 = op_0_op,
+            .op_1 = op_1_op,
+            .dst_addr = dst_addr,
+            .op_0_addr = op_0_addr,
+            .op_1_addr = op_1_addr,
         };
     }
 
@@ -184,10 +192,10 @@ pub const CairoVM = struct {
     /// - `op1`: The op1.
     pub fn computeOp0Deductions(
         self: *CairoVM,
-        op_0_addr: relocatable.MaybeRelocatable,
+        op_0_addr: MaybeRelocatable,
         instruction: *const instructions.Instruction,
-        dst: ?relocatable.MaybeRelocatable,
-        op1: ?relocatable.MaybeRelocatable,
+        dst: ?MaybeRelocatable,
+        op1: ?MaybeRelocatable,
     ) void {
         _ = op1;
         _ = dst;
@@ -205,8 +213,8 @@ pub const CairoVM = struct {
     /// TODO: Implement this.
     pub fn deduceMemoryCell(
         self: *CairoVM,
-        address: relocatable.Relocatable,
-    ) !?relocatable.MaybeRelocatable {
+        address: Relocatable,
+    ) !?MaybeRelocatable {
         _ = address;
         _ = self;
         return null;
@@ -414,24 +422,115 @@ pub const CairoVM = struct {
     /// Returns the current ap.
     /// # Returns
     /// - `MaybeRelocatable`: The current ap.
-    pub fn getAp(self: *const CairoVM) relocatable.Relocatable {
+    pub fn getAp(self: *const CairoVM) Relocatable {
         return self.run_context.ap.*;
     }
 
     /// Returns the current fp.
     /// # Returns
     /// - `MaybeRelocatable`: The current fp.
-    pub fn getFp(self: *const CairoVM) relocatable.Relocatable {
+    pub fn getFp(self: *const CairoVM) Relocatable {
         return self.run_context.fp.*;
     }
 
     /// Returns the current pc.
     /// # Returns
     /// - `MaybeRelocatable`: The current pc.
-    pub fn getPc(self: *const CairoVM) relocatable.Relocatable {
+    pub fn getPc(self: *const CairoVM) Relocatable {
         return self.run_context.pc.*;
     }
 };
+
+/// Compute the result operand for a given instruction on op 0 and op 1.
+/// # Arguments
+/// - `instruction`: The instruction to compute the operands for.
+/// - `op_0`: The operand 0.
+/// - `op_1`: The operand 1.
+/// # Returns
+/// - `res`: The result of the operation.
+pub fn computeRes(
+    instruction: *const Instruction,
+    op_0: MaybeRelocatable,
+    op_1: MaybeRelocatable,
+) CairoVMError!MaybeRelocatable {
+    var res = switch (instruction.res_logic) {
+        instructions.ResLogic.Op1 => op_1,
+        instructions.ResLogic.Add => {
+            var sum = try addOperands(op_0, op_1);
+            return sum;
+        },
+        instructions.ResLogic.Mul => {
+            var product = try mulOperands(op_0, op_1);
+            return product;
+        },
+        instructions.ResLogic.Unconstrained => null,
+    };
+    return res.?;
+}
+
+/// Add two operands which can either be a "relocatable" or a "felt".
+/// The operation is allowed between:
+/// 1. A felt and another felt.
+/// 2. A felt and a relocatable.
+/// Adding two relocatables is forbidden.
+/// # Arguments
+/// - `op_0`: The operand 0.
+/// - `op_1`: The operand 1.
+/// # Returns
+/// - `MaybeRelocatable`: The result of the operation or an error.
+pub fn addOperands(
+    op_0: MaybeRelocatable,
+    op_1: MaybeRelocatable,
+) CairoVMError!MaybeRelocatable {
+    // Both operands are relocatables, operation forbidden
+    if (op_0.isRelocatable() and op_1.isRelocatable()) {
+        return error.AddRelocToRelocForbidden;
+    }
+
+    // One of the operands is relocatable, the other is felt
+    if (op_0.isRelocatable() or op_1.isRelocatable()) {
+        // Determine which operand is relocatable and which one is felt
+        const reloc_op = if (op_0.isRelocatable()) op_0 else op_1;
+        const felt_op = if (op_0.isRelocatable()) op_1 else op_0;
+
+        var reloc = try reloc_op.tryIntoRelocatable();
+        var felt = try felt_op.tryIntoFelt();
+
+        // Add the felt to the relocatable's offset
+        try reloc.addFeltInPlace(felt);
+
+        return relocatable.newFromRelocatable(reloc);
+    }
+
+    // Both operands are felts
+    const op_0_felt = try op_0.tryIntoFelt();
+    const op_1_felt = try op_1.tryIntoFelt();
+
+    // Add the felts and return as a new felt wrapped in a relocatable
+    return relocatable.fromFelt(op_0_felt.add(op_1_felt));
+}
+
+/// Compute the product of two operands op 0 and op 1.
+/// # Arguments
+/// - `op_0`: The operand 0.
+/// - `op_1`: The operand 1.
+/// # Returns
+/// - `MaybeRelocatable`: The result of the operation or an error.
+pub fn mulOperands(
+    op_0: MaybeRelocatable,
+    op_1: MaybeRelocatable,
+) CairoVMError!MaybeRelocatable {
+    // At least one of the operands is relocatable
+    if (op_0.isRelocatable() or op_1.isRelocatable()) {
+        return CairoVMError.MulRelocForbidden;
+    }
+
+    const op_0_felt = try op_0.tryIntoFelt();
+    const op_1_felt = try op_1.tryIntoFelt();
+
+    // Multiply the felts and return as a new felt wrapped in a relocatable
+    return relocatable.fromFelt(op_0_felt.mul(op_1_felt));
+}
 
 // *****************************************************************************
 // *                       CUSTOM TYPES                                        *
@@ -439,13 +538,13 @@ pub const CairoVM = struct {
 
 /// Represents the operands for an instruction.
 const OperandsResult = struct {
-    dst: relocatable.MaybeRelocatable,
-    res: ?relocatable.MaybeRelocatable,
-    op_0: relocatable.MaybeRelocatable,
-    op_1: relocatable.MaybeRelocatable,
-    dst_addr: relocatable.MaybeRelocatable,
-    op_0_addr: relocatable.MaybeRelocatable,
-    op_1_addr: relocatable.MaybeRelocatable,
+    dst: MaybeRelocatable,
+    res: ?MaybeRelocatable,
+    op_0: MaybeRelocatable,
+    op_1: MaybeRelocatable,
+    dst_addr: Relocatable,
+    op_0_addr: Relocatable,
+    op_1_addr: Relocatable,
 
     /// Returns a default instance of the OperandsResult struct.
     pub fn default() OperandsResult {
@@ -454,11 +553,16 @@ const OperandsResult = struct {
             .res = relocatable.fromU64(0),
             .op_0 = relocatable.fromU64(0),
             .op_1 = relocatable.fromU64(0),
-            .dst_addr = relocatable.fromU64(0),
-            .op_0_addr = relocatable.fromU64(0),
-            .op_1_addr = relocatable.fromU64(0),
+            .dst_addr = .{},
+            .op_0_addr = .{},
+            .op_1_addr = .{},
         };
     }
+};
+
+const Op0Result = struct {
+    op_0: MaybeRelocatable,
+    res: MaybeRelocatable,
 };
 
 // ************************************************************
@@ -474,7 +578,7 @@ test "update pc regular no imm" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Regular;
     instruction.op_1_addr = instructions.Op1Src.AP;
     const operands = OperandsResult.default();
@@ -507,7 +611,7 @@ test "update pc regular with imm" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Regular;
     instruction.op_1_addr = instructions.Op1Src.Imm;
     const operands = OperandsResult.default();
@@ -540,7 +644,7 @@ test "update pc jump with operands res null" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Jump;
     var operands = OperandsResult.default();
     operands.res = null;
@@ -564,7 +668,7 @@ test "update pc jump with operands res not relocatable" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Jump;
     var operands = OperandsResult.default();
     operands.res = relocatable.fromU64(0);
@@ -588,10 +692,10 @@ test "update pc jump with operands res relocatable" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Jump;
     var operands = OperandsResult.default();
-    operands.res = relocatable.newFromRelocatable(relocatable.Relocatable.new(
+    operands.res = relocatable.newFromRelocatable(Relocatable.new(
         0,
         42,
     ));
@@ -624,7 +728,7 @@ test "update pc jump rel with operands res null" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.pc_update = instructions.PcUpdate.JumpRel;
     var operands = OperandsResult.default();
     operands.res = null;
@@ -648,10 +752,10 @@ test "update pc jump rel with operands res not felt" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.pc_update = instructions.PcUpdate.JumpRel;
     var operands = OperandsResult.default();
-    operands.res = relocatable.newFromRelocatable(relocatable.Relocatable.new(
+    operands.res = relocatable.newFromRelocatable(Relocatable.new(
         0,
         42,
     ));
@@ -675,7 +779,7 @@ test "update pc jump rel with operands res felt" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.pc_update = instructions.PcUpdate.JumpRel;
     var operands = OperandsResult.default();
     operands.res = relocatable.fromU64(42);
@@ -708,7 +812,7 @@ test "update pc update jnz with operands dst zero" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Jnz;
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(0);
@@ -741,11 +845,11 @@ test "update pc update jnz with operands dst not zero op1 not felt" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Jnz;
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(1);
-    operands.op_1 = relocatable.newFromRelocatable(relocatable.Relocatable.new(
+    operands.op_1 = relocatable.newFromRelocatable(Relocatable.new(
         0,
         42,
     ));
@@ -772,7 +876,7 @@ test "update pc update jnz with operands dst not zero op1 felt" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.pc_update = instructions.PcUpdate.Jnz;
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(1);
@@ -805,7 +909,7 @@ test "update ap add with operands res unconstrained" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.ap_update = instructions.ApUpdate.Add;
     var operands = OperandsResult.default();
     operands.res = null; // Simulate unconstrained res
@@ -828,7 +932,7 @@ test "update ap add1" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.ap_update = instructions.ApUpdate.Add1;
     var operands = OperandsResult.default();
     // Create a new VM instance.
@@ -860,7 +964,7 @@ test "update ap add2" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.ap_update = instructions.ApUpdate.Add2;
     var operands = OperandsResult.default();
     // Create a new VM instance.
@@ -892,7 +996,7 @@ test "update fp appplus2" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.fp_update = instructions.FpUpdate.APPlus2;
     var operands = OperandsResult.default();
     // Create a new VM instance.
@@ -924,10 +1028,10 @@ test "update fp dst relocatable" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.fp_update = instructions.FpUpdate.Dst;
     var operands = OperandsResult.default();
-    operands.dst = relocatable.newFromRelocatable(relocatable.Relocatable.new(
+    operands.dst = relocatable.newFromRelocatable(Relocatable.new(
         0,
         42,
     ));
@@ -960,7 +1064,7 @@ test "update fp dst felt" {
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = instructions.Instruction.default();
+    var instruction = Instruction.default();
     instruction.fp_update = instructions.FpUpdate.Dst;
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(42);
@@ -1067,4 +1171,323 @@ test "deduce_op1 when opcode == .Call" {
 
     try expectEqual(op1, null);
     try expectEqual(result, null);
+}
+
+test "set get value in vm memory" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    var allocator = std.testing.allocator;
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    _ = vm.segments.addSegment();
+    _ = vm.segments.addSegment();
+
+    const address = Relocatable.new(1, 0);
+    const value = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(42));
+
+    _ = try vm.segments.memory.set(address, value);
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    // Verify the value is correctly set to 42.
+    const actual_value = try vm.segments.memory.get(address);
+    const expected_value = value;
+    try expectEqual(expected_value, actual_value);
+}
+
+test "compute res op1 works" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    var allocator = std.testing.allocator;
+    var instruction = Instruction{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = instructions.Register.AP,
+        .op_0_reg = instructions.Register.AP,
+        .op_1_addr = instructions.Op1Src.AP,
+        .res_logic = instructions.ResLogic.Op1,
+        .pc_update = instructions.PcUpdate.Regular,
+        .ap_update = instructions.ApUpdate.Regular,
+        .fp_update = instructions.FpUpdate.Regular,
+        .opcode = instructions.Opcode.NOp,
+    };
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    vm.run_context.ap.* = Relocatable.new(1, 0);
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+
+    const value_op0 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+    const value_op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+
+    const actual_res = try computeRes(&instruction, value_op0, value_op1);
+    const expected_res = value_op1;
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    try expectEqual(expected_res, actual_res);
+}
+
+test "compute res add felts works" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    var allocator = std.testing.allocator;
+    var instruction = Instruction{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = instructions.Register.AP,
+        .op_0_reg = instructions.Register.AP,
+        .op_1_addr = instructions.Op1Src.AP,
+        .res_logic = instructions.ResLogic.Add,
+        .pc_update = instructions.PcUpdate.Regular,
+        .ap_update = instructions.ApUpdate.Regular,
+        .fp_update = instructions.FpUpdate.Regular,
+        .opcode = instructions.Opcode.NOp,
+    };
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    vm.run_context.ap.* = Relocatable.new(1, 0);
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+
+    const value_op0 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+    const value_op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+
+    const actual_res = try computeRes(&instruction, value_op0, value_op1);
+    const expected_res = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(5));
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    try expectEqual(expected_res, actual_res);
+}
+
+test "compute res add felt to offset works" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    var allocator = std.testing.allocator;
+    var instruction = Instruction{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = instructions.Register.AP,
+        .op_0_reg = instructions.Register.AP,
+        .op_1_addr = instructions.Op1Src.AP,
+        .res_logic = instructions.ResLogic.Add,
+        .pc_update = instructions.PcUpdate.Regular,
+        .ap_update = instructions.ApUpdate.Regular,
+        .fp_update = instructions.FpUpdate.Regular,
+        .opcode = instructions.Opcode.NOp,
+    };
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    vm.run_context.ap.* = Relocatable.new(1, 0);
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+
+    const value_op0 = Relocatable.new(1, 1);
+    const op0 = relocatable.newFromRelocatable(value_op0);
+
+    const op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+
+    const actual_res = try computeRes(&instruction, op0, op1);
+    const res = Relocatable.new(1, 4);
+    const expected_res = relocatable.newFromRelocatable(res);
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    try expectEqual(expected_res, actual_res);
+}
+
+test "compute res add fails two relocs" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    var allocator = std.testing.allocator;
+    var instruction = Instruction{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = instructions.Register.AP,
+        .op_0_reg = instructions.Register.AP,
+        .op_1_addr = instructions.Op1Src.AP,
+        .res_logic = instructions.ResLogic.Add,
+        .pc_update = instructions.PcUpdate.Regular,
+        .ap_update = instructions.ApUpdate.Regular,
+        .fp_update = instructions.FpUpdate.Regular,
+        .opcode = instructions.Opcode.NOp,
+    };
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    vm.run_context.ap.* = Relocatable.new(1, 0);
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+
+    const value_op0 = Relocatable.new(1, 0);
+    const value_op1 = Relocatable.new(1, 1);
+
+    const op0 = relocatable.newFromRelocatable(value_op0);
+    const op1 = relocatable.newFromRelocatable(value_op1);
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    try expectError(error.AddRelocToRelocForbidden, computeRes(&instruction, op0, op1));
+}
+
+test "compute res mul works" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    var allocator = std.testing.allocator;
+    var instruction = Instruction{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = instructions.Register.AP,
+        .op_0_reg = instructions.Register.AP,
+        .op_1_addr = instructions.Op1Src.AP,
+        .res_logic = instructions.ResLogic.Mul,
+        .pc_update = instructions.PcUpdate.Regular,
+        .ap_update = instructions.ApUpdate.Regular,
+        .fp_update = instructions.FpUpdate.Regular,
+        .opcode = instructions.Opcode.NOp,
+    };
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    vm.run_context.ap.* = Relocatable.new(1, 0);
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+
+    const value_op0 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+    const value_op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+
+    const actual_res = try computeRes(&instruction, value_op0, value_op1);
+    const expected_res = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(6));
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    try expectEqual(expected_res, actual_res);
+}
+
+test "compute res mul fails two relocs" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    var allocator = std.testing.allocator;
+    var instruction = Instruction{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = instructions.Register.AP,
+        .op_0_reg = instructions.Register.AP,
+        .op_1_addr = instructions.Op1Src.AP,
+        .res_logic = instructions.ResLogic.Mul,
+        .pc_update = instructions.PcUpdate.Regular,
+        .ap_update = instructions.ApUpdate.Regular,
+        .fp_update = instructions.FpUpdate.Regular,
+        .opcode = instructions.Opcode.NOp,
+    };
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    vm.run_context.ap.* = Relocatable.new(1, 0);
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+
+    const value_op0 = Relocatable.new(1, 0);
+    const value_op1 = Relocatable.new(1, 1);
+
+    const op0 = relocatable.newFromRelocatable(value_op0);
+    const op1 = relocatable.newFromRelocatable(value_op1);
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    try expectError(error.MulRelocForbidden, computeRes(&instruction, op0, op1));
+}
+
+test "compute res mul fails felt and reloc" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    var allocator = std.testing.allocator;
+    var instruction = Instruction{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = instructions.Register.AP,
+        .op_0_reg = instructions.Register.AP,
+        .op_1_addr = instructions.Op1Src.AP,
+        .res_logic = instructions.ResLogic.Mul,
+        .pc_update = instructions.PcUpdate.Regular,
+        .ap_update = instructions.ApUpdate.Regular,
+        .fp_update = instructions.FpUpdate.Regular,
+        .opcode = instructions.Opcode.NOp,
+    };
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    vm.run_context.ap.* = Relocatable.new(1, 0);
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+
+    const value_op0 = Relocatable.new(1, 0);
+    const op0 = relocatable.newFromRelocatable(value_op0);
+    const op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    try expectError(error.MulRelocForbidden, computeRes(&instruction, op0, op1));
 }
