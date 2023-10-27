@@ -1,6 +1,7 @@
 // Core imports.
 const std = @import("std");
 const expect = @import("std").testing.expect;
+const expectEqual = @import("std").testing.expectEqual;
 const Allocator = std.mem.Allocator;
 
 // Local imports.
@@ -158,7 +159,10 @@ test "memory set and get" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    const address_1 = relocatable.Relocatable.new(0, 0);
+    const address_1 = relocatable.Relocatable.new(
+        0,
+        0,
+    );
     const value_1 = relocatable.fromFelt(starknet_felt.Felt252.one());
 
     // Set a value into the memory.

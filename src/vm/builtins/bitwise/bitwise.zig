@@ -140,7 +140,10 @@ test "deduce when address points to felt greater than BITWISE_TOTAL_N_BITS" {
     // when
     var address = Relocatable.new(0, 3);
 
-    try mem.set(Relocatable.new(0, 0), fromFelt(Felt252.fromInteger(number)));
+    try mem.set(Relocatable.new(
+        0,
+        0,
+    ), fromFelt(Felt252.fromInteger(number)));
 
     // then
     try expectError(Error.UnsupportedNumberOfBits, deduce(address, mem));

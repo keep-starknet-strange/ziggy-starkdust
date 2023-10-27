@@ -1,7 +1,8 @@
 // Core imports.
 const std = @import("std");
 const Allocator = std.mem.Allocator;
-const expect = std.testing.expect;
+const expect = @import("std").testing.expect;
+const expectEqual = @import("std").testing.expectEqual;
 
 // Local imports.
 const Memory = @import("memory.zig").Memory;
@@ -124,8 +125,13 @@ test "memory segment manager" {
     try expect(memory_segment_manager.memory.num_segments == 1);
 
     // Check if the relocatable address is correct.
-    try expect(relocatable_address_1.segment_index == 0);
-    try expect(relocatable_address_1.offset == 0);
+    try expectEqual(
+        relocatable.Relocatable{
+            .segment_index = 0,
+            .offset = 0,
+        },
+        relocatable_address_1,
+    );
 
     // Allocate another memory segment.
     const relocatable_address_2 = memory_segment_manager.addSegment();
@@ -134,8 +140,13 @@ test "memory segment manager" {
     try expect(memory_segment_manager.memory.num_segments == 2);
 
     // Check if the relocatable address is correct.
-    try expect(relocatable_address_2.segment_index == 1);
-    try expect(relocatable_address_2.offset == 0);
+    try expectEqual(
+        relocatable.Relocatable{
+            .segment_index = 1,
+            .offset = 0,
+        },
+        relocatable_address_2,
+    );
 }
 
 test "set get integer value in segment memory" {
@@ -155,7 +166,10 @@ test "set get integer value in segment memory" {
     _ = memory_segment_manager.addSegment();
     _ = memory_segment_manager.addSegment();
 
-    const address = relocatable.Relocatable.new(0, 0);
+    const address = relocatable.Relocatable.new(
+        0,
+        0,
+    );
     const value = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(42));
 
     const wrong_address = relocatable.Relocatable.new(0, 1);
