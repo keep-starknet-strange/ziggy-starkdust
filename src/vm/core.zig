@@ -13,6 +13,7 @@ const CairoVMError = @import("error.zig").CairoVMError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
+const BuiltinRunner = @import("./builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
 
 /// Represents the Cairo VM.
 pub const CairoVM = struct {
@@ -25,6 +26,8 @@ pub const CairoVM = struct {
     allocator: Allocator,
     /// The run context.
     run_context: *RunContext,
+    /// ArrayList of built-in runners
+    builtin_runners: ArrayList(BuiltinRunner),
     /// The memory segment manager.
     segments: *segments.MemorySegmentManager,
     /// Whether the run is finished or not.
@@ -58,6 +61,7 @@ pub const CairoVM = struct {
         return CairoVM{
             .allocator = allocator,
             .run_context = run_context,
+            .builtin_runners = ArrayList(BuiltinRunner).init(allocator),
             .segments = memory_segment_manager,
             .is_run_finished = false,
             .trace_context = trace_context,
@@ -72,6 +76,8 @@ pub const CairoVM = struct {
         self.run_context.deinit();
         // Deallocate trace
         self.trace_context.deinit();
+        // Deallocate built-in runners
+        self.builtin_runners.deinit();
     }
 
     // ************************************************************
