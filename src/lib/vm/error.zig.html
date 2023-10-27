@@ -113,12 +113,17 @@
 </head>
 <body>
 <pre><code><span class="line" id="L1"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> CairoVMError = <span class="tok-kw">error</span>{</span>
-<span class="line" id="L2">    MemoryOutOfBounds,</span>
-<span class="line" id="L3">    InvalidMemoryAddress,</span>
-<span class="line" id="L4">    InstructionFetchingFailed,</span>
-<span class="line" id="L5">    InstructionEncodingError,</span>
-<span class="line" id="L6">    TypeMismatchNotFelt,</span>
-<span class="line" id="L7">};</span>
-<span class="line" id="L8"></span>
+<span class="line" id="L2">    AddRelocToRelocForbidden,</span>
+<span class="line" id="L3">    MemoryOutOfBounds,</span>
+<span class="line" id="L4">    MulRelocForbidden,</span>
+<span class="line" id="L5">    InvalidMemoryAddress,</span>
+<span class="line" id="L6">    InstructionFetchingFailed,</span>
+<span class="line" id="L7">    InstructionEncodingError,</span>
+<span class="line" id="L8">    ParseResLogicError,</span>
+<span class="line" id="L9">    TypeMismatchNotFelt,</span>
+<span class="line" id="L10">    TypeMismatchNotRelocatable,</span>
+<span class="line" id="L11">    ValueTooLarge,</span>
+<span class="line" id="L12">};</span>
+<span class="line" id="L13"></span>
 </code></pre></body>
 </html>

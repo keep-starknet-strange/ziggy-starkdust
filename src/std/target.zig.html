@@ -410,20 +410,20 @@
 <span class="line" id="L278">                    .freebsd =&gt; <span class="tok-kw">return</span> .{</span>
 <span class="line" id="L279">                        .semver = Version.Range{</span>
 <span class="line" id="L280">                            .min = .{ .major = <span class="tok-number">12</span>, .minor = <span class="tok-number">0</span>, .patch = <span class="tok-number">0</span> },</span>
-<span class="line" id="L281">                            .max = .{ .major = <span class="tok-number">13</span>, .minor = <span class="tok-number">1</span>, .patch = <span class="tok-number">0</span> },</span>
+<span class="line" id="L281">                            .max = .{ .major = <span class="tok-number">14</span>, .minor = <span class="tok-number">0</span>, .patch = <span class="tok-number">0</span> },</span>
 <span class="line" id="L282">                        },</span>
 <span class="line" id="L283">                    },</span>
 <span class="line" id="L284">                    .macos =&gt; <span class="tok-kw">return</span> <span class="tok-kw">switch</span> (arch) {</span>
 <span class="line" id="L285">                        .aarch64 =&gt; VersionRange{</span>
 <span class="line" id="L286">                            .semver = .{</span>
 <span class="line" id="L287">                                .min = .{ .major = <span class="tok-number">11</span>, .minor = <span class="tok-number">7</span>, .patch = <span class="tok-number">1</span> },</span>
-<span class="line" id="L288">                                .max = .{ .major = <span class="tok-number">13</span>, .minor = <span class="tok-number">3</span>, .patch = <span class="tok-number">0</span> },</span>
+<span class="line" id="L288">                                .max = .{ .major = <span class="tok-number">14</span>, .minor = <span class="tok-number">1</span>, .patch = <span class="tok-number">0</span> },</span>
 <span class="line" id="L289">                            },</span>
 <span class="line" id="L290">                        },</span>
 <span class="line" id="L291">                        .x86_64 =&gt; VersionRange{</span>
 <span class="line" id="L292">                            .semver = .{</span>
 <span class="line" id="L293">                                .min = .{ .major = <span class="tok-number">11</span>, .minor = <span class="tok-number">7</span>, .patch = <span class="tok-number">1</span> },</span>
-<span class="line" id="L294">                                .max = .{ .major = <span class="tok-number">13</span>, .minor = <span class="tok-number">3</span>, .patch = <span class="tok-number">0</span> },</span>
+<span class="line" id="L294">                                .max = .{ .major = <span class="tok-number">14</span>, .minor = <span class="tok-number">1</span>, .patch = <span class="tok-number">0</span> },</span>
 <span class="line" id="L295">                            },</span>
 <span class="line" id="L296">                        },</span>
 <span class="line" id="L297">                        <span class="tok-kw">else</span> =&gt; <span class="tok-kw">unreachable</span>,</span>
@@ -431,19 +431,19 @@
 <span class="line" id="L299">                    .ios =&gt; <span class="tok-kw">return</span> .{</span>
 <span class="line" id="L300">                        .semver = .{</span>
 <span class="line" id="L301">                            .min = .{ .major = <span class="tok-number">12</span>, .minor = <span class="tok-number">0</span>, .patch = <span class="tok-number">0</span> },</span>
-<span class="line" id="L302">                            .max = .{ .major = <span class="tok-number">13</span>, .minor = <span class="tok-number">4</span>, .patch = <span class="tok-number">0</span> },</span>
+<span class="line" id="L302">                            .max = .{ .major = <span class="tok-number">17</span>, .minor = <span class="tok-number">1</span>, .patch = <span class="tok-number">0</span> },</span>
 <span class="line" id="L303">                        },</span>
 <span class="line" id="L304">                    },</span>
 <span class="line" id="L305">                    .watchos =&gt; <span class="tok-kw">return</span> .{</span>
 <span class="line" id="L306">                        .semver = .{</span>
 <span class="line" id="L307">                            .min = .{ .major = <span class="tok-number">6</span>, .minor = <span class="tok-number">0</span>, .patch = <span class="tok-number">0</span> },</span>
-<span class="line" id="L308">                            .max = .{ .major = <span class="tok-number">6</span>, .minor = <span class="tok-number">2</span>, .patch = <span class="tok-number">0</span> },</span>
+<span class="line" id="L308">                            .max = .{ .major = <span class="tok-number">10</span>, .minor = <span class="tok-number">1</span>, .patch = <span class="tok-number">0</span> },</span>
 <span class="line" id="L309">                        },</span>
 <span class="line" id="L310">                    },</span>
 <span class="line" id="L311">                    .tvos =&gt; <span class="tok-kw">return</span> .{</span>
 <span class="line" id="L312">                        .semver = .{</span>
 <span class="line" id="L313">                            .min = .{ .major = <span class="tok-number">13</span>, .minor = <span class="tok-number">0</span>, .patch = <span class="tok-number">0</span> },</span>
-<span class="line" id="L314">                            .max = .{ .major = <span class="tok-number">13</span>, .minor = <span class="tok-number">4</span>, .patch = <span class="tok-number">0</span> },</span>
+<span class="line" id="L314">                            .max = .{ .major = <span class="tok-number">17</span>, .minor = <span class="tok-number">1</span>, .patch = <span class="tok-number">0</span> },</span>
 <span class="line" id="L315">                        },</span>
 <span class="line" id="L316">                    },</span>
 <span class="line" id="L317">                    .netbsd =&gt; <span class="tok-kw">return</span> .{</span>
@@ -455,7 +455,7 @@
 <span class="line" id="L323">                    .openbsd =&gt; <span class="tok-kw">return</span> .{</span>
 <span class="line" id="L324">                        .semver = .{</span>
 <span class="line" id="L325">                            .min = .{ .major = <span class="tok-number">6</span>, .minor = <span class="tok-number">8</span>, .patch = <span class="tok-number">0</span> },</span>
-<span class="line" id="L326">                            .max = .{ .major = <span class="tok-number">7</span>, .minor = <span class="tok-number">2</span>, .patch = <span class="tok-number">0</span> },</span>
+<span class="line" id="L326">                            .max = .{ .major = <span class="tok-number">7</span>, .minor = <span class="tok-number">4</span>, .patch = <span class="tok-number">0</span> },</span>
 <span class="line" id="L327">                        },</span>
 <span class="line" id="L328">                    },</span>
 <span class="line" id="L329">                    .dragonfly =&gt; <span class="tok-kw">return</span> .{</span>

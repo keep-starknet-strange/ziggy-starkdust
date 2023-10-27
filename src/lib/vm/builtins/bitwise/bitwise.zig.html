@@ -124,238 +124,242 @@
 <span class="line" id="L8"><span class="tok-kw">const</span> Relocatable = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;../../memory/relocatable.zig&quot;</span>).Relocatable;</span>
 <span class="line" id="L9"><span class="tok-kw">const</span> MaybeRelocatable = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;../../memory/relocatable.zig&quot;</span>).MaybeRelocatable;</span>
 <span class="line" id="L10"><span class="tok-kw">const</span> fromFelt = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;../../memory/relocatable.zig&quot;</span>).fromFelt;</span>
-<span class="line" id="L11"><span class="tok-kw">const</span> newFromRelocatable = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;../../memory/relocatable.zig&quot;</span>).newFromRelocatable;</span>
-<span class="line" id="L12"><span class="tok-kw">const</span> Felt252 = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;../../../math/fields/starknet.zig&quot;</span>).Felt252;</span>
-<span class="line" id="L13"></span>
-<span class="line" id="L14"><span class="tok-comment">// *****************************************************************************</span>
+<span class="line" id="L11"><span class="tok-kw">const</span> fromU256 = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;../../memory/relocatable.zig&quot;</span>).fromU256;</span>
+<span class="line" id="L12"><span class="tok-kw">const</span> newFromRelocatable = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;../../memory/relocatable.zig&quot;</span>).newFromRelocatable;</span>
+<span class="line" id="L13"><span class="tok-kw">const</span> Felt252 = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;../../../math/fields/starknet.zig&quot;</span>).Felt252;</span>
+<span class="line" id="L14"></span>
+<span class="line" id="L15"><span class="tok-comment">// *****************************************************************************</span>
 </span>
-<span class="line" id="L15"><span class="tok-comment">// *                       CUSTOM ERROR TYPE                                   *</span>
+<span class="line" id="L16"><span class="tok-comment">// *                       CUSTOM ERROR TYPE                                   *</span>
 </span>
-<span class="line" id="L16"><span class="tok-comment">// *****************************************************************************</span>
+<span class="line" id="L17"><span class="tok-comment">// *****************************************************************************</span>
 </span>
-<span class="line" id="L17"></span>
-<span class="line" id="L18"><span class="tok-comment">// Error type to represent different error conditions during bitwise builtin.</span>
+<span class="line" id="L18"></span>
+<span class="line" id="L19"><span class="tok-comment">// Error type to represent different error conditions during bitwise builtin.</span>
 </span>
-<span class="line" id="L19"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> Error = <span class="tok-kw">error</span>{ InvalidBitwiseIndex, UnsupportedNumberOfBits, InvalidAddressForBitwise };</span>
-<span class="line" id="L20"></span>
-<span class="line" id="L21"><span class="tok-comment">/// Each bitwise operation consists of 5 cells (two inputs and three outputs - and, or, xor).</span></span>
-<span class="line" id="L22"><span class="tok-comment">// comment credit to: https://github.com/starkware-libs/cairo-lang/blob//src/starkware/cairo/lang/builtins/bitwise/instance_def.py#L4</span>
+<span class="line" id="L20"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> Error = <span class="tok-kw">error</span>{ InvalidBitwiseIndex, UnsupportedNumberOfBits, InvalidAddressForBitwise };</span>
+<span class="line" id="L21"></span>
+<span class="line" id="L22"><span class="tok-comment">/// Each bitwise operation consists of 5 cells (two inputs and three outputs - and, or, xor).</span></span>
+<span class="line" id="L23"><span class="tok-comment">// comment credit to: https://github.com/starkware-libs/cairo-lang/blob//src/starkware/cairo/lang/builtins/bitwise/instance_def.py#L4</span>
 </span>
-<span class="line" id="L23"><span class="tok-kw">const</span> CELLS_PER_BITWISE: <span class="tok-type">u64</span> = <span class="tok-number">5</span>;</span>
-<span class="line" id="L24"><span class="tok-comment">/// The number of bits in a single field element that are supported by the bitwise builtin.</span></span>
-<span class="line" id="L25"><span class="tok-kw">const</span> BITWISE_TOTAL_N_BITS = <span class="tok-number">251</span>;</span>
-<span class="line" id="L26"><span class="tok-kw">const</span> BITWISE_INPUT_CELLS_PER_INSTANCE = <span class="tok-number">2</span>;</span>
-<span class="line" id="L27"></span>
-<span class="line" id="L28"><span class="tok-comment">/// Retrieve the felt in memory that an address denotes as an integer.</span></span>
-<span class="line" id="L29"><span class="tok-comment">/// # Arguments</span></span>
-<span class="line" id="L30"><span class="tok-comment">/// - address: The address belonging to the Bitwise builtin's segment</span></span>
-<span class="line" id="L31"><span class="tok-comment">/// - memory: The cairo memory where addresses are looked up</span></span>
-<span class="line" id="L32"><span class="tok-comment">/// # Returns</span></span>
-<span class="line" id="L33"><span class="tok-comment">/// The felt as an integer.</span></span>
-<span class="line" id="L34"><span class="tok-kw">fn</span> <span class="tok-fn">getValue</span>(address: Relocatable, memory: *Memory) Error!<span class="tok-type">u256</span> {</span>
-<span class="line" id="L35">    <span class="tok-kw">var</span> value = memory.get(address) <span class="tok-kw">catch</span> {</span>
-<span class="line" id="L36">        <span class="tok-kw">return</span> Error.InvalidAddressForBitwise;</span>
-<span class="line" id="L37">    };</span>
-<span class="line" id="L38"></span>
-<span class="line" id="L39">    <span class="tok-kw">var</span> felt = value.tryIntoFelt() <span class="tok-kw">catch</span> {</span>
-<span class="line" id="L40">        <span class="tok-kw">return</span> Error.InvalidAddressForBitwise;</span>
-<span class="line" id="L41">    };</span>
-<span class="line" id="L42"></span>
-<span class="line" id="L43">    <span class="tok-kw">if</span> (felt.toInteger() &gt; std.math.pow(<span class="tok-type">u256</span>, <span class="tok-number">2</span>, BITWISE_TOTAL_N_BITS)) {</span>
-<span class="line" id="L44">        <span class="tok-kw">return</span> Error.UnsupportedNumberOfBits;</span>
-<span class="line" id="L45">    }</span>
-<span class="line" id="L46"></span>
-<span class="line" id="L47">    <span class="tok-kw">return</span> felt.toInteger();</span>
-<span class="line" id="L48">}</span>
-<span class="line" id="L49"></span>
-<span class="line" id="L50"><span class="tok-comment">/// Compute the auto-deduction rule for Bitwise</span></span>
-<span class="line" id="L51"><span class="tok-comment">/// # Arguments</span></span>
-<span class="line" id="L52"><span class="tok-comment">/// - address: The address belonging to the Bitwise builtin's segment</span></span>
-<span class="line" id="L53"><span class="tok-comment">/// - memory: The cairo memory where addresses are looked up</span></span>
-<span class="line" id="L54"><span class="tok-comment">/// # Returns</span></span>
-<span class="line" id="L55"><span class="tok-comment">/// The deduced value as a `MaybeRelocatable`</span></span>
-<span class="line" id="L56"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">deduce</span>(address: Relocatable, memory: *Memory) Error!MaybeRelocatable {</span>
-<span class="line" id="L57">    <span class="tok-kw">const</span> index = address.offset % CELLS_PER_BITWISE;</span>
-<span class="line" id="L58"></span>
-<span class="line" id="L59">    <span class="tok-kw">if</span> (index &lt; BITWISE_INPUT_CELLS_PER_INSTANCE) {</span>
-<span class="line" id="L60">        <span class="tok-kw">return</span> Error.InvalidBitwiseIndex;</span>
-<span class="line" id="L61">    }</span>
-<span class="line" id="L62"></span>
-<span class="line" id="L63">    <span class="tok-comment">// calculate offset</span>
+<span class="line" id="L24"><span class="tok-kw">const</span> CELLS_PER_BITWISE: <span class="tok-type">u64</span> = <span class="tok-number">5</span>;</span>
+<span class="line" id="L25"><span class="tok-comment">/// The number of bits in a single field element that are supported by the bitwise builtin.</span></span>
+<span class="line" id="L26"><span class="tok-kw">const</span> BITWISE_TOTAL_N_BITS = <span class="tok-number">251</span>;</span>
+<span class="line" id="L27"><span class="tok-kw">const</span> BITWISE_INPUT_CELLS_PER_INSTANCE = <span class="tok-number">2</span>;</span>
+<span class="line" id="L28"></span>
+<span class="line" id="L29"><span class="tok-comment">/// Retrieve the felt in memory that an address denotes as an integer.</span></span>
+<span class="line" id="L30"><span class="tok-comment">/// # Arguments</span></span>
+<span class="line" id="L31"><span class="tok-comment">/// - address: The address belonging to the Bitwise builtin's segment</span></span>
+<span class="line" id="L32"><span class="tok-comment">/// - memory: The cairo memory where addresses are looked up</span></span>
+<span class="line" id="L33"><span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L34"><span class="tok-comment">/// The felt as an integer.</span></span>
+<span class="line" id="L35"><span class="tok-kw">fn</span> <span class="tok-fn">getValue</span>(address: Relocatable, memory: *Memory) Error!<span class="tok-type">u256</span> {</span>
+<span class="line" id="L36">    <span class="tok-kw">var</span> value = memory.get(address) <span class="tok-kw">catch</span> {</span>
+<span class="line" id="L37">        <span class="tok-kw">return</span> Error.InvalidAddressForBitwise;</span>
+<span class="line" id="L38">    };</span>
+<span class="line" id="L39"></span>
+<span class="line" id="L40">    <span class="tok-kw">var</span> felt = value.tryIntoFelt() <span class="tok-kw">catch</span> {</span>
+<span class="line" id="L41">        <span class="tok-kw">return</span> Error.InvalidAddressForBitwise;</span>
+<span class="line" id="L42">    };</span>
+<span class="line" id="L43"></span>
+<span class="line" id="L44">    <span class="tok-kw">if</span> (felt.toInteger() &gt; std.math.pow(<span class="tok-type">u256</span>, <span class="tok-number">2</span>, BITWISE_TOTAL_N_BITS)) {</span>
+<span class="line" id="L45">        <span class="tok-kw">return</span> Error.UnsupportedNumberOfBits;</span>
+<span class="line" id="L46">    }</span>
+<span class="line" id="L47"></span>
+<span class="line" id="L48">    <span class="tok-kw">return</span> felt.toInteger();</span>
+<span class="line" id="L49">}</span>
+<span class="line" id="L50"></span>
+<span class="line" id="L51"><span class="tok-comment">/// Compute the auto-deduction rule for Bitwise</span></span>
+<span class="line" id="L52"><span class="tok-comment">/// # Arguments</span></span>
+<span class="line" id="L53"><span class="tok-comment">/// - address: The address belonging to the Bitwise builtin's segment</span></span>
+<span class="line" id="L54"><span class="tok-comment">/// - memory: The cairo memory where addresses are looked up</span></span>
+<span class="line" id="L55"><span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L56"><span class="tok-comment">/// The deduced value as a `MaybeRelocatable`</span></span>
+<span class="line" id="L57"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">deduce</span>(address: Relocatable, memory: *Memory) Error!MaybeRelocatable {</span>
+<span class="line" id="L58">    <span class="tok-kw">const</span> index = address.offset % CELLS_PER_BITWISE;</span>
+<span class="line" id="L59"></span>
+<span class="line" id="L60">    <span class="tok-kw">if</span> (index &lt; BITWISE_INPUT_CELLS_PER_INSTANCE) {</span>
+<span class="line" id="L61">        <span class="tok-kw">return</span> Error.InvalidBitwiseIndex;</span>
+<span class="line" id="L62">    }</span>
+<span class="line" id="L63"></span>
+<span class="line" id="L64">    <span class="tok-comment">// calculate offset</span>
 </span>
-<span class="line" id="L64">    <span class="tok-kw">const</span> x_offset = address.subUint(index) <span class="tok-kw">catch</span> {</span>
-<span class="line" id="L65">        <span class="tok-kw">return</span> Error.InvalidBitwiseIndex;</span>
-<span class="line" id="L66">    };</span>
-<span class="line" id="L67">    <span class="tok-kw">const</span> y_offset = <span class="tok-kw">try</span> x_offset.addUint(<span class="tok-number">1</span>);</span>
-<span class="line" id="L68"></span>
-<span class="line" id="L69">    <span class="tok-kw">var</span> x = <span class="tok-kw">try</span> getValue(x_offset, memory);</span>
-<span class="line" id="L70">    <span class="tok-kw">var</span> y = <span class="tok-kw">try</span> getValue(y_offset, memory);</span>
-<span class="line" id="L71"></span>
-<span class="line" id="L72">    <span class="tok-kw">var</span> res = <span class="tok-kw">switch</span> (index) {</span>
-<span class="line" id="L73">        <span class="tok-number">2</span> =&gt; x &amp; y, <span class="tok-comment">// and</span>
+<span class="line" id="L65">    <span class="tok-kw">const</span> x_offset = address.subUint(index) <span class="tok-kw">catch</span> {</span>
+<span class="line" id="L66">        <span class="tok-kw">return</span> Error.InvalidBitwiseIndex;</span>
+<span class="line" id="L67">    };</span>
+<span class="line" id="L68">    <span class="tok-kw">const</span> y_offset = <span class="tok-kw">try</span> x_offset.addUint(<span class="tok-number">1</span>);</span>
+<span class="line" id="L69"></span>
+<span class="line" id="L70">    <span class="tok-kw">var</span> x = <span class="tok-kw">try</span> getValue(x_offset, memory);</span>
+<span class="line" id="L71">    <span class="tok-kw">var</span> y = <span class="tok-kw">try</span> getValue(y_offset, memory);</span>
+<span class="line" id="L72"></span>
+<span class="line" id="L73">    <span class="tok-kw">var</span> res = <span class="tok-kw">switch</span> (index) {</span>
+<span class="line" id="L74">        <span class="tok-number">2</span> =&gt; x &amp; y, <span class="tok-comment">// and</span>
 </span>
-<span class="line" id="L74">        <span class="tok-number">3</span> =&gt; x ^ y, <span class="tok-comment">// xor</span>
+<span class="line" id="L75">        <span class="tok-number">3</span> =&gt; x ^ y, <span class="tok-comment">// xor</span>
 </span>
-<span class="line" id="L75">        <span class="tok-number">4</span> =&gt; x | y, <span class="tok-comment">// or</span>
+<span class="line" id="L76">        <span class="tok-number">4</span> =&gt; x | y, <span class="tok-comment">// or</span>
 </span>
-<span class="line" id="L76">        <span class="tok-kw">else</span> =&gt; <span class="tok-kw">return</span> Error.InvalidBitwiseIndex,</span>
-<span class="line" id="L77">    };</span>
-<span class="line" id="L78"></span>
-<span class="line" id="L79">    <span class="tok-kw">return</span> MaybeRelocatable{ .felt = Felt252.fromInteger(res) };</span>
-<span class="line" id="L80">}</span>
-<span class="line" id="L81"></span>
-<span class="line" id="L82"><span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L77">        <span class="tok-kw">else</span> =&gt; <span class="tok-kw">return</span> Error.InvalidBitwiseIndex,</span>
+<span class="line" id="L78">    };</span>
+<span class="line" id="L79"></span>
+<span class="line" id="L80">    <span class="tok-kw">return</span> MaybeRelocatable{ .felt = Felt252.fromInteger(res) };</span>
+<span class="line" id="L81">}</span>
+<span class="line" id="L82"></span>
+<span class="line" id="L83"><span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L83"><span class="tok-comment">// *                         TESTS                            *</span>
+<span class="line" id="L84"><span class="tok-comment">// *                         TESTS                            *</span>
 </span>
-<span class="line" id="L84"><span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L85"><span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L85"><span class="tok-kw">const</span> expectEqual = std.testing.expectEqual;</span>
-<span class="line" id="L86"><span class="tok-kw">const</span> expectError = std.testing.expectError;</span>
-<span class="line" id="L87"></span>
-<span class="line" id="L88"><span class="tok-kw">test</span> <span class="tok-str">&quot;deduce when address.offset less than BITWISE_INPUT_CELLS_PER_INSTANCE&quot;</span> {</span>
-<span class="line" id="L89"></span>
-<span class="line" id="L90">    <span class="tok-comment">// given</span>
+<span class="line" id="L86"><span class="tok-kw">const</span> expectEqual = std.testing.expectEqual;</span>
+<span class="line" id="L87"><span class="tok-kw">const</span> expectError = std.testing.expectError;</span>
+<span class="line" id="L88"></span>
+<span class="line" id="L89"><span class="tok-kw">test</span> <span class="tok-str">&quot;deduce when address.offset less than BITWISE_INPUT_CELLS_PER_INSTANCE&quot;</span> {</span>
+<span class="line" id="L90"></span>
+<span class="line" id="L91">    <span class="tok-comment">// given</span>
 </span>
-<span class="line" id="L91">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
-<span class="line" id="L92">    <span class="tok-kw">var</span> mem = <span class="tok-kw">try</span> Memory.init(allocator);</span>
-<span class="line" id="L93">    <span class="tok-kw">defer</span> mem.deinit();</span>
-<span class="line" id="L94"></span>
-<span class="line" id="L95">    <span class="tok-comment">// when</span>
+<span class="line" id="L92">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
+<span class="line" id="L93">    <span class="tok-kw">var</span> mem = <span class="tok-kw">try</span> Memory.init(allocator);</span>
+<span class="line" id="L94">    <span class="tok-kw">defer</span> mem.deinit();</span>
+<span class="line" id="L95"></span>
+<span class="line" id="L96">    <span class="tok-comment">// when</span>
 </span>
-<span class="line" id="L96">    <span class="tok-kw">var</span> address = Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">5</span>);</span>
-<span class="line" id="L97"></span>
-<span class="line" id="L98">    <span class="tok-comment">// then</span>
+<span class="line" id="L97">    <span class="tok-kw">var</span> address = Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">5</span>);</span>
+<span class="line" id="L98"></span>
+<span class="line" id="L99">    <span class="tok-comment">// then</span>
 </span>
-<span class="line" id="L99">    <span class="tok-kw">try</span> expectError(Error.InvalidBitwiseIndex, deduce(address, mem));</span>
-<span class="line" id="L100">}</span>
-<span class="line" id="L101"></span>
-<span class="line" id="L102"><span class="tok-kw">test</span> <span class="tok-str">&quot;deduce when address points to nothing in memory&quot;</span> {</span>
-<span class="line" id="L103"></span>
-<span class="line" id="L104">    <span class="tok-comment">// given</span>
+<span class="line" id="L100">    <span class="tok-kw">try</span> expectError(Error.InvalidBitwiseIndex, deduce(address, mem));</span>
+<span class="line" id="L101">}</span>
+<span class="line" id="L102"></span>
+<span class="line" id="L103"><span class="tok-kw">test</span> <span class="tok-str">&quot;deduce when address points to nothing in memory&quot;</span> {</span>
+<span class="line" id="L104"></span>
+<span class="line" id="L105">    <span class="tok-comment">// given</span>
 </span>
-<span class="line" id="L105">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
-<span class="line" id="L106">    <span class="tok-kw">var</span> mem = <span class="tok-kw">try</span> Memory.init(allocator);</span>
-<span class="line" id="L107">    <span class="tok-kw">defer</span> mem.deinit();</span>
-<span class="line" id="L108"></span>
-<span class="line" id="L109">    <span class="tok-comment">// when</span>
+<span class="line" id="L106">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
+<span class="line" id="L107">    <span class="tok-kw">var</span> mem = <span class="tok-kw">try</span> Memory.init(allocator);</span>
+<span class="line" id="L108">    <span class="tok-kw">defer</span> mem.deinit();</span>
+<span class="line" id="L109"></span>
+<span class="line" id="L110">    <span class="tok-comment">// when</span>
 </span>
-<span class="line" id="L110">    <span class="tok-kw">var</span> address = Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">3</span>);</span>
-<span class="line" id="L111"></span>
-<span class="line" id="L112">    <span class="tok-comment">// then</span>
+<span class="line" id="L111">    <span class="tok-kw">var</span> address = Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">3</span>);</span>
+<span class="line" id="L112"></span>
+<span class="line" id="L113">    <span class="tok-comment">// then</span>
 </span>
-<span class="line" id="L113">    <span class="tok-kw">try</span> expectError(Error.InvalidAddressForBitwise, deduce(address, mem));</span>
-<span class="line" id="L114">}</span>
-<span class="line" id="L115"></span>
-<span class="line" id="L116"><span class="tok-kw">test</span> <span class="tok-str">&quot;deduce when address points to relocatable variant of MaybeRelocatable &quot;</span> {</span>
-<span class="line" id="L117"></span>
-<span class="line" id="L118">    <span class="tok-comment">// given</span>
+<span class="line" id="L114">    <span class="tok-kw">try</span> expectError(Error.InvalidAddressForBitwise, deduce(address, mem));</span>
+<span class="line" id="L115">}</span>
+<span class="line" id="L116"></span>
+<span class="line" id="L117"><span class="tok-kw">test</span> <span class="tok-str">&quot;deduce when address points to relocatable variant of MaybeRelocatable &quot;</span> {</span>
+<span class="line" id="L118"></span>
+<span class="line" id="L119">    <span class="tok-comment">// given</span>
 </span>
-<span class="line" id="L119">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
-<span class="line" id="L120">    <span class="tok-kw">var</span> mem = <span class="tok-kw">try</span> Memory.init(allocator);</span>
-<span class="line" id="L121">    <span class="tok-kw">defer</span> mem.deinit();</span>
-<span class="line" id="L122"></span>
-<span class="line" id="L123">    <span class="tok-comment">// when</span>
+<span class="line" id="L120">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
+<span class="line" id="L121">    <span class="tok-kw">var</span> mem = <span class="tok-kw">try</span> Memory.init(allocator);</span>
+<span class="line" id="L122">    <span class="tok-kw">defer</span> mem.deinit();</span>
+<span class="line" id="L123"></span>
+<span class="line" id="L124">    <span class="tok-comment">// when</span>
 </span>
-<span class="line" id="L124">    <span class="tok-kw">var</span> address = Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">3</span>);</span>
-<span class="line" id="L125"></span>
-<span class="line" id="L126">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">5</span>), newFromRelocatable(address));</span>
-<span class="line" id="L127"></span>
-<span class="line" id="L128">    <span class="tok-comment">// then</span>
+<span class="line" id="L125">    <span class="tok-kw">var</span> address = Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">3</span>);</span>
+<span class="line" id="L126"></span>
+<span class="line" id="L127">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">5</span>), newFromRelocatable(address));</span>
+<span class="line" id="L128"></span>
+<span class="line" id="L129">    <span class="tok-comment">// then</span>
 </span>
-<span class="line" id="L129">    <span class="tok-kw">try</span> expectError(Error.InvalidAddressForBitwise, deduce(address, mem));</span>
-<span class="line" id="L130">}</span>
-<span class="line" id="L131"></span>
-<span class="line" id="L132"><span class="tok-kw">test</span> <span class="tok-str">&quot;deduce when address points to felt greater than BITWISE_TOTAL_N_BITS&quot;</span> {</span>
-<span class="line" id="L133"></span>
-<span class="line" id="L134">    <span class="tok-comment">// given</span>
+<span class="line" id="L130">    <span class="tok-kw">try</span> expectError(Error.InvalidAddressForBitwise, deduce(address, mem));</span>
+<span class="line" id="L131">}</span>
+<span class="line" id="L132"></span>
+<span class="line" id="L133"><span class="tok-kw">test</span> <span class="tok-str">&quot;deduce when address points to felt greater than BITWISE_TOTAL_N_BITS&quot;</span> {</span>
+<span class="line" id="L134"></span>
+<span class="line" id="L135">    <span class="tok-comment">// given</span>
 </span>
-<span class="line" id="L135">    <span class="tok-kw">const</span> number = std.math.pow(<span class="tok-type">u256</span>, <span class="tok-number">2</span>, BITWISE_TOTAL_N_BITS) + <span class="tok-number">1</span>;</span>
-<span class="line" id="L136">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
-<span class="line" id="L137">    <span class="tok-kw">var</span> mem = <span class="tok-kw">try</span> Memory.init(allocator);</span>
-<span class="line" id="L138">    <span class="tok-kw">defer</span> mem.deinit();</span>
-<span class="line" id="L139"></span>
-<span class="line" id="L140">    <span class="tok-comment">// when</span>
+<span class="line" id="L136">    <span class="tok-kw">const</span> number = std.math.pow(<span class="tok-type">u256</span>, <span class="tok-number">2</span>, BITWISE_TOTAL_N_BITS) + <span class="tok-number">1</span>;</span>
+<span class="line" id="L137">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
+<span class="line" id="L138">    <span class="tok-kw">var</span> mem = <span class="tok-kw">try</span> Memory.init(allocator);</span>
+<span class="line" id="L139">    <span class="tok-kw">defer</span> mem.deinit();</span>
+<span class="line" id="L140"></span>
+<span class="line" id="L141">    <span class="tok-comment">// when</span>
 </span>
-<span class="line" id="L141">    <span class="tok-kw">var</span> address = Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">3</span>);</span>
-<span class="line" id="L142"></span>
-<span class="line" id="L143">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">0</span>), fromFelt(Felt252.fromInteger(number)));</span>
-<span class="line" id="L144"></span>
-<span class="line" id="L145">    <span class="tok-comment">// then</span>
-</span>
-<span class="line" id="L146">    <span class="tok-kw">try</span> expectError(Error.UnsupportedNumberOfBits, deduce(address, mem));</span>
-<span class="line" id="L147">}</span>
+<span class="line" id="L142">    <span class="tok-kw">var</span> address = Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">3</span>);</span>
+<span class="line" id="L143"></span>
+<span class="line" id="L144">    <span class="tok-kw">try</span> mem.set(Relocatable.new(</span>
+<span class="line" id="L145">        <span class="tok-number">0</span>,</span>
+<span class="line" id="L146">        <span class="tok-number">0</span>,</span>
+<span class="line" id="L147">    ), fromU256(number));</span>
 <span class="line" id="L148"></span>
-<span class="line" id="L149"><span class="tok-comment">// happy path tests graciously ported from https://github.com/lambdaclass/cairo-vm_in_go/blob/main/pkg/builtins/bitwise_test.go#L13</span>
+<span class="line" id="L149">    <span class="tok-comment">// then</span>
 </span>
-<span class="line" id="L150"><span class="tok-kw">test</span> <span class="tok-str">&quot;valid bitwise and&quot;</span> {</span>
-<span class="line" id="L151"></span>
-<span class="line" id="L152">    <span class="tok-comment">// given</span>
+<span class="line" id="L150">    <span class="tok-kw">try</span> expectError(Error.UnsupportedNumberOfBits, deduce(address, mem));</span>
+<span class="line" id="L151">}</span>
+<span class="line" id="L152"></span>
+<span class="line" id="L153"><span class="tok-comment">// happy path tests graciously ported from https://github.com/lambdaclass/cairo-vm_in_go/blob/main/pkg/builtins/bitwise_test.go#L13</span>
 </span>
-<span class="line" id="L153">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
-<span class="line" id="L154">    <span class="tok-kw">var</span> mem = <span class="tok-kw">try</span> Memory.init(allocator);</span>
-<span class="line" id="L155">    <span class="tok-kw">defer</span> mem.deinit();</span>
-<span class="line" id="L156"></span>
-<span class="line" id="L157">    <span class="tok-comment">// when</span>
+<span class="line" id="L154"><span class="tok-kw">test</span> <span class="tok-str">&quot;valid bitwise and&quot;</span> {</span>
+<span class="line" id="L155"></span>
+<span class="line" id="L156">    <span class="tok-comment">// given</span>
 </span>
-<span class="line" id="L158">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">5</span>), fromFelt(Felt252.fromInteger(<span class="tok-number">10</span>)));</span>
-<span class="line" id="L159">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">6</span>), fromFelt(Felt252.fromInteger(<span class="tok-number">12</span>)));</span>
-<span class="line" id="L160">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">7</span>), fromFelt(Felt252.fromInteger(<span class="tok-number">0</span>)));</span>
-<span class="line" id="L161"></span>
-<span class="line" id="L162">    <span class="tok-kw">var</span> address = Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">7</span>);</span>
-<span class="line" id="L163">    <span class="tok-kw">var</span> expected = MaybeRelocatable{ .felt = Felt252.fromInteger(<span class="tok-number">8</span>) };</span>
-<span class="line" id="L164"></span>
-<span class="line" id="L165">    <span class="tok-comment">// then</span>
+<span class="line" id="L157">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
+<span class="line" id="L158">    <span class="tok-kw">var</span> mem = <span class="tok-kw">try</span> Memory.init(allocator);</span>
+<span class="line" id="L159">    <span class="tok-kw">defer</span> mem.deinit();</span>
+<span class="line" id="L160"></span>
+<span class="line" id="L161">    <span class="tok-comment">// when</span>
 </span>
-<span class="line" id="L166">    <span class="tok-kw">var</span> result = deduce(address, mem);</span>
-<span class="line" id="L167">    <span class="tok-kw">try</span> expectEqual(result, expected);</span>
-<span class="line" id="L168">}</span>
-<span class="line" id="L169"></span>
-<span class="line" id="L170"><span class="tok-kw">test</span> <span class="tok-str">&quot;valid bitwise xor&quot;</span> {</span>
-<span class="line" id="L171"></span>
-<span class="line" id="L172">    <span class="tok-comment">// given</span>
+<span class="line" id="L162">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">5</span>), fromU256(<span class="tok-number">10</span>));</span>
+<span class="line" id="L163">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">6</span>), fromU256(<span class="tok-number">12</span>));</span>
+<span class="line" id="L164">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">7</span>), fromU256(<span class="tok-number">0</span>));</span>
+<span class="line" id="L165"></span>
+<span class="line" id="L166">    <span class="tok-kw">var</span> address = Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">7</span>);</span>
+<span class="line" id="L167">    <span class="tok-kw">var</span> expected = MaybeRelocatable{ .felt = Felt252.fromInteger(<span class="tok-number">8</span>) };</span>
+<span class="line" id="L168"></span>
+<span class="line" id="L169">    <span class="tok-comment">// then</span>
 </span>
-<span class="line" id="L173">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
-<span class="line" id="L174">    <span class="tok-kw">var</span> mem = <span class="tok-kw">try</span> Memory.init(allocator);</span>
-<span class="line" id="L175">    <span class="tok-kw">defer</span> mem.deinit();</span>
-<span class="line" id="L176"></span>
-<span class="line" id="L177">    <span class="tok-comment">// when</span>
+<span class="line" id="L170">    <span class="tok-kw">var</span> result = deduce(address, mem);</span>
+<span class="line" id="L171">    <span class="tok-kw">try</span> expectEqual(result, expected);</span>
+<span class="line" id="L172">}</span>
+<span class="line" id="L173"></span>
+<span class="line" id="L174"><span class="tok-kw">test</span> <span class="tok-str">&quot;valid bitwise xor&quot;</span> {</span>
+<span class="line" id="L175"></span>
+<span class="line" id="L176">    <span class="tok-comment">// given</span>
 </span>
-<span class="line" id="L178">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">5</span>), fromFelt(Felt252.fromInteger(<span class="tok-number">10</span>)));</span>
-<span class="line" id="L179">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">6</span>), fromFelt(Felt252.fromInteger(<span class="tok-number">12</span>)));</span>
-<span class="line" id="L180">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">8</span>), fromFelt(Felt252.fromInteger(<span class="tok-number">0</span>)));</span>
-<span class="line" id="L181"></span>
-<span class="line" id="L182">    <span class="tok-kw">var</span> address = Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">8</span>);</span>
-<span class="line" id="L183">    <span class="tok-kw">var</span> expected = MaybeRelocatable{ .felt = Felt252.fromInteger(<span class="tok-number">6</span>) };</span>
-<span class="line" id="L184"></span>
-<span class="line" id="L185">    <span class="tok-comment">// then</span>
+<span class="line" id="L177">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
+<span class="line" id="L178">    <span class="tok-kw">var</span> mem = <span class="tok-kw">try</span> Memory.init(allocator);</span>
+<span class="line" id="L179">    <span class="tok-kw">defer</span> mem.deinit();</span>
+<span class="line" id="L180"></span>
+<span class="line" id="L181">    <span class="tok-comment">// when</span>
 </span>
-<span class="line" id="L186">    <span class="tok-kw">var</span> result = deduce(address, mem);</span>
-<span class="line" id="L187">    <span class="tok-kw">try</span> expectEqual(result, expected);</span>
-<span class="line" id="L188">}</span>
-<span class="line" id="L189"></span>
-<span class="line" id="L190"><span class="tok-kw">test</span> <span class="tok-str">&quot;valid bitwise or&quot;</span> {</span>
-<span class="line" id="L191"></span>
-<span class="line" id="L192">    <span class="tok-comment">// given</span>
+<span class="line" id="L182">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">5</span>), fromU256(<span class="tok-number">10</span>));</span>
+<span class="line" id="L183">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">6</span>), fromU256(<span class="tok-number">12</span>));</span>
+<span class="line" id="L184">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">8</span>), fromU256(<span class="tok-number">0</span>));</span>
+<span class="line" id="L185"></span>
+<span class="line" id="L186">    <span class="tok-kw">var</span> address = Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">8</span>);</span>
+<span class="line" id="L187">    <span class="tok-kw">var</span> expected = MaybeRelocatable{ .felt = Felt252.fromInteger(<span class="tok-number">6</span>) };</span>
+<span class="line" id="L188"></span>
+<span class="line" id="L189">    <span class="tok-comment">// then</span>
 </span>
-<span class="line" id="L193">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
-<span class="line" id="L194">    <span class="tok-kw">var</span> mem = <span class="tok-kw">try</span> Memory.init(allocator);</span>
-<span class="line" id="L195">    <span class="tok-kw">defer</span> mem.deinit();</span>
-<span class="line" id="L196"></span>
-<span class="line" id="L197">    <span class="tok-comment">// when</span>
+<span class="line" id="L190">    <span class="tok-kw">var</span> result = deduce(address, mem);</span>
+<span class="line" id="L191">    <span class="tok-kw">try</span> expectEqual(result, expected);</span>
+<span class="line" id="L192">}</span>
+<span class="line" id="L193"></span>
+<span class="line" id="L194"><span class="tok-kw">test</span> <span class="tok-str">&quot;valid bitwise or&quot;</span> {</span>
+<span class="line" id="L195"></span>
+<span class="line" id="L196">    <span class="tok-comment">// given</span>
 </span>
-<span class="line" id="L198">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">5</span>), fromFelt(Felt252.fromInteger(<span class="tok-number">10</span>)));</span>
-<span class="line" id="L199">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">6</span>), fromFelt(Felt252.fromInteger(<span class="tok-number">12</span>)));</span>
-<span class="line" id="L200">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">9</span>), fromFelt(Felt252.fromInteger(<span class="tok-number">0</span>)));</span>
-<span class="line" id="L201"></span>
-<span class="line" id="L202">    <span class="tok-kw">var</span> address = Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">9</span>);</span>
-<span class="line" id="L203">    <span class="tok-kw">var</span> expected = MaybeRelocatable{ .felt = Felt252.fromInteger(<span class="tok-number">14</span>) };</span>
-<span class="line" id="L204"></span>
-<span class="line" id="L205">    <span class="tok-comment">// then</span>
+<span class="line" id="L197">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
+<span class="line" id="L198">    <span class="tok-kw">var</span> mem = <span class="tok-kw">try</span> Memory.init(allocator);</span>
+<span class="line" id="L199">    <span class="tok-kw">defer</span> mem.deinit();</span>
+<span class="line" id="L200"></span>
+<span class="line" id="L201">    <span class="tok-comment">// when</span>
 </span>
-<span class="line" id="L206">    <span class="tok-kw">var</span> result = deduce(address, mem);</span>
-<span class="line" id="L207">    <span class="tok-kw">try</span> expectEqual(result, expected);</span>
-<span class="line" id="L208">}</span>
-<span class="line" id="L209"></span>
+<span class="line" id="L202">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">5</span>), fromU256(<span class="tok-number">10</span>));</span>
+<span class="line" id="L203">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">6</span>), fromU256(<span class="tok-number">12</span>));</span>
+<span class="line" id="L204">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">9</span>), fromU256(<span class="tok-number">0</span>));</span>
+<span class="line" id="L205"></span>
+<span class="line" id="L206">    <span class="tok-kw">var</span> address = Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">9</span>);</span>
+<span class="line" id="L207">    <span class="tok-kw">var</span> expected = MaybeRelocatable{ .felt = Felt252.fromInteger(<span class="tok-number">14</span>) };</span>
+<span class="line" id="L208"></span>
+<span class="line" id="L209">    <span class="tok-comment">// then</span>
+</span>
+<span class="line" id="L210">    <span class="tok-kw">var</span> result = deduce(address, mem);</span>
+<span class="line" id="L211">    <span class="tok-kw">try</span> expectEqual(result, expected);</span>
+<span class="line" id="L212">}</span>
+<span class="line" id="L213"></span>
 </code></pre></body>
 </html>
