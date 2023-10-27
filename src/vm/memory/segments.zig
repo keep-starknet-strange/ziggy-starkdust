@@ -1,10 +1,13 @@
 // Core imports.
 const std = @import("std");
+const print = @import("std").debug.print;
 const Allocator = std.mem.Allocator;
+const expect = std.testing.expect;
 
 // Local imports.
 const Memory = @import("memory.zig").Memory;
 const relocatable = @import("relocatable.zig");
+const starknet_felt = @import("../../math/fields/starknet.zig");
 
 // MemorySegmentManager manages the list of memory segments.
 // Also holds metadata useful for the relocation process of
@@ -119,19 +122,55 @@ test "memory segment manager" {
     const relocatable_address_1 = memory_segment_manager.addSegment();
 
     // Check that the memory segment manager has one segment.
-    try std.testing.expect(memory_segment_manager.memory.num_segments == 1);
+    try expect(memory_segment_manager.memory.num_segments == 1);
 
     // Check if the relocatable address is correct.
-    try std.testing.expect(relocatable_address_1.segment_index == 0);
-    try std.testing.expect(relocatable_address_1.offset == 0);
+    try expect(relocatable_address_1.segment_index == 0);
+    try expect(relocatable_address_1.offset == 0);
 
     // Allocate another memory segment.
     const relocatable_address_2 = memory_segment_manager.addSegment();
 
     // Check that the memory segment manager has two segments.
-    try std.testing.expect(memory_segment_manager.memory.num_segments == 2);
+    try expect(memory_segment_manager.memory.num_segments == 2);
 
     // Check if the relocatable address is correct.
-    try std.testing.expect(relocatable_address_2.segment_index == 1);
-    try std.testing.expect(relocatable_address_2.offset == 0);
+    try expect(relocatable_address_2.segment_index == 1);
+    try expect(relocatable_address_2.offset == 0);
+}
+
+test "set get integer value in segment memory" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    var allocator = std.testing.allocator;
+
+    // Initialize a memory segment manager.
+    var memory_segment_manager = try MemorySegmentManager.init(&allocator);
+    defer memory_segment_manager.deinit();
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    _ = memory_segment_manager.addSegment();
+    _ = memory_segment_manager.addSegment();
+
+    const address = relocatable.Relocatable.new(0, 0);
+    const value = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(42));
+
+    const wrong_address = relocatable.Relocatable.new(0, 1);
+
+    _ = try memory_segment_manager.memory.set(address, value);
+
+    try expect(memory_segment_manager.memory.data.contains(address));
+    try expect(!memory_segment_manager.memory.data.contains(wrong_address));
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    const actual_value = try memory_segment_manager.memory.get(address);
+    const expected_value = value;
+
+    try expect(expected_value.eq(actual_value));
 }

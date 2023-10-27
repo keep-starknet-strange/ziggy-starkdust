@@ -120,6 +120,9 @@ pub const Memory = struct {
 };
 
 test "memory get without value raises error" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
 
@@ -127,6 +130,9 @@ test "memory get without value raises error" {
     var memory = try Memory.init(allocator);
     defer memory.deinit();
 
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
     // Get a value from the memory at an address that doesn't exist.
     _ = memory.get(relocatable.Relocatable.new(
         0,
@@ -139,6 +145,9 @@ test "memory get without value raises error" {
 }
 
 test "memory set and get" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
 
@@ -146,10 +155,10 @@ test "memory set and get" {
     var memory = try Memory.init(allocator);
     defer memory.deinit();
 
-    const address_1 = relocatable.Relocatable.new(
-        0,
-        0,
-    );
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    const address_1 = relocatable.Relocatable.new(0, 0);
     const value_1 = relocatable.fromFelt(starknet_felt.Felt252.one());
 
     // Set a value into the memory.
@@ -161,6 +170,9 @@ test "memory set and get" {
     // Get the value from the memory.
     const maybe_value_1 = try memory.get(address_1);
 
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
     // Assert that the value is the expected value.
     try expect(maybe_value_1.eq(value_1));
 }
