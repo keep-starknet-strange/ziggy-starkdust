@@ -162,7 +162,7 @@ pub const CairoVM = struct {
         );
         const op_1_op = try self.segments.memory.get(op_1_addr);
 
-        const res = try self.computeRes(instruction, op_0_op, op_1_op);
+        const res = try computeRes(instruction, op_0_op, op_1_op);
 
         // Deduce the operands if they haven't been successfully retrieved from memory.
         // TODO: Implement this.
@@ -199,55 +199,6 @@ pub const CairoVM = struct {
         _ = instruction;
         const op_o = try self.deduceMemoryCell(op_0_addr);
         _ = op_o;
-    }
-
-    /// Compute the result operand for a given instruction on op 0 and op 1.
-    /// # Arguments
-    /// - `instruction`: The instruction to compute the operands for.
-    /// - `op_0`: The operand 0.
-    /// - `op_1`: The operand 1.
-    /// # Returns
-    /// - `res`: The result of the operation.
-    pub fn computeRes(self: *CairoVM, instruction: *const Instruction, op_0: relocatable.MaybeRelocatable, op_1: relocatable.MaybeRelocatable) error{ AddRelocToRelocForbidden, MulRelocForbidden, TypeMismatchNotFelt, TypeMismatchNotRelocatable, ValueTooLarge }!relocatable.MaybeRelocatable {
-        _ = self;
-
-        var res = switch (instruction.res_logic) {
-            // Simply return the op_1.
-            instructions.ResLogic.Op1 => op_1,
-            instructions.ResLogic.Add => {
-                // Check that at least one of the operands is a felt.
-                // Add two felts, or add felt to relocatable's offset.
-                if (op_0.isRelocatable() and op_1.isRelocatable()) {
-                    return error.AddRelocToRelocForbidden;
-                } else if (op_0.isRelocatable() and !op_1.isRelocatable()) {
-                    var op_0_reloc = try op_0.tryIntoRelocatable();
-                    var op_1_felt = try op_1.tryIntoFelt();
-                    try op_0_reloc.addFeltInPlace(op_1_felt);
-                    return relocatable.newFromRelocatable(op_0_reloc);
-                } else if (op_1.isRelocatable() and !op_0.isRelocatable()) {
-                    var op_1_reloc = try op_1.tryIntoRelocatable();
-                    var op_0_felt = try op_0.tryIntoFelt();
-                    try op_1_reloc.addFeltInPlace(op_0_felt);
-                    return relocatable.newFromRelocatable(op_1_reloc);
-                } else {
-                    var op_0_felt = try op_0.tryIntoFelt();
-                    var op_1_felt = try op_1.tryIntoFelt();
-                    return relocatable.fromFelt(op_0_felt.add(op_1_felt));
-                }
-            },
-            instructions.ResLogic.Mul => {
-                // Check that both operands are felts.
-                if (!op_0.isRelocatable() and !op_1.isRelocatable()) {
-                    var op_0_felt = try op_0.tryIntoFelt();
-                    var op_1_felt = try op_1.tryIntoFelt();
-                    return relocatable.fromFelt(op_0_felt.mul(op_1_felt));
-                } else {
-                    return error.MulRelocForbidden;
-                }
-            },
-            instructions.ResLogic.Unconstrained => null,
-        };
-        return res.?;
     }
 
     /// Applies the corresponding builtin's deduction rules if addr's segment index corresponds to a builtin segment
@@ -436,6 +387,63 @@ pub const CairoVM = struct {
         return self.run_context.pc.*;
     }
 };
+
+/// Compute the result operand for a given instruction on op 0 and op 1.
+/// # Arguments
+/// - `instruction`: The instruction to compute the operands for.
+/// - `op_0`: The operand 0.
+/// - `op_1`: The operand 1.
+/// # Returns
+/// - `res`: The result of the operation.
+pub fn computeRes(
+    instruction: *const Instruction,
+    op_0: relocatable.MaybeRelocatable,
+    op_1: relocatable.MaybeRelocatable,
+) error{
+    AddRelocToRelocForbidden,
+    MulRelocForbidden,
+    TypeMismatchNotFelt,
+    TypeMismatchNotRelocatable,
+    ValueTooLarge,
+}!relocatable.MaybeRelocatable {
+    var res = switch (instruction.res_logic) {
+        // Simply return the op_1.
+        instructions.ResLogic.Op1 => op_1,
+        instructions.ResLogic.Add => {
+            // Check that at least one of the operands is a felt.
+            // Add two felts, or add felt to relocatable's offset.
+            if (op_0.isRelocatable() and op_1.isRelocatable()) {
+                return error.AddRelocToRelocForbidden;
+            } else if (op_0.isRelocatable() and !op_1.isRelocatable()) {
+                var op_0_reloc = try op_0.tryIntoRelocatable();
+                var op_1_felt = try op_1.tryIntoFelt();
+                try op_0_reloc.addFeltInPlace(op_1_felt);
+                return relocatable.newFromRelocatable(op_0_reloc);
+            } else if (op_1.isRelocatable() and !op_0.isRelocatable()) {
+                var op_1_reloc = try op_1.tryIntoRelocatable();
+                var op_0_felt = try op_0.tryIntoFelt();
+                try op_1_reloc.addFeltInPlace(op_0_felt);
+                return relocatable.newFromRelocatable(op_1_reloc);
+            } else {
+                var op_0_felt = try op_0.tryIntoFelt();
+                var op_1_felt = try op_1.tryIntoFelt();
+                return relocatable.fromFelt(op_0_felt.add(op_1_felt));
+            }
+        },
+        instructions.ResLogic.Mul => {
+            // Check that both operands are felts.
+            if (!op_0.isRelocatable() and !op_1.isRelocatable()) {
+                var op_0_felt = try op_0.tryIntoFelt();
+                var op_1_felt = try op_1.tryIntoFelt();
+                return relocatable.fromFelt(op_0_felt.mul(op_1_felt));
+            } else {
+                return error.MulRelocForbidden;
+            }
+        },
+        instructions.ResLogic.Unconstrained => null,
+    };
+    return res.?;
+}
 
 // *****************************************************************************
 // *                       CUSTOM TYPES                                        *
@@ -1082,13 +1090,25 @@ test "set get value in vm memory" {
     try expectEqual(expected_value, actual_value);
 }
 
-test "compute res add works" {
+test "compute res op1 works" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = Instruction{ .off_0 = 0, .off_1 = 1, .off_2 = 2, .dst_reg = instructions.Register.AP, .op_0_reg = instructions.Register.AP, .op_1_addr = instructions.Op1Src.AP, .res_logic = instructions.ResLogic.Add, .pc_update = instructions.PcUpdate.Regular, .ap_update = instructions.ApUpdate.Regular, .fp_update = instructions.FpUpdate.Regular, .opcode = instructions.Opcode.NOp };
+    var instruction = Instruction{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = instructions.Register.AP,
+        .op_0_reg = instructions.Register.AP,
+        .op_1_addr = instructions.Op1Src.AP,
+        .res_logic = instructions.ResLogic.Op1,
+        .pc_update = instructions.PcUpdate.Regular,
+        .ap_update = instructions.ApUpdate.Regular,
+        .fp_update = instructions.FpUpdate.Regular,
+        .opcode = instructions.Opcode.NOp,
+    };
 
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -1102,7 +1122,48 @@ test "compute res add works" {
     const value_op0 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
     const value_op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
 
-    const actual_res = try vm.computeRes(&instruction, value_op0, value_op1);
+    const actual_res = try computeRes(&instruction, value_op0, value_op1);
+    const expected_res = value_op1;
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    try expectEqual(expected_res, actual_res);
+}
+
+test "compute res add felts works" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    var allocator = std.testing.allocator;
+    var instruction = Instruction{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = instructions.Register.AP,
+        .op_0_reg = instructions.Register.AP,
+        .op_1_addr = instructions.Op1Src.AP,
+        .res_logic = instructions.ResLogic.Add,
+        .pc_update = instructions.PcUpdate.Regular,
+        .ap_update = instructions.ApUpdate.Regular,
+        .fp_update = instructions.FpUpdate.Regular,
+        .opcode = instructions.Opcode.NOp,
+    };
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    vm.run_context.ap.* = relocatable.Relocatable.new(1, 0);
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+
+    const value_op0 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+    const value_op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+
+    const actual_res = try computeRes(&instruction, value_op0, value_op1);
     const expected_res = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(5));
 
     // ************************************************************
@@ -1111,13 +1172,25 @@ test "compute res add works" {
     try expectEqual(expected_res, actual_res);
 }
 
-test "compute res mul works" {
+test "compute res add felt to offset works" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = Instruction{ .off_0 = 0, .off_1 = 1, .off_2 = 2, .dst_reg = instructions.Register.AP, .op_0_reg = instructions.Register.AP, .op_1_addr = instructions.Op1Src.AP, .res_logic = instructions.ResLogic.Mul, .pc_update = instructions.PcUpdate.Regular, .ap_update = instructions.ApUpdate.Regular, .fp_update = instructions.FpUpdate.Regular, .opcode = instructions.Opcode.NOp };
+    var instruction = Instruction{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = instructions.Register.AP,
+        .op_0_reg = instructions.Register.AP,
+        .op_1_addr = instructions.Op1Src.AP,
+        .res_logic = instructions.ResLogic.Add,
+        .pc_update = instructions.PcUpdate.Regular,
+        .ap_update = instructions.ApUpdate.Regular,
+        .fp_update = instructions.FpUpdate.Regular,
+        .opcode = instructions.Opcode.NOp,
+    };
 
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -1128,11 +1201,14 @@ test "compute res mul works" {
     // *                      TEST BODY                           *
     // ************************************************************
 
-    const value_op0 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
-    const value_op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const value_op0 = relocatable.Relocatable.new(1, 1);
+    const op0 = relocatable.newFromRelocatable(value_op0);
 
-    const actual_res = try vm.computeRes(&instruction, value_op0, value_op1);
-    const expected_res = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(6));
+    const op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+
+    const actual_res = try computeRes(&instruction, op0, op1);
+    const res = relocatable.Relocatable.new(1, 4);
+    const expected_res = relocatable.newFromRelocatable(res);
 
     // ************************************************************
     // *                      TEST CHECKS                         *
@@ -1140,13 +1216,25 @@ test "compute res mul works" {
     try expectEqual(expected_res, actual_res);
 }
 
-test "compute res fails two relocs" {
+test "compute res add fails two relocs" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
     // Initialize an allocator.
     var allocator = std.testing.allocator;
-    var instruction = Instruction{ .off_0 = 0, .off_1 = 1, .off_2 = 2, .dst_reg = instructions.Register.AP, .op_0_reg = instructions.Register.AP, .op_1_addr = instructions.Op1Src.AP, .res_logic = instructions.ResLogic.Mul, .pc_update = instructions.PcUpdate.Regular, .ap_update = instructions.ApUpdate.Regular, .fp_update = instructions.FpUpdate.Regular, .opcode = instructions.Opcode.NOp };
+    var instruction = Instruction{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = instructions.Register.AP,
+        .op_0_reg = instructions.Register.AP,
+        .op_1_addr = instructions.Op1Src.AP,
+        .res_logic = instructions.ResLogic.Add,
+        .pc_update = instructions.PcUpdate.Regular,
+        .ap_update = instructions.ApUpdate.Regular,
+        .fp_update = instructions.FpUpdate.Regular,
+        .opcode = instructions.Opcode.NOp,
+    };
 
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -1166,5 +1254,126 @@ test "compute res fails two relocs" {
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
-    try expectError(error.MulRelocForbidden, vm.computeRes(&instruction, op0, op1));
+    try expectError(error.AddRelocToRelocForbidden, computeRes(&instruction, op0, op1));
+}
+
+test "compute res mul works" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    var allocator = std.testing.allocator;
+    var instruction = Instruction{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = instructions.Register.AP,
+        .op_0_reg = instructions.Register.AP,
+        .op_1_addr = instructions.Op1Src.AP,
+        .res_logic = instructions.ResLogic.Mul,
+        .pc_update = instructions.PcUpdate.Regular,
+        .ap_update = instructions.ApUpdate.Regular,
+        .fp_update = instructions.FpUpdate.Regular,
+        .opcode = instructions.Opcode.NOp,
+    };
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    vm.run_context.ap.* = relocatable.Relocatable.new(1, 0);
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+
+    const value_op0 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+    const value_op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+
+    const actual_res = try computeRes(&instruction, value_op0, value_op1);
+    const expected_res = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(6));
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    try expectEqual(expected_res, actual_res);
+}
+
+test "compute res mul fails two relocs" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    var allocator = std.testing.allocator;
+    var instruction = Instruction{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = instructions.Register.AP,
+        .op_0_reg = instructions.Register.AP,
+        .op_1_addr = instructions.Op1Src.AP,
+        .res_logic = instructions.ResLogic.Mul,
+        .pc_update = instructions.PcUpdate.Regular,
+        .ap_update = instructions.ApUpdate.Regular,
+        .fp_update = instructions.FpUpdate.Regular,
+        .opcode = instructions.Opcode.NOp,
+    };
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    vm.run_context.ap.* = relocatable.Relocatable.new(1, 0);
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+
+    const value_op0 = relocatable.Relocatable.new(1, 0);
+    const value_op1 = relocatable.Relocatable.new(1, 1);
+
+    const op0 = relocatable.newFromRelocatable(value_op0);
+    const op1 = relocatable.newFromRelocatable(value_op1);
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    try expectError(error.MulRelocForbidden, computeRes(&instruction, op0, op1));
+}
+
+test "compute res mul fails felt and reloc" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    var allocator = std.testing.allocator;
+    var instruction = Instruction{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = instructions.Register.AP,
+        .op_0_reg = instructions.Register.AP,
+        .op_1_addr = instructions.Op1Src.AP,
+        .res_logic = instructions.ResLogic.Mul,
+        .pc_update = instructions.PcUpdate.Regular,
+        .ap_update = instructions.ApUpdate.Regular,
+        .fp_update = instructions.FpUpdate.Regular,
+        .opcode = instructions.Opcode.NOp,
+    };
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    vm.run_context.ap.* = relocatable.Relocatable.new(1, 0);
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+
+    const value_op0 = relocatable.Relocatable.new(1, 0);
+    const op0 = relocatable.newFromRelocatable(value_op0);
+    const op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    try expectError(error.MulRelocForbidden, computeRes(&instruction, op0, op1));
 }
