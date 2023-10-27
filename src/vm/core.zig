@@ -472,12 +472,14 @@ pub fn mulOperands(
         return CairoVMError.MulRelocForbidden;
     }
 
-    // Check that both operands are felts.
-    if (!op_0.isRelocatable() and !op_1.isRelocatable()) {
-        var op_0_felt = try op_0.tryIntoFelt();
-        var op_1_felt = try op_1.tryIntoFelt();
-        return relocatable.fromFelt(op_0_felt.mul(op_1_felt));
+    // One of the operands is relocatable, the other is felt
+    if (op_0.isRelocatable() or op_1.isRelocatable()) {
+        return CairoVMError.MulRelocForbidden;
     }
+
+    var op_0_felt = try op_0.tryIntoFelt();
+    var op_1_felt = try op_1.tryIntoFelt();
+    return relocatable.fromFelt(op_0_felt.mul(op_1_felt));
 }
 
 // *****************************************************************************
