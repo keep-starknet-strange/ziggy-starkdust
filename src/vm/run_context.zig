@@ -109,7 +109,7 @@ pub const RunContext = struct {
             // Convert i16 to u64 safely
             const offset = @as(
                 u64,
-                @intCast(instruction.off_2),
+                @intCast(instruction.off_0),
             );
             return try base_addr.addUint(offset);
         }
