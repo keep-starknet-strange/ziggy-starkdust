@@ -15,7 +15,7 @@ pub const MemorySegmentManager = struct {
     // *                        FIELDS                            *
     // ************************************************************
     /// The allocator used to allocate the memory.
-    allocator: *const Allocator,
+    allocator: Allocator,
     // The size of the used segments.
     segment_used_sizes: std.HashMap(
         u32,
@@ -50,7 +50,7 @@ pub const MemorySegmentManager = struct {
     // * `allocator` - The allocator to use for the HashMaps.
     // # Returns
     // A new MemorySegmentManager.
-    pub fn init(allocator: *const Allocator) !*MemorySegmentManager {
+    pub fn init(allocator: Allocator) !*MemorySegmentManager {
         // Create the pointer to the MemorySegmentManager.
         var segment_manager = try allocator.create(MemorySegmentManager);
         // Initialize the values of the MemorySegmentManager struct.
@@ -59,14 +59,14 @@ pub const MemorySegmentManager = struct {
             .segment_used_sizes = std.AutoHashMap(
                 u32,
                 u32,
-            ).init(allocator.*),
+            ).init(allocator),
             .segment_sizes = std.AutoHashMap(
                 u32,
                 u32,
-            ).init(allocator.*),
+            ).init(allocator),
             // Initialize the memory pointer.
             .memory = try Memory.init(allocator),
-            .public_memory_offsets = std.AutoHashMap(u32, u32).init(allocator.*),
+            .public_memory_offsets = std.AutoHashMap(u32, u32).init(allocator),
         };
         // Return the pointer to the MemorySegmentManager.
         return segment_manager;
@@ -112,7 +112,7 @@ test "memory segment manager" {
     var allocator = std.testing.allocator;
 
     // Initialize a memory segment manager.
-    var memory_segment_manager = try MemorySegmentManager.init(&allocator);
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
     defer memory_segment_manager.deinit();
 
     //Allocate a memory segment.
