@@ -399,50 +399,85 @@ pub fn computeRes(
     instruction: *const Instruction,
     op_0: relocatable.MaybeRelocatable,
     op_1: relocatable.MaybeRelocatable,
-) error{
-    AddRelocToRelocForbidden,
-    MulRelocForbidden,
-    TypeMismatchNotFelt,
-    TypeMismatchNotRelocatable,
-    ValueTooLarge,
-}!relocatable.MaybeRelocatable {
+) CairoVMError!relocatable.MaybeRelocatable {
     var res = switch (instruction.res_logic) {
-        // Simply return the op_1.
         instructions.ResLogic.Op1 => op_1,
         instructions.ResLogic.Add => {
-            // Check that at least one of the operands is a felt.
-            // Add two felts, or add felt to relocatable's offset.
-            if (op_0.isRelocatable() and op_1.isRelocatable()) {
-                return error.AddRelocToRelocForbidden;
-            } else if (op_0.isRelocatable() and !op_1.isRelocatable()) {
-                var op_0_reloc = try op_0.tryIntoRelocatable();
-                var op_1_felt = try op_1.tryIntoFelt();
-                try op_0_reloc.addFeltInPlace(op_1_felt);
-                return relocatable.newFromRelocatable(op_0_reloc);
-            } else if (op_1.isRelocatable() and !op_0.isRelocatable()) {
-                var op_1_reloc = try op_1.tryIntoRelocatable();
-                var op_0_felt = try op_0.tryIntoFelt();
-                try op_1_reloc.addFeltInPlace(op_0_felt);
-                return relocatable.newFromRelocatable(op_1_reloc);
-            } else {
-                var op_0_felt = try op_0.tryIntoFelt();
-                var op_1_felt = try op_1.tryIntoFelt();
-                return relocatable.fromFelt(op_0_felt.add(op_1_felt));
-            }
+            var sum = try addOperands(op_0, op_1);
+            return sum;
         },
         instructions.ResLogic.Mul => {
-            // Check that both operands are felts.
-            if (!op_0.isRelocatable() and !op_1.isRelocatable()) {
-                var op_0_felt = try op_0.tryIntoFelt();
-                var op_1_felt = try op_1.tryIntoFelt();
-                return relocatable.fromFelt(op_0_felt.mul(op_1_felt));
-            } else {
-                return error.MulRelocForbidden;
-            }
+            var product = try mulOperands(op_0, op_1);
+            return product;
         },
         instructions.ResLogic.Unconstrained => null,
     };
     return res.?;
+}
+
+/// Add two operands which can either be a "relocatable" or a "felt".
+/// The operation is allowed between:
+/// 1. A felt and another felt.
+/// 2. A felt and a relocatable.
+/// Adding two relocatables is forbidden.
+/// # Arguments
+/// - `op_0`: The operand 0.
+/// - `op_1`: The operand 1.
+/// # Returns
+/// - `MaybeRelocatable`: The result of the operation or an error.
+pub fn addOperands(
+    op_0: relocatable.MaybeRelocatable,
+    op_1: relocatable.MaybeRelocatable,
+) CairoVMError!relocatable.MaybeRelocatable {
+    // Both operands are relocatables, operation forbidden
+    if (op_0.isRelocatable() and op_1.isRelocatable()) {
+        return error.AddRelocToRelocForbidden;
+    }
+
+    // One of the operands is relocatable, the other is felt
+    if (op_0.isRelocatable() or op_1.isRelocatable()) {
+        // Determine which operand is relocatable and which one is felt
+        const reloc_op = if (op_0.isRelocatable()) op_0 else op_1;
+        const felt_op = if (op_0.isRelocatable()) op_1 else op_0;
+
+        var reloc = try reloc_op.tryIntoRelocatable();
+        var felt = try felt_op.tryIntoFelt();
+
+        // Add the felt to the relocatable's offset
+        try reloc.addFeltInPlace(felt);
+
+        return relocatable.newFromRelocatable(reloc);
+    }
+
+    // Both operands are felts
+    const op_0_felt = try op_0.tryIntoFelt();
+    const op_1_felt = try op_1.tryIntoFelt();
+
+    // Add the felts and return as a new felt wrapped in a relocatable
+    return relocatable.fromFelt(op_0_felt.add(op_1_felt));
+}
+
+/// Compute the product of two operands op 0 and op 1.
+/// # Arguments
+/// - `op_0`: The operand 0.
+/// - `op_1`: The operand 1.
+/// # Returns
+/// - `MaybeRelocatable`: The result of the operation or an error.
+pub fn mulOperands(
+    op_0: relocatable.MaybeRelocatable,
+    op_1: relocatable.MaybeRelocatable,
+) CairoVMError!relocatable.MaybeRelocatable {
+    // One of the operands is a relocatable, operation forbidden
+    if (op_0.isRelocatable() and op_1.isRelocatable()) {
+        return CairoVMError.MulRelocForbidden;
+    }
+
+    // Check that both operands are felts.
+    if (!op_0.isRelocatable() and !op_1.isRelocatable()) {
+        var op_0_felt = try op_0.tryIntoFelt();
+        var op_1_felt = try op_1.tryIntoFelt();
+        return relocatable.fromFelt(op_0_felt.mul(op_1_felt));
+    }
 }
 
 // *****************************************************************************

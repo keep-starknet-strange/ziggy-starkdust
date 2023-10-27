@@ -7,4 +7,6 @@ pub const CairoVMError = error{
     InstructionEncodingError,
     ParseResLogicError,
     TypeMismatchNotFelt,
+    TypeMismatchNotRelocatable,
+    ValueTooLarge,
 };
