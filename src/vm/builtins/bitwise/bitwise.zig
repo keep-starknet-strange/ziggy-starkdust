@@ -26,6 +26,11 @@ const BITWISE_INPUT_CELLS_PER_INSTANCE = 2;
 
 
 /// Retrieve the felt in memory that an address denotes as an integer.
+/// # Arguments
+/// - address: The address belonging to the Bitwise builtin's segment
+/// - memory: The cairo memory where addresses are looked up
+/// # Returns
+/// The felt as an integer.
 fn getValue(address: Relocatable, memory: *Memory) Error!u256 {
     var value = memory.get(address) catch {
         return Error.InvalidAddressForBitwise;
