@@ -1,6 +1,5 @@
 // Core imports.
 const std = @import("std");
-const print = @import("std").debug.print;
 const expect = @import("std").testing.expect;
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
