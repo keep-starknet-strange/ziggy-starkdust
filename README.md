@@ -9,6 +9,7 @@
 <br />
 
 <a href="https://github.com/keep-starknet-strange/cairo-zig/actions/workflows/test.yml"><img alt="GitHub Workflow Status (with event)" src="https://img.shields.io/github/actions/workflow/status/keep-starknet-strange/cairo-zig/test.yml?style=for-the-badge" height=30></a>
+<a href="https://securityscorecards.dev/viewer/?uri=github.com/keep-starknet-strange/cairo-zig"><img alt="OpenSSF Scorecard Report" src="https://img.shields.io/ossf-scorecard/github.com/keep-starknet-strange/cairo-zig?label=openssf%20scorecard&style=for-the-badge" height=30></a>
 <a href="https://github.com/keep-starknet-strange/cairo-zig/blob/main/LICENSE"><img src="https://img.shields.io/github/license/keep-starknet-strange/cairo-zig.svg?style=for-the-badge" alt="Project license" height="30"></a>
 <a href="https://twitter.com/StarknetZig"><img src="https://img.shields.io/twitter/follow/StarknetZig?style=for-the-badge&logo=twitter" alt="Follow StarknetZig on Twitter" height="30"></a>
 
@@ -70,6 +71,16 @@ You can display the help message by running:
 ```bash
 zig build test --summary all
 ```
+
+### 🔒 Security
+
+#### OpenSSF Scorecard
+
+We are using the [OpenSSF Scorecard](https://securityscorecards.dev/) to track the security of this project.
+
+Scorecard assesses open source projects for security risks through a series of automated checks.
+
+You can see the current scorecard for this project [here](https://securityscorecards.dev/viewer/?uri=github.com/keep-starknet-strange/cairo-zig).
 
 ## 🙏 Acknowledgments
 
