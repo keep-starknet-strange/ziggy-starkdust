@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD033 -->
+<!-- markdownlint-disable MD041 -->
 <p align="center">
   <img src="https://github.com/keep-starknet-strange/cairo-zig/blob/main/docs/kit/logo/starknet-zig-logo.png?raw=true" alt="Logo"/>
   <h1 align="center">cairo-zig</h1>
@@ -6,9 +8,9 @@
 <div align="center">
 <br />
 
-[![GitHub Workflow Status](https://github.com/keep-starknet-strange/cairo-zig/actions/workflows/test.yml/badge.svg)](https://github.com/keep-starknet-strange/cairo-zig/actions/workflows/test.yml)
-[![Project license](https://img.shields.io/github/license/keep-starknet-strange/cairo-zig.svg?style=flat-square)](LICENSE)
-[![Pull Requests welcome](https://img.shields.io/badge/PRs-welcome-ff69b4.svg?style=flat-square)](https://github.com/keep-starknet-strange/cairo-zig/issues?q=is%3Aissue+is%3Aopen+label%3A%22help+wanted%22)
+<img alt="GitHub Workflow Status (with event)" src="https://img.shields.io/github/actions/workflow/status/keep-starknet-strange/cairo-zig/test.yml?style=for-the-badge" height=30>
+<img src="https://img.shields.io/github/license/keep-starknet-strange/cairo-zig.svg?style=for-the-badge" alt="Project license" height="30">
+<img src="https://img.shields.io/twitter/follow/StarknetZig?style=for-the-badge&logo=twitter" alt="X (formerly Twitter) Follow" height="30">
 
 </div>
 
@@ -22,11 +24,26 @@
 
 Alternatively, if you have [nix](https://nixos.org/) installed, you can get the full development environment `nix develop`.
 
-## ⚡ Wanna learn Zig fast?
+## ⚡ Wanna get up to speed fast?
+
+<details>
+  <summary>👇 ⚡ Zig </summary>
 
 - [Zig language reference](https://ziglang.org/documentation/master/)
 - [Zig Learn](https://ziglearn.org/)
 - [Ziglings](https://ziglings.org/)
+
+</details>
+
+<details>
+  <summary>👇 🐺 Cairo VM </summary>
+
+- [Cairo Whitepaper](https://eprint.iacr.org/2021/1063.pdf)
+- [OG Cairo VM in Python](https://github.com/starkware-libs/cairo-lang/tree/master/src/starkware/cairo/lang/vm)
+- [Cairo VM in Rust](https://github.com/lambdaclass/cairo-vm)
+- [Cairo VM in Go](https://github.com/lambdaclass/cairo-vm_in_go)
+
+</details>
 
 ## 🔧 Build
 
@@ -44,7 +61,7 @@ You can display the help message by running:
 
 ### Run a cairo program
 
-```
+```bash
 ./zig-out/bin/cairo-zig execute --proof-mode=false
 ```
 
@@ -54,25 +71,6 @@ You can display the help message by running:
 zig build test --summary all
 ```
 
-## 🔤 TODOs
-
-- [ ] Add test coverage (investigate using [kcov](https://github.com/SimonKagstrom/kcov), [code coverage for zig article](https://zig.news/squeek502/code-coverage-for-zig-1dk1)).
-- [ ] Benchmark performances.
-- [ ] Enable usage as a library.
-- [ ] Fuzzing.
-- [ ] Differential testing against Cairo VM in Rust.
-- [ ] Memory leaks detection (i.e use tools like [valgrind](https://valgrind.org/)).
-- [ ] Check [Zig style guide](https://ziglang.org/documentation/master/#Style-Guide) and apply it.
-- [ ] Create documentation.
-
-## 📚 Resources
-
-Here are some resources to help you get started:
-
-- [Cairo Whitepaper](https://eprint.iacr.org/2021/1063.pdf)
-- [Cairo VM in Rust](https://github.com/lambdaclass/cairo-vm)
-- [Cairo VM in Go](https://github.com/lambdaclass/cairo-vm_in_go)
-
 ## 🙏 Acknowledgments
 
 - The structure of the project and some initial code related to prime field functions is based on [verkle-cryto](https://github.com/jsign/verkle-crypto) repository by [jsign](https://github.com/jsign).
@@ -81,8 +79,10 @@ Here are some resources to help you get started:
 - [sig](https://github.com/Syndica/sig) has been a great source of inspiration for the project structure and the way to use Zig.
 - [nektro](https://github.com/nektro/) for the [zig-time](https://github.com/nektro/zig-time) library.
 
-
 ## ⚡ Why Zig?
+
+<details>
+  <summary>👇 ⚡ </summary>
 
 Choosing Zig for a third implementation of the Cairo VM brings several advantages, offering a unique blend of features not entirely covered by the existing Rust and Go implementations.
 
@@ -116,6 +116,7 @@ Although younger than Rust and Go, Zig's community is enthusiastic and rapidly g
 
 By choosing Zig for the third implementation of Cairo VM, we aim to leverage these features to build a high-performance, reliable, and maintainable virtual machine.
 
+</details>
 
 ## 📄 License
 
@@ -124,6 +125,7 @@ This project is licensed under the MIT license.
 See [LICENSE](LICENSE) for more information.
 
 Happy coding! 🎉
+
 ## Contributors ✨
 
 Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/docs/en/emoji-key)):
