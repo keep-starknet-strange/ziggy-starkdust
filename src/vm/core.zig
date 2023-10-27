@@ -477,8 +477,10 @@ pub fn mulOperands(
         return CairoVMError.MulRelocForbidden;
     }
 
-    var op_0_felt = try op_0.tryIntoFelt();
-    var op_1_felt = try op_1.tryIntoFelt();
+    const op_0_felt = try op_0.tryIntoFelt();
+    const op_1_felt = try op_1.tryIntoFelt();
+
+    // Multiply the felts and return as a new felt wrapped in a relocatable
     return relocatable.fromFelt(op_0_felt.mul(op_1_felt));
 }
 
