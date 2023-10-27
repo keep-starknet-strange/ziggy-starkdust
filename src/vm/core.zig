@@ -178,15 +178,15 @@ pub const CairoVM = struct {
         };
     }
 
-    // Runs deductions for Op0, first runs builtin deductions, if this fails, attempts to deduce it based on dst and op1
-    // Also returns res if it was also deduced in the process
-    // Inserts the deduced operand
-    // Fails if Op0 was not deduced or if an error arose in the process.
-    // # Arguments
-    // - `op_0_addr`: The address of the operand to deduce.
-    // - `instruction`: The instruction to deduce the operand for.
-    // - `dst`: The destination.
-    // - `op1`: The op1.
+    /// Runs deductions for Op0, first runs builtin deductions, if this fails, attempts to deduce it based on dst and op1
+    /// Also returns res if it was also deduced in the process
+    /// Inserts the deduced operand
+    /// Fails if Op0 was not deduced or if an error arose in the process.
+    /// # Arguments
+    /// - `op_0_addr`: The address of the operand to deduce.
+    /// - `instruction`: The instruction to deduce the operand for.
+    /// - `dst`: The destination.
+    /// - `op1`: The op1.
     pub fn computeOp0Deductions(
         self: *CairoVM,
         op_0_addr: relocatable.MaybeRelocatable,
