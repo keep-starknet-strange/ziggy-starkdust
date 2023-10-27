@@ -45,9 +45,9 @@ pub const RunContext = struct {
             .ap = try allocator.create(Relocatable),
             .fp = try allocator.create(Relocatable),
         };
-        run_context.pc.* = Relocatable.default();
-        run_context.ap.* = Relocatable.default();
-        run_context.fp.* = Relocatable.default();
+        run_context.pc.* = .{};
+        run_context.ap.* = .{};
+        run_context.fp.* = .{};
         return run_context;
     }
 
