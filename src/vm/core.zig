@@ -8,6 +8,7 @@ const starknet_felt = @import("../math/fields/starknet.zig");
 // Local imports.
 const segments = @import("memory/segments.zig");
 const relocatable = @import("memory/relocatable.zig");
+const MaybeRelocatable = relocatable.MaybeRelocatable;
 const instructions = @import("instructions.zig");
 const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
@@ -189,10 +190,10 @@ pub const CairoVM = struct {
     /// - `op1`: The op1.
     pub fn computeOp0Deductions(
         self: *CairoVM,
-        op_0_addr: relocatable.MaybeRelocatable,
+        op_0_addr: MaybeRelocatable,
         instruction: *const instructions.Instruction,
-        dst: ?relocatable.MaybeRelocatable,
-        op1: ?relocatable.MaybeRelocatable,
+        dst: ?MaybeRelocatable,
+        op1: ?MaybeRelocatable,
     ) void {
         _ = op1;
         _ = dst;
@@ -211,7 +212,7 @@ pub const CairoVM = struct {
     pub fn deduceMemoryCell(
         self: *CairoVM,
         address: relocatable.Relocatable,
-    ) !?relocatable.MaybeRelocatable {
+    ) !?MaybeRelocatable {
         _ = address;
         _ = self;
         return null;
@@ -397,9 +398,9 @@ pub const CairoVM = struct {
 /// - `res`: The result of the operation.
 pub fn computeRes(
     instruction: *const Instruction,
-    op_0: relocatable.MaybeRelocatable,
-    op_1: relocatable.MaybeRelocatable,
-) CairoVMError!relocatable.MaybeRelocatable {
+    op_0: MaybeRelocatable,
+    op_1: MaybeRelocatable,
+) CairoVMError!MaybeRelocatable {
     var res = switch (instruction.res_logic) {
         instructions.ResLogic.Op1 => op_1,
         instructions.ResLogic.Add => {
@@ -426,9 +427,9 @@ pub fn computeRes(
 /// # Returns
 /// - `MaybeRelocatable`: The result of the operation or an error.
 pub fn addOperands(
-    op_0: relocatable.MaybeRelocatable,
-    op_1: relocatable.MaybeRelocatable,
-) CairoVMError!relocatable.MaybeRelocatable {
+    op_0: MaybeRelocatable,
+    op_1: MaybeRelocatable,
+) CairoVMError!MaybeRelocatable {
     // Both operands are relocatables, operation forbidden
     if (op_0.isRelocatable() and op_1.isRelocatable()) {
         return error.AddRelocToRelocForbidden;
@@ -464,15 +465,10 @@ pub fn addOperands(
 /// # Returns
 /// - `MaybeRelocatable`: The result of the operation or an error.
 pub fn mulOperands(
-    op_0: relocatable.MaybeRelocatable,
-    op_1: relocatable.MaybeRelocatable,
-) CairoVMError!relocatable.MaybeRelocatable {
-    // One of the operands is a relocatable, operation forbidden
-    if (op_0.isRelocatable() and op_1.isRelocatable()) {
-        return CairoVMError.MulRelocForbidden;
-    }
-
-    // One of the operands is relocatable, the other is felt
+    op_0: MaybeRelocatable,
+    op_1: MaybeRelocatable,
+) CairoVMError!MaybeRelocatable {
+    // At least one of the operands is relocatable
     if (op_0.isRelocatable() or op_1.isRelocatable()) {
         return CairoVMError.MulRelocForbidden;
     }
@@ -490,10 +486,10 @@ pub fn mulOperands(
 
 /// Represents the operands for an instruction.
 const OperandsResult = struct {
-    dst: relocatable.MaybeRelocatable,
-    res: ?relocatable.MaybeRelocatable,
-    op_0: relocatable.MaybeRelocatable,
-    op_1: relocatable.MaybeRelocatable,
+    dst: MaybeRelocatable,
+    res: ?MaybeRelocatable,
+    op_0: MaybeRelocatable,
+    op_1: MaybeRelocatable,
     dst_addr: relocatable.Relocatable,
     op_0_addr: relocatable.Relocatable,
     op_1_addr: relocatable.Relocatable,
@@ -513,8 +509,8 @@ const OperandsResult = struct {
 };
 
 const Op0Result = struct {
-    op_0: relocatable.MaybeRelocatable,
-    res: relocatable.MaybeRelocatable,
+    op_0: MaybeRelocatable,
+    res: MaybeRelocatable,
 };
 
 // ************************************************************
