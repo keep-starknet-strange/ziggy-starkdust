@@ -13,6 +13,9 @@ const CairoVMError = @import("error.zig").CairoVMError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
+const Felt252 = @import("../math/fields/starknet.zig").Felt252;
+
+const MaybeRelocatable = relocatable.MaybeRelocatable;
 
 /// Represents the Cairo VM.
 pub const CairoVM = struct {
@@ -184,10 +187,10 @@ pub const CairoVM = struct {
     /// - `op1`: The op1.
     pub fn computeOp0Deductions(
         self: *CairoVM,
-        op_0_addr: relocatable.MaybeRelocatable,
+        op_0_addr: MaybeRelocatable,
         instruction: *const instructions.Instruction,
-        dst: ?relocatable.MaybeRelocatable,
-        op1: ?relocatable.MaybeRelocatable,
+        dst: ?MaybeRelocatable,
+        op1: ?MaybeRelocatable,
     ) void {
         _ = op1;
         _ = dst;
@@ -206,7 +209,7 @@ pub const CairoVM = struct {
     pub fn deduceMemoryCell(
         self: *CairoVM,
         address: relocatable.Relocatable,
-    ) !?relocatable.MaybeRelocatable {
+    ) !?MaybeRelocatable {
         _ = address;
         _ = self;
         return null;
@@ -389,24 +392,24 @@ pub const CairoVM = struct {
 
 /// Represents the operands for an instruction.
 const OperandsResult = struct {
-    dst: relocatable.MaybeRelocatable,
-    res: ?relocatable.MaybeRelocatable,
-    op_0: relocatable.MaybeRelocatable,
-    op_1: relocatable.MaybeRelocatable,
-    dst_addr: relocatable.MaybeRelocatable,
-    op_0_addr: relocatable.MaybeRelocatable,
-    op_1_addr: relocatable.MaybeRelocatable,
+    dst: MaybeRelocatable,
+    res: ?MaybeRelocatable,
+    op_0: MaybeRelocatable,
+    op_1: MaybeRelocatable,
+    dst_addr: MaybeRelocatable,
+    op_0_addr: MaybeRelocatable,
+    op_1_addr: MaybeRelocatable,
 
     /// Returns a default instance of the OperandsResult struct.
     pub fn default() OperandsResult {
         return .{
-            .dst = relocatable.fromU64(0),
-            .res = relocatable.fromU64(0),
-            .op_0 = relocatable.fromU64(0),
-            .op_1 = relocatable.fromU64(0),
-            .dst_addr = relocatable.fromU64(0),
-            .op_0_addr = relocatable.fromU64(0),
-            .op_1_addr = relocatable.fromU64(0),
+            .dst = MaybeRelocatable{ .felt = Felt252{ .fe = .{} } },
+            .res = MaybeRelocatable{ .felt = Felt252{ .fe = .{} } },
+            .op_0 = MaybeRelocatable{ .felt = Felt252{ .fe = .{} } },
+            .op_1 = MaybeRelocatable{ .felt = Felt252{ .fe = .{} } },
+            .dst_addr = MaybeRelocatable{ .felt = Felt252{ .fe = .{} } },
+            .op_0_addr = MaybeRelocatable{ .felt = Felt252{ .fe = .{} } },
+            .op_1_addr = MaybeRelocatable{ .felt = Felt252{ .fe = .{} } },
         };
     }
 };
