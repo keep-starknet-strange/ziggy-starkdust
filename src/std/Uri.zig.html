@@ -865,54 +865,52 @@
 <span class="line" id="L735">}</span>
 <span class="line" id="L736"></span>
 <span class="line" id="L737"><span class="tok-kw">test</span> <span class="tok-str">&quot;URI escaping&quot;</span> {</span>
-<span class="line" id="L738">    <span class="tok-kw">if</span> (<span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>).zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L739"></span>
-<span class="line" id="L740">    <span class="tok-kw">const</span> input = <span class="tok-str">&quot;\\ö/ äöß ~~.adas-https://canvas:123/#ads&amp;&amp;sad&quot;</span>;</span>
-<span class="line" id="L741">    <span class="tok-kw">const</span> expected = <span class="tok-str">&quot;%5C%C3%B6%2F%20%C3%A4%C3%B6%C3%9F%20~~.adas-https%3A%2F%2Fcanvas%3A123%2F%23ads%26%26sad&quot;</span>;</span>
-<span class="line" id="L742"></span>
-<span class="line" id="L743">    <span class="tok-kw">const</span> actual = <span class="tok-kw">try</span> escapeString(std.testing.allocator, input);</span>
-<span class="line" id="L744">    <span class="tok-kw">defer</span> std.testing.allocator.free(actual);</span>
-<span class="line" id="L745"></span>
-<span class="line" id="L746">    <span class="tok-kw">try</span> std.testing.expectEqualSlices(<span class="tok-type">u8</span>, expected, actual);</span>
-<span class="line" id="L747">}</span>
-<span class="line" id="L748"></span>
-<span class="line" id="L749"><span class="tok-kw">test</span> <span class="tok-str">&quot;URI unescaping&quot;</span> {</span>
-<span class="line" id="L750">    <span class="tok-kw">const</span> input = <span class="tok-str">&quot;%5C%C3%B6%2F%20%C3%A4%C3%B6%C3%9F%20~~.adas-https%3A%2F%2Fcanvas%3A123%2F%23ads%26%26sad&quot;</span>;</span>
-<span class="line" id="L751">    <span class="tok-kw">const</span> expected = <span class="tok-str">&quot;\\ö/ äöß ~~.adas-https://canvas:123/#ads&amp;&amp;sad&quot;</span>;</span>
-<span class="line" id="L752"></span>
-<span class="line" id="L753">    <span class="tok-kw">const</span> actual = <span class="tok-kw">try</span> unescapeString(std.testing.allocator, input);</span>
-<span class="line" id="L754">    <span class="tok-kw">defer</span> std.testing.allocator.free(actual);</span>
-<span class="line" id="L755"></span>
-<span class="line" id="L756">    <span class="tok-kw">try</span> std.testing.expectEqualSlices(<span class="tok-type">u8</span>, expected, actual);</span>
-<span class="line" id="L757">}</span>
-<span class="line" id="L758"></span>
-<span class="line" id="L759"><span class="tok-kw">test</span> <span class="tok-str">&quot;URI query escaping&quot;</span> {</span>
-<span class="line" id="L760">    <span class="tok-kw">const</span> address = <span class="tok-str">&quot;https://objects.githubusercontent.com/?response-content-type=application%2Foctet-stream&quot;</span>;</span>
-<span class="line" id="L761">    <span class="tok-kw">const</span> parsed = <span class="tok-kw">try</span> Uri.parse(address);</span>
-<span class="line" id="L762"></span>
-<span class="line" id="L763">    <span class="tok-comment">// format the URI to escape it</span>
+<span class="line" id="L738">    <span class="tok-kw">const</span> input = <span class="tok-str">&quot;\\ö/ äöß ~~.adas-https://canvas:123/#ads&amp;&amp;sad&quot;</span>;</span>
+<span class="line" id="L739">    <span class="tok-kw">const</span> expected = <span class="tok-str">&quot;%5C%C3%B6%2F%20%C3%A4%C3%B6%C3%9F%20~~.adas-https%3A%2F%2Fcanvas%3A123%2F%23ads%26%26sad&quot;</span>;</span>
+<span class="line" id="L740"></span>
+<span class="line" id="L741">    <span class="tok-kw">const</span> actual = <span class="tok-kw">try</span> escapeString(std.testing.allocator, input);</span>
+<span class="line" id="L742">    <span class="tok-kw">defer</span> std.testing.allocator.free(actual);</span>
+<span class="line" id="L743"></span>
+<span class="line" id="L744">    <span class="tok-kw">try</span> std.testing.expectEqualSlices(<span class="tok-type">u8</span>, expected, actual);</span>
+<span class="line" id="L745">}</span>
+<span class="line" id="L746"></span>
+<span class="line" id="L747"><span class="tok-kw">test</span> <span class="tok-str">&quot;URI unescaping&quot;</span> {</span>
+<span class="line" id="L748">    <span class="tok-kw">const</span> input = <span class="tok-str">&quot;%5C%C3%B6%2F%20%C3%A4%C3%B6%C3%9F%20~~.adas-https%3A%2F%2Fcanvas%3A123%2F%23ads%26%26sad&quot;</span>;</span>
+<span class="line" id="L749">    <span class="tok-kw">const</span> expected = <span class="tok-str">&quot;\\ö/ äöß ~~.adas-https://canvas:123/#ads&amp;&amp;sad&quot;</span>;</span>
+<span class="line" id="L750"></span>
+<span class="line" id="L751">    <span class="tok-kw">const</span> actual = <span class="tok-kw">try</span> unescapeString(std.testing.allocator, input);</span>
+<span class="line" id="L752">    <span class="tok-kw">defer</span> std.testing.allocator.free(actual);</span>
+<span class="line" id="L753"></span>
+<span class="line" id="L754">    <span class="tok-kw">try</span> std.testing.expectEqualSlices(<span class="tok-type">u8</span>, expected, actual);</span>
+<span class="line" id="L755">}</span>
+<span class="line" id="L756"></span>
+<span class="line" id="L757"><span class="tok-kw">test</span> <span class="tok-str">&quot;URI query escaping&quot;</span> {</span>
+<span class="line" id="L758">    <span class="tok-kw">const</span> address = <span class="tok-str">&quot;https://objects.githubusercontent.com/?response-content-type=application%2Foctet-stream&quot;</span>;</span>
+<span class="line" id="L759">    <span class="tok-kw">const</span> parsed = <span class="tok-kw">try</span> Uri.parse(address);</span>
+<span class="line" id="L760"></span>
+<span class="line" id="L761">    <span class="tok-comment">// format the URI to escape it</span>
 </span>
-<span class="line" id="L764">    <span class="tok-kw">const</span> formatted_uri = <span class="tok-kw">try</span> std.fmt.allocPrint(std.testing.allocator, <span class="tok-str">&quot;{/?}&quot;</span>, .{parsed});</span>
-<span class="line" id="L765">    <span class="tok-kw">defer</span> std.testing.allocator.free(formatted_uri);</span>
-<span class="line" id="L766">    <span class="tok-kw">try</span> std.testing.expectEqualStrings(<span class="tok-str">&quot;/?response-content-type=application%2Foctet-stream&quot;</span>, formatted_uri);</span>
-<span class="line" id="L767">}</span>
-<span class="line" id="L768"></span>
-<span class="line" id="L769"><span class="tok-kw">test</span> <span class="tok-str">&quot;format&quot;</span> {</span>
-<span class="line" id="L770">    <span class="tok-kw">const</span> uri = Uri{</span>
-<span class="line" id="L771">        .scheme = <span class="tok-str">&quot;file&quot;</span>,</span>
-<span class="line" id="L772">        .user = <span class="tok-null">null</span>,</span>
-<span class="line" id="L773">        .password = <span class="tok-null">null</span>,</span>
-<span class="line" id="L774">        .host = <span class="tok-null">null</span>,</span>
-<span class="line" id="L775">        .port = <span class="tok-null">null</span>,</span>
-<span class="line" id="L776">        .path = <span class="tok-str">&quot;/foo/bar/baz&quot;</span>,</span>
-<span class="line" id="L777">        .query = <span class="tok-null">null</span>,</span>
-<span class="line" id="L778">        .fragment = <span class="tok-null">null</span>,</span>
-<span class="line" id="L779">    };</span>
-<span class="line" id="L780">    <span class="tok-kw">var</span> buf = std.ArrayList(<span class="tok-type">u8</span>).init(std.testing.allocator);</span>
-<span class="line" id="L781">    <span class="tok-kw">defer</span> buf.deinit();</span>
-<span class="line" id="L782">    <span class="tok-kw">try</span> uri.format(<span class="tok-str">&quot;:/?#&quot;</span>, .{}, buf.writer());</span>
-<span class="line" id="L783">    <span class="tok-kw">try</span> std.testing.expectEqualSlices(<span class="tok-type">u8</span>, <span class="tok-str">&quot;file:/foo/bar/baz&quot;</span>, buf.items);</span>
-<span class="line" id="L784">}</span>
-<span class="line" id="L785"></span>
+<span class="line" id="L762">    <span class="tok-kw">const</span> formatted_uri = <span class="tok-kw">try</span> std.fmt.allocPrint(std.testing.allocator, <span class="tok-str">&quot;{/?}&quot;</span>, .{parsed});</span>
+<span class="line" id="L763">    <span class="tok-kw">defer</span> std.testing.allocator.free(formatted_uri);</span>
+<span class="line" id="L764">    <span class="tok-kw">try</span> std.testing.expectEqualStrings(<span class="tok-str">&quot;/?response-content-type=application%2Foctet-stream&quot;</span>, formatted_uri);</span>
+<span class="line" id="L765">}</span>
+<span class="line" id="L766"></span>
+<span class="line" id="L767"><span class="tok-kw">test</span> <span class="tok-str">&quot;format&quot;</span> {</span>
+<span class="line" id="L768">    <span class="tok-kw">const</span> uri = Uri{</span>
+<span class="line" id="L769">        .scheme = <span class="tok-str">&quot;file&quot;</span>,</span>
+<span class="line" id="L770">        .user = <span class="tok-null">null</span>,</span>
+<span class="line" id="L771">        .password = <span class="tok-null">null</span>,</span>
+<span class="line" id="L772">        .host = <span class="tok-null">null</span>,</span>
+<span class="line" id="L773">        .port = <span class="tok-null">null</span>,</span>
+<span class="line" id="L774">        .path = <span class="tok-str">&quot;/foo/bar/baz&quot;</span>,</span>
+<span class="line" id="L775">        .query = <span class="tok-null">null</span>,</span>
+<span class="line" id="L776">        .fragment = <span class="tok-null">null</span>,</span>
+<span class="line" id="L777">    };</span>
+<span class="line" id="L778">    <span class="tok-kw">var</span> buf = std.ArrayList(<span class="tok-type">u8</span>).init(std.testing.allocator);</span>
+<span class="line" id="L779">    <span class="tok-kw">defer</span> buf.deinit();</span>
+<span class="line" id="L780">    <span class="tok-kw">try</span> uri.format(<span class="tok-str">&quot;:/?#&quot;</span>, .{}, buf.writer());</span>
+<span class="line" id="L781">    <span class="tok-kw">try</span> std.testing.expectEqualSlices(<span class="tok-type">u8</span>, <span class="tok-str">&quot;file:/foo/bar/baz&quot;</span>, buf.items);</span>
+<span class="line" id="L782">}</span>
+<span class="line" id="L783"></span>
 </code></pre></body>
 </html>

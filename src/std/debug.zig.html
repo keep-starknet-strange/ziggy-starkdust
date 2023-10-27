@@ -852,8 +852,8 @@
 <span class="line" id="L671">            <span class="tok-kw">if</span> (self.unwind_state) |*unwind_state| {</span>
 <span class="line" id="L672">                <span class="tok-kw">if</span> (!unwind_state.failed) {</span>
 <span class="line" id="L673">                    <span class="tok-kw">if</span> (unwind_state.dwarf_context.pc == <span class="tok-number">0</span>) <span class="tok-kw">return</span> <span class="tok-null">null</span>;</span>
-<span class="line" id="L674">                    <span class="tok-kw">if</span> (self.next_unwind()) |return_address| {</span>
-<span class="line" id="L675">                        self.fp = unwind_state.dwarf_context.getFp() <span class="tok-kw">catch</span> <span class="tok-number">0</span>;</span>
+<span class="line" id="L674">                    <span class="tok-kw">defer</span> self.fp = unwind_state.dwarf_context.getFp() <span class="tok-kw">catch</span> <span class="tok-number">0</span>;</span>
+<span class="line" id="L675">                    <span class="tok-kw">if</span> (self.next_unwind()) |return_address| {</span>
 <span class="line" id="L676">                        <span class="tok-kw">return</span> return_address;</span>
 <span class="line" id="L677">                    } <span class="tok-kw">else</span> |err| {</span>
 <span class="line" id="L678">                        unwind_state.last_error = err;</span>

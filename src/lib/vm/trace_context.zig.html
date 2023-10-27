@@ -193,7 +193,7 @@
 <span class="line" id="L73">            deinitFn = TraceDisabled.deinit;</span>
 <span class="line" id="L74">        }</span>
 <span class="line" id="L75"></span>
-<span class="line" id="L76">        <span class="tok-kw">return</span> TraceContext{</span>
+<span class="line" id="L76">        <span class="tok-kw">return</span> .{</span>
 <span class="line" id="L77">            .state = state,</span>
 <span class="line" id="L78">            .traceInstructionFn = traceInstructionFn,</span>
 <span class="line" id="L79">            .deinitFn = deinitFn,</span>
@@ -222,35 +222,38 @@
 <span class="line" id="L102">    entries: ArrayList(TraceContext.Entry),</span>
 <span class="line" id="L103"></span>
 <span class="line" id="L104">    <span class="tok-kw">fn</span> <span class="tok-fn">init</span>(allocator: Allocator) !TraceEnabled {</span>
-<span class="line" id="L105">        <span class="tok-kw">return</span> TraceEnabled{</span>
-<span class="line" id="L106">            .entries = <span class="tok-kw">try</span> ArrayList(TraceContext.Entry).initCapacity(allocator, build_options.trace_initial_capacity),</span>
-<span class="line" id="L107">        };</span>
-<span class="line" id="L108">    }</span>
-<span class="line" id="L109"></span>
-<span class="line" id="L110">    <span class="tok-kw">fn</span> <span class="tok-fn">deinit</span>(self: *State) <span class="tok-type">void</span> {</span>
-<span class="line" id="L111">        <span class="tok-kw">const</span> this = &amp;self.enabled;</span>
-<span class="line" id="L112">        this.entries.deinit();</span>
-<span class="line" id="L113">    }</span>
-<span class="line" id="L114"></span>
-<span class="line" id="L115">    <span class="tok-kw">fn</span> <span class="tok-fn">traceInstruction</span>(self: *State, entry: TraceContext.Entry) !<span class="tok-type">void</span> {</span>
-<span class="line" id="L116">        <span class="tok-kw">const</span> this = &amp;self.enabled;</span>
-<span class="line" id="L117">        <span class="tok-kw">try</span> this.entries.append(entry);</span>
-<span class="line" id="L118">    }</span>
-<span class="line" id="L119">};</span>
-<span class="line" id="L120"></span>
-<span class="line" id="L121"><span class="tok-comment">/// The state of the tracing system when it's disabled.</span></span>
-<span class="line" id="L122"><span class="tok-kw">const</span> TraceDisabled = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L123">    <span class="tok-kw">fn</span> <span class="tok-fn">deinit</span>(self: *State) <span class="tok-type">void</span> {</span>
-<span class="line" id="L124">        <span class="tok-kw">const</span> this = &amp;self.disabled;</span>
-<span class="line" id="L125">        _ = this;</span>
-<span class="line" id="L126">    }</span>
-<span class="line" id="L127"></span>
-<span class="line" id="L128">    <span class="tok-kw">fn</span> <span class="tok-fn">traceInstruction</span>(self: *State, entry: TraceContext.Entry) !<span class="tok-type">void</span> {</span>
-<span class="line" id="L129">        <span class="tok-kw">const</span> this = &amp;self.disabled;</span>
-<span class="line" id="L130">        _ = entry;</span>
-<span class="line" id="L131">        _ = this;</span>
-<span class="line" id="L132">    }</span>
-<span class="line" id="L133">};</span>
-<span class="line" id="L134"></span>
+<span class="line" id="L105">        <span class="tok-kw">return</span> .{</span>
+<span class="line" id="L106">            .entries = <span class="tok-kw">try</span> ArrayList(TraceContext.Entry).initCapacity(</span>
+<span class="line" id="L107">                allocator,</span>
+<span class="line" id="L108">                build_options.trace_initial_capacity,</span>
+<span class="line" id="L109">            ),</span>
+<span class="line" id="L110">        };</span>
+<span class="line" id="L111">    }</span>
+<span class="line" id="L112"></span>
+<span class="line" id="L113">    <span class="tok-kw">fn</span> <span class="tok-fn">deinit</span>(self: *State) <span class="tok-type">void</span> {</span>
+<span class="line" id="L114">        <span class="tok-kw">const</span> this = &amp;self.enabled;</span>
+<span class="line" id="L115">        this.entries.deinit();</span>
+<span class="line" id="L116">    }</span>
+<span class="line" id="L117"></span>
+<span class="line" id="L118">    <span class="tok-kw">fn</span> <span class="tok-fn">traceInstruction</span>(self: *State, entry: TraceContext.Entry) !<span class="tok-type">void</span> {</span>
+<span class="line" id="L119">        <span class="tok-kw">const</span> this = &amp;self.enabled;</span>
+<span class="line" id="L120">        <span class="tok-kw">try</span> this.entries.append(entry);</span>
+<span class="line" id="L121">    }</span>
+<span class="line" id="L122">};</span>
+<span class="line" id="L123"></span>
+<span class="line" id="L124"><span class="tok-comment">/// The state of the tracing system when it's disabled.</span></span>
+<span class="line" id="L125"><span class="tok-kw">const</span> TraceDisabled = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L126">    <span class="tok-kw">fn</span> <span class="tok-fn">deinit</span>(self: *State) <span class="tok-type">void</span> {</span>
+<span class="line" id="L127">        <span class="tok-kw">const</span> this = &amp;self.disabled;</span>
+<span class="line" id="L128">        _ = this;</span>
+<span class="line" id="L129">    }</span>
+<span class="line" id="L130"></span>
+<span class="line" id="L131">    <span class="tok-kw">fn</span> <span class="tok-fn">traceInstruction</span>(self: *State, entry: TraceContext.Entry) !<span class="tok-type">void</span> {</span>
+<span class="line" id="L132">        <span class="tok-kw">const</span> this = &amp;self.disabled;</span>
+<span class="line" id="L133">        _ = entry;</span>
+<span class="line" id="L134">        _ = this;</span>
+<span class="line" id="L135">    }</span>
+<span class="line" id="L136">};</span>
+<span class="line" id="L137"></span>
 </code></pre></body>
 </html>

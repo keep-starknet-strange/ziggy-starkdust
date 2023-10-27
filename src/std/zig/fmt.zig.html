@@ -210,23 +210,21 @@
 <span class="line" id="L95">}</span>
 <span class="line" id="L96"></span>
 <span class="line" id="L97"><span class="tok-kw">test</span> <span class="tok-str">&quot;escape invalid identifiers&quot;</span> {</span>
-<span class="line" id="L98">    <span class="tok-kw">if</span> (<span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>).zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L99"></span>
-<span class="line" id="L100">    <span class="tok-kw">const</span> expectFmt = std.testing.expectFmt;</span>
-<span class="line" id="L101">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;@\&quot;while\&quot;&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{fmtId(<span class="tok-str">&quot;while&quot;</span>)});</span>
-<span class="line" id="L102">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;hello&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{fmtId(<span class="tok-str">&quot;hello&quot;</span>)});</span>
-<span class="line" id="L103">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;@\&quot;11\\\&quot;23\&quot;&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{fmtId(<span class="tok-str">&quot;11\&quot;23&quot;</span>)});</span>
-<span class="line" id="L104">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;@\&quot;11\\x0f23\&quot;&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{fmtId(<span class="tok-str">&quot;11\x0F23&quot;</span>)});</span>
-<span class="line" id="L105">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;\\x0f&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{fmtEscapes(<span class="tok-str">&quot;\x0f&quot;</span>)});</span>
-<span class="line" id="L106">    <span class="tok-kw">try</span> expectFmt(</span>
-<span class="line" id="L107">        <span class="tok-str">\\&quot; \\ hi \x07 \x11 &quot; derp \'&quot;</span></span>
+<span class="line" id="L98">    <span class="tok-kw">const</span> expectFmt = std.testing.expectFmt;</span>
+<span class="line" id="L99">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;@\&quot;while\&quot;&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{fmtId(<span class="tok-str">&quot;while&quot;</span>)});</span>
+<span class="line" id="L100">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;hello&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{fmtId(<span class="tok-str">&quot;hello&quot;</span>)});</span>
+<span class="line" id="L101">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;@\&quot;11\\\&quot;23\&quot;&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{fmtId(<span class="tok-str">&quot;11\&quot;23&quot;</span>)});</span>
+<span class="line" id="L102">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;@\&quot;11\\x0f23\&quot;&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{fmtId(<span class="tok-str">&quot;11\x0F23&quot;</span>)});</span>
+<span class="line" id="L103">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;\\x0f&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{fmtEscapes(<span class="tok-str">&quot;\x0f&quot;</span>)});</span>
+<span class="line" id="L104">    <span class="tok-kw">try</span> expectFmt(</span>
+<span class="line" id="L105">        <span class="tok-str">\\&quot; \\ hi \x07 \x11 &quot; derp \'&quot;</span></span>
 
-<span class="line" id="L108">    , <span class="tok-str">&quot;\&quot;{'}\&quot;&quot;</span>, .{fmtEscapes(<span class="tok-str">&quot; \\ hi \x07 \x11 \&quot; derp '&quot;</span>)});</span>
-<span class="line" id="L109">    <span class="tok-kw">try</span> expectFmt(</span>
-<span class="line" id="L110">        <span class="tok-str">\\&quot; \\ hi \x07 \x11 \&quot; derp '&quot;</span></span>
+<span class="line" id="L106">    , <span class="tok-str">&quot;\&quot;{'}\&quot;&quot;</span>, .{fmtEscapes(<span class="tok-str">&quot; \\ hi \x07 \x11 \&quot; derp '&quot;</span>)});</span>
+<span class="line" id="L107">    <span class="tok-kw">try</span> expectFmt(</span>
+<span class="line" id="L108">        <span class="tok-str">\\&quot; \\ hi \x07 \x11 \&quot; derp '&quot;</span></span>
 
-<span class="line" id="L111">    , <span class="tok-str">&quot;\&quot;{}\&quot;&quot;</span>, .{fmtEscapes(<span class="tok-str">&quot; \\ hi \x07 \x11 \&quot; derp '&quot;</span>)});</span>
-<span class="line" id="L112">}</span>
-<span class="line" id="L113"></span>
+<span class="line" id="L109">    , <span class="tok-str">&quot;\&quot;{}\&quot;&quot;</span>, .{fmtEscapes(<span class="tok-str">&quot; \\ hi \x07 \x11 \&quot; derp '&quot;</span>)});</span>
+<span class="line" id="L110">}</span>
+<span class="line" id="L111"></span>
 </code></pre></body>
 </html>

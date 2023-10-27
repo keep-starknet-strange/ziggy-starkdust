@@ -139,7 +139,7 @@
 <span class="line" id="L17">    <span class="tok-comment">// A new Relocatable with the default values.</span>
 </span>
 <span class="line" id="L18">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">default</span>() Relocatable {</span>
-<span class="line" id="L19">        <span class="tok-kw">return</span> Relocatable{</span>
+<span class="line" id="L19">        <span class="tok-kw">return</span> .{</span>
 <span class="line" id="L20">            .segment_index = <span class="tok-number">0</span>,</span>
 <span class="line" id="L21">            .offset = <span class="tok-number">0</span>,</span>
 <span class="line" id="L22">        };</span>
@@ -161,7 +161,7 @@
 <span class="line" id="L32">        segment_index: <span class="tok-type">u64</span>,</span>
 <span class="line" id="L33">        offset: <span class="tok-type">u64</span>,</span>
 <span class="line" id="L34">    ) Relocatable {</span>
-<span class="line" id="L35">        <span class="tok-kw">return</span> Relocatable{</span>
+<span class="line" id="L35">        <span class="tok-kw">return</span> .{</span>
 <span class="line" id="L36">            .segment_index = segment_index,</span>
 <span class="line" id="L37">            .offset = offset,</span>
 <span class="line" id="L38">        };</span>
@@ -201,7 +201,7 @@
 <span class="line" id="L62">        <span class="tok-kw">if</span> (self.offset &lt; other) {</span>
 <span class="line" id="L63">            <span class="tok-kw">return</span> <span class="tok-kw">error</span>.RelocatableSubUsizeNegOffset;</span>
 <span class="line" id="L64">        }</span>
-<span class="line" id="L65">        <span class="tok-kw">return</span> Relocatable{</span>
+<span class="line" id="L65">        <span class="tok-kw">return</span> .{</span>
 <span class="line" id="L66">            .segment_index = self.segment_index,</span>
 <span class="line" id="L67">            .offset = self.offset - other,</span>
 <span class="line" id="L68">        };</span>
@@ -221,7 +221,7 @@
 <span class="line" id="L77">        self: Relocatable,</span>
 <span class="line" id="L78">        other: <span class="tok-type">u64</span>,</span>
 <span class="line" id="L79">    ) !Relocatable {</span>
-<span class="line" id="L80">        <span class="tok-kw">return</span> Relocatable{</span>
+<span class="line" id="L80">        <span class="tok-kw">return</span> .{</span>
 <span class="line" id="L81">            .segment_index = self.segment_index,</span>
 <span class="line" id="L82">            .offset = self.offset + other,</span>
 <span class="line" id="L83">        };</span>
@@ -396,7 +396,7 @@
 <span class="line" id="L233"><span class="tok-comment">// A new MaybeRelocatable.</span>
 </span>
 <span class="line" id="L234"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">newFromRelocatable</span>(relocatable: Relocatable) MaybeRelocatable {</span>
-<span class="line" id="L235">    <span class="tok-kw">return</span> MaybeRelocatable{ .relocatable = relocatable };</span>
+<span class="line" id="L235">    <span class="tok-kw">return</span> .{ .relocatable = relocatable };</span>
 <span class="line" id="L236">}</span>
 <span class="line" id="L237"></span>
 <span class="line" id="L238"><span class="tok-comment">// Creates a new MaybeRelocatable from a field element.</span>
@@ -410,7 +410,7 @@
 <span class="line" id="L242"><span class="tok-comment">// A new MaybeRelocatable.</span>
 </span>
 <span class="line" id="L243"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">fromFelt</span>(felt: Felt252) MaybeRelocatable {</span>
-<span class="line" id="L244">    <span class="tok-kw">return</span> MaybeRelocatable{ .felt = felt };</span>
+<span class="line" id="L244">    <span class="tok-kw">return</span> .{ .felt = felt };</span>
 <span class="line" id="L245">}</span>
 <span class="line" id="L246"></span>
 <span class="line" id="L247"><span class="tok-comment">// Creates a new MaybeRelocatable from a u256.</span>
@@ -424,7 +424,7 @@
 <span class="line" id="L251"><span class="tok-comment">// A new MaybeRelocatable.</span>
 </span>
 <span class="line" id="L252"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">fromU256</span>(value: <span class="tok-type">u256</span>) MaybeRelocatable {</span>
-<span class="line" id="L253">    <span class="tok-kw">return</span> MaybeRelocatable{ .felt = Felt252.fromInteger(value) };</span>
+<span class="line" id="L253">    <span class="tok-kw">return</span> .{ .felt = Felt252.fromInteger(value) };</span>
 <span class="line" id="L254">}</span>
 <span class="line" id="L255"></span>
 <span class="line" id="L256"><span class="tok-comment">// Creates a new MaybeRelocatable from a u64.</span>

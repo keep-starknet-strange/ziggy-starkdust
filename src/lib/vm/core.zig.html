@@ -312,7 +312,7 @@
 <span class="line" id="L162">        <span class="tok-kw">const</span> op_1_op = <span class="tok-kw">try</span> self.segments.memory.get(op_1_addr);</span>
 <span class="line" id="L163">        _ = op_1_op;</span>
 <span class="line" id="L164"></span>
-<span class="line" id="L165">        <span class="tok-kw">return</span> OperandsResult{</span>
+<span class="line" id="L165">        <span class="tok-kw">return</span> .{</span>
 <span class="line" id="L166">            .dst = relocatable.fromU64(<span class="tok-number">0</span>),</span>
 <span class="line" id="L167">            .res = relocatable.fromU64(<span class="tok-number">0</span>),</span>
 <span class="line" id="L168">            .op_0 = relocatable.fromU64(<span class="tok-number">0</span>),</span>
@@ -599,7 +599,7 @@
 <span class="line" id="L399"></span>
 <span class="line" id="L400">    <span class="tok-comment">/// Returns a default instance of the OperandsResult struct.</span></span>
 <span class="line" id="L401">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">default</span>() OperandsResult {</span>
-<span class="line" id="L402">        <span class="tok-kw">return</span> OperandsResult{</span>
+<span class="line" id="L402">        <span class="tok-kw">return</span> .{</span>
 <span class="line" id="L403">            .dst = relocatable.fromU64(<span class="tok-number">0</span>),</span>
 <span class="line" id="L404">            .res = relocatable.fromU64(<span class="tok-number">0</span>),</span>
 <span class="line" id="L405">            .op_0 = relocatable.fromU64(<span class="tok-number">0</span>),</span>
