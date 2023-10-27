@@ -147,7 +147,7 @@ test "set get integer value in segment memory" {
     var allocator = std.testing.allocator;
 
     // Initialize a memory segment manager.
-    var memory_segment_manager = try MemorySegmentManager.init(&allocator);
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
     defer memory_segment_manager.deinit();
 
     // ************************************************************
