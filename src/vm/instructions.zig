@@ -117,6 +117,8 @@ pub const Opcode = enum {
 
 /// Represents a decoded instruction.
 pub const Instruction = struct {
+    const Self = @This();
+
     off_0: i16,
     off_1: i16,
     off_2: i16,
@@ -132,7 +134,7 @@ pub const Instruction = struct {
     /// Returns the size of an instruction.
     /// # Returns
     /// Size of the instruction.
-    pub fn size(self: Instruction) usize {
+    pub fn size(self: Self) usize {
         if (self.op_1_addr == Op1Src.Imm) {
             return 2;
         } else {
@@ -141,7 +143,7 @@ pub const Instruction = struct {
     }
 
     /// Returns a default instruction.
-    pub fn default() Instruction {
+    pub fn default() Self {
         //  0|  opcode|ap_update|pc_update|res_logic|op1_src|op0_reg|dst_reg
         // 15|14 13 12|    11 10|  9  8  7|     6  5|4  3  2|      1|      0
         //   |    CALL|      ADD|     JUMP|      ADD|    IMM|     FP|     FP
