@@ -4,4 +4,5 @@ pub const CairoVMError = error{
     InstructionFetchingFailed,
     InstructionEncodingError,
     TypeMismatchNotFelt,
+    RunnerError,
 };

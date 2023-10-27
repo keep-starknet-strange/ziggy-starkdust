@@ -33,4 +33,8 @@ pub const SignatureBuiltinRunner = struct {
             .signatures = AutoHashMap(relocatable.Relocatable, Signature).init(allocator),
         };
     }
+
+    pub fn get_base(self: *Self) usize {
+        return self.base;
+    }
 };

@@ -12,4 +12,8 @@ pub const OutputBuiltinRunner = struct {
             .included = included,
         };
     }
+
+    pub fn get_base(self: *Self) usize {
+        return self.base;
+    }
 };

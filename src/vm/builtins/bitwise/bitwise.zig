@@ -16,7 +16,11 @@ const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
 // *****************************************************************************
 
 // Error type to represent different error conditions during bitwise builtin.
-pub const Error = error{ InvalidBitwiseIndex, UnsupportedNumberOfBits, InvalidAddressForBitwise };
+pub const Error = error{
+    InvalidBitwiseIndex,
+    UnsupportedNumberOfBits,
+    InvalidAddressForBitwise,
+};
 
 /// Each bitwise operation consists of 5 cells (two inputs and three outputs - and, or, xor).
 // comment credit to: https://github.com/starkware-libs/cairo-lang/blob//src/starkware/cairo/lang/builtins/bitwise/instance_def.py#L4

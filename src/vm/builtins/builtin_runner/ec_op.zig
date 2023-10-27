@@ -36,4 +36,8 @@ pub const EcOpBuiltinRunner = struct {
             .cache = AutoHashMap(relocatable.Relocatable, Felt252).init(allocator),
         };
     }
+
+    pub fn get_base(self: *Self) usize {
+        return self.base;
+    }
 };

@@ -24,12 +24,16 @@ pub const HashBuiltinRunner = struct {
         return .{
             .base = 0,
             .ratio = ratio,
-            .cell_per_instance = pedersen_instance_def.CELLS_PER_HASH,
+            .cells_per_instance = pedersen_instance_def.CELLS_PER_HASH,
             .n_input_cells = pedersen_instance_def.INPUT_CELLS_PER_HASH,
             .stop_ptr = null,
             .included = included,
             .instances_per_component = 1,
             .verified_addresses = ArrayList(bool).init(allocator),
         };
+    }
+
+    pub fn get_base(self: *Self) usize {
+        return self.base;
     }
 };

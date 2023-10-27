@@ -27,4 +27,8 @@ pub const BitwiseBuiltinRunner = struct {
             .instances_per_component = 1,
         };
     }
+
+    pub fn get_base(self: *Self) usize {
+        return self.base;
+    }
 };

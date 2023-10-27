@@ -14,9 +14,13 @@ const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
 const BuiltinRunner = @import("./builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
+const bitwise = @import("./builtins/bitwise/bitwise.zig");
+
+const HashBuiltinRunner = @import("./builtins/builtin_runner/hash.zig").HashBuiltinRunner;
 
 /// Represents the Cairo VM.
 pub const CairoVM = struct {
+    const Self = @This();
 
     // ************************************************************
     // *                        FIELDS                            *
@@ -387,6 +391,27 @@ pub const CairoVM = struct {
     pub fn getPc(self: *const CairoVM) relocatable.Relocatable {
         return self.run_context.pc.*;
     }
+
+    pub fn deduce_memory_cell(
+        self: *Self,
+        address: relocatable.Relocatable,
+    ) CairoVMError!?relocatable.MaybeRelocatable {
+        for (self.builtin_runners.items) |builtin| {
+            var mut_builtin = builtin;
+            if (@as(
+                u64,
+                mut_builtin.base(),
+            ) == address.segment_index) {
+                return bitwise.deduce(
+                    address,
+                    self.segments.memory,
+                ) catch {
+                    return CairoVMError.RunnerError;
+                };
+            }
+        }
+        return null;
+    }
 };
 
 // *****************************************************************************
@@ -422,6 +447,26 @@ const OperandsResult = struct {
 // ************************************************************
 const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
+
+test "CairoVM: deduce_memory_cell no pedersen builtin" {
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+    try expectEqual(
+        @as(?relocatable.MaybeRelocatable, null),
+        try vm.deduce_memory_cell(relocatable.Relocatable.default()),
+    );
+}
+
+// test "CairoVM: deduce_memory_cell pedersen builtin valid" {
+//     var vm = try CairoVM.init(std.testing.allocator, .{});
+//     defer vm.deinit();
+//     const builtin = BuiltinRunner{ .Hash = HashBuiltinRunner.new(
+//         std.testing.allocator,
+//         8,
+//         true,
+//     ) };
+//     try vm.builtin_runners.append(builtin);
+// }
 
 test "update pc regular no imm" {
 
