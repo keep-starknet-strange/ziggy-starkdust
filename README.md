@@ -74,6 +74,10 @@ zig build test --summary all
 
 ### 🔒 Security
 
+#### Security guidelines
+
+For security guidelines, please refer to [SECURITY.md](docs/SECURITY.md).
+
 #### OpenSSF Scorecard
 
 We are using the [OpenSSF Scorecard](https://securityscorecards.dev/) to track the security of this project.

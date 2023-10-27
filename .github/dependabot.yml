@@ -1,0 +1,15 @@
+# Move to Zig package-ecosystem when it's ready.
+# FIXME: https://github.com/keep-starknet-strange/cairo-zig/issues/48
+# Dependabot Tracking issue: https://github.com/dependabot/dependabot-core/issues/8166
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: daily
+    open-pull-requests-limit: 10
+
+  - package-ecosystem: "gitsubmodule"
+    directory: "/"
+    schedule:
+      interval: "weekly"
