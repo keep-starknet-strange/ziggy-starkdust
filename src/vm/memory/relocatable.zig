@@ -252,6 +252,18 @@ pub const MaybeRelocatable = union(enum) {
             .felt => false,
         };
     }
+
+    /// Returns whether the MaybeRelocatable is a felt or not.
+    ///
+    /// # Returns
+    ///
+    /// `true` if the MaybeRelocatable is a felt, `false` otherwise.
+    pub fn isFelt(self: MaybeRelocatable) bool {
+        return switch (self) {
+            .relocatable => false,
+            .felt => true,
+        };
+    }
 };
 
 // Creates a new MaybeRelocatable from a Relocatable.

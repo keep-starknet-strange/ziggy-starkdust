@@ -508,13 +508,15 @@ pub fn deduceOp1(
             return .{ try dst.?.sub(op0.?.*), dst.?.* };
         },
         .Mul => {
-            if (dst == null or op0 == null)
-                return .{ null, null };
-            if (dst.?.isRelocatable() or op0.?.isRelocatable())
-                return .{ null, null };
-            if (op0.?.felt.isZero())
-                return .{ null, null };
-            return .{ relocatable.fromFelt(try dst.?.felt.div(op0.?.felt)), dst.?.* };
+            if (dst != null and op0 != null and
+                dst.?.isFelt() and op0.?.isFelt() and
+                !op0.?.felt.isZero())
+            {
+                return .{
+                    relocatable.fromFelt(try dst.?.felt.div(op0.?.felt)),
+                    dst.?.*,
+                };
+            }
         },
         else => {},
     }
