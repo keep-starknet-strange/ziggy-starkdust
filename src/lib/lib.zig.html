@@ -114,29 +114,30 @@
 <body>
 <pre><code><span class="line" id="L1"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> vm = <span class="tok-kw">struct</span> {</span>
 <span class="line" id="L2">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;vm/core.zig&quot;</span>);</span>
-<span class="line" id="L3">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;vm/config.zig&quot;</span>);</span>
-<span class="line" id="L4">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;vm/error.zig&quot;</span>);</span>
-<span class="line" id="L5">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;vm/instructions.zig&quot;</span>);</span>
-<span class="line" id="L6">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;vm/run_context.zig&quot;</span>);</span>
-<span class="line" id="L7">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;vm/trace_context.zig&quot;</span>);</span>
-<span class="line" id="L8">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;vm/memory/memory.zig&quot;</span>);</span>
-<span class="line" id="L9">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;vm/memory/relocatable.zig&quot;</span>);</span>
-<span class="line" id="L10">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;vm/memory/segments.zig&quot;</span>);</span>
-<span class="line" id="L11">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;vm/builtins/bitwise/bitwise.zig&quot;</span>);</span>
-<span class="line" id="L12">};</span>
-<span class="line" id="L13"></span>
-<span class="line" id="L14"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> math = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L15">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;math/fields/fields.zig&quot;</span>);</span>
-<span class="line" id="L16">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;math/fields/stark_felt_252_gen_fp.zig&quot;</span>);</span>
-<span class="line" id="L17">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;math/fields/starknet.zig&quot;</span>);</span>
-<span class="line" id="L18">};</span>
-<span class="line" id="L19"></span>
-<span class="line" id="L20"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> utils = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L21">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;utils/log.zig&quot;</span>);</span>
-<span class="line" id="L22">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;utils/time.zig&quot;</span>);</span>
-<span class="line" id="L23">};</span>
-<span class="line" id="L24"></span>
-<span class="line" id="L25"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> build_options = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;build_options.zig&quot;</span>);</span>
-<span class="line" id="L26"></span>
+<span class="line" id="L3">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;vm/core_test.zig&quot;</span>);</span>
+<span class="line" id="L4">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;vm/config.zig&quot;</span>);</span>
+<span class="line" id="L5">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;vm/error.zig&quot;</span>);</span>
+<span class="line" id="L6">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;vm/instructions.zig&quot;</span>);</span>
+<span class="line" id="L7">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;vm/run_context.zig&quot;</span>);</span>
+<span class="line" id="L8">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;vm/trace_context.zig&quot;</span>);</span>
+<span class="line" id="L9">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;vm/memory/memory.zig&quot;</span>);</span>
+<span class="line" id="L10">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;vm/memory/relocatable.zig&quot;</span>);</span>
+<span class="line" id="L11">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;vm/memory/segments.zig&quot;</span>);</span>
+<span class="line" id="L12">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;vm/builtins/bitwise/bitwise.zig&quot;</span>);</span>
+<span class="line" id="L13">};</span>
+<span class="line" id="L14"></span>
+<span class="line" id="L15"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> math = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L16">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;math/fields/fields.zig&quot;</span>);</span>
+<span class="line" id="L17">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;math/fields/stark_felt_252_gen_fp.zig&quot;</span>);</span>
+<span class="line" id="L18">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;math/fields/starknet.zig&quot;</span>);</span>
+<span class="line" id="L19">};</span>
+<span class="line" id="L20"></span>
+<span class="line" id="L21"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> utils = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L22">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;utils/log.zig&quot;</span>);</span>
+<span class="line" id="L23">    <span class="tok-kw">pub</span> <span class="tok-kw">usingnamespace</span> <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;utils/time.zig&quot;</span>);</span>
+<span class="line" id="L24">};</span>
+<span class="line" id="L25"></span>
+<span class="line" id="L26"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> build_options = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;build_options.zig&quot;</span>);</span>
+<span class="line" id="L27"></span>
 </code></pre></body>
 </html>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>vm/error.zig - source view</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>math/crypto/signatures.zig - source view</title>
     <link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAgklEQVR4AWMYWuD7EllJIM4G4g4g5oIJ/odhOJ8wToOxSTXgNxDHoeiBMfA4+wGShjyYOCkG/IGqWQziEzYAoUAeiF9D5U+DxEg14DRU7jWIT5IBIOdCxf+A+CQZAAoopEB7QJwBCBwHiip8UYmRdrAlDpIMgApwQZNnNii5Dq0MBgCxxycBnwEd+wAAAABJRU5ErkJggg==">
     <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNTMgMTQwIj48ZyBmaWxsPSIjRjdBNDFEIj48Zz48cG9seWdvbiBwb2ludHM9IjQ2LDIyIDI4LDQ0IDE5LDMwIi8+PHBvbHlnb24gcG9pbnRzPSI0NiwyMiAzMywzMyAyOCw0NCAyMiw0NCAyMiw5NSAzMSw5NSAyMCwxMDAgMTIsMTE3IDAsMTE3IDAsMjIiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyIvPjxwb2x5Z29uIHBvaW50cz0iMzEsOTUgMTIsMTE3IDQsMTA2Ii8+PC9nPjxnPjxwb2x5Z29uIHBvaW50cz0iNTYsMjIgNjIsMzYgMzcsNDQiLz48cG9seWdvbiBwb2ludHM9IjU2LDIyIDExMSwyMiAxMTEsNDQgMzcsNDQgNTYsMzIiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyIvPjxwb2x5Z29uIHBvaW50cz0iMTE2LDk1IDk3LDExNyA5MCwxMDQiLz48cG9seWdvbiBwb2ludHM9IjExNiw5NSAxMDAsMTA0IDk3LDExNyA0MiwxMTcgNDIsOTUiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyIvPjxwb2x5Z29uIHBvaW50cz0iMTUwLDAgNTIsMTE3IDMsMTQwIDEwMSwyMiIvPjwvZz48Zz48cG9seWdvbiBwb2ludHM9IjE0MSwyMiAxNDAsNDAgMTIyLDQ1Ii8+PHBvbHlnb24gcG9pbnRzPSIxNTMsMjIgMTUzLDExNyAxMDYsMTE3IDEyMCwxMDUgMTI1LDk1IDEzMSw5NSAxMzEsNDUgMTIyLDQ1IDEzMiwzNiAxNDEsMjIiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyIvPjxwb2x5Z29uIHBvaW50cz0iMTI1LDk1IDEzMCwxMTAgMTA2LDExNyIvPjwvZz48L2c+PC9zdmc+">
     <style>
@@ -112,19 +112,20 @@
     </style>
 </head>
 <body>
-<pre><code><span class="line" id="L1"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> CairoVMError = <span class="tok-kw">error</span>{</span>
-<span class="line" id="L2">    AddRelocToRelocForbidden,</span>
-<span class="line" id="L3">    MemoryOutOfBounds,</span>
-<span class="line" id="L4">    MulRelocForbidden,</span>
-<span class="line" id="L5">    InvalidMemoryAddress,</span>
-<span class="line" id="L6">    InstructionFetchingFailed,</span>
-<span class="line" id="L7">    InstructionEncodingError,</span>
-<span class="line" id="L8">    ParseResLogicError,</span>
-<span class="line" id="L9">    TypeMismatchNotFelt,</span>
-<span class="line" id="L10">    RunnerError,</span>
-<span class="line" id="L11">    TypeMismatchNotRelocatable,</span>
-<span class="line" id="L12">    ValueTooLarge,</span>
-<span class="line" id="L13">};</span>
-<span class="line" id="L14"></span>
+<pre><code><span class="line" id="L1"><span class="tok-kw">const</span> std = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;std&quot;</span>);</span>
+<span class="line" id="L2"><span class="tok-kw">const</span> Felt252 = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;../fields/starknet.zig&quot;</span>);</span>
+<span class="line" id="L3"></span>
+<span class="line" id="L4"><span class="tok-kw">const</span> ArrayList = std.ArrayList;</span>
+<span class="line" id="L5"></span>
+<span class="line" id="L6"><span class="tok-comment">/// Stark ECDSA signature</span></span>
+<span class="line" id="L7"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> Signature = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L8">    <span class="tok-kw">const</span> Self = <span class="tok-builtin">@This</span>();</span>
+<span class="line" id="L9"></span>
+<span class="line" id="L10">    <span class="tok-comment">/// The `r` value of a signature</span></span>
+<span class="line" id="L11">    r: ArrayList(Felt252),</span>
+<span class="line" id="L12">    <span class="tok-comment">/// The `s` value of a signature</span></span>
+<span class="line" id="L13">    s: ArrayList(Felt252),</span>
+<span class="line" id="L14">};</span>
+<span class="line" id="L15"></span>
 </code></pre></body>
 </html>

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>vm/error.zig - source view</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>vm/types/ec_op_instance_def.zig - source view</title>
     <link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAgklEQVR4AWMYWuD7EllJIM4G4g4g5oIJ/odhOJ8wToOxSTXgNxDHoeiBMfA4+wGShjyYOCkG/IGqWQziEzYAoUAeiF9D5U+DxEg14DRU7jWIT5IBIOdCxf+A+CQZAAoopEB7QJwBCBwHiip8UYmRdrAlDpIMgApwQZNnNii5Dq0MBgCxxycBnwEd+wAAAABJRU5ErkJggg==">
     <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNTMgMTQwIj48ZyBmaWxsPSIjRjdBNDFEIj48Zz48cG9seWdvbiBwb2ludHM9IjQ2LDIyIDI4LDQ0IDE5LDMwIi8+PHBvbHlnb24gcG9pbnRzPSI0NiwyMiAzMywzMyAyOCw0NCAyMiw0NCAyMiw5NSAzMSw5NSAyMCwxMDAgMTIsMTE3IDAsMTE3IDAsMjIiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyIvPjxwb2x5Z29uIHBvaW50cz0iMzEsOTUgMTIsMTE3IDQsMTA2Ii8+PC9nPjxnPjxwb2x5Z29uIHBvaW50cz0iNTYsMjIgNjIsMzYgMzcsNDQiLz48cG9seWdvbiBwb2ludHM9IjU2LDIyIDExMSwyMiAxMTEsNDQgMzcsNDQgNTYsMzIiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyIvPjxwb2x5Z29uIHBvaW50cz0iMTE2LDk1IDk3LDExNyA5MCwxMDQiLz48cG9seWdvbiBwb2ludHM9IjExNiw5NSAxMDAsMTA0IDk3LDExNyA0MiwxMTcgNDIsOTUiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyIvPjxwb2x5Z29uIHBvaW50cz0iMTUwLDAgNTIsMTE3IDMsMTQwIDEwMSwyMiIvPjwvZz48Zz48cG9seWdvbiBwb2ludHM9IjE0MSwyMiAxNDAsNDAgMTIyLDQ1Ii8+PHBvbHlnb24gcG9pbnRzPSIxNTMsMjIgMTUzLDExNyAxMDYsMTE3IDEyMCwxMDUgMTI1LDk1IDEzMSw5NSAxMzEsNDUgMTIyLDQ1IDEzMiwzNiAxNDEsMjIiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyIvPjxwb2x5Z29uIHBvaW50cz0iMTI1LDk1IDEzMCwxMTAgMTA2LDExNyIvPjwvZz48L2c+PC9zdmc+">
     <style>
@@ -112,19 +112,21 @@
     </style>
 </head>
 <body>
-<pre><code><span class="line" id="L1"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> CairoVMError = <span class="tok-kw">error</span>{</span>
-<span class="line" id="L2">    AddRelocToRelocForbidden,</span>
-<span class="line" id="L3">    MemoryOutOfBounds,</span>
-<span class="line" id="L4">    MulRelocForbidden,</span>
-<span class="line" id="L5">    InvalidMemoryAddress,</span>
-<span class="line" id="L6">    InstructionFetchingFailed,</span>
-<span class="line" id="L7">    InstructionEncodingError,</span>
-<span class="line" id="L8">    ParseResLogicError,</span>
-<span class="line" id="L9">    TypeMismatchNotFelt,</span>
-<span class="line" id="L10">    RunnerError,</span>
-<span class="line" id="L11">    TypeMismatchNotRelocatable,</span>
-<span class="line" id="L12">    ValueTooLarge,</span>
-<span class="line" id="L13">};</span>
-<span class="line" id="L14"></span>
+<pre><code><span class="line" id="L1"><span class="tok-comment">/// Each EC operation P + m * Q = R contains 7 cells:</span></span>
+<span class="line" id="L2"><span class="tok-comment">/// P_x, P_y, Q_x, Q_y, m, R_x, R_y.</span></span>
+<span class="line" id="L3"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> CELLS_PER_EC_OP: <span class="tok-type">u32</span> = <span class="tok-number">7</span>;</span>
+<span class="line" id="L4"><span class="tok-comment">/// Number of input cells per EC operation</span></span>
+<span class="line" id="L5"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> INPUT_CELLS_PER_EC_OP: <span class="tok-type">u32</span> = <span class="tok-number">5</span>;</span>
+<span class="line" id="L6"></span>
+<span class="line" id="L7"><span class="tok-comment">/// Represents a EC Operation Instance Definition.</span></span>
+<span class="line" id="L8"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> EcOpInstanceDef = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L9">    <span class="tok-comment">/// Ratio</span></span>
+<span class="line" id="L10">    ratio: ?<span class="tok-type">u32</span>,</span>
+<span class="line" id="L11">    <span class="tok-comment">/// Size of coefficient.</span></span>
+<span class="line" id="L12">    scalar_height: <span class="tok-type">u32</span>,</span>
+<span class="line" id="L13">    <span class="tok-comment">/// Scalar bits</span></span>
+<span class="line" id="L14">    _scalar_bits: <span class="tok-type">u32</span>,</span>
+<span class="line" id="L15">};</span>
+<span class="line" id="L16"></span>
 </code></pre></body>
 </html>

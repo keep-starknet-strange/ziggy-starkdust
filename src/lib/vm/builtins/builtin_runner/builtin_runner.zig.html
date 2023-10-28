@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    <title>vm/builtins/builtin_runner/builtin_runner.zig - source view</title>
+    <link rel="icon" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAgklEQVR4AWMYWuD7EllJIM4G4g4g5oIJ/odhOJ8wToOxSTXgNxDHoeiBMfA4+wGShjyYOCkG/IGqWQziEzYAoUAeiF9D5U+DxEg14DRU7jWIT5IBIOdCxf+A+CQZAAoopEB7QJwBCBwHiip8UYmRdrAlDpIMgApwQZNnNii5Dq0MBgCxxycBnwEd+wAAAABJRU5ErkJggg==">
+    <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNTMgMTQwIj48ZyBmaWxsPSIjRjdBNDFEIj48Zz48cG9seWdvbiBwb2ludHM9IjQ2LDIyIDI4LDQ0IDE5LDMwIi8+PHBvbHlnb24gcG9pbnRzPSI0NiwyMiAzMywzMyAyOCw0NCAyMiw0NCAyMiw5NSAzMSw5NSAyMCwxMDAgMTIsMTE3IDAsMTE3IDAsMjIiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyIvPjxwb2x5Z29uIHBvaW50cz0iMzEsOTUgMTIsMTE3IDQsMTA2Ii8+PC9nPjxnPjxwb2x5Z29uIHBvaW50cz0iNTYsMjIgNjIsMzYgMzcsNDQiLz48cG9seWdvbiBwb2ludHM9IjU2LDIyIDExMSwyMiAxMTEsNDQgMzcsNDQgNTYsMzIiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyIvPjxwb2x5Z29uIHBvaW50cz0iMTE2LDk1IDk3LDExNyA5MCwxMDQiLz48cG9seWdvbiBwb2ludHM9IjExNiw5NSAxMDAsMTA0IDk3LDExNyA0MiwxMTcgNDIsOTUiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyIvPjxwb2x5Z29uIHBvaW50cz0iMTUwLDAgNTIsMTE3IDMsMTQwIDEwMSwyMiIvPjwvZz48Zz48cG9seWdvbiBwb2ludHM9IjE0MSwyMiAxNDAsNDAgMTIyLDQ1Ii8+PHBvbHlnb24gcG9pbnRzPSIxNTMsMjIgMTUzLDExNyAxMDYsMTE3IDEyMCwxMDUgMTI1LDk1IDEzMSw5NSAxMzEsNDUgMTIyLDQ1IDEzMiwzNiAxNDEsMjIiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyIvPjxwb2x5Z29uIHBvaW50cz0iMTI1LDk1IDEzMCwxMTAgMTA2LDExNyIvPjwvZz48L2c+PC9zdmc+">
+    <style>
+      body{
+        font-family: system-ui, -apple-system, Roboto, "Segoe UI", sans-serif;
+        margin: 0;
+        line-height: 1.5;
+      }
+
+      pre > code {
+        display: block;
+        overflow: auto;
+        line-height: normal;
+        margin: 0em;
+      }
+      .tok-kw {
+          color: #333;
+          font-weight: bold;
+      }
+      .tok-str {
+          color: #d14;
+      }
+      .tok-builtin {
+          color: #005C7A;
+      }
+      .tok-comment {
+          color: #545454;
+          font-style: italic;
+      }
+      .tok-fn {
+          color: #900;
+          font-weight: bold;
+      }
+      .tok-null {
+          color: #005C5C;
+      }
+      .tok-number {
+          color: #005C5C;
+      }
+      .tok-type {
+          color: #458;
+          font-weight: bold;
+      }
+      pre {
+        counter-reset: line;
+      }
+      pre .line:before {
+        counter-increment: line;
+        content: counter(line);
+        display: inline-block;
+        padding-right: 1em;
+        width: 2em;
+        text-align: right;
+        color: #999;
+      }
+      
+      .line {
+        width: 100%;
+        display: inline-block;
+      }
+      .line:target {
+        border-top: 1px solid #ccc;
+        border-bottom: 1px solid #ccc;
+        background: #fafafa;
+      }
+
+      @media (prefers-color-scheme: dark) {
+        body{
+            background:#222;
+            color: #ccc;
+        }
+        pre > code {
+            color: #ccc;
+            background: #222;
+            border: unset;
+        }
+        .line:target {
+            border-top: 1px solid #444;
+            border-bottom: 1px solid #444;
+            background: #333;
+        }
+        .tok-kw {
+            color: #eee;
+        }
+        .tok-str {
+            color: #2e5;
+        }
+        .tok-builtin {
+            color: #ff894c;
+        }
+        .tok-comment {
+            color: #aa7;
+        }
+        .tok-fn {
+            color: #B1A0F8;
+        }
+        .tok-null {
+            color: #ff8080;
+        }
+        .tok-number {
+            color: #ff8080;
+        }
+        .tok-type {
+            color: #68f;
+        }
+      }
+    </style>
+</head>
+<body>
+<pre><code><span class="line" id="L1"><span class="tok-kw">const</span> BitwiseBuiltinRunner = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;./bitwise.zig&quot;</span>).BitwiseBuiltinRunner;</span>
+<span class="line" id="L2"><span class="tok-kw">const</span> EcOpBuiltinRunner = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;./ec_op.zig&quot;</span>).EcOpBuiltinRunner;</span>
+<span class="line" id="L3"><span class="tok-kw">const</span> HashBuiltinRunner = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;./hash.zig&quot;</span>).HashBuiltinRunner;</span>
+<span class="line" id="L4"><span class="tok-kw">const</span> KeccakBuiltinRunner = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;./keccak.zig&quot;</span>).KeccakBuiltinRunner;</span>
+<span class="line" id="L5"><span class="tok-kw">const</span> OutputBuiltinRunner = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;./output.zig&quot;</span>).OutputBuiltinRunner;</span>
+<span class="line" id="L6"><span class="tok-kw">const</span> PoseidonBuiltinRunner = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;./poseidon.zig&quot;</span>).PoseidonBuiltinRunner;</span>
+<span class="line" id="L7"><span class="tok-kw">const</span> RangeCheckBuiltinRunner = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;./range_check.zig&quot;</span>).RangeCheckBuiltinRunner;</span>
+<span class="line" id="L8"><span class="tok-kw">const</span> SegmentArenaBuiltinRunner = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;./segment_arena.zig&quot;</span>).SegmentArenaBuiltinRunner;</span>
+<span class="line" id="L9"><span class="tok-kw">const</span> SignatureBuiltinRunner = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;./signature.zig&quot;</span>).SignatureBuiltinRunner;</span>
+<span class="line" id="L10"></span>
+<span class="line" id="L11"><span class="tok-comment">/// Built-in runner</span></span>
+<span class="line" id="L12"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> BuiltinRunner = <span class="tok-kw">union</span>(<span class="tok-kw">enum</span>) {</span>
+<span class="line" id="L13">    <span class="tok-kw">const</span> Self = <span class="tok-builtin">@This</span>();</span>
+<span class="line" id="L14"></span>
+<span class="line" id="L15">    <span class="tok-comment">/// Bitwise built-in runner for bitwise operations.</span></span>
+<span class="line" id="L16">    Bitwise: BitwiseBuiltinRunner,</span>
+<span class="line" id="L17">    <span class="tok-comment">/// EC Operation built-in runner for elliptic curve operations.</span></span>
+<span class="line" id="L18">    EcOp: EcOpBuiltinRunner,</span>
+<span class="line" id="L19">    <span class="tok-comment">/// Hash built-in runner for hash operations.</span></span>
+<span class="line" id="L20">    Hash: HashBuiltinRunner,</span>
+<span class="line" id="L21">    <span class="tok-comment">/// Output built-in runner for output operations.</span></span>
+<span class="line" id="L22">    Output: OutputBuiltinRunner,</span>
+<span class="line" id="L23">    <span class="tok-comment">/// Range Check built-in runner for range check operations.</span></span>
+<span class="line" id="L24">    RangeCheck: RangeCheckBuiltinRunner,</span>
+<span class="line" id="L25">    <span class="tok-comment">/// Keccak built-in runner for Keccak operations.</span></span>
+<span class="line" id="L26">    Keccak: KeccakBuiltinRunner,</span>
+<span class="line" id="L27">    <span class="tok-comment">/// Signature built-in runner for signature operations.</span></span>
+<span class="line" id="L28">    Signature: SignatureBuiltinRunner,</span>
+<span class="line" id="L29">    <span class="tok-comment">/// Poseidon built-in runner for Poseidon operations.</span></span>
+<span class="line" id="L30">    Poseidon: PoseidonBuiltinRunner,</span>
+<span class="line" id="L31">    <span class="tok-comment">/// Segment Arena built-in runner for segment arena operations.</span></span>
+<span class="line" id="L32">    SegmentArena: SegmentArenaBuiltinRunner,</span>
+<span class="line" id="L33"></span>
+<span class="line" id="L34">    <span class="tok-comment">/// Get the base value of the built-in runner.</span></span>
+<span class="line" id="L35">    <span class="tok-comment">///</span></span>
+<span class="line" id="L36">    <span class="tok-comment">/// This function returns the base value specific to the type of built-in runner.</span></span>
+<span class="line" id="L37">    <span class="tok-comment">///</span></span>
+<span class="line" id="L38">    <span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L39">    <span class="tok-comment">///</span></span>
+<span class="line" id="L40">    <span class="tok-comment">/// The base value as a `usize`.</span></span>
+<span class="line" id="L41">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">base</span>(self: *<span class="tok-kw">const</span> Self) <span class="tok-type">usize</span> {</span>
+<span class="line" id="L42">        <span class="tok-kw">return</span> <span class="tok-kw">switch</span> (self.*) {</span>
+<span class="line" id="L43">            .Bitwise =&gt; |*bitwise| bitwise.get_base(),</span>
+<span class="line" id="L44">            .EcOp =&gt; |*ec| ec.get_base(),</span>
+<span class="line" id="L45">            .Hash =&gt; |*hash| hash.get_base(),</span>
+<span class="line" id="L46">            .Output =&gt; |*output| output.get_base(),</span>
+<span class="line" id="L47">            .RangeCheck =&gt; |*range_check| range_check.get_base(),</span>
+<span class="line" id="L48">            .Keccak =&gt; |*keccak| keccak.get_base(),</span>
+<span class="line" id="L49">            .Signature =&gt; |*signature| signature.get_base(),</span>
+<span class="line" id="L50">            .Poseidon =&gt; |*poseidon| poseidon.get_base(),</span>
+<span class="line" id="L51">            .SegmentArena =&gt; |*segment_arena| segment_arena.get_base(),</span>
+<span class="line" id="L52">        };</span>
+<span class="line" id="L53">    }</span>
+<span class="line" id="L54">};</span>
+<span class="line" id="L55"></span>
+</code></pre></body>
+</html>
