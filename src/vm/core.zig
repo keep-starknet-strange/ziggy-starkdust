@@ -1174,8 +1174,8 @@ test "deduceOp1 when opcode == .Call" {
     // *                      TEST CHECKS                         *
     // ************************************************************
 
-    try expectEqual(op1, null);
-    try expectEqual(res, null);
+    try expectEqual(null, op1);
+    try expectEqual(null, res);
 }
 
 test "deduceOp1 when opcode == .AssertEq, res_logic == .Add, input is felt" {
@@ -1255,8 +1255,8 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
-    try expectEqual(op1, null);
-    try expectEqual(res, null);
+    try expectEqual(null, op1);
+    try expectEqual(null, res);
 }
 
 test "deduceOp1 when opcode == .AssertEq, res_logic = .Mul, no input" {
@@ -1279,8 +1279,8 @@ test "deduceOp1 when opcode == .AssertEq, res_logic = .Mul, no input" {
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
-    try expectEqual(op1, null);
-    try expectEqual(res, null);
+    try expectEqual(null, op1);
+    try expectEqual(null, res);
 }
 
 test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
@@ -1305,8 +1305,8 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
-    try expectEqual(op1, null);
-    try expectEqual(res, null);
+    try expectEqual(null, op1);
+    try expectEqual(null, res);
 }
 
 test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no op0" {
