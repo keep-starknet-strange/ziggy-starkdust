@@ -32,7 +32,7 @@ const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
 
-test "CairoVM: deduceMemoryCell no pedersen builtin" {
+test "CairoVM: deduceMemoryCell no builtin" {
     var vm = try CairoVM.init(
         std.testing.allocator,
         .{},
@@ -47,7 +47,7 @@ test "CairoVM: deduceMemoryCell no pedersen builtin" {
     );
 }
 
-test "CairoVM: deduceMemoryCell pedersen builtin valid" {
+test "CairoVM: deduceMemoryCell builtin valid" {
     var vm = try CairoVM.init(
         std.testing.allocator,
         .{},
