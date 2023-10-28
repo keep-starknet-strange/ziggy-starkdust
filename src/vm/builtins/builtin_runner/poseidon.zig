@@ -6,18 +6,43 @@ const poseidon_instance_def = @import("../../types/poseidon_instance_def.zig");
 const AutoHashMap = std.AutoHashMap;
 const Allocator = std.mem.Allocator;
 
+/// Poseidon built-in runner
 pub const PoseidonBuiltinRunner = struct {
     const Self = @This();
 
+    /// Base
     base: usize,
+    /// Ratio
     ratio: ?u32,
+    /// Number of cells per instance
     cells_per_instance: u32,
+    /// Number of input cells
     n_input_cells: u32,
+    /// Stop pointer
     stop_ptr: ?usize,
+    /// Included boolean flag
     included: bool,
+    /// Cache
+    ///
+    /// Hashmap between an address in some memory segment and `Felt252` field element
     cache: AutoHashMap(relocatable.Relocatable, Felt252),
+    /// Number of instances per component
     instances_per_component: u32,
 
+    /// Create a new PoseidonBuiltinRunner instance.
+    ///
+    /// This function initializes a new `PoseidonBuiltinRunner` instance with the provided
+    /// `allocator`, `ratio`, and `included` values.
+    ///
+    /// # Arguments
+    ///
+    /// - `allocator`: An allocator for initializing the cache.
+    /// - `ratio`: An optional 32-bit unsigned integer representing the ratio.
+    /// - `included`: A boolean flag indicating whether this runner is included.
+    ///
+    /// # Returns
+    ///
+    /// A new `PoseidonBuiltinRunner` instance.
     pub fn new(
         allocator: Allocator,
         ratio: ?u32,
@@ -35,6 +60,11 @@ pub const PoseidonBuiltinRunner = struct {
         };
     }
 
+    /// Get the base value of this Poseidon runner.
+    ///
+    /// # Returns
+    ///
+    /// The base value as a `usize`.
     pub fn get_base(self: *const Self) usize {
         return self.base;
     }

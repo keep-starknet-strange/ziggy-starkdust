@@ -32,7 +32,10 @@ const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
 
 test "CairoVM: deduceMemoryCell no pedersen builtin" {
-    var vm = try CairoVM.init(std.testing.allocator, .{});
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
     defer vm.deinit();
     try expectEqual(
         @as(?MaybeRelocatable, null),
@@ -44,7 +47,10 @@ test "CairoVM: deduceMemoryCell no pedersen builtin" {
 }
 
 test "CairoVM: deduceMemoryCell pedersen builtin valid" {
-    var vm = try CairoVM.init(std.testing.allocator, .{});
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
     defer vm.deinit();
     try vm.builtin_runners.append(BuiltinRunner{ .Hash = HashBuiltinRunner.new(
         std.testing.allocator,

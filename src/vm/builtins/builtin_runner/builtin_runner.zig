@@ -8,20 +8,36 @@ const RangeCheckBuiltinRunner = @import("./range_check.zig").RangeCheckBuiltinRu
 const SegmentArenaBuiltinRunner = @import("./segment_arena.zig").SegmentArenaBuiltinRunner;
 const SignatureBuiltinRunner = @import("./signature.zig").SignatureBuiltinRunner;
 
+/// Built-in runner
 pub const BuiltinRunner = union(enum) {
     const Self = @This();
 
+    /// Bitwise built-in runner for bitwise operations.
     Bitwise: BitwiseBuiltinRunner,
+    /// EC Operation built-in runner for elliptic curve operations.
     EcOp: EcOpBuiltinRunner,
+    /// Hash built-in runner for hash operations.
     Hash: HashBuiltinRunner,
+    /// Output built-in runner for output operations.
     Output: OutputBuiltinRunner,
+    /// Range Check built-in runner for range check operations.
     RangeCheck: RangeCheckBuiltinRunner,
+    /// Keccak built-in runner for Keccak operations.
     Keccak: KeccakBuiltinRunner,
+    /// Signature built-in runner for signature operations.
     Signature: SignatureBuiltinRunner,
+    /// Poseidon built-in runner for Poseidon operations.
     Poseidon: PoseidonBuiltinRunner,
+    /// Segment Arena built-in runner for segment arena operations.
     SegmentArena: SegmentArenaBuiltinRunner,
 
-    /// Returns the builtin's base
+    /// Get the base value of the built-in runner.
+    ///
+    /// This function returns the base value specific to the type of built-in runner.
+    ///
+    /// # Returns
+    ///
+    /// The base value as a `usize`.
     pub fn base(self: *const Self) usize {
         return switch (self.*) {
             .Bitwise => |*bitwise| bitwise.get_base(),
