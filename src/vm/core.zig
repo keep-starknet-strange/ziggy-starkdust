@@ -501,6 +501,65 @@ pub fn mulOperands(
     return relocatable.fromFelt(op_0_felt.mul(op_1_felt));
 }
 
+/// Subtracts a `MaybeRelocatable` from this one and returns the new value.
+///
+/// Only values of the same type may be subtracted. Specifically, attempting to
+/// subtract a `.felt` with a `.relocatable` will result in an error.
+pub fn subOperands(self: MaybeRelocatable, other: MaybeRelocatable) !MaybeRelocatable {
+    switch (self) {
+        .felt => |self_value| switch (other) {
+            .felt => |other_value| return relocatable.fromFelt(self_value.sub(other_value)),
+            .relocatable => return error.TypeMismatchNotFelt,
+        },
+        .relocatable => |self_value| switch (other) {
+            .felt => return error.TypeMismatchNotFelt,
+            .relocatable => |other_value| return relocatable.newFromRelocatable(try self_value.sub(other_value)),
+        },
+    }
+}
+
+/// Attempts to deduce `op1` and `res` for an instruction, given `dst` and `op0`.
+///
+/// # Arguments
+/// - `inst`: The instruction to deduce `op1` and `res` for.
+/// - `dst`: The destination of the instruction.
+/// - `op0`: The first operand of the instruction.
+///
+/// # Returns
+/// - `Tuple`: A tuple containing the deduced `op1` and `res`.
+pub fn deduceOp1(
+    inst: *const instructions.Instruction,
+    dst: ?*const relocatable.MaybeRelocatable,
+    op0: ?*const relocatable.MaybeRelocatable,
+) !std.meta.Tuple(&[_]type{ ?relocatable.MaybeRelocatable, ?relocatable.MaybeRelocatable }) {
+    if (inst.opcode != .AssertEq) {
+        return .{ null, null };
+    }
+
+    switch (inst.res_logic) {
+        .Op1 => if (dst) |dst_val| {
+            return .{ dst_val.*, dst_val.* };
+        },
+        .Add => if (dst != null and op0 != null) {
+            return .{ try subOperands(dst.?.*, op0.?.*), dst.?.* };
+        },
+        .Mul => {
+            if (dst != null and op0 != null and
+                dst.?.isFelt() and op0.?.isFelt() and
+                !op0.?.felt.isZero())
+            {
+                return .{
+                    relocatable.fromFelt(try dst.?.felt.div(op0.?.felt)),
+                    dst.?.*,
+                };
+            }
+        },
+        else => {},
+    }
+
+    return .{ null, null };
+}
+
 // *****************************************************************************
 // *                       CUSTOM TYPES                                        *
 // *****************************************************************************

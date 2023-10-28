@@ -42,6 +42,17 @@ pub const Relocatable = struct {
         return self.segment_index == other.segment_index and self.offset == other.offset;
     }
 
+    /// Attempts to subtract a `Relocatable` from another.
+    ///
+    /// This method fails if `self` and other` are not from the same segment.
+    pub fn sub(self: Relocatable, other: Relocatable) !Relocatable {
+        if (self.segment_index != other.segment_index) {
+            return error.TypeMismatchNotRelocatable;
+        }
+
+        return subUint(self, other.offset);
+    }
+
     // Substract a u64 from a Relocatable and return a new Relocatable.
     // # Arguments
     // - other: The u64 to substract.
@@ -222,11 +233,17 @@ pub const MaybeRelocatable = union(enum) {
     /// Whether the MaybeRelocatable is a relocatable or not.
     /// # Returns
     /// true if the MaybeRelocatable is a relocatable, false otherwise.
-    pub fn isRelocatable(self: Self) bool {
-        return switch (self) {
-            .relocatable => true,
-            .felt => false,
-        };
+    pub fn isRelocatable(self: MaybeRelocatable) bool {
+        return std.meta.activeTag(self) == .relocatable;
+    }
+
+    /// Returns whether the MaybeRelocatable is a felt or not.
+    ///
+    /// # Returns
+    ///
+    /// `true` if the MaybeRelocatable is a felt, `false` otherwise.
+    pub fn isFelt(self: MaybeRelocatable) bool {
+        return std.meta.activeTag(self) == .felt;
     }
 };
 
