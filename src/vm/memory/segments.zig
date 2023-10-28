@@ -13,6 +13,7 @@ const starknet_felt = @import("../../math/fields/starknet.zig");
 // Also holds metadata useful for the relocation process of
 // the memory at the end of the VM run.
 pub const MemorySegmentManager = struct {
+    const Self = @This();
 
     // ************************************************************
     // *                        FIELDS                            *
@@ -53,11 +54,11 @@ pub const MemorySegmentManager = struct {
     // * `allocator` - The allocator to use for the HashMaps.
     // # Returns
     // A new MemorySegmentManager.
-    pub fn init(allocator: Allocator) !*MemorySegmentManager {
+    pub fn init(allocator: Allocator) !*Self {
         // Create the pointer to the MemorySegmentManager.
-        var segment_manager = try allocator.create(MemorySegmentManager);
+        var segment_manager = try allocator.create(Self);
         // Initialize the values of the MemorySegmentManager struct.
-        segment_manager.* = MemorySegmentManager{
+        segment_manager.* = Self{
             .allocator = allocator,
             .segment_used_sizes = std.AutoHashMap(
                 u32,
@@ -76,7 +77,7 @@ pub const MemorySegmentManager = struct {
     }
 
     // Safe deallocation of the memory.
-    pub fn deinit(self: *MemorySegmentManager) void {
+    pub fn deinit(self: *Self) void {
         // Clear the hash maps
         self.segment_used_sizes.deinit();
         self.segment_sizes.deinit();
@@ -92,7 +93,7 @@ pub const MemorySegmentManager = struct {
     // ************************************************************
 
     // Adds a memory segment and returns the first address of the new segment.
-    pub fn addSegment(self: *MemorySegmentManager) relocatable.Relocatable {
+    pub fn addSegment(self: *Self) relocatable.Relocatable {
         // Create the relocatable address for the new segment.
         const relocatable_address = relocatable.Relocatable{
             .segment_index = self.memory.num_segments,

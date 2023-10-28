@@ -13,6 +13,8 @@ const starknet_felt = @import("../../math/fields/starknet.zig");
 
 // Representation of the VM memory.
 pub const Memory = struct {
+    const Self = @This();
+
     // ************************************************************
     // *                        FIELDS                            *
     // ************************************************************
@@ -45,10 +47,10 @@ pub const Memory = struct {
     // - `allocator` - The allocator to use.
     // # Returns
     // The new memory.
-    pub fn init(allocator: Allocator) !*Memory {
-        var memory = try allocator.create(Memory);
+    pub fn init(allocator: Allocator) !*Self {
+        var memory = try allocator.create(Self);
 
-        memory.* = Memory{
+        memory.* = Self{
             .allocator = allocator,
             .data = std.AutoHashMap(
                 Relocatable,
@@ -64,7 +66,7 @@ pub const Memory = struct {
     }
 
     // Safe deallocation of the memory.
-    pub fn deinit(self: *Memory) void {
+    pub fn deinit(self: *Self) void {
         // Clear the hash maps
         self.data.deinit();
         self.validated_addresses.deinit();
@@ -81,7 +83,7 @@ pub const Memory = struct {
     // - `address` - The address to insert the value at.
     // - `value` - The value to insert.
     pub fn set(
-        self: *Memory,
+        self: *Self,
         address: Relocatable,
         value: MaybeRelocatable,
     ) error{
@@ -111,7 +113,7 @@ pub const Memory = struct {
     // # Returns
     // The value at the given address.
     pub fn get(
-        self: *Memory,
+        self: *Self,
         address: Relocatable,
     ) error{MemoryOutOfBounds}!MaybeRelocatable {
         var maybe_value = self.data.get(address);

@@ -20,6 +20,7 @@ const Instruction = @import("instructions.zig").Instruction;
 
 /// Represents the Cairo VM.
 pub const CairoVM = struct {
+    const Self = @This();
 
     // ************************************************************
     // *                        FIELDS                            *
@@ -51,7 +52,7 @@ pub const CairoVM = struct {
     pub fn init(
         allocator: Allocator,
         config: Config,
-    ) !CairoVM {
+    ) !Self {
         // Initialize the memory segment manager.
         const memory_segment_manager = try segments.MemorySegmentManager.init(allocator);
         // Initialize the run context.
@@ -59,7 +60,7 @@ pub const CairoVM = struct {
         // Initialize the trace context.
         const trace_context = try TraceContext.init(allocator, config.enable_trace);
 
-        return CairoVM{
+        return Self{
             .allocator = allocator,
             .run_context = run_context,
             .segments = memory_segment_manager,
@@ -69,7 +70,7 @@ pub const CairoVM = struct {
     }
 
     /// Safe deallocation of the VM resources.
-    pub fn deinit(self: *CairoVM) void {
+    pub fn deinit(self: *Self) void {
         // Deallocate the memory segment manager.
         self.segments.deinit();
         // Deallocate the run context.
@@ -84,7 +85,7 @@ pub const CairoVM = struct {
 
     /// Do a single step of the VM.
     /// Process an instruction cycle using the typical fetch-decode-execute cycle.
-    pub fn step(self: *CairoVM) !void {
+    pub fn step(self: *Self) !void {
         // TODO: Run hints.
 
         std.log.debug(
@@ -124,7 +125,7 @@ pub const CairoVM = struct {
     // # Arguments
     /// - `instruction`: The instruction to run.
     pub fn runInstruction(
-        self: *CairoVM,
+        self: *Self,
         instruction: *const instructions.Instruction,
     ) !void {
         if (!build_options.trace_disable) {
@@ -145,7 +146,7 @@ pub const CairoVM = struct {
     /// # Returns
     /// - `Operands`: The operands for the instruction.
     pub fn computeOperands(
-        self: *CairoVM,
+        self: *Self,
         instruction: *const instructions.Instruction,
     ) !OperandsResult {
         // Compute the destination address and get value from the memory.
@@ -191,7 +192,7 @@ pub const CairoVM = struct {
     /// - `dst`: The destination.
     /// - `op1`: The op1.
     pub fn computeOp0Deductions(
-        self: *CairoVM,
+        self: *Self,
         op_0_addr: MaybeRelocatable,
         instruction: *const instructions.Instruction,
         dst: ?MaybeRelocatable,
@@ -212,7 +213,7 @@ pub const CairoVM = struct {
     /// - `MaybeRelocatable`: The deduced value.
     /// TODO: Implement this.
     pub fn deduceMemoryCell(
-        self: *CairoVM,
+        self: *Self,
         address: Relocatable,
     ) !?MaybeRelocatable {
         _ = address;
@@ -225,7 +226,7 @@ pub const CairoVM = struct {
     /// - `instruction`: The instruction that was executed.
     /// - `operands`: The operands of the instruction.
     pub fn updatePc(
-        self: *CairoVM,
+        self: *Self,
         instruction: *const instructions.Instruction,
         operands: OperandsResult,
     ) !void {
@@ -287,7 +288,7 @@ pub const CairoVM = struct {
     /// - `instruction`: The instruction that was executed.
     /// - `operands`: The operands of the instruction.
     pub fn updateAp(
-        self: *CairoVM,
+        self: *Self,
         instruction: *const instructions.Instruction,
         operands: OperandsResult,
     ) !void {
@@ -324,7 +325,7 @@ pub const CairoVM = struct {
     /// - `instruction`: The instruction that was executed.
     /// - `operands`: The operands of the instruction.
     pub fn updateFp(
-        self: *CairoVM,
+        self: *Self,
         instruction: *const instructions.Instruction,
         operands: OperandsResult,
     ) !void {
@@ -365,28 +366,28 @@ pub const CairoVM = struct {
     /// Returns whether the run is finished or not.
     /// # Returns
     /// - `bool`: Whether the run is finished or not.
-    pub fn isRunFinished(self: *const CairoVM) bool {
+    pub fn isRunFinished(self: *const Self) bool {
         return self.is_run_finished;
     }
 
     /// Returns the current ap.
     /// # Returns
     /// - `MaybeRelocatable`: The current ap.
-    pub fn getAp(self: *const CairoVM) Relocatable {
+    pub fn getAp(self: *const Self) Relocatable {
         return self.run_context.ap.*;
     }
 
     /// Returns the current fp.
     /// # Returns
     /// - `MaybeRelocatable`: The current fp.
-    pub fn getFp(self: *const CairoVM) Relocatable {
+    pub fn getFp(self: *const Self) Relocatable {
         return self.run_context.fp.*;
     }
 
     /// Returns the current pc.
     /// # Returns
     /// - `MaybeRelocatable`: The current pc.
-    pub fn getPc(self: *const CairoVM) Relocatable {
+    pub fn getPc(self: *const Self) Relocatable {
         return self.run_context.pc.*;
     }
 };
@@ -547,6 +548,8 @@ pub fn deduceOp1(
 
 /// Represents the operands for an instruction.
 const OperandsResult = struct {
+    const Self = @This();
+
     dst: MaybeRelocatable,
     res: ?MaybeRelocatable,
     op_0: MaybeRelocatable,
@@ -556,7 +559,7 @@ const OperandsResult = struct {
     op_1_addr: Relocatable,
 
     /// Returns a default instance of the OperandsResult struct.
-    pub fn default() OperandsResult {
+    pub fn default() Self {
         return .{
             .dst = relocatable.fromU64(0),
             .res = relocatable.fromU64(0),
