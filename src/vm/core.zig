@@ -387,25 +387,17 @@ pub const CairoVM = struct {
             .Op1 => if (dst) |dst_val| {
                 return .{ dst_val.*, dst_val.* };
             },
-            .Add => if (dst) |dst_val| {
-                if (op0) |op0_val| {
-                    return .{ try dst_val.sub(op0_val.*), dst_val.* };
-                }
+            .Add => if (dst != null and op0 != null) {
+                return .{ try dst.?.sub(op0.?.*), dst.?.* };
             },
-            .Mul => if (dst) |dst_val| {
-                if (op0) |op0_val| {
-                    switch (op0_val.*) {
-                        .felt => |op0_val_felt| {
-                            switch (dst_val.*) {
-                                .felt => |dst_val_felt| {
-                                    return .{ relocatable.fromFelt(try dst_val_felt.div(op0_val_felt)), dst_val.* };
-                                },
-                                else => {},
-                            }
-                        },
-                        else => {},
-                    }
-                }
+            .Mul => {
+                if (dst == null or op0 == null)
+                    return .{ null, null };
+                if (dst.?.isRelocatable() or op0.?.isRelocatable())
+                    return .{ null, null };
+                if (op0.?.felt.isZero())
+                    return .{ null, null };
+                return .{ relocatable.fromFelt(try dst.?.felt.div(op0.?.felt)), dst.?.* };
             },
             else => {},
         }
@@ -1208,7 +1200,7 @@ test "deduce_op1 when opcode == .AssertEq, input is felt" {
     try expect(res.?.eq(relocatable.fromU64(3)));
 }
 
-test "deduce_op1 when opcode == .AssertEq, res * non-zero op0" {
+test "deduce_op1 when opcode == .AssertEq, res_logic == .Mul, non-zero op0" {
     const instruction = instructions.Instruction{
         .off_0 = 1,
         .off_1 = 2,
@@ -1216,7 +1208,7 @@ test "deduce_op1 when opcode == .AssertEq, res * non-zero op0" {
         .dst_reg = .FP,
         .op_0_reg = .AP,
         .op_1_addr = .AP,
-        .res_logic = .Add,
+        .res_logic = .Mul,
         .pc_update = .Jump,
         .ap_update = .Regular,
         .fp_update = .Regular,
@@ -1237,7 +1229,7 @@ test "deduce_op1 when opcode == .AssertEq, res * non-zero op0" {
     try expect(res.?.eq(relocatable.fromU64(4)));
 }
 
-test "deduce_op1 when opcode == .AssertEq, res * 0" {
+test "deduce_op1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
     const instruction = instructions.Instruction{
         .off_0 = 1,
         .off_1 = 2,
@@ -1245,7 +1237,7 @@ test "deduce_op1 when opcode == .AssertEq, res * 0" {
         .dst_reg = .FP,
         .op_0_reg = .AP,
         .op_1_addr = .AP,
-        .res_logic = .Add,
+        .res_logic = .Mul,
         .pc_update = .Jump,
         .ap_update = .Regular,
         .fp_update = .Regular,
@@ -1266,7 +1258,7 @@ test "deduce_op1 when opcode == .AssertEq, res * 0" {
     try expectEqual(res, null);
 }
 
-test "deduce_op1 when opcode == .AssertEq, no input" {
+test "deduce_op1 when opcode == .AssertEq, res_logic = .Mul, no input" {
     const instruction = instructions.Instruction{
         .off_0 = 1,
         .off_1 = 2,
@@ -1274,7 +1266,7 @@ test "deduce_op1 when opcode == .AssertEq, no input" {
         .dst_reg = .FP,
         .op_0_reg = .AP,
         .op_1_addr = .AP,
-        .res_logic = .Add,
+        .res_logic = .Mul,
         .pc_update = .Jump,
         .ap_update = .Regular,
         .fp_update = .Regular,
@@ -1293,7 +1285,7 @@ test "deduce_op1 when opcode == .AssertEq, no input" {
     try expectEqual(res, null);
 }
 
-test "deduce_op1 when opcode == .AssertEq, no dst" {
+test "deduce_op1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
     const instruction = instructions.Instruction{
         .off_0 = 1,
         .off_1 = 2,
@@ -1301,7 +1293,7 @@ test "deduce_op1 when opcode == .AssertEq, no dst" {
         .dst_reg = .FP,
         .op_0_reg = .AP,
         .op_1_addr = .AP,
-        .res_logic = .Add,
+        .res_logic = .Op1,
         .pc_update = .Jump,
         .ap_update = .Regular,
         .fp_update = .Regular,
@@ -1321,7 +1313,7 @@ test "deduce_op1 when opcode == .AssertEq, no dst" {
     try expectEqual(res, null);
 }
 
-test "deduce_op1 when opcode == .AssertEq, no op1" {
+test "deduce_op1 when opcode == .AssertEq, res_logic == .Op1, no op0" {
     const instruction = instructions.Instruction{
         .off_0 = 1,
         .off_1 = 2,
@@ -1329,7 +1321,7 @@ test "deduce_op1 when opcode == .AssertEq, no op1" {
         .dst_reg = .FP,
         .op_0_reg = .AP,
         .op_1_addr = .AP,
-        .res_logic = .Add,
+        .res_logic = .Op1,
         .pc_update = .Jump,
         .ap_update = .Regular,
         .fp_update = .Regular,
