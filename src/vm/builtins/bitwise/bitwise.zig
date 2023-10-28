@@ -17,7 +17,7 @@ const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
 // *****************************************************************************
 
 // Error type to represent different error conditions during bitwise builtin.
-pub const Error = error{
+pub const BitwiseError = error{
     InvalidBitwiseIndex,
     UnsupportedNumberOfBits,
     InvalidAddressForBitwise,
@@ -36,17 +36,17 @@ const BITWISE_INPUT_CELLS_PER_INSTANCE = 2;
 /// - memory: The cairo memory where addresses are looked up
 /// # Returns
 /// The felt as an integer.
-fn getValue(address: Relocatable, memory: *Memory) Error!u256 {
+fn getValue(address: Relocatable, memory: *Memory) BitwiseError!u256 {
     var value = memory.get(address) catch {
-        return Error.InvalidAddressForBitwise;
+        return BitwiseError.InvalidAddressForBitwise;
     };
 
     var felt = value.tryIntoFelt() catch {
-        return Error.InvalidAddressForBitwise;
+        return BitwiseError.InvalidAddressForBitwise;
     };
 
     if (felt.toInteger() > std.math.pow(u256, 2, BITWISE_TOTAL_N_BITS)) {
-        return Error.UnsupportedNumberOfBits;
+        return BitwiseError.UnsupportedNumberOfBits;
     }
 
     return felt.toInteger();
@@ -58,16 +58,16 @@ fn getValue(address: Relocatable, memory: *Memory) Error!u256 {
 /// - memory: The cairo memory where addresses are looked up
 /// # Returns
 /// The deduced value as a `MaybeRelocatable`
-pub fn deduce(address: Relocatable, memory: *Memory) Error!MaybeRelocatable {
+pub fn deduce(address: Relocatable, memory: *Memory) BitwiseError!MaybeRelocatable {
     const index = address.offset % CELLS_PER_BITWISE;
 
     if (index < BITWISE_INPUT_CELLS_PER_INSTANCE) {
-        return Error.InvalidBitwiseIndex;
+        return BitwiseError.InvalidBitwiseIndex;
     }
 
     // calculate offset
     const x_offset = address.subUint(index) catch {
-        return Error.InvalidBitwiseIndex;
+        return BitwiseError.InvalidBitwiseIndex;
     };
     const y_offset = try x_offset.addUint(1);
 
@@ -78,7 +78,7 @@ pub fn deduce(address: Relocatable, memory: *Memory) Error!MaybeRelocatable {
         2 => x & y, // and
         3 => x ^ y, // xor
         4 => x | y, // or
-        else => return Error.InvalidBitwiseIndex,
+        else => return BitwiseError.InvalidBitwiseIndex,
     };
 
     return MaybeRelocatable{ .felt = Felt252.fromInteger(res) };
@@ -101,7 +101,7 @@ test "deduce when address.offset less than BITWISE_INPUT_CELLS_PER_INSTANCE" {
     var address = Relocatable.new(0, 5);
 
     // then
-    try expectError(Error.InvalidBitwiseIndex, deduce(address, mem));
+    try expectError(BitwiseError.InvalidBitwiseIndex, deduce(address, mem));
 }
 
 test "deduce when address points to nothing in memory" {
@@ -115,7 +115,7 @@ test "deduce when address points to nothing in memory" {
     var address = Relocatable.new(0, 3);
 
     // then
-    try expectError(Error.InvalidAddressForBitwise, deduce(address, mem));
+    try expectError(BitwiseError.InvalidAddressForBitwise, deduce(address, mem));
 }
 
 test "deduce when address points to relocatable variant of MaybeRelocatable " {
@@ -131,7 +131,7 @@ test "deduce when address points to relocatable variant of MaybeRelocatable " {
     try mem.set(Relocatable.new(0, 5), newFromRelocatable(address));
 
     // then
-    try expectError(Error.InvalidAddressForBitwise, deduce(address, mem));
+    try expectError(BitwiseError.InvalidAddressForBitwise, deduce(address, mem));
 }
 
 test "deduce when address points to felt greater than BITWISE_TOTAL_N_BITS" {
@@ -151,7 +151,7 @@ test "deduce when address points to felt greater than BITWISE_TOTAL_N_BITS" {
     ), fromU256(number));
 
     // then
-    try expectError(Error.UnsupportedNumberOfBits, deduce(address, mem));
+    try expectError(BitwiseError.UnsupportedNumberOfBits, deduce(address, mem));
 }
 
 // happy path tests graciously ported from https://github.com/lambdaclass/cairo-vm_in_go/blob/main/pkg/builtins/bitwise_test.go#L13
