@@ -2483,188 +2483,186 @@
 <span class="line" id="L2294">}</span>
 <span class="line" id="L2295"></span>
 <span class="line" id="L2296"><span class="tok-kw">test</span> <span class="tok-str">&quot;reIndex&quot;</span> {</span>
-<span class="line" id="L2297">    <span class="tok-kw">if</span> (<span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>).zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L2298"></span>
-<span class="line" id="L2299">    <span class="tok-kw">var</span> map = ArrayHashMap(<span class="tok-type">i32</span>, <span class="tok-type">i32</span>, AutoContext(<span class="tok-type">i32</span>), <span class="tok-null">true</span>).init(std.testing.allocator);</span>
-<span class="line" id="L2300">    <span class="tok-kw">defer</span> map.deinit();</span>
-<span class="line" id="L2301"></span>
-<span class="line" id="L2302">    <span class="tok-comment">// Populate via the API.</span>
+<span class="line" id="L2297">    <span class="tok-kw">var</span> map = ArrayHashMap(<span class="tok-type">i32</span>, <span class="tok-type">i32</span>, AutoContext(<span class="tok-type">i32</span>), <span class="tok-null">true</span>).init(std.testing.allocator);</span>
+<span class="line" id="L2298">    <span class="tok-kw">defer</span> map.deinit();</span>
+<span class="line" id="L2299"></span>
+<span class="line" id="L2300">    <span class="tok-comment">// Populate via the API.</span>
 </span>
-<span class="line" id="L2303">    <span class="tok-kw">const</span> num_indexed_entries = <span class="tok-number">20</span>;</span>
-<span class="line" id="L2304">    <span class="tok-kw">var</span> i: <span class="tok-type">i32</span> = <span class="tok-number">0</span>;</span>
-<span class="line" id="L2305">    <span class="tok-kw">while</span> (i &lt; num_indexed_entries) : (i += <span class="tok-number">1</span>)</span>
-<span class="line" id="L2306">        <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> map.fetchPut(i, i * <span class="tok-number">10</span>)) == <span class="tok-null">null</span>);</span>
-<span class="line" id="L2307"></span>
-<span class="line" id="L2308">    <span class="tok-comment">// Make sure we allocated an index header.</span>
+<span class="line" id="L2301">    <span class="tok-kw">const</span> num_indexed_entries = <span class="tok-number">20</span>;</span>
+<span class="line" id="L2302">    <span class="tok-kw">var</span> i: <span class="tok-type">i32</span> = <span class="tok-number">0</span>;</span>
+<span class="line" id="L2303">    <span class="tok-kw">while</span> (i &lt; num_indexed_entries) : (i += <span class="tok-number">1</span>)</span>
+<span class="line" id="L2304">        <span class="tok-kw">try</span> testing.expect((<span class="tok-kw">try</span> map.fetchPut(i, i * <span class="tok-number">10</span>)) == <span class="tok-null">null</span>);</span>
+<span class="line" id="L2305"></span>
+<span class="line" id="L2306">    <span class="tok-comment">// Make sure we allocated an index header.</span>
 </span>
-<span class="line" id="L2309">    <span class="tok-kw">try</span> testing.expect(map.unmanaged.index_header != <span class="tok-null">null</span>);</span>
-<span class="line" id="L2310"></span>
-<span class="line" id="L2311">    <span class="tok-comment">// Now write to the arrays directly.</span>
+<span class="line" id="L2307">    <span class="tok-kw">try</span> testing.expect(map.unmanaged.index_header != <span class="tok-null">null</span>);</span>
+<span class="line" id="L2308"></span>
+<span class="line" id="L2309">    <span class="tok-comment">// Now write to the arrays directly.</span>
 </span>
-<span class="line" id="L2312">    <span class="tok-kw">const</span> num_unindexed_entries = <span class="tok-number">20</span>;</span>
-<span class="line" id="L2313">    <span class="tok-kw">try</span> map.unmanaged.entries.resize(std.testing.allocator, num_indexed_entries + num_unindexed_entries);</span>
-<span class="line" id="L2314">    <span class="tok-kw">for</span> (map.keys()[num_indexed_entries..], map.values()[num_indexed_entries..], num_indexed_entries..) |*key, *value, j| {</span>
-<span class="line" id="L2315">        key.* = <span class="tok-builtin">@intCast</span>(j);</span>
-<span class="line" id="L2316">        value.* = <span class="tok-builtin">@intCast</span>(j * <span class="tok-number">10</span>);</span>
-<span class="line" id="L2317">    }</span>
-<span class="line" id="L2318"></span>
-<span class="line" id="L2319">    <span class="tok-comment">// After reindexing, we should see everything.</span>
+<span class="line" id="L2310">    <span class="tok-kw">const</span> num_unindexed_entries = <span class="tok-number">20</span>;</span>
+<span class="line" id="L2311">    <span class="tok-kw">try</span> map.unmanaged.entries.resize(std.testing.allocator, num_indexed_entries + num_unindexed_entries);</span>
+<span class="line" id="L2312">    <span class="tok-kw">for</span> (map.keys()[num_indexed_entries..], map.values()[num_indexed_entries..], num_indexed_entries..) |*key, *value, j| {</span>
+<span class="line" id="L2313">        key.* = <span class="tok-builtin">@intCast</span>(j);</span>
+<span class="line" id="L2314">        value.* = <span class="tok-builtin">@intCast</span>(j * <span class="tok-number">10</span>);</span>
+<span class="line" id="L2315">    }</span>
+<span class="line" id="L2316"></span>
+<span class="line" id="L2317">    <span class="tok-comment">// After reindexing, we should see everything.</span>
 </span>
-<span class="line" id="L2320">    <span class="tok-kw">try</span> map.reIndex();</span>
-<span class="line" id="L2321">    i = <span class="tok-number">0</span>;</span>
-<span class="line" id="L2322">    <span class="tok-kw">while</span> (i &lt; num_indexed_entries + num_unindexed_entries) : (i += <span class="tok-number">1</span>) {</span>
-<span class="line" id="L2323">        <span class="tok-kw">const</span> gop = <span class="tok-kw">try</span> map.getOrPut(i);</span>
-<span class="line" id="L2324">        <span class="tok-kw">try</span> testing.expect(gop.found_existing == <span class="tok-null">true</span>);</span>
-<span class="line" id="L2325">        <span class="tok-kw">try</span> testing.expect(gop.value_ptr.* == i * <span class="tok-number">10</span>);</span>
-<span class="line" id="L2326">        <span class="tok-kw">try</span> testing.expect(gop.index == i);</span>
-<span class="line" id="L2327">    }</span>
-<span class="line" id="L2328">}</span>
-<span class="line" id="L2329"></span>
-<span class="line" id="L2330"><span class="tok-kw">test</span> <span class="tok-str">&quot;auto store_hash&quot;</span> {</span>
-<span class="line" id="L2331">    <span class="tok-kw">const</span> HasCheapEql = AutoArrayHashMap(<span class="tok-type">i32</span>, <span class="tok-type">i32</span>);</span>
-<span class="line" id="L2332">    <span class="tok-kw">const</span> HasExpensiveEql = AutoArrayHashMap([<span class="tok-number">32</span>]<span class="tok-type">i32</span>, <span class="tok-type">i32</span>);</span>
-<span class="line" id="L2333">    <span class="tok-kw">try</span> testing.expect(meta.fieldInfo(HasCheapEql.Data, .hash).<span class="tok-type">type</span> == <span class="tok-type">void</span>);</span>
-<span class="line" id="L2334">    <span class="tok-kw">try</span> testing.expect(meta.fieldInfo(HasExpensiveEql.Data, .hash).<span class="tok-type">type</span> != <span class="tok-type">void</span>);</span>
-<span class="line" id="L2335"></span>
-<span class="line" id="L2336">    <span class="tok-kw">const</span> HasCheapEqlUn = AutoArrayHashMapUnmanaged(<span class="tok-type">i32</span>, <span class="tok-type">i32</span>);</span>
-<span class="line" id="L2337">    <span class="tok-kw">const</span> HasExpensiveEqlUn = AutoArrayHashMapUnmanaged([<span class="tok-number">32</span>]<span class="tok-type">i32</span>, <span class="tok-type">i32</span>);</span>
-<span class="line" id="L2338">    <span class="tok-kw">try</span> testing.expect(meta.fieldInfo(HasCheapEqlUn.Data, .hash).<span class="tok-type">type</span> == <span class="tok-type">void</span>);</span>
-<span class="line" id="L2339">    <span class="tok-kw">try</span> testing.expect(meta.fieldInfo(HasExpensiveEqlUn.Data, .hash).<span class="tok-type">type</span> != <span class="tok-type">void</span>);</span>
-<span class="line" id="L2340">}</span>
-<span class="line" id="L2341"></span>
-<span class="line" id="L2342"><span class="tok-kw">test</span> <span class="tok-str">&quot;sort&quot;</span> {</span>
-<span class="line" id="L2343">    <span class="tok-kw">var</span> map = AutoArrayHashMap(<span class="tok-type">i32</span>, <span class="tok-type">i32</span>).init(std.testing.allocator);</span>
-<span class="line" id="L2344">    <span class="tok-kw">defer</span> map.deinit();</span>
-<span class="line" id="L2345"></span>
-<span class="line" id="L2346">    <span class="tok-kw">for</span> ([_]<span class="tok-type">i32</span>{ <span class="tok-number">8</span>, <span class="tok-number">3</span>, <span class="tok-number">12</span>, <span class="tok-number">10</span>, <span class="tok-number">2</span>, <span class="tok-number">4</span>, <span class="tok-number">9</span>, <span class="tok-number">5</span>, <span class="tok-number">6</span>, <span class="tok-number">13</span>, <span class="tok-number">14</span>, <span class="tok-number">15</span>, <span class="tok-number">16</span>, <span class="tok-number">1</span>, <span class="tok-number">11</span>, <span class="tok-number">17</span>, <span class="tok-number">7</span> }) |x| {</span>
-<span class="line" id="L2347">        <span class="tok-kw">try</span> map.put(x, x * <span class="tok-number">3</span>);</span>
-<span class="line" id="L2348">    }</span>
-<span class="line" id="L2349"></span>
-<span class="line" id="L2350">    <span class="tok-kw">const</span> C = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L2351">        keys: []<span class="tok-type">i32</span>,</span>
-<span class="line" id="L2352"></span>
-<span class="line" id="L2353">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">lessThan</span>(ctx: <span class="tok-builtin">@This</span>(), a_index: <span class="tok-type">usize</span>, b_index: <span class="tok-type">usize</span>) <span class="tok-type">bool</span> {</span>
-<span class="line" id="L2354">            <span class="tok-kw">return</span> ctx.keys[a_index] &lt; ctx.keys[b_index];</span>
-<span class="line" id="L2355">        }</span>
-<span class="line" id="L2356">    };</span>
+<span class="line" id="L2318">    <span class="tok-kw">try</span> map.reIndex();</span>
+<span class="line" id="L2319">    i = <span class="tok-number">0</span>;</span>
+<span class="line" id="L2320">    <span class="tok-kw">while</span> (i &lt; num_indexed_entries + num_unindexed_entries) : (i += <span class="tok-number">1</span>) {</span>
+<span class="line" id="L2321">        <span class="tok-kw">const</span> gop = <span class="tok-kw">try</span> map.getOrPut(i);</span>
+<span class="line" id="L2322">        <span class="tok-kw">try</span> testing.expect(gop.found_existing == <span class="tok-null">true</span>);</span>
+<span class="line" id="L2323">        <span class="tok-kw">try</span> testing.expect(gop.value_ptr.* == i * <span class="tok-number">10</span>);</span>
+<span class="line" id="L2324">        <span class="tok-kw">try</span> testing.expect(gop.index == i);</span>
+<span class="line" id="L2325">    }</span>
+<span class="line" id="L2326">}</span>
+<span class="line" id="L2327"></span>
+<span class="line" id="L2328"><span class="tok-kw">test</span> <span class="tok-str">&quot;auto store_hash&quot;</span> {</span>
+<span class="line" id="L2329">    <span class="tok-kw">const</span> HasCheapEql = AutoArrayHashMap(<span class="tok-type">i32</span>, <span class="tok-type">i32</span>);</span>
+<span class="line" id="L2330">    <span class="tok-kw">const</span> HasExpensiveEql = AutoArrayHashMap([<span class="tok-number">32</span>]<span class="tok-type">i32</span>, <span class="tok-type">i32</span>);</span>
+<span class="line" id="L2331">    <span class="tok-kw">try</span> testing.expect(meta.fieldInfo(HasCheapEql.Data, .hash).<span class="tok-type">type</span> == <span class="tok-type">void</span>);</span>
+<span class="line" id="L2332">    <span class="tok-kw">try</span> testing.expect(meta.fieldInfo(HasExpensiveEql.Data, .hash).<span class="tok-type">type</span> != <span class="tok-type">void</span>);</span>
+<span class="line" id="L2333"></span>
+<span class="line" id="L2334">    <span class="tok-kw">const</span> HasCheapEqlUn = AutoArrayHashMapUnmanaged(<span class="tok-type">i32</span>, <span class="tok-type">i32</span>);</span>
+<span class="line" id="L2335">    <span class="tok-kw">const</span> HasExpensiveEqlUn = AutoArrayHashMapUnmanaged([<span class="tok-number">32</span>]<span class="tok-type">i32</span>, <span class="tok-type">i32</span>);</span>
+<span class="line" id="L2336">    <span class="tok-kw">try</span> testing.expect(meta.fieldInfo(HasCheapEqlUn.Data, .hash).<span class="tok-type">type</span> == <span class="tok-type">void</span>);</span>
+<span class="line" id="L2337">    <span class="tok-kw">try</span> testing.expect(meta.fieldInfo(HasExpensiveEqlUn.Data, .hash).<span class="tok-type">type</span> != <span class="tok-type">void</span>);</span>
+<span class="line" id="L2338">}</span>
+<span class="line" id="L2339"></span>
+<span class="line" id="L2340"><span class="tok-kw">test</span> <span class="tok-str">&quot;sort&quot;</span> {</span>
+<span class="line" id="L2341">    <span class="tok-kw">var</span> map = AutoArrayHashMap(<span class="tok-type">i32</span>, <span class="tok-type">i32</span>).init(std.testing.allocator);</span>
+<span class="line" id="L2342">    <span class="tok-kw">defer</span> map.deinit();</span>
+<span class="line" id="L2343"></span>
+<span class="line" id="L2344">    <span class="tok-kw">for</span> ([_]<span class="tok-type">i32</span>{ <span class="tok-number">8</span>, <span class="tok-number">3</span>, <span class="tok-number">12</span>, <span class="tok-number">10</span>, <span class="tok-number">2</span>, <span class="tok-number">4</span>, <span class="tok-number">9</span>, <span class="tok-number">5</span>, <span class="tok-number">6</span>, <span class="tok-number">13</span>, <span class="tok-number">14</span>, <span class="tok-number">15</span>, <span class="tok-number">16</span>, <span class="tok-number">1</span>, <span class="tok-number">11</span>, <span class="tok-number">17</span>, <span class="tok-number">7</span> }) |x| {</span>
+<span class="line" id="L2345">        <span class="tok-kw">try</span> map.put(x, x * <span class="tok-number">3</span>);</span>
+<span class="line" id="L2346">    }</span>
+<span class="line" id="L2347"></span>
+<span class="line" id="L2348">    <span class="tok-kw">const</span> C = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L2349">        keys: []<span class="tok-type">i32</span>,</span>
+<span class="line" id="L2350"></span>
+<span class="line" id="L2351">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">lessThan</span>(ctx: <span class="tok-builtin">@This</span>(), a_index: <span class="tok-type">usize</span>, b_index: <span class="tok-type">usize</span>) <span class="tok-type">bool</span> {</span>
+<span class="line" id="L2352">            <span class="tok-kw">return</span> ctx.keys[a_index] &lt; ctx.keys[b_index];</span>
+<span class="line" id="L2353">        }</span>
+<span class="line" id="L2354">    };</span>
+<span class="line" id="L2355"></span>
+<span class="line" id="L2356">    map.sort(C{ .keys = map.keys() });</span>
 <span class="line" id="L2357"></span>
-<span class="line" id="L2358">    map.sort(C{ .keys = map.keys() });</span>
-<span class="line" id="L2359"></span>
-<span class="line" id="L2360">    <span class="tok-kw">var</span> x: <span class="tok-type">i32</span> = <span class="tok-number">1</span>;</span>
-<span class="line" id="L2361">    <span class="tok-kw">for</span> (map.keys(), <span class="tok-number">0</span>..) |key, i| {</span>
-<span class="line" id="L2362">        <span class="tok-kw">try</span> testing.expect(key == x);</span>
-<span class="line" id="L2363">        <span class="tok-kw">try</span> testing.expect(map.values()[i] == x * <span class="tok-number">3</span>);</span>
-<span class="line" id="L2364">        x += <span class="tok-number">1</span>;</span>
-<span class="line" id="L2365">    }</span>
-<span class="line" id="L2366">}</span>
-<span class="line" id="L2367"></span>
-<span class="line" id="L2368"><span class="tok-kw">test</span> <span class="tok-str">&quot;0 sized key&quot;</span> {</span>
-<span class="line" id="L2369">    <span class="tok-kw">var</span> map = AutoArrayHashMap(<span class="tok-type">u0</span>, <span class="tok-type">i32</span>).init(std.testing.allocator);</span>
-<span class="line" id="L2370">    <span class="tok-kw">defer</span> map.deinit();</span>
+<span class="line" id="L2358">    <span class="tok-kw">var</span> x: <span class="tok-type">i32</span> = <span class="tok-number">1</span>;</span>
+<span class="line" id="L2359">    <span class="tok-kw">for</span> (map.keys(), <span class="tok-number">0</span>..) |key, i| {</span>
+<span class="line" id="L2360">        <span class="tok-kw">try</span> testing.expect(key == x);</span>
+<span class="line" id="L2361">        <span class="tok-kw">try</span> testing.expect(map.values()[i] == x * <span class="tok-number">3</span>);</span>
+<span class="line" id="L2362">        x += <span class="tok-number">1</span>;</span>
+<span class="line" id="L2363">    }</span>
+<span class="line" id="L2364">}</span>
+<span class="line" id="L2365"></span>
+<span class="line" id="L2366"><span class="tok-kw">test</span> <span class="tok-str">&quot;0 sized key&quot;</span> {</span>
+<span class="line" id="L2367">    <span class="tok-kw">var</span> map = AutoArrayHashMap(<span class="tok-type">u0</span>, <span class="tok-type">i32</span>).init(std.testing.allocator);</span>
+<span class="line" id="L2368">    <span class="tok-kw">defer</span> map.deinit();</span>
+<span class="line" id="L2369"></span>
+<span class="line" id="L2370">    <span class="tok-kw">try</span> testing.expectEqual(map.get(<span class="tok-number">0</span>), <span class="tok-null">null</span>);</span>
 <span class="line" id="L2371"></span>
-<span class="line" id="L2372">    <span class="tok-kw">try</span> testing.expectEqual(map.get(<span class="tok-number">0</span>), <span class="tok-null">null</span>);</span>
-<span class="line" id="L2373"></span>
-<span class="line" id="L2374">    <span class="tok-kw">try</span> map.put(<span class="tok-number">0</span>, <span class="tok-number">5</span>);</span>
-<span class="line" id="L2375">    <span class="tok-kw">try</span> testing.expectEqual(map.get(<span class="tok-number">0</span>), <span class="tok-number">5</span>);</span>
-<span class="line" id="L2376"></span>
-<span class="line" id="L2377">    <span class="tok-kw">try</span> map.put(<span class="tok-number">0</span>, <span class="tok-number">10</span>);</span>
-<span class="line" id="L2378">    <span class="tok-kw">try</span> testing.expectEqual(map.get(<span class="tok-number">0</span>), <span class="tok-number">10</span>);</span>
-<span class="line" id="L2379"></span>
-<span class="line" id="L2380">    <span class="tok-kw">try</span> testing.expectEqual(map.swapRemove(<span class="tok-number">0</span>), <span class="tok-null">true</span>);</span>
-<span class="line" id="L2381">    <span class="tok-kw">try</span> testing.expectEqual(map.get(<span class="tok-number">0</span>), <span class="tok-null">null</span>);</span>
-<span class="line" id="L2382">}</span>
-<span class="line" id="L2383"></span>
-<span class="line" id="L2384"><span class="tok-kw">test</span> <span class="tok-str">&quot;0 sized key and 0 sized value&quot;</span> {</span>
-<span class="line" id="L2385">    <span class="tok-kw">var</span> map = AutoArrayHashMap(<span class="tok-type">u0</span>, <span class="tok-type">u0</span>).init(std.testing.allocator);</span>
-<span class="line" id="L2386">    <span class="tok-kw">defer</span> map.deinit();</span>
+<span class="line" id="L2372">    <span class="tok-kw">try</span> map.put(<span class="tok-number">0</span>, <span class="tok-number">5</span>);</span>
+<span class="line" id="L2373">    <span class="tok-kw">try</span> testing.expectEqual(map.get(<span class="tok-number">0</span>), <span class="tok-number">5</span>);</span>
+<span class="line" id="L2374"></span>
+<span class="line" id="L2375">    <span class="tok-kw">try</span> map.put(<span class="tok-number">0</span>, <span class="tok-number">10</span>);</span>
+<span class="line" id="L2376">    <span class="tok-kw">try</span> testing.expectEqual(map.get(<span class="tok-number">0</span>), <span class="tok-number">10</span>);</span>
+<span class="line" id="L2377"></span>
+<span class="line" id="L2378">    <span class="tok-kw">try</span> testing.expectEqual(map.swapRemove(<span class="tok-number">0</span>), <span class="tok-null">true</span>);</span>
+<span class="line" id="L2379">    <span class="tok-kw">try</span> testing.expectEqual(map.get(<span class="tok-number">0</span>), <span class="tok-null">null</span>);</span>
+<span class="line" id="L2380">}</span>
+<span class="line" id="L2381"></span>
+<span class="line" id="L2382"><span class="tok-kw">test</span> <span class="tok-str">&quot;0 sized key and 0 sized value&quot;</span> {</span>
+<span class="line" id="L2383">    <span class="tok-kw">var</span> map = AutoArrayHashMap(<span class="tok-type">u0</span>, <span class="tok-type">u0</span>).init(std.testing.allocator);</span>
+<span class="line" id="L2384">    <span class="tok-kw">defer</span> map.deinit();</span>
+<span class="line" id="L2385"></span>
+<span class="line" id="L2386">    <span class="tok-kw">try</span> testing.expectEqual(map.get(<span class="tok-number">0</span>), <span class="tok-null">null</span>);</span>
 <span class="line" id="L2387"></span>
-<span class="line" id="L2388">    <span class="tok-kw">try</span> testing.expectEqual(map.get(<span class="tok-number">0</span>), <span class="tok-null">null</span>);</span>
-<span class="line" id="L2389"></span>
-<span class="line" id="L2390">    <span class="tok-kw">try</span> map.put(<span class="tok-number">0</span>, <span class="tok-number">0</span>);</span>
-<span class="line" id="L2391">    <span class="tok-kw">try</span> testing.expectEqual(map.get(<span class="tok-number">0</span>), <span class="tok-number">0</span>);</span>
-<span class="line" id="L2392"></span>
-<span class="line" id="L2393">    <span class="tok-kw">try</span> testing.expectEqual(map.swapRemove(<span class="tok-number">0</span>), <span class="tok-null">true</span>);</span>
-<span class="line" id="L2394">    <span class="tok-kw">try</span> testing.expectEqual(map.get(<span class="tok-number">0</span>), <span class="tok-null">null</span>);</span>
-<span class="line" id="L2395">}</span>
-<span class="line" id="L2396"></span>
-<span class="line" id="L2397"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">getHashPtrAddrFn</span>(<span class="tok-kw">comptime</span> K: <span class="tok-type">type</span>, <span class="tok-kw">comptime</span> Context: <span class="tok-type">type</span>) (<span class="tok-kw">fn</span> (Context, K) <span class="tok-type">u32</span>) {</span>
-<span class="line" id="L2398">    <span class="tok-kw">return</span> <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L2399">        <span class="tok-kw">fn</span> <span class="tok-fn">hash</span>(ctx: Context, key: K) <span class="tok-type">u32</span> {</span>
-<span class="line" id="L2400">            _ = ctx;</span>
-<span class="line" id="L2401">            <span class="tok-kw">return</span> getAutoHashFn(<span class="tok-type">usize</span>, <span class="tok-type">void</span>)({}, <span class="tok-builtin">@intFromPtr</span>(key));</span>
-<span class="line" id="L2402">        }</span>
-<span class="line" id="L2403">    }.hash;</span>
-<span class="line" id="L2404">}</span>
-<span class="line" id="L2405"></span>
-<span class="line" id="L2406"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">getTrivialEqlFn</span>(<span class="tok-kw">comptime</span> K: <span class="tok-type">type</span>, <span class="tok-kw">comptime</span> Context: <span class="tok-type">type</span>) (<span class="tok-kw">fn</span> (Context, K, K) <span class="tok-type">bool</span>) {</span>
-<span class="line" id="L2407">    <span class="tok-kw">return</span> <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L2408">        <span class="tok-kw">fn</span> <span class="tok-fn">eql</span>(ctx: Context, a: K, b: K) <span class="tok-type">bool</span> {</span>
-<span class="line" id="L2409">            _ = ctx;</span>
-<span class="line" id="L2410">            <span class="tok-kw">return</span> a == b;</span>
-<span class="line" id="L2411">        }</span>
-<span class="line" id="L2412">    }.eql;</span>
-<span class="line" id="L2413">}</span>
-<span class="line" id="L2414"></span>
-<span class="line" id="L2415"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">AutoContext</span>(<span class="tok-kw">comptime</span> K: <span class="tok-type">type</span>) <span class="tok-type">type</span> {</span>
-<span class="line" id="L2416">    <span class="tok-kw">return</span> <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L2417">        <span class="tok-kw">pub</span> <span class="tok-kw">const</span> hash = getAutoHashFn(K, <span class="tok-builtin">@This</span>());</span>
-<span class="line" id="L2418">        <span class="tok-kw">pub</span> <span class="tok-kw">const</span> eql = getAutoEqlFn(K, <span class="tok-builtin">@This</span>());</span>
-<span class="line" id="L2419">    };</span>
-<span class="line" id="L2420">}</span>
-<span class="line" id="L2421"></span>
-<span class="line" id="L2422"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">getAutoHashFn</span>(<span class="tok-kw">comptime</span> K: <span class="tok-type">type</span>, <span class="tok-kw">comptime</span> Context: <span class="tok-type">type</span>) (<span class="tok-kw">fn</span> (Context, K) <span class="tok-type">u32</span>) {</span>
-<span class="line" id="L2423">    <span class="tok-kw">return</span> <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L2424">        <span class="tok-kw">fn</span> <span class="tok-fn">hash</span>(ctx: Context, key: K) <span class="tok-type">u32</span> {</span>
-<span class="line" id="L2425">            _ = ctx;</span>
-<span class="line" id="L2426">            <span class="tok-kw">if</span> (<span class="tok-kw">comptime</span> trait.hasUniqueRepresentation(K)) {</span>
-<span class="line" id="L2427">                <span class="tok-kw">return</span> <span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-builtin">@truncate</span>(Wyhash.hash(<span class="tok-number">0</span>, std.mem.asBytes(&amp;key))));</span>
-<span class="line" id="L2428">            } <span class="tok-kw">else</span> {</span>
-<span class="line" id="L2429">                <span class="tok-kw">var</span> hasher = Wyhash.init(<span class="tok-number">0</span>);</span>
-<span class="line" id="L2430">                autoHash(&amp;hasher, key);</span>
-<span class="line" id="L2431">                <span class="tok-kw">return</span> <span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-builtin">@truncate</span>(hasher.final()));</span>
-<span class="line" id="L2432">            }</span>
-<span class="line" id="L2433">        }</span>
-<span class="line" id="L2434">    }.hash;</span>
-<span class="line" id="L2435">}</span>
-<span class="line" id="L2436"></span>
-<span class="line" id="L2437"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">getAutoEqlFn</span>(<span class="tok-kw">comptime</span> K: <span class="tok-type">type</span>, <span class="tok-kw">comptime</span> Context: <span class="tok-type">type</span>) (<span class="tok-kw">fn</span> (Context, K, K, <span class="tok-type">usize</span>) <span class="tok-type">bool</span>) {</span>
-<span class="line" id="L2438">    <span class="tok-kw">return</span> <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L2439">        <span class="tok-kw">fn</span> <span class="tok-fn">eql</span>(ctx: Context, a: K, b: K, b_index: <span class="tok-type">usize</span>) <span class="tok-type">bool</span> {</span>
-<span class="line" id="L2440">            _ = b_index;</span>
-<span class="line" id="L2441">            _ = ctx;</span>
-<span class="line" id="L2442">            <span class="tok-kw">return</span> meta.eql(a, b);</span>
-<span class="line" id="L2443">        }</span>
-<span class="line" id="L2444">    }.eql;</span>
-<span class="line" id="L2445">}</span>
-<span class="line" id="L2446"></span>
-<span class="line" id="L2447"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">autoEqlIsCheap</span>(<span class="tok-kw">comptime</span> K: <span class="tok-type">type</span>) <span class="tok-type">bool</span> {</span>
-<span class="line" id="L2448">    <span class="tok-kw">return</span> <span class="tok-kw">switch</span> (<span class="tok-builtin">@typeInfo</span>(K)) {</span>
-<span class="line" id="L2449">        .Bool,</span>
-<span class="line" id="L2450">        .Int,</span>
-<span class="line" id="L2451">        .Float,</span>
-<span class="line" id="L2452">        .Pointer,</span>
-<span class="line" id="L2453">        .ComptimeFloat,</span>
-<span class="line" id="L2454">        .ComptimeInt,</span>
-<span class="line" id="L2455">        .Enum,</span>
-<span class="line" id="L2456">        .Fn,</span>
-<span class="line" id="L2457">        .ErrorSet,</span>
-<span class="line" id="L2458">        .AnyFrame,</span>
-<span class="line" id="L2459">        .EnumLiteral,</span>
-<span class="line" id="L2460">        =&gt; <span class="tok-null">true</span>,</span>
-<span class="line" id="L2461">        <span class="tok-kw">else</span> =&gt; <span class="tok-null">false</span>,</span>
-<span class="line" id="L2462">    };</span>
-<span class="line" id="L2463">}</span>
-<span class="line" id="L2464"></span>
-<span class="line" id="L2465"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">getAutoHashStratFn</span>(<span class="tok-kw">comptime</span> K: <span class="tok-type">type</span>, <span class="tok-kw">comptime</span> Context: <span class="tok-type">type</span>, <span class="tok-kw">comptime</span> strategy: std.hash.Strategy) (<span class="tok-kw">fn</span> (Context, K) <span class="tok-type">u32</span>) {</span>
-<span class="line" id="L2466">    <span class="tok-kw">return</span> <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L2467">        <span class="tok-kw">fn</span> <span class="tok-fn">hash</span>(ctx: Context, key: K) <span class="tok-type">u32</span> {</span>
-<span class="line" id="L2468">            _ = ctx;</span>
-<span class="line" id="L2469">            <span class="tok-kw">var</span> hasher = Wyhash.init(<span class="tok-number">0</span>);</span>
-<span class="line" id="L2470">            std.hash.autoHashStrat(&amp;hasher, key, strategy);</span>
-<span class="line" id="L2471">            <span class="tok-kw">return</span> <span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-builtin">@truncate</span>(hasher.final()));</span>
-<span class="line" id="L2472">        }</span>
-<span class="line" id="L2473">    }.hash;</span>
-<span class="line" id="L2474">}</span>
-<span class="line" id="L2475"></span>
+<span class="line" id="L2388">    <span class="tok-kw">try</span> map.put(<span class="tok-number">0</span>, <span class="tok-number">0</span>);</span>
+<span class="line" id="L2389">    <span class="tok-kw">try</span> testing.expectEqual(map.get(<span class="tok-number">0</span>), <span class="tok-number">0</span>);</span>
+<span class="line" id="L2390"></span>
+<span class="line" id="L2391">    <span class="tok-kw">try</span> testing.expectEqual(map.swapRemove(<span class="tok-number">0</span>), <span class="tok-null">true</span>);</span>
+<span class="line" id="L2392">    <span class="tok-kw">try</span> testing.expectEqual(map.get(<span class="tok-number">0</span>), <span class="tok-null">null</span>);</span>
+<span class="line" id="L2393">}</span>
+<span class="line" id="L2394"></span>
+<span class="line" id="L2395"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">getHashPtrAddrFn</span>(<span class="tok-kw">comptime</span> K: <span class="tok-type">type</span>, <span class="tok-kw">comptime</span> Context: <span class="tok-type">type</span>) (<span class="tok-kw">fn</span> (Context, K) <span class="tok-type">u32</span>) {</span>
+<span class="line" id="L2396">    <span class="tok-kw">return</span> <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L2397">        <span class="tok-kw">fn</span> <span class="tok-fn">hash</span>(ctx: Context, key: K) <span class="tok-type">u32</span> {</span>
+<span class="line" id="L2398">            _ = ctx;</span>
+<span class="line" id="L2399">            <span class="tok-kw">return</span> getAutoHashFn(<span class="tok-type">usize</span>, <span class="tok-type">void</span>)({}, <span class="tok-builtin">@intFromPtr</span>(key));</span>
+<span class="line" id="L2400">        }</span>
+<span class="line" id="L2401">    }.hash;</span>
+<span class="line" id="L2402">}</span>
+<span class="line" id="L2403"></span>
+<span class="line" id="L2404"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">getTrivialEqlFn</span>(<span class="tok-kw">comptime</span> K: <span class="tok-type">type</span>, <span class="tok-kw">comptime</span> Context: <span class="tok-type">type</span>) (<span class="tok-kw">fn</span> (Context, K, K) <span class="tok-type">bool</span>) {</span>
+<span class="line" id="L2405">    <span class="tok-kw">return</span> <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L2406">        <span class="tok-kw">fn</span> <span class="tok-fn">eql</span>(ctx: Context, a: K, b: K) <span class="tok-type">bool</span> {</span>
+<span class="line" id="L2407">            _ = ctx;</span>
+<span class="line" id="L2408">            <span class="tok-kw">return</span> a == b;</span>
+<span class="line" id="L2409">        }</span>
+<span class="line" id="L2410">    }.eql;</span>
+<span class="line" id="L2411">}</span>
+<span class="line" id="L2412"></span>
+<span class="line" id="L2413"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">AutoContext</span>(<span class="tok-kw">comptime</span> K: <span class="tok-type">type</span>) <span class="tok-type">type</span> {</span>
+<span class="line" id="L2414">    <span class="tok-kw">return</span> <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L2415">        <span class="tok-kw">pub</span> <span class="tok-kw">const</span> hash = getAutoHashFn(K, <span class="tok-builtin">@This</span>());</span>
+<span class="line" id="L2416">        <span class="tok-kw">pub</span> <span class="tok-kw">const</span> eql = getAutoEqlFn(K, <span class="tok-builtin">@This</span>());</span>
+<span class="line" id="L2417">    };</span>
+<span class="line" id="L2418">}</span>
+<span class="line" id="L2419"></span>
+<span class="line" id="L2420"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">getAutoHashFn</span>(<span class="tok-kw">comptime</span> K: <span class="tok-type">type</span>, <span class="tok-kw">comptime</span> Context: <span class="tok-type">type</span>) (<span class="tok-kw">fn</span> (Context, K) <span class="tok-type">u32</span>) {</span>
+<span class="line" id="L2421">    <span class="tok-kw">return</span> <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L2422">        <span class="tok-kw">fn</span> <span class="tok-fn">hash</span>(ctx: Context, key: K) <span class="tok-type">u32</span> {</span>
+<span class="line" id="L2423">            _ = ctx;</span>
+<span class="line" id="L2424">            <span class="tok-kw">if</span> (<span class="tok-kw">comptime</span> trait.hasUniqueRepresentation(K)) {</span>
+<span class="line" id="L2425">                <span class="tok-kw">return</span> <span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-builtin">@truncate</span>(Wyhash.hash(<span class="tok-number">0</span>, std.mem.asBytes(&amp;key))));</span>
+<span class="line" id="L2426">            } <span class="tok-kw">else</span> {</span>
+<span class="line" id="L2427">                <span class="tok-kw">var</span> hasher = Wyhash.init(<span class="tok-number">0</span>);</span>
+<span class="line" id="L2428">                autoHash(&amp;hasher, key);</span>
+<span class="line" id="L2429">                <span class="tok-kw">return</span> <span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-builtin">@truncate</span>(hasher.final()));</span>
+<span class="line" id="L2430">            }</span>
+<span class="line" id="L2431">        }</span>
+<span class="line" id="L2432">    }.hash;</span>
+<span class="line" id="L2433">}</span>
+<span class="line" id="L2434"></span>
+<span class="line" id="L2435"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">getAutoEqlFn</span>(<span class="tok-kw">comptime</span> K: <span class="tok-type">type</span>, <span class="tok-kw">comptime</span> Context: <span class="tok-type">type</span>) (<span class="tok-kw">fn</span> (Context, K, K, <span class="tok-type">usize</span>) <span class="tok-type">bool</span>) {</span>
+<span class="line" id="L2436">    <span class="tok-kw">return</span> <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L2437">        <span class="tok-kw">fn</span> <span class="tok-fn">eql</span>(ctx: Context, a: K, b: K, b_index: <span class="tok-type">usize</span>) <span class="tok-type">bool</span> {</span>
+<span class="line" id="L2438">            _ = b_index;</span>
+<span class="line" id="L2439">            _ = ctx;</span>
+<span class="line" id="L2440">            <span class="tok-kw">return</span> meta.eql(a, b);</span>
+<span class="line" id="L2441">        }</span>
+<span class="line" id="L2442">    }.eql;</span>
+<span class="line" id="L2443">}</span>
+<span class="line" id="L2444"></span>
+<span class="line" id="L2445"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">autoEqlIsCheap</span>(<span class="tok-kw">comptime</span> K: <span class="tok-type">type</span>) <span class="tok-type">bool</span> {</span>
+<span class="line" id="L2446">    <span class="tok-kw">return</span> <span class="tok-kw">switch</span> (<span class="tok-builtin">@typeInfo</span>(K)) {</span>
+<span class="line" id="L2447">        .Bool,</span>
+<span class="line" id="L2448">        .Int,</span>
+<span class="line" id="L2449">        .Float,</span>
+<span class="line" id="L2450">        .Pointer,</span>
+<span class="line" id="L2451">        .ComptimeFloat,</span>
+<span class="line" id="L2452">        .ComptimeInt,</span>
+<span class="line" id="L2453">        .Enum,</span>
+<span class="line" id="L2454">        .Fn,</span>
+<span class="line" id="L2455">        .ErrorSet,</span>
+<span class="line" id="L2456">        .AnyFrame,</span>
+<span class="line" id="L2457">        .EnumLiteral,</span>
+<span class="line" id="L2458">        =&gt; <span class="tok-null">true</span>,</span>
+<span class="line" id="L2459">        <span class="tok-kw">else</span> =&gt; <span class="tok-null">false</span>,</span>
+<span class="line" id="L2460">    };</span>
+<span class="line" id="L2461">}</span>
+<span class="line" id="L2462"></span>
+<span class="line" id="L2463"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">getAutoHashStratFn</span>(<span class="tok-kw">comptime</span> K: <span class="tok-type">type</span>, <span class="tok-kw">comptime</span> Context: <span class="tok-type">type</span>, <span class="tok-kw">comptime</span> strategy: std.hash.Strategy) (<span class="tok-kw">fn</span> (Context, K) <span class="tok-type">u32</span>) {</span>
+<span class="line" id="L2464">    <span class="tok-kw">return</span> <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L2465">        <span class="tok-kw">fn</span> <span class="tok-fn">hash</span>(ctx: Context, key: K) <span class="tok-type">u32</span> {</span>
+<span class="line" id="L2466">            _ = ctx;</span>
+<span class="line" id="L2467">            <span class="tok-kw">var</span> hasher = Wyhash.init(<span class="tok-number">0</span>);</span>
+<span class="line" id="L2468">            std.hash.autoHashStrat(&amp;hasher, key, strategy);</span>
+<span class="line" id="L2469">            <span class="tok-kw">return</span> <span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-builtin">@truncate</span>(hasher.final()));</span>
+<span class="line" id="L2470">        }</span>
+<span class="line" id="L2471">    }.hash;</span>
+<span class="line" id="L2472">}</span>
+<span class="line" id="L2473"></span>
 </code></pre></body>
 </html>

@@ -1288,48 +1288,46 @@
 <span class="line" id="L1069">};</span>
 <span class="line" id="L1070"></span>
 <span class="line" id="L1071"><span class="tok-kw">test</span> <span class="tok-str">&quot;deflate&quot;</span> {</span>
-<span class="line" id="L1072">    <span class="tok-kw">if</span> (<span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>).zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L1073"></span>
-<span class="line" id="L1074">    <span class="tok-kw">for</span> (deflate_tests) |dt| {</span>
-<span class="line" id="L1075">        <span class="tok-kw">var</span> output = ArrayList(<span class="tok-type">u8</span>).init(testing.allocator);</span>
-<span class="line" id="L1076">        <span class="tok-kw">defer</span> output.deinit();</span>
-<span class="line" id="L1077"></span>
-<span class="line" id="L1078">        <span class="tok-kw">var</span> comp = <span class="tok-kw">try</span> compressor(testing.allocator, output.writer(), .{ .level = dt.level });</span>
-<span class="line" id="L1079">        _ = <span class="tok-kw">try</span> comp.write(dt.in);</span>
-<span class="line" id="L1080">        <span class="tok-kw">try</span> comp.close();</span>
-<span class="line" id="L1081">        comp.deinit();</span>
-<span class="line" id="L1082"></span>
-<span class="line" id="L1083">        <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u8</span>, dt.out, output.items);</span>
-<span class="line" id="L1084">    }</span>
-<span class="line" id="L1085">}</span>
-<span class="line" id="L1086"></span>
-<span class="line" id="L1087"><span class="tok-kw">test</span> <span class="tok-str">&quot;bulkHash4&quot;</span> {</span>
-<span class="line" id="L1088">    <span class="tok-kw">for</span> (deflate_tests) |x| {</span>
-<span class="line" id="L1089">        <span class="tok-kw">if</span> (x.out.len &lt; min_match_length) {</span>
-<span class="line" id="L1090">            <span class="tok-kw">continue</span>;</span>
-<span class="line" id="L1091">        }</span>
-<span class="line" id="L1092">        <span class="tok-comment">// double the test data</span>
+<span class="line" id="L1072">    <span class="tok-kw">for</span> (deflate_tests) |dt| {</span>
+<span class="line" id="L1073">        <span class="tok-kw">var</span> output = ArrayList(<span class="tok-type">u8</span>).init(testing.allocator);</span>
+<span class="line" id="L1074">        <span class="tok-kw">defer</span> output.deinit();</span>
+<span class="line" id="L1075"></span>
+<span class="line" id="L1076">        <span class="tok-kw">var</span> comp = <span class="tok-kw">try</span> compressor(testing.allocator, output.writer(), .{ .level = dt.level });</span>
+<span class="line" id="L1077">        _ = <span class="tok-kw">try</span> comp.write(dt.in);</span>
+<span class="line" id="L1078">        <span class="tok-kw">try</span> comp.close();</span>
+<span class="line" id="L1079">        comp.deinit();</span>
+<span class="line" id="L1080"></span>
+<span class="line" id="L1081">        <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u8</span>, dt.out, output.items);</span>
+<span class="line" id="L1082">    }</span>
+<span class="line" id="L1083">}</span>
+<span class="line" id="L1084"></span>
+<span class="line" id="L1085"><span class="tok-kw">test</span> <span class="tok-str">&quot;bulkHash4&quot;</span> {</span>
+<span class="line" id="L1086">    <span class="tok-kw">for</span> (deflate_tests) |x| {</span>
+<span class="line" id="L1087">        <span class="tok-kw">if</span> (x.out.len &lt; min_match_length) {</span>
+<span class="line" id="L1088">            <span class="tok-kw">continue</span>;</span>
+<span class="line" id="L1089">        }</span>
+<span class="line" id="L1090">        <span class="tok-comment">// double the test data</span>
 </span>
-<span class="line" id="L1093">        <span class="tok-kw">var</span> out = <span class="tok-kw">try</span> testing.allocator.alloc(<span class="tok-type">u8</span>, x.out.len * <span class="tok-number">2</span>);</span>
-<span class="line" id="L1094">        <span class="tok-kw">defer</span> testing.allocator.free(out);</span>
-<span class="line" id="L1095">        <span class="tok-builtin">@memcpy</span>(out[<span class="tok-number">0</span>..x.out.len], x.out);</span>
-<span class="line" id="L1096">        <span class="tok-builtin">@memcpy</span>(out[x.out.len..], x.out);</span>
-<span class="line" id="L1097"></span>
-<span class="line" id="L1098">        <span class="tok-kw">var</span> j: <span class="tok-type">usize</span> = <span class="tok-number">4</span>;</span>
-<span class="line" id="L1099">        <span class="tok-kw">while</span> (j &lt; out.len) : (j += <span class="tok-number">1</span>) {</span>
-<span class="line" id="L1100">            <span class="tok-kw">var</span> y = out[<span class="tok-number">0</span>..j];</span>
-<span class="line" id="L1101"></span>
-<span class="line" id="L1102">            <span class="tok-kw">var</span> dst = <span class="tok-kw">try</span> testing.allocator.alloc(<span class="tok-type">u32</span>, y.len - min_match_length + <span class="tok-number">1</span>);</span>
-<span class="line" id="L1103">            <span class="tok-kw">defer</span> testing.allocator.free(dst);</span>
-<span class="line" id="L1104"></span>
-<span class="line" id="L1105">            _ = bulkHash4(y, dst);</span>
-<span class="line" id="L1106">            <span class="tok-kw">for</span> (dst, <span class="tok-number">0</span>..) |got, i| {</span>
-<span class="line" id="L1107">                <span class="tok-kw">var</span> want = hash4(y[i..]);</span>
-<span class="line" id="L1108">                <span class="tok-kw">try</span> testing.expectEqual(want, got);</span>
-<span class="line" id="L1109">            }</span>
-<span class="line" id="L1110">        }</span>
-<span class="line" id="L1111">    }</span>
-<span class="line" id="L1112">}</span>
-<span class="line" id="L1113"></span>
+<span class="line" id="L1091">        <span class="tok-kw">var</span> out = <span class="tok-kw">try</span> testing.allocator.alloc(<span class="tok-type">u8</span>, x.out.len * <span class="tok-number">2</span>);</span>
+<span class="line" id="L1092">        <span class="tok-kw">defer</span> testing.allocator.free(out);</span>
+<span class="line" id="L1093">        <span class="tok-builtin">@memcpy</span>(out[<span class="tok-number">0</span>..x.out.len], x.out);</span>
+<span class="line" id="L1094">        <span class="tok-builtin">@memcpy</span>(out[x.out.len..], x.out);</span>
+<span class="line" id="L1095"></span>
+<span class="line" id="L1096">        <span class="tok-kw">var</span> j: <span class="tok-type">usize</span> = <span class="tok-number">4</span>;</span>
+<span class="line" id="L1097">        <span class="tok-kw">while</span> (j &lt; out.len) : (j += <span class="tok-number">1</span>) {</span>
+<span class="line" id="L1098">            <span class="tok-kw">var</span> y = out[<span class="tok-number">0</span>..j];</span>
+<span class="line" id="L1099"></span>
+<span class="line" id="L1100">            <span class="tok-kw">var</span> dst = <span class="tok-kw">try</span> testing.allocator.alloc(<span class="tok-type">u32</span>, y.len - min_match_length + <span class="tok-number">1</span>);</span>
+<span class="line" id="L1101">            <span class="tok-kw">defer</span> testing.allocator.free(dst);</span>
+<span class="line" id="L1102"></span>
+<span class="line" id="L1103">            _ = bulkHash4(y, dst);</span>
+<span class="line" id="L1104">            <span class="tok-kw">for</span> (dst, <span class="tok-number">0</span>..) |got, i| {</span>
+<span class="line" id="L1105">                <span class="tok-kw">var</span> want = hash4(y[i..]);</span>
+<span class="line" id="L1106">                <span class="tok-kw">try</span> testing.expectEqual(want, got);</span>
+<span class="line" id="L1107">            }</span>
+<span class="line" id="L1108">        }</span>
+<span class="line" id="L1109">    }</span>
+<span class="line" id="L1110">}</span>
+<span class="line" id="L1111"></span>
 </code></pre></body>
 </html>

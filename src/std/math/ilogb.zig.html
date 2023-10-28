@@ -126,174 +126,173 @@
 </span>
 <span class="line" id="L7"></span>
 <span class="line" id="L8"><span class="tok-kw">const</span> std = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;../std.zig&quot;</span>);</span>
-<span class="line" id="L9"><span class="tok-kw">const</span> builtin = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>);</span>
-<span class="line" id="L10"><span class="tok-kw">const</span> math = std.math;</span>
-<span class="line" id="L11"><span class="tok-kw">const</span> expect = std.testing.expect;</span>
-<span class="line" id="L12"><span class="tok-kw">const</span> maxInt = std.math.maxInt;</span>
-<span class="line" id="L13"><span class="tok-kw">const</span> minInt = std.math.minInt;</span>
-<span class="line" id="L14"></span>
-<span class="line" id="L15"><span class="tok-comment">/// Returns the binary exponent of x as an integer.</span></span>
-<span class="line" id="L16"><span class="tok-comment">///</span></span>
-<span class="line" id="L17"><span class="tok-comment">/// Special Cases:</span></span>
-<span class="line" id="L18"><span class="tok-comment">///  - ilogb(+-inf) = maxInt(i32)</span></span>
-<span class="line" id="L19"><span class="tok-comment">///  - ilogb(+-0)   = minInt(i32)</span></span>
-<span class="line" id="L20"><span class="tok-comment">///  - ilogb(nan)   = minInt(i32)</span></span>
-<span class="line" id="L21"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">ilogb</span>(x: <span class="tok-kw">anytype</span>) <span class="tok-type">i32</span> {</span>
-<span class="line" id="L22">    <span class="tok-kw">const</span> T = <span class="tok-builtin">@TypeOf</span>(x);</span>
-<span class="line" id="L23">    <span class="tok-kw">return</span> ilogbX(T, x);</span>
-<span class="line" id="L24">}</span>
-<span class="line" id="L25"></span>
-<span class="line" id="L26"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> fp_ilogbnan = minInt(<span class="tok-type">i32</span>);</span>
-<span class="line" id="L27"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> fp_ilogb0 = minInt(<span class="tok-type">i32</span>);</span>
-<span class="line" id="L28"></span>
-<span class="line" id="L29"><span class="tok-kw">fn</span> <span class="tok-fn">ilogbX</span>(<span class="tok-kw">comptime</span> T: <span class="tok-type">type</span>, x: T) <span class="tok-type">i32</span> {</span>
-<span class="line" id="L30">    <span class="tok-kw">const</span> typeWidth = <span class="tok-builtin">@typeInfo</span>(T).Float.bits;</span>
-<span class="line" id="L31">    <span class="tok-kw">const</span> significandBits = math.floatMantissaBits(T);</span>
-<span class="line" id="L32">    <span class="tok-kw">const</span> exponentBits = math.floatExponentBits(T);</span>
-<span class="line" id="L33"></span>
-<span class="line" id="L34">    <span class="tok-kw">const</span> Z = std.meta.Int(.unsigned, typeWidth);</span>
-<span class="line" id="L35"></span>
-<span class="line" id="L36">    <span class="tok-kw">const</span> signBit = (<span class="tok-builtin">@as</span>(Z, <span class="tok-number">1</span>) &lt;&lt; (significandBits + exponentBits));</span>
-<span class="line" id="L37">    <span class="tok-kw">const</span> maxExponent = ((<span class="tok-number">1</span> &lt;&lt; exponentBits) - <span class="tok-number">1</span>);</span>
-<span class="line" id="L38">    <span class="tok-kw">const</span> exponentBias = (maxExponent &gt;&gt; <span class="tok-number">1</span>);</span>
-<span class="line" id="L39"></span>
-<span class="line" id="L40">    <span class="tok-kw">const</span> absMask = signBit - <span class="tok-number">1</span>;</span>
-<span class="line" id="L41"></span>
-<span class="line" id="L42">    <span class="tok-kw">var</span> u = <span class="tok-builtin">@as</span>(Z, <span class="tok-builtin">@bitCast</span>(x)) &amp; absMask;</span>
-<span class="line" id="L43">    <span class="tok-kw">var</span> e = <span class="tok-builtin">@as</span>(<span class="tok-type">i32</span>, <span class="tok-builtin">@intCast</span>(u &gt;&gt; significandBits));</span>
-<span class="line" id="L44"></span>
-<span class="line" id="L45">    <span class="tok-kw">if</span> (e == <span class="tok-number">0</span>) {</span>
-<span class="line" id="L46">        <span class="tok-kw">if</span> (u == <span class="tok-number">0</span>) {</span>
-<span class="line" id="L47">            math.raiseInvalid();</span>
-<span class="line" id="L48">            <span class="tok-kw">return</span> fp_ilogb0;</span>
-<span class="line" id="L49">        }</span>
-<span class="line" id="L50"></span>
-<span class="line" id="L51">        <span class="tok-comment">// offset sign bit, exponent bits, and integer bit (if present) + bias</span>
+<span class="line" id="L9"><span class="tok-kw">const</span> math = std.math;</span>
+<span class="line" id="L10"><span class="tok-kw">const</span> expect = std.testing.expect;</span>
+<span class="line" id="L11"><span class="tok-kw">const</span> maxInt = std.math.maxInt;</span>
+<span class="line" id="L12"><span class="tok-kw">const</span> minInt = std.math.minInt;</span>
+<span class="line" id="L13"></span>
+<span class="line" id="L14"><span class="tok-comment">/// Returns the binary exponent of x as an integer.</span></span>
+<span class="line" id="L15"><span class="tok-comment">///</span></span>
+<span class="line" id="L16"><span class="tok-comment">/// Special Cases:</span></span>
+<span class="line" id="L17"><span class="tok-comment">///  - ilogb(+-inf) = maxInt(i32)</span></span>
+<span class="line" id="L18"><span class="tok-comment">///  - ilogb(+-0)   = minInt(i32)</span></span>
+<span class="line" id="L19"><span class="tok-comment">///  - ilogb(nan)   = minInt(i32)</span></span>
+<span class="line" id="L20"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">ilogb</span>(x: <span class="tok-kw">anytype</span>) <span class="tok-type">i32</span> {</span>
+<span class="line" id="L21">    <span class="tok-kw">const</span> T = <span class="tok-builtin">@TypeOf</span>(x);</span>
+<span class="line" id="L22">    <span class="tok-kw">return</span> ilogbX(T, x);</span>
+<span class="line" id="L23">}</span>
+<span class="line" id="L24"></span>
+<span class="line" id="L25"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> fp_ilogbnan = minInt(<span class="tok-type">i32</span>);</span>
+<span class="line" id="L26"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> fp_ilogb0 = minInt(<span class="tok-type">i32</span>);</span>
+<span class="line" id="L27"></span>
+<span class="line" id="L28"><span class="tok-kw">fn</span> <span class="tok-fn">ilogbX</span>(<span class="tok-kw">comptime</span> T: <span class="tok-type">type</span>, x: T) <span class="tok-type">i32</span> {</span>
+<span class="line" id="L29">    <span class="tok-kw">const</span> typeWidth = <span class="tok-builtin">@typeInfo</span>(T).Float.bits;</span>
+<span class="line" id="L30">    <span class="tok-kw">const</span> significandBits = math.floatMantissaBits(T);</span>
+<span class="line" id="L31">    <span class="tok-kw">const</span> exponentBits = math.floatExponentBits(T);</span>
+<span class="line" id="L32"></span>
+<span class="line" id="L33">    <span class="tok-kw">const</span> Z = std.meta.Int(.unsigned, typeWidth);</span>
+<span class="line" id="L34"></span>
+<span class="line" id="L35">    <span class="tok-kw">const</span> signBit = (<span class="tok-builtin">@as</span>(Z, <span class="tok-number">1</span>) &lt;&lt; (significandBits + exponentBits));</span>
+<span class="line" id="L36">    <span class="tok-kw">const</span> maxExponent = ((<span class="tok-number">1</span> &lt;&lt; exponentBits) - <span class="tok-number">1</span>);</span>
+<span class="line" id="L37">    <span class="tok-kw">const</span> exponentBias = (maxExponent &gt;&gt; <span class="tok-number">1</span>);</span>
+<span class="line" id="L38"></span>
+<span class="line" id="L39">    <span class="tok-kw">const</span> absMask = signBit - <span class="tok-number">1</span>;</span>
+<span class="line" id="L40"></span>
+<span class="line" id="L41">    <span class="tok-kw">var</span> u = <span class="tok-builtin">@as</span>(Z, <span class="tok-builtin">@bitCast</span>(x)) &amp; absMask;</span>
+<span class="line" id="L42">    <span class="tok-kw">var</span> e = <span class="tok-builtin">@as</span>(<span class="tok-type">i32</span>, <span class="tok-builtin">@intCast</span>(u &gt;&gt; significandBits));</span>
+<span class="line" id="L43"></span>
+<span class="line" id="L44">    <span class="tok-kw">if</span> (e == <span class="tok-number">0</span>) {</span>
+<span class="line" id="L45">        <span class="tok-kw">if</span> (u == <span class="tok-number">0</span>) {</span>
+<span class="line" id="L46">            math.raiseInvalid();</span>
+<span class="line" id="L47">            <span class="tok-kw">return</span> fp_ilogb0;</span>
+<span class="line" id="L48">        }</span>
+<span class="line" id="L49"></span>
+<span class="line" id="L50">        <span class="tok-comment">// offset sign bit, exponent bits, and integer bit (if present) + bias</span>
 </span>
-<span class="line" id="L52">        <span class="tok-kw">const</span> offset = <span class="tok-number">1</span> + exponentBits + <span class="tok-builtin">@as</span>(<span class="tok-type">comptime_int</span>, <span class="tok-builtin">@intFromBool</span>(T == <span class="tok-type">f80</span>)) - exponentBias;</span>
-<span class="line" id="L53">        <span class="tok-kw">return</span> offset - <span class="tok-builtin">@as</span>(<span class="tok-type">i32</span>, <span class="tok-builtin">@intCast</span>(<span class="tok-builtin">@clz</span>(u)));</span>
-<span class="line" id="L54">    }</span>
-<span class="line" id="L55"></span>
-<span class="line" id="L56">    <span class="tok-kw">if</span> (e == maxExponent) {</span>
-<span class="line" id="L57">        math.raiseInvalid();</span>
-<span class="line" id="L58">        <span class="tok-kw">if</span> (u &gt; <span class="tok-builtin">@as</span>(Z, <span class="tok-builtin">@bitCast</span>(math.inf(T)))) {</span>
-<span class="line" id="L59">            <span class="tok-kw">return</span> fp_ilogbnan; <span class="tok-comment">// u is a NaN</span>
+<span class="line" id="L51">        <span class="tok-kw">const</span> offset = <span class="tok-number">1</span> + exponentBits + <span class="tok-builtin">@as</span>(<span class="tok-type">comptime_int</span>, <span class="tok-builtin">@intFromBool</span>(T == <span class="tok-type">f80</span>)) - exponentBias;</span>
+<span class="line" id="L52">        <span class="tok-kw">return</span> offset - <span class="tok-builtin">@as</span>(<span class="tok-type">i32</span>, <span class="tok-builtin">@intCast</span>(<span class="tok-builtin">@clz</span>(u)));</span>
+<span class="line" id="L53">    }</span>
+<span class="line" id="L54"></span>
+<span class="line" id="L55">    <span class="tok-kw">if</span> (e == maxExponent) {</span>
+<span class="line" id="L56">        math.raiseInvalid();</span>
+<span class="line" id="L57">        <span class="tok-kw">if</span> (u &gt; <span class="tok-builtin">@as</span>(Z, <span class="tok-builtin">@bitCast</span>(math.inf(T)))) {</span>
+<span class="line" id="L58">            <span class="tok-kw">return</span> fp_ilogbnan; <span class="tok-comment">// u is a NaN</span>
 </span>
-<span class="line" id="L60">        } <span class="tok-kw">else</span> <span class="tok-kw">return</span> maxInt(<span class="tok-type">i32</span>);</span>
-<span class="line" id="L61">    }</span>
-<span class="line" id="L62"></span>
-<span class="line" id="L63">    <span class="tok-kw">return</span> e - exponentBias;</span>
-<span class="line" id="L64">}</span>
-<span class="line" id="L65"></span>
-<span class="line" id="L66"><span class="tok-kw">test</span> <span class="tok-str">&quot;type dispatch&quot;</span> {</span>
-<span class="line" id="L67">    <span class="tok-kw">try</span> expect(ilogb(<span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-number">0.2</span>)) == ilogbX(<span class="tok-type">f32</span>, <span class="tok-number">0.2</span>));</span>
-<span class="line" id="L68">    <span class="tok-kw">try</span> expect(ilogb(<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">0.2</span>)) == ilogbX(<span class="tok-type">f64</span>, <span class="tok-number">0.2</span>));</span>
-<span class="line" id="L69">}</span>
-<span class="line" id="L70"></span>
-<span class="line" id="L71"><span class="tok-kw">test</span> <span class="tok-str">&quot;16&quot;</span> {</span>
-<span class="line" id="L72">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, <span class="tok-number">0.0</span>) == fp_ilogb0);</span>
-<span class="line" id="L73">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, <span class="tok-number">0.5</span>) == -<span class="tok-number">1</span>);</span>
-<span class="line" id="L74">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, <span class="tok-number">0.8923</span>) == -<span class="tok-number">1</span>);</span>
-<span class="line" id="L75">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, <span class="tok-number">10.0</span>) == <span class="tok-number">3</span>);</span>
-<span class="line" id="L76">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, -<span class="tok-number">65504</span>) == <span class="tok-number">15</span>);</span>
-<span class="line" id="L77">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, <span class="tok-number">2398.23</span>) == <span class="tok-number">11</span>);</span>
-<span class="line" id="L78"></span>
-<span class="line" id="L79">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, <span class="tok-number">0x1p-1</span>) == -<span class="tok-number">1</span>);</span>
-<span class="line" id="L80">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, <span class="tok-number">0x1p-17</span>) == -<span class="tok-number">17</span>);</span>
-<span class="line" id="L81">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, <span class="tok-number">0x1p-24</span>) == -<span class="tok-number">24</span>);</span>
-<span class="line" id="L82">}</span>
-<span class="line" id="L83"></span>
-<span class="line" id="L84"><span class="tok-kw">test</span> <span class="tok-str">&quot;32&quot;</span> {</span>
-<span class="line" id="L85">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, <span class="tok-number">0.0</span>) == fp_ilogb0);</span>
-<span class="line" id="L86">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, <span class="tok-number">0.5</span>) == -<span class="tok-number">1</span>);</span>
-<span class="line" id="L87">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, <span class="tok-number">0.8923</span>) == -<span class="tok-number">1</span>);</span>
-<span class="line" id="L88">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, <span class="tok-number">10.0</span>) == <span class="tok-number">3</span>);</span>
-<span class="line" id="L89">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, -<span class="tok-number">123984</span>) == <span class="tok-number">16</span>);</span>
-<span class="line" id="L90">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, <span class="tok-number">2398.23</span>) == <span class="tok-number">11</span>);</span>
-<span class="line" id="L91"></span>
-<span class="line" id="L92">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, <span class="tok-number">0x1p-1</span>) == -<span class="tok-number">1</span>);</span>
-<span class="line" id="L93">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, <span class="tok-number">0x1p-122</span>) == -<span class="tok-number">122</span>);</span>
-<span class="line" id="L94">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, <span class="tok-number">0x1p-127</span>) == -<span class="tok-number">127</span>);</span>
-<span class="line" id="L95">}</span>
-<span class="line" id="L96"></span>
-<span class="line" id="L97"><span class="tok-kw">test</span> <span class="tok-str">&quot;64&quot;</span> {</span>
-<span class="line" id="L98">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, <span class="tok-number">0.0</span>) == fp_ilogb0);</span>
-<span class="line" id="L99">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, <span class="tok-number">0.5</span>) == -<span class="tok-number">1</span>);</span>
-<span class="line" id="L100">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, <span class="tok-number">0.8923</span>) == -<span class="tok-number">1</span>);</span>
-<span class="line" id="L101">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, <span class="tok-number">10.0</span>) == <span class="tok-number">3</span>);</span>
-<span class="line" id="L102">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, -<span class="tok-number">123984</span>) == <span class="tok-number">16</span>);</span>
-<span class="line" id="L103">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, <span class="tok-number">2398.23</span>) == <span class="tok-number">11</span>);</span>
-<span class="line" id="L104"></span>
-<span class="line" id="L105">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, <span class="tok-number">0x1p-1</span>) == -<span class="tok-number">1</span>);</span>
-<span class="line" id="L106">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, <span class="tok-number">0x1p-127</span>) == -<span class="tok-number">127</span>);</span>
-<span class="line" id="L107">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, <span class="tok-number">0x1p-1012</span>) == -<span class="tok-number">1012</span>);</span>
-<span class="line" id="L108">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, <span class="tok-number">0x1p-1023</span>) == -<span class="tok-number">1023</span>);</span>
-<span class="line" id="L109">}</span>
-<span class="line" id="L110"></span>
-<span class="line" id="L111"><span class="tok-kw">test</span> <span class="tok-str">&quot;80&quot;</span> {</span>
-<span class="line" id="L112">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L113"></span>
-<span class="line" id="L114">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, <span class="tok-number">0.0</span>) == fp_ilogb0);</span>
-<span class="line" id="L115">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, <span class="tok-number">0.5</span>) == -<span class="tok-number">1</span>);</span>
-<span class="line" id="L116">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, <span class="tok-number">0.8923</span>) == -<span class="tok-number">1</span>);</span>
-<span class="line" id="L117">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, <span class="tok-number">10.0</span>) == <span class="tok-number">3</span>);</span>
-<span class="line" id="L118">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, -<span class="tok-number">123984</span>) == <span class="tok-number">16</span>);</span>
-<span class="line" id="L119">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, <span class="tok-number">2398.23</span>) == <span class="tok-number">11</span>);</span>
-<span class="line" id="L120"></span>
-<span class="line" id="L121">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, <span class="tok-number">0x1p-1</span>) == -<span class="tok-number">1</span>);</span>
-<span class="line" id="L122">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, <span class="tok-number">0x1p-127</span>) == -<span class="tok-number">127</span>);</span>
-<span class="line" id="L123">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, <span class="tok-number">0x1p-1023</span>) == -<span class="tok-number">1023</span>);</span>
-<span class="line" id="L124">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, <span class="tok-number">0x1p-16383</span>) == -<span class="tok-number">16383</span>);</span>
-<span class="line" id="L125">}</span>
-<span class="line" id="L126"></span>
-<span class="line" id="L127"><span class="tok-kw">test</span> <span class="tok-str">&quot;128&quot;</span> {</span>
-<span class="line" id="L128">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, <span class="tok-number">0.0</span>) == fp_ilogb0);</span>
-<span class="line" id="L129">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, <span class="tok-number">0.5</span>) == -<span class="tok-number">1</span>);</span>
-<span class="line" id="L130">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, <span class="tok-number">0.8923</span>) == -<span class="tok-number">1</span>);</span>
-<span class="line" id="L131">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, <span class="tok-number">10.0</span>) == <span class="tok-number">3</span>);</span>
-<span class="line" id="L132">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, -<span class="tok-number">123984</span>) == <span class="tok-number">16</span>);</span>
-<span class="line" id="L133">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, <span class="tok-number">2398.23</span>) == <span class="tok-number">11</span>);</span>
-<span class="line" id="L134"></span>
-<span class="line" id="L135">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, <span class="tok-number">0x1p-1</span>) == -<span class="tok-number">1</span>);</span>
-<span class="line" id="L136">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, <span class="tok-number">0x1p-127</span>) == -<span class="tok-number">127</span>);</span>
-<span class="line" id="L137">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, <span class="tok-number">0x1p-1023</span>) == -<span class="tok-number">1023</span>);</span>
-<span class="line" id="L138">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, <span class="tok-number">0x1p-16383</span>) == -<span class="tok-number">16383</span>);</span>
-<span class="line" id="L139">}</span>
-<span class="line" id="L140"></span>
-<span class="line" id="L141"><span class="tok-kw">test</span> <span class="tok-str">&quot;16 special&quot;</span> {</span>
-<span class="line" id="L142">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, math.inf(<span class="tok-type">f16</span>)) == maxInt(<span class="tok-type">i32</span>));</span>
-<span class="line" id="L143">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, -math.inf(<span class="tok-type">f16</span>)) == maxInt(<span class="tok-type">i32</span>));</span>
-<span class="line" id="L144">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, <span class="tok-number">0.0</span>) == minInt(<span class="tok-type">i32</span>));</span>
-<span class="line" id="L145">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, math.nan(<span class="tok-type">f16</span>)) == fp_ilogbnan);</span>
-<span class="line" id="L146">}</span>
-<span class="line" id="L147"></span>
-<span class="line" id="L148"><span class="tok-kw">test</span> <span class="tok-str">&quot;32 special&quot;</span> {</span>
-<span class="line" id="L149">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, math.inf(<span class="tok-type">f32</span>)) == maxInt(<span class="tok-type">i32</span>));</span>
-<span class="line" id="L150">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, -math.inf(<span class="tok-type">f32</span>)) == maxInt(<span class="tok-type">i32</span>));</span>
-<span class="line" id="L151">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, <span class="tok-number">0.0</span>) == minInt(<span class="tok-type">i32</span>));</span>
-<span class="line" id="L152">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, math.nan(<span class="tok-type">f32</span>)) == fp_ilogbnan);</span>
-<span class="line" id="L153">}</span>
-<span class="line" id="L154"></span>
-<span class="line" id="L155"><span class="tok-kw">test</span> <span class="tok-str">&quot;64 special&quot;</span> {</span>
-<span class="line" id="L156">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, math.inf(<span class="tok-type">f64</span>)) == maxInt(<span class="tok-type">i32</span>));</span>
-<span class="line" id="L157">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, -math.inf(<span class="tok-type">f64</span>)) == maxInt(<span class="tok-type">i32</span>));</span>
-<span class="line" id="L158">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, <span class="tok-number">0.0</span>) == minInt(<span class="tok-type">i32</span>));</span>
-<span class="line" id="L159">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, math.nan(<span class="tok-type">f64</span>)) == fp_ilogbnan);</span>
-<span class="line" id="L160">}</span>
-<span class="line" id="L161"></span>
-<span class="line" id="L162"><span class="tok-kw">test</span> <span class="tok-str">&quot;80 special&quot;</span> {</span>
-<span class="line" id="L163">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, math.inf(<span class="tok-type">f80</span>)) == maxInt(<span class="tok-type">i32</span>));</span>
-<span class="line" id="L164">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, -math.inf(<span class="tok-type">f80</span>)) == maxInt(<span class="tok-type">i32</span>));</span>
-<span class="line" id="L165">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, <span class="tok-number">0.0</span>) == minInt(<span class="tok-type">i32</span>));</span>
-<span class="line" id="L166">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, math.nan(<span class="tok-type">f80</span>)) == fp_ilogbnan);</span>
-<span class="line" id="L167">}</span>
-<span class="line" id="L168"></span>
-<span class="line" id="L169"><span class="tok-kw">test</span> <span class="tok-str">&quot;128 special&quot;</span> {</span>
-<span class="line" id="L170">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, math.inf(<span class="tok-type">f128</span>)) == maxInt(<span class="tok-type">i32</span>));</span>
-<span class="line" id="L171">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, -math.inf(<span class="tok-type">f128</span>)) == maxInt(<span class="tok-type">i32</span>));</span>
-<span class="line" id="L172">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, <span class="tok-number">0.0</span>) == minInt(<span class="tok-type">i32</span>));</span>
-<span class="line" id="L173">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, math.nan(<span class="tok-type">f128</span>)) == fp_ilogbnan);</span>
-<span class="line" id="L174">}</span>
-<span class="line" id="L175"></span>
+<span class="line" id="L59">        } <span class="tok-kw">else</span> <span class="tok-kw">return</span> maxInt(<span class="tok-type">i32</span>);</span>
+<span class="line" id="L60">    }</span>
+<span class="line" id="L61"></span>
+<span class="line" id="L62">    <span class="tok-kw">return</span> e - exponentBias;</span>
+<span class="line" id="L63">}</span>
+<span class="line" id="L64"></span>
+<span class="line" id="L65"><span class="tok-kw">test</span> <span class="tok-str">&quot;type dispatch&quot;</span> {</span>
+<span class="line" id="L66">    <span class="tok-kw">try</span> expect(ilogb(<span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-number">0.2</span>)) == ilogbX(<span class="tok-type">f32</span>, <span class="tok-number">0.2</span>));</span>
+<span class="line" id="L67">    <span class="tok-kw">try</span> expect(ilogb(<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">0.2</span>)) == ilogbX(<span class="tok-type">f64</span>, <span class="tok-number">0.2</span>));</span>
+<span class="line" id="L68">}</span>
+<span class="line" id="L69"></span>
+<span class="line" id="L70"><span class="tok-kw">test</span> <span class="tok-str">&quot;16&quot;</span> {</span>
+<span class="line" id="L71">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, <span class="tok-number">0.0</span>) == fp_ilogb0);</span>
+<span class="line" id="L72">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, <span class="tok-number">0.5</span>) == -<span class="tok-number">1</span>);</span>
+<span class="line" id="L73">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, <span class="tok-number">0.8923</span>) == -<span class="tok-number">1</span>);</span>
+<span class="line" id="L74">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, <span class="tok-number">10.0</span>) == <span class="tok-number">3</span>);</span>
+<span class="line" id="L75">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, -<span class="tok-number">65504</span>) == <span class="tok-number">15</span>);</span>
+<span class="line" id="L76">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, <span class="tok-number">2398.23</span>) == <span class="tok-number">11</span>);</span>
+<span class="line" id="L77"></span>
+<span class="line" id="L78">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, <span class="tok-number">0x1p-1</span>) == -<span class="tok-number">1</span>);</span>
+<span class="line" id="L79">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, <span class="tok-number">0x1p-17</span>) == -<span class="tok-number">17</span>);</span>
+<span class="line" id="L80">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, <span class="tok-number">0x1p-24</span>) == -<span class="tok-number">24</span>);</span>
+<span class="line" id="L81">}</span>
+<span class="line" id="L82"></span>
+<span class="line" id="L83"><span class="tok-kw">test</span> <span class="tok-str">&quot;32&quot;</span> {</span>
+<span class="line" id="L84">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, <span class="tok-number">0.0</span>) == fp_ilogb0);</span>
+<span class="line" id="L85">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, <span class="tok-number">0.5</span>) == -<span class="tok-number">1</span>);</span>
+<span class="line" id="L86">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, <span class="tok-number">0.8923</span>) == -<span class="tok-number">1</span>);</span>
+<span class="line" id="L87">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, <span class="tok-number">10.0</span>) == <span class="tok-number">3</span>);</span>
+<span class="line" id="L88">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, -<span class="tok-number">123984</span>) == <span class="tok-number">16</span>);</span>
+<span class="line" id="L89">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, <span class="tok-number">2398.23</span>) == <span class="tok-number">11</span>);</span>
+<span class="line" id="L90"></span>
+<span class="line" id="L91">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, <span class="tok-number">0x1p-1</span>) == -<span class="tok-number">1</span>);</span>
+<span class="line" id="L92">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, <span class="tok-number">0x1p-122</span>) == -<span class="tok-number">122</span>);</span>
+<span class="line" id="L93">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, <span class="tok-number">0x1p-127</span>) == -<span class="tok-number">127</span>);</span>
+<span class="line" id="L94">}</span>
+<span class="line" id="L95"></span>
+<span class="line" id="L96"><span class="tok-kw">test</span> <span class="tok-str">&quot;64&quot;</span> {</span>
+<span class="line" id="L97">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, <span class="tok-number">0.0</span>) == fp_ilogb0);</span>
+<span class="line" id="L98">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, <span class="tok-number">0.5</span>) == -<span class="tok-number">1</span>);</span>
+<span class="line" id="L99">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, <span class="tok-number">0.8923</span>) == -<span class="tok-number">1</span>);</span>
+<span class="line" id="L100">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, <span class="tok-number">10.0</span>) == <span class="tok-number">3</span>);</span>
+<span class="line" id="L101">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, -<span class="tok-number">123984</span>) == <span class="tok-number">16</span>);</span>
+<span class="line" id="L102">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, <span class="tok-number">2398.23</span>) == <span class="tok-number">11</span>);</span>
+<span class="line" id="L103"></span>
+<span class="line" id="L104">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, <span class="tok-number">0x1p-1</span>) == -<span class="tok-number">1</span>);</span>
+<span class="line" id="L105">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, <span class="tok-number">0x1p-127</span>) == -<span class="tok-number">127</span>);</span>
+<span class="line" id="L106">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, <span class="tok-number">0x1p-1012</span>) == -<span class="tok-number">1012</span>);</span>
+<span class="line" id="L107">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, <span class="tok-number">0x1p-1023</span>) == -<span class="tok-number">1023</span>);</span>
+<span class="line" id="L108">}</span>
+<span class="line" id="L109"></span>
+<span class="line" id="L110"><span class="tok-kw">test</span> <span class="tok-str">&quot;80&quot;</span> {</span>
+<span class="line" id="L111">    <span class="tok-kw">if</span> (<span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>).zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L112"></span>
+<span class="line" id="L113">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, <span class="tok-number">0.0</span>) == fp_ilogb0);</span>
+<span class="line" id="L114">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, <span class="tok-number">0.5</span>) == -<span class="tok-number">1</span>);</span>
+<span class="line" id="L115">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, <span class="tok-number">0.8923</span>) == -<span class="tok-number">1</span>);</span>
+<span class="line" id="L116">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, <span class="tok-number">10.0</span>) == <span class="tok-number">3</span>);</span>
+<span class="line" id="L117">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, -<span class="tok-number">123984</span>) == <span class="tok-number">16</span>);</span>
+<span class="line" id="L118">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, <span class="tok-number">2398.23</span>) == <span class="tok-number">11</span>);</span>
+<span class="line" id="L119"></span>
+<span class="line" id="L120">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, <span class="tok-number">0x1p-1</span>) == -<span class="tok-number">1</span>);</span>
+<span class="line" id="L121">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, <span class="tok-number">0x1p-127</span>) == -<span class="tok-number">127</span>);</span>
+<span class="line" id="L122">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, <span class="tok-number">0x1p-1023</span>) == -<span class="tok-number">1023</span>);</span>
+<span class="line" id="L123">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, <span class="tok-number">0x1p-16383</span>) == -<span class="tok-number">16383</span>);</span>
+<span class="line" id="L124">}</span>
+<span class="line" id="L125"></span>
+<span class="line" id="L126"><span class="tok-kw">test</span> <span class="tok-str">&quot;128&quot;</span> {</span>
+<span class="line" id="L127">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, <span class="tok-number">0.0</span>) == fp_ilogb0);</span>
+<span class="line" id="L128">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, <span class="tok-number">0.5</span>) == -<span class="tok-number">1</span>);</span>
+<span class="line" id="L129">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, <span class="tok-number">0.8923</span>) == -<span class="tok-number">1</span>);</span>
+<span class="line" id="L130">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, <span class="tok-number">10.0</span>) == <span class="tok-number">3</span>);</span>
+<span class="line" id="L131">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, -<span class="tok-number">123984</span>) == <span class="tok-number">16</span>);</span>
+<span class="line" id="L132">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, <span class="tok-number">2398.23</span>) == <span class="tok-number">11</span>);</span>
+<span class="line" id="L133"></span>
+<span class="line" id="L134">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, <span class="tok-number">0x1p-1</span>) == -<span class="tok-number">1</span>);</span>
+<span class="line" id="L135">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, <span class="tok-number">0x1p-127</span>) == -<span class="tok-number">127</span>);</span>
+<span class="line" id="L136">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, <span class="tok-number">0x1p-1023</span>) == -<span class="tok-number">1023</span>);</span>
+<span class="line" id="L137">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, <span class="tok-number">0x1p-16383</span>) == -<span class="tok-number">16383</span>);</span>
+<span class="line" id="L138">}</span>
+<span class="line" id="L139"></span>
+<span class="line" id="L140"><span class="tok-kw">test</span> <span class="tok-str">&quot;16 special&quot;</span> {</span>
+<span class="line" id="L141">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, math.inf(<span class="tok-type">f16</span>)) == maxInt(<span class="tok-type">i32</span>));</span>
+<span class="line" id="L142">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, -math.inf(<span class="tok-type">f16</span>)) == maxInt(<span class="tok-type">i32</span>));</span>
+<span class="line" id="L143">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, <span class="tok-number">0.0</span>) == minInt(<span class="tok-type">i32</span>));</span>
+<span class="line" id="L144">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f16</span>, math.nan(<span class="tok-type">f16</span>)) == fp_ilogbnan);</span>
+<span class="line" id="L145">}</span>
+<span class="line" id="L146"></span>
+<span class="line" id="L147"><span class="tok-kw">test</span> <span class="tok-str">&quot;32 special&quot;</span> {</span>
+<span class="line" id="L148">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, math.inf(<span class="tok-type">f32</span>)) == maxInt(<span class="tok-type">i32</span>));</span>
+<span class="line" id="L149">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, -math.inf(<span class="tok-type">f32</span>)) == maxInt(<span class="tok-type">i32</span>));</span>
+<span class="line" id="L150">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, <span class="tok-number">0.0</span>) == minInt(<span class="tok-type">i32</span>));</span>
+<span class="line" id="L151">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f32</span>, math.nan(<span class="tok-type">f32</span>)) == fp_ilogbnan);</span>
+<span class="line" id="L152">}</span>
+<span class="line" id="L153"></span>
+<span class="line" id="L154"><span class="tok-kw">test</span> <span class="tok-str">&quot;64 special&quot;</span> {</span>
+<span class="line" id="L155">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, math.inf(<span class="tok-type">f64</span>)) == maxInt(<span class="tok-type">i32</span>));</span>
+<span class="line" id="L156">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, -math.inf(<span class="tok-type">f64</span>)) == maxInt(<span class="tok-type">i32</span>));</span>
+<span class="line" id="L157">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, <span class="tok-number">0.0</span>) == minInt(<span class="tok-type">i32</span>));</span>
+<span class="line" id="L158">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f64</span>, math.nan(<span class="tok-type">f64</span>)) == fp_ilogbnan);</span>
+<span class="line" id="L159">}</span>
+<span class="line" id="L160"></span>
+<span class="line" id="L161"><span class="tok-kw">test</span> <span class="tok-str">&quot;80 special&quot;</span> {</span>
+<span class="line" id="L162">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, math.inf(<span class="tok-type">f80</span>)) == maxInt(<span class="tok-type">i32</span>));</span>
+<span class="line" id="L163">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, -math.inf(<span class="tok-type">f80</span>)) == maxInt(<span class="tok-type">i32</span>));</span>
+<span class="line" id="L164">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, <span class="tok-number">0.0</span>) == minInt(<span class="tok-type">i32</span>));</span>
+<span class="line" id="L165">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f80</span>, math.nan(<span class="tok-type">f80</span>)) == fp_ilogbnan);</span>
+<span class="line" id="L166">}</span>
+<span class="line" id="L167"></span>
+<span class="line" id="L168"><span class="tok-kw">test</span> <span class="tok-str">&quot;128 special&quot;</span> {</span>
+<span class="line" id="L169">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, math.inf(<span class="tok-type">f128</span>)) == maxInt(<span class="tok-type">i32</span>));</span>
+<span class="line" id="L170">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, -math.inf(<span class="tok-type">f128</span>)) == maxInt(<span class="tok-type">i32</span>));</span>
+<span class="line" id="L171">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, <span class="tok-number">0.0</span>) == minInt(<span class="tok-type">i32</span>));</span>
+<span class="line" id="L172">    <span class="tok-kw">try</span> expect(ilogbX(<span class="tok-type">f128</span>, math.nan(<span class="tok-type">f128</span>)) == fp_ilogbnan);</span>
+<span class="line" id="L173">}</span>
+<span class="line" id="L174"></span>
 </code></pre></body>
 </html>

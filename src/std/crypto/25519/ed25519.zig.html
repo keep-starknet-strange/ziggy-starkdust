@@ -820,13 +820,11 @@
 <span class="line" id="L685">}</span>
 <span class="line" id="L686"></span>
 <span class="line" id="L687"><span class="tok-kw">test</span> <span class="tok-str">&quot;ed25519 key pair from secret key&quot;</span> {</span>
-<span class="line" id="L688">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L689"></span>
-<span class="line" id="L690">    <span class="tok-kw">const</span> kp = <span class="tok-kw">try</span> Ed25519.KeyPair.create(<span class="tok-null">null</span>);</span>
-<span class="line" id="L691">    <span class="tok-kw">const</span> kp2 = <span class="tok-kw">try</span> Ed25519.KeyPair.fromSecretKey(kp.secret_key);</span>
-<span class="line" id="L692">    <span class="tok-kw">try</span> std.testing.expectEqualSlices(<span class="tok-type">u8</span>, &amp;kp.secret_key.toBytes(), &amp;kp2.secret_key.toBytes());</span>
-<span class="line" id="L693">    <span class="tok-kw">try</span> std.testing.expectEqualSlices(<span class="tok-type">u8</span>, &amp;kp.public_key.toBytes(), &amp;kp2.public_key.toBytes());</span>
-<span class="line" id="L694">}</span>
-<span class="line" id="L695"></span>
+<span class="line" id="L688">    <span class="tok-kw">const</span> kp = <span class="tok-kw">try</span> Ed25519.KeyPair.create(<span class="tok-null">null</span>);</span>
+<span class="line" id="L689">    <span class="tok-kw">const</span> kp2 = <span class="tok-kw">try</span> Ed25519.KeyPair.fromSecretKey(kp.secret_key);</span>
+<span class="line" id="L690">    <span class="tok-kw">try</span> std.testing.expectEqualSlices(<span class="tok-type">u8</span>, &amp;kp.secret_key.toBytes(), &amp;kp2.secret_key.toBytes());</span>
+<span class="line" id="L691">    <span class="tok-kw">try</span> std.testing.expectEqualSlices(<span class="tok-type">u8</span>, &amp;kp.public_key.toBytes(), &amp;kp2.public_key.toBytes());</span>
+<span class="line" id="L692">}</span>
+<span class="line" id="L693"></span>
 </code></pre></body>
 </html>

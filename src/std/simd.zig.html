@@ -575,7 +575,7 @@
 <span class="line" id="L436">}</span>
 <span class="line" id="L437"></span>
 <span class="line" id="L438"><span class="tok-kw">test</span> <span class="tok-str">&quot;vector prefix scan&quot;</span> {</span>
-<span class="line" id="L439">    <span class="tok-kw">if</span> (<span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>).zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L439">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
 <span class="line" id="L440"></span>
 <span class="line" id="L441">    <span class="tok-kw">if</span> (<span class="tok-kw">comptime</span> builtin.cpu.arch.isMIPS()) {</span>
 <span class="line" id="L442">        <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>

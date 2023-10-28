@@ -494,120 +494,118 @@
 <span class="line" id="L350"><span class="tok-kw">const</span> TestNode = TestTreap.Node;</span>
 <span class="line" id="L351"></span>
 <span class="line" id="L352"><span class="tok-kw">test</span> <span class="tok-str">&quot;std.Treap: insert, find, replace, remove&quot;</span> {</span>
-<span class="line" id="L353">    <span class="tok-kw">if</span> (<span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>).zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L354"></span>
-<span class="line" id="L355">    <span class="tok-kw">var</span> treap = TestTreap{};</span>
-<span class="line" id="L356">    <span class="tok-kw">var</span> nodes: [<span class="tok-number">10</span>]TestNode = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L357"></span>
-<span class="line" id="L358">    <span class="tok-kw">var</span> prng = std.rand.DefaultPrng.init(<span class="tok-number">0xdeadbeef</span>);</span>
-<span class="line" id="L359">    <span class="tok-kw">var</span> iter = SliceIterRandomOrder(TestNode).init(&amp;nodes, prng.random());</span>
-<span class="line" id="L360"></span>
-<span class="line" id="L361">    <span class="tok-comment">// insert check</span>
+<span class="line" id="L353">    <span class="tok-kw">var</span> treap = TestTreap{};</span>
+<span class="line" id="L354">    <span class="tok-kw">var</span> nodes: [<span class="tok-number">10</span>]TestNode = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L355"></span>
+<span class="line" id="L356">    <span class="tok-kw">var</span> prng = std.rand.DefaultPrng.init(<span class="tok-number">0xdeadbeef</span>);</span>
+<span class="line" id="L357">    <span class="tok-kw">var</span> iter = SliceIterRandomOrder(TestNode).init(&amp;nodes, prng.random());</span>
+<span class="line" id="L358"></span>
+<span class="line" id="L359">    <span class="tok-comment">// insert check</span>
 </span>
-<span class="line" id="L362">    iter.reset();</span>
-<span class="line" id="L363">    <span class="tok-kw">while</span> (iter.next()) |node| {</span>
-<span class="line" id="L364">        <span class="tok-kw">const</span> key = prng.random().int(<span class="tok-type">u64</span>);</span>
-<span class="line" id="L365"></span>
-<span class="line" id="L366">        <span class="tok-comment">// make sure the current entry is empty.</span>
+<span class="line" id="L360">    iter.reset();</span>
+<span class="line" id="L361">    <span class="tok-kw">while</span> (iter.next()) |node| {</span>
+<span class="line" id="L362">        <span class="tok-kw">const</span> key = prng.random().int(<span class="tok-type">u64</span>);</span>
+<span class="line" id="L363"></span>
+<span class="line" id="L364">        <span class="tok-comment">// make sure the current entry is empty.</span>
 </span>
-<span class="line" id="L367">        <span class="tok-kw">var</span> entry = treap.getEntryFor(key);</span>
-<span class="line" id="L368">        <span class="tok-kw">try</span> testing.expectEqual(entry.key, key);</span>
-<span class="line" id="L369">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, <span class="tok-null">null</span>);</span>
-<span class="line" id="L370"></span>
-<span class="line" id="L371">        <span class="tok-comment">// insert the entry and make sure the fields are correct.</span>
+<span class="line" id="L365">        <span class="tok-kw">var</span> entry = treap.getEntryFor(key);</span>
+<span class="line" id="L366">        <span class="tok-kw">try</span> testing.expectEqual(entry.key, key);</span>
+<span class="line" id="L367">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, <span class="tok-null">null</span>);</span>
+<span class="line" id="L368"></span>
+<span class="line" id="L369">        <span class="tok-comment">// insert the entry and make sure the fields are correct.</span>
 </span>
-<span class="line" id="L372">        entry.set(node);</span>
-<span class="line" id="L373">        <span class="tok-kw">try</span> testing.expectEqual(node.key, key);</span>
-<span class="line" id="L374">        <span class="tok-kw">try</span> testing.expectEqual(entry.key, key);</span>
-<span class="line" id="L375">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, node);</span>
-<span class="line" id="L376">    }</span>
-<span class="line" id="L377"></span>
-<span class="line" id="L378">    <span class="tok-comment">// find check</span>
+<span class="line" id="L370">        entry.set(node);</span>
+<span class="line" id="L371">        <span class="tok-kw">try</span> testing.expectEqual(node.key, key);</span>
+<span class="line" id="L372">        <span class="tok-kw">try</span> testing.expectEqual(entry.key, key);</span>
+<span class="line" id="L373">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, node);</span>
+<span class="line" id="L374">    }</span>
+<span class="line" id="L375"></span>
+<span class="line" id="L376">    <span class="tok-comment">// find check</span>
 </span>
-<span class="line" id="L379">    iter.reset();</span>
-<span class="line" id="L380">    <span class="tok-kw">while</span> (iter.next()) |node| {</span>
-<span class="line" id="L381">        <span class="tok-kw">const</span> key = node.key;</span>
-<span class="line" id="L382"></span>
-<span class="line" id="L383">        <span class="tok-comment">// find the entry by-key and by-node after having been inserted.</span>
+<span class="line" id="L377">    iter.reset();</span>
+<span class="line" id="L378">    <span class="tok-kw">while</span> (iter.next()) |node| {</span>
+<span class="line" id="L379">        <span class="tok-kw">const</span> key = node.key;</span>
+<span class="line" id="L380"></span>
+<span class="line" id="L381">        <span class="tok-comment">// find the entry by-key and by-node after having been inserted.</span>
 </span>
-<span class="line" id="L384">        <span class="tok-kw">var</span> entry = treap.getEntryFor(node.key);</span>
-<span class="line" id="L385">        <span class="tok-kw">try</span> testing.expectEqual(entry.key, key);</span>
-<span class="line" id="L386">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, node);</span>
-<span class="line" id="L387">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, treap.getEntryForExisting(node).node);</span>
-<span class="line" id="L388">    }</span>
-<span class="line" id="L389"></span>
-<span class="line" id="L390">    <span class="tok-comment">// in-order iterator check</span>
+<span class="line" id="L382">        <span class="tok-kw">var</span> entry = treap.getEntryFor(node.key);</span>
+<span class="line" id="L383">        <span class="tok-kw">try</span> testing.expectEqual(entry.key, key);</span>
+<span class="line" id="L384">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, node);</span>
+<span class="line" id="L385">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, treap.getEntryForExisting(node).node);</span>
+<span class="line" id="L386">    }</span>
+<span class="line" id="L387"></span>
+<span class="line" id="L388">    <span class="tok-comment">// in-order iterator check</span>
 </span>
-<span class="line" id="L391">    {</span>
-<span class="line" id="L392">        <span class="tok-kw">var</span> it = treap.inorderIterator();</span>
-<span class="line" id="L393">        <span class="tok-kw">var</span> last_key: <span class="tok-type">u64</span> = <span class="tok-number">0</span>;</span>
-<span class="line" id="L394">        <span class="tok-kw">while</span> (it.next()) |node| {</span>
-<span class="line" id="L395">            <span class="tok-kw">try</span> std.testing.expect(node.key &gt;= last_key);</span>
-<span class="line" id="L396">            last_key = node.key;</span>
-<span class="line" id="L397">        }</span>
-<span class="line" id="L398">    }</span>
-<span class="line" id="L399"></span>
-<span class="line" id="L400">    <span class="tok-comment">// replace check</span>
+<span class="line" id="L389">    {</span>
+<span class="line" id="L390">        <span class="tok-kw">var</span> it = treap.inorderIterator();</span>
+<span class="line" id="L391">        <span class="tok-kw">var</span> last_key: <span class="tok-type">u64</span> = <span class="tok-number">0</span>;</span>
+<span class="line" id="L392">        <span class="tok-kw">while</span> (it.next()) |node| {</span>
+<span class="line" id="L393">            <span class="tok-kw">try</span> std.testing.expect(node.key &gt;= last_key);</span>
+<span class="line" id="L394">            last_key = node.key;</span>
+<span class="line" id="L395">        }</span>
+<span class="line" id="L396">    }</span>
+<span class="line" id="L397"></span>
+<span class="line" id="L398">    <span class="tok-comment">// replace check</span>
 </span>
-<span class="line" id="L401">    iter.reset();</span>
-<span class="line" id="L402">    <span class="tok-kw">while</span> (iter.next()) |node| {</span>
-<span class="line" id="L403">        <span class="tok-kw">const</span> key = node.key;</span>
-<span class="line" id="L404"></span>
-<span class="line" id="L405">        <span class="tok-comment">// find the entry by node since we already know it exists</span>
+<span class="line" id="L399">    iter.reset();</span>
+<span class="line" id="L400">    <span class="tok-kw">while</span> (iter.next()) |node| {</span>
+<span class="line" id="L401">        <span class="tok-kw">const</span> key = node.key;</span>
+<span class="line" id="L402"></span>
+<span class="line" id="L403">        <span class="tok-comment">// find the entry by node since we already know it exists</span>
 </span>
-<span class="line" id="L406">        <span class="tok-kw">var</span> entry = treap.getEntryForExisting(node);</span>
-<span class="line" id="L407">        <span class="tok-kw">try</span> testing.expectEqual(entry.key, key);</span>
-<span class="line" id="L408">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, node);</span>
+<span class="line" id="L404">        <span class="tok-kw">var</span> entry = treap.getEntryForExisting(node);</span>
+<span class="line" id="L405">        <span class="tok-kw">try</span> testing.expectEqual(entry.key, key);</span>
+<span class="line" id="L406">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, node);</span>
+<span class="line" id="L407"></span>
+<span class="line" id="L408">        <span class="tok-kw">var</span> stub_node: TestNode = <span class="tok-null">undefined</span>;</span>
 <span class="line" id="L409"></span>
-<span class="line" id="L410">        <span class="tok-kw">var</span> stub_node: TestNode = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L411"></span>
-<span class="line" id="L412">        <span class="tok-comment">// replace the node with a stub_node and ensure future finds point to the stub_node.</span>
+<span class="line" id="L410">        <span class="tok-comment">// replace the node with a stub_node and ensure future finds point to the stub_node.</span>
 </span>
-<span class="line" id="L413">        entry.set(&amp;stub_node);</span>
-<span class="line" id="L414">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, &amp;stub_node);</span>
-<span class="line" id="L415">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, treap.getEntryFor(key).node);</span>
-<span class="line" id="L416">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, treap.getEntryForExisting(&amp;stub_node).node);</span>
-<span class="line" id="L417"></span>
-<span class="line" id="L418">        <span class="tok-comment">// replace the stub_node back to the node and ensure future finds point to the old node.</span>
+<span class="line" id="L411">        entry.set(&amp;stub_node);</span>
+<span class="line" id="L412">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, &amp;stub_node);</span>
+<span class="line" id="L413">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, treap.getEntryFor(key).node);</span>
+<span class="line" id="L414">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, treap.getEntryForExisting(&amp;stub_node).node);</span>
+<span class="line" id="L415"></span>
+<span class="line" id="L416">        <span class="tok-comment">// replace the stub_node back to the node and ensure future finds point to the old node.</span>
 </span>
-<span class="line" id="L419">        entry.set(node);</span>
-<span class="line" id="L420">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, node);</span>
-<span class="line" id="L421">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, treap.getEntryFor(key).node);</span>
-<span class="line" id="L422">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, treap.getEntryForExisting(node).node);</span>
-<span class="line" id="L423">    }</span>
-<span class="line" id="L424"></span>
-<span class="line" id="L425">    <span class="tok-comment">// remove check</span>
+<span class="line" id="L417">        entry.set(node);</span>
+<span class="line" id="L418">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, node);</span>
+<span class="line" id="L419">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, treap.getEntryFor(key).node);</span>
+<span class="line" id="L420">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, treap.getEntryForExisting(node).node);</span>
+<span class="line" id="L421">    }</span>
+<span class="line" id="L422"></span>
+<span class="line" id="L423">    <span class="tok-comment">// remove check</span>
 </span>
-<span class="line" id="L426">    iter.reset();</span>
-<span class="line" id="L427">    <span class="tok-kw">while</span> (iter.next()) |node| {</span>
-<span class="line" id="L428">        <span class="tok-kw">const</span> key = node.key;</span>
-<span class="line" id="L429"></span>
-<span class="line" id="L430">        <span class="tok-comment">// find the entry by node since we already know it exists</span>
+<span class="line" id="L424">    iter.reset();</span>
+<span class="line" id="L425">    <span class="tok-kw">while</span> (iter.next()) |node| {</span>
+<span class="line" id="L426">        <span class="tok-kw">const</span> key = node.key;</span>
+<span class="line" id="L427"></span>
+<span class="line" id="L428">        <span class="tok-comment">// find the entry by node since we already know it exists</span>
 </span>
-<span class="line" id="L431">        <span class="tok-kw">var</span> entry = treap.getEntryForExisting(node);</span>
-<span class="line" id="L432">        <span class="tok-kw">try</span> testing.expectEqual(entry.key, key);</span>
-<span class="line" id="L433">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, node);</span>
-<span class="line" id="L434"></span>
-<span class="line" id="L435">        <span class="tok-comment">// remove the node at the entry and ensure future finds point to it being removed.</span>
+<span class="line" id="L429">        <span class="tok-kw">var</span> entry = treap.getEntryForExisting(node);</span>
+<span class="line" id="L430">        <span class="tok-kw">try</span> testing.expectEqual(entry.key, key);</span>
+<span class="line" id="L431">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, node);</span>
+<span class="line" id="L432"></span>
+<span class="line" id="L433">        <span class="tok-comment">// remove the node at the entry and ensure future finds point to it being removed.</span>
 </span>
-<span class="line" id="L436">        entry.set(<span class="tok-null">null</span>);</span>
-<span class="line" id="L437">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, <span class="tok-null">null</span>);</span>
-<span class="line" id="L438">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, treap.getEntryFor(key).node);</span>
-<span class="line" id="L439"></span>
-<span class="line" id="L440">        <span class="tok-comment">// insert the node back and ensure future finds point to the inserted node</span>
+<span class="line" id="L434">        entry.set(<span class="tok-null">null</span>);</span>
+<span class="line" id="L435">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, <span class="tok-null">null</span>);</span>
+<span class="line" id="L436">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, treap.getEntryFor(key).node);</span>
+<span class="line" id="L437"></span>
+<span class="line" id="L438">        <span class="tok-comment">// insert the node back and ensure future finds point to the inserted node</span>
 </span>
-<span class="line" id="L441">        entry.set(node);</span>
-<span class="line" id="L442">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, node);</span>
-<span class="line" id="L443">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, treap.getEntryFor(key).node);</span>
-<span class="line" id="L444">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, treap.getEntryForExisting(node).node);</span>
-<span class="line" id="L445"></span>
-<span class="line" id="L446">        <span class="tok-comment">// remove the node again and make sure it was cleared after the insert</span>
+<span class="line" id="L439">        entry.set(node);</span>
+<span class="line" id="L440">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, node);</span>
+<span class="line" id="L441">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, treap.getEntryFor(key).node);</span>
+<span class="line" id="L442">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, treap.getEntryForExisting(node).node);</span>
+<span class="line" id="L443"></span>
+<span class="line" id="L444">        <span class="tok-comment">// remove the node again and make sure it was cleared after the insert</span>
 </span>
-<span class="line" id="L447">        entry.set(<span class="tok-null">null</span>);</span>
-<span class="line" id="L448">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, <span class="tok-null">null</span>);</span>
-<span class="line" id="L449">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, treap.getEntryFor(key).node);</span>
-<span class="line" id="L450">    }</span>
-<span class="line" id="L451">}</span>
-<span class="line" id="L452"></span>
+<span class="line" id="L445">        entry.set(<span class="tok-null">null</span>);</span>
+<span class="line" id="L446">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, <span class="tok-null">null</span>);</span>
+<span class="line" id="L447">        <span class="tok-kw">try</span> testing.expectEqual(entry.node, treap.getEntryFor(key).node);</span>
+<span class="line" id="L448">    }</span>
+<span class="line" id="L449">}</span>
+<span class="line" id="L450"></span>
 </code></pre></body>
 </html>

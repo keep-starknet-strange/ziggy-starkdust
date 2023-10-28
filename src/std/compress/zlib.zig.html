@@ -405,24 +405,22 @@
 <span class="line" id="L264">}</span>
 <span class="line" id="L265"></span>
 <span class="line" id="L266"><span class="tok-kw">test</span> <span class="tok-str">&quot;compress data&quot;</span> {</span>
-<span class="line" id="L267">    <span class="tok-kw">if</span> (<span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>).zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L268"></span>
-<span class="line" id="L269">    <span class="tok-kw">const</span> allocator = testing.allocator;</span>
-<span class="line" id="L270">    <span class="tok-kw">const</span> rfc1951_txt = <span class="tok-builtin">@embedFile</span>(<span class="tok-str">&quot;testdata/rfc1951.txt&quot;</span>);</span>
-<span class="line" id="L271"></span>
-<span class="line" id="L272">    <span class="tok-kw">for</span> (std.meta.tags(CompressionLevel)) |level| {</span>
-<span class="line" id="L273">        <span class="tok-kw">var</span> compressed_data = std.ArrayList(<span class="tok-type">u8</span>).init(allocator);</span>
-<span class="line" id="L274">        <span class="tok-kw">defer</span> compressed_data.deinit();</span>
-<span class="line" id="L275"></span>
-<span class="line" id="L276">        <span class="tok-kw">var</span> compressor = <span class="tok-kw">try</span> compressStream(allocator, compressed_data.writer(), .{ .level = level });</span>
-<span class="line" id="L277">        <span class="tok-kw">defer</span> compressor.deinit();</span>
-<span class="line" id="L278"></span>
-<span class="line" id="L279">        <span class="tok-kw">try</span> compressor.writer().writeAll(rfc1951_txt);</span>
-<span class="line" id="L280">        <span class="tok-kw">try</span> compressor.finish();</span>
-<span class="line" id="L281"></span>
-<span class="line" id="L282">        <span class="tok-kw">try</span> testDecompress(compressed_data.items, rfc1951_txt);</span>
-<span class="line" id="L283">    }</span>
-<span class="line" id="L284">}</span>
-<span class="line" id="L285"></span>
+<span class="line" id="L267">    <span class="tok-kw">const</span> allocator = testing.allocator;</span>
+<span class="line" id="L268">    <span class="tok-kw">const</span> rfc1951_txt = <span class="tok-builtin">@embedFile</span>(<span class="tok-str">&quot;testdata/rfc1951.txt&quot;</span>);</span>
+<span class="line" id="L269"></span>
+<span class="line" id="L270">    <span class="tok-kw">for</span> (std.meta.tags(CompressionLevel)) |level| {</span>
+<span class="line" id="L271">        <span class="tok-kw">var</span> compressed_data = std.ArrayList(<span class="tok-type">u8</span>).init(allocator);</span>
+<span class="line" id="L272">        <span class="tok-kw">defer</span> compressed_data.deinit();</span>
+<span class="line" id="L273"></span>
+<span class="line" id="L274">        <span class="tok-kw">var</span> compressor = <span class="tok-kw">try</span> compressStream(allocator, compressed_data.writer(), .{ .level = level });</span>
+<span class="line" id="L275">        <span class="tok-kw">defer</span> compressor.deinit();</span>
+<span class="line" id="L276"></span>
+<span class="line" id="L277">        <span class="tok-kw">try</span> compressor.writer().writeAll(rfc1951_txt);</span>
+<span class="line" id="L278">        <span class="tok-kw">try</span> compressor.finish();</span>
+<span class="line" id="L279"></span>
+<span class="line" id="L280">        <span class="tok-kw">try</span> testDecompress(compressed_data.items, rfc1951_txt);</span>
+<span class="line" id="L281">    }</span>
+<span class="line" id="L282">}</span>
+<span class="line" id="L283"></span>
 </code></pre></body>
 </html>

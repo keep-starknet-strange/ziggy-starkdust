@@ -684,13 +684,11 @@
 <span class="line" id="L556">};</span>
 <span class="line" id="L557"></span>
 <span class="line" id="L558"><span class="tok-kw">test</span> {</span>
-<span class="line" id="L559">    <span class="tok-kw">switch</span> (<span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>).zig_backend) {</span>
-<span class="line" id="L560">        .stage2_c, .stage2_x86_64 =&gt; <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest,</span>
-<span class="line" id="L561">        <span class="tok-kw">else</span> =&gt; {},</span>
-<span class="line" id="L562">    }</span>
-<span class="line" id="L563"></span>
-<span class="line" id="L564">    _ = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;tests/secp256k1.zig&quot;</span>);</span>
-<span class="line" id="L565">}</span>
-<span class="line" id="L566"></span>
+<span class="line" id="L559">    <span class="tok-kw">if</span> (<span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>).zig_backend == .stage2_c) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L560">    <span class="tok-kw">if</span> (<span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>).zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L561"></span>
+<span class="line" id="L562">    _ = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;tests/secp256k1.zig&quot;</span>);</span>
+<span class="line" id="L563">}</span>
+<span class="line" id="L564"></span>
 </code></pre></body>
 </html>
