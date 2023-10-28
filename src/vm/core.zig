@@ -1161,15 +1161,19 @@ test "deduceOp1 when opcode == .Call" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    // None.
+    var instr = deduceOp1TestInstr;
+    instr.opcode = .Call;
+
+    const tuple = try deduceOp1(&instr, null, null);
+    const op1 = tuple[0];
+    const res = tuple[1];
 
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
-    var instr = deduceOp1TestInstr;
-    instr.opcode = .Call;
 
-    try expectEqual(.{ null, null }, try deduceOp1(&instr, null, null));
+    try expectEqual(op1, null);
+    try expectEqual(res, null);
 }
 
 test "deduceOp1 when opcode == .AssertEq, res_logic == .Add, input is felt" {
@@ -1188,9 +1192,9 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Add, input is felt" {
     const dst = relocatable.fromU64(3);
     const op0 = relocatable.fromU64(2);
 
-    const op1_and_result = try deduceOp1(&instr, &dst, &op0);
-    const op1 = op1_and_result[0];
-    const res = op1_and_result[1];
+    const tuple = try deduceOp1(&instr, &dst, &op0);
+    const op1 = tuple[0];
+    const res = tuple[1];
 
     // ************************************************************
     // *                      TEST CHECKS                         *
@@ -1235,11 +1239,6 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    // None.
-
-    // ************************************************************
-    // *                      TEST CHECKS                         *
-    // ************************************************************
     var instr = deduceOp1TestInstr;
     instr.opcode = .AssertEq;
     instr.res_logic = .Mul;
@@ -1247,7 +1246,15 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
     const dst = relocatable.fromU64(4);
     const op0 = relocatable.fromU64(0);
 
-    try expectEqual(.{ null, null }, try deduceOp1(&instr, &dst, &op0));
+    const tuple = try deduceOp1(&instr, &dst, &op0);
+    const op1 = tuple[0];
+    const res = tuple[1];
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    try expectEqual(op1, null);
+    try expectEqual(res, null);
 }
 
 test "deduceOp1 when opcode == .AssertEq, res_logic = .Mul, no input" {
@@ -1259,16 +1266,19 @@ test "deduceOp1 when opcode == .AssertEq, res_logic = .Mul, no input" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    // None.
-
-    // ************************************************************
-    // *                      TEST CHECKS                         *
-    // ************************************************************
     var instr = deduceOp1TestInstr;
     instr.opcode = .AssertEq;
     instr.res_logic = .Mul;
 
-    try expectEqual(.{ null, null }, try deduceOp1(&instr, null, null));
+    const tuple = try deduceOp1(&instr, null, null);
+    const op1 = tuple[0];
+    const res = tuple[1];
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    try expectEqual(op1, null);
+    try expectEqual(res, null);
 }
 
 test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
@@ -1280,18 +1290,21 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    // None.
-
-    // ************************************************************
-    // *                      TEST CHECKS                         *
-    // ************************************************************
     var instr = deduceOp1TestInstr;
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
     const op0 = relocatable.fromU64(0);
 
-    try expectEqual(.{ null, null }, try deduceOp1(&instr, null, &op0));
+    const tuple = try deduceOp1(&instr, null, &op0);
+    const op1 = tuple[0];
+    const res = tuple[1];
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    try expectEqual(op1, null);
+    try expectEqual(res, null);
 }
 
 test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no op0" {
@@ -1309,9 +1322,9 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no op0" {
 
     const dst = relocatable.fromU64(7);
 
-    const op1_and_result = try deduceOp1(&instr, &dst, null);
-    const op1 = op1_and_result[0];
-    const res = op1_and_result[1];
+    const tuple = try deduceOp1(&instr, &dst, null);
+    const op1 = tuple[0];
+    const res = tuple[1];
 
     // ************************************************************
     // *                      TEST CHECKS                         *
