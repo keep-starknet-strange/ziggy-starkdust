@@ -57,6 +57,11 @@ pub const MemorySegmentManager = struct {
     pub fn init(allocator: Allocator) !*Self {
         // Create the pointer to the MemorySegmentManager.
         var segment_manager = try allocator.create(Self);
+        errdefer segment_manager.deinit();
+
+        const memory = try Memory.init(allocator);
+        errdefer memory.deinit();
+
         // Initialize the values of the MemorySegmentManager struct.
         segment_manager.* = Self{
             .allocator = allocator,
@@ -69,7 +74,7 @@ pub const MemorySegmentManager = struct {
                 u32,
             ).init(allocator),
             // Initialize the memory pointer.
-            .memory = try Memory.init(allocator),
+            .memory = memory,
             .public_memory_offsets = std.AutoHashMap(u32, u32).init(allocator),
         };
         // Return the pointer to the MemorySegmentManager.

@@ -60,10 +60,13 @@ pub const CairoVM = struct {
     ) !Self {
         // Initialize the memory segment manager.
         const memory_segment_manager = try segments.MemorySegmentManager.init(allocator);
+        errdefer memory_segment_manager.deinit();
         // Initialize the run context.
         const run_context = try RunContext.init(allocator);
+        errdefer run_context.deinit();
         // Initialize the trace context.
         const trace_context = try TraceContext.init(allocator, config.enable_trace);
+        errdefer trace_context.deinit();
 
         return Self{
             .allocator = allocator,
