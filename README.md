@@ -68,9 +68,27 @@ You can display the help message by running:
 
 ### 🧪 Testing
 
+Run all tests:
+
+```bash
+zig build test
+```
+
+Run all tests with test summary:
+
 ```bash
 zig build test --summary all
 ```
+
+Run a single test, for example, the "Felt252 zero" test: 
+
+```console
+$ zig test --test-filter "Felt252 zero" src/tests.zig
+All 2 tests passed.
+```
+
+Notice that 2 tests passed despite running only 1 test, because
+our tests are wrapped in another test call within `src/tests.zig`.
 
 ### 🔒 Security
 
