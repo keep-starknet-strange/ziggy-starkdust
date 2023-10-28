@@ -294,7 +294,7 @@
 <span class="line" id="L176"></span>
 <span class="line" id="L177">        <span class="tok-kw">var</span> end_of_host: <span class="tok-type">usize</span> = authority.len;</span>
 <span class="line" id="L178"></span>
-<span class="line" id="L179">        <span class="tok-kw">if</span> (authority[start_of_host] == <span class="tok-str">'['</span>) { <span class="tok-comment">// IPv6</span>
+<span class="line" id="L179">        <span class="tok-kw">if</span> (authority.len &gt; start_of_host <span class="tok-kw">and</span> authority[start_of_host] == <span class="tok-str">'['</span>) { <span class="tok-comment">// IPv6</span>
 </span>
 <span class="line" id="L180">            end_of_host = std.mem.lastIndexOf(<span class="tok-type">u8</span>, authority, <span class="tok-str">&quot;]&quot;</span>) <span class="tok-kw">orelse</span> <span class="tok-kw">return</span> <span class="tok-kw">error</span>.InvalidFormat;</span>
 <span class="line" id="L181">            end_of_host += <span class="tok-number">1</span>;</span>
