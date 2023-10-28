@@ -483,6 +483,65 @@ pub fn mulOperands(
     return relocatable.fromFelt(op_0_felt.mul(op_1_felt));
 }
 
+/// Subtracts a `MaybeRelocatable` from this one and returns the new value.
+///
+/// Only values of the same type may be subtracted. Specifically, attempting to
+/// subtract a `.felt` with a `.relocatable` will result in an error.
+pub fn subOperands(self: MaybeRelocatable, other: MaybeRelocatable) !MaybeRelocatable {
+    switch (self) {
+        .felt => |self_value| switch (other) {
+            .felt => |other_value| return relocatable.fromFelt(self_value.sub(other_value)),
+            .relocatable => return error.TypeMismatchNotFelt,
+        },
+        .relocatable => |self_value| switch (other) {
+            .felt => return error.TypeMismatchNotFelt,
+            .relocatable => |other_value| return relocatable.newFromRelocatable(try self_value.sub(other_value)),
+        },
+    }
+}
+
+/// Attempts to deduce `op1` and `res` for an instruction, given `dst` and `op0`.
+///
+/// # Arguments
+/// - `inst`: The instruction to deduce `op1` and `res` for.
+/// - `dst`: The destination of the instruction.
+/// - `op0`: The first operand of the instruction.
+///
+/// # Returns
+/// - `Tuple`: A tuple containing the deduced `op1` and `res`.
+pub fn deduceOp1(
+    inst: *const instructions.Instruction,
+    dst: ?*const relocatable.MaybeRelocatable,
+    op0: ?*const relocatable.MaybeRelocatable,
+) !std.meta.Tuple(&[_]type{ ?relocatable.MaybeRelocatable, ?relocatable.MaybeRelocatable }) {
+    if (inst.opcode != .AssertEq) {
+        return .{ null, null };
+    }
+
+    switch (inst.res_logic) {
+        .Op1 => if (dst) |dst_val| {
+            return .{ dst_val.*, dst_val.* };
+        },
+        .Add => if (dst != null and op0 != null) {
+            return .{ try subOperands(dst.?.*, op0.?.*), dst.?.* };
+        },
+        .Mul => {
+            if (dst != null and op0 != null and
+                dst.?.isFelt() and op0.?.isFelt() and
+                !op0.?.felt.isZero())
+            {
+                return .{
+                    relocatable.fromFelt(try dst.?.felt.div(op0.?.felt)),
+                    dst.?.*,
+                };
+            }
+        },
+        else => {},
+    }
+
+    return .{ null, null };
+}
+
 // *****************************************************************************
 // *                       CUSTOM TYPES                                        *
 // *****************************************************************************
@@ -1097,6 +1156,210 @@ test "trace is disabled" {
     if (vm.trace_context.isEnabled()) {
         return error.TraceShouldHaveBeenDisabled;
     }
+}
+
+// This instruction is used in the functions that test the `deduceOp1` function. Only the
+// `opcode` and `res_logic` fields are usually changed.
+const deduceOp1TestInstr = instructions.Instruction{
+    .off_0 = 1,
+    .off_1 = 2,
+    .off_2 = 3,
+    .dst_reg = .FP,
+    .op_0_reg = .AP,
+    .op_1_addr = .AP,
+    .res_logic = .Add,
+    .pc_update = .Jump,
+    .ap_update = .Regular,
+    .fp_update = .Regular,
+    .opcode = .Call,
+};
+
+test "deduceOp1 when opcode == .Call" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Nothing.
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    var instr = deduceOp1TestInstr;
+    instr.opcode = .Call;
+
+    const tuple = try deduceOp1(&instr, null, null);
+    const op1 = tuple[0];
+    const res = tuple[1];
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    const expectedOp1: ?MaybeRelocatable = null; // temp var needed for type inference
+    const expectedRes: ?MaybeRelocatable = null;
+    try expectEqual(expectedOp1, op1);
+    try expectEqual(expectedRes, res);
+}
+
+test "deduceOp1 when opcode == .AssertEq, res_logic == .Add, input is felt" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Nothing.
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    var instr = deduceOp1TestInstr;
+    instr.opcode = .AssertEq;
+    instr.res_logic = .Add;
+
+    const dst = relocatable.fromU64(3);
+    const op0 = relocatable.fromU64(2);
+
+    const tuple = try deduceOp1(&instr, &dst, &op0);
+    const op1 = tuple[0];
+    const res = tuple[1];
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    try expect(op1.?.eq(relocatable.fromU64(1)));
+    try expect(res.?.eq(relocatable.fromU64(3)));
+}
+
+test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, non-zero op0" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Nothing.
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    var instr = deduceOp1TestInstr;
+    instr.opcode = .AssertEq;
+    instr.res_logic = .Mul;
+
+    const dst = relocatable.fromU64(4);
+    const op0 = relocatable.fromU64(2);
+
+    const op1_and_result = try deduceOp1(&instr, &dst, &op0);
+    const op1 = op1_and_result[0];
+    const res = op1_and_result[1];
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    try expect(op1.?.eq(relocatable.fromU64(2)));
+    try expect(res.?.eq(relocatable.fromU64(4)));
+}
+
+test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Nothing.
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    var instr = deduceOp1TestInstr;
+    instr.opcode = .AssertEq;
+    instr.res_logic = .Mul;
+
+    const dst = relocatable.fromU64(4);
+    const op0 = relocatable.fromU64(0);
+
+    const tuple = try deduceOp1(&instr, &dst, &op0);
+    const op1 = tuple[0];
+    const res = tuple[1];
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    const expectedOp1: ?MaybeRelocatable = null; // temp var needed for type inference
+    const expectedRes: ?MaybeRelocatable = null;
+    try expectEqual(expectedOp1, op1);
+    try expectEqual(expectedRes, res);
+}
+
+test "deduceOp1 when opcode == .AssertEq, res_logic = .Mul, no input" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Nothing.
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    var instr = deduceOp1TestInstr;
+    instr.opcode = .AssertEq;
+    instr.res_logic = .Mul;
+
+    const tuple = try deduceOp1(&instr, null, null);
+    const op1 = tuple[0];
+    const res = tuple[1];
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    const expectedOp1: ?MaybeRelocatable = null; // temp var needed for type inference
+    const expectedRes: ?MaybeRelocatable = null;
+    try expectEqual(expectedOp1, op1);
+    try expectEqual(expectedRes, res);
+}
+
+test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Nothing.
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    var instr = deduceOp1TestInstr;
+    instr.opcode = .AssertEq;
+    instr.res_logic = .Op1;
+
+    const op0 = relocatable.fromU64(0);
+
+    const tuple = try deduceOp1(&instr, null, &op0);
+    const op1 = tuple[0];
+    const res = tuple[1];
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    const expectedOp1: ?MaybeRelocatable = null; // temp var needed for type inference
+    const expectedRes: ?MaybeRelocatable = null;
+    try expectEqual(expectedOp1, op1);
+    try expectEqual(expectedRes, res);
+}
+
+test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no op0" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Nothing/
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    var instr = deduceOp1TestInstr;
+    instr.opcode = .AssertEq;
+    instr.res_logic = .Op1;
+
+    const dst = relocatable.fromU64(7);
+
+    const tuple = try deduceOp1(&instr, &dst, null);
+    const op1 = tuple[0];
+    const res = tuple[1];
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    try expect(op1.?.eq(relocatable.fromU64(7)));
+    try expect(res.?.eq(relocatable.fromU64(7)));
 }
 
 test "set get value in vm memory" {
