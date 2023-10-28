@@ -582,18 +582,27 @@ test "decode flags nop regular regular op1 op0 ap ap" {
 test "decode offset negative" {
     const encoded_instruction: u64 = 0x0000800180007FFF;
     const decoded_instruction = try decode(encoded_instruction);
-    try expectEqual(@as(
-        i16,
-        -1,
-    ), decoded_instruction.off_0);
-    try expectEqual(@as(
-        i16,
-        0,
-    ), decoded_instruction.off_1);
-    try expectEqual(@as(
-        i16,
-        1,
-    ), decoded_instruction.off_2);
+    try expectEqual(
+        @as(
+            i16,
+            -1,
+        ),
+        decoded_instruction.off_0,
+    );
+    try expectEqual(
+        @as(
+            i16,
+            0,
+        ),
+        decoded_instruction.off_1,
+    );
+    try expectEqual(
+        @as(
+            i16,
+            1,
+        ),
+        decoded_instruction.off_2,
+    );
 }
 
 test "non zero high bit" {

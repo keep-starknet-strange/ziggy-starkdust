@@ -298,14 +298,14 @@ test "add uint" {
         2,
         4,
     );
-    const result = relocatable.addUint(24);
+    const result = try relocatable.addUint(24);
     const expected = Relocatable.new(
         2,
         28,
     );
     try expectEqual(
-        result,
         expected,
+        result,
     );
 }
 
@@ -314,14 +314,14 @@ test "add int" {
         2,
         4,
     );
-    const result = relocatable.addInt(24);
+    const result = try relocatable.addInt(24);
     const expected = Relocatable.new(
         2,
         28,
     );
     try expectEqual(
-        result,
         expected,
+        result,
     );
 }
 
@@ -330,14 +330,14 @@ test "add int negative" {
         2,
         4,
     );
-    const result = relocatable.addInt(-4);
+    const result = try relocatable.addInt(-4);
     const expected = Relocatable.new(
         2,
         0,
     );
     try expectEqual(
-        result,
         expected,
+        result,
     );
 }
 
@@ -346,14 +346,14 @@ test "sub uint" {
         2,
         4,
     );
-    const result = relocatable.subUint(2);
+    const result = try relocatable.subUint(2);
     const expected = Relocatable.new(
         2,
         2,
     );
     try expectEqual(
-        result,
         expected,
+        result,
     );
 }
 
