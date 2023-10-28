@@ -1161,7 +1161,7 @@ test "deduce_op1 when opcode == .Call" {
         .opcode = .Call,
     };
 
-    const op1_and_result = try vm.deduce_op1(&instruction, null, null);
+    const op1_and_result = try deduce_op1(&instruction, null, null);
     const op1 = op1_and_result[0];
     const result = op1_and_result[1];
 
