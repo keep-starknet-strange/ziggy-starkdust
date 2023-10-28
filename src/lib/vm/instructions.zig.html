@@ -252,567 +252,569 @@
 <span class="line" id="L117"></span>
 <span class="line" id="L118"><span class="tok-comment">/// Represents a decoded instruction.</span></span>
 <span class="line" id="L119"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> Instruction = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L120">    off_0: <span class="tok-type">i16</span>,</span>
-<span class="line" id="L121">    off_1: <span class="tok-type">i16</span>,</span>
-<span class="line" id="L122">    off_2: <span class="tok-type">i16</span>,</span>
-<span class="line" id="L123">    dst_reg: Register,</span>
-<span class="line" id="L124">    op_0_reg: Register,</span>
-<span class="line" id="L125">    op_1_addr: Op1Src,</span>
-<span class="line" id="L126">    res_logic: ResLogic,</span>
-<span class="line" id="L127">    pc_update: PcUpdate,</span>
-<span class="line" id="L128">    ap_update: ApUpdate,</span>
-<span class="line" id="L129">    fp_update: FpUpdate,</span>
-<span class="line" id="L130">    opcode: Opcode,</span>
-<span class="line" id="L131"></span>
-<span class="line" id="L132">    <span class="tok-comment">/// Returns the size of an instruction.</span></span>
-<span class="line" id="L133">    <span class="tok-comment">/// # Returns</span></span>
-<span class="line" id="L134">    <span class="tok-comment">/// Size of the instruction.</span></span>
-<span class="line" id="L135">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">size</span>(self: Instruction) <span class="tok-type">usize</span> {</span>
-<span class="line" id="L136">        <span class="tok-kw">if</span> (self.op_1_addr == Op1Src.Imm) {</span>
-<span class="line" id="L137">            <span class="tok-kw">return</span> <span class="tok-number">2</span>;</span>
-<span class="line" id="L138">        } <span class="tok-kw">else</span> {</span>
-<span class="line" id="L139">            <span class="tok-kw">return</span> <span class="tok-number">1</span>;</span>
-<span class="line" id="L140">        }</span>
-<span class="line" id="L141">    }</span>
-<span class="line" id="L142"></span>
-<span class="line" id="L143">    <span class="tok-comment">/// Returns a default instruction.</span></span>
-<span class="line" id="L144">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">default</span>() Instruction {</span>
-<span class="line" id="L145">        <span class="tok-comment">//  0|  opcode|ap_update|pc_update|res_logic|op1_src|op0_reg|dst_reg</span>
+<span class="line" id="L120">    <span class="tok-kw">const</span> Self = <span class="tok-builtin">@This</span>();</span>
+<span class="line" id="L121"></span>
+<span class="line" id="L122">    off_0: <span class="tok-type">i16</span>,</span>
+<span class="line" id="L123">    off_1: <span class="tok-type">i16</span>,</span>
+<span class="line" id="L124">    off_2: <span class="tok-type">i16</span>,</span>
+<span class="line" id="L125">    dst_reg: Register,</span>
+<span class="line" id="L126">    op_0_reg: Register,</span>
+<span class="line" id="L127">    op_1_addr: Op1Src,</span>
+<span class="line" id="L128">    res_logic: ResLogic,</span>
+<span class="line" id="L129">    pc_update: PcUpdate,</span>
+<span class="line" id="L130">    ap_update: ApUpdate,</span>
+<span class="line" id="L131">    fp_update: FpUpdate,</span>
+<span class="line" id="L132">    opcode: Opcode,</span>
+<span class="line" id="L133"></span>
+<span class="line" id="L134">    <span class="tok-comment">/// Returns the size of an instruction.</span></span>
+<span class="line" id="L135">    <span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L136">    <span class="tok-comment">/// Size of the instruction.</span></span>
+<span class="line" id="L137">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">size</span>(self: Self) <span class="tok-type">usize</span> {</span>
+<span class="line" id="L138">        <span class="tok-kw">if</span> (self.op_1_addr == Op1Src.Imm) {</span>
+<span class="line" id="L139">            <span class="tok-kw">return</span> <span class="tok-number">2</span>;</span>
+<span class="line" id="L140">        } <span class="tok-kw">else</span> {</span>
+<span class="line" id="L141">            <span class="tok-kw">return</span> <span class="tok-number">1</span>;</span>
+<span class="line" id="L142">        }</span>
+<span class="line" id="L143">    }</span>
+<span class="line" id="L144"></span>
+<span class="line" id="L145">    <span class="tok-comment">/// Returns a default instruction.</span></span>
+<span class="line" id="L146">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">default</span>() Self {</span>
+<span class="line" id="L147">        <span class="tok-comment">//  0|  opcode|ap_update|pc_update|res_logic|op1_src|op0_reg|dst_reg</span>
 </span>
-<span class="line" id="L146">        <span class="tok-comment">// 15|14 13 12|    11 10|  9  8  7|     6  5|4  3  2|      1|      0</span>
+<span class="line" id="L148">        <span class="tok-comment">// 15|14 13 12|    11 10|  9  8  7|     6  5|4  3  2|      1|      0</span>
 </span>
-<span class="line" id="L147">        <span class="tok-comment">//   |    CALL|      ADD|     JUMP|      ADD|    IMM|     FP|     FP</span>
+<span class="line" id="L149">        <span class="tok-comment">//   |    CALL|      ADD|     JUMP|      ADD|    IMM|     FP|     FP</span>
 </span>
-<span class="line" id="L148">        <span class="tok-comment">//  0  0  0  1      0  1   0  0  1      0  1 0  0  1       1       1</span>
+<span class="line" id="L150">        <span class="tok-comment">//  0  0  0  1      0  1   0  0  1      0  1 0  0  1       1       1</span>
 </span>
-<span class="line" id="L149">        <span class="tok-comment">//  0001 0100 1010 0111 = 0x14A7; offx = 0</span>
+<span class="line" id="L151">        <span class="tok-comment">//  0001 0100 1010 0111 = 0x14A7; offx = 0</span>
 </span>
-<span class="line" id="L150">        <span class="tok-kw">return</span> decode(<span class="tok-number">0x14A7800080008000</span>) <span class="tok-kw">catch</span> <span class="tok-kw">unreachable</span>;</span>
-<span class="line" id="L151">    }</span>
-<span class="line" id="L152">};</span>
-<span class="line" id="L153"></span>
-<span class="line" id="L154"><span class="tok-comment">/// Decode a 64-bit instruction into its component parts.</span></span>
-<span class="line" id="L155"><span class="tok-comment">/// # Arguments</span></span>
-<span class="line" id="L156"><span class="tok-comment">/// - encoded_instruction: 64-bit integer containing the encoded instruction</span></span>
-<span class="line" id="L157"><span class="tok-comment">/// # Returns</span></span>
-<span class="line" id="L158"><span class="tok-comment">/// Decoded Instruction struct, or an error if decoding fails</span></span>
-<span class="line" id="L159"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">decode</span>(encoded_instruction: <span class="tok-type">u64</span>) Error!Instruction {</span>
-<span class="line" id="L160">    <span class="tok-kw">if</span> (encoded_instruction &amp; (<span class="tok-number">1</span> &lt;&lt; <span class="tok-number">63</span>) != <span class="tok-number">0</span>) <span class="tok-kw">return</span> Error.NonZeroHighBit;</span>
-<span class="line" id="L161">    <span class="tok-kw">const</span> flags = <span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L162">        <span class="tok-type">u16</span>,</span>
-<span class="line" id="L163">        <span class="tok-builtin">@truncate</span>(encoded_instruction &gt;&gt; <span class="tok-number">48</span>),</span>
-<span class="line" id="L164">    );</span>
-<span class="line" id="L165">    <span class="tok-kw">const</span> offsets = <span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L166">        <span class="tok-type">u48</span>,</span>
-<span class="line" id="L167">        <span class="tok-builtin">@truncate</span>(encoded_instruction),</span>
-<span class="line" id="L168">    );</span>
-<span class="line" id="L169">    <span class="tok-kw">const</span> parsedNum = <span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L170">        <span class="tok-type">u8</span>,</span>
-<span class="line" id="L171">        <span class="tok-builtin">@truncate</span>((flags &gt;&gt; <span class="tok-number">12</span>) &amp; <span class="tok-number">7</span>),</span>
-<span class="line" id="L172">    );</span>
-<span class="line" id="L173">    <span class="tok-kw">const</span> opcode = <span class="tok-kw">try</span> parseOpcode(parsedNum);</span>
-<span class="line" id="L174"></span>
-<span class="line" id="L175">    <span class="tok-kw">const</span> pc_update = <span class="tok-kw">try</span> parsePcUpdate(</span>
-<span class="line" id="L176">        <span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L177">            <span class="tok-type">u8</span>,</span>
-<span class="line" id="L178">            <span class="tok-builtin">@truncate</span>((flags &gt;&gt; <span class="tok-number">7</span>) &amp; <span class="tok-number">7</span>),</span>
-<span class="line" id="L179">        ),</span>
-<span class="line" id="L180">    );</span>
-<span class="line" id="L181"></span>
-<span class="line" id="L182">    <span class="tok-kw">return</span> .{</span>
-<span class="line" id="L183">        .off_0 = fromBiasedRepresentation(</span>
-<span class="line" id="L184">            <span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L185">                <span class="tok-type">u16</span>,</span>
-<span class="line" id="L186">                <span class="tok-builtin">@truncate</span>(offsets),</span>
-<span class="line" id="L187">            ),</span>
-<span class="line" id="L188">        ),</span>
-<span class="line" id="L189">        .off_1 = fromBiasedRepresentation(</span>
-<span class="line" id="L190">            <span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L191">                <span class="tok-type">u16</span>,</span>
-<span class="line" id="L192">                <span class="tok-builtin">@truncate</span>(offsets &gt;&gt; <span class="tok-number">16</span>),</span>
-<span class="line" id="L193">            ),</span>
-<span class="line" id="L194">        ),</span>
-<span class="line" id="L195">        .off_2 = fromBiasedRepresentation(</span>
-<span class="line" id="L196">            <span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L197">                <span class="tok-type">u16</span>,</span>
-<span class="line" id="L198">                <span class="tok-builtin">@truncate</span>(offsets &gt;&gt; <span class="tok-number">32</span>),</span>
-<span class="line" id="L199">            ),</span>
-<span class="line" id="L200">        ),</span>
-<span class="line" id="L201">        .dst_reg = <span class="tok-kw">if</span> (flags &amp; <span class="tok-number">1</span> != <span class="tok-number">0</span>) Register.FP <span class="tok-kw">else</span> Register.AP,</span>
-<span class="line" id="L202">        .op_0_reg = <span class="tok-kw">if</span> (flags &amp; <span class="tok-number">2</span> != <span class="tok-number">0</span>) Register.FP <span class="tok-kw">else</span> Register.AP,</span>
-<span class="line" id="L203">        .op_1_addr = <span class="tok-kw">try</span> parseOp1Src(</span>
-<span class="line" id="L204">            <span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L205">                <span class="tok-type">u8</span>,</span>
-<span class="line" id="L206">                <span class="tok-builtin">@truncate</span>((flags &gt;&gt; <span class="tok-number">2</span>) &amp; <span class="tok-number">7</span>),</span>
-<span class="line" id="L207">            ),</span>
-<span class="line" id="L208">        ),</span>
-<span class="line" id="L209">        .res_logic = <span class="tok-kw">try</span> parseResLogic(</span>
-<span class="line" id="L210">            <span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L211">                <span class="tok-type">u8</span>,</span>
-<span class="line" id="L212">                <span class="tok-builtin">@truncate</span>((flags &gt;&gt; <span class="tok-number">5</span>) &amp; <span class="tok-number">3</span>),</span>
-<span class="line" id="L213">            ),</span>
-<span class="line" id="L214">            pc_update,</span>
-<span class="line" id="L215">        ),</span>
-<span class="line" id="L216">        .pc_update = pc_update,</span>
-<span class="line" id="L217">        .ap_update = <span class="tok-kw">try</span> parseApUpdate(</span>
-<span class="line" id="L218">            <span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L219">                <span class="tok-type">u8</span>,</span>
-<span class="line" id="L220">                <span class="tok-builtin">@truncate</span>((flags &gt;&gt; <span class="tok-number">10</span>) &amp; <span class="tok-number">3</span>),</span>
-<span class="line" id="L221">            ),</span>
-<span class="line" id="L222">            opcode,</span>
-<span class="line" id="L223">        ),</span>
-<span class="line" id="L224">        .opcode = opcode,</span>
-<span class="line" id="L225">        .fp_update = parseFpUpdate(opcode),</span>
-<span class="line" id="L226">    };</span>
-<span class="line" id="L227">}</span>
-<span class="line" id="L228"></span>
-<span class="line" id="L229"><span class="tok-comment">/// Parse opcode from a 3-bit integer field.</span></span>
-<span class="line" id="L230"><span class="tok-comment">/// # Arguments</span></span>
-<span class="line" id="L231"><span class="tok-comment">/// - opcode_num: 3-bit integer field extracted from instruction</span></span>
-<span class="line" id="L232"><span class="tok-comment">/// # Returns</span></span>
-<span class="line" id="L233"><span class="tok-comment">/// Parsed Opcode value, or an error if invalid</span></span>
-<span class="line" id="L234"><span class="tok-kw">fn</span> <span class="tok-fn">parseOpcode</span>(opcode_num: <span class="tok-type">u8</span>) Error!Opcode {</span>
-<span class="line" id="L235">    <span class="tok-kw">return</span> <span class="tok-kw">switch</span> (opcode_num) {</span>
-<span class="line" id="L236">        <span class="tok-number">0</span> =&gt; .NOp,</span>
-<span class="line" id="L237">        <span class="tok-number">1</span> =&gt; .Call,</span>
-<span class="line" id="L238">        <span class="tok-number">2</span> =&gt; .Ret,</span>
-<span class="line" id="L239">        <span class="tok-number">4</span> =&gt; .AssertEq,</span>
-<span class="line" id="L240">        <span class="tok-kw">else</span> =&gt; Error.InvalidOpcode,</span>
-<span class="line" id="L241">    };</span>
-<span class="line" id="L242">}</span>
-<span class="line" id="L243"></span>
-<span class="line" id="L244"><span class="tok-comment">/// Parse Op1Src from a 3-bit integer field.</span></span>
-<span class="line" id="L245"><span class="tok-comment">/// # Arguments</span></span>
-<span class="line" id="L246"><span class="tok-comment">/// - op1_src_num: 3-bit integer field extracted from instruction</span></span>
-<span class="line" id="L247"><span class="tok-comment">/// # Returns</span></span>
-<span class="line" id="L248"><span class="tok-comment">/// Parsed Op1Src value, or an error if invalid</span></span>
-<span class="line" id="L249"><span class="tok-kw">fn</span> <span class="tok-fn">parseOp1Src</span>(op1_src_num: <span class="tok-type">u8</span>) Error!Op1Src {</span>
-<span class="line" id="L250">    <span class="tok-kw">return</span> <span class="tok-kw">switch</span> (op1_src_num) {</span>
-<span class="line" id="L251">        <span class="tok-number">0</span> =&gt; .Op0,</span>
-<span class="line" id="L252">        <span class="tok-number">1</span> =&gt; .Imm,</span>
-<span class="line" id="L253">        <span class="tok-number">2</span> =&gt; .FP,</span>
-<span class="line" id="L254">        <span class="tok-number">4</span> =&gt; .AP,</span>
-<span class="line" id="L255">        <span class="tok-kw">else</span> =&gt; Error.InvalidOp1Reg,</span>
-<span class="line" id="L256">    };</span>
-<span class="line" id="L257">}</span>
-<span class="line" id="L258"></span>
-<span class="line" id="L259"><span class="tok-comment">/// Parse res_logic from a 2-bit integer field.</span></span>
-<span class="line" id="L260"><span class="tok-comment">/// # Arguments</span></span>
-<span class="line" id="L261"><span class="tok-comment">/// - res_logic_num: 2-bit integer field extracted from instruction</span></span>
-<span class="line" id="L262"><span class="tok-comment">/// - pc_update: pc_update value of the current instruction</span></span>
-<span class="line" id="L263"><span class="tok-comment">/// # Returns</span></span>
-<span class="line" id="L264"><span class="tok-comment">/// Parsed res_logic value, or an error if invalid</span></span>
-<span class="line" id="L265"><span class="tok-kw">fn</span> <span class="tok-fn">parseResLogic</span>(</span>
-<span class="line" id="L266">    res_logic_num: <span class="tok-type">u8</span>,</span>
-<span class="line" id="L267">    pc_update: PcUpdate,</span>
-<span class="line" id="L268">) Error!ResLogic {</span>
-<span class="line" id="L269">    <span class="tok-kw">return</span> <span class="tok-kw">switch</span> (res_logic_num) {</span>
-<span class="line" id="L270">        <span class="tok-number">0</span> =&gt; {</span>
-<span class="line" id="L271">            <span class="tok-kw">if</span> (pc_update == .Jnz) {</span>
-<span class="line" id="L272">                <span class="tok-kw">return</span> .Unconstrained;</span>
-<span class="line" id="L273">            } <span class="tok-kw">else</span> {</span>
-<span class="line" id="L274">                <span class="tok-kw">return</span> .Op1;</span>
-<span class="line" id="L275">            }</span>
-<span class="line" id="L276">        },</span>
-<span class="line" id="L277">        <span class="tok-number">1</span> =&gt; .Add,</span>
-<span class="line" id="L278">        <span class="tok-number">2</span> =&gt; .Mul,</span>
-<span class="line" id="L279">        <span class="tok-kw">else</span> =&gt; Error.Invalidres_logic,</span>
-<span class="line" id="L280">    };</span>
-<span class="line" id="L281">}</span>
-<span class="line" id="L282"></span>
-<span class="line" id="L283"><span class="tok-comment">/// Parse pc_update from a 3-bit integer field.</span></span>
-<span class="line" id="L284"><span class="tok-comment">/// # Arguments</span></span>
-<span class="line" id="L285"><span class="tok-comment">/// - pc_update_num: 3-bit integer field extracted from instruction</span></span>
-<span class="line" id="L286"><span class="tok-comment">/// # Returns</span></span>
-<span class="line" id="L287"><span class="tok-comment">/// Parsed pc_update value, or an error if invalid</span></span>
-<span class="line" id="L288"><span class="tok-kw">fn</span> <span class="tok-fn">parsePcUpdate</span>(pc_update_num: <span class="tok-type">u8</span>) Error!PcUpdate {</span>
-<span class="line" id="L289">    <span class="tok-kw">return</span> <span class="tok-kw">switch</span> (pc_update_num) {</span>
-<span class="line" id="L290">        <span class="tok-number">0</span> =&gt; .Regular,</span>
-<span class="line" id="L291">        <span class="tok-number">1</span> =&gt; .Jump,</span>
-<span class="line" id="L292">        <span class="tok-number">2</span> =&gt; .JumpRel,</span>
-<span class="line" id="L293">        <span class="tok-number">4</span> =&gt; .Jnz,</span>
-<span class="line" id="L294">        <span class="tok-kw">else</span> =&gt; Error.Invalidpc_update,</span>
-<span class="line" id="L295">    };</span>
-<span class="line" id="L296">}</span>
-<span class="line" id="L297"></span>
-<span class="line" id="L298"><span class="tok-comment">/// Parse ap_update from a 2-bit integer field.</span></span>
-<span class="line" id="L299"><span class="tok-comment">/// # Arguments</span></span>
-<span class="line" id="L300"><span class="tok-comment">/// - ap_update_num: 2-bit integer field extracted from instruction</span></span>
-<span class="line" id="L301"><span class="tok-comment">/// - opcode: Opcode of the current instruction</span></span>
-<span class="line" id="L302"><span class="tok-comment">/// # Returns</span></span>
-<span class="line" id="L303"><span class="tok-comment">/// Parsed ap_update value, or an error if invalid</span></span>
-<span class="line" id="L304"><span class="tok-kw">fn</span> <span class="tok-fn">parseApUpdate</span>(</span>
-<span class="line" id="L305">    ap_update_num: <span class="tok-type">u8</span>,</span>
-<span class="line" id="L306">    opcode: Opcode,</span>
-<span class="line" id="L307">) Error!ApUpdate {</span>
-<span class="line" id="L308">    <span class="tok-kw">return</span> <span class="tok-kw">switch</span> (ap_update_num) {</span>
-<span class="line" id="L309">        <span class="tok-number">0</span> =&gt; <span class="tok-kw">if</span> (opcode == .Call) {</span>
-<span class="line" id="L310">            <span class="tok-kw">return</span> .Add2;</span>
-<span class="line" id="L311">        } <span class="tok-kw">else</span> {</span>
-<span class="line" id="L312">            <span class="tok-kw">return</span> .Regular;</span>
-<span class="line" id="L313">        },</span>
-<span class="line" id="L314">        <span class="tok-number">1</span> =&gt; .Add,</span>
-<span class="line" id="L315">        <span class="tok-number">2</span> =&gt; .Add1,</span>
-<span class="line" id="L316">        <span class="tok-kw">else</span> =&gt; Error.Invalidap_update,</span>
-<span class="line" id="L317">    };</span>
-<span class="line" id="L318">}</span>
-<span class="line" id="L319"></span>
-<span class="line" id="L320"><span class="tok-comment">/// Parse fp_update based on the Opcode value.</span></span>
-<span class="line" id="L321"><span class="tok-comment">/// # Arguments</span></span>
-<span class="line" id="L322"><span class="tok-comment">/// - opcode: Opcode of the current instruction</span></span>
-<span class="line" id="L323"><span class="tok-comment">/// # Returns</span></span>
-<span class="line" id="L324"><span class="tok-comment">/// Appropriate fp_update value</span></span>
-<span class="line" id="L325"><span class="tok-kw">fn</span> <span class="tok-fn">parseFpUpdate</span>(opcode: Opcode) FpUpdate {</span>
-<span class="line" id="L326">    <span class="tok-kw">return</span> <span class="tok-kw">switch</span> (opcode) {</span>
-<span class="line" id="L327">        .Call =&gt; .APPlus2,</span>
-<span class="line" id="L328">        .Ret =&gt; .Dst,</span>
-<span class="line" id="L329">        <span class="tok-kw">else</span> =&gt; .Regular,</span>
-<span class="line" id="L330">    };</span>
-<span class="line" id="L331">}</span>
-<span class="line" id="L332"></span>
-<span class="line" id="L333"><span class="tok-comment">/// Converts a biased 16-bit representation to a 16-bit signed integer.</span></span>
-<span class="line" id="L334"><span class="tok-comment">/// # Arguments</span></span>
-<span class="line" id="L335"><span class="tok-comment">/// - biased_repr: Biased representation as a 16-bit integer</span></span>
-<span class="line" id="L336"><span class="tok-comment">/// # Returns</span></span>
-<span class="line" id="L337"><span class="tok-comment">/// 16-bit signed integer</span></span>
-<span class="line" id="L338"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">fromBiasedRepresentation</span>(biased_repr: <span class="tok-type">u16</span>) <span class="tok-type">i16</span> {</span>
-<span class="line" id="L339">    <span class="tok-kw">const</span> as_i32 = <span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L340">        <span class="tok-type">i32</span>,</span>
-<span class="line" id="L341">        <span class="tok-builtin">@intCast</span>(biased_repr),</span>
-<span class="line" id="L342">    );</span>
-<span class="line" id="L343">    <span class="tok-kw">return</span> <span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L344">        <span class="tok-type">i16</span>,</span>
-<span class="line" id="L345">        <span class="tok-builtin">@intCast</span>(as_i32 - <span class="tok-number">32768</span>),</span>
-<span class="line" id="L346">    );</span>
-<span class="line" id="L347">}</span>
-<span class="line" id="L348"></span>
-<span class="line" id="L349"><span class="tok-comment">// ************************************************************</span>
-</span>
-<span class="line" id="L350"><span class="tok-comment">// *                         TESTS                            *</span>
-</span>
+<span class="line" id="L152">        <span class="tok-kw">return</span> decode(<span class="tok-number">0x14A7800080008000</span>) <span class="tok-kw">catch</span> <span class="tok-kw">unreachable</span>;</span>
+<span class="line" id="L153">    }</span>
+<span class="line" id="L154">};</span>
+<span class="line" id="L155"></span>
+<span class="line" id="L156"><span class="tok-comment">/// Decode a 64-bit instruction into its component parts.</span></span>
+<span class="line" id="L157"><span class="tok-comment">/// # Arguments</span></span>
+<span class="line" id="L158"><span class="tok-comment">/// - encoded_instruction: 64-bit integer containing the encoded instruction</span></span>
+<span class="line" id="L159"><span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L160"><span class="tok-comment">/// Decoded Instruction struct, or an error if decoding fails</span></span>
+<span class="line" id="L161"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">decode</span>(encoded_instruction: <span class="tok-type">u64</span>) Error!Instruction {</span>
+<span class="line" id="L162">    <span class="tok-kw">if</span> (encoded_instruction &amp; (<span class="tok-number">1</span> &lt;&lt; <span class="tok-number">63</span>) != <span class="tok-number">0</span>) <span class="tok-kw">return</span> Error.NonZeroHighBit;</span>
+<span class="line" id="L163">    <span class="tok-kw">const</span> flags = <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L164">        <span class="tok-type">u16</span>,</span>
+<span class="line" id="L165">        <span class="tok-builtin">@truncate</span>(encoded_instruction &gt;&gt; <span class="tok-number">48</span>),</span>
+<span class="line" id="L166">    );</span>
+<span class="line" id="L167">    <span class="tok-kw">const</span> offsets = <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L168">        <span class="tok-type">u48</span>,</span>
+<span class="line" id="L169">        <span class="tok-builtin">@truncate</span>(encoded_instruction),</span>
+<span class="line" id="L170">    );</span>
+<span class="line" id="L171">    <span class="tok-kw">const</span> parsedNum = <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L172">        <span class="tok-type">u8</span>,</span>
+<span class="line" id="L173">        <span class="tok-builtin">@truncate</span>((flags &gt;&gt; <span class="tok-number">12</span>) &amp; <span class="tok-number">7</span>),</span>
+<span class="line" id="L174">    );</span>
+<span class="line" id="L175">    <span class="tok-kw">const</span> opcode = <span class="tok-kw">try</span> parseOpcode(parsedNum);</span>
+<span class="line" id="L176"></span>
+<span class="line" id="L177">    <span class="tok-kw">const</span> pc_update = <span class="tok-kw">try</span> parsePcUpdate(</span>
+<span class="line" id="L178">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L179">            <span class="tok-type">u8</span>,</span>
+<span class="line" id="L180">            <span class="tok-builtin">@truncate</span>((flags &gt;&gt; <span class="tok-number">7</span>) &amp; <span class="tok-number">7</span>),</span>
+<span class="line" id="L181">        ),</span>
+<span class="line" id="L182">    );</span>
+<span class="line" id="L183"></span>
+<span class="line" id="L184">    <span class="tok-kw">return</span> .{</span>
+<span class="line" id="L185">        .off_0 = fromBiasedRepresentation(</span>
+<span class="line" id="L186">            <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L187">                <span class="tok-type">u16</span>,</span>
+<span class="line" id="L188">                <span class="tok-builtin">@truncate</span>(offsets),</span>
+<span class="line" id="L189">            ),</span>
+<span class="line" id="L190">        ),</span>
+<span class="line" id="L191">        .off_1 = fromBiasedRepresentation(</span>
+<span class="line" id="L192">            <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L193">                <span class="tok-type">u16</span>,</span>
+<span class="line" id="L194">                <span class="tok-builtin">@truncate</span>(offsets &gt;&gt; <span class="tok-number">16</span>),</span>
+<span class="line" id="L195">            ),</span>
+<span class="line" id="L196">        ),</span>
+<span class="line" id="L197">        .off_2 = fromBiasedRepresentation(</span>
+<span class="line" id="L198">            <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L199">                <span class="tok-type">u16</span>,</span>
+<span class="line" id="L200">                <span class="tok-builtin">@truncate</span>(offsets &gt;&gt; <span class="tok-number">32</span>),</span>
+<span class="line" id="L201">            ),</span>
+<span class="line" id="L202">        ),</span>
+<span class="line" id="L203">        .dst_reg = <span class="tok-kw">if</span> (flags &amp; <span class="tok-number">1</span> != <span class="tok-number">0</span>) Register.FP <span class="tok-kw">else</span> Register.AP,</span>
+<span class="line" id="L204">        .op_0_reg = <span class="tok-kw">if</span> (flags &amp; <span class="tok-number">2</span> != <span class="tok-number">0</span>) Register.FP <span class="tok-kw">else</span> Register.AP,</span>
+<span class="line" id="L205">        .op_1_addr = <span class="tok-kw">try</span> parseOp1Src(</span>
+<span class="line" id="L206">            <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L207">                <span class="tok-type">u8</span>,</span>
+<span class="line" id="L208">                <span class="tok-builtin">@truncate</span>((flags &gt;&gt; <span class="tok-number">2</span>) &amp; <span class="tok-number">7</span>),</span>
+<span class="line" id="L209">            ),</span>
+<span class="line" id="L210">        ),</span>
+<span class="line" id="L211">        .res_logic = <span class="tok-kw">try</span> parseResLogic(</span>
+<span class="line" id="L212">            <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L213">                <span class="tok-type">u8</span>,</span>
+<span class="line" id="L214">                <span class="tok-builtin">@truncate</span>((flags &gt;&gt; <span class="tok-number">5</span>) &amp; <span class="tok-number">3</span>),</span>
+<span class="line" id="L215">            ),</span>
+<span class="line" id="L216">            pc_update,</span>
+<span class="line" id="L217">        ),</span>
+<span class="line" id="L218">        .pc_update = pc_update,</span>
+<span class="line" id="L219">        .ap_update = <span class="tok-kw">try</span> parseApUpdate(</span>
+<span class="line" id="L220">            <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L221">                <span class="tok-type">u8</span>,</span>
+<span class="line" id="L222">                <span class="tok-builtin">@truncate</span>((flags &gt;&gt; <span class="tok-number">10</span>) &amp; <span class="tok-number">3</span>),</span>
+<span class="line" id="L223">            ),</span>
+<span class="line" id="L224">            opcode,</span>
+<span class="line" id="L225">        ),</span>
+<span class="line" id="L226">        .opcode = opcode,</span>
+<span class="line" id="L227">        .fp_update = parseFpUpdate(opcode),</span>
+<span class="line" id="L228">    };</span>
+<span class="line" id="L229">}</span>
+<span class="line" id="L230"></span>
+<span class="line" id="L231"><span class="tok-comment">/// Parse opcode from a 3-bit integer field.</span></span>
+<span class="line" id="L232"><span class="tok-comment">/// # Arguments</span></span>
+<span class="line" id="L233"><span class="tok-comment">/// - opcode_num: 3-bit integer field extracted from instruction</span></span>
+<span class="line" id="L234"><span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L235"><span class="tok-comment">/// Parsed Opcode value, or an error if invalid</span></span>
+<span class="line" id="L236"><span class="tok-kw">fn</span> <span class="tok-fn">parseOpcode</span>(opcode_num: <span class="tok-type">u8</span>) Error!Opcode {</span>
+<span class="line" id="L237">    <span class="tok-kw">return</span> <span class="tok-kw">switch</span> (opcode_num) {</span>
+<span class="line" id="L238">        <span class="tok-number">0</span> =&gt; .NOp,</span>
+<span class="line" id="L239">        <span class="tok-number">1</span> =&gt; .Call,</span>
+<span class="line" id="L240">        <span class="tok-number">2</span> =&gt; .Ret,</span>
+<span class="line" id="L241">        <span class="tok-number">4</span> =&gt; .AssertEq,</span>
+<span class="line" id="L242">        <span class="tok-kw">else</span> =&gt; Error.InvalidOpcode,</span>
+<span class="line" id="L243">    };</span>
+<span class="line" id="L244">}</span>
+<span class="line" id="L245"></span>
+<span class="line" id="L246"><span class="tok-comment">/// Parse Op1Src from a 3-bit integer field.</span></span>
+<span class="line" id="L247"><span class="tok-comment">/// # Arguments</span></span>
+<span class="line" id="L248"><span class="tok-comment">/// - op1_src_num: 3-bit integer field extracted from instruction</span></span>
+<span class="line" id="L249"><span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L250"><span class="tok-comment">/// Parsed Op1Src value, or an error if invalid</span></span>
+<span class="line" id="L251"><span class="tok-kw">fn</span> <span class="tok-fn">parseOp1Src</span>(op1_src_num: <span class="tok-type">u8</span>) Error!Op1Src {</span>
+<span class="line" id="L252">    <span class="tok-kw">return</span> <span class="tok-kw">switch</span> (op1_src_num) {</span>
+<span class="line" id="L253">        <span class="tok-number">0</span> =&gt; .Op0,</span>
+<span class="line" id="L254">        <span class="tok-number">1</span> =&gt; .Imm,</span>
+<span class="line" id="L255">        <span class="tok-number">2</span> =&gt; .FP,</span>
+<span class="line" id="L256">        <span class="tok-number">4</span> =&gt; .AP,</span>
+<span class="line" id="L257">        <span class="tok-kw">else</span> =&gt; Error.InvalidOp1Reg,</span>
+<span class="line" id="L258">    };</span>
+<span class="line" id="L259">}</span>
+<span class="line" id="L260"></span>
+<span class="line" id="L261"><span class="tok-comment">/// Parse res_logic from a 2-bit integer field.</span></span>
+<span class="line" id="L262"><span class="tok-comment">/// # Arguments</span></span>
+<span class="line" id="L263"><span class="tok-comment">/// - res_logic_num: 2-bit integer field extracted from instruction</span></span>
+<span class="line" id="L264"><span class="tok-comment">/// - pc_update: pc_update value of the current instruction</span></span>
+<span class="line" id="L265"><span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L266"><span class="tok-comment">/// Parsed res_logic value, or an error if invalid</span></span>
+<span class="line" id="L267"><span class="tok-kw">fn</span> <span class="tok-fn">parseResLogic</span>(</span>
+<span class="line" id="L268">    res_logic_num: <span class="tok-type">u8</span>,</span>
+<span class="line" id="L269">    pc_update: PcUpdate,</span>
+<span class="line" id="L270">) Error!ResLogic {</span>
+<span class="line" id="L271">    <span class="tok-kw">return</span> <span class="tok-kw">switch</span> (res_logic_num) {</span>
+<span class="line" id="L272">        <span class="tok-number">0</span> =&gt; {</span>
+<span class="line" id="L273">            <span class="tok-kw">if</span> (pc_update == .Jnz) {</span>
+<span class="line" id="L274">                <span class="tok-kw">return</span> .Unconstrained;</span>
+<span class="line" id="L275">            } <span class="tok-kw">else</span> {</span>
+<span class="line" id="L276">                <span class="tok-kw">return</span> .Op1;</span>
+<span class="line" id="L277">            }</span>
+<span class="line" id="L278">        },</span>
+<span class="line" id="L279">        <span class="tok-number">1</span> =&gt; .Add,</span>
+<span class="line" id="L280">        <span class="tok-number">2</span> =&gt; .Mul,</span>
+<span class="line" id="L281">        <span class="tok-kw">else</span> =&gt; Error.Invalidres_logic,</span>
+<span class="line" id="L282">    };</span>
+<span class="line" id="L283">}</span>
+<span class="line" id="L284"></span>
+<span class="line" id="L285"><span class="tok-comment">/// Parse pc_update from a 3-bit integer field.</span></span>
+<span class="line" id="L286"><span class="tok-comment">/// # Arguments</span></span>
+<span class="line" id="L287"><span class="tok-comment">/// - pc_update_num: 3-bit integer field extracted from instruction</span></span>
+<span class="line" id="L288"><span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L289"><span class="tok-comment">/// Parsed pc_update value, or an error if invalid</span></span>
+<span class="line" id="L290"><span class="tok-kw">fn</span> <span class="tok-fn">parsePcUpdate</span>(pc_update_num: <span class="tok-type">u8</span>) Error!PcUpdate {</span>
+<span class="line" id="L291">    <span class="tok-kw">return</span> <span class="tok-kw">switch</span> (pc_update_num) {</span>
+<span class="line" id="L292">        <span class="tok-number">0</span> =&gt; .Regular,</span>
+<span class="line" id="L293">        <span class="tok-number">1</span> =&gt; .Jump,</span>
+<span class="line" id="L294">        <span class="tok-number">2</span> =&gt; .JumpRel,</span>
+<span class="line" id="L295">        <span class="tok-number">4</span> =&gt; .Jnz,</span>
+<span class="line" id="L296">        <span class="tok-kw">else</span> =&gt; Error.Invalidpc_update,</span>
+<span class="line" id="L297">    };</span>
+<span class="line" id="L298">}</span>
+<span class="line" id="L299"></span>
+<span class="line" id="L300"><span class="tok-comment">/// Parse ap_update from a 2-bit integer field.</span></span>
+<span class="line" id="L301"><span class="tok-comment">/// # Arguments</span></span>
+<span class="line" id="L302"><span class="tok-comment">/// - ap_update_num: 2-bit integer field extracted from instruction</span></span>
+<span class="line" id="L303"><span class="tok-comment">/// - opcode: Opcode of the current instruction</span></span>
+<span class="line" id="L304"><span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L305"><span class="tok-comment">/// Parsed ap_update value, or an error if invalid</span></span>
+<span class="line" id="L306"><span class="tok-kw">fn</span> <span class="tok-fn">parseApUpdate</span>(</span>
+<span class="line" id="L307">    ap_update_num: <span class="tok-type">u8</span>,</span>
+<span class="line" id="L308">    opcode: Opcode,</span>
+<span class="line" id="L309">) Error!ApUpdate {</span>
+<span class="line" id="L310">    <span class="tok-kw">return</span> <span class="tok-kw">switch</span> (ap_update_num) {</span>
+<span class="line" id="L311">        <span class="tok-number">0</span> =&gt; <span class="tok-kw">if</span> (opcode == .Call) {</span>
+<span class="line" id="L312">            <span class="tok-kw">return</span> .Add2;</span>
+<span class="line" id="L313">        } <span class="tok-kw">else</span> {</span>
+<span class="line" id="L314">            <span class="tok-kw">return</span> .Regular;</span>
+<span class="line" id="L315">        },</span>
+<span class="line" id="L316">        <span class="tok-number">1</span> =&gt; .Add,</span>
+<span class="line" id="L317">        <span class="tok-number">2</span> =&gt; .Add1,</span>
+<span class="line" id="L318">        <span class="tok-kw">else</span> =&gt; Error.Invalidap_update,</span>
+<span class="line" id="L319">    };</span>
+<span class="line" id="L320">}</span>
+<span class="line" id="L321"></span>
+<span class="line" id="L322"><span class="tok-comment">/// Parse fp_update based on the Opcode value.</span></span>
+<span class="line" id="L323"><span class="tok-comment">/// # Arguments</span></span>
+<span class="line" id="L324"><span class="tok-comment">/// - opcode: Opcode of the current instruction</span></span>
+<span class="line" id="L325"><span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L326"><span class="tok-comment">/// Appropriate fp_update value</span></span>
+<span class="line" id="L327"><span class="tok-kw">fn</span> <span class="tok-fn">parseFpUpdate</span>(opcode: Opcode) FpUpdate {</span>
+<span class="line" id="L328">    <span class="tok-kw">return</span> <span class="tok-kw">switch</span> (opcode) {</span>
+<span class="line" id="L329">        .Call =&gt; .APPlus2,</span>
+<span class="line" id="L330">        .Ret =&gt; .Dst,</span>
+<span class="line" id="L331">        <span class="tok-kw">else</span> =&gt; .Regular,</span>
+<span class="line" id="L332">    };</span>
+<span class="line" id="L333">}</span>
+<span class="line" id="L334"></span>
+<span class="line" id="L335"><span class="tok-comment">/// Converts a biased 16-bit representation to a 16-bit signed integer.</span></span>
+<span class="line" id="L336"><span class="tok-comment">/// # Arguments</span></span>
+<span class="line" id="L337"><span class="tok-comment">/// - biased_repr: Biased representation as a 16-bit integer</span></span>
+<span class="line" id="L338"><span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L339"><span class="tok-comment">/// 16-bit signed integer</span></span>
+<span class="line" id="L340"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">fromBiasedRepresentation</span>(biased_repr: <span class="tok-type">u16</span>) <span class="tok-type">i16</span> {</span>
+<span class="line" id="L341">    <span class="tok-kw">const</span> as_i32 = <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L342">        <span class="tok-type">i32</span>,</span>
+<span class="line" id="L343">        <span class="tok-builtin">@intCast</span>(biased_repr),</span>
+<span class="line" id="L344">    );</span>
+<span class="line" id="L345">    <span class="tok-kw">return</span> <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L346">        <span class="tok-type">i16</span>,</span>
+<span class="line" id="L347">        <span class="tok-builtin">@intCast</span>(as_i32 - <span class="tok-number">32768</span>),</span>
+<span class="line" id="L348">    );</span>
+<span class="line" id="L349">}</span>
+<span class="line" id="L350"></span>
 <span class="line" id="L351"><span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L352"><span class="tok-kw">const</span> expect = std.testing.expect;</span>
-<span class="line" id="L353"><span class="tok-kw">const</span> expectEqual = std.testing.expectEqual;</span>
-<span class="line" id="L354"><span class="tok-kw">const</span> expectError = std.testing.expectError;</span>
-<span class="line" id="L355"></span>
-<span class="line" id="L356"><span class="tok-kw">test</span> <span class="tok-str">&quot;decode flags call add jmp add imm fp fp&quot;</span> {</span>
-<span class="line" id="L357">    <span class="tok-comment">//  0|  opcode|ap_update|pc_update|res_logic|op1_src|op0_reg|dst_reg</span>
+<span class="line" id="L352"><span class="tok-comment">// *                         TESTS                            *</span>
 </span>
-<span class="line" id="L358">    <span class="tok-comment">// 15|14 13 12|    11 10|  9  8  7|     6  5|4  3  2|      1|      0</span>
+<span class="line" id="L353"><span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L359">    <span class="tok-comment">//   |    CALL|      ADD|     JUMP|      ADD|    IMM|     FP|     FP</span>
+<span class="line" id="L354"><span class="tok-kw">const</span> expect = std.testing.expect;</span>
+<span class="line" id="L355"><span class="tok-kw">const</span> expectEqual = std.testing.expectEqual;</span>
+<span class="line" id="L356"><span class="tok-kw">const</span> expectError = std.testing.expectError;</span>
+<span class="line" id="L357"></span>
+<span class="line" id="L358"><span class="tok-kw">test</span> <span class="tok-str">&quot;decode flags call add jmp add imm fp fp&quot;</span> {</span>
+<span class="line" id="L359">    <span class="tok-comment">//  0|  opcode|ap_update|pc_update|res_logic|op1_src|op0_reg|dst_reg</span>
 </span>
-<span class="line" id="L360">    <span class="tok-comment">//  0  0  0  1      0  1   0  0  1      0  1 0  0  1       1       1</span>
+<span class="line" id="L360">    <span class="tok-comment">// 15|14 13 12|    11 10|  9  8  7|     6  5|4  3  2|      1|      0</span>
 </span>
-<span class="line" id="L361">    <span class="tok-comment">//  0001 0100 1010 0111 = 0x14A7; offx = 0</span>
+<span class="line" id="L361">    <span class="tok-comment">//   |    CALL|      ADD|     JUMP|      ADD|    IMM|     FP|     FP</span>
 </span>
-<span class="line" id="L362"></span>
-<span class="line" id="L363">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x14A7800080008000</span>;</span>
-<span class="line" id="L364">    <span class="tok-kw">const</span> decoded_instruction = <span class="tok-kw">try</span> decode(encoded_instruction);</span>
-<span class="line" id="L365"></span>
-<span class="line" id="L366">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L367">        Register.FP,</span>
-<span class="line" id="L368">        decoded_instruction.dst_reg,</span>
-<span class="line" id="L369">    );</span>
-<span class="line" id="L370">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L371">        Register.FP,</span>
-<span class="line" id="L372">        decoded_instruction.op_0_reg,</span>
-<span class="line" id="L373">    );</span>
-<span class="line" id="L374">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L375">        Op1Src.Imm,</span>
-<span class="line" id="L376">        decoded_instruction.op_1_addr,</span>
-<span class="line" id="L377">    );</span>
-<span class="line" id="L378">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L379">        ResLogic.Add,</span>
-<span class="line" id="L380">        decoded_instruction.res_logic,</span>
-<span class="line" id="L381">    );</span>
-<span class="line" id="L382">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L383">        PcUpdate.Jump,</span>
-<span class="line" id="L384">        decoded_instruction.pc_update,</span>
-<span class="line" id="L385">    );</span>
-<span class="line" id="L386">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L387">        ApUpdate.Add,</span>
-<span class="line" id="L388">        decoded_instruction.ap_update,</span>
-<span class="line" id="L389">    );</span>
-<span class="line" id="L390">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L391">        Opcode.Call,</span>
-<span class="line" id="L392">        decoded_instruction.opcode,</span>
-<span class="line" id="L393">    );</span>
-<span class="line" id="L394">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L395">        FpUpdate.APPlus2,</span>
-<span class="line" id="L396">        decoded_instruction.fp_update,</span>
-<span class="line" id="L397">    );</span>
-<span class="line" id="L398">}</span>
-<span class="line" id="L399"></span>
-<span class="line" id="L400"><span class="tok-kw">test</span> <span class="tok-str">&quot;decode flags ret add1 jmp rel mul fp ap ap&quot;</span> {</span>
-<span class="line" id="L401">    <span class="tok-comment">//	0|  opcode|ap_update|pc_update|res_logic|op1_src|op0_reg|dst_reg</span>
+<span class="line" id="L362">    <span class="tok-comment">//  0  0  0  1      0  1   0  0  1      0  1 0  0  1       1       1</span>
 </span>
-<span class="line" id="L402">    <span class="tok-comment">//</span>
+<span class="line" id="L363">    <span class="tok-comment">//  0001 0100 1010 0111 = 0x14A7; offx = 0</span>
 </span>
-<span class="line" id="L403">    <span class="tok-comment">// 15|14 13 12|    11 10|  9  8  7|     6  5|4  3  2|      1|      0</span>
+<span class="line" id="L364"></span>
+<span class="line" id="L365">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x14A7800080008000</span>;</span>
+<span class="line" id="L366">    <span class="tok-kw">const</span> decoded_instruction = <span class="tok-kw">try</span> decode(encoded_instruction);</span>
+<span class="line" id="L367"></span>
+<span class="line" id="L368">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L369">        Register.FP,</span>
+<span class="line" id="L370">        decoded_instruction.dst_reg,</span>
+<span class="line" id="L371">    );</span>
+<span class="line" id="L372">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L373">        Register.FP,</span>
+<span class="line" id="L374">        decoded_instruction.op_0_reg,</span>
+<span class="line" id="L375">    );</span>
+<span class="line" id="L376">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L377">        Op1Src.Imm,</span>
+<span class="line" id="L378">        decoded_instruction.op_1_addr,</span>
+<span class="line" id="L379">    );</span>
+<span class="line" id="L380">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L381">        ResLogic.Add,</span>
+<span class="line" id="L382">        decoded_instruction.res_logic,</span>
+<span class="line" id="L383">    );</span>
+<span class="line" id="L384">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L385">        PcUpdate.Jump,</span>
+<span class="line" id="L386">        decoded_instruction.pc_update,</span>
+<span class="line" id="L387">    );</span>
+<span class="line" id="L388">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L389">        ApUpdate.Add,</span>
+<span class="line" id="L390">        decoded_instruction.ap_update,</span>
+<span class="line" id="L391">    );</span>
+<span class="line" id="L392">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L393">        Opcode.Call,</span>
+<span class="line" id="L394">        decoded_instruction.opcode,</span>
+<span class="line" id="L395">    );</span>
+<span class="line" id="L396">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L397">        FpUpdate.APPlus2,</span>
+<span class="line" id="L398">        decoded_instruction.fp_update,</span>
+<span class="line" id="L399">    );</span>
+<span class="line" id="L400">}</span>
+<span class="line" id="L401"></span>
+<span class="line" id="L402"><span class="tok-kw">test</span> <span class="tok-str">&quot;decode flags ret add1 jmp rel mul fp ap ap&quot;</span> {</span>
+<span class="line" id="L403">    <span class="tok-comment">//	0|  opcode|ap_update|pc_update|res_logic|op1_src|op0_reg|dst_reg</span>
 </span>
 <span class="line" id="L404">    <span class="tok-comment">//</span>
 </span>
-<span class="line" id="L405">    <span class="tok-comment">//	 |     RET|     ADD1| JUMP_REL|      MUL|     FP|     AP|     AP</span>
+<span class="line" id="L405">    <span class="tok-comment">// 15|14 13 12|    11 10|  9  8  7|     6  5|4  3  2|      1|      0</span>
 </span>
-<span class="line" id="L406">    <span class="tok-comment">//	0  0  1  0      1  0   0  1  0      1  0 0  1  0       0       0</span>
+<span class="line" id="L406">    <span class="tok-comment">//</span>
 </span>
-<span class="line" id="L407">    <span class="tok-comment">//	0010 1001 0100 1000 = 0x2948; offx = 0</span>
+<span class="line" id="L407">    <span class="tok-comment">//	 |     RET|     ADD1| JUMP_REL|      MUL|     FP|     AP|     AP</span>
 </span>
-<span class="line" id="L408"></span>
-<span class="line" id="L409">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x2948800080008000</span>;</span>
-<span class="line" id="L410">    <span class="tok-kw">const</span> decoded_instruction = <span class="tok-kw">try</span> decode(encoded_instruction);</span>
-<span class="line" id="L411"></span>
-<span class="line" id="L412">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L413">        Register.AP,</span>
-<span class="line" id="L414">        decoded_instruction.dst_reg,</span>
-<span class="line" id="L415">    );</span>
-<span class="line" id="L416">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L417">        Register.AP,</span>
-<span class="line" id="L418">        decoded_instruction.op_0_reg,</span>
-<span class="line" id="L419">    );</span>
-<span class="line" id="L420">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L421">        Op1Src.FP,</span>
-<span class="line" id="L422">        decoded_instruction.op_1_addr,</span>
-<span class="line" id="L423">    );</span>
-<span class="line" id="L424">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L425">        ResLogic.Mul,</span>
-<span class="line" id="L426">        decoded_instruction.res_logic,</span>
-<span class="line" id="L427">    );</span>
-<span class="line" id="L428">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L429">        PcUpdate.JumpRel,</span>
-<span class="line" id="L430">        decoded_instruction.pc_update,</span>
-<span class="line" id="L431">    );</span>
-<span class="line" id="L432">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L433">        ApUpdate.Add1,</span>
-<span class="line" id="L434">        decoded_instruction.ap_update,</span>
-<span class="line" id="L435">    );</span>
-<span class="line" id="L436">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L437">        Opcode.Ret,</span>
-<span class="line" id="L438">        decoded_instruction.opcode,</span>
-<span class="line" id="L439">    );</span>
-<span class="line" id="L440">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L441">        FpUpdate.Dst,</span>
-<span class="line" id="L442">        decoded_instruction.fp_update,</span>
-<span class="line" id="L443">    );</span>
-<span class="line" id="L444">}</span>
-<span class="line" id="L445"></span>
-<span class="line" id="L446"><span class="tok-kw">test</span> <span class="tok-str">&quot;decode flags assert add jnz mul ap ap ap&quot;</span> {</span>
-<span class="line" id="L447">    <span class="tok-comment">// 0|  opcode|ap_update|pc_update|res_logic|op1_src|op0_reg|dst_reg</span>
+<span class="line" id="L408">    <span class="tok-comment">//	0  0  1  0      1  0   0  1  0      1  0 0  1  0       0       0</span>
 </span>
-<span class="line" id="L448">    <span class="tok-comment">// 15|14 13 12|    11 10|  9  8  7|     6  5|4  3  2|      1|      0</span>
+<span class="line" id="L409">    <span class="tok-comment">//	0010 1001 0100 1000 = 0x2948; offx = 0</span>
 </span>
-<span class="line" id="L449">    <span class="tok-comment">//   |ASSRT_EQ|      ADD|      JNZ|      MUL|     AP|     AP|     AP</span>
+<span class="line" id="L410"></span>
+<span class="line" id="L411">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x2948800080008000</span>;</span>
+<span class="line" id="L412">    <span class="tok-kw">const</span> decoded_instruction = <span class="tok-kw">try</span> decode(encoded_instruction);</span>
+<span class="line" id="L413"></span>
+<span class="line" id="L414">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L415">        Register.AP,</span>
+<span class="line" id="L416">        decoded_instruction.dst_reg,</span>
+<span class="line" id="L417">    );</span>
+<span class="line" id="L418">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L419">        Register.AP,</span>
+<span class="line" id="L420">        decoded_instruction.op_0_reg,</span>
+<span class="line" id="L421">    );</span>
+<span class="line" id="L422">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L423">        Op1Src.FP,</span>
+<span class="line" id="L424">        decoded_instruction.op_1_addr,</span>
+<span class="line" id="L425">    );</span>
+<span class="line" id="L426">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L427">        ResLogic.Mul,</span>
+<span class="line" id="L428">        decoded_instruction.res_logic,</span>
+<span class="line" id="L429">    );</span>
+<span class="line" id="L430">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L431">        PcUpdate.JumpRel,</span>
+<span class="line" id="L432">        decoded_instruction.pc_update,</span>
+<span class="line" id="L433">    );</span>
+<span class="line" id="L434">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L435">        ApUpdate.Add1,</span>
+<span class="line" id="L436">        decoded_instruction.ap_update,</span>
+<span class="line" id="L437">    );</span>
+<span class="line" id="L438">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L439">        Opcode.Ret,</span>
+<span class="line" id="L440">        decoded_instruction.opcode,</span>
+<span class="line" id="L441">    );</span>
+<span class="line" id="L442">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L443">        FpUpdate.Dst,</span>
+<span class="line" id="L444">        decoded_instruction.fp_update,</span>
+<span class="line" id="L445">    );</span>
+<span class="line" id="L446">}</span>
+<span class="line" id="L447"></span>
+<span class="line" id="L448"><span class="tok-kw">test</span> <span class="tok-str">&quot;decode flags assert add jnz mul ap ap ap&quot;</span> {</span>
+<span class="line" id="L449">    <span class="tok-comment">// 0|  opcode|ap_update|pc_update|res_logic|op1_src|op0_reg|dst_reg</span>
 </span>
-<span class="line" id="L450">    <span class="tok-comment">//  0  1  0  0      1  0   1  0  0      1  0 1  0  0       0       0</span>
+<span class="line" id="L450">    <span class="tok-comment">// 15|14 13 12|    11 10|  9  8  7|     6  5|4  3  2|      1|      0</span>
 </span>
-<span class="line" id="L451">    <span class="tok-comment">//  0100 1010 0101 0000 = 0x4A50; offx = 0</span>
+<span class="line" id="L451">    <span class="tok-comment">//   |ASSRT_EQ|      ADD|      JNZ|      MUL|     AP|     AP|     AP</span>
 </span>
-<span class="line" id="L452"></span>
-<span class="line" id="L453">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x4A50800080008000</span>;</span>
-<span class="line" id="L454">    <span class="tok-kw">const</span> decoded_instruction = <span class="tok-kw">try</span> decode(encoded_instruction);</span>
-<span class="line" id="L455"></span>
-<span class="line" id="L456">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L457">        Register.AP,</span>
-<span class="line" id="L458">        decoded_instruction.dst_reg,</span>
-<span class="line" id="L459">    );</span>
-<span class="line" id="L460">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L461">        Register.AP,</span>
-<span class="line" id="L462">        decoded_instruction.op_0_reg,</span>
-<span class="line" id="L463">    );</span>
-<span class="line" id="L464">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L465">        Op1Src.AP,</span>
-<span class="line" id="L466">        decoded_instruction.op_1_addr,</span>
-<span class="line" id="L467">    );</span>
-<span class="line" id="L468">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L469">        ResLogic.Mul,</span>
-<span class="line" id="L470">        decoded_instruction.res_logic,</span>
-<span class="line" id="L471">    );</span>
-<span class="line" id="L472">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L473">        PcUpdate.Jnz,</span>
-<span class="line" id="L474">        decoded_instruction.pc_update,</span>
-<span class="line" id="L475">    );</span>
-<span class="line" id="L476">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L477">        ApUpdate.Add1,</span>
-<span class="line" id="L478">        decoded_instruction.ap_update,</span>
-<span class="line" id="L479">    );</span>
-<span class="line" id="L480">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L481">        Opcode.AssertEq,</span>
-<span class="line" id="L482">        decoded_instruction.opcode,</span>
-<span class="line" id="L483">    );</span>
-<span class="line" id="L484">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L485">        FpUpdate.Regular,</span>
-<span class="line" id="L486">        decoded_instruction.fp_update,</span>
-<span class="line" id="L487">    );</span>
-<span class="line" id="L488">}</span>
-<span class="line" id="L489"></span>
-<span class="line" id="L490"><span class="tok-kw">test</span> <span class="tok-str">&quot;decode flags assert add2 jnz uncon op0 ap ap&quot;</span> {</span>
-<span class="line" id="L491">    <span class="tok-comment">//  0|  opcode|ap_update|pc_update|res_logic|op1_src|op0_reg|dst_reg</span>
+<span class="line" id="L452">    <span class="tok-comment">//  0  1  0  0      1  0   1  0  0      1  0 1  0  0       0       0</span>
 </span>
-<span class="line" id="L492">    <span class="tok-comment">// 15|14 13 12|    11 10|  9  8  7|     6  5|4  3  2|      1|      0</span>
+<span class="line" id="L453">    <span class="tok-comment">//  0100 1010 0101 0000 = 0x4A50; offx = 0</span>
 </span>
-<span class="line" id="L493">    <span class="tok-comment">//</span>
+<span class="line" id="L454"></span>
+<span class="line" id="L455">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x4A50800080008000</span>;</span>
+<span class="line" id="L456">    <span class="tok-kw">const</span> decoded_instruction = <span class="tok-kw">try</span> decode(encoded_instruction);</span>
+<span class="line" id="L457"></span>
+<span class="line" id="L458">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L459">        Register.AP,</span>
+<span class="line" id="L460">        decoded_instruction.dst_reg,</span>
+<span class="line" id="L461">    );</span>
+<span class="line" id="L462">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L463">        Register.AP,</span>
+<span class="line" id="L464">        decoded_instruction.op_0_reg,</span>
+<span class="line" id="L465">    );</span>
+<span class="line" id="L466">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L467">        Op1Src.AP,</span>
+<span class="line" id="L468">        decoded_instruction.op_1_addr,</span>
+<span class="line" id="L469">    );</span>
+<span class="line" id="L470">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L471">        ResLogic.Mul,</span>
+<span class="line" id="L472">        decoded_instruction.res_logic,</span>
+<span class="line" id="L473">    );</span>
+<span class="line" id="L474">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L475">        PcUpdate.Jnz,</span>
+<span class="line" id="L476">        decoded_instruction.pc_update,</span>
+<span class="line" id="L477">    );</span>
+<span class="line" id="L478">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L479">        ApUpdate.Add1,</span>
+<span class="line" id="L480">        decoded_instruction.ap_update,</span>
+<span class="line" id="L481">    );</span>
+<span class="line" id="L482">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L483">        Opcode.AssertEq,</span>
+<span class="line" id="L484">        decoded_instruction.opcode,</span>
+<span class="line" id="L485">    );</span>
+<span class="line" id="L486">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L487">        FpUpdate.Regular,</span>
+<span class="line" id="L488">        decoded_instruction.fp_update,</span>
+<span class="line" id="L489">    );</span>
+<span class="line" id="L490">}</span>
+<span class="line" id="L491"></span>
+<span class="line" id="L492"><span class="tok-kw">test</span> <span class="tok-str">&quot;decode flags assert add2 jnz uncon op0 ap ap&quot;</span> {</span>
+<span class="line" id="L493">    <span class="tok-comment">//  0|  opcode|ap_update|pc_update|res_logic|op1_src|op0_reg|dst_reg</span>
 </span>
-<span class="line" id="L494">    <span class="tok-comment">//     |ASSRT_EQ|     ADD2|      JNZ|UNCONSTRD|    OP0|     AP|     AP</span>
+<span class="line" id="L494">    <span class="tok-comment">// 15|14 13 12|    11 10|  9  8  7|     6  5|4  3  2|      1|      0</span>
 </span>
-<span class="line" id="L495">    <span class="tok-comment">//  0  1  0  0      0  0   1  0  0      0  0 0  0  0       0       0</span>
+<span class="line" id="L495">    <span class="tok-comment">//</span>
 </span>
-<span class="line" id="L496">    <span class="tok-comment">//  0100 0010 0000 0000 = 0x4200; offx = 0</span>
+<span class="line" id="L496">    <span class="tok-comment">//     |ASSRT_EQ|     ADD2|      JNZ|UNCONSTRD|    OP0|     AP|     AP</span>
 </span>
-<span class="line" id="L497"></span>
-<span class="line" id="L498">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x4200800080008000</span>;</span>
-<span class="line" id="L499">    <span class="tok-kw">const</span> decoded_instruction = <span class="tok-kw">try</span> decode(encoded_instruction);</span>
-<span class="line" id="L500"></span>
-<span class="line" id="L501">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L502">        Register.AP,</span>
-<span class="line" id="L503">        decoded_instruction.dst_reg,</span>
-<span class="line" id="L504">    );</span>
-<span class="line" id="L505">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L506">        Register.AP,</span>
-<span class="line" id="L507">        decoded_instruction.op_0_reg,</span>
-<span class="line" id="L508">    );</span>
-<span class="line" id="L509">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L510">        Op1Src.Op0,</span>
-<span class="line" id="L511">        decoded_instruction.op_1_addr,</span>
-<span class="line" id="L512">    );</span>
-<span class="line" id="L513">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L514">        ResLogic.Unconstrained,</span>
-<span class="line" id="L515">        decoded_instruction.res_logic,</span>
-<span class="line" id="L516">    );</span>
-<span class="line" id="L517">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L518">        PcUpdate.Jnz,</span>
-<span class="line" id="L519">        decoded_instruction.pc_update,</span>
-<span class="line" id="L520">    );</span>
-<span class="line" id="L521">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L522">        ApUpdate.Regular,</span>
-<span class="line" id="L523">        decoded_instruction.ap_update,</span>
-<span class="line" id="L524">    );</span>
-<span class="line" id="L525">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L526">        Opcode.AssertEq,</span>
-<span class="line" id="L527">        decoded_instruction.opcode,</span>
-<span class="line" id="L528">    );</span>
-<span class="line" id="L529">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L530">        FpUpdate.Regular,</span>
-<span class="line" id="L531">        decoded_instruction.fp_update,</span>
-<span class="line" id="L532">    );</span>
-<span class="line" id="L533">}</span>
-<span class="line" id="L534"></span>
-<span class="line" id="L535"><span class="tok-kw">test</span> <span class="tok-str">&quot;decode flags nop regular regular op1 op0 ap ap&quot;</span> {</span>
-<span class="line" id="L536">    <span class="tok-comment">//  0|  opcode|ap_update|pc_update|res_logic|op1_src|op0_reg|dst_reg</span>
+<span class="line" id="L497">    <span class="tok-comment">//  0  1  0  0      0  0   1  0  0      0  0 0  0  0       0       0</span>
 </span>
-<span class="line" id="L537">    <span class="tok-comment">// 15|14 13 12|    11 10|  9  8  7|     6  5|4  3  2|      1|      0</span>
+<span class="line" id="L498">    <span class="tok-comment">//  0100 0010 0000 0000 = 0x4200; offx = 0</span>
 </span>
-<span class="line" id="L538">    <span class="tok-comment">//</span>
+<span class="line" id="L499"></span>
+<span class="line" id="L500">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x4200800080008000</span>;</span>
+<span class="line" id="L501">    <span class="tok-kw">const</span> decoded_instruction = <span class="tok-kw">try</span> decode(encoded_instruction);</span>
+<span class="line" id="L502"></span>
+<span class="line" id="L503">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L504">        Register.AP,</span>
+<span class="line" id="L505">        decoded_instruction.dst_reg,</span>
+<span class="line" id="L506">    );</span>
+<span class="line" id="L507">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L508">        Register.AP,</span>
+<span class="line" id="L509">        decoded_instruction.op_0_reg,</span>
+<span class="line" id="L510">    );</span>
+<span class="line" id="L511">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L512">        Op1Src.Op0,</span>
+<span class="line" id="L513">        decoded_instruction.op_1_addr,</span>
+<span class="line" id="L514">    );</span>
+<span class="line" id="L515">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L516">        ResLogic.Unconstrained,</span>
+<span class="line" id="L517">        decoded_instruction.res_logic,</span>
+<span class="line" id="L518">    );</span>
+<span class="line" id="L519">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L520">        PcUpdate.Jnz,</span>
+<span class="line" id="L521">        decoded_instruction.pc_update,</span>
+<span class="line" id="L522">    );</span>
+<span class="line" id="L523">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L524">        ApUpdate.Regular,</span>
+<span class="line" id="L525">        decoded_instruction.ap_update,</span>
+<span class="line" id="L526">    );</span>
+<span class="line" id="L527">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L528">        Opcode.AssertEq,</span>
+<span class="line" id="L529">        decoded_instruction.opcode,</span>
+<span class="line" id="L530">    );</span>
+<span class="line" id="L531">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L532">        FpUpdate.Regular,</span>
+<span class="line" id="L533">        decoded_instruction.fp_update,</span>
+<span class="line" id="L534">    );</span>
+<span class="line" id="L535">}</span>
+<span class="line" id="L536"></span>
+<span class="line" id="L537"><span class="tok-kw">test</span> <span class="tok-str">&quot;decode flags nop regular regular op1 op0 ap ap&quot;</span> {</span>
+<span class="line" id="L538">    <span class="tok-comment">//  0|  opcode|ap_update|pc_update|res_logic|op1_src|op0_reg|dst_reg</span>
 </span>
-<span class="line" id="L539">    <span class="tok-comment">//     |     NOP|  REGULAR|  REGULAR|      OP1|    OP0|     AP|     AP</span>
+<span class="line" id="L539">    <span class="tok-comment">// 15|14 13 12|    11 10|  9  8  7|     6  5|4  3  2|      1|      0</span>
 </span>
-<span class="line" id="L540">    <span class="tok-comment">//  0  0  0  0      0  0   0  0  0      0  0 0  0  0       0       0</span>
+<span class="line" id="L540">    <span class="tok-comment">//</span>
 </span>
-<span class="line" id="L541">    <span class="tok-comment">//  0000 0000 0000 0000 = 0x0000; offx = 0</span>
+<span class="line" id="L541">    <span class="tok-comment">//     |     NOP|  REGULAR|  REGULAR|      OP1|    OP0|     AP|     AP</span>
 </span>
-<span class="line" id="L542"></span>
-<span class="line" id="L543">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x0000800080008000</span>;</span>
-<span class="line" id="L544">    <span class="tok-kw">const</span> decoded_instruction = <span class="tok-kw">try</span> decode(encoded_instruction);</span>
-<span class="line" id="L545"></span>
-<span class="line" id="L546">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L547">        Register.AP,</span>
-<span class="line" id="L548">        decoded_instruction.dst_reg,</span>
-<span class="line" id="L549">    );</span>
-<span class="line" id="L550">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L551">        Register.AP,</span>
-<span class="line" id="L552">        decoded_instruction.op_0_reg,</span>
-<span class="line" id="L553">    );</span>
-<span class="line" id="L554">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L555">        Op1Src.Op0,</span>
-<span class="line" id="L556">        decoded_instruction.op_1_addr,</span>
-<span class="line" id="L557">    );</span>
-<span class="line" id="L558">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L559">        ResLogic.Op1,</span>
-<span class="line" id="L560">        decoded_instruction.res_logic,</span>
-<span class="line" id="L561">    );</span>
-<span class="line" id="L562">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L563">        PcUpdate.Regular,</span>
-<span class="line" id="L564">        decoded_instruction.pc_update,</span>
-<span class="line" id="L565">    );</span>
-<span class="line" id="L566">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L567">        ApUpdate.Regular,</span>
-<span class="line" id="L568">        decoded_instruction.ap_update,</span>
-<span class="line" id="L569">    );</span>
-<span class="line" id="L570">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L571">        Opcode.NOp,</span>
-<span class="line" id="L572">        decoded_instruction.opcode,</span>
-<span class="line" id="L573">    );</span>
-<span class="line" id="L574">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L575">        FpUpdate.Regular,</span>
-<span class="line" id="L576">        decoded_instruction.fp_update,</span>
-<span class="line" id="L577">    );</span>
-<span class="line" id="L578">}</span>
-<span class="line" id="L579"></span>
-<span class="line" id="L580"><span class="tok-kw">test</span> <span class="tok-str">&quot;decode offset negative&quot;</span> {</span>
-<span class="line" id="L581">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x0000800180007FFF</span>;</span>
-<span class="line" id="L582">    <span class="tok-kw">const</span> decoded_instruction = <span class="tok-kw">try</span> decode(encoded_instruction);</span>
-<span class="line" id="L583">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L584">        <span class="tok-type">i16</span>,</span>
-<span class="line" id="L585">        -<span class="tok-number">1</span>,</span>
-<span class="line" id="L586">    ), decoded_instruction.off_0);</span>
-<span class="line" id="L587">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L588">        <span class="tok-type">i16</span>,</span>
-<span class="line" id="L589">        <span class="tok-number">0</span>,</span>
-<span class="line" id="L590">    ), decoded_instruction.off_1);</span>
-<span class="line" id="L591">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L592">        <span class="tok-type">i16</span>,</span>
-<span class="line" id="L593">        <span class="tok-number">1</span>,</span>
-<span class="line" id="L594">    ), decoded_instruction.off_2);</span>
-<span class="line" id="L595">}</span>
-<span class="line" id="L596"></span>
-<span class="line" id="L597"><span class="tok-kw">test</span> <span class="tok-str">&quot;non zero high bit&quot;</span> {</span>
-<span class="line" id="L598">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x94A7800080008000</span>;</span>
-<span class="line" id="L599">    <span class="tok-kw">try</span> expectError(</span>
-<span class="line" id="L600">        Error.NonZeroHighBit,</span>
-<span class="line" id="L601">        decode(encoded_instruction),</span>
-<span class="line" id="L602">    );</span>
-<span class="line" id="L603">}</span>
-<span class="line" id="L604"></span>
-<span class="line" id="L605"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid op1 reg&quot;</span> {</span>
-<span class="line" id="L606">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x294F800080008000</span>;</span>
-<span class="line" id="L607">    <span class="tok-kw">try</span> expectError(</span>
-<span class="line" id="L608">        Error.InvalidOp1Reg,</span>
-<span class="line" id="L609">        decode(encoded_instruction),</span>
-<span class="line" id="L610">    );</span>
-<span class="line" id="L611">}</span>
-<span class="line" id="L612"></span>
-<span class="line" id="L613"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid pc update&quot;</span> {</span>
-<span class="line" id="L614">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x29A8800080008000</span>;</span>
-<span class="line" id="L615">    <span class="tok-kw">try</span> expectError(</span>
-<span class="line" id="L616">        Error.Invalidpc_update,</span>
-<span class="line" id="L617">        decode(encoded_instruction),</span>
-<span class="line" id="L618">    );</span>
-<span class="line" id="L619">}</span>
-<span class="line" id="L620"></span>
-<span class="line" id="L621"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid res logic&quot;</span> {</span>
-<span class="line" id="L622">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x2968800080008000</span>;</span>
-<span class="line" id="L623">    <span class="tok-kw">try</span> expectError(</span>
-<span class="line" id="L624">        Error.Invalidres_logic,</span>
-<span class="line" id="L625">        decode(encoded_instruction),</span>
-<span class="line" id="L626">    );</span>
-<span class="line" id="L627">}</span>
-<span class="line" id="L628"></span>
-<span class="line" id="L629"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid opcode&quot;</span> {</span>
-<span class="line" id="L630">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x3948800080008000</span>;</span>
-<span class="line" id="L631">    <span class="tok-kw">try</span> expectError(</span>
-<span class="line" id="L632">        Error.InvalidOpcode,</span>
-<span class="line" id="L633">        decode(encoded_instruction),</span>
-<span class="line" id="L634">    );</span>
-<span class="line" id="L635">}</span>
-<span class="line" id="L636"></span>
-<span class="line" id="L637"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid ap update&quot;</span> {</span>
-<span class="line" id="L638">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x2D48800080008000</span>;</span>
-<span class="line" id="L639">    <span class="tok-kw">try</span> expectError(</span>
-<span class="line" id="L640">        Error.Invalidap_update,</span>
-<span class="line" id="L641">        decode(encoded_instruction),</span>
-<span class="line" id="L642">    );</span>
-<span class="line" id="L643">}</span>
-<span class="line" id="L644"></span>
+<span class="line" id="L542">    <span class="tok-comment">//  0  0  0  0      0  0   0  0  0      0  0 0  0  0       0       0</span>
+</span>
+<span class="line" id="L543">    <span class="tok-comment">//  0000 0000 0000 0000 = 0x0000; offx = 0</span>
+</span>
+<span class="line" id="L544"></span>
+<span class="line" id="L545">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x0000800080008000</span>;</span>
+<span class="line" id="L546">    <span class="tok-kw">const</span> decoded_instruction = <span class="tok-kw">try</span> decode(encoded_instruction);</span>
+<span class="line" id="L547"></span>
+<span class="line" id="L548">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L549">        Register.AP,</span>
+<span class="line" id="L550">        decoded_instruction.dst_reg,</span>
+<span class="line" id="L551">    );</span>
+<span class="line" id="L552">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L553">        Register.AP,</span>
+<span class="line" id="L554">        decoded_instruction.op_0_reg,</span>
+<span class="line" id="L555">    );</span>
+<span class="line" id="L556">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L557">        Op1Src.Op0,</span>
+<span class="line" id="L558">        decoded_instruction.op_1_addr,</span>
+<span class="line" id="L559">    );</span>
+<span class="line" id="L560">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L561">        ResLogic.Op1,</span>
+<span class="line" id="L562">        decoded_instruction.res_logic,</span>
+<span class="line" id="L563">    );</span>
+<span class="line" id="L564">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L565">        PcUpdate.Regular,</span>
+<span class="line" id="L566">        decoded_instruction.pc_update,</span>
+<span class="line" id="L567">    );</span>
+<span class="line" id="L568">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L569">        ApUpdate.Regular,</span>
+<span class="line" id="L570">        decoded_instruction.ap_update,</span>
+<span class="line" id="L571">    );</span>
+<span class="line" id="L572">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L573">        Opcode.NOp,</span>
+<span class="line" id="L574">        decoded_instruction.opcode,</span>
+<span class="line" id="L575">    );</span>
+<span class="line" id="L576">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L577">        FpUpdate.Regular,</span>
+<span class="line" id="L578">        decoded_instruction.fp_update,</span>
+<span class="line" id="L579">    );</span>
+<span class="line" id="L580">}</span>
+<span class="line" id="L581"></span>
+<span class="line" id="L582"><span class="tok-kw">test</span> <span class="tok-str">&quot;decode offset negative&quot;</span> {</span>
+<span class="line" id="L583">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x0000800180007FFF</span>;</span>
+<span class="line" id="L584">    <span class="tok-kw">const</span> decoded_instruction = <span class="tok-kw">try</span> decode(encoded_instruction);</span>
+<span class="line" id="L585">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L586">        <span class="tok-type">i16</span>,</span>
+<span class="line" id="L587">        -<span class="tok-number">1</span>,</span>
+<span class="line" id="L588">    ), decoded_instruction.off_0);</span>
+<span class="line" id="L589">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L590">        <span class="tok-type">i16</span>,</span>
+<span class="line" id="L591">        <span class="tok-number">0</span>,</span>
+<span class="line" id="L592">    ), decoded_instruction.off_1);</span>
+<span class="line" id="L593">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L594">        <span class="tok-type">i16</span>,</span>
+<span class="line" id="L595">        <span class="tok-number">1</span>,</span>
+<span class="line" id="L596">    ), decoded_instruction.off_2);</span>
+<span class="line" id="L597">}</span>
+<span class="line" id="L598"></span>
+<span class="line" id="L599"><span class="tok-kw">test</span> <span class="tok-str">&quot;non zero high bit&quot;</span> {</span>
+<span class="line" id="L600">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x94A7800080008000</span>;</span>
+<span class="line" id="L601">    <span class="tok-kw">try</span> expectError(</span>
+<span class="line" id="L602">        Error.NonZeroHighBit,</span>
+<span class="line" id="L603">        decode(encoded_instruction),</span>
+<span class="line" id="L604">    );</span>
+<span class="line" id="L605">}</span>
+<span class="line" id="L606"></span>
+<span class="line" id="L607"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid op1 reg&quot;</span> {</span>
+<span class="line" id="L608">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x294F800080008000</span>;</span>
+<span class="line" id="L609">    <span class="tok-kw">try</span> expectError(</span>
+<span class="line" id="L610">        Error.InvalidOp1Reg,</span>
+<span class="line" id="L611">        decode(encoded_instruction),</span>
+<span class="line" id="L612">    );</span>
+<span class="line" id="L613">}</span>
+<span class="line" id="L614"></span>
+<span class="line" id="L615"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid pc update&quot;</span> {</span>
+<span class="line" id="L616">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x29A8800080008000</span>;</span>
+<span class="line" id="L617">    <span class="tok-kw">try</span> expectError(</span>
+<span class="line" id="L618">        Error.Invalidpc_update,</span>
+<span class="line" id="L619">        decode(encoded_instruction),</span>
+<span class="line" id="L620">    );</span>
+<span class="line" id="L621">}</span>
+<span class="line" id="L622"></span>
+<span class="line" id="L623"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid res logic&quot;</span> {</span>
+<span class="line" id="L624">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x2968800080008000</span>;</span>
+<span class="line" id="L625">    <span class="tok-kw">try</span> expectError(</span>
+<span class="line" id="L626">        Error.Invalidres_logic,</span>
+<span class="line" id="L627">        decode(encoded_instruction),</span>
+<span class="line" id="L628">    );</span>
+<span class="line" id="L629">}</span>
+<span class="line" id="L630"></span>
+<span class="line" id="L631"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid opcode&quot;</span> {</span>
+<span class="line" id="L632">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x3948800080008000</span>;</span>
+<span class="line" id="L633">    <span class="tok-kw">try</span> expectError(</span>
+<span class="line" id="L634">        Error.InvalidOpcode,</span>
+<span class="line" id="L635">        decode(encoded_instruction),</span>
+<span class="line" id="L636">    );</span>
+<span class="line" id="L637">}</span>
+<span class="line" id="L638"></span>
+<span class="line" id="L639"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid ap update&quot;</span> {</span>
+<span class="line" id="L640">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x2D48800080008000</span>;</span>
+<span class="line" id="L641">    <span class="tok-kw">try</span> expectError(</span>
+<span class="line" id="L642">        Error.Invalidap_update,</span>
+<span class="line" id="L643">        decode(encoded_instruction),</span>
+<span class="line" id="L644">    );</span>
+<span class="line" id="L645">}</span>
+<span class="line" id="L646"></span>
 </code></pre></body>
 </html>

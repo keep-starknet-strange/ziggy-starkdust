@@ -124,136 +124,142 @@
 <span class="line" id="L10"><span class="tok-comment">/// It's either something, or nothing. But no tag is kept around to remember which one it is. This</span></span>
 <span class="line" id="L11"><span class="tok-comment">/// &quot;memory&quot; comes from dynamic dispatch.</span></span>
 <span class="line" id="L12"><span class="tok-kw">const</span> State = <span class="tok-kw">union</span> {</span>
-<span class="line" id="L13">    enabled: TraceEnabled,</span>
-<span class="line" id="L14">    disabled: TraceDisabled,</span>
-<span class="line" id="L15"></span>
-<span class="line" id="L16">    <span class="tok-comment">/// A function that records a new entry in the tracing context.</span></span>
-<span class="line" id="L17">    <span class="tok-kw">const</span> TraceInstructionFn = <span class="tok-kw">fn</span> (state: *State, entry: TraceContext.Entry) Allocator.Error!<span class="tok-type">void</span>;</span>
-<span class="line" id="L18">    <span class="tok-comment">/// A function that frees the resources owned by the tracing context.</span></span>
-<span class="line" id="L19">    <span class="tok-kw">const</span> DeinitFn = <span class="tok-kw">fn</span> (state: *State) <span class="tok-type">void</span>;</span>
-<span class="line" id="L20">};</span>
-<span class="line" id="L21"></span>
-<span class="line" id="L22"><span class="tok-comment">/// Contains the state required to trace the execution of the Cairo VM.</span></span>
-<span class="line" id="L23"><span class="tok-comment">///</span></span>
-<span class="line" id="L24"><span class="tok-comment">/// This includes a big array with `TraceEntry` instances.</span></span>
-<span class="line" id="L25"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> TraceContext = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L26">    <span class="tok-comment">/// An entry recorded representing the state of the VM at a given point in time.</span></span>
-<span class="line" id="L27">    <span class="tok-kw">pub</span> <span class="tok-kw">const</span> Entry = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L28">        pc: *Relocatable,</span>
-<span class="line" id="L29">        ap: *Relocatable,</span>
-<span class="line" id="L30">        fp: *Relocatable,</span>
-<span class="line" id="L31">    };</span>
-<span class="line" id="L32"></span>
-<span class="line" id="L33">    <span class="tok-comment">/// The current state of the tracing context.</span></span>
-<span class="line" id="L34">    state: State,</span>
-<span class="line" id="L35"></span>
-<span class="line" id="L36">    <span class="tok-comment">//</span>
+<span class="line" id="L13">    <span class="tok-kw">const</span> Self = <span class="tok-builtin">@This</span>();</span>
+<span class="line" id="L14"></span>
+<span class="line" id="L15">    enabled: TraceEnabled,</span>
+<span class="line" id="L16">    disabled: TraceDisabled,</span>
+<span class="line" id="L17"></span>
+<span class="line" id="L18">    <span class="tok-comment">/// A function that records a new entry in the tracing context.</span></span>
+<span class="line" id="L19">    <span class="tok-kw">const</span> TraceInstructionFn = <span class="tok-kw">fn</span> (state: *Self, entry: TraceContext.Entry) Allocator.Error!<span class="tok-type">void</span>;</span>
+<span class="line" id="L20">    <span class="tok-comment">/// A function that frees the resources owned by the tracing context.</span></span>
+<span class="line" id="L21">    <span class="tok-kw">const</span> DeinitFn = <span class="tok-kw">fn</span> (state: *Self) <span class="tok-type">void</span>;</span>
+<span class="line" id="L22">};</span>
+<span class="line" id="L23"></span>
+<span class="line" id="L24"><span class="tok-comment">/// Contains the state required to trace the execution of the Cairo VM.</span></span>
+<span class="line" id="L25"><span class="tok-comment">///</span></span>
+<span class="line" id="L26"><span class="tok-comment">/// This includes a big array with `TraceEntry` instances.</span></span>
+<span class="line" id="L27"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> TraceContext = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L28">    <span class="tok-kw">const</span> Self = <span class="tok-builtin">@This</span>();</span>
+<span class="line" id="L29"></span>
+<span class="line" id="L30">    <span class="tok-comment">/// An entry recorded representing the state of the VM at a given point in time.</span></span>
+<span class="line" id="L31">    <span class="tok-kw">pub</span> <span class="tok-kw">const</span> Entry = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L32">        pc: *Relocatable,</span>
+<span class="line" id="L33">        ap: *Relocatable,</span>
+<span class="line" id="L34">        fp: *Relocatable,</span>
+<span class="line" id="L35">    };</span>
+<span class="line" id="L36"></span>
+<span class="line" id="L37">    <span class="tok-comment">/// The current state of the tracing context.</span></span>
+<span class="line" id="L38">    state: State,</span>
+<span class="line" id="L39"></span>
+<span class="line" id="L40">    <span class="tok-comment">//</span>
 </span>
-<span class="line" id="L37">    <span class="tok-comment">// DYNAMIC DISPATCH FUNCTIONS</span>
+<span class="line" id="L41">    <span class="tok-comment">// DYNAMIC DISPATCH FUNCTIONS</span>
 </span>
-<span class="line" id="L38">    <span class="tok-comment">//</span>
+<span class="line" id="L42">    <span class="tok-comment">//</span>
 </span>
-<span class="line" id="L39">    <span class="tok-comment">// The following functions &quot;remember&quot; whether `state` is in an intialized or deinitialized</span>
+<span class="line" id="L43">    <span class="tok-comment">// The following functions &quot;remember&quot; whether `state` is in an intialized or deinitialized</span>
 </span>
-<span class="line" id="L40">    <span class="tok-comment">// state and properly act accordingly.</span>
+<span class="line" id="L44">    <span class="tok-comment">// state and properly act accordingly.</span>
 </span>
-<span class="line" id="L41">    <span class="tok-comment">//</span>
+<span class="line" id="L45">    <span class="tok-comment">//</span>
 </span>
-<span class="line" id="L42"></span>
-<span class="line" id="L43">    <span class="tok-comment">/// A function to call when a new entry is recorded.</span></span>
-<span class="line" id="L44">    traceInstructionFn: *<span class="tok-kw">const</span> State.TraceInstructionFn,</span>
-<span class="line" id="L45">    <span class="tok-comment">/// A functio to call</span></span>
-<span class="line" id="L46">    deinitFn: *<span class="tok-kw">const</span> State.DeinitFn,</span>
-<span class="line" id="L47"></span>
-<span class="line" id="L48">    <span class="tok-comment">/// Initializes a new instance of `TraceContext`.</span></span>
-<span class="line" id="L49">    <span class="tok-comment">///</span></span>
-<span class="line" id="L50">    <span class="tok-comment">/// # Arguments</span></span>
-<span class="line" id="L51">    <span class="tok-comment">///</span></span>
-<span class="line" id="L52">    <span class="tok-comment">/// - `allocator`: the allocator to use for allocating the resources used by the tracing</span></span>
-<span class="line" id="L53">    <span class="tok-comment">///   context.</span></span>
-<span class="line" id="L54">    <span class="tok-comment">///</span></span>
-<span class="line" id="L55">    <span class="tok-comment">/// - `enable`: Whether tracing should be enabled in the first place. When `false`, the</span></span>
-<span class="line" id="L56">    <span class="tok-comment">///   API exposed by `TraceContext` becomes essentially a no-op.</span></span>
-<span class="line" id="L57">    <span class="tok-comment">///</span></span>
-<span class="line" id="L58">    <span class="tok-comment">/// # Errors</span></span>
-<span class="line" id="L59">    <span class="tok-comment">///</span></span>
-<span class="line" id="L60">    <span class="tok-comment">/// Fails in case of memory allocation errors.</span></span>
-<span class="line" id="L61">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">init</span>(allocator: Allocator, enable: <span class="tok-type">bool</span>) !TraceContext {</span>
-<span class="line" id="L62">        <span class="tok-kw">var</span> state: State = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L63">        <span class="tok-kw">var</span> traceInstructionFn: *<span class="tok-kw">const</span> State.TraceInstructionFn = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L64">        <span class="tok-kw">var</span> deinitFn: *<span class="tok-kw">const</span> State.DeinitFn = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L65"></span>
-<span class="line" id="L66">        <span class="tok-kw">if</span> (enable) {</span>
-<span class="line" id="L67">            state = State{ .enabled = <span class="tok-kw">try</span> TraceEnabled.init(allocator) };</span>
-<span class="line" id="L68">            traceInstructionFn = TraceEnabled.traceInstruction;</span>
-<span class="line" id="L69">            deinitFn = TraceEnabled.deinit;</span>
-<span class="line" id="L70">        } <span class="tok-kw">else</span> {</span>
-<span class="line" id="L71">            state = State{ .disabled = TraceDisabled{} };</span>
-<span class="line" id="L72">            traceInstructionFn = TraceDisabled.traceInstruction;</span>
-<span class="line" id="L73">            deinitFn = TraceDisabled.deinit;</span>
-<span class="line" id="L74">        }</span>
-<span class="line" id="L75"></span>
-<span class="line" id="L76">        <span class="tok-kw">return</span> .{</span>
-<span class="line" id="L77">            .state = state,</span>
-<span class="line" id="L78">            .traceInstructionFn = traceInstructionFn,</span>
-<span class="line" id="L79">            .deinitFn = deinitFn,</span>
-<span class="line" id="L80">        };</span>
-<span class="line" id="L81">    }</span>
-<span class="line" id="L82"></span>
-<span class="line" id="L83">    <span class="tok-comment">/// Frees the resources owned by this instance of `TraceContext`.</span></span>
-<span class="line" id="L84">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">deinit</span>(self: *TraceContext) <span class="tok-type">void</span> {</span>
-<span class="line" id="L85">        self.deinitFn(&amp;self.state);</span>
-<span class="line" id="L86">    }</span>
-<span class="line" id="L87"></span>
-<span class="line" id="L88">    <span class="tok-comment">/// Records a new entry in the tracing context.</span></span>
-<span class="line" id="L89">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">traceInstruction</span>(self: *TraceContext, entry: TraceContext.Entry) !<span class="tok-type">void</span> {</span>
-<span class="line" id="L90">        <span class="tok-kw">try</span> self.traceInstructionFn(&amp;self.state, entry);</span>
-<span class="line" id="L91">    }</span>
-<span class="line" id="L92"></span>
-<span class="line" id="L93">    <span class="tok-comment">/// Returns whether tracing is enabled.</span></span>
-<span class="line" id="L94">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">isEnabled</span>(self: *<span class="tok-kw">const</span> TraceContext) <span class="tok-type">bool</span> {</span>
-<span class="line" id="L95">        <span class="tok-kw">return</span> self.traceInstructionFn == TraceEnabled.traceInstruction;</span>
-<span class="line" id="L96">    }</span>
-<span class="line" id="L97">};</span>
-<span class="line" id="L98"></span>
-<span class="line" id="L99"><span class="tok-comment">/// The state of the tracing system when it's enabled.</span></span>
-<span class="line" id="L100"><span class="tok-kw">const</span> TraceEnabled = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L101">    <span class="tok-comment">/// The entries that have been recorded so far.</span></span>
-<span class="line" id="L102">    entries: ArrayList(TraceContext.Entry),</span>
-<span class="line" id="L103"></span>
-<span class="line" id="L104">    <span class="tok-kw">fn</span> <span class="tok-fn">init</span>(allocator: Allocator) !TraceEnabled {</span>
-<span class="line" id="L105">        <span class="tok-kw">return</span> .{</span>
-<span class="line" id="L106">            .entries = <span class="tok-kw">try</span> ArrayList(TraceContext.Entry).initCapacity(</span>
-<span class="line" id="L107">                allocator,</span>
-<span class="line" id="L108">                build_options.trace_initial_capacity,</span>
-<span class="line" id="L109">            ),</span>
-<span class="line" id="L110">        };</span>
-<span class="line" id="L111">    }</span>
-<span class="line" id="L112"></span>
-<span class="line" id="L113">    <span class="tok-kw">fn</span> <span class="tok-fn">deinit</span>(self: *State) <span class="tok-type">void</span> {</span>
-<span class="line" id="L114">        <span class="tok-kw">const</span> this = &amp;self.enabled;</span>
-<span class="line" id="L115">        this.entries.deinit();</span>
-<span class="line" id="L116">    }</span>
-<span class="line" id="L117"></span>
-<span class="line" id="L118">    <span class="tok-kw">fn</span> <span class="tok-fn">traceInstruction</span>(self: *State, entry: TraceContext.Entry) !<span class="tok-type">void</span> {</span>
-<span class="line" id="L119">        <span class="tok-kw">const</span> this = &amp;self.enabled;</span>
-<span class="line" id="L120">        <span class="tok-kw">try</span> this.entries.append(entry);</span>
-<span class="line" id="L121">    }</span>
-<span class="line" id="L122">};</span>
+<span class="line" id="L46"></span>
+<span class="line" id="L47">    <span class="tok-comment">/// A function to call when a new entry is recorded.</span></span>
+<span class="line" id="L48">    traceInstructionFn: *<span class="tok-kw">const</span> State.TraceInstructionFn,</span>
+<span class="line" id="L49">    <span class="tok-comment">/// A functio to call</span></span>
+<span class="line" id="L50">    deinitFn: *<span class="tok-kw">const</span> State.DeinitFn,</span>
+<span class="line" id="L51"></span>
+<span class="line" id="L52">    <span class="tok-comment">/// Initializes a new instance of `TraceContext`.</span></span>
+<span class="line" id="L53">    <span class="tok-comment">///</span></span>
+<span class="line" id="L54">    <span class="tok-comment">/// # Arguments</span></span>
+<span class="line" id="L55">    <span class="tok-comment">///</span></span>
+<span class="line" id="L56">    <span class="tok-comment">/// - `allocator`: the allocator to use for allocating the resources used by the tracing</span></span>
+<span class="line" id="L57">    <span class="tok-comment">///   context.</span></span>
+<span class="line" id="L58">    <span class="tok-comment">///</span></span>
+<span class="line" id="L59">    <span class="tok-comment">/// - `enable`: Whether tracing should be enabled in the first place. When `false`, the</span></span>
+<span class="line" id="L60">    <span class="tok-comment">///   API exposed by `TraceContext` becomes essentially a no-op.</span></span>
+<span class="line" id="L61">    <span class="tok-comment">///</span></span>
+<span class="line" id="L62">    <span class="tok-comment">/// # Errors</span></span>
+<span class="line" id="L63">    <span class="tok-comment">///</span></span>
+<span class="line" id="L64">    <span class="tok-comment">/// Fails in case of memory allocation errors.</span></span>
+<span class="line" id="L65">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">init</span>(allocator: Allocator, enable: <span class="tok-type">bool</span>) !Self {</span>
+<span class="line" id="L66">        <span class="tok-kw">var</span> state: State = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L67">        <span class="tok-kw">var</span> traceInstructionFn: *<span class="tok-kw">const</span> State.TraceInstructionFn = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L68">        <span class="tok-kw">var</span> deinitFn: *<span class="tok-kw">const</span> State.DeinitFn = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L69"></span>
+<span class="line" id="L70">        <span class="tok-kw">if</span> (enable) {</span>
+<span class="line" id="L71">            state = State{ .enabled = <span class="tok-kw">try</span> TraceEnabled.init(allocator) };</span>
+<span class="line" id="L72">            traceInstructionFn = TraceEnabled.traceInstruction;</span>
+<span class="line" id="L73">            deinitFn = TraceEnabled.deinit;</span>
+<span class="line" id="L74">        } <span class="tok-kw">else</span> {</span>
+<span class="line" id="L75">            state = State{ .disabled = TraceDisabled{} };</span>
+<span class="line" id="L76">            traceInstructionFn = TraceDisabled.traceInstruction;</span>
+<span class="line" id="L77">            deinitFn = TraceDisabled.deinit;</span>
+<span class="line" id="L78">        }</span>
+<span class="line" id="L79"></span>
+<span class="line" id="L80">        <span class="tok-kw">return</span> .{</span>
+<span class="line" id="L81">            .state = state,</span>
+<span class="line" id="L82">            .traceInstructionFn = traceInstructionFn,</span>
+<span class="line" id="L83">            .deinitFn = deinitFn,</span>
+<span class="line" id="L84">        };</span>
+<span class="line" id="L85">    }</span>
+<span class="line" id="L86"></span>
+<span class="line" id="L87">    <span class="tok-comment">/// Frees the resources owned by this instance of `TraceContext`.</span></span>
+<span class="line" id="L88">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">deinit</span>(self: *Self) <span class="tok-type">void</span> {</span>
+<span class="line" id="L89">        self.deinitFn(&amp;self.state);</span>
+<span class="line" id="L90">    }</span>
+<span class="line" id="L91"></span>
+<span class="line" id="L92">    <span class="tok-comment">/// Records a new entry in the tracing context.</span></span>
+<span class="line" id="L93">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">traceInstruction</span>(self: *Self, entry: Self.Entry) !<span class="tok-type">void</span> {</span>
+<span class="line" id="L94">        <span class="tok-kw">try</span> self.traceInstructionFn(&amp;self.state, entry);</span>
+<span class="line" id="L95">    }</span>
+<span class="line" id="L96"></span>
+<span class="line" id="L97">    <span class="tok-comment">/// Returns whether tracing is enabled.</span></span>
+<span class="line" id="L98">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">isEnabled</span>(self: *<span class="tok-kw">const</span> Self) <span class="tok-type">bool</span> {</span>
+<span class="line" id="L99">        <span class="tok-kw">return</span> self.traceInstructionFn == TraceEnabled.traceInstruction;</span>
+<span class="line" id="L100">    }</span>
+<span class="line" id="L101">};</span>
+<span class="line" id="L102"></span>
+<span class="line" id="L103"><span class="tok-comment">/// The state of the tracing system when it's enabled.</span></span>
+<span class="line" id="L104"><span class="tok-kw">const</span> TraceEnabled = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L105">    <span class="tok-kw">const</span> Self = <span class="tok-builtin">@This</span>();</span>
+<span class="line" id="L106"></span>
+<span class="line" id="L107">    <span class="tok-comment">/// The entries that have been recorded so far.</span></span>
+<span class="line" id="L108">    entries: ArrayList(TraceContext.Entry),</span>
+<span class="line" id="L109"></span>
+<span class="line" id="L110">    <span class="tok-kw">fn</span> <span class="tok-fn">init</span>(allocator: Allocator) !Self {</span>
+<span class="line" id="L111">        <span class="tok-kw">return</span> .{</span>
+<span class="line" id="L112">            .entries = <span class="tok-kw">try</span> ArrayList(TraceContext.Entry).initCapacity(</span>
+<span class="line" id="L113">                allocator,</span>
+<span class="line" id="L114">                build_options.trace_initial_capacity,</span>
+<span class="line" id="L115">            ),</span>
+<span class="line" id="L116">        };</span>
+<span class="line" id="L117">    }</span>
+<span class="line" id="L118"></span>
+<span class="line" id="L119">    <span class="tok-kw">fn</span> <span class="tok-fn">deinit</span>(self: *State) <span class="tok-type">void</span> {</span>
+<span class="line" id="L120">        <span class="tok-kw">const</span> this = &amp;self.enabled;</span>
+<span class="line" id="L121">        this.entries.deinit();</span>
+<span class="line" id="L122">    }</span>
 <span class="line" id="L123"></span>
-<span class="line" id="L124"><span class="tok-comment">/// The state of the tracing system when it's disabled.</span></span>
-<span class="line" id="L125"><span class="tok-kw">const</span> TraceDisabled = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L126">    <span class="tok-kw">fn</span> <span class="tok-fn">deinit</span>(self: *State) <span class="tok-type">void</span> {</span>
-<span class="line" id="L127">        <span class="tok-kw">const</span> this = &amp;self.disabled;</span>
-<span class="line" id="L128">        _ = this;</span>
-<span class="line" id="L129">    }</span>
-<span class="line" id="L130"></span>
-<span class="line" id="L131">    <span class="tok-kw">fn</span> <span class="tok-fn">traceInstruction</span>(self: *State, entry: TraceContext.Entry) !<span class="tok-type">void</span> {</span>
-<span class="line" id="L132">        <span class="tok-kw">const</span> this = &amp;self.disabled;</span>
-<span class="line" id="L133">        _ = entry;</span>
+<span class="line" id="L124">    <span class="tok-kw">fn</span> <span class="tok-fn">traceInstruction</span>(self: *State, entry: TraceContext.Entry) !<span class="tok-type">void</span> {</span>
+<span class="line" id="L125">        <span class="tok-kw">const</span> this = &amp;self.enabled;</span>
+<span class="line" id="L126">        <span class="tok-kw">try</span> this.entries.append(entry);</span>
+<span class="line" id="L127">    }</span>
+<span class="line" id="L128">};</span>
+<span class="line" id="L129"></span>
+<span class="line" id="L130"><span class="tok-comment">/// The state of the tracing system when it's disabled.</span></span>
+<span class="line" id="L131"><span class="tok-kw">const</span> TraceDisabled = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L132">    <span class="tok-kw">fn</span> <span class="tok-fn">deinit</span>(self: *State) <span class="tok-type">void</span> {</span>
+<span class="line" id="L133">        <span class="tok-kw">const</span> this = &amp;self.disabled;</span>
 <span class="line" id="L134">        _ = this;</span>
 <span class="line" id="L135">    }</span>
-<span class="line" id="L136">};</span>
-<span class="line" id="L137"></span>
+<span class="line" id="L136"></span>
+<span class="line" id="L137">    <span class="tok-kw">fn</span> <span class="tok-fn">traceInstruction</span>(self: *State, entry: TraceContext.Entry) !<span class="tok-type">void</span> {</span>
+<span class="line" id="L138">        <span class="tok-kw">const</span> this = &amp;self.disabled;</span>
+<span class="line" id="L139">        _ = entry;</span>
+<span class="line" id="L140">        _ = this;</span>
+<span class="line" id="L141">    }</span>
+<span class="line" id="L142">};</span>
+<span class="line" id="L143"></span>
 </code></pre></body>
 </html>

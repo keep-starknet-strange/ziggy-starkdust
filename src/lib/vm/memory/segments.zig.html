@@ -132,232 +132,233 @@
 <span class="line" id="L14"><span class="tok-comment">// the memory at the end of the VM run.</span>
 </span>
 <span class="line" id="L15"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> MemorySegmentManager = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L16"></span>
-<span class="line" id="L17">    <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L16">    <span class="tok-kw">const</span> Self = <span class="tok-builtin">@This</span>();</span>
+<span class="line" id="L17"></span>
+<span class="line" id="L18">    <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L18">    <span class="tok-comment">// *                        FIELDS                            *</span>
+<span class="line" id="L19">    <span class="tok-comment">// *                        FIELDS                            *</span>
 </span>
-<span class="line" id="L19">    <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L20">    <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L20">    <span class="tok-comment">/// The allocator used to allocate the memory.</span></span>
-<span class="line" id="L21">    allocator: Allocator,</span>
-<span class="line" id="L22">    <span class="tok-comment">// The size of the used segments.</span>
+<span class="line" id="L21">    <span class="tok-comment">/// The allocator used to allocate the memory.</span></span>
+<span class="line" id="L22">    allocator: Allocator,</span>
+<span class="line" id="L23">    <span class="tok-comment">// The size of the used segments.</span>
 </span>
-<span class="line" id="L23">    segment_used_sizes: std.HashMap(</span>
-<span class="line" id="L24">        <span class="tok-type">u32</span>,</span>
+<span class="line" id="L24">    segment_used_sizes: std.HashMap(</span>
 <span class="line" id="L25">        <span class="tok-type">u32</span>,</span>
-<span class="line" id="L26">        std.hash_map.AutoContext(<span class="tok-type">u32</span>),</span>
-<span class="line" id="L27">        std.hash_map.default_max_load_percentage,</span>
-<span class="line" id="L28">    ),</span>
-<span class="line" id="L29">    <span class="tok-comment">// The size of the segments.</span>
+<span class="line" id="L26">        <span class="tok-type">u32</span>,</span>
+<span class="line" id="L27">        std.hash_map.AutoContext(<span class="tok-type">u32</span>),</span>
+<span class="line" id="L28">        std.hash_map.default_max_load_percentage,</span>
+<span class="line" id="L29">    ),</span>
+<span class="line" id="L30">    <span class="tok-comment">// The size of the segments.</span>
 </span>
-<span class="line" id="L30">    segment_sizes: std.HashMap(</span>
-<span class="line" id="L31">        <span class="tok-type">u32</span>,</span>
+<span class="line" id="L31">    segment_sizes: std.HashMap(</span>
 <span class="line" id="L32">        <span class="tok-type">u32</span>,</span>
-<span class="line" id="L33">        std.hash_map.AutoContext(<span class="tok-type">u32</span>),</span>
-<span class="line" id="L34">        std.hash_map.default_max_load_percentage,</span>
-<span class="line" id="L35">    ),</span>
-<span class="line" id="L36">    <span class="tok-comment">// The memory.</span>
+<span class="line" id="L33">        <span class="tok-type">u32</span>,</span>
+<span class="line" id="L34">        std.hash_map.AutoContext(<span class="tok-type">u32</span>),</span>
+<span class="line" id="L35">        std.hash_map.default_max_load_percentage,</span>
+<span class="line" id="L36">    ),</span>
+<span class="line" id="L37">    <span class="tok-comment">// The memory.</span>
 </span>
-<span class="line" id="L37">    memory: *Memory,</span>
-<span class="line" id="L38">    <span class="tok-comment">// The public memory offsets.</span>
+<span class="line" id="L38">    memory: *Memory,</span>
+<span class="line" id="L39">    <span class="tok-comment">// The public memory offsets.</span>
 </span>
-<span class="line" id="L39">    <span class="tok-comment">// TODO: Use correct type for this.</span>
+<span class="line" id="L40">    <span class="tok-comment">// TODO: Use correct type for this.</span>
 </span>
-<span class="line" id="L40">    public_memory_offsets: std.HashMap(</span>
-<span class="line" id="L41">        <span class="tok-type">u32</span>,</span>
+<span class="line" id="L41">    public_memory_offsets: std.HashMap(</span>
 <span class="line" id="L42">        <span class="tok-type">u32</span>,</span>
-<span class="line" id="L43">        std.hash_map.AutoContext(<span class="tok-type">u32</span>),</span>
-<span class="line" id="L44">        std.hash_map.default_max_load_percentage,</span>
-<span class="line" id="L45">    ),</span>
-<span class="line" id="L46"></span>
-<span class="line" id="L47">    <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L43">        <span class="tok-type">u32</span>,</span>
+<span class="line" id="L44">        std.hash_map.AutoContext(<span class="tok-type">u32</span>),</span>
+<span class="line" id="L45">        std.hash_map.default_max_load_percentage,</span>
+<span class="line" id="L46">    ),</span>
+<span class="line" id="L47"></span>
+<span class="line" id="L48">    <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L48">    <span class="tok-comment">// *             MEMORY ALLOCATION AND DEALLOCATION           *</span>
+<span class="line" id="L49">    <span class="tok-comment">// *             MEMORY ALLOCATION AND DEALLOCATION           *</span>
 </span>
-<span class="line" id="L49">    <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L50">    <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L50"></span>
-<span class="line" id="L51">    <span class="tok-comment">// Creates a new MemorySegmentManager.</span>
+<span class="line" id="L51"></span>
+<span class="line" id="L52">    <span class="tok-comment">// Creates a new MemorySegmentManager.</span>
 </span>
-<span class="line" id="L52">    <span class="tok-comment">// # Arguments</span>
+<span class="line" id="L53">    <span class="tok-comment">// # Arguments</span>
 </span>
-<span class="line" id="L53">    <span class="tok-comment">// * `allocator` - The allocator to use for the HashMaps.</span>
+<span class="line" id="L54">    <span class="tok-comment">// * `allocator` - The allocator to use for the HashMaps.</span>
 </span>
-<span class="line" id="L54">    <span class="tok-comment">// # Returns</span>
+<span class="line" id="L55">    <span class="tok-comment">// # Returns</span>
 </span>
-<span class="line" id="L55">    <span class="tok-comment">// A new MemorySegmentManager.</span>
+<span class="line" id="L56">    <span class="tok-comment">// A new MemorySegmentManager.</span>
 </span>
-<span class="line" id="L56">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">init</span>(allocator: Allocator) !*MemorySegmentManager {</span>
-<span class="line" id="L57">        <span class="tok-comment">// Create the pointer to the MemorySegmentManager.</span>
+<span class="line" id="L57">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">init</span>(allocator: Allocator) !*Self {</span>
+<span class="line" id="L58">        <span class="tok-comment">// Create the pointer to the MemorySegmentManager.</span>
 </span>
-<span class="line" id="L58">        <span class="tok-kw">var</span> segment_manager = <span class="tok-kw">try</span> allocator.create(MemorySegmentManager);</span>
-<span class="line" id="L59">        <span class="tok-comment">// Initialize the values of the MemorySegmentManager struct.</span>
+<span class="line" id="L59">        <span class="tok-kw">var</span> segment_manager = <span class="tok-kw">try</span> allocator.create(Self);</span>
+<span class="line" id="L60">        <span class="tok-comment">// Initialize the values of the MemorySegmentManager struct.</span>
 </span>
-<span class="line" id="L60">        segment_manager.* = MemorySegmentManager{</span>
-<span class="line" id="L61">            .allocator = allocator,</span>
-<span class="line" id="L62">            .segment_used_sizes = std.AutoHashMap(</span>
-<span class="line" id="L63">                <span class="tok-type">u32</span>,</span>
+<span class="line" id="L61">        segment_manager.* = Self{</span>
+<span class="line" id="L62">            .allocator = allocator,</span>
+<span class="line" id="L63">            .segment_used_sizes = std.AutoHashMap(</span>
 <span class="line" id="L64">                <span class="tok-type">u32</span>,</span>
-<span class="line" id="L65">            ).init(allocator),</span>
-<span class="line" id="L66">            .segment_sizes = std.AutoHashMap(</span>
-<span class="line" id="L67">                <span class="tok-type">u32</span>,</span>
+<span class="line" id="L65">                <span class="tok-type">u32</span>,</span>
+<span class="line" id="L66">            ).init(allocator),</span>
+<span class="line" id="L67">            .segment_sizes = std.AutoHashMap(</span>
 <span class="line" id="L68">                <span class="tok-type">u32</span>,</span>
-<span class="line" id="L69">            ).init(allocator),</span>
-<span class="line" id="L70">            <span class="tok-comment">// Initialize the memory pointer.</span>
+<span class="line" id="L69">                <span class="tok-type">u32</span>,</span>
+<span class="line" id="L70">            ).init(allocator),</span>
+<span class="line" id="L71">            <span class="tok-comment">// Initialize the memory pointer.</span>
 </span>
-<span class="line" id="L71">            .memory = <span class="tok-kw">try</span> Memory.init(allocator),</span>
-<span class="line" id="L72">            .public_memory_offsets = std.AutoHashMap(<span class="tok-type">u32</span>, <span class="tok-type">u32</span>).init(allocator),</span>
-<span class="line" id="L73">        };</span>
-<span class="line" id="L74">        <span class="tok-comment">// Return the pointer to the MemorySegmentManager.</span>
+<span class="line" id="L72">            .memory = <span class="tok-kw">try</span> Memory.init(allocator),</span>
+<span class="line" id="L73">            .public_memory_offsets = std.AutoHashMap(<span class="tok-type">u32</span>, <span class="tok-type">u32</span>).init(allocator),</span>
+<span class="line" id="L74">        };</span>
+<span class="line" id="L75">        <span class="tok-comment">// Return the pointer to the MemorySegmentManager.</span>
 </span>
-<span class="line" id="L75">        <span class="tok-kw">return</span> segment_manager;</span>
-<span class="line" id="L76">    }</span>
-<span class="line" id="L77"></span>
-<span class="line" id="L78">    <span class="tok-comment">// Safe deallocation of the memory.</span>
+<span class="line" id="L76">        <span class="tok-kw">return</span> segment_manager;</span>
+<span class="line" id="L77">    }</span>
+<span class="line" id="L78"></span>
+<span class="line" id="L79">    <span class="tok-comment">// Safe deallocation of the memory.</span>
 </span>
-<span class="line" id="L79">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">deinit</span>(self: *MemorySegmentManager) <span class="tok-type">void</span> {</span>
-<span class="line" id="L80">        <span class="tok-comment">// Clear the hash maps</span>
+<span class="line" id="L80">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">deinit</span>(self: *Self) <span class="tok-type">void</span> {</span>
+<span class="line" id="L81">        <span class="tok-comment">// Clear the hash maps</span>
 </span>
-<span class="line" id="L81">        self.segment_used_sizes.deinit();</span>
-<span class="line" id="L82">        self.segment_sizes.deinit();</span>
-<span class="line" id="L83">        self.public_memory_offsets.deinit();</span>
-<span class="line" id="L84">        <span class="tok-comment">// Deallocate the memory.</span>
+<span class="line" id="L82">        self.segment_used_sizes.deinit();</span>
+<span class="line" id="L83">        self.segment_sizes.deinit();</span>
+<span class="line" id="L84">        self.public_memory_offsets.deinit();</span>
+<span class="line" id="L85">        <span class="tok-comment">// Deallocate the memory.</span>
 </span>
-<span class="line" id="L85">        self.memory.deinit();</span>
-<span class="line" id="L86">        <span class="tok-comment">// Deallocate self.</span>
+<span class="line" id="L86">        self.memory.deinit();</span>
+<span class="line" id="L87">        <span class="tok-comment">// Deallocate self.</span>
 </span>
-<span class="line" id="L87">        self.allocator.destroy(self);</span>
-<span class="line" id="L88">    }</span>
-<span class="line" id="L89"></span>
-<span class="line" id="L90">    <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L88">        self.allocator.destroy(self);</span>
+<span class="line" id="L89">    }</span>
+<span class="line" id="L90"></span>
+<span class="line" id="L91">    <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L91">    <span class="tok-comment">// *                        METHODS                           *</span>
+<span class="line" id="L92">    <span class="tok-comment">// *                        METHODS                           *</span>
 </span>
-<span class="line" id="L92">    <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L93">    <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L93"></span>
-<span class="line" id="L94">    <span class="tok-comment">// Adds a memory segment and returns the first address of the new segment.</span>
+<span class="line" id="L94"></span>
+<span class="line" id="L95">    <span class="tok-comment">// Adds a memory segment and returns the first address of the new segment.</span>
 </span>
-<span class="line" id="L95">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">addSegment</span>(self: *MemorySegmentManager) relocatable.Relocatable {</span>
-<span class="line" id="L96">        <span class="tok-comment">// Create the relocatable address for the new segment.</span>
+<span class="line" id="L96">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">addSegment</span>(self: *Self) relocatable.Relocatable {</span>
+<span class="line" id="L97">        <span class="tok-comment">// Create the relocatable address for the new segment.</span>
 </span>
-<span class="line" id="L97">        <span class="tok-kw">const</span> relocatable_address = relocatable.Relocatable{</span>
-<span class="line" id="L98">            .segment_index = self.memory.num_segments,</span>
-<span class="line" id="L99">            .offset = <span class="tok-number">0</span>,</span>
-<span class="line" id="L100">        };</span>
-<span class="line" id="L101"></span>
-<span class="line" id="L102">        <span class="tok-comment">// Increment the number of segments.</span>
+<span class="line" id="L98">        <span class="tok-kw">const</span> relocatable_address = relocatable.Relocatable{</span>
+<span class="line" id="L99">            .segment_index = self.memory.num_segments,</span>
+<span class="line" id="L100">            .offset = <span class="tok-number">0</span>,</span>
+<span class="line" id="L101">        };</span>
+<span class="line" id="L102"></span>
+<span class="line" id="L103">        <span class="tok-comment">// Increment the number of segments.</span>
 </span>
-<span class="line" id="L103">        self.memory.num_segments += <span class="tok-number">1</span>;</span>
-<span class="line" id="L104"></span>
-<span class="line" id="L105">        <span class="tok-kw">return</span> relocatable_address;</span>
-<span class="line" id="L106">    }</span>
-<span class="line" id="L107">};</span>
-<span class="line" id="L108"></span>
-<span class="line" id="L109"><span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L104">        self.memory.num_segments += <span class="tok-number">1</span>;</span>
+<span class="line" id="L105"></span>
+<span class="line" id="L106">        <span class="tok-kw">return</span> relocatable_address;</span>
+<span class="line" id="L107">    }</span>
+<span class="line" id="L108">};</span>
+<span class="line" id="L109"></span>
+<span class="line" id="L110"><span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L110"><span class="tok-comment">// *                         TESTS                            *</span>
+<span class="line" id="L111"><span class="tok-comment">// *                         TESTS                            *</span>
 </span>
-<span class="line" id="L111"><span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L112"><span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L112"></span>
-<span class="line" id="L113"><span class="tok-kw">test</span> <span class="tok-str">&quot;memory segment manager&quot;</span> {</span>
-<span class="line" id="L114">    <span class="tok-comment">// Initialize an allocator.</span>
+<span class="line" id="L113"></span>
+<span class="line" id="L114"><span class="tok-kw">test</span> <span class="tok-str">&quot;memory segment manager&quot;</span> {</span>
+<span class="line" id="L115">    <span class="tok-comment">// Initialize an allocator.</span>
 </span>
-<span class="line" id="L115">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
-<span class="line" id="L116"></span>
-<span class="line" id="L117">    <span class="tok-comment">// Initialize a memory segment manager.</span>
+<span class="line" id="L116">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
+<span class="line" id="L117"></span>
+<span class="line" id="L118">    <span class="tok-comment">// Initialize a memory segment manager.</span>
 </span>
-<span class="line" id="L118">    <span class="tok-kw">var</span> memory_segment_manager = <span class="tok-kw">try</span> MemorySegmentManager.init(allocator);</span>
-<span class="line" id="L119">    <span class="tok-kw">defer</span> memory_segment_manager.deinit();</span>
-<span class="line" id="L120"></span>
-<span class="line" id="L121">    <span class="tok-comment">//Allocate a memory segment.</span>
+<span class="line" id="L119">    <span class="tok-kw">var</span> memory_segment_manager = <span class="tok-kw">try</span> MemorySegmentManager.init(allocator);</span>
+<span class="line" id="L120">    <span class="tok-kw">defer</span> memory_segment_manager.deinit();</span>
+<span class="line" id="L121"></span>
+<span class="line" id="L122">    <span class="tok-comment">//Allocate a memory segment.</span>
 </span>
-<span class="line" id="L122">    <span class="tok-kw">const</span> relocatable_address_1 = memory_segment_manager.addSegment();</span>
-<span class="line" id="L123"></span>
-<span class="line" id="L124">    <span class="tok-comment">// Check that the memory segment manager has one segment.</span>
+<span class="line" id="L123">    <span class="tok-kw">const</span> relocatable_address_1 = memory_segment_manager.addSegment();</span>
+<span class="line" id="L124"></span>
+<span class="line" id="L125">    <span class="tok-comment">// Check that the memory segment manager has one segment.</span>
 </span>
-<span class="line" id="L125">    <span class="tok-kw">try</span> expect(memory_segment_manager.memory.num_segments == <span class="tok-number">1</span>);</span>
-<span class="line" id="L126"></span>
-<span class="line" id="L127">    <span class="tok-comment">// Check if the relocatable address is correct.</span>
+<span class="line" id="L126">    <span class="tok-kw">try</span> expect(memory_segment_manager.memory.num_segments == <span class="tok-number">1</span>);</span>
+<span class="line" id="L127"></span>
+<span class="line" id="L128">    <span class="tok-comment">// Check if the relocatable address is correct.</span>
 </span>
-<span class="line" id="L128">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L129">        relocatable.Relocatable{</span>
-<span class="line" id="L130">            .segment_index = <span class="tok-number">0</span>,</span>
-<span class="line" id="L131">            .offset = <span class="tok-number">0</span>,</span>
-<span class="line" id="L132">        },</span>
-<span class="line" id="L133">        relocatable_address_1,</span>
-<span class="line" id="L134">    );</span>
-<span class="line" id="L135"></span>
-<span class="line" id="L136">    <span class="tok-comment">// Allocate another memory segment.</span>
+<span class="line" id="L129">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L130">        relocatable.Relocatable{</span>
+<span class="line" id="L131">            .segment_index = <span class="tok-number">0</span>,</span>
+<span class="line" id="L132">            .offset = <span class="tok-number">0</span>,</span>
+<span class="line" id="L133">        },</span>
+<span class="line" id="L134">        relocatable_address_1,</span>
+<span class="line" id="L135">    );</span>
+<span class="line" id="L136"></span>
+<span class="line" id="L137">    <span class="tok-comment">// Allocate another memory segment.</span>
 </span>
-<span class="line" id="L137">    <span class="tok-kw">const</span> relocatable_address_2 = memory_segment_manager.addSegment();</span>
-<span class="line" id="L138"></span>
-<span class="line" id="L139">    <span class="tok-comment">// Check that the memory segment manager has two segments.</span>
+<span class="line" id="L138">    <span class="tok-kw">const</span> relocatable_address_2 = memory_segment_manager.addSegment();</span>
+<span class="line" id="L139"></span>
+<span class="line" id="L140">    <span class="tok-comment">// Check that the memory segment manager has two segments.</span>
 </span>
-<span class="line" id="L140">    <span class="tok-kw">try</span> expect(memory_segment_manager.memory.num_segments == <span class="tok-number">2</span>);</span>
-<span class="line" id="L141"></span>
-<span class="line" id="L142">    <span class="tok-comment">// Check if the relocatable address is correct.</span>
+<span class="line" id="L141">    <span class="tok-kw">try</span> expect(memory_segment_manager.memory.num_segments == <span class="tok-number">2</span>);</span>
+<span class="line" id="L142"></span>
+<span class="line" id="L143">    <span class="tok-comment">// Check if the relocatable address is correct.</span>
 </span>
-<span class="line" id="L143">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L144">        relocatable.Relocatable{</span>
-<span class="line" id="L145">            .segment_index = <span class="tok-number">1</span>,</span>
-<span class="line" id="L146">            .offset = <span class="tok-number">0</span>,</span>
-<span class="line" id="L147">        },</span>
-<span class="line" id="L148">        relocatable_address_2,</span>
-<span class="line" id="L149">    );</span>
-<span class="line" id="L150">}</span>
-<span class="line" id="L151"></span>
-<span class="line" id="L152"><span class="tok-kw">test</span> <span class="tok-str">&quot;set get integer value in segment memory&quot;</span> {</span>
-<span class="line" id="L153">    <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L144">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L145">        relocatable.Relocatable{</span>
+<span class="line" id="L146">            .segment_index = <span class="tok-number">1</span>,</span>
+<span class="line" id="L147">            .offset = <span class="tok-number">0</span>,</span>
+<span class="line" id="L148">        },</span>
+<span class="line" id="L149">        relocatable_address_2,</span>
+<span class="line" id="L150">    );</span>
+<span class="line" id="L151">}</span>
+<span class="line" id="L152"></span>
+<span class="line" id="L153"><span class="tok-kw">test</span> <span class="tok-str">&quot;set get integer value in segment memory&quot;</span> {</span>
+<span class="line" id="L154">    <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L154">    <span class="tok-comment">// *                 SETUP TEST CONTEXT                       *</span>
+<span class="line" id="L155">    <span class="tok-comment">// *                 SETUP TEST CONTEXT                       *</span>
 </span>
-<span class="line" id="L155">    <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L156">    <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L156">    <span class="tok-comment">// Initialize an allocator.</span>
+<span class="line" id="L157">    <span class="tok-comment">// Initialize an allocator.</span>
 </span>
-<span class="line" id="L157">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
-<span class="line" id="L158"></span>
-<span class="line" id="L159">    <span class="tok-comment">// Initialize a memory segment manager.</span>
+<span class="line" id="L158">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
+<span class="line" id="L159"></span>
+<span class="line" id="L160">    <span class="tok-comment">// Initialize a memory segment manager.</span>
 </span>
-<span class="line" id="L160">    <span class="tok-kw">var</span> memory_segment_manager = <span class="tok-kw">try</span> MemorySegmentManager.init(allocator);</span>
-<span class="line" id="L161">    <span class="tok-kw">defer</span> memory_segment_manager.deinit();</span>
-<span class="line" id="L162"></span>
-<span class="line" id="L163">    <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L161">    <span class="tok-kw">var</span> memory_segment_manager = <span class="tok-kw">try</span> MemorySegmentManager.init(allocator);</span>
+<span class="line" id="L162">    <span class="tok-kw">defer</span> memory_segment_manager.deinit();</span>
+<span class="line" id="L163"></span>
+<span class="line" id="L164">    <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L164">    <span class="tok-comment">// *                      TEST BODY                           *</span>
+<span class="line" id="L165">    <span class="tok-comment">// *                      TEST BODY                           *</span>
 </span>
-<span class="line" id="L165">    <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L166">    <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L166">    _ = memory_segment_manager.addSegment();</span>
 <span class="line" id="L167">    _ = memory_segment_manager.addSegment();</span>
-<span class="line" id="L168"></span>
-<span class="line" id="L169">    <span class="tok-kw">const</span> address = relocatable.Relocatable.new(</span>
-<span class="line" id="L170">        <span class="tok-number">0</span>,</span>
+<span class="line" id="L168">    _ = memory_segment_manager.addSegment();</span>
+<span class="line" id="L169"></span>
+<span class="line" id="L170">    <span class="tok-kw">const</span> address = relocatable.Relocatable.new(</span>
 <span class="line" id="L171">        <span class="tok-number">0</span>,</span>
-<span class="line" id="L172">    );</span>
-<span class="line" id="L173">    <span class="tok-kw">const</span> value = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(<span class="tok-number">42</span>));</span>
-<span class="line" id="L174"></span>
-<span class="line" id="L175">    <span class="tok-kw">const</span> wrong_address = relocatable.Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">1</span>);</span>
-<span class="line" id="L176"></span>
-<span class="line" id="L177">    _ = <span class="tok-kw">try</span> memory_segment_manager.memory.set(address, value);</span>
-<span class="line" id="L178"></span>
-<span class="line" id="L179">    <span class="tok-kw">try</span> expect(memory_segment_manager.memory.data.contains(address));</span>
-<span class="line" id="L180">    <span class="tok-kw">try</span> expect(!memory_segment_manager.memory.data.contains(wrong_address));</span>
-<span class="line" id="L181"></span>
-<span class="line" id="L182">    <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L172">        <span class="tok-number">0</span>,</span>
+<span class="line" id="L173">    );</span>
+<span class="line" id="L174">    <span class="tok-kw">const</span> value = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(<span class="tok-number">42</span>));</span>
+<span class="line" id="L175"></span>
+<span class="line" id="L176">    <span class="tok-kw">const</span> wrong_address = relocatable.Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">1</span>);</span>
+<span class="line" id="L177"></span>
+<span class="line" id="L178">    _ = <span class="tok-kw">try</span> memory_segment_manager.memory.set(address, value);</span>
+<span class="line" id="L179"></span>
+<span class="line" id="L180">    <span class="tok-kw">try</span> expect(memory_segment_manager.memory.data.contains(address));</span>
+<span class="line" id="L181">    <span class="tok-kw">try</span> expect(!memory_segment_manager.memory.data.contains(wrong_address));</span>
+<span class="line" id="L182"></span>
+<span class="line" id="L183">    <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L183">    <span class="tok-comment">// *                      TEST CHECKS                         *</span>
+<span class="line" id="L184">    <span class="tok-comment">// *                      TEST CHECKS                         *</span>
 </span>
-<span class="line" id="L184">    <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L185">    <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L185">    <span class="tok-kw">const</span> actual_value = <span class="tok-kw">try</span> memory_segment_manager.memory.get(address);</span>
-<span class="line" id="L186">    <span class="tok-kw">const</span> expected_value = value;</span>
-<span class="line" id="L187"></span>
-<span class="line" id="L188">    <span class="tok-kw">try</span> expect(expected_value.eq(actual_value));</span>
-<span class="line" id="L189">}</span>
-<span class="line" id="L190"></span>
+<span class="line" id="L186">    <span class="tok-kw">const</span> actual_value = <span class="tok-kw">try</span> memory_segment_manager.memory.get(address);</span>
+<span class="line" id="L187">    <span class="tok-kw">const</span> expected_value = value;</span>
+<span class="line" id="L188"></span>
+<span class="line" id="L189">    <span class="tok-kw">try</span> expect(expected_value.eq(actual_value));</span>
+<span class="line" id="L190">}</span>
+<span class="line" id="L191"></span>
 </code></pre></body>
 </html>
