@@ -22,7 +22,7 @@ pub const BuiltinRunner = union(enum) {
     SegmentArena: SegmentArenaBuiltinRunner,
 
     /// Returns the builtin's base
-    pub fn base(self: *Self) usize {
+    pub fn base(self: *const Self) usize {
         return switch (self.*) {
             .Bitwise => |*bitwise| bitwise.get_base(),
             .EcOp => |*ec| ec.get_base(),

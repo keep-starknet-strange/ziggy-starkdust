@@ -33,7 +33,7 @@ pub const HashBuiltinRunner = struct {
         };
     }
 
-    pub fn get_base(self: *Self) usize {
+    pub fn get_base(self: *const Self) usize {
         return self.base;
     }
 };

@@ -26,7 +26,7 @@ pub const SegmentArenaBuiltinRunner = struct {
         };
     }
 
-    pub fn get_base(self: *Self) usize {
+    pub fn get_base(self: *const Self) usize {
         return @as(
             usize,
             self.base.segment_index,

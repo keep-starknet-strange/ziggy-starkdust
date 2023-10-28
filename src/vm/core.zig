@@ -15,6 +15,7 @@ const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
 const BuiltinRunner = @import("./builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
 const bitwise = @import("./builtins/bitwise/bitwise.zig");
+const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 
 const HashBuiltinRunner = @import("./builtins/builtin_runner/hash.zig").HashBuiltinRunner;
 
@@ -397,10 +398,9 @@ pub const CairoVM = struct {
         address: relocatable.Relocatable,
     ) CairoVMError!?relocatable.MaybeRelocatable {
         for (self.builtin_runners.items) |builtin| {
-            var mut_builtin = builtin;
             if (@as(
                 u64,
-                mut_builtin.base(),
+                builtin.base(),
             ) == address.segment_index) {
                 return bitwise.deduce(
                     address,
@@ -457,16 +457,43 @@ test "CairoVM: deduce_memory_cell no pedersen builtin" {
     );
 }
 
-// test "CairoVM: deduce_memory_cell pedersen builtin valid" {
-//     var vm = try CairoVM.init(std.testing.allocator, .{});
-//     defer vm.deinit();
-//     const builtin = BuiltinRunner{ .Hash = HashBuiltinRunner.new(
-//         std.testing.allocator,
-//         8,
-//         true,
-//     ) };
-//     try vm.builtin_runners.append(builtin);
-// }
+test "CairoVM: deduce_memory_cell pedersen builtin valid" {
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+    try vm.builtin_runners.append(BuiltinRunner{ .Hash = HashBuiltinRunner.new(
+        std.testing.allocator,
+        8,
+        true,
+    ) });
+    try vm.segments.memory.set(
+        relocatable.Relocatable.new(
+            0,
+            5,
+        ),
+        relocatable.fromFelt(Felt252.fromInteger(10)),
+    );
+    try vm.segments.memory.set(
+        relocatable.Relocatable.new(
+            0,
+            6,
+        ),
+        relocatable.fromFelt(Felt252.fromInteger(12)),
+    );
+    try vm.segments.memory.set(
+        relocatable.Relocatable.new(
+            0,
+            7,
+        ),
+        relocatable.fromFelt(Felt252.fromInteger(0)),
+    );
+    try expectEqual(
+        relocatable.MaybeRelocatable{ .felt = Felt252.fromInteger(8) },
+        (try vm.deduce_memory_cell(relocatable.Relocatable.new(
+            0,
+            7,
+        ))).?,
+    );
+}
 
 test "update pc regular no imm" {
 
