@@ -358,49 +358,6 @@ pub const CairoVM = struct {
         }
     }
 
-    /// Attempts to deduce `op1` and `res` for an instruction, given `dst` and `op0`.
-    ///
-    /// # Arguments
-    /// - `inst`: The instruction to deduce `op1` and `res` for.
-    /// - `dst`: The destination of the instruction.
-    /// - `op0`: The first operand of the instruction.
-    ///
-    /// # Returns
-    /// - `Tuple`: A tuple containing the deduced `op1` and `res`.
-    fn deduce_op1(
-        self: *const CairoVM,
-        inst: *const instructions.Instruction,
-        dst: ?*const relocatable.MaybeRelocatable,
-        op0: ?*const relocatable.MaybeRelocatable,
-    ) !std.meta.Tuple(&[_]type{ ?relocatable.MaybeRelocatable, ?relocatable.MaybeRelocatable }) {
-        _ = self;
-
-        if (inst.opcode != .AssertEq) {
-            return .{ null, null };
-        }
-
-        switch (inst.res_logic) {
-            .Op1 => if (dst) |dst_val| {
-                return .{ dst_val.*, dst_val.* };
-            },
-            .Add => if (dst != null and op0 != null) {
-                return .{ try dst.?.sub(op0.?.*), dst.?.* };
-            },
-            .Mul => {
-                if (dst == null or op0 == null)
-                    return .{ null, null };
-                if (dst.?.isRelocatable() or op0.?.isRelocatable())
-                    return .{ null, null };
-                if (op0.?.felt.isZero())
-                    return .{ null, null };
-                return .{ relocatable.fromFelt(try dst.?.felt.div(op0.?.felt)), dst.?.* };
-            },
-            else => {},
-        }
-
-        return .{ null, null };
-    }
-
     // ************************************************************
     // *                    ACCESSORS                             *
     // ************************************************************
@@ -523,6 +480,46 @@ pub fn mulOperands(
 
     // Multiply the felts and return as a new felt wrapped in a relocatable
     return relocatable.fromFelt(op_0_felt.mul(op_1_felt));
+}
+
+/// Attempts to deduce `op1` and `res` for an instruction, given `dst` and `op0`.
+///
+/// # Arguments
+/// - `inst`: The instruction to deduce `op1` and `res` for.
+/// - `dst`: The destination of the instruction.
+/// - `op0`: The first operand of the instruction.
+///
+/// # Returns
+/// - `Tuple`: A tuple containing the deduced `op1` and `res`.
+pub fn deduce_op1(
+    inst: *const instructions.Instruction,
+    dst: ?*const relocatable.MaybeRelocatable,
+    op0: ?*const relocatable.MaybeRelocatable,
+) !std.meta.Tuple(&[_]type{ ?relocatable.MaybeRelocatable, ?relocatable.MaybeRelocatable }) {
+    if (inst.opcode != .AssertEq) {
+        return .{ null, null };
+    }
+
+    switch (inst.res_logic) {
+        .Op1 => if (dst) |dst_val| {
+            return .{ dst_val.*, dst_val.* };
+        },
+        .Add => if (dst != null and op0 != null) {
+            return .{ try dst.?.sub(op0.?.*), dst.?.* };
+        },
+        .Mul => {
+            if (dst == null or op0 == null)
+                return .{ null, null };
+            if (dst.?.isRelocatable() or op0.?.isRelocatable())
+                return .{ null, null };
+            if (op0.?.felt.isZero())
+                return .{ null, null };
+            return .{ relocatable.fromFelt(try dst.?.felt.div(op0.?.felt)), dst.?.* };
+        },
+        else => {},
+    }
+
+    return .{ null, null };
 }
 
 // *****************************************************************************
@@ -1179,9 +1176,7 @@ test "deduce_op1 when opcode == .AssertEq, input is felt" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
-    var allocator = std.testing.allocator;
-    var vm = try CairoVM.init(allocator, .{});
-    defer vm.deinit();
+    // Nothing.
 
     // ************************************************************
     // *                      TEST BODY                           *
@@ -1202,7 +1197,7 @@ test "deduce_op1 when opcode == .AssertEq, input is felt" {
 
     const dst = relocatable.fromU64(3);
     const op0 = relocatable.fromU64(2);
-    const op1_and_result = try vm.deduce_op1(&instruction, &dst, &op0);
+    const op1_and_result = try deduce_op1(&instruction, &dst, &op0);
     const op1 = op1_and_result[0];
     const res = op1_and_result[1];
 
@@ -1217,9 +1212,7 @@ test "deduce_op1 when opcode == .AssertEq, res_logic == .Mul, non-zero op0" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
-    var allocator = std.testing.allocator;
-    var vm = try CairoVM.init(allocator, .{});
-    defer vm.deinit();
+    // Nothing.
 
     // ************************************************************
     // *                      TEST BODY                           *
@@ -1240,7 +1233,7 @@ test "deduce_op1 when opcode == .AssertEq, res_logic == .Mul, non-zero op0" {
 
     const dst = relocatable.fromU64(4);
     const op0 = relocatable.fromU64(2);
-    const op1_and_result = try vm.deduce_op1(&instruction, &dst, &op0);
+    const op1_and_result = try deduce_op1(&instruction, &dst, &op0);
     const op1 = op1_and_result[0];
     const res = op1_and_result[1];
 
@@ -1255,9 +1248,7 @@ test "deduce_op1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
-    var allocator = std.testing.allocator;
-    var vm = try CairoVM.init(allocator, .{});
-    defer vm.deinit();
+    // Nothing.
 
     // ************************************************************
     // *                      TEST BODY                           *
@@ -1278,7 +1269,7 @@ test "deduce_op1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
 
     const dst = relocatable.fromU64(4);
     const op0 = relocatable.fromU64(0);
-    const op1_and_result = try vm.deduce_op1(&instruction, &dst, &op0);
+    const op1_and_result = try deduce_op1(&instruction, &dst, &op0);
     const op1 = op1_and_result[0];
     const res = op1_and_result[1];
 
@@ -1293,9 +1284,7 @@ test "deduce_op1 when opcode == .AssertEq, res_logic = .Mul, no input" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
-    var allocator = std.testing.allocator;
-    var vm = try CairoVM.init(allocator, .{});
-    defer vm.deinit();
+    // Nothing.
 
     // ************************************************************
     // *                      TEST BODY                           *
@@ -1314,7 +1303,7 @@ test "deduce_op1 when opcode == .AssertEq, res_logic = .Mul, no input" {
         .opcode = .AssertEq,
     };
 
-    const op1_and_result = try vm.deduce_op1(&instruction, null, null);
+    const op1_and_result = try deduce_op1(&instruction, null, null);
     const op1 = op1_and_result[0];
     const res = op1_and_result[1];
 
@@ -1329,9 +1318,7 @@ test "deduce_op1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
-    var allocator = std.testing.allocator;
-    var vm = try CairoVM.init(allocator, .{});
-    defer vm.deinit();
+    // Nothing.
 
     // ************************************************************
     // *                      TEST BODY                           *
@@ -1351,7 +1338,7 @@ test "deduce_op1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
     };
 
     const op0 = relocatable.fromU64(0);
-    const op1_and_result = try vm.deduce_op1(&instruction, null, &op0);
+    const op1_and_result = try deduce_op1(&instruction, null, &op0);
     const op1 = op1_and_result[0];
     const res = op1_and_result[1];
 
@@ -1366,9 +1353,7 @@ test "deduce_op1 when opcode == .AssertEq, res_logic == .Op1, no op0" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
-    var allocator = std.testing.allocator;
-    var vm = try CairoVM.init(allocator, .{});
-    defer vm.deinit();
+    // Nothing/
 
     // ************************************************************
     // *                      TEST BODY                           *
@@ -1388,7 +1373,7 @@ test "deduce_op1 when opcode == .AssertEq, res_logic == .Op1, no op0" {
     };
 
     const dst = relocatable.fromU64(7);
-    const op1_and_result = try vm.deduce_op1(&instruction, &dst, null);
+    const op1_and_result = try deduce_op1(&instruction, &dst, null);
     const op1 = op1_and_result[0];
     const res = op1_and_result[1];
 
