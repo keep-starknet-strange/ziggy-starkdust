@@ -371,7 +371,12 @@ pub const CairoVM = struct {
     /// # Returns
     ///
     /// - `Tuple`: A tuple containing the deduced `op1` and `res`.
-    fn deduce_op1(self: *const CairoVM, inst: *const instructions.Instruction, dst: ?*const relocatable.MaybeRelocatable, op0: ?*const relocatable.MaybeRelocatable) !std.meta.Tuple(&[_]type{ ?relocatable.MaybeRelocatable, ?relocatable.MaybeRelocatable }) {
+    fn deduce_op1(
+        self: *const CairoVM,
+        inst: *const instructions.Instruction,
+        dst: ?*const relocatable.MaybeRelocatable,
+        op0: ?*const relocatable.MaybeRelocatable,
+    ) !std.meta.Tuple(&[_]type{ ?relocatable.MaybeRelocatable, ?relocatable.MaybeRelocatable }) {
         _ = self;
 
         if (inst.opcode != .AssertEq) {
@@ -1171,6 +1176,177 @@ test "deduce_op1 when opcode == .Call" {
 
     try expectEqual(op1, null);
     try expectEqual(result, null);
+}
+
+test "deduce_op1 when opcode == .AssertEq, input is felt" {
+    const instruction = instructions.Instruction{
+        .off_0 = 1,
+        .off_1 = 2,
+        .off_2 = 3,
+        .dst_reg = .FP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Jump,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .AssertEq,
+    };
+
+    var allocator = std.testing.allocator;
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    const dst = relocatable.fromU64(3);
+    const op0 = relocatable.fromU64(2);
+
+    const op1_and_result = try vm.deduce_op1(&instruction, &dst, &op0);
+    const op1 = op1_and_result[0];
+    const res = op1_and_result[1];
+
+    try expect(op1.?.eq(relocatable.fromU64(1)));
+    try expect(res.?.eq(relocatable.fromU64(3)));
+}
+
+test "deduce_op1 when opcode == .AssertEq, res * non-zero op0" {
+    const instruction = instructions.Instruction{
+        .off_0 = 1,
+        .off_1 = 2,
+        .off_2 = 3,
+        .dst_reg = .FP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Jump,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .AssertEq,
+    };
+
+    var allocator = std.testing.allocator;
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    const dst = relocatable.fromU64(4);
+    const op0 = relocatable.fromU64(2);
+    const op1_and_result = try vm.deduce_op1(&instruction, &dst, &op0);
+    const op1 = op1_and_result[0];
+    const res = op1_and_result[1];
+
+    try expect(op1.?.eq(relocatable.fromU64(2)));
+    try expect(res.?.eq(relocatable.fromU64(4)));
+}
+
+test "deduce_op1 when opcode == .AssertEq, res * 0" {
+    const instruction = instructions.Instruction{
+        .off_0 = 1,
+        .off_1 = 2,
+        .off_2 = 3,
+        .dst_reg = .FP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Jump,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .AssertEq,
+    };
+
+    var allocator = std.testing.allocator;
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    const dst = relocatable.fromU64(4);
+    const op0 = relocatable.fromU64(0);
+    const op1_and_result = try vm.deduce_op1(&instruction, &dst, &op0);
+    const op1 = op1_and_result[0];
+    const res = op1_and_result[1];
+
+    try expectEqual(op1, null);
+    try expectEqual(res, null);
+}
+
+test "deduce_op1 when opcode == .AssertEq, no input" {
+    const instruction = instructions.Instruction{
+        .off_0 = 1,
+        .off_1 = 2,
+        .off_2 = 3,
+        .dst_reg = .FP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Jump,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .AssertEq,
+    };
+
+    var allocator = std.testing.allocator;
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    const op1_and_result = try vm.deduce_op1(&instruction, null, null);
+    const op1 = op1_and_result[0];
+    const res = op1_and_result[1];
+
+    try expectEqual(op1, null);
+    try expectEqual(res, null);
+}
+
+test "deduce_op1 when opcode == .AssertEq, no dst" {
+    const instruction = instructions.Instruction{
+        .off_0 = 1,
+        .off_1 = 2,
+        .off_2 = 3,
+        .dst_reg = .FP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Jump,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .AssertEq,
+    };
+
+    var allocator = std.testing.allocator;
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    const op0 = relocatable.fromU64(0);
+    const op1_and_result = try vm.deduce_op1(&instruction, null, &op0);
+    const op1 = op1_and_result[0];
+    const res = op1_and_result[1];
+
+    try expectEqual(op1, null);
+    try expectEqual(res, null);
+}
+
+test "deduce_op1 when opcode == .AssertEq, no op1" {
+    const instruction = instructions.Instruction{
+        .off_0 = 1,
+        .off_1 = 2,
+        .off_2 = 3,
+        .dst_reg = .FP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Jump,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .AssertEq,
+    };
+
+    var allocator = std.testing.allocator;
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    const dst = relocatable.fromU64(7);
+    const op1_and_result = try vm.deduce_op1(&instruction, &dst, null);
+    const op1 = op1_and_result[0];
+    const res = op1_and_result[1];
+
+    try expect(op1.?.eq(relocatable.fromU64(7)));
+    try expect(res.?.eq(relocatable.fromU64(7)));
 }
 
 test "set get value in vm memory" {
