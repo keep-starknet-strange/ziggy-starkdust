@@ -558,7 +558,10 @@ test "CairoVM: deduce_memory_cell no pedersen builtin" {
     defer vm.deinit();
     try expectEqual(
         @as(?relocatable.MaybeRelocatable, null),
-        try vm.deduce_memory_cell(relocatable.Relocatable.default()),
+        try vm.deduce_memory_cell(relocatable.Relocatable.new(
+            0,
+            0,
+        )),
     );
 }
 
