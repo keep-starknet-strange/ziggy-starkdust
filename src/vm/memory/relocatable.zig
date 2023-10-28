@@ -247,10 +247,7 @@ pub const MaybeRelocatable = union(enum) {
     /// # Returns
     /// true if the MaybeRelocatable is a relocatable, false otherwise.
     pub fn isRelocatable(self: MaybeRelocatable) bool {
-        return switch (self) {
-            .relocatable => true,
-            .felt => false,
-        };
+        return std.meta.activeTag(self) == .relocatable;
     }
 
     /// Returns whether the MaybeRelocatable is a felt or not.
@@ -259,10 +256,7 @@ pub const MaybeRelocatable = union(enum) {
     ///
     /// `true` if the MaybeRelocatable is a felt, `false` otherwise.
     pub fn isFelt(self: MaybeRelocatable) bool {
-        return switch (self) {
-            .relocatable => false,
-            .felt => true,
-        };
+        return std.meta.activeTag(self) == .felt;
     }
 };
 

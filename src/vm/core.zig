@@ -1173,9 +1173,10 @@ test "deduceOp1 when opcode == .Call" {
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
-
-    try expectEqual(null, op1);
-    try expectEqual(null, res);
+    const expectedOp1: ?MaybeRelocatable = null; // temp var needed for type inference
+    const expectedRes: ?MaybeRelocatable = null;
+    try expectEqual(expectedOp1, op1);
+    try expectEqual(expectedRes, res);
 }
 
 test "deduceOp1 when opcode == .AssertEq, res_logic == .Add, input is felt" {
@@ -1255,8 +1256,10 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
-    try expectEqual(null, op1);
-    try expectEqual(null, res);
+    const expectedOp1: ?MaybeRelocatable = null; // temp var needed for type inference
+    const expectedRes: ?MaybeRelocatable = null;
+    try expectEqual(expectedOp1, op1);
+    try expectEqual(expectedRes, res);
 }
 
 test "deduceOp1 when opcode == .AssertEq, res_logic = .Mul, no input" {
@@ -1279,8 +1282,10 @@ test "deduceOp1 when opcode == .AssertEq, res_logic = .Mul, no input" {
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
-    try expectEqual(null, op1);
-    try expectEqual(null, res);
+    const expectedOp1: ?MaybeRelocatable = null; // temp var needed for type inference
+    const expectedRes: ?MaybeRelocatable = null;
+    try expectEqual(expectedOp1, op1);
+    try expectEqual(expectedRes, res);
 }
 
 test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
@@ -1305,8 +1310,10 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
-    try expectEqual(null, op1);
-    try expectEqual(null, res);
+    const expectedOp1: ?MaybeRelocatable = null; // temp var needed for type inference
+    const expectedRes: ?MaybeRelocatable = null;
+    try expectEqual(expectedOp1, op1);
+    try expectEqual(expectedRes, res);
 }
 
 test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no op0" {
