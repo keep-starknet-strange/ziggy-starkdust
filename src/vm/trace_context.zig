@@ -10,19 +10,23 @@ const Relocatable = @import("./memory/relocatable.zig").Relocatable;
 /// It's either something, or nothing. But no tag is kept around to remember which one it is. This
 /// "memory" comes from dynamic dispatch.
 const State = union {
+    const Self = @This();
+
     enabled: TraceEnabled,
     disabled: TraceDisabled,
 
     /// A function that records a new entry in the tracing context.
-    const TraceInstructionFn = fn (state: *State, entry: TraceContext.Entry) Allocator.Error!void;
+    const TraceInstructionFn = fn (state: *Self, entry: TraceContext.Entry) Allocator.Error!void;
     /// A function that frees the resources owned by the tracing context.
-    const DeinitFn = fn (state: *State) void;
+    const DeinitFn = fn (state: *Self) void;
 };
 
 /// Contains the state required to trace the execution of the Cairo VM.
 ///
 /// This includes a big array with `TraceEntry` instances.
 pub const TraceContext = struct {
+    const Self = @This();
+
     /// An entry recorded representing the state of the VM at a given point in time.
     pub const Entry = struct {
         pc: *Relocatable,
@@ -58,7 +62,7 @@ pub const TraceContext = struct {
     /// # Errors
     ///
     /// Fails in case of memory allocation errors.
-    pub fn init(allocator: Allocator, enable: bool) !TraceContext {
+    pub fn init(allocator: Allocator, enable: bool) !Self {
         var state: State = undefined;
         var traceInstructionFn: *const State.TraceInstructionFn = undefined;
         var deinitFn: *const State.DeinitFn = undefined;
@@ -81,27 +85,29 @@ pub const TraceContext = struct {
     }
 
     /// Frees the resources owned by this instance of `TraceContext`.
-    pub fn deinit(self: *TraceContext) void {
+    pub fn deinit(self: *Self) void {
         self.deinitFn(&self.state);
     }
 
     /// Records a new entry in the tracing context.
-    pub fn traceInstruction(self: *TraceContext, entry: TraceContext.Entry) !void {
+    pub fn traceInstruction(self: *Self, entry: Self.Entry) !void {
         try self.traceInstructionFn(&self.state, entry);
     }
 
     /// Returns whether tracing is enabled.
-    pub fn isEnabled(self: *const TraceContext) bool {
+    pub fn isEnabled(self: *const Self) bool {
         return self.traceInstructionFn == TraceEnabled.traceInstruction;
     }
 };
 
 /// The state of the tracing system when it's enabled.
 const TraceEnabled = struct {
+    const Self = @This();
+
     /// The entries that have been recorded so far.
     entries: ArrayList(TraceContext.Entry),
 
-    fn init(allocator: Allocator) !TraceEnabled {
+    fn init(allocator: Allocator) !Self {
         return .{
             .entries = try ArrayList(TraceContext.Entry).initCapacity(
                 allocator,

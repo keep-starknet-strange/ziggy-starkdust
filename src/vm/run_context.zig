@@ -10,6 +10,8 @@ const Instruction = @import("instructions.zig").Instruction;
 
 /// Contains the register states of the Cairo VM.
 pub const RunContext = struct {
+    const Self = @This();
+
     /// The allocator used to allocate the memory for the run context.
     allocator: Allocator,
     /// Program counter (pc) contains the address in memory of the current Cairo
@@ -37,17 +39,17 @@ pub const RunContext = struct {
     /// - The initialized run context.
     /// # Errors
     /// - If a memory allocation fails.
-    pub fn init(allocator: Allocator) !*RunContext {
-        var run_context = try allocator.create(RunContext);
-        run_context.* = RunContext{
+    pub fn init(allocator: Allocator) !*Self {
+        var run_context = try allocator.create(Self);
+        run_context.* = Self{
             .allocator = allocator,
             .pc = try allocator.create(Relocatable),
             .ap = try allocator.create(Relocatable),
             .fp = try allocator.create(Relocatable),
         };
-        run_context.pc.* = Relocatable.default();
-        run_context.ap.* = Relocatable.default();
-        run_context.fp.* = Relocatable.default();
+        run_context.pc.* = .{};
+        run_context.ap.* = .{};
+        run_context.fp.* = .{};
         return run_context;
     }
 
@@ -66,8 +68,8 @@ pub const RunContext = struct {
         pc: Relocatable,
         ap: Relocatable,
         fp: Relocatable,
-    ) !*RunContext {
-        var run_context = try RunContext.init(allocator);
+    ) !*Self {
+        var run_context = try Self.init(allocator);
         run_context.pc.* = pc;
         run_context.ap.* = ap;
         run_context.fp.* = fp;
@@ -75,7 +77,7 @@ pub const RunContext = struct {
     }
 
     /// Safe deallocation of the memory.
-    pub fn deinit(self: *RunContext) void {
+    pub fn deinit(self: *Self) void {
         // Deallocate fields.
         self.allocator.destroy(self.pc);
         self.allocator.destroy(self.ap);
@@ -90,7 +92,7 @@ pub const RunContext = struct {
     /// # Returns
     /// - The computed dst address.
     pub fn compute_dst_addr(
-        self: *RunContext,
+        self: *Self,
         instruction: *const Instruction,
     ) !Relocatable {
         var base_addr = switch (instruction.dst_reg) {
@@ -109,7 +111,7 @@ pub const RunContext = struct {
             // Convert i16 to u64 safely
             const offset = @as(
                 u64,
-                @intCast(instruction.off_2),
+                @intCast(instruction.off_0),
             );
             return try base_addr.addUint(offset);
         }
@@ -121,7 +123,7 @@ pub const RunContext = struct {
     /// # Returns
     /// - The computed OP 0 address.
     pub fn compute_op_0_addr(
-        self: *RunContext,
+        self: *Self,
         instruction: *const Instruction,
     ) !Relocatable {
         var base_addr = switch (instruction.op_0_reg) {
@@ -152,7 +154,7 @@ pub const RunContext = struct {
     /// # Returns
     /// - The computed OP 1 address.
     pub fn compute_op_1_addr(
-        self: *RunContext,
+        self: *Self,
         instruction: *const Instruction,
         op_0: ?MaybeRelocatable,
     ) !Relocatable {

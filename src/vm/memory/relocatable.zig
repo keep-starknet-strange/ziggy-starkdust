@@ -7,20 +7,12 @@ const CairoVMError = @import("../error.zig").CairoVMError;
 // these values are replaced by real memory addresses,
 // represented by a field element.
 pub const Relocatable = struct {
-    // The index of the memory segment.
-    segment_index: u64,
-    // The offset in the memory segment.
-    offset: u64,
+    const Self = @This();
 
-    // Creates a new Relocatable with the default values.
-    // # Returns
-    // A new Relocatable with the default values.
-    pub fn default() Relocatable {
-        return .{
-            .segment_index = 0,
-            .offset = 0,
-        };
-    }
+    // The index of the memory segment.
+    segment_index: u64 = 0,
+    // The offset in the memory segment.
+    offset: u64 = 0,
 
     // Creates a new Relocatable.
     // # Arguments
@@ -31,7 +23,7 @@ pub const Relocatable = struct {
     pub fn new(
         segment_index: u64,
         offset: u64,
-    ) Relocatable {
+    ) Self {
         return .{
             .segment_index = segment_index,
             .offset = offset,
@@ -44,8 +36,8 @@ pub const Relocatable = struct {
     // # Returns
     // `true` if they are equal, `false` otherwise.
     pub fn eq(
-        self: Relocatable,
-        other: Relocatable,
+        self: Self,
+        other: Self,
     ) bool {
         return self.segment_index == other.segment_index and self.offset == other.offset;
     }
@@ -56,9 +48,9 @@ pub const Relocatable = struct {
     // # Returns
     // A new Relocatable.
     pub fn subUint(
-        self: Relocatable,
+        self: Self,
         other: u64,
-    ) !Relocatable {
+    ) !Self {
         if (self.offset < other) {
             return error.RelocatableSubUsizeNegOffset;
         }
@@ -74,9 +66,9 @@ pub const Relocatable = struct {
     // # Returns
     // A new Relocatable.
     pub fn addUint(
-        self: Relocatable,
+        self: Self,
         other: u64,
-    ) !Relocatable {
+    ) !Self {
         return .{
             .segment_index = self.segment_index,
             .offset = self.offset + other,
@@ -88,7 +80,7 @@ pub const Relocatable = struct {
     /// - self: Pointer to the Relocatable object to modify.
     /// - other: The u64 to add to `self.offset`.
     pub fn addUintInPlace(
-        self: *Relocatable,
+        self: *Self,
         other: u64,
     ) void {
         // Modify the offset of the existing Relocatable object
@@ -101,9 +93,9 @@ pub const Relocatable = struct {
     // # Returns
     // A new Relocatable.
     pub fn addInt(
-        self: Relocatable,
+        self: Self,
         other: i64,
-    ) !Relocatable {
+    ) !Self {
         if (other < 0) {
             return self.subUint(@as(u64, @intCast(
                 -other,
@@ -119,7 +111,7 @@ pub const Relocatable = struct {
     /// - self: Pointer to the Relocatable object to modify.
     /// - other: The felt to add to `self.offset`.
     pub fn addFeltInPlace(
-        self: *Relocatable,
+        self: *Self,
         other: Felt252,
     ) !void {
         const new_offset_felt = Felt252.fromInteger(@as(
@@ -134,7 +126,7 @@ pub const Relocatable = struct {
     /// # Arguments
     /// - other - The other MaybeRelocatable to add.
     pub fn addMaybeRelocatableInplace(
-        self: *Relocatable,
+        self: *Self,
         other: MaybeRelocatable,
     ) !void {
         const other_as_felt = try other.tryIntoFelt();
@@ -145,6 +137,8 @@ pub const Relocatable = struct {
 // MaybeRelocatable is the type of the memory cells in the Cairo
 // VM. It can either be a Relocatable or a field element.
 pub const MaybeRelocatable = union(enum) {
+    const Self = @This();
+
     relocatable: Relocatable,
     felt: Felt252,
 
@@ -160,8 +154,8 @@ pub const MaybeRelocatable = union(enum) {
     ///   * `true` if the two instances are equal.
     ///   * `false` otherwise.
     pub fn eq(
-        self: MaybeRelocatable,
-        other: MaybeRelocatable,
+        self: Self,
+        other: Self,
     ) bool {
         // Switch on the type of `self`
         return switch (self) {
@@ -185,7 +179,7 @@ pub const MaybeRelocatable = union(enum) {
     /// Return the value of the MaybeRelocatable as a felt or error.
     /// # Returns
     /// The value of the MaybeRelocatable as a Relocatable felt or error.
-    pub fn tryIntoFelt(self: MaybeRelocatable) error{TypeMismatchNotFelt}!Felt252 {
+    pub fn tryIntoFelt(self: Self) error{TypeMismatchNotFelt}!Felt252 {
         return switch (self) {
             .relocatable => CairoVMError.TypeMismatchNotFelt,
             .felt => |felt| felt,
@@ -195,7 +189,7 @@ pub const MaybeRelocatable = union(enum) {
     /// Return the value of the MaybeRelocatable as a felt or error.
     /// # Returns
     /// The value of the MaybeRelocatable as a Relocatable felt or error.
-    pub fn tryIntoU64(self: MaybeRelocatable) error{
+    pub fn tryIntoU64(self: Self) error{
         TypeMismatchNotFelt,
         ValueTooLarge,
     }!u64 {
@@ -208,7 +202,7 @@ pub const MaybeRelocatable = union(enum) {
     /// Return the value of the MaybeRelocatable as a Relocatable.
     /// # Returns
     /// The value of the MaybeRelocatable as a Relocatable.
-    pub fn tryIntoRelocatable(self: MaybeRelocatable) !Relocatable {
+    pub fn tryIntoRelocatable(self: Self) !Relocatable {
         return switch (self) {
             .relocatable => |relocatable| relocatable,
             .felt => error.TypeMismatchNotRelocatable,
@@ -218,10 +212,20 @@ pub const MaybeRelocatable = union(enum) {
     /// Whether the MaybeRelocatable is zero or not.
     /// # Returns
     /// true if the MaybeRelocatable is zero, false otherwise.
-    pub fn isZero(self: MaybeRelocatable) bool {
+    pub fn isZero(self: Self) bool {
         return switch (self) {
             .relocatable => false,
             .felt => |felt| felt.isZero(),
+        };
+    }
+
+    /// Whether the MaybeRelocatable is a relocatable or not.
+    /// # Returns
+    /// true if the MaybeRelocatable is a relocatable, false otherwise.
+    pub fn isRelocatable(self: Self) bool {
+        return switch (self) {
+            .relocatable => true,
+            .felt => false,
         };
     }
 };

@@ -8,6 +8,7 @@ const Memory = @import("../../memory/memory.zig").Memory;
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
 const fromFelt = @import("../../memory/relocatable.zig").fromFelt;
+const fromU256 = @import("../../memory/relocatable.zig").fromU256;
 const newFromRelocatable = @import("../../memory/relocatable.zig").newFromRelocatable;
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
 
@@ -144,7 +145,10 @@ test "deduce when address points to felt greater than BITWISE_TOTAL_N_BITS" {
     // when
     var address = Relocatable.new(0, 3);
 
-    try mem.set(Relocatable.new(0, 0), fromFelt(Felt252.fromInteger(number)));
+    try mem.set(Relocatable.new(
+        0,
+        0,
+    ), fromU256(number));
 
     // then
     try expectError(Error.UnsupportedNumberOfBits, deduce(address, mem));
@@ -159,9 +163,9 @@ test "valid bitwise and" {
     defer mem.deinit();
 
     // when
-    try mem.set(Relocatable.new(0, 5), fromFelt(Felt252.fromInteger(10)));
-    try mem.set(Relocatable.new(0, 6), fromFelt(Felt252.fromInteger(12)));
-    try mem.set(Relocatable.new(0, 7), fromFelt(Felt252.fromInteger(0)));
+    try mem.set(Relocatable.new(0, 5), fromU256(10));
+    try mem.set(Relocatable.new(0, 6), fromU256(12));
+    try mem.set(Relocatable.new(0, 7), fromU256(0));
 
     var address = Relocatable.new(0, 7);
     var expected = MaybeRelocatable{ .felt = Felt252.fromInteger(8) };
@@ -179,9 +183,9 @@ test "valid bitwise xor" {
     defer mem.deinit();
 
     // when
-    try mem.set(Relocatable.new(0, 5), fromFelt(Felt252.fromInteger(10)));
-    try mem.set(Relocatable.new(0, 6), fromFelt(Felt252.fromInteger(12)));
-    try mem.set(Relocatable.new(0, 8), fromFelt(Felt252.fromInteger(0)));
+    try mem.set(Relocatable.new(0, 5), fromU256(10));
+    try mem.set(Relocatable.new(0, 6), fromU256(12));
+    try mem.set(Relocatable.new(0, 8), fromU256(0));
 
     var address = Relocatable.new(0, 8);
     var expected = MaybeRelocatable{ .felt = Felt252.fromInteger(6) };
@@ -199,9 +203,9 @@ test "valid bitwise or" {
     defer mem.deinit();
 
     // when
-    try mem.set(Relocatable.new(0, 5), fromFelt(Felt252.fromInteger(10)));
-    try mem.set(Relocatable.new(0, 6), fromFelt(Felt252.fromInteger(12)));
-    try mem.set(Relocatable.new(0, 9), fromFelt(Felt252.fromInteger(0)));
+    try mem.set(Relocatable.new(0, 5), fromU256(10));
+    try mem.set(Relocatable.new(0, 6), fromU256(12));
+    try mem.set(Relocatable.new(0, 9), fromU256(0));
 
     var address = Relocatable.new(0, 9);
     var expected = MaybeRelocatable{ .felt = Felt252.fromInteger(14) };
