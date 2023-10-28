@@ -491,7 +491,7 @@ pub fn mulOperands(
 ///
 /// # Returns
 /// - `Tuple`: A tuple containing the deduced `op1` and `res`.
-pub fn deduce_op1(
+pub fn deduceOp1(
     inst: *const instructions.Instruction,
     dst: ?*const relocatable.MaybeRelocatable,
     op0: ?*const relocatable.MaybeRelocatable,
@@ -1136,7 +1136,7 @@ test "trace is disabled" {
     }
 }
 
-test "deduce_op1 when opcode == .Call" {
+test "deduceOp1 when opcode == .Call" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
@@ -1161,7 +1161,7 @@ test "deduce_op1 when opcode == .Call" {
         .opcode = .Call,
     };
 
-    const op1_and_result = try deduce_op1(&instruction, null, null);
+    const op1_and_result = try deduceOp1(&instruction, null, null);
     const op1 = op1_and_result[0];
     const result = op1_and_result[1];
 
@@ -1172,7 +1172,7 @@ test "deduce_op1 when opcode == .Call" {
     try expectEqual(result, null);
 }
 
-test "deduce_op1 when opcode == .AssertEq, input is felt" {
+test "deduceOp1 when opcode == .AssertEq, input is felt" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
@@ -1197,7 +1197,7 @@ test "deduce_op1 when opcode == .AssertEq, input is felt" {
 
     const dst = relocatable.fromU64(3);
     const op0 = relocatable.fromU64(2);
-    const op1_and_result = try deduce_op1(&instruction, &dst, &op0);
+    const op1_and_result = try deduceOp1(&instruction, &dst, &op0);
     const op1 = op1_and_result[0];
     const res = op1_and_result[1];
 
@@ -1208,7 +1208,7 @@ test "deduce_op1 when opcode == .AssertEq, input is felt" {
     try expect(res.?.eq(relocatable.fromU64(3)));
 }
 
-test "deduce_op1 when opcode == .AssertEq, res_logic == .Mul, non-zero op0" {
+test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, non-zero op0" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
@@ -1233,7 +1233,7 @@ test "deduce_op1 when opcode == .AssertEq, res_logic == .Mul, non-zero op0" {
 
     const dst = relocatable.fromU64(4);
     const op0 = relocatable.fromU64(2);
-    const op1_and_result = try deduce_op1(&instruction, &dst, &op0);
+    const op1_and_result = try deduceOp1(&instruction, &dst, &op0);
     const op1 = op1_and_result[0];
     const res = op1_and_result[1];
 
@@ -1244,7 +1244,7 @@ test "deduce_op1 when opcode == .AssertEq, res_logic == .Mul, non-zero op0" {
     try expect(res.?.eq(relocatable.fromU64(4)));
 }
 
-test "deduce_op1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
+test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
@@ -1269,7 +1269,7 @@ test "deduce_op1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
 
     const dst = relocatable.fromU64(4);
     const op0 = relocatable.fromU64(0);
-    const op1_and_result = try deduce_op1(&instruction, &dst, &op0);
+    const op1_and_result = try deduceOp1(&instruction, &dst, &op0);
     const op1 = op1_and_result[0];
     const res = op1_and_result[1];
 
@@ -1280,7 +1280,7 @@ test "deduce_op1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
     try expectEqual(res, null);
 }
 
-test "deduce_op1 when opcode == .AssertEq, res_logic = .Mul, no input" {
+test "deduceOp1 when opcode == .AssertEq, res_logic = .Mul, no input" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
@@ -1303,7 +1303,7 @@ test "deduce_op1 when opcode == .AssertEq, res_logic = .Mul, no input" {
         .opcode = .AssertEq,
     };
 
-    const op1_and_result = try deduce_op1(&instruction, null, null);
+    const op1_and_result = try deduceOp1(&instruction, null, null);
     const op1 = op1_and_result[0];
     const res = op1_and_result[1];
 
@@ -1314,7 +1314,7 @@ test "deduce_op1 when opcode == .AssertEq, res_logic = .Mul, no input" {
     try expectEqual(res, null);
 }
 
-test "deduce_op1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
+test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
@@ -1338,7 +1338,7 @@ test "deduce_op1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
     };
 
     const op0 = relocatable.fromU64(0);
-    const op1_and_result = try deduce_op1(&instruction, null, &op0);
+    const op1_and_result = try deduceOp1(&instruction, null, &op0);
     const op1 = op1_and_result[0];
     const res = op1_and_result[1];
 
@@ -1349,7 +1349,7 @@ test "deduce_op1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
     try expectEqual(res, null);
 }
 
-test "deduce_op1 when opcode == .AssertEq, res_logic == .Op1, no op0" {
+test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no op0" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
@@ -1373,7 +1373,7 @@ test "deduce_op1 when opcode == .AssertEq, res_logic == .Op1, no op0" {
     };
 
     const dst = relocatable.fromU64(7);
-    const op1_and_result = try deduce_op1(&instruction, &dst, null);
+    const op1_and_result = try deduceOp1(&instruction, &dst, null);
     const op1 = op1_and_result[0];
     const res = op1_and_result[1];
 
