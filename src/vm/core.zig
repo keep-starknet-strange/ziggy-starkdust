@@ -214,22 +214,6 @@ pub const CairoVM = struct {
         _ = op_o;
     }
 
-    /// Applies the corresponding builtin's deduction rules if addr's segment index corresponds to a builtin segment
-    /// Returns null if there is no deduction for the address
-    /// # Arguments
-    /// - `address`: The address to deduce.
-    /// # Returns
-    /// - `MaybeRelocatable`: The deduced value.
-    /// TODO: Implement this.
-    pub fn deduceMemoryCell(
-        self: *Self,
-        address: Relocatable,
-    ) !?MaybeRelocatable {
-        _ = address;
-        _ = self;
-        return null;
-    }
-
     /// Updates the value of PC according to the executed instruction.
     /// # Arguments
     /// - `instruction`: The instruction that was executed.
@@ -400,10 +384,16 @@ pub const CairoVM = struct {
         return self.run_context.pc.*;
     }
 
-    pub fn deduce_memory_cell(
+    /// Applies the corresponding builtin's deduction rules if addr's segment index corresponds to a builtin segment
+    /// Returns null if there is no deduction for the address
+    /// # Arguments
+    /// - `address`: The address to deduce.
+    /// # Returns
+    /// - `MaybeRelocatable`: The deduced value.
+    pub fn deduceMemoryCell(
         self: *Self,
-        address: relocatable.Relocatable,
-    ) CairoVMError!?relocatable.MaybeRelocatable {
+        address: Relocatable,
+    ) CairoVMError!?MaybeRelocatable {
         for (self.builtin_runners.items) |builtin_item| {
             if (@as(
                 u64,
@@ -553,19 +543,19 @@ const Op0Result = struct {
 const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
 
-test "CairoVM: deduce_memory_cell no pedersen builtin" {
+test "CairoVM: deduceMemoryCell no pedersen builtin" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
     try expectEqual(
-        @as(?relocatable.MaybeRelocatable, null),
-        try vm.deduce_memory_cell(relocatable.Relocatable.new(
+        @as(?MaybeRelocatable, null),
+        try vm.deduceMemoryCell(Relocatable.new(
             0,
             0,
         )),
     );
 }
 
-test "CairoVM: deduce_memory_cell pedersen builtin valid" {
+test "CairoVM: deduceMemoryCell pedersen builtin valid" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
     try vm.builtin_runners.append(BuiltinRunner{ .Hash = HashBuiltinRunner.new(
@@ -574,29 +564,29 @@ test "CairoVM: deduce_memory_cell pedersen builtin valid" {
         true,
     ) });
     try vm.segments.memory.set(
-        relocatable.Relocatable.new(
+        Relocatable.new(
             0,
             5,
         ),
         relocatable.fromFelt(Felt252.fromInteger(10)),
     );
     try vm.segments.memory.set(
-        relocatable.Relocatable.new(
+        Relocatable.new(
             0,
             6,
         ),
         relocatable.fromFelt(Felt252.fromInteger(12)),
     );
     try vm.segments.memory.set(
-        relocatable.Relocatable.new(
+        Relocatable.new(
             0,
             7,
         ),
         relocatable.fromFelt(Felt252.fromInteger(0)),
     );
     try expectEqual(
-        relocatable.MaybeRelocatable{ .felt = Felt252.fromInteger(8) },
-        (try vm.deduce_memory_cell(relocatable.Relocatable.new(
+        MaybeRelocatable{ .felt = Felt252.fromInteger(8) },
+        (try vm.deduceMemoryCell(Relocatable.new(
             0,
             7,
         ))).?,
