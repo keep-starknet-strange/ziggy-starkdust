@@ -5,7 +5,7 @@ const ARENA_BUILTIN_SIZE: u32 = 3;
 // The size of the builtin segment at the time of its creation.
 const INITIAL_SEGMENT_SIZE: usize = @as(
     usize,
-    ARENA_BUILTIN_SIZE,
+    @intCast(ARENA_BUILTIN_SIZE),
 );
 
 /// Segment Arena built-in runner
