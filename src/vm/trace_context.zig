@@ -63,24 +63,18 @@ pub const TraceContext = struct {
     ///
     /// Fails in case of memory allocation errors.
     pub fn init(allocator: Allocator, enable: bool) !Self {
-        var state: State = undefined;
-        var traceInstructionFn: *const State.TraceInstructionFn = undefined;
-        var deinitFn: *const State.DeinitFn = undefined;
-
         if (enable) {
-            state = State{ .enabled = try TraceEnabled.init(allocator) };
-            traceInstructionFn = TraceEnabled.traceInstruction;
-            deinitFn = TraceEnabled.deinit;
-        } else {
-            state = State{ .disabled = TraceDisabled{} };
-            traceInstructionFn = TraceDisabled.traceInstruction;
-            deinitFn = TraceDisabled.deinit;
+            return .{
+                .state = .{ .enabled = try TraceEnabled.init(allocator) },
+                .traceInstructionFn = TraceEnabled.traceInstruction,
+                .deinitFn = TraceEnabled.deinit,
+            };
         }
 
         return .{
-            .state = state,
-            .traceInstructionFn = traceInstructionFn,
-            .deinitFn = deinitFn,
+            .state = .{ .disabled = .{} },
+            .traceInstructionFn = TraceDisabled.traceInstruction,
+            .deinitFn = TraceDisabled.deinit,
         };
     }
 
