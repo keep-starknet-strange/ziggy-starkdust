@@ -290,15 +290,15 @@ pub const DateTime = struct {
         res += self.ms;
         res += @as(
             u64,
-            self.seconds,
+            @intCast(self.seconds),
         ) * std.time.ms_per_s;
         res += @as(
             u64,
-            self.minutes,
+            @intCast(self.minutes),
         ) * std.time.ms_per_min;
         res += @as(
             u64,
-            self.hours,
+            @intCast(self.hours),
         ) * std.time.ms_per_hour;
         res += self.daysSinceEpoch() * std.time.ms_per_day;
         return res;
