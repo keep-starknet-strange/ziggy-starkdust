@@ -206,11 +206,11 @@ pub const KeccakBuiltinRunner = struct {
     /// a memory access within the segment associated with the Keccak runner's base.
     ///
     /// # Parameters
-    /// - `allocator`: An allocator for initializing the ArrayList.
+    /// - `allocator`: An allocator for initializing the `ArrayList`.
     /// - `vm`: A pointer to the `CairoVM` containing segment information.
     ///
     /// # Returns
-    /// An ArrayList of Relocatable elements.
+    /// An `ArrayList` of `Relocatable` elements.
     pub fn get_memory_accesses(
         self: *Self,
         allocator: Allocator,
