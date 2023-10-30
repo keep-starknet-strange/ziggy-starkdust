@@ -57,7 +57,7 @@ pub const MemorySegmentManager = struct {
     pub fn init(allocator: Allocator) !*Self {
         // Create the pointer to the MemorySegmentManager.
         var segment_manager = try allocator.create(Self);
-        errdefer segment_manager.deinit();
+        errdefer allocator.destroy(segment_manager);
 
         const memory = try Memory.init(allocator);
         errdefer memory.deinit();

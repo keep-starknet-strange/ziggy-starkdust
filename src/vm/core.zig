@@ -67,11 +67,14 @@ pub const CairoVM = struct {
         // Initialize the trace context.
         const trace_context = try TraceContext.init(allocator, config.enable_trace);
         errdefer trace_context.deinit();
+        // Initialize the built-in runners.
+        const builtin_runners = ArrayList(BuiltinRunner).init(allocator);
+        errdefer builtin_runners.deinit();
 
         return Self{
             .allocator = allocator,
             .run_context = run_context,
-            .builtin_runners = ArrayList(BuiltinRunner).init(allocator),
+            .builtin_runners = builtin_runners,
             .segments = memory_segment_manager,
             .is_run_finished = false,
             .trace_context = trace_context,
