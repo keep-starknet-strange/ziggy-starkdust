@@ -597,7 +597,7 @@
 <span class="line" id="L396">        <span class="tok-kw">for</span> (self.builtin_runners.items) |builtin_item| {</span>
 <span class="line" id="L397">            <span class="tok-kw">if</span> (<span class="tok-builtin">@as</span>(</span>
 <span class="line" id="L398">                <span class="tok-type">u64</span>,</span>
-<span class="line" id="L399">                builtin_item.base(),</span>
+<span class="line" id="L399">                <span class="tok-builtin">@intCast</span>(builtin_item.base()),</span>
 <span class="line" id="L400">            ) == address.segment_index) {</span>
 <span class="line" id="L401">                <span class="tok-kw">return</span> builtin.deduce(</span>
 <span class="line" id="L402">                    address,</span>

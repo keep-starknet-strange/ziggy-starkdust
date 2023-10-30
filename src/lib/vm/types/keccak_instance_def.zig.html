@@ -131,9 +131,12 @@
 <span class="line" id="L17"></span>
 <span class="line" id="L18">    <span class="tok-comment">/// Number of cells per built in</span></span>
 <span class="line" id="L19">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">cells_per_builtin</span>(self: *Self) <span class="tok-type">u32</span> {</span>
-<span class="line" id="L20">        <span class="tok-kw">return</span> <span class="tok-number">2</span> * <span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, self._state_rep.items.len);</span>
-<span class="line" id="L21">    }</span>
-<span class="line" id="L22">};</span>
-<span class="line" id="L23"></span>
+<span class="line" id="L20">        <span class="tok-kw">return</span> <span class="tok-number">2</span> * <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L21">            <span class="tok-type">u32</span>,</span>
+<span class="line" id="L22">            <span class="tok-builtin">@intCast</span>(self._state_rep.items.len),</span>
+<span class="line" id="L23">        );</span>
+<span class="line" id="L24">    }</span>
+<span class="line" id="L25">};</span>
+<span class="line" id="L26"></span>
 </code></pre></body>
 </html>

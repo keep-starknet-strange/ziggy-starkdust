@@ -440,7 +440,7 @@
 </span>
 <span class="line" id="L323">            <span class="tok-kw">if</span> (asU256 &gt; <span class="tok-builtin">@as</span>(</span>
 <span class="line" id="L324">                <span class="tok-type">u256</span>,</span>
-<span class="line" id="L325">                std.math.maxInt(<span class="tok-type">u64</span>),</span>
+<span class="line" id="L325">                <span class="tok-builtin">@intCast</span>(std.math.maxInt(<span class="tok-type">u64</span>)),</span>
 <span class="line" id="L326">            )) {</span>
 <span class="line" id="L327">                <span class="tok-kw">return</span> <span class="tok-kw">error</span>.ValueTooLarge;</span>
 <span class="line" id="L328">            }</span>

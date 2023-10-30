@@ -116,8 +116,8 @@
 </span>
 <span class="line" id="L2"><span class="tok-kw">const</span> std = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;std&quot;</span>);</span>
 <span class="line" id="L3"><span class="tok-kw">const</span> Allocator = std.mem.Allocator;</span>
-<span class="line" id="L4"><span class="tok-kw">const</span> expect = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;std&quot;</span>).testing.expect;</span>
-<span class="line" id="L5"><span class="tok-kw">const</span> expectEqual = <span class="tok-builtin">@import</span>(<span class="tok-str">&quot;std&quot;</span>).testing.expectEqual;</span>
+<span class="line" id="L4"><span class="tok-kw">const</span> expect = std.testing.expect;</span>
+<span class="line" id="L5"><span class="tok-kw">const</span> expectEqual = std.testing.expectEqual;</span>
 <span class="line" id="L6"></span>
 <span class="line" id="L7"><span class="tok-comment">// Local imports.</span>
 </span>
@@ -195,7 +195,7 @@
 <span class="line" id="L59">        <span class="tok-kw">var</span> segment_manager = <span class="tok-kw">try</span> allocator.create(Self);</span>
 <span class="line" id="L60">        <span class="tok-comment">// Initialize the values of the MemorySegmentManager struct.</span>
 </span>
-<span class="line" id="L61">        segment_manager.* = Self{</span>
+<span class="line" id="L61">        segment_manager.* = .{</span>
 <span class="line" id="L62">            .allocator = allocator,</span>
 <span class="line" id="L63">            .segment_used_sizes = std.AutoHashMap(</span>
 <span class="line" id="L64">                <span class="tok-type">u32</span>,</span>

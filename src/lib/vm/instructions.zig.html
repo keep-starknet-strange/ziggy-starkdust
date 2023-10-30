@@ -756,15 +756,15 @@
 <span class="line" id="L584">    <span class="tok-kw">const</span> decoded_instruction = <span class="tok-kw">try</span> decode(encoded_instruction);</span>
 <span class="line" id="L585">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(</span>
 <span class="line" id="L586">        <span class="tok-type">i16</span>,</span>
-<span class="line" id="L587">        -<span class="tok-number">1</span>,</span>
+<span class="line" id="L587">        <span class="tok-builtin">@intCast</span>(-<span class="tok-number">1</span>),</span>
 <span class="line" id="L588">    ), decoded_instruction.off_0);</span>
 <span class="line" id="L589">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(</span>
 <span class="line" id="L590">        <span class="tok-type">i16</span>,</span>
-<span class="line" id="L591">        <span class="tok-number">0</span>,</span>
+<span class="line" id="L591">        <span class="tok-builtin">@intCast</span>(<span class="tok-number">0</span>),</span>
 <span class="line" id="L592">    ), decoded_instruction.off_1);</span>
 <span class="line" id="L593">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(</span>
 <span class="line" id="L594">        <span class="tok-type">i16</span>,</span>
-<span class="line" id="L595">        <span class="tok-number">1</span>,</span>
+<span class="line" id="L595">        <span class="tok-builtin">@intCast</span>(<span class="tok-number">1</span>),</span>
 <span class="line" id="L596">    ), decoded_instruction.off_2);</span>
 <span class="line" id="L597">}</span>
 <span class="line" id="L598"></span>

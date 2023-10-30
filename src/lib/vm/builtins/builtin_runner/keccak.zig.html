@@ -167,25 +167,28 @@
 <span class="line" id="L53">        <span class="tok-kw">return</span> .{</span>
 <span class="line" id="L54">            .ratio = instance_def.ratio,</span>
 <span class="line" id="L55">            .base = <span class="tok-number">0</span>,</span>
-<span class="line" id="L56">            .n_input_cells = <span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, instance_def._state_rep.items.len),</span>
-<span class="line" id="L57">            .cell_per_instance = instance_def.cells_per_builtin(),</span>
-<span class="line" id="L58">            .stop_ptr = <span class="tok-null">null</span>,</span>
-<span class="line" id="L59">            .included = included,</span>
-<span class="line" id="L60">            .state_rep = instance_def._state_rep,</span>
-<span class="line" id="L61">            .instances_per_component = instance_def._instance_per_component,</span>
-<span class="line" id="L62">            .cache = AutoHashMap(relocatable.Relocatable, Felt252).init(allocator),</span>
-<span class="line" id="L63">        };</span>
-<span class="line" id="L64">    }</span>
-<span class="line" id="L65"></span>
-<span class="line" id="L66">    <span class="tok-comment">/// Get the base value of this Keccak runner.</span></span>
-<span class="line" id="L67">    <span class="tok-comment">///</span></span>
-<span class="line" id="L68">    <span class="tok-comment">/// # Returns</span></span>
-<span class="line" id="L69">    <span class="tok-comment">///</span></span>
-<span class="line" id="L70">    <span class="tok-comment">/// The base value as a `usize`.</span></span>
-<span class="line" id="L71">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">get_base</span>(self: *<span class="tok-kw">const</span> Self) <span class="tok-type">usize</span> {</span>
-<span class="line" id="L72">        <span class="tok-kw">return</span> self.base;</span>
-<span class="line" id="L73">    }</span>
-<span class="line" id="L74">};</span>
-<span class="line" id="L75"></span>
+<span class="line" id="L56">            .n_input_cells = <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L57">                <span class="tok-type">u32</span>,</span>
+<span class="line" id="L58">                <span class="tok-builtin">@intCast</span>(instance_def._state_rep.items.len),</span>
+<span class="line" id="L59">            ),</span>
+<span class="line" id="L60">            .cell_per_instance = instance_def.cells_per_builtin(),</span>
+<span class="line" id="L61">            .stop_ptr = <span class="tok-null">null</span>,</span>
+<span class="line" id="L62">            .included = included,</span>
+<span class="line" id="L63">            .state_rep = instance_def._state_rep,</span>
+<span class="line" id="L64">            .instances_per_component = instance_def._instance_per_component,</span>
+<span class="line" id="L65">            .cache = AutoHashMap(relocatable.Relocatable, Felt252).init(allocator),</span>
+<span class="line" id="L66">        };</span>
+<span class="line" id="L67">    }</span>
+<span class="line" id="L68"></span>
+<span class="line" id="L69">    <span class="tok-comment">/// Get the base value of this Keccak runner.</span></span>
+<span class="line" id="L70">    <span class="tok-comment">///</span></span>
+<span class="line" id="L71">    <span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L72">    <span class="tok-comment">///</span></span>
+<span class="line" id="L73">    <span class="tok-comment">/// The base value as a `usize`.</span></span>
+<span class="line" id="L74">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">get_base</span>(self: *<span class="tok-kw">const</span> Self) <span class="tok-type">usize</span> {</span>
+<span class="line" id="L75">        <span class="tok-kw">return</span> self.base;</span>
+<span class="line" id="L76">    }</span>
+<span class="line" id="L77">};</span>
+<span class="line" id="L78"></span>
 </code></pre></body>
 </html>

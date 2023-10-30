@@ -120,7 +120,7 @@
 </span>
 <span class="line" id="L6"><span class="tok-kw">const</span> INITIAL_SEGMENT_SIZE: <span class="tok-type">usize</span> = <span class="tok-builtin">@as</span>(</span>
 <span class="line" id="L7">    <span class="tok-type">usize</span>,</span>
-<span class="line" id="L8">    ARENA_BUILTIN_SIZE,</span>
+<span class="line" id="L8">    <span class="tok-builtin">@intCast</span>(ARENA_BUILTIN_SIZE),</span>
 <span class="line" id="L9">);</span>
 <span class="line" id="L10"></span>
 <span class="line" id="L11"><span class="tok-comment">/// Segment Arena built-in runner</span></span>
@@ -167,7 +167,7 @@
 <span class="line" id="L52">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">get_base</span>(self: *<span class="tok-kw">const</span> Self) <span class="tok-type">usize</span> {</span>
 <span class="line" id="L53">        <span class="tok-kw">return</span> <span class="tok-builtin">@as</span>(</span>
 <span class="line" id="L54">            <span class="tok-type">usize</span>,</span>
-<span class="line" id="L55">            self.base.segment_index,</span>
+<span class="line" id="L55">            <span class="tok-builtin">@intCast</span>(self.base.segment_index),</span>
 <span class="line" id="L56">        );</span>
 <span class="line" id="L57">    }</span>
 <span class="line" id="L58">};</span>

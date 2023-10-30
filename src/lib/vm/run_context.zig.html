@@ -158,7 +158,7 @@
 <span class="line" id="L41">    <span class="tok-comment">/// - If a memory allocation fails.</span></span>
 <span class="line" id="L42">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">init</span>(allocator: Allocator) !*Self {</span>
 <span class="line" id="L43">        <span class="tok-kw">var</span> run_context = <span class="tok-kw">try</span> allocator.create(Self);</span>
-<span class="line" id="L44">        run_context.* = Self{</span>
+<span class="line" id="L44">        run_context.* = .{</span>
 <span class="line" id="L45">            .allocator = allocator,</span>
 <span class="line" id="L46">            .pc = <span class="tok-kw">try</span> allocator.create(Relocatable),</span>
 <span class="line" id="L47">            .ap = <span class="tok-kw">try</span> allocator.create(Relocatable),</span>

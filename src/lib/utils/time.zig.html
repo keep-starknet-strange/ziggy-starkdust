@@ -426,15 +426,15 @@
 <span class="line" id="L290">        res += self.ms;</span>
 <span class="line" id="L291">        res += <span class="tok-builtin">@as</span>(</span>
 <span class="line" id="L292">            <span class="tok-type">u64</span>,</span>
-<span class="line" id="L293">            self.seconds,</span>
+<span class="line" id="L293">            <span class="tok-builtin">@intCast</span>(self.seconds),</span>
 <span class="line" id="L294">        ) * std.time.ms_per_s;</span>
 <span class="line" id="L295">        res += <span class="tok-builtin">@as</span>(</span>
 <span class="line" id="L296">            <span class="tok-type">u64</span>,</span>
-<span class="line" id="L297">            self.minutes,</span>
+<span class="line" id="L297">            <span class="tok-builtin">@intCast</span>(self.minutes),</span>
 <span class="line" id="L298">        ) * std.time.ms_per_min;</span>
 <span class="line" id="L299">        res += <span class="tok-builtin">@as</span>(</span>
 <span class="line" id="L300">            <span class="tok-type">u64</span>,</span>
-<span class="line" id="L301">            self.hours,</span>
+<span class="line" id="L301">            <span class="tok-builtin">@intCast</span>(self.hours),</span>
 <span class="line" id="L302">        ) * std.time.ms_per_hour;</span>
 <span class="line" id="L303">        res += self.daysSinceEpoch() * std.time.ms_per_day;</span>
 <span class="line" id="L304">        <span class="tok-kw">return</span> res;</span>
