@@ -230,6 +230,41 @@ pub const KeccakBuiltinRunner = struct {
         return result;
     }
 
+    /// Calculates the number of used diluted check units for Keccak hashing.
+    ///
+    /// This function determines the number of used diluted check units based on the
+    /// provided `diluted_n_bits`. It takes into account the allocated virtual columns
+    /// and embedded real cells, providing a count of used check units.
+    ///
+    /// # Parameters
+    /// - `diluted_n_bits`: The number of bits for the diluted check.
+    ///
+    /// # Returns
+    /// The number of used diluted check units as a `usize`.
+    pub fn get_used_diluted_check_units(diluted_n_bits: u32) usize {
+        // The diluted cells are:
+        // state - 25 rounds times 1600 elements.
+        // parity - 24 rounds times 1600/5 elements times 3 auxiliaries.
+        // after_theta_rho_pi - 24 rounds times 1600 elements.
+        // theta_aux - 24 rounds times 1600 elements.
+        // chi_iota_aux - 24 rounds times 1600 elements times 2 auxiliaries.
+        // In total 25 * 1600 + 24 * 320 * 3 + 24 * 1600 + 24 * 1600 + 24 * 1600 * 2 = 216640.
+        // But we actually allocate 4 virtual columns, of dimensions 64 * 1024, in which we embed the
+        // real cells, and we don't free the unused ones.
+        // So the real number is 4 * 64 * 1024 = 262144.
+        return std.math.divExact(
+            usize,
+            @as(
+                usize,
+                @intCast(262144),
+            ),
+            @as(
+                usize,
+                @intCast(diluted_n_bits),
+            ),
+        ) catch 0;
+    }
+
     /// Right-pads a byte slice to a specified final size.
     ///
     /// This function pads the input `bytes` with zero bytes on the right side
@@ -267,41 +302,6 @@ pub const KeccakBuiltinRunner = struct {
         self.cache.deinit();
     }
 };
-
-/// Calculates the number of used diluted check units for Keccak hashing.
-///
-/// This function determines the number of used diluted check units based on the
-/// provided `diluted_n_bits`. It takes into account the allocated virtual columns
-/// and embedded real cells, providing a count of used check units.
-///
-/// # Parameters
-/// - `diluted_n_bits`: The number of bits for the diluted check.
-///
-/// # Returns
-/// The number of used diluted check units as a `usize`.
-pub fn get_used_diluted_check_units(diluted_n_bits: u32) usize {
-    // The diluted cells are:
-    // state - 25 rounds times 1600 elements.
-    // parity - 24 rounds times 1600/5 elements times 3 auxiliaries.
-    // after_theta_rho_pi - 24 rounds times 1600 elements.
-    // theta_aux - 24 rounds times 1600 elements.
-    // chi_iota_aux - 24 rounds times 1600 elements times 2 auxiliaries.
-    // In total 25 * 1600 + 24 * 320 * 3 + 24 * 1600 + 24 * 1600 + 24 * 1600 * 2 = 216640.
-    // But we actually allocate 4 virtual columns, of dimensions 64 * 1024, in which we embed the
-    // real cells, and we don't free the unused ones.
-    // So the real number is 4 * 64 * 1024 = 262144.
-    return std.math.divExact(
-        usize,
-        @as(
-            usize,
-            @intCast(262144),
-        ),
-        @as(
-            usize,
-            @intCast(diluted_n_bits),
-        ),
-    ) catch 0;
-}
 
 test "KeccakBuiltinRunner: initial_stack should return an empty array list if included is false" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
@@ -525,21 +525,21 @@ test "KeccakBuiltinRunner: get_memory_accesses should return the memory accesses
 test "get_used_diluted_check_units should return used diluted check units" {
     try expectEqual(
         @as(usize, @intCast(16384)),
-        get_used_diluted_check_units(16),
+        KeccakBuiltinRunner.get_used_diluted_check_units(16),
     );
 }
 
 test "get_used_diluted_check_units should return 0 if division by zero" {
     try expectEqual(
         @as(usize, @intCast(0)),
-        get_used_diluted_check_units(0),
+        KeccakBuiltinRunner.get_used_diluted_check_units(0),
     );
 }
 
 test "get_used_diluted_check_units should return 0 if quotient is not an integer" {
     try expectEqual(
         @as(usize, @intCast(0)),
-        get_used_diluted_check_units(12),
+        KeccakBuiltinRunner.get_used_diluted_check_units(12),
     );
 }
 
