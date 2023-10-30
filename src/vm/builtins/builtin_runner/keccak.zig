@@ -230,6 +230,37 @@ pub const KeccakBuiltinRunner = struct {
         return result;
     }
 
+    /// Right-pads a byte slice to a specified final size.
+    ///
+    /// This function pads the input `bytes` with zero bytes on the right side
+    /// to reach the desired `final_size`. It returns the padded data as an ArrayList.
+    ///
+    /// # Parameters
+    /// - `allocator`: An allocator for initializing the ArrayList.
+    /// - `bytes`: A pointer to the byte slice to pad.
+    /// - `final_size`: The target size after padding.
+    ///
+    /// # Returns
+    /// An ArrayList containing the right-padded bytes.
+    pub fn right_pad(
+        allocator: Allocator,
+        bytes: *[]u8,
+        final_size: usize,
+    ) !ArrayList(u8) {
+        var bytes_vector = ArrayList(u8).fromOwnedSlice(
+            allocator,
+            bytes.*,
+        );
+        try bytes_vector.appendNTimes(
+            @as(
+                u8,
+                @intCast(0),
+            ),
+            final_size - bytes.len,
+        );
+        return bytes_vector;
+    }
+
     /// Frees the resources owned by this instance of `KeccakBuiltinRunner`.
     pub fn deinit(self: *Self) void {
         self.state_rep.deinit();
@@ -509,5 +540,26 @@ test "get_used_diluted_check_units should return 0 if quotient is not an integer
     try expectEqual(
         @as(usize, @intCast(0)),
         get_used_diluted_check_units(12),
+    );
+}
+
+test "right_pad should return right pad result" {
+    var num = ArrayList(u8).init(std.testing.allocator);
+    try num.append(1);
+    var num_slice = try num.toOwnedSlice();
+    var expected = ArrayList(u8).init(std.testing.allocator);
+    defer expected.deinit();
+    try expected.append(1);
+    try expected.appendNTimes(0, 4);
+    var actual = try KeccakBuiltinRunner.right_pad(
+        std.testing.allocator,
+        &num_slice,
+        5,
+    );
+    defer actual.deinit();
+    try expectEqualSlices(
+        u8,
+        expected.items,
+        actual.items,
     );
 }
