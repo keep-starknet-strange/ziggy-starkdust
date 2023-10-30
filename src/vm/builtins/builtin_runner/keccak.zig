@@ -158,6 +158,23 @@ pub const KeccakBuiltinRunner = struct {
         )) orelse MemoryError.MissingSegmentUsedSizes;
     }
 
+    /// Retrieves memory segment addresses as a tuple.
+    ///
+    /// Returns a tuple containing the `base` and `stop_ptr` addresses associated
+    /// with the Keccak runner's memory segments. The `stop_ptr` may be `null`.
+    ///
+    /// # Returns
+    /// A tuple of `usize` and `?usize` addresses.
+    pub fn get_memory_segment_addresses(self: *Self) std.meta.Tuple(&.{
+        usize,
+        ?usize,
+    }) {
+        return .{
+            self.base,
+            self.stop_ptr,
+        };
+    }
+
     /// Frees the resources owned by this instance of `KeccakBuiltinRunner`.
     pub fn deinit(self: *Self) void {
         self.state_rep.deinit();
@@ -258,5 +275,23 @@ test "KeccakBuiltinRunner: get_used_cells should return the number of used cells
             @intCast(10),
         ),
         try keccak_builtin.get_used_cells(memory_segment_manager),
+    );
+}
+
+test "KeccakBuiltinRunner: get_memory_segment_addresses should return base and stop pointer" {
+    var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
+    defer keccak_instance_def.deinit();
+    var keccak_builtin = KeccakBuiltinRunner.new(
+        std.testing.allocator,
+        &keccak_instance_def,
+        true,
+    );
+    keccak_builtin.base = 22;
+    try expectEqual(
+        @as(
+            std.meta.Tuple(&.{ usize, ?usize }),
+            .{ 22, null },
+        ),
+        keccak_builtin.get_memory_segment_addresses(),
     );
 }
