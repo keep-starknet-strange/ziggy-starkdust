@@ -4,6 +4,7 @@ const relocatable = @import("../../memory/relocatable.zig");
 const Keccak_instance_def = @import("../../types/keccak_instance_def.zig");
 const Segments = @import("../../memory/segments.zig");
 const Error = @import("../../error.zig");
+const CoreVM = @import("../../../vm/core.zig");
 
 const ArrayList = std.ArrayList;
 const AutoHashMap = std.AutoHashMap;
@@ -13,6 +14,7 @@ const MemoryError = Error.MemoryError;
 const KeccakInstanceDef = Keccak_instance_def.KeccakInstanceDef;
 const Relocatable = relocatable.Relocatable;
 const MaybeRelocatable = relocatable.MaybeRelocatable;
+const CairoVM = CoreVM.CairoVM;
 
 const expectError = std.testing.expectError;
 const expectEqual = std.testing.expectEqual;
@@ -198,6 +200,36 @@ pub const KeccakBuiltinRunner = struct {
         );
     }
 
+    /// Retrieves memory access `Relocatable` for the Keccak runner.
+    ///
+    /// This function returns an `ArrayList` of `Relocatable` elements, each representing
+    /// a memory access within the segment associated with the Keccak runner's base.
+    ///
+    /// # Parameters
+    /// - `allocator`: An allocator for initializing the ArrayList.
+    /// - `vm`: A pointer to the `CairoVM` containing segment information.
+    ///
+    /// # Returns
+    /// An ArrayList of Relocatable elements.
+    pub fn get_memory_accesses(
+        self: *Self,
+        allocator: Allocator,
+        vm: *CairoVM,
+    ) !ArrayList(Relocatable) {
+        const segment_size = try (vm.segments.get_segment_used_size(@as(
+            u32,
+            @intCast(self.base),
+        )) orelse MemoryError.MissingSegmentUsedSizes);
+        var result = ArrayList(Relocatable).init(allocator);
+        for (0..segment_size) |i| {
+            try result.append(.{
+                .segment_index = self.base,
+                .offset = i,
+            });
+        }
+        return result;
+    }
+
     /// Frees the resources owned by this instance of `KeccakBuiltinRunner`.
     pub fn deinit(self: *Self) void {
         self.state_rep.deinit();
@@ -349,5 +381,77 @@ test "KeccakBuiltinRunner: get_used_instances should return the number of used i
     try expectEqual(
         @as(usize, @intCast(22)),
         try keccak_builtin.get_used_instances(memory_segment_manager),
+    );
+}
+
+test "KeccakBuiltinRunner: get_memory_accesses should return memory error if segment used size is null" {
+    var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
+    defer keccak_instance_def.deinit();
+    var keccak_builtin = KeccakBuiltinRunner.new(
+        std.testing.allocator,
+        &keccak_instance_def,
+        true,
+    );
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+    try expectError(
+        MemoryError.MissingSegmentUsedSizes,
+        keccak_builtin.get_memory_accesses(
+            std.testing.allocator,
+            &vm,
+        ),
+    );
+}
+
+test "KeccakBuiltinRunner: get_memory_accesses should return the memory accesses" {
+    var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
+    defer keccak_instance_def.deinit();
+    var keccak_builtin = KeccakBuiltinRunner.new(
+        std.testing.allocator,
+        &keccak_instance_def,
+        true,
+    );
+    keccak_builtin.base = 5;
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+    try vm.segments.segment_used_sizes.put(5, 4);
+
+    var expected = ArrayList(Relocatable).init(std.testing.allocator);
+    defer expected.deinit();
+    try expected.append(Relocatable{
+        .segment_index = 5,
+        .offset = 0,
+    });
+    try expected.append(Relocatable{
+        .segment_index = 5,
+        .offset = 1,
+    });
+    try expected.append(Relocatable{
+        .segment_index = 5,
+        .offset = 2,
+    });
+    try expected.append(Relocatable{
+        .segment_index = 5,
+        .offset = 3,
+    });
+    var actual = try keccak_builtin.get_memory_accesses(
+        std.testing.allocator,
+        &vm,
+    );
+    defer actual.deinit();
+    try expectEqualSlices(
+        Relocatable,
+        expected.items,
+        actual.items,
     );
 }
