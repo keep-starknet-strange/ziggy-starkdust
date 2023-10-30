@@ -488,20 +488,18 @@
 <span class="line" id="L363">}</span>
 <span class="line" id="L364"></span>
 <span class="line" id="L365"><span class="tok-kw">test</span> <span class="tok-str">&quot;phc format - calcSize&quot;</span> {</span>
-<span class="line" id="L366">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L367"></span>
-<span class="line" id="L368">    <span class="tok-kw">const</span> s = <span class="tok-str">&quot;$scrypt$v=1$ln=15,r=8,p=1$c2FsdHNhbHQ$dGVzdHBhc3M&quot;</span>;</span>
-<span class="line" id="L369">    <span class="tok-kw">const</span> v = <span class="tok-kw">try</span> deserialize(<span class="tok-kw">struct</span> {</span>
-<span class="line" id="L370">        alg_id: []<span class="tok-kw">const</span> <span class="tok-type">u8</span>,</span>
-<span class="line" id="L371">        alg_version: <span class="tok-type">u16</span>,</span>
-<span class="line" id="L372">        ln: <span class="tok-type">u6</span>,</span>
-<span class="line" id="L373">        r: <span class="tok-type">u30</span>,</span>
-<span class="line" id="L374">        p: <span class="tok-type">u30</span>,</span>
-<span class="line" id="L375">        salt: BinValue(<span class="tok-number">8</span>),</span>
-<span class="line" id="L376">        hash: BinValue(<span class="tok-number">8</span>),</span>
-<span class="line" id="L377">    }, s);</span>
-<span class="line" id="L378">    <span class="tok-kw">try</span> std.testing.expectEqual(calcSize(v), s.len);</span>
-<span class="line" id="L379">}</span>
-<span class="line" id="L380"></span>
+<span class="line" id="L366">    <span class="tok-kw">const</span> s = <span class="tok-str">&quot;$scrypt$v=1$ln=15,r=8,p=1$c2FsdHNhbHQ$dGVzdHBhc3M&quot;</span>;</span>
+<span class="line" id="L367">    <span class="tok-kw">const</span> v = <span class="tok-kw">try</span> deserialize(<span class="tok-kw">struct</span> {</span>
+<span class="line" id="L368">        alg_id: []<span class="tok-kw">const</span> <span class="tok-type">u8</span>,</span>
+<span class="line" id="L369">        alg_version: <span class="tok-type">u16</span>,</span>
+<span class="line" id="L370">        ln: <span class="tok-type">u6</span>,</span>
+<span class="line" id="L371">        r: <span class="tok-type">u30</span>,</span>
+<span class="line" id="L372">        p: <span class="tok-type">u30</span>,</span>
+<span class="line" id="L373">        salt: BinValue(<span class="tok-number">8</span>),</span>
+<span class="line" id="L374">        hash: BinValue(<span class="tok-number">8</span>),</span>
+<span class="line" id="L375">    }, s);</span>
+<span class="line" id="L376">    <span class="tok-kw">try</span> std.testing.expectEqual(calcSize(v), s.len);</span>
+<span class="line" id="L377">}</span>
+<span class="line" id="L378"></span>
 </code></pre></body>
 </html>

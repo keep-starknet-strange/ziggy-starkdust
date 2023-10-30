@@ -283,80 +283,78 @@
 <span class="line" id="L164">}</span>
 <span class="line" id="L165"></span>
 <span class="line" id="L166"><span class="tok-kw">test</span> <span class="tok-str">&quot;api coverage&quot;</span> {</span>
-<span class="line" id="L167">    <span class="tok-kw">if</span> (<span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>).zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L168"></span>
-<span class="line" id="L169">    <span class="tok-kw">const</span> mem_be = [_]<span class="tok-type">u8</span>{ <span class="tok-number">0b11001101</span>, <span class="tok-number">0b00001011</span> };</span>
-<span class="line" id="L170">    <span class="tok-kw">const</span> mem_le = [_]<span class="tok-type">u8</span>{ <span class="tok-number">0b00011101</span>, <span class="tok-number">0b10010101</span> };</span>
-<span class="line" id="L171"></span>
-<span class="line" id="L172">    <span class="tok-kw">var</span> mem_in_be = io.fixedBufferStream(&amp;mem_be);</span>
-<span class="line" id="L173">    <span class="tok-kw">var</span> bit_stream_be = bitReader(.Big, mem_in_be.reader());</span>
+<span class="line" id="L167">    <span class="tok-kw">const</span> mem_be = [_]<span class="tok-type">u8</span>{ <span class="tok-number">0b11001101</span>, <span class="tok-number">0b00001011</span> };</span>
+<span class="line" id="L168">    <span class="tok-kw">const</span> mem_le = [_]<span class="tok-type">u8</span>{ <span class="tok-number">0b00011101</span>, <span class="tok-number">0b10010101</span> };</span>
+<span class="line" id="L169"></span>
+<span class="line" id="L170">    <span class="tok-kw">var</span> mem_in_be = io.fixedBufferStream(&amp;mem_be);</span>
+<span class="line" id="L171">    <span class="tok-kw">var</span> bit_stream_be = bitReader(.Big, mem_in_be.reader());</span>
+<span class="line" id="L172"></span>
+<span class="line" id="L173">    <span class="tok-kw">var</span> out_bits: <span class="tok-type">usize</span> = <span class="tok-null">undefined</span>;</span>
 <span class="line" id="L174"></span>
-<span class="line" id="L175">    <span class="tok-kw">var</span> out_bits: <span class="tok-type">usize</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L176"></span>
-<span class="line" id="L177">    <span class="tok-kw">const</span> expect = testing.expect;</span>
-<span class="line" id="L178">    <span class="tok-kw">const</span> expectError = testing.expectError;</span>
-<span class="line" id="L179"></span>
-<span class="line" id="L180">    <span class="tok-kw">try</span> expect(<span class="tok-number">1</span> == <span class="tok-kw">try</span> bit_stream_be.readBits(<span class="tok-type">u2</span>, <span class="tok-number">1</span>, &amp;out_bits));</span>
-<span class="line" id="L181">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">1</span>);</span>
-<span class="line" id="L182">    <span class="tok-kw">try</span> expect(<span class="tok-number">2</span> == <span class="tok-kw">try</span> bit_stream_be.readBits(<span class="tok-type">u5</span>, <span class="tok-number">2</span>, &amp;out_bits));</span>
-<span class="line" id="L183">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">2</span>);</span>
-<span class="line" id="L184">    <span class="tok-kw">try</span> expect(<span class="tok-number">3</span> == <span class="tok-kw">try</span> bit_stream_be.readBits(<span class="tok-type">u128</span>, <span class="tok-number">3</span>, &amp;out_bits));</span>
-<span class="line" id="L185">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">3</span>);</span>
-<span class="line" id="L186">    <span class="tok-kw">try</span> expect(<span class="tok-number">4</span> == <span class="tok-kw">try</span> bit_stream_be.readBits(<span class="tok-type">u8</span>, <span class="tok-number">4</span>, &amp;out_bits));</span>
-<span class="line" id="L187">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">4</span>);</span>
-<span class="line" id="L188">    <span class="tok-kw">try</span> expect(<span class="tok-number">5</span> == <span class="tok-kw">try</span> bit_stream_be.readBits(<span class="tok-type">u9</span>, <span class="tok-number">5</span>, &amp;out_bits));</span>
-<span class="line" id="L189">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">5</span>);</span>
-<span class="line" id="L190">    <span class="tok-kw">try</span> expect(<span class="tok-number">1</span> == <span class="tok-kw">try</span> bit_stream_be.readBits(<span class="tok-type">u1</span>, <span class="tok-number">1</span>, &amp;out_bits));</span>
-<span class="line" id="L191">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">1</span>);</span>
-<span class="line" id="L192"></span>
-<span class="line" id="L193">    mem_in_be.pos = <span class="tok-number">0</span>;</span>
-<span class="line" id="L194">    bit_stream_be.bit_count = <span class="tok-number">0</span>;</span>
-<span class="line" id="L195">    <span class="tok-kw">try</span> expect(<span class="tok-number">0b110011010000101</span> == <span class="tok-kw">try</span> bit_stream_be.readBits(<span class="tok-type">u15</span>, <span class="tok-number">15</span>, &amp;out_bits));</span>
-<span class="line" id="L196">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">15</span>);</span>
-<span class="line" id="L197"></span>
-<span class="line" id="L198">    mem_in_be.pos = <span class="tok-number">0</span>;</span>
-<span class="line" id="L199">    bit_stream_be.bit_count = <span class="tok-number">0</span>;</span>
-<span class="line" id="L200">    <span class="tok-kw">try</span> expect(<span class="tok-number">0b1100110100001011</span> == <span class="tok-kw">try</span> bit_stream_be.readBits(<span class="tok-type">u16</span>, <span class="tok-number">16</span>, &amp;out_bits));</span>
-<span class="line" id="L201">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">16</span>);</span>
+<span class="line" id="L175">    <span class="tok-kw">const</span> expect = testing.expect;</span>
+<span class="line" id="L176">    <span class="tok-kw">const</span> expectError = testing.expectError;</span>
+<span class="line" id="L177"></span>
+<span class="line" id="L178">    <span class="tok-kw">try</span> expect(<span class="tok-number">1</span> == <span class="tok-kw">try</span> bit_stream_be.readBits(<span class="tok-type">u2</span>, <span class="tok-number">1</span>, &amp;out_bits));</span>
+<span class="line" id="L179">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">1</span>);</span>
+<span class="line" id="L180">    <span class="tok-kw">try</span> expect(<span class="tok-number">2</span> == <span class="tok-kw">try</span> bit_stream_be.readBits(<span class="tok-type">u5</span>, <span class="tok-number">2</span>, &amp;out_bits));</span>
+<span class="line" id="L181">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">2</span>);</span>
+<span class="line" id="L182">    <span class="tok-kw">try</span> expect(<span class="tok-number">3</span> == <span class="tok-kw">try</span> bit_stream_be.readBits(<span class="tok-type">u128</span>, <span class="tok-number">3</span>, &amp;out_bits));</span>
+<span class="line" id="L183">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">3</span>);</span>
+<span class="line" id="L184">    <span class="tok-kw">try</span> expect(<span class="tok-number">4</span> == <span class="tok-kw">try</span> bit_stream_be.readBits(<span class="tok-type">u8</span>, <span class="tok-number">4</span>, &amp;out_bits));</span>
+<span class="line" id="L185">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">4</span>);</span>
+<span class="line" id="L186">    <span class="tok-kw">try</span> expect(<span class="tok-number">5</span> == <span class="tok-kw">try</span> bit_stream_be.readBits(<span class="tok-type">u9</span>, <span class="tok-number">5</span>, &amp;out_bits));</span>
+<span class="line" id="L187">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">5</span>);</span>
+<span class="line" id="L188">    <span class="tok-kw">try</span> expect(<span class="tok-number">1</span> == <span class="tok-kw">try</span> bit_stream_be.readBits(<span class="tok-type">u1</span>, <span class="tok-number">1</span>, &amp;out_bits));</span>
+<span class="line" id="L189">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">1</span>);</span>
+<span class="line" id="L190"></span>
+<span class="line" id="L191">    mem_in_be.pos = <span class="tok-number">0</span>;</span>
+<span class="line" id="L192">    bit_stream_be.bit_count = <span class="tok-number">0</span>;</span>
+<span class="line" id="L193">    <span class="tok-kw">try</span> expect(<span class="tok-number">0b110011010000101</span> == <span class="tok-kw">try</span> bit_stream_be.readBits(<span class="tok-type">u15</span>, <span class="tok-number">15</span>, &amp;out_bits));</span>
+<span class="line" id="L194">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">15</span>);</span>
+<span class="line" id="L195"></span>
+<span class="line" id="L196">    mem_in_be.pos = <span class="tok-number">0</span>;</span>
+<span class="line" id="L197">    bit_stream_be.bit_count = <span class="tok-number">0</span>;</span>
+<span class="line" id="L198">    <span class="tok-kw">try</span> expect(<span class="tok-number">0b1100110100001011</span> == <span class="tok-kw">try</span> bit_stream_be.readBits(<span class="tok-type">u16</span>, <span class="tok-number">16</span>, &amp;out_bits));</span>
+<span class="line" id="L199">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">16</span>);</span>
+<span class="line" id="L200"></span>
+<span class="line" id="L201">    _ = <span class="tok-kw">try</span> bit_stream_be.readBits(<span class="tok-type">u0</span>, <span class="tok-number">0</span>, &amp;out_bits);</span>
 <span class="line" id="L202"></span>
-<span class="line" id="L203">    _ = <span class="tok-kw">try</span> bit_stream_be.readBits(<span class="tok-type">u0</span>, <span class="tok-number">0</span>, &amp;out_bits);</span>
-<span class="line" id="L204"></span>
-<span class="line" id="L205">    <span class="tok-kw">try</span> expect(<span class="tok-number">0</span> == <span class="tok-kw">try</span> bit_stream_be.readBits(<span class="tok-type">u1</span>, <span class="tok-number">1</span>, &amp;out_bits));</span>
-<span class="line" id="L206">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">0</span>);</span>
-<span class="line" id="L207">    <span class="tok-kw">try</span> expectError(<span class="tok-kw">error</span>.EndOfStream, bit_stream_be.readBitsNoEof(<span class="tok-type">u1</span>, <span class="tok-number">1</span>));</span>
-<span class="line" id="L208"></span>
-<span class="line" id="L209">    <span class="tok-kw">var</span> mem_in_le = io.fixedBufferStream(&amp;mem_le);</span>
-<span class="line" id="L210">    <span class="tok-kw">var</span> bit_stream_le = bitReader(.Little, mem_in_le.reader());</span>
-<span class="line" id="L211"></span>
-<span class="line" id="L212">    <span class="tok-kw">try</span> expect(<span class="tok-number">1</span> == <span class="tok-kw">try</span> bit_stream_le.readBits(<span class="tok-type">u2</span>, <span class="tok-number">1</span>, &amp;out_bits));</span>
-<span class="line" id="L213">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">1</span>);</span>
-<span class="line" id="L214">    <span class="tok-kw">try</span> expect(<span class="tok-number">2</span> == <span class="tok-kw">try</span> bit_stream_le.readBits(<span class="tok-type">u5</span>, <span class="tok-number">2</span>, &amp;out_bits));</span>
-<span class="line" id="L215">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">2</span>);</span>
-<span class="line" id="L216">    <span class="tok-kw">try</span> expect(<span class="tok-number">3</span> == <span class="tok-kw">try</span> bit_stream_le.readBits(<span class="tok-type">u128</span>, <span class="tok-number">3</span>, &amp;out_bits));</span>
-<span class="line" id="L217">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">3</span>);</span>
-<span class="line" id="L218">    <span class="tok-kw">try</span> expect(<span class="tok-number">4</span> == <span class="tok-kw">try</span> bit_stream_le.readBits(<span class="tok-type">u8</span>, <span class="tok-number">4</span>, &amp;out_bits));</span>
-<span class="line" id="L219">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">4</span>);</span>
-<span class="line" id="L220">    <span class="tok-kw">try</span> expect(<span class="tok-number">5</span> == <span class="tok-kw">try</span> bit_stream_le.readBits(<span class="tok-type">u9</span>, <span class="tok-number">5</span>, &amp;out_bits));</span>
-<span class="line" id="L221">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">5</span>);</span>
-<span class="line" id="L222">    <span class="tok-kw">try</span> expect(<span class="tok-number">1</span> == <span class="tok-kw">try</span> bit_stream_le.readBits(<span class="tok-type">u1</span>, <span class="tok-number">1</span>, &amp;out_bits));</span>
-<span class="line" id="L223">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">1</span>);</span>
-<span class="line" id="L224"></span>
-<span class="line" id="L225">    mem_in_le.pos = <span class="tok-number">0</span>;</span>
-<span class="line" id="L226">    bit_stream_le.bit_count = <span class="tok-number">0</span>;</span>
-<span class="line" id="L227">    <span class="tok-kw">try</span> expect(<span class="tok-number">0b001010100011101</span> == <span class="tok-kw">try</span> bit_stream_le.readBits(<span class="tok-type">u15</span>, <span class="tok-number">15</span>, &amp;out_bits));</span>
-<span class="line" id="L228">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">15</span>);</span>
-<span class="line" id="L229"></span>
-<span class="line" id="L230">    mem_in_le.pos = <span class="tok-number">0</span>;</span>
-<span class="line" id="L231">    bit_stream_le.bit_count = <span class="tok-number">0</span>;</span>
-<span class="line" id="L232">    <span class="tok-kw">try</span> expect(<span class="tok-number">0b1001010100011101</span> == <span class="tok-kw">try</span> bit_stream_le.readBits(<span class="tok-type">u16</span>, <span class="tok-number">16</span>, &amp;out_bits));</span>
-<span class="line" id="L233">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">16</span>);</span>
+<span class="line" id="L203">    <span class="tok-kw">try</span> expect(<span class="tok-number">0</span> == <span class="tok-kw">try</span> bit_stream_be.readBits(<span class="tok-type">u1</span>, <span class="tok-number">1</span>, &amp;out_bits));</span>
+<span class="line" id="L204">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">0</span>);</span>
+<span class="line" id="L205">    <span class="tok-kw">try</span> expectError(<span class="tok-kw">error</span>.EndOfStream, bit_stream_be.readBitsNoEof(<span class="tok-type">u1</span>, <span class="tok-number">1</span>));</span>
+<span class="line" id="L206"></span>
+<span class="line" id="L207">    <span class="tok-kw">var</span> mem_in_le = io.fixedBufferStream(&amp;mem_le);</span>
+<span class="line" id="L208">    <span class="tok-kw">var</span> bit_stream_le = bitReader(.Little, mem_in_le.reader());</span>
+<span class="line" id="L209"></span>
+<span class="line" id="L210">    <span class="tok-kw">try</span> expect(<span class="tok-number">1</span> == <span class="tok-kw">try</span> bit_stream_le.readBits(<span class="tok-type">u2</span>, <span class="tok-number">1</span>, &amp;out_bits));</span>
+<span class="line" id="L211">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">1</span>);</span>
+<span class="line" id="L212">    <span class="tok-kw">try</span> expect(<span class="tok-number">2</span> == <span class="tok-kw">try</span> bit_stream_le.readBits(<span class="tok-type">u5</span>, <span class="tok-number">2</span>, &amp;out_bits));</span>
+<span class="line" id="L213">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">2</span>);</span>
+<span class="line" id="L214">    <span class="tok-kw">try</span> expect(<span class="tok-number">3</span> == <span class="tok-kw">try</span> bit_stream_le.readBits(<span class="tok-type">u128</span>, <span class="tok-number">3</span>, &amp;out_bits));</span>
+<span class="line" id="L215">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">3</span>);</span>
+<span class="line" id="L216">    <span class="tok-kw">try</span> expect(<span class="tok-number">4</span> == <span class="tok-kw">try</span> bit_stream_le.readBits(<span class="tok-type">u8</span>, <span class="tok-number">4</span>, &amp;out_bits));</span>
+<span class="line" id="L217">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">4</span>);</span>
+<span class="line" id="L218">    <span class="tok-kw">try</span> expect(<span class="tok-number">5</span> == <span class="tok-kw">try</span> bit_stream_le.readBits(<span class="tok-type">u9</span>, <span class="tok-number">5</span>, &amp;out_bits));</span>
+<span class="line" id="L219">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">5</span>);</span>
+<span class="line" id="L220">    <span class="tok-kw">try</span> expect(<span class="tok-number">1</span> == <span class="tok-kw">try</span> bit_stream_le.readBits(<span class="tok-type">u1</span>, <span class="tok-number">1</span>, &amp;out_bits));</span>
+<span class="line" id="L221">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">1</span>);</span>
+<span class="line" id="L222"></span>
+<span class="line" id="L223">    mem_in_le.pos = <span class="tok-number">0</span>;</span>
+<span class="line" id="L224">    bit_stream_le.bit_count = <span class="tok-number">0</span>;</span>
+<span class="line" id="L225">    <span class="tok-kw">try</span> expect(<span class="tok-number">0b001010100011101</span> == <span class="tok-kw">try</span> bit_stream_le.readBits(<span class="tok-type">u15</span>, <span class="tok-number">15</span>, &amp;out_bits));</span>
+<span class="line" id="L226">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">15</span>);</span>
+<span class="line" id="L227"></span>
+<span class="line" id="L228">    mem_in_le.pos = <span class="tok-number">0</span>;</span>
+<span class="line" id="L229">    bit_stream_le.bit_count = <span class="tok-number">0</span>;</span>
+<span class="line" id="L230">    <span class="tok-kw">try</span> expect(<span class="tok-number">0b1001010100011101</span> == <span class="tok-kw">try</span> bit_stream_le.readBits(<span class="tok-type">u16</span>, <span class="tok-number">16</span>, &amp;out_bits));</span>
+<span class="line" id="L231">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">16</span>);</span>
+<span class="line" id="L232"></span>
+<span class="line" id="L233">    _ = <span class="tok-kw">try</span> bit_stream_le.readBits(<span class="tok-type">u0</span>, <span class="tok-number">0</span>, &amp;out_bits);</span>
 <span class="line" id="L234"></span>
-<span class="line" id="L235">    _ = <span class="tok-kw">try</span> bit_stream_le.readBits(<span class="tok-type">u0</span>, <span class="tok-number">0</span>, &amp;out_bits);</span>
-<span class="line" id="L236"></span>
-<span class="line" id="L237">    <span class="tok-kw">try</span> expect(<span class="tok-number">0</span> == <span class="tok-kw">try</span> bit_stream_le.readBits(<span class="tok-type">u1</span>, <span class="tok-number">1</span>, &amp;out_bits));</span>
-<span class="line" id="L238">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">0</span>);</span>
-<span class="line" id="L239">    <span class="tok-kw">try</span> expectError(<span class="tok-kw">error</span>.EndOfStream, bit_stream_le.readBitsNoEof(<span class="tok-type">u1</span>, <span class="tok-number">1</span>));</span>
-<span class="line" id="L240">}</span>
-<span class="line" id="L241"></span>
+<span class="line" id="L235">    <span class="tok-kw">try</span> expect(<span class="tok-number">0</span> == <span class="tok-kw">try</span> bit_stream_le.readBits(<span class="tok-type">u1</span>, <span class="tok-number">1</span>, &amp;out_bits));</span>
+<span class="line" id="L236">    <span class="tok-kw">try</span> expect(out_bits == <span class="tok-number">0</span>);</span>
+<span class="line" id="L237">    <span class="tok-kw">try</span> expectError(<span class="tok-kw">error</span>.EndOfStream, bit_stream_le.readBitsNoEof(<span class="tok-type">u1</span>, <span class="tok-number">1</span>));</span>
+<span class="line" id="L238">}</span>
+<span class="line" id="L239"></span>
 </code></pre></body>
 </html>

@@ -2651,444 +2651,442 @@
 <span class="line" id="L2435">}</span>
 <span class="line" id="L2436"></span>
 <span class="line" id="L2437"><span class="tok-kw">test</span> <span class="tok-str">&quot;float.hexadecimal.precision&quot;</span> {</span>
-<span class="line" id="L2438">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L2439"></span>
-<span class="line" id="L2440">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f16: 0x1.5p-2&quot;</span>, <span class="tok-str">&quot;f16: {x:.1}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f16</span>, <span class="tok-number">1.0</span> / <span class="tok-number">3.0</span>)});</span>
-<span class="line" id="L2441">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f32: 0x1.555p-2&quot;</span>, <span class="tok-str">&quot;f32: {x:.3}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-number">1.0</span> / <span class="tok-number">3.0</span>)});</span>
-<span class="line" id="L2442">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 0x1.55555p-2&quot;</span>, <span class="tok-str">&quot;f64: {x:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">1.0</span> / <span class="tok-number">3.0</span>)});</span>
-<span class="line" id="L2443">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f80: 0x1.5555555p-2&quot;</span>, <span class="tok-str">&quot;f80: {x:.7}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f80</span>, <span class="tok-number">1.0</span> / <span class="tok-number">3.0</span>)});</span>
-<span class="line" id="L2444">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f128: 0x1.555555555p-2&quot;</span>, <span class="tok-str">&quot;f128: {x:.9}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f128</span>, <span class="tok-number">1.0</span> / <span class="tok-number">3.0</span>)});</span>
-<span class="line" id="L2445"></span>
-<span class="line" id="L2446">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f16: 0x1.00000p0&quot;</span>, <span class="tok-str">&quot;f16: {x:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f16</span>, <span class="tok-number">1.0</span>)});</span>
-<span class="line" id="L2447">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f32: 0x1.00000p0&quot;</span>, <span class="tok-str">&quot;f32: {x:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-number">1.0</span>)});</span>
-<span class="line" id="L2448">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 0x1.00000p0&quot;</span>, <span class="tok-str">&quot;f64: {x:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">1.0</span>)});</span>
-<span class="line" id="L2449">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f80: 0x1.00000p0&quot;</span>, <span class="tok-str">&quot;f80: {x:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f80</span>, <span class="tok-number">1.0</span>)});</span>
-<span class="line" id="L2450">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f128: 0x1.00000p0&quot;</span>, <span class="tok-str">&quot;f128: {x:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f128</span>, <span class="tok-number">1.0</span>)});</span>
-<span class="line" id="L2451">}</span>
-<span class="line" id="L2452"></span>
-<span class="line" id="L2453"><span class="tok-kw">test</span> <span class="tok-str">&quot;float.decimal&quot;</span> {</span>
-<span class="line" id="L2454">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 152314000000000000000000000000&quot;</span>, <span class="tok-str">&quot;f64: {d}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">1.52314e+29</span>)});</span>
-<span class="line" id="L2455">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f32: 0&quot;</span>, <span class="tok-str">&quot;f32: {d}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-number">0.0</span>)});</span>
-<span class="line" id="L2456">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f32: 0&quot;</span>, <span class="tok-str">&quot;f32: {d:.0}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-number">0.0</span>)});</span>
-<span class="line" id="L2457">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f32: 1.1&quot;</span>, <span class="tok-str">&quot;f32: {d:.1}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-number">1.1234</span>)});</span>
-<span class="line" id="L2458">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f32: 1234.57&quot;</span>, <span class="tok-str">&quot;f32: {d:.2}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-number">1234.567</span>)});</span>
-<span class="line" id="L2459">    <span class="tok-comment">// -11.1234 is converted to f64 -11.12339... internally (errol3() function takes f64).</span>
+<span class="line" id="L2438">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f16: 0x1.5p-2&quot;</span>, <span class="tok-str">&quot;f16: {x:.1}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f16</span>, <span class="tok-number">1.0</span> / <span class="tok-number">3.0</span>)});</span>
+<span class="line" id="L2439">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f32: 0x1.555p-2&quot;</span>, <span class="tok-str">&quot;f32: {x:.3}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-number">1.0</span> / <span class="tok-number">3.0</span>)});</span>
+<span class="line" id="L2440">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 0x1.55555p-2&quot;</span>, <span class="tok-str">&quot;f64: {x:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">1.0</span> / <span class="tok-number">3.0</span>)});</span>
+<span class="line" id="L2441">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f80: 0x1.5555555p-2&quot;</span>, <span class="tok-str">&quot;f80: {x:.7}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f80</span>, <span class="tok-number">1.0</span> / <span class="tok-number">3.0</span>)});</span>
+<span class="line" id="L2442">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f128: 0x1.555555555p-2&quot;</span>, <span class="tok-str">&quot;f128: {x:.9}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f128</span>, <span class="tok-number">1.0</span> / <span class="tok-number">3.0</span>)});</span>
+<span class="line" id="L2443"></span>
+<span class="line" id="L2444">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f16: 0x1.00000p0&quot;</span>, <span class="tok-str">&quot;f16: {x:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f16</span>, <span class="tok-number">1.0</span>)});</span>
+<span class="line" id="L2445">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f32: 0x1.00000p0&quot;</span>, <span class="tok-str">&quot;f32: {x:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-number">1.0</span>)});</span>
+<span class="line" id="L2446">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 0x1.00000p0&quot;</span>, <span class="tok-str">&quot;f64: {x:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">1.0</span>)});</span>
+<span class="line" id="L2447">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f80: 0x1.00000p0&quot;</span>, <span class="tok-str">&quot;f80: {x:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f80</span>, <span class="tok-number">1.0</span>)});</span>
+<span class="line" id="L2448">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f128: 0x1.00000p0&quot;</span>, <span class="tok-str">&quot;f128: {x:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f128</span>, <span class="tok-number">1.0</span>)});</span>
+<span class="line" id="L2449">}</span>
+<span class="line" id="L2450"></span>
+<span class="line" id="L2451"><span class="tok-kw">test</span> <span class="tok-str">&quot;float.decimal&quot;</span> {</span>
+<span class="line" id="L2452">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 152314000000000000000000000000&quot;</span>, <span class="tok-str">&quot;f64: {d}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">1.52314e+29</span>)});</span>
+<span class="line" id="L2453">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f32: 0&quot;</span>, <span class="tok-str">&quot;f32: {d}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-number">0.0</span>)});</span>
+<span class="line" id="L2454">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f32: 0&quot;</span>, <span class="tok-str">&quot;f32: {d:.0}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-number">0.0</span>)});</span>
+<span class="line" id="L2455">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f32: 1.1&quot;</span>, <span class="tok-str">&quot;f32: {d:.1}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-number">1.1234</span>)});</span>
+<span class="line" id="L2456">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f32: 1234.57&quot;</span>, <span class="tok-str">&quot;f32: {d:.2}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-number">1234.567</span>)});</span>
+<span class="line" id="L2457">    <span class="tok-comment">// -11.1234 is converted to f64 -11.12339... internally (errol3() function takes f64).</span>
 </span>
-<span class="line" id="L2460">    <span class="tok-comment">// -11.12339... is rounded back up to -11.1234</span>
+<span class="line" id="L2458">    <span class="tok-comment">// -11.12339... is rounded back up to -11.1234</span>
 </span>
-<span class="line" id="L2461">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f32: -11.1234&quot;</span>, <span class="tok-str">&quot;f32: {d:.4}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, -<span class="tok-number">11.1234</span>)});</span>
-<span class="line" id="L2462">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f32: 91.12345&quot;</span>, <span class="tok-str">&quot;f32: {d:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-number">91.12345</span>)});</span>
-<span class="line" id="L2463">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 91.1234567890&quot;</span>, <span class="tok-str">&quot;f64: {d:.10}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">91.12345678901235</span>)});</span>
-<span class="line" id="L2464">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 0.00000&quot;</span>, <span class="tok-str">&quot;f64: {d:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">0.0</span>)});</span>
-<span class="line" id="L2465">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 6&quot;</span>, <span class="tok-str">&quot;f64: {d:.0}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">5.700</span>)});</span>
-<span class="line" id="L2466">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 10.0&quot;</span>, <span class="tok-str">&quot;f64: {d:.1}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">9.999</span>)});</span>
-<span class="line" id="L2467">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 1.000&quot;</span>, <span class="tok-str">&quot;f64: {d:.3}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">1.0</span>)});</span>
-<span class="line" id="L2468">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 0.00030000&quot;</span>, <span class="tok-str">&quot;f64: {d:.8}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">0.0003</span>)});</span>
-<span class="line" id="L2469">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 0.00000&quot;</span>, <span class="tok-str">&quot;f64: {d:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">1.40130e-45</span>)});</span>
-<span class="line" id="L2470">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 0.00000&quot;</span>, <span class="tok-str">&quot;f64: {d:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">9.999960e-40</span>)});</span>
-<span class="line" id="L2471">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 10000000000000.00&quot;</span>, <span class="tok-str">&quot;f64: {d:.2}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">9999999999999.999</span>)});</span>
-<span class="line" id="L2472">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 10000000000000000000000000000000000000&quot;</span>, <span class="tok-str">&quot;f64: {d}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">1e37</span>)});</span>
-<span class="line" id="L2473">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 100000000000000000000000000000000000000&quot;</span>, <span class="tok-str">&quot;f64: {d}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">1e38</span>)});</span>
-<span class="line" id="L2474">}</span>
-<span class="line" id="L2475"></span>
-<span class="line" id="L2476"><span class="tok-kw">test</span> <span class="tok-str">&quot;float.libc.sanity&quot;</span> {</span>
-<span class="line" id="L2477">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 0.00001&quot;</span>, <span class="tok-str">&quot;f64: {d:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-builtin">@bitCast</span>(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">916964781</span>))))});</span>
-<span class="line" id="L2478">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 0.00001&quot;</span>, <span class="tok-str">&quot;f64: {d:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-builtin">@bitCast</span>(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">925353389</span>))))});</span>
-<span class="line" id="L2479">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 0.10000&quot;</span>, <span class="tok-str">&quot;f64: {d:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-builtin">@bitCast</span>(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1036831278</span>))))});</span>
-<span class="line" id="L2480">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 1.00000&quot;</span>, <span class="tok-str">&quot;f64: {d:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-builtin">@bitCast</span>(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1065353133</span>))))});</span>
-<span class="line" id="L2481">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 10.00000&quot;</span>, <span class="tok-str">&quot;f64: {d:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-builtin">@bitCast</span>(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1092616192</span>))))});</span>
-<span class="line" id="L2482"></span>
-<span class="line" id="L2483">    <span class="tok-comment">// libc differences</span>
+<span class="line" id="L2459">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f32: -11.1234&quot;</span>, <span class="tok-str">&quot;f32: {d:.4}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, -<span class="tok-number">11.1234</span>)});</span>
+<span class="line" id="L2460">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f32: 91.12345&quot;</span>, <span class="tok-str">&quot;f32: {d:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-number">91.12345</span>)});</span>
+<span class="line" id="L2461">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 91.1234567890&quot;</span>, <span class="tok-str">&quot;f64: {d:.10}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">91.12345678901235</span>)});</span>
+<span class="line" id="L2462">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 0.00000&quot;</span>, <span class="tok-str">&quot;f64: {d:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">0.0</span>)});</span>
+<span class="line" id="L2463">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 6&quot;</span>, <span class="tok-str">&quot;f64: {d:.0}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">5.700</span>)});</span>
+<span class="line" id="L2464">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 10.0&quot;</span>, <span class="tok-str">&quot;f64: {d:.1}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">9.999</span>)});</span>
+<span class="line" id="L2465">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 1.000&quot;</span>, <span class="tok-str">&quot;f64: {d:.3}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">1.0</span>)});</span>
+<span class="line" id="L2466">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 0.00030000&quot;</span>, <span class="tok-str">&quot;f64: {d:.8}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">0.0003</span>)});</span>
+<span class="line" id="L2467">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 0.00000&quot;</span>, <span class="tok-str">&quot;f64: {d:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">1.40130e-45</span>)});</span>
+<span class="line" id="L2468">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 0.00000&quot;</span>, <span class="tok-str">&quot;f64: {d:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">9.999960e-40</span>)});</span>
+<span class="line" id="L2469">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 10000000000000.00&quot;</span>, <span class="tok-str">&quot;f64: {d:.2}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">9999999999999.999</span>)});</span>
+<span class="line" id="L2470">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 10000000000000000000000000000000000000&quot;</span>, <span class="tok-str">&quot;f64: {d}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">1e37</span>)});</span>
+<span class="line" id="L2471">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 100000000000000000000000000000000000000&quot;</span>, <span class="tok-str">&quot;f64: {d}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">1e38</span>)});</span>
+<span class="line" id="L2472">}</span>
+<span class="line" id="L2473"></span>
+<span class="line" id="L2474"><span class="tok-kw">test</span> <span class="tok-str">&quot;float.libc.sanity&quot;</span> {</span>
+<span class="line" id="L2475">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 0.00001&quot;</span>, <span class="tok-str">&quot;f64: {d:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-builtin">@bitCast</span>(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">916964781</span>))))});</span>
+<span class="line" id="L2476">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 0.00001&quot;</span>, <span class="tok-str">&quot;f64: {d:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-builtin">@bitCast</span>(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">925353389</span>))))});</span>
+<span class="line" id="L2477">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 0.10000&quot;</span>, <span class="tok-str">&quot;f64: {d:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-builtin">@bitCast</span>(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1036831278</span>))))});</span>
+<span class="line" id="L2478">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 1.00000&quot;</span>, <span class="tok-str">&quot;f64: {d:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-builtin">@bitCast</span>(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1065353133</span>))))});</span>
+<span class="line" id="L2479">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 10.00000&quot;</span>, <span class="tok-str">&quot;f64: {d:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-builtin">@bitCast</span>(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1092616192</span>))))});</span>
+<span class="line" id="L2480"></span>
+<span class="line" id="L2481">    <span class="tok-comment">// libc differences</span>
 </span>
-<span class="line" id="L2484">    <span class="tok-comment">//</span>
+<span class="line" id="L2482">    <span class="tok-comment">//</span>
 </span>
-<span class="line" id="L2485">    <span class="tok-comment">// This is 0.015625 exactly according to gdb. We thus round down,</span>
+<span class="line" id="L2483">    <span class="tok-comment">// This is 0.015625 exactly according to gdb. We thus round down,</span>
 </span>
-<span class="line" id="L2486">    <span class="tok-comment">// however glibc rounds up for some reason. This occurs for all</span>
+<span class="line" id="L2484">    <span class="tok-comment">// however glibc rounds up for some reason. This occurs for all</span>
 </span>
-<span class="line" id="L2487">    <span class="tok-comment">// floats of the form x.yyyy25 on a precision point.</span>
+<span class="line" id="L2485">    <span class="tok-comment">// floats of the form x.yyyy25 on a precision point.</span>
 </span>
-<span class="line" id="L2488">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 0.01563&quot;</span>, <span class="tok-str">&quot;f64: {d:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-builtin">@bitCast</span>(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1015021568</span>))))});</span>
-<span class="line" id="L2489">    <span class="tok-comment">// errol3 rounds to ... 630 but libc rounds to ...632. Grisu3</span>
+<span class="line" id="L2486">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 0.01563&quot;</span>, <span class="tok-str">&quot;f64: {d:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-builtin">@bitCast</span>(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1015021568</span>))))});</span>
+<span class="line" id="L2487">    <span class="tok-comment">// errol3 rounds to ... 630 but libc rounds to ...632. Grisu3</span>
 </span>
-<span class="line" id="L2490">    <span class="tok-comment">// also rounds to 630 so I'm inclined to believe libc is not</span>
+<span class="line" id="L2488">    <span class="tok-comment">// also rounds to 630 so I'm inclined to believe libc is not</span>
 </span>
-<span class="line" id="L2491">    <span class="tok-comment">// optimal here.</span>
+<span class="line" id="L2489">    <span class="tok-comment">// optimal here.</span>
 </span>
-<span class="line" id="L2492">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 18014400656965630.00000&quot;</span>, <span class="tok-str">&quot;f64: {d:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-builtin">@bitCast</span>(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1518338049</span>))))});</span>
-<span class="line" id="L2493">}</span>
-<span class="line" id="L2494"></span>
-<span class="line" id="L2495"><span class="tok-kw">test</span> <span class="tok-str">&quot;custom&quot;</span> {</span>
-<span class="line" id="L2496">    <span class="tok-kw">const</span> Vec2 = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L2497">        <span class="tok-kw">const</span> SelfType = <span class="tok-builtin">@This</span>();</span>
-<span class="line" id="L2498">        x: <span class="tok-type">f32</span>,</span>
-<span class="line" id="L2499">        y: <span class="tok-type">f32</span>,</span>
-<span class="line" id="L2500"></span>
-<span class="line" id="L2501">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">format</span>(</span>
-<span class="line" id="L2502">            self: SelfType,</span>
-<span class="line" id="L2503">            <span class="tok-kw">comptime</span> fmt: []<span class="tok-kw">const</span> <span class="tok-type">u8</span>,</span>
-<span class="line" id="L2504">            options: FormatOptions,</span>
-<span class="line" id="L2505">            writer: <span class="tok-kw">anytype</span>,</span>
-<span class="line" id="L2506">        ) !<span class="tok-type">void</span> {</span>
-<span class="line" id="L2507">            _ = options;</span>
-<span class="line" id="L2508">            <span class="tok-kw">if</span> (fmt.len == <span class="tok-number">0</span> <span class="tok-kw">or</span> <span class="tok-kw">comptime</span> std.mem.eql(<span class="tok-type">u8</span>, fmt, <span class="tok-str">&quot;p&quot;</span>)) {</span>
-<span class="line" id="L2509">                <span class="tok-kw">return</span> std.fmt.format(writer, <span class="tok-str">&quot;({d:.3},{d:.3})&quot;</span>, .{ self.x, self.y });</span>
-<span class="line" id="L2510">            } <span class="tok-kw">else</span> <span class="tok-kw">if</span> (<span class="tok-kw">comptime</span> std.mem.eql(<span class="tok-type">u8</span>, fmt, <span class="tok-str">&quot;d&quot;</span>)) {</span>
-<span class="line" id="L2511">                <span class="tok-kw">return</span> std.fmt.format(writer, <span class="tok-str">&quot;{d:.3}x{d:.3}&quot;</span>, .{ self.x, self.y });</span>
-<span class="line" id="L2512">            } <span class="tok-kw">else</span> {</span>
-<span class="line" id="L2513">                <span class="tok-builtin">@compileError</span>(<span class="tok-str">&quot;unknown format character: '&quot;</span> ++ fmt ++ <span class="tok-str">&quot;'&quot;</span>);</span>
-<span class="line" id="L2514">            }</span>
-<span class="line" id="L2515">        }</span>
-<span class="line" id="L2516">    };</span>
-<span class="line" id="L2517"></span>
-<span class="line" id="L2518">    <span class="tok-kw">var</span> value = Vec2{</span>
-<span class="line" id="L2519">        .x = <span class="tok-number">10.2</span>,</span>
-<span class="line" id="L2520">        .y = <span class="tok-number">2.22</span>,</span>
-<span class="line" id="L2521">    };</span>
-<span class="line" id="L2522">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;point: (10.200,2.220)\n&quot;</span>, <span class="tok-str">&quot;point: {}\n&quot;</span>, .{&amp;value});</span>
-<span class="line" id="L2523">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;dim: 10.200x2.220\n&quot;</span>, <span class="tok-str">&quot;dim: {d}\n&quot;</span>, .{&amp;value});</span>
-<span class="line" id="L2524"></span>
-<span class="line" id="L2525">    <span class="tok-comment">// same thing but not passing a pointer</span>
+<span class="line" id="L2490">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;f64: 18014400656965630.00000&quot;</span>, <span class="tok-str">&quot;f64: {d:.5}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-builtin">@as</span>(<span class="tok-type">f32</span>, <span class="tok-builtin">@bitCast</span>(<span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-number">1518338049</span>))))});</span>
+<span class="line" id="L2491">}</span>
+<span class="line" id="L2492"></span>
+<span class="line" id="L2493"><span class="tok-kw">test</span> <span class="tok-str">&quot;custom&quot;</span> {</span>
+<span class="line" id="L2494">    <span class="tok-kw">const</span> Vec2 = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L2495">        <span class="tok-kw">const</span> SelfType = <span class="tok-builtin">@This</span>();</span>
+<span class="line" id="L2496">        x: <span class="tok-type">f32</span>,</span>
+<span class="line" id="L2497">        y: <span class="tok-type">f32</span>,</span>
+<span class="line" id="L2498"></span>
+<span class="line" id="L2499">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">format</span>(</span>
+<span class="line" id="L2500">            self: SelfType,</span>
+<span class="line" id="L2501">            <span class="tok-kw">comptime</span> fmt: []<span class="tok-kw">const</span> <span class="tok-type">u8</span>,</span>
+<span class="line" id="L2502">            options: FormatOptions,</span>
+<span class="line" id="L2503">            writer: <span class="tok-kw">anytype</span>,</span>
+<span class="line" id="L2504">        ) !<span class="tok-type">void</span> {</span>
+<span class="line" id="L2505">            _ = options;</span>
+<span class="line" id="L2506">            <span class="tok-kw">if</span> (fmt.len == <span class="tok-number">0</span> <span class="tok-kw">or</span> <span class="tok-kw">comptime</span> std.mem.eql(<span class="tok-type">u8</span>, fmt, <span class="tok-str">&quot;p&quot;</span>)) {</span>
+<span class="line" id="L2507">                <span class="tok-kw">return</span> std.fmt.format(writer, <span class="tok-str">&quot;({d:.3},{d:.3})&quot;</span>, .{ self.x, self.y });</span>
+<span class="line" id="L2508">            } <span class="tok-kw">else</span> <span class="tok-kw">if</span> (<span class="tok-kw">comptime</span> std.mem.eql(<span class="tok-type">u8</span>, fmt, <span class="tok-str">&quot;d&quot;</span>)) {</span>
+<span class="line" id="L2509">                <span class="tok-kw">return</span> std.fmt.format(writer, <span class="tok-str">&quot;{d:.3}x{d:.3}&quot;</span>, .{ self.x, self.y });</span>
+<span class="line" id="L2510">            } <span class="tok-kw">else</span> {</span>
+<span class="line" id="L2511">                <span class="tok-builtin">@compileError</span>(<span class="tok-str">&quot;unknown format character: '&quot;</span> ++ fmt ++ <span class="tok-str">&quot;'&quot;</span>);</span>
+<span class="line" id="L2512">            }</span>
+<span class="line" id="L2513">        }</span>
+<span class="line" id="L2514">    };</span>
+<span class="line" id="L2515"></span>
+<span class="line" id="L2516">    <span class="tok-kw">var</span> value = Vec2{</span>
+<span class="line" id="L2517">        .x = <span class="tok-number">10.2</span>,</span>
+<span class="line" id="L2518">        .y = <span class="tok-number">2.22</span>,</span>
+<span class="line" id="L2519">    };</span>
+<span class="line" id="L2520">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;point: (10.200,2.220)\n&quot;</span>, <span class="tok-str">&quot;point: {}\n&quot;</span>, .{&amp;value});</span>
+<span class="line" id="L2521">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;dim: 10.200x2.220\n&quot;</span>, <span class="tok-str">&quot;dim: {d}\n&quot;</span>, .{&amp;value});</span>
+<span class="line" id="L2522"></span>
+<span class="line" id="L2523">    <span class="tok-comment">// same thing but not passing a pointer</span>
 </span>
-<span class="line" id="L2526">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;point: (10.200,2.220)\n&quot;</span>, <span class="tok-str">&quot;point: {}\n&quot;</span>, .{value});</span>
-<span class="line" id="L2527">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;dim: 10.200x2.220\n&quot;</span>, <span class="tok-str">&quot;dim: {d}\n&quot;</span>, .{value});</span>
-<span class="line" id="L2528">}</span>
-<span class="line" id="L2529"></span>
-<span class="line" id="L2530"><span class="tok-kw">test</span> <span class="tok-str">&quot;union&quot;</span> {</span>
-<span class="line" id="L2531">    <span class="tok-kw">const</span> TU = <span class="tok-kw">union</span>(<span class="tok-kw">enum</span>) {</span>
-<span class="line" id="L2532">        float: <span class="tok-type">f32</span>,</span>
-<span class="line" id="L2533">        int: <span class="tok-type">u32</span>,</span>
-<span class="line" id="L2534">    };</span>
-<span class="line" id="L2535"></span>
-<span class="line" id="L2536">    <span class="tok-kw">const</span> UU = <span class="tok-kw">union</span> {</span>
-<span class="line" id="L2537">        float: <span class="tok-type">f32</span>,</span>
-<span class="line" id="L2538">        int: <span class="tok-type">u32</span>,</span>
-<span class="line" id="L2539">    };</span>
-<span class="line" id="L2540"></span>
-<span class="line" id="L2541">    <span class="tok-kw">const</span> EU = <span class="tok-kw">extern</span> <span class="tok-kw">union</span> {</span>
-<span class="line" id="L2542">        float: <span class="tok-type">f32</span>,</span>
-<span class="line" id="L2543">        int: <span class="tok-type">u32</span>,</span>
-<span class="line" id="L2544">    };</span>
-<span class="line" id="L2545"></span>
-<span class="line" id="L2546">    <span class="tok-kw">const</span> tu_inst = TU{ .int = <span class="tok-number">123</span> };</span>
-<span class="line" id="L2547">    <span class="tok-kw">const</span> uu_inst = UU{ .int = <span class="tok-number">456</span> };</span>
-<span class="line" id="L2548">    <span class="tok-kw">const</span> eu_inst = EU{ .float = <span class="tok-number">321.123</span> };</span>
+<span class="line" id="L2524">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;point: (10.200,2.220)\n&quot;</span>, <span class="tok-str">&quot;point: {}\n&quot;</span>, .{value});</span>
+<span class="line" id="L2525">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;dim: 10.200x2.220\n&quot;</span>, <span class="tok-str">&quot;dim: {d}\n&quot;</span>, .{value});</span>
+<span class="line" id="L2526">}</span>
+<span class="line" id="L2527"></span>
+<span class="line" id="L2528"><span class="tok-kw">test</span> <span class="tok-str">&quot;union&quot;</span> {</span>
+<span class="line" id="L2529">    <span class="tok-kw">const</span> TU = <span class="tok-kw">union</span>(<span class="tok-kw">enum</span>) {</span>
+<span class="line" id="L2530">        float: <span class="tok-type">f32</span>,</span>
+<span class="line" id="L2531">        int: <span class="tok-type">u32</span>,</span>
+<span class="line" id="L2532">    };</span>
+<span class="line" id="L2533"></span>
+<span class="line" id="L2534">    <span class="tok-kw">const</span> UU = <span class="tok-kw">union</span> {</span>
+<span class="line" id="L2535">        float: <span class="tok-type">f32</span>,</span>
+<span class="line" id="L2536">        int: <span class="tok-type">u32</span>,</span>
+<span class="line" id="L2537">    };</span>
+<span class="line" id="L2538"></span>
+<span class="line" id="L2539">    <span class="tok-kw">const</span> EU = <span class="tok-kw">extern</span> <span class="tok-kw">union</span> {</span>
+<span class="line" id="L2540">        float: <span class="tok-type">f32</span>,</span>
+<span class="line" id="L2541">        int: <span class="tok-type">u32</span>,</span>
+<span class="line" id="L2542">    };</span>
+<span class="line" id="L2543"></span>
+<span class="line" id="L2544">    <span class="tok-kw">const</span> tu_inst = TU{ .int = <span class="tok-number">123</span> };</span>
+<span class="line" id="L2545">    <span class="tok-kw">const</span> uu_inst = UU{ .int = <span class="tok-number">456</span> };</span>
+<span class="line" id="L2546">    <span class="tok-kw">const</span> eu_inst = EU{ .float = <span class="tok-number">321.123</span> };</span>
+<span class="line" id="L2547"></span>
+<span class="line" id="L2548">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;fmt.test.union.TU{ .int = 123 }&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{tu_inst});</span>
 <span class="line" id="L2549"></span>
-<span class="line" id="L2550">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;fmt.test.union.TU{ .int = 123 }&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{tu_inst});</span>
-<span class="line" id="L2551"></span>
-<span class="line" id="L2552">    <span class="tok-kw">var</span> buf: [<span class="tok-number">100</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L2553">    <span class="tok-kw">const</span> uu_result = <span class="tok-kw">try</span> bufPrint(buf[<span class="tok-number">0</span>..], <span class="tok-str">&quot;{}&quot;</span>, .{uu_inst});</span>
-<span class="line" id="L2554">    <span class="tok-kw">try</span> std.testing.expect(mem.eql(<span class="tok-type">u8</span>, uu_result[<span class="tok-number">0</span>..<span class="tok-number">18</span>], <span class="tok-str">&quot;fmt.test.union.UU@&quot;</span>));</span>
-<span class="line" id="L2555"></span>
-<span class="line" id="L2556">    <span class="tok-kw">const</span> eu_result = <span class="tok-kw">try</span> bufPrint(buf[<span class="tok-number">0</span>..], <span class="tok-str">&quot;{}&quot;</span>, .{eu_inst});</span>
-<span class="line" id="L2557">    <span class="tok-kw">try</span> std.testing.expect(mem.eql(<span class="tok-type">u8</span>, eu_result[<span class="tok-number">0</span>..<span class="tok-number">18</span>], <span class="tok-str">&quot;fmt.test.union.EU@&quot;</span>));</span>
-<span class="line" id="L2558">}</span>
-<span class="line" id="L2559"></span>
-<span class="line" id="L2560"><span class="tok-kw">test</span> <span class="tok-str">&quot;struct.self-referential&quot;</span> {</span>
-<span class="line" id="L2561">    <span class="tok-kw">const</span> S = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L2562">        <span class="tok-kw">const</span> SelfType = <span class="tok-builtin">@This</span>();</span>
-<span class="line" id="L2563">        a: ?*SelfType,</span>
-<span class="line" id="L2564">    };</span>
-<span class="line" id="L2565"></span>
-<span class="line" id="L2566">    <span class="tok-kw">var</span> inst = S{</span>
-<span class="line" id="L2567">        .a = <span class="tok-null">null</span>,</span>
-<span class="line" id="L2568">    };</span>
-<span class="line" id="L2569">    inst.a = &amp;inst;</span>
-<span class="line" id="L2570"></span>
-<span class="line" id="L2571">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;fmt.test.struct.self-referential.S{ .a = fmt.test.struct.self-referential.S{ .a = fmt.test.struct.self-referential.S{ .a = fmt.test.struct.self-referential.S{ ... } } } }&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{inst});</span>
-<span class="line" id="L2572">}</span>
-<span class="line" id="L2573"></span>
-<span class="line" id="L2574"><span class="tok-kw">test</span> <span class="tok-str">&quot;struct.zero-size&quot;</span> {</span>
-<span class="line" id="L2575">    <span class="tok-kw">const</span> A = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L2576">        <span class="tok-kw">fn</span> <span class="tok-fn">foo</span>() <span class="tok-type">void</span> {}</span>
-<span class="line" id="L2577">    };</span>
-<span class="line" id="L2578">    <span class="tok-kw">const</span> B = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L2579">        a: A,</span>
-<span class="line" id="L2580">        c: <span class="tok-type">i32</span>,</span>
-<span class="line" id="L2581">    };</span>
-<span class="line" id="L2582"></span>
-<span class="line" id="L2583">    <span class="tok-kw">const</span> a = A{};</span>
-<span class="line" id="L2584">    <span class="tok-kw">const</span> b = B{ .a = a, .c = <span class="tok-number">0</span> };</span>
-<span class="line" id="L2585"></span>
-<span class="line" id="L2586">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;fmt.test.struct.zero-size.B{ .a = fmt.test.struct.zero-size.A{ }, .c = 0 }&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{b});</span>
-<span class="line" id="L2587">}</span>
-<span class="line" id="L2588"></span>
-<span class="line" id="L2589"><span class="tok-kw">test</span> <span class="tok-str">&quot;bytes.hex&quot;</span> {</span>
-<span class="line" id="L2590">    <span class="tok-kw">const</span> some_bytes = <span class="tok-str">&quot;\xCA\xFE\xBA\xBE&quot;</span>;</span>
-<span class="line" id="L2591">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;lowercase: cafebabe\n&quot;</span>, <span class="tok-str">&quot;lowercase: {x}\n&quot;</span>, .{fmtSliceHexLower(some_bytes)});</span>
-<span class="line" id="L2592">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;uppercase: CAFEBABE\n&quot;</span>, <span class="tok-str">&quot;uppercase: {X}\n&quot;</span>, .{fmtSliceHexUpper(some_bytes)});</span>
-<span class="line" id="L2593">    <span class="tok-comment">//Test Slices</span>
+<span class="line" id="L2550">    <span class="tok-kw">var</span> buf: [<span class="tok-number">100</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L2551">    <span class="tok-kw">const</span> uu_result = <span class="tok-kw">try</span> bufPrint(buf[<span class="tok-number">0</span>..], <span class="tok-str">&quot;{}&quot;</span>, .{uu_inst});</span>
+<span class="line" id="L2552">    <span class="tok-kw">try</span> std.testing.expect(mem.eql(<span class="tok-type">u8</span>, uu_result[<span class="tok-number">0</span>..<span class="tok-number">18</span>], <span class="tok-str">&quot;fmt.test.union.UU@&quot;</span>));</span>
+<span class="line" id="L2553"></span>
+<span class="line" id="L2554">    <span class="tok-kw">const</span> eu_result = <span class="tok-kw">try</span> bufPrint(buf[<span class="tok-number">0</span>..], <span class="tok-str">&quot;{}&quot;</span>, .{eu_inst});</span>
+<span class="line" id="L2555">    <span class="tok-kw">try</span> std.testing.expect(mem.eql(<span class="tok-type">u8</span>, eu_result[<span class="tok-number">0</span>..<span class="tok-number">18</span>], <span class="tok-str">&quot;fmt.test.union.EU@&quot;</span>));</span>
+<span class="line" id="L2556">}</span>
+<span class="line" id="L2557"></span>
+<span class="line" id="L2558"><span class="tok-kw">test</span> <span class="tok-str">&quot;struct.self-referential&quot;</span> {</span>
+<span class="line" id="L2559">    <span class="tok-kw">const</span> S = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L2560">        <span class="tok-kw">const</span> SelfType = <span class="tok-builtin">@This</span>();</span>
+<span class="line" id="L2561">        a: ?*SelfType,</span>
+<span class="line" id="L2562">    };</span>
+<span class="line" id="L2563"></span>
+<span class="line" id="L2564">    <span class="tok-kw">var</span> inst = S{</span>
+<span class="line" id="L2565">        .a = <span class="tok-null">null</span>,</span>
+<span class="line" id="L2566">    };</span>
+<span class="line" id="L2567">    inst.a = &amp;inst;</span>
+<span class="line" id="L2568"></span>
+<span class="line" id="L2569">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;fmt.test.struct.self-referential.S{ .a = fmt.test.struct.self-referential.S{ .a = fmt.test.struct.self-referential.S{ .a = fmt.test.struct.self-referential.S{ ... } } } }&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{inst});</span>
+<span class="line" id="L2570">}</span>
+<span class="line" id="L2571"></span>
+<span class="line" id="L2572"><span class="tok-kw">test</span> <span class="tok-str">&quot;struct.zero-size&quot;</span> {</span>
+<span class="line" id="L2573">    <span class="tok-kw">const</span> A = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L2574">        <span class="tok-kw">fn</span> <span class="tok-fn">foo</span>() <span class="tok-type">void</span> {}</span>
+<span class="line" id="L2575">    };</span>
+<span class="line" id="L2576">    <span class="tok-kw">const</span> B = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L2577">        a: A,</span>
+<span class="line" id="L2578">        c: <span class="tok-type">i32</span>,</span>
+<span class="line" id="L2579">    };</span>
+<span class="line" id="L2580"></span>
+<span class="line" id="L2581">    <span class="tok-kw">const</span> a = A{};</span>
+<span class="line" id="L2582">    <span class="tok-kw">const</span> b = B{ .a = a, .c = <span class="tok-number">0</span> };</span>
+<span class="line" id="L2583"></span>
+<span class="line" id="L2584">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;fmt.test.struct.zero-size.B{ .a = fmt.test.struct.zero-size.A{ }, .c = 0 }&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{b});</span>
+<span class="line" id="L2585">}</span>
+<span class="line" id="L2586"></span>
+<span class="line" id="L2587"><span class="tok-kw">test</span> <span class="tok-str">&quot;bytes.hex&quot;</span> {</span>
+<span class="line" id="L2588">    <span class="tok-kw">const</span> some_bytes = <span class="tok-str">&quot;\xCA\xFE\xBA\xBE&quot;</span>;</span>
+<span class="line" id="L2589">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;lowercase: cafebabe\n&quot;</span>, <span class="tok-str">&quot;lowercase: {x}\n&quot;</span>, .{fmtSliceHexLower(some_bytes)});</span>
+<span class="line" id="L2590">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;uppercase: CAFEBABE\n&quot;</span>, <span class="tok-str">&quot;uppercase: {X}\n&quot;</span>, .{fmtSliceHexUpper(some_bytes)});</span>
+<span class="line" id="L2591">    <span class="tok-comment">//Test Slices</span>
 </span>
-<span class="line" id="L2594">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;uppercase: CAFE\n&quot;</span>, <span class="tok-str">&quot;uppercase: {X}\n&quot;</span>, .{fmtSliceHexUpper(some_bytes[<span class="tok-number">0</span>..<span class="tok-number">2</span>])});</span>
-<span class="line" id="L2595">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;lowercase: babe\n&quot;</span>, <span class="tok-str">&quot;lowercase: {x}\n&quot;</span>, .{fmtSliceHexLower(some_bytes[<span class="tok-number">2</span>..])});</span>
-<span class="line" id="L2596">    <span class="tok-kw">const</span> bytes_with_zeros = <span class="tok-str">&quot;\x00\x0E\xBA\xBE&quot;</span>;</span>
-<span class="line" id="L2597">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;lowercase: 000ebabe\n&quot;</span>, <span class="tok-str">&quot;lowercase: {x}\n&quot;</span>, .{fmtSliceHexLower(bytes_with_zeros)});</span>
-<span class="line" id="L2598">}</span>
-<span class="line" id="L2599"></span>
-<span class="line" id="L2600"><span class="tok-comment">/// Encodes a sequence of bytes as hexadecimal digits.</span></span>
-<span class="line" id="L2601"><span class="tok-comment">/// Returns an array containing the encoded bytes.</span></span>
-<span class="line" id="L2602"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">bytesToHex</span>(input: <span class="tok-kw">anytype</span>, case: Case) [input.len * <span class="tok-number">2</span>]<span class="tok-type">u8</span> {</span>
-<span class="line" id="L2603">    <span class="tok-kw">if</span> (input.len == <span class="tok-number">0</span>) <span class="tok-kw">return</span> [_]<span class="tok-type">u8</span>{};</span>
-<span class="line" id="L2604">    <span class="tok-kw">comptime</span> assert(<span class="tok-builtin">@TypeOf</span>(input[<span class="tok-number">0</span>]) == <span class="tok-type">u8</span>); <span class="tok-comment">// elements to encode must be unsigned bytes</span>
+<span class="line" id="L2592">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;uppercase: CAFE\n&quot;</span>, <span class="tok-str">&quot;uppercase: {X}\n&quot;</span>, .{fmtSliceHexUpper(some_bytes[<span class="tok-number">0</span>..<span class="tok-number">2</span>])});</span>
+<span class="line" id="L2593">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;lowercase: babe\n&quot;</span>, <span class="tok-str">&quot;lowercase: {x}\n&quot;</span>, .{fmtSliceHexLower(some_bytes[<span class="tok-number">2</span>..])});</span>
+<span class="line" id="L2594">    <span class="tok-kw">const</span> bytes_with_zeros = <span class="tok-str">&quot;\x00\x0E\xBA\xBE&quot;</span>;</span>
+<span class="line" id="L2595">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;lowercase: 000ebabe\n&quot;</span>, <span class="tok-str">&quot;lowercase: {x}\n&quot;</span>, .{fmtSliceHexLower(bytes_with_zeros)});</span>
+<span class="line" id="L2596">}</span>
+<span class="line" id="L2597"></span>
+<span class="line" id="L2598"><span class="tok-comment">/// Encodes a sequence of bytes as hexadecimal digits.</span></span>
+<span class="line" id="L2599"><span class="tok-comment">/// Returns an array containing the encoded bytes.</span></span>
+<span class="line" id="L2600"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">bytesToHex</span>(input: <span class="tok-kw">anytype</span>, case: Case) [input.len * <span class="tok-number">2</span>]<span class="tok-type">u8</span> {</span>
+<span class="line" id="L2601">    <span class="tok-kw">if</span> (input.len == <span class="tok-number">0</span>) <span class="tok-kw">return</span> [_]<span class="tok-type">u8</span>{};</span>
+<span class="line" id="L2602">    <span class="tok-kw">comptime</span> assert(<span class="tok-builtin">@TypeOf</span>(input[<span class="tok-number">0</span>]) == <span class="tok-type">u8</span>); <span class="tok-comment">// elements to encode must be unsigned bytes</span>
 </span>
-<span class="line" id="L2605"></span>
-<span class="line" id="L2606">    <span class="tok-kw">const</span> charset = <span class="tok-str">&quot;0123456789&quot;</span> ++ <span class="tok-kw">if</span> (case == .upper) <span class="tok-str">&quot;ABCDEF&quot;</span> <span class="tok-kw">else</span> <span class="tok-str">&quot;abcdef&quot;</span>;</span>
-<span class="line" id="L2607">    <span class="tok-kw">var</span> result: [input.len * <span class="tok-number">2</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L2608">    <span class="tok-kw">for</span> (input, <span class="tok-number">0</span>..) |b, i| {</span>
-<span class="line" id="L2609">        result[i * <span class="tok-number">2</span> + <span class="tok-number">0</span>] = charset[b &gt;&gt; <span class="tok-number">4</span>];</span>
-<span class="line" id="L2610">        result[i * <span class="tok-number">2</span> + <span class="tok-number">1</span>] = charset[b &amp; <span class="tok-number">15</span>];</span>
-<span class="line" id="L2611">    }</span>
-<span class="line" id="L2612">    <span class="tok-kw">return</span> result;</span>
-<span class="line" id="L2613">}</span>
-<span class="line" id="L2614"></span>
-<span class="line" id="L2615"><span class="tok-comment">/// Decodes the sequence of bytes represented by the specified string of</span></span>
-<span class="line" id="L2616"><span class="tok-comment">/// hexadecimal characters.</span></span>
-<span class="line" id="L2617"><span class="tok-comment">/// Returns a slice of the output buffer containing the decoded bytes.</span></span>
-<span class="line" id="L2618"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">hexToBytes</span>(out: []<span class="tok-type">u8</span>, input: []<span class="tok-kw">const</span> <span class="tok-type">u8</span>) ![]<span class="tok-type">u8</span> {</span>
-<span class="line" id="L2619">    <span class="tok-comment">// Expect 0 or n pairs of hexadecimal digits.</span>
+<span class="line" id="L2603"></span>
+<span class="line" id="L2604">    <span class="tok-kw">const</span> charset = <span class="tok-str">&quot;0123456789&quot;</span> ++ <span class="tok-kw">if</span> (case == .upper) <span class="tok-str">&quot;ABCDEF&quot;</span> <span class="tok-kw">else</span> <span class="tok-str">&quot;abcdef&quot;</span>;</span>
+<span class="line" id="L2605">    <span class="tok-kw">var</span> result: [input.len * <span class="tok-number">2</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L2606">    <span class="tok-kw">for</span> (input, <span class="tok-number">0</span>..) |b, i| {</span>
+<span class="line" id="L2607">        result[i * <span class="tok-number">2</span> + <span class="tok-number">0</span>] = charset[b &gt;&gt; <span class="tok-number">4</span>];</span>
+<span class="line" id="L2608">        result[i * <span class="tok-number">2</span> + <span class="tok-number">1</span>] = charset[b &amp; <span class="tok-number">15</span>];</span>
+<span class="line" id="L2609">    }</span>
+<span class="line" id="L2610">    <span class="tok-kw">return</span> result;</span>
+<span class="line" id="L2611">}</span>
+<span class="line" id="L2612"></span>
+<span class="line" id="L2613"><span class="tok-comment">/// Decodes the sequence of bytes represented by the specified string of</span></span>
+<span class="line" id="L2614"><span class="tok-comment">/// hexadecimal characters.</span></span>
+<span class="line" id="L2615"><span class="tok-comment">/// Returns a slice of the output buffer containing the decoded bytes.</span></span>
+<span class="line" id="L2616"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">hexToBytes</span>(out: []<span class="tok-type">u8</span>, input: []<span class="tok-kw">const</span> <span class="tok-type">u8</span>) ![]<span class="tok-type">u8</span> {</span>
+<span class="line" id="L2617">    <span class="tok-comment">// Expect 0 or n pairs of hexadecimal digits.</span>
 </span>
-<span class="line" id="L2620">    <span class="tok-kw">if</span> (input.len &amp; <span class="tok-number">1</span> != <span class="tok-number">0</span>)</span>
-<span class="line" id="L2621">        <span class="tok-kw">return</span> <span class="tok-kw">error</span>.InvalidLength;</span>
-<span class="line" id="L2622">    <span class="tok-kw">if</span> (out.len * <span class="tok-number">2</span> &lt; input.len)</span>
-<span class="line" id="L2623">        <span class="tok-kw">return</span> <span class="tok-kw">error</span>.NoSpaceLeft;</span>
-<span class="line" id="L2624"></span>
-<span class="line" id="L2625">    <span class="tok-kw">var</span> in_i: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
-<span class="line" id="L2626">    <span class="tok-kw">while</span> (in_i &lt; input.len) : (in_i += <span class="tok-number">2</span>) {</span>
-<span class="line" id="L2627">        <span class="tok-kw">const</span> hi = <span class="tok-kw">try</span> charToDigit(input[in_i], <span class="tok-number">16</span>);</span>
-<span class="line" id="L2628">        <span class="tok-kw">const</span> lo = <span class="tok-kw">try</span> charToDigit(input[in_i + <span class="tok-number">1</span>], <span class="tok-number">16</span>);</span>
-<span class="line" id="L2629">        out[in_i / <span class="tok-number">2</span>] = (hi &lt;&lt; <span class="tok-number">4</span>) | lo;</span>
-<span class="line" id="L2630">    }</span>
-<span class="line" id="L2631"></span>
-<span class="line" id="L2632">    <span class="tok-kw">return</span> out[<span class="tok-number">0</span> .. in_i / <span class="tok-number">2</span>];</span>
-<span class="line" id="L2633">}</span>
-<span class="line" id="L2634"></span>
-<span class="line" id="L2635"><span class="tok-kw">test</span> <span class="tok-str">&quot;bytesToHex&quot;</span> {</span>
-<span class="line" id="L2636">    <span class="tok-kw">const</span> input = <span class="tok-str">&quot;input slice&quot;</span>;</span>
-<span class="line" id="L2637">    <span class="tok-kw">const</span> encoded = bytesToHex(input, .lower);</span>
-<span class="line" id="L2638">    <span class="tok-kw">var</span> decoded: [input.len]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L2639">    <span class="tok-kw">try</span> std.testing.expectEqualSlices(<span class="tok-type">u8</span>, input, <span class="tok-kw">try</span> hexToBytes(&amp;decoded, &amp;encoded));</span>
-<span class="line" id="L2640">}</span>
-<span class="line" id="L2641"></span>
-<span class="line" id="L2642"><span class="tok-kw">test</span> <span class="tok-str">&quot;hexToBytes&quot;</span> {</span>
-<span class="line" id="L2643">    <span class="tok-kw">var</span> buf: [<span class="tok-number">32</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L2644">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;90&quot;</span> ** <span class="tok-number">32</span>, <span class="tok-str">&quot;{s}&quot;</span>, .{fmtSliceHexUpper(<span class="tok-kw">try</span> hexToBytes(&amp;buf, <span class="tok-str">&quot;90&quot;</span> ** <span class="tok-number">32</span>))});</span>
-<span class="line" id="L2645">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;ABCD&quot;</span>, <span class="tok-str">&quot;{s}&quot;</span>, .{fmtSliceHexUpper(<span class="tok-kw">try</span> hexToBytes(&amp;buf, <span class="tok-str">&quot;ABCD&quot;</span>))});</span>
-<span class="line" id="L2646">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;&quot;</span>, <span class="tok-str">&quot;{s}&quot;</span>, .{fmtSliceHexUpper(<span class="tok-kw">try</span> hexToBytes(&amp;buf, <span class="tok-str">&quot;&quot;</span>))});</span>
-<span class="line" id="L2647">    <span class="tok-kw">try</span> std.testing.expectError(<span class="tok-kw">error</span>.InvalidCharacter, hexToBytes(&amp;buf, <span class="tok-str">&quot;012Z&quot;</span>));</span>
-<span class="line" id="L2648">    <span class="tok-kw">try</span> std.testing.expectError(<span class="tok-kw">error</span>.InvalidLength, hexToBytes(&amp;buf, <span class="tok-str">&quot;AAA&quot;</span>));</span>
-<span class="line" id="L2649">    <span class="tok-kw">try</span> std.testing.expectError(<span class="tok-kw">error</span>.NoSpaceLeft, hexToBytes(buf[<span class="tok-number">0</span>..<span class="tok-number">1</span>], <span class="tok-str">&quot;ABAB&quot;</span>));</span>
-<span class="line" id="L2650">}</span>
-<span class="line" id="L2651"></span>
-<span class="line" id="L2652"><span class="tok-kw">test</span> <span class="tok-str">&quot;formatIntValue with comptime_int&quot;</span> {</span>
-<span class="line" id="L2653">    <span class="tok-kw">const</span> value: <span class="tok-type">comptime_int</span> = <span class="tok-number">123456789123456789</span>;</span>
-<span class="line" id="L2654"></span>
-<span class="line" id="L2655">    <span class="tok-kw">var</span> buf: [<span class="tok-number">20</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L2656">    <span class="tok-kw">var</span> fbs = std.io.fixedBufferStream(&amp;buf);</span>
-<span class="line" id="L2657">    <span class="tok-kw">try</span> formatIntValue(value, <span class="tok-str">&quot;&quot;</span>, FormatOptions{}, fbs.writer());</span>
-<span class="line" id="L2658">    <span class="tok-kw">try</span> std.testing.expect(mem.eql(<span class="tok-type">u8</span>, fbs.getWritten(), <span class="tok-str">&quot;123456789123456789&quot;</span>));</span>
-<span class="line" id="L2659">}</span>
-<span class="line" id="L2660"></span>
-<span class="line" id="L2661"><span class="tok-kw">test</span> <span class="tok-str">&quot;formatFloatValue with comptime_float&quot;</span> {</span>
-<span class="line" id="L2662">    <span class="tok-kw">const</span> value: <span class="tok-type">comptime_float</span> = <span class="tok-number">1.0</span>;</span>
-<span class="line" id="L2663"></span>
-<span class="line" id="L2664">    <span class="tok-kw">var</span> buf: [<span class="tok-number">20</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L2665">    <span class="tok-kw">var</span> fbs = std.io.fixedBufferStream(&amp;buf);</span>
-<span class="line" id="L2666">    <span class="tok-kw">try</span> formatFloatValue(value, <span class="tok-str">&quot;&quot;</span>, FormatOptions{}, fbs.writer());</span>
-<span class="line" id="L2667">    <span class="tok-kw">try</span> std.testing.expect(mem.eql(<span class="tok-type">u8</span>, fbs.getWritten(), <span class="tok-str">&quot;1.0e+00&quot;</span>));</span>
-<span class="line" id="L2668"></span>
-<span class="line" id="L2669">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;1.0e+00&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{value});</span>
-<span class="line" id="L2670">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;1.0e+00&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{<span class="tok-number">1.0</span>});</span>
-<span class="line" id="L2671">}</span>
-<span class="line" id="L2672"></span>
-<span class="line" id="L2673"><span class="tok-kw">test</span> <span class="tok-str">&quot;formatType max_depth&quot;</span> {</span>
-<span class="line" id="L2674">    <span class="tok-kw">const</span> Vec2 = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L2675">        <span class="tok-kw">const</span> SelfType = <span class="tok-builtin">@This</span>();</span>
-<span class="line" id="L2676">        x: <span class="tok-type">f32</span>,</span>
-<span class="line" id="L2677">        y: <span class="tok-type">f32</span>,</span>
-<span class="line" id="L2678"></span>
-<span class="line" id="L2679">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">format</span>(</span>
-<span class="line" id="L2680">            self: SelfType,</span>
-<span class="line" id="L2681">            <span class="tok-kw">comptime</span> fmt: []<span class="tok-kw">const</span> <span class="tok-type">u8</span>,</span>
-<span class="line" id="L2682">            options: FormatOptions,</span>
-<span class="line" id="L2683">            writer: <span class="tok-kw">anytype</span>,</span>
-<span class="line" id="L2684">        ) !<span class="tok-type">void</span> {</span>
-<span class="line" id="L2685">            _ = options;</span>
-<span class="line" id="L2686">            <span class="tok-kw">if</span> (fmt.len == <span class="tok-number">0</span>) {</span>
-<span class="line" id="L2687">                <span class="tok-kw">return</span> std.fmt.format(writer, <span class="tok-str">&quot;({d:.3},{d:.3})&quot;</span>, .{ self.x, self.y });</span>
-<span class="line" id="L2688">            } <span class="tok-kw">else</span> {</span>
-<span class="line" id="L2689">                <span class="tok-builtin">@compileError</span>(<span class="tok-str">&quot;unknown format string: '&quot;</span> ++ fmt ++ <span class="tok-str">&quot;'&quot;</span>);</span>
-<span class="line" id="L2690">            }</span>
-<span class="line" id="L2691">        }</span>
-<span class="line" id="L2692">    };</span>
-<span class="line" id="L2693">    <span class="tok-kw">const</span> E = <span class="tok-kw">enum</span> {</span>
-<span class="line" id="L2694">        One,</span>
-<span class="line" id="L2695">        Two,</span>
-<span class="line" id="L2696">        Three,</span>
-<span class="line" id="L2697">    };</span>
-<span class="line" id="L2698">    <span class="tok-kw">const</span> TU = <span class="tok-kw">union</span>(<span class="tok-kw">enum</span>) {</span>
-<span class="line" id="L2699">        <span class="tok-kw">const</span> SelfType = <span class="tok-builtin">@This</span>();</span>
-<span class="line" id="L2700">        float: <span class="tok-type">f32</span>,</span>
-<span class="line" id="L2701">        int: <span class="tok-type">u32</span>,</span>
-<span class="line" id="L2702">        ptr: ?*SelfType,</span>
-<span class="line" id="L2703">    };</span>
-<span class="line" id="L2704">    <span class="tok-kw">const</span> S = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L2705">        <span class="tok-kw">const</span> SelfType = <span class="tok-builtin">@This</span>();</span>
-<span class="line" id="L2706">        a: ?*SelfType,</span>
-<span class="line" id="L2707">        tu: TU,</span>
-<span class="line" id="L2708">        e: E,</span>
-<span class="line" id="L2709">        vec: Vec2,</span>
-<span class="line" id="L2710">    };</span>
-<span class="line" id="L2711"></span>
-<span class="line" id="L2712">    <span class="tok-kw">var</span> inst = S{</span>
-<span class="line" id="L2713">        .a = <span class="tok-null">null</span>,</span>
-<span class="line" id="L2714">        .tu = TU{ .ptr = <span class="tok-null">null</span> },</span>
-<span class="line" id="L2715">        .e = E.Two,</span>
-<span class="line" id="L2716">        .vec = Vec2{ .x = <span class="tok-number">10.2</span>, .y = <span class="tok-number">2.22</span> },</span>
-<span class="line" id="L2717">    };</span>
-<span class="line" id="L2718">    inst.a = &amp;inst;</span>
-<span class="line" id="L2719">    inst.tu.ptr = &amp;inst.tu;</span>
-<span class="line" id="L2720"></span>
-<span class="line" id="L2721">    <span class="tok-kw">var</span> buf: [<span class="tok-number">1000</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L2722">    <span class="tok-kw">var</span> fbs = std.io.fixedBufferStream(&amp;buf);</span>
-<span class="line" id="L2723">    <span class="tok-kw">try</span> formatType(inst, <span class="tok-str">&quot;&quot;</span>, FormatOptions{}, fbs.writer(), <span class="tok-number">0</span>);</span>
-<span class="line" id="L2724">    <span class="tok-kw">try</span> std.testing.expect(mem.eql(<span class="tok-type">u8</span>, fbs.getWritten(), <span class="tok-str">&quot;fmt.test.formatType max_depth.S{ ... }&quot;</span>));</span>
-<span class="line" id="L2725"></span>
-<span class="line" id="L2726">    fbs.reset();</span>
-<span class="line" id="L2727">    <span class="tok-kw">try</span> formatType(inst, <span class="tok-str">&quot;&quot;</span>, FormatOptions{}, fbs.writer(), <span class="tok-number">1</span>);</span>
-<span class="line" id="L2728">    <span class="tok-kw">try</span> std.testing.expect(mem.eql(<span class="tok-type">u8</span>, fbs.getWritten(), <span class="tok-str">&quot;fmt.test.formatType max_depth.S{ .a = fmt.test.formatType max_depth.S{ ... }, .tu = fmt.test.formatType max_depth.TU{ ... }, .e = fmt.test.formatType max_depth.E.Two, .vec = (10.200,2.220) }&quot;</span>));</span>
-<span class="line" id="L2729"></span>
-<span class="line" id="L2730">    fbs.reset();</span>
-<span class="line" id="L2731">    <span class="tok-kw">try</span> formatType(inst, <span class="tok-str">&quot;&quot;</span>, FormatOptions{}, fbs.writer(), <span class="tok-number">2</span>);</span>
-<span class="line" id="L2732">    <span class="tok-kw">try</span> std.testing.expect(mem.eql(<span class="tok-type">u8</span>, fbs.getWritten(), <span class="tok-str">&quot;fmt.test.formatType max_depth.S{ .a = fmt.test.formatType max_depth.S{ .a = fmt.test.formatType max_depth.S{ ... }, .tu = fmt.test.formatType max_depth.TU{ ... }, .e = fmt.test.formatType max_depth.E.Two, .vec = (10.200,2.220) }, .tu = fmt.test.formatType max_depth.TU{ .ptr = fmt.test.formatType max_depth.TU{ ... } }, .e = fmt.test.formatType max_depth.E.Two, .vec = (10.200,2.220) }&quot;</span>));</span>
-<span class="line" id="L2733"></span>
-<span class="line" id="L2734">    fbs.reset();</span>
-<span class="line" id="L2735">    <span class="tok-kw">try</span> formatType(inst, <span class="tok-str">&quot;&quot;</span>, FormatOptions{}, fbs.writer(), <span class="tok-number">3</span>);</span>
-<span class="line" id="L2736">    <span class="tok-kw">try</span> std.testing.expect(mem.eql(<span class="tok-type">u8</span>, fbs.getWritten(), <span class="tok-str">&quot;fmt.test.formatType max_depth.S{ .a = fmt.test.formatType max_depth.S{ .a = fmt.test.formatType max_depth.S{ .a = fmt.test.formatType max_depth.S{ ... }, .tu = fmt.test.formatType max_depth.TU{ ... }, .e = fmt.test.formatType max_depth.E.Two, .vec = (10.200,2.220) }, .tu = fmt.test.formatType max_depth.TU{ .ptr = fmt.test.formatType max_depth.TU{ ... } }, .e = fmt.test.formatType max_depth.E.Two, .vec = (10.200,2.220) }, .tu = fmt.test.formatType max_depth.TU{ .ptr = fmt.test.formatType max_depth.TU{ .ptr = fmt.test.formatType max_depth.TU{ ... } } }, .e = fmt.test.formatType max_depth.E.Two, .vec = (10.200,2.220) }&quot;</span>));</span>
-<span class="line" id="L2737">}</span>
-<span class="line" id="L2738"></span>
-<span class="line" id="L2739"><span class="tok-kw">test</span> <span class="tok-str">&quot;positional&quot;</span> {</span>
-<span class="line" id="L2740">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;2 1 0&quot;</span>, <span class="tok-str">&quot;{2} {1} {0}&quot;</span>, .{ <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">1</span>), <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">2</span>) });</span>
-<span class="line" id="L2741">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;2 1 0&quot;</span>, <span class="tok-str">&quot;{2} {1} {}&quot;</span>, .{ <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">1</span>), <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">2</span>) });</span>
-<span class="line" id="L2742">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;0 0&quot;</span>, <span class="tok-str">&quot;{0} {0}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>)});</span>
-<span class="line" id="L2743">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;0 1&quot;</span>, <span class="tok-str">&quot;{} {1}&quot;</span>, .{ <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">1</span>) });</span>
-<span class="line" id="L2744">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;1 0 0 1&quot;</span>, <span class="tok-str">&quot;{1} {} {0} {}&quot;</span>, .{ <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">1</span>) });</span>
-<span class="line" id="L2745">}</span>
-<span class="line" id="L2746"></span>
-<span class="line" id="L2747"><span class="tok-kw">test</span> <span class="tok-str">&quot;positional with specifier&quot;</span> {</span>
-<span class="line" id="L2748">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;10.0&quot;</span>, <span class="tok-str">&quot;{0d:.1}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">9.999</span>)});</span>
-<span class="line" id="L2749">}</span>
-<span class="line" id="L2750"></span>
-<span class="line" id="L2751"><span class="tok-kw">test</span> <span class="tok-str">&quot;positional/alignment/width/precision&quot;</span> {</span>
-<span class="line" id="L2752">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;10.0&quot;</span>, <span class="tok-str">&quot;{0d: &gt;3.1}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">9.999</span>)});</span>
-<span class="line" id="L2753">}</span>
-<span class="line" id="L2754"></span>
-<span class="line" id="L2755"><span class="tok-kw">test</span> <span class="tok-str">&quot;vector&quot;</span> {</span>
-<span class="line" id="L2756">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L2757"></span>
-<span class="line" id="L2758">    <span class="tok-kw">if</span> (builtin.target.cpu.arch == .riscv64) {</span>
-<span class="line" id="L2759">        <span class="tok-comment">// https://github.com/ziglang/zig/issues/4486</span>
+<span class="line" id="L2618">    <span class="tok-kw">if</span> (input.len &amp; <span class="tok-number">1</span> != <span class="tok-number">0</span>)</span>
+<span class="line" id="L2619">        <span class="tok-kw">return</span> <span class="tok-kw">error</span>.InvalidLength;</span>
+<span class="line" id="L2620">    <span class="tok-kw">if</span> (out.len * <span class="tok-number">2</span> &lt; input.len)</span>
+<span class="line" id="L2621">        <span class="tok-kw">return</span> <span class="tok-kw">error</span>.NoSpaceLeft;</span>
+<span class="line" id="L2622"></span>
+<span class="line" id="L2623">    <span class="tok-kw">var</span> in_i: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
+<span class="line" id="L2624">    <span class="tok-kw">while</span> (in_i &lt; input.len) : (in_i += <span class="tok-number">2</span>) {</span>
+<span class="line" id="L2625">        <span class="tok-kw">const</span> hi = <span class="tok-kw">try</span> charToDigit(input[in_i], <span class="tok-number">16</span>);</span>
+<span class="line" id="L2626">        <span class="tok-kw">const</span> lo = <span class="tok-kw">try</span> charToDigit(input[in_i + <span class="tok-number">1</span>], <span class="tok-number">16</span>);</span>
+<span class="line" id="L2627">        out[in_i / <span class="tok-number">2</span>] = (hi &lt;&lt; <span class="tok-number">4</span>) | lo;</span>
+<span class="line" id="L2628">    }</span>
+<span class="line" id="L2629"></span>
+<span class="line" id="L2630">    <span class="tok-kw">return</span> out[<span class="tok-number">0</span> .. in_i / <span class="tok-number">2</span>];</span>
+<span class="line" id="L2631">}</span>
+<span class="line" id="L2632"></span>
+<span class="line" id="L2633"><span class="tok-kw">test</span> <span class="tok-str">&quot;bytesToHex&quot;</span> {</span>
+<span class="line" id="L2634">    <span class="tok-kw">const</span> input = <span class="tok-str">&quot;input slice&quot;</span>;</span>
+<span class="line" id="L2635">    <span class="tok-kw">const</span> encoded = bytesToHex(input, .lower);</span>
+<span class="line" id="L2636">    <span class="tok-kw">var</span> decoded: [input.len]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L2637">    <span class="tok-kw">try</span> std.testing.expectEqualSlices(<span class="tok-type">u8</span>, input, <span class="tok-kw">try</span> hexToBytes(&amp;decoded, &amp;encoded));</span>
+<span class="line" id="L2638">}</span>
+<span class="line" id="L2639"></span>
+<span class="line" id="L2640"><span class="tok-kw">test</span> <span class="tok-str">&quot;hexToBytes&quot;</span> {</span>
+<span class="line" id="L2641">    <span class="tok-kw">var</span> buf: [<span class="tok-number">32</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L2642">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;90&quot;</span> ** <span class="tok-number">32</span>, <span class="tok-str">&quot;{s}&quot;</span>, .{fmtSliceHexUpper(<span class="tok-kw">try</span> hexToBytes(&amp;buf, <span class="tok-str">&quot;90&quot;</span> ** <span class="tok-number">32</span>))});</span>
+<span class="line" id="L2643">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;ABCD&quot;</span>, <span class="tok-str">&quot;{s}&quot;</span>, .{fmtSliceHexUpper(<span class="tok-kw">try</span> hexToBytes(&amp;buf, <span class="tok-str">&quot;ABCD&quot;</span>))});</span>
+<span class="line" id="L2644">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;&quot;</span>, <span class="tok-str">&quot;{s}&quot;</span>, .{fmtSliceHexUpper(<span class="tok-kw">try</span> hexToBytes(&amp;buf, <span class="tok-str">&quot;&quot;</span>))});</span>
+<span class="line" id="L2645">    <span class="tok-kw">try</span> std.testing.expectError(<span class="tok-kw">error</span>.InvalidCharacter, hexToBytes(&amp;buf, <span class="tok-str">&quot;012Z&quot;</span>));</span>
+<span class="line" id="L2646">    <span class="tok-kw">try</span> std.testing.expectError(<span class="tok-kw">error</span>.InvalidLength, hexToBytes(&amp;buf, <span class="tok-str">&quot;AAA&quot;</span>));</span>
+<span class="line" id="L2647">    <span class="tok-kw">try</span> std.testing.expectError(<span class="tok-kw">error</span>.NoSpaceLeft, hexToBytes(buf[<span class="tok-number">0</span>..<span class="tok-number">1</span>], <span class="tok-str">&quot;ABAB&quot;</span>));</span>
+<span class="line" id="L2648">}</span>
+<span class="line" id="L2649"></span>
+<span class="line" id="L2650"><span class="tok-kw">test</span> <span class="tok-str">&quot;formatIntValue with comptime_int&quot;</span> {</span>
+<span class="line" id="L2651">    <span class="tok-kw">const</span> value: <span class="tok-type">comptime_int</span> = <span class="tok-number">123456789123456789</span>;</span>
+<span class="line" id="L2652"></span>
+<span class="line" id="L2653">    <span class="tok-kw">var</span> buf: [<span class="tok-number">20</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L2654">    <span class="tok-kw">var</span> fbs = std.io.fixedBufferStream(&amp;buf);</span>
+<span class="line" id="L2655">    <span class="tok-kw">try</span> formatIntValue(value, <span class="tok-str">&quot;&quot;</span>, FormatOptions{}, fbs.writer());</span>
+<span class="line" id="L2656">    <span class="tok-kw">try</span> std.testing.expect(mem.eql(<span class="tok-type">u8</span>, fbs.getWritten(), <span class="tok-str">&quot;123456789123456789&quot;</span>));</span>
+<span class="line" id="L2657">}</span>
+<span class="line" id="L2658"></span>
+<span class="line" id="L2659"><span class="tok-kw">test</span> <span class="tok-str">&quot;formatFloatValue with comptime_float&quot;</span> {</span>
+<span class="line" id="L2660">    <span class="tok-kw">const</span> value: <span class="tok-type">comptime_float</span> = <span class="tok-number">1.0</span>;</span>
+<span class="line" id="L2661"></span>
+<span class="line" id="L2662">    <span class="tok-kw">var</span> buf: [<span class="tok-number">20</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L2663">    <span class="tok-kw">var</span> fbs = std.io.fixedBufferStream(&amp;buf);</span>
+<span class="line" id="L2664">    <span class="tok-kw">try</span> formatFloatValue(value, <span class="tok-str">&quot;&quot;</span>, FormatOptions{}, fbs.writer());</span>
+<span class="line" id="L2665">    <span class="tok-kw">try</span> std.testing.expect(mem.eql(<span class="tok-type">u8</span>, fbs.getWritten(), <span class="tok-str">&quot;1.0e+00&quot;</span>));</span>
+<span class="line" id="L2666"></span>
+<span class="line" id="L2667">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;1.0e+00&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{value});</span>
+<span class="line" id="L2668">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;1.0e+00&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{<span class="tok-number">1.0</span>});</span>
+<span class="line" id="L2669">}</span>
+<span class="line" id="L2670"></span>
+<span class="line" id="L2671"><span class="tok-kw">test</span> <span class="tok-str">&quot;formatType max_depth&quot;</span> {</span>
+<span class="line" id="L2672">    <span class="tok-kw">const</span> Vec2 = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L2673">        <span class="tok-kw">const</span> SelfType = <span class="tok-builtin">@This</span>();</span>
+<span class="line" id="L2674">        x: <span class="tok-type">f32</span>,</span>
+<span class="line" id="L2675">        y: <span class="tok-type">f32</span>,</span>
+<span class="line" id="L2676"></span>
+<span class="line" id="L2677">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">format</span>(</span>
+<span class="line" id="L2678">            self: SelfType,</span>
+<span class="line" id="L2679">            <span class="tok-kw">comptime</span> fmt: []<span class="tok-kw">const</span> <span class="tok-type">u8</span>,</span>
+<span class="line" id="L2680">            options: FormatOptions,</span>
+<span class="line" id="L2681">            writer: <span class="tok-kw">anytype</span>,</span>
+<span class="line" id="L2682">        ) !<span class="tok-type">void</span> {</span>
+<span class="line" id="L2683">            _ = options;</span>
+<span class="line" id="L2684">            <span class="tok-kw">if</span> (fmt.len == <span class="tok-number">0</span>) {</span>
+<span class="line" id="L2685">                <span class="tok-kw">return</span> std.fmt.format(writer, <span class="tok-str">&quot;({d:.3},{d:.3})&quot;</span>, .{ self.x, self.y });</span>
+<span class="line" id="L2686">            } <span class="tok-kw">else</span> {</span>
+<span class="line" id="L2687">                <span class="tok-builtin">@compileError</span>(<span class="tok-str">&quot;unknown format string: '&quot;</span> ++ fmt ++ <span class="tok-str">&quot;'&quot;</span>);</span>
+<span class="line" id="L2688">            }</span>
+<span class="line" id="L2689">        }</span>
+<span class="line" id="L2690">    };</span>
+<span class="line" id="L2691">    <span class="tok-kw">const</span> E = <span class="tok-kw">enum</span> {</span>
+<span class="line" id="L2692">        One,</span>
+<span class="line" id="L2693">        Two,</span>
+<span class="line" id="L2694">        Three,</span>
+<span class="line" id="L2695">    };</span>
+<span class="line" id="L2696">    <span class="tok-kw">const</span> TU = <span class="tok-kw">union</span>(<span class="tok-kw">enum</span>) {</span>
+<span class="line" id="L2697">        <span class="tok-kw">const</span> SelfType = <span class="tok-builtin">@This</span>();</span>
+<span class="line" id="L2698">        float: <span class="tok-type">f32</span>,</span>
+<span class="line" id="L2699">        int: <span class="tok-type">u32</span>,</span>
+<span class="line" id="L2700">        ptr: ?*SelfType,</span>
+<span class="line" id="L2701">    };</span>
+<span class="line" id="L2702">    <span class="tok-kw">const</span> S = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L2703">        <span class="tok-kw">const</span> SelfType = <span class="tok-builtin">@This</span>();</span>
+<span class="line" id="L2704">        a: ?*SelfType,</span>
+<span class="line" id="L2705">        tu: TU,</span>
+<span class="line" id="L2706">        e: E,</span>
+<span class="line" id="L2707">        vec: Vec2,</span>
+<span class="line" id="L2708">    };</span>
+<span class="line" id="L2709"></span>
+<span class="line" id="L2710">    <span class="tok-kw">var</span> inst = S{</span>
+<span class="line" id="L2711">        .a = <span class="tok-null">null</span>,</span>
+<span class="line" id="L2712">        .tu = TU{ .ptr = <span class="tok-null">null</span> },</span>
+<span class="line" id="L2713">        .e = E.Two,</span>
+<span class="line" id="L2714">        .vec = Vec2{ .x = <span class="tok-number">10.2</span>, .y = <span class="tok-number">2.22</span> },</span>
+<span class="line" id="L2715">    };</span>
+<span class="line" id="L2716">    inst.a = &amp;inst;</span>
+<span class="line" id="L2717">    inst.tu.ptr = &amp;inst.tu;</span>
+<span class="line" id="L2718"></span>
+<span class="line" id="L2719">    <span class="tok-kw">var</span> buf: [<span class="tok-number">1000</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L2720">    <span class="tok-kw">var</span> fbs = std.io.fixedBufferStream(&amp;buf);</span>
+<span class="line" id="L2721">    <span class="tok-kw">try</span> formatType(inst, <span class="tok-str">&quot;&quot;</span>, FormatOptions{}, fbs.writer(), <span class="tok-number">0</span>);</span>
+<span class="line" id="L2722">    <span class="tok-kw">try</span> std.testing.expect(mem.eql(<span class="tok-type">u8</span>, fbs.getWritten(), <span class="tok-str">&quot;fmt.test.formatType max_depth.S{ ... }&quot;</span>));</span>
+<span class="line" id="L2723"></span>
+<span class="line" id="L2724">    fbs.reset();</span>
+<span class="line" id="L2725">    <span class="tok-kw">try</span> formatType(inst, <span class="tok-str">&quot;&quot;</span>, FormatOptions{}, fbs.writer(), <span class="tok-number">1</span>);</span>
+<span class="line" id="L2726">    <span class="tok-kw">try</span> std.testing.expect(mem.eql(<span class="tok-type">u8</span>, fbs.getWritten(), <span class="tok-str">&quot;fmt.test.formatType max_depth.S{ .a = fmt.test.formatType max_depth.S{ ... }, .tu = fmt.test.formatType max_depth.TU{ ... }, .e = fmt.test.formatType max_depth.E.Two, .vec = (10.200,2.220) }&quot;</span>));</span>
+<span class="line" id="L2727"></span>
+<span class="line" id="L2728">    fbs.reset();</span>
+<span class="line" id="L2729">    <span class="tok-kw">try</span> formatType(inst, <span class="tok-str">&quot;&quot;</span>, FormatOptions{}, fbs.writer(), <span class="tok-number">2</span>);</span>
+<span class="line" id="L2730">    <span class="tok-kw">try</span> std.testing.expect(mem.eql(<span class="tok-type">u8</span>, fbs.getWritten(), <span class="tok-str">&quot;fmt.test.formatType max_depth.S{ .a = fmt.test.formatType max_depth.S{ .a = fmt.test.formatType max_depth.S{ ... }, .tu = fmt.test.formatType max_depth.TU{ ... }, .e = fmt.test.formatType max_depth.E.Two, .vec = (10.200,2.220) }, .tu = fmt.test.formatType max_depth.TU{ .ptr = fmt.test.formatType max_depth.TU{ ... } }, .e = fmt.test.formatType max_depth.E.Two, .vec = (10.200,2.220) }&quot;</span>));</span>
+<span class="line" id="L2731"></span>
+<span class="line" id="L2732">    fbs.reset();</span>
+<span class="line" id="L2733">    <span class="tok-kw">try</span> formatType(inst, <span class="tok-str">&quot;&quot;</span>, FormatOptions{}, fbs.writer(), <span class="tok-number">3</span>);</span>
+<span class="line" id="L2734">    <span class="tok-kw">try</span> std.testing.expect(mem.eql(<span class="tok-type">u8</span>, fbs.getWritten(), <span class="tok-str">&quot;fmt.test.formatType max_depth.S{ .a = fmt.test.formatType max_depth.S{ .a = fmt.test.formatType max_depth.S{ .a = fmt.test.formatType max_depth.S{ ... }, .tu = fmt.test.formatType max_depth.TU{ ... }, .e = fmt.test.formatType max_depth.E.Two, .vec = (10.200,2.220) }, .tu = fmt.test.formatType max_depth.TU{ .ptr = fmt.test.formatType max_depth.TU{ ... } }, .e = fmt.test.formatType max_depth.E.Two, .vec = (10.200,2.220) }, .tu = fmt.test.formatType max_depth.TU{ .ptr = fmt.test.formatType max_depth.TU{ .ptr = fmt.test.formatType max_depth.TU{ ... } } }, .e = fmt.test.formatType max_depth.E.Two, .vec = (10.200,2.220) }&quot;</span>));</span>
+<span class="line" id="L2735">}</span>
+<span class="line" id="L2736"></span>
+<span class="line" id="L2737"><span class="tok-kw">test</span> <span class="tok-str">&quot;positional&quot;</span> {</span>
+<span class="line" id="L2738">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;2 1 0&quot;</span>, <span class="tok-str">&quot;{2} {1} {0}&quot;</span>, .{ <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">1</span>), <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">2</span>) });</span>
+<span class="line" id="L2739">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;2 1 0&quot;</span>, <span class="tok-str">&quot;{2} {1} {}&quot;</span>, .{ <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">1</span>), <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">2</span>) });</span>
+<span class="line" id="L2740">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;0 0&quot;</span>, <span class="tok-str">&quot;{0} {0}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>)});</span>
+<span class="line" id="L2741">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;0 1&quot;</span>, <span class="tok-str">&quot;{} {1}&quot;</span>, .{ <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">1</span>) });</span>
+<span class="line" id="L2742">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;1 0 0 1&quot;</span>, <span class="tok-str">&quot;{1} {} {0} {}&quot;</span>, .{ <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">1</span>) });</span>
+<span class="line" id="L2743">}</span>
+<span class="line" id="L2744"></span>
+<span class="line" id="L2745"><span class="tok-kw">test</span> <span class="tok-str">&quot;positional with specifier&quot;</span> {</span>
+<span class="line" id="L2746">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;10.0&quot;</span>, <span class="tok-str">&quot;{0d:.1}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">9.999</span>)});</span>
+<span class="line" id="L2747">}</span>
+<span class="line" id="L2748"></span>
+<span class="line" id="L2749"><span class="tok-kw">test</span> <span class="tok-str">&quot;positional/alignment/width/precision&quot;</span> {</span>
+<span class="line" id="L2750">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;10.0&quot;</span>, <span class="tok-str">&quot;{0d: &gt;3.1}&quot;</span>, .{<span class="tok-builtin">@as</span>(<span class="tok-type">f64</span>, <span class="tok-number">9.999</span>)});</span>
+<span class="line" id="L2751">}</span>
+<span class="line" id="L2752"></span>
+<span class="line" id="L2753"><span class="tok-kw">test</span> <span class="tok-str">&quot;vector&quot;</span> {</span>
+<span class="line" id="L2754">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L2755"></span>
+<span class="line" id="L2756">    <span class="tok-kw">if</span> (builtin.target.cpu.arch == .riscv64) {</span>
+<span class="line" id="L2757">        <span class="tok-comment">// https://github.com/ziglang/zig/issues/4486</span>
 </span>
-<span class="line" id="L2760">        <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L2761">    }</span>
-<span class="line" id="L2762"></span>
-<span class="line" id="L2763">    <span class="tok-kw">const</span> vbool: <span class="tok-builtin">@Vector</span>(<span class="tok-number">4</span>, <span class="tok-type">bool</span>) = [_]<span class="tok-type">bool</span>{ <span class="tok-null">true</span>, <span class="tok-null">false</span>, <span class="tok-null">true</span>, <span class="tok-null">false</span> };</span>
-<span class="line" id="L2764">    <span class="tok-kw">const</span> vi64: <span class="tok-builtin">@Vector</span>(<span class="tok-number">4</span>, <span class="tok-type">i64</span>) = [_]<span class="tok-type">i64</span>{ -<span class="tok-number">2</span>, -<span class="tok-number">1</span>, <span class="tok-number">0</span>, <span class="tok-number">1</span> };</span>
-<span class="line" id="L2765">    <span class="tok-kw">const</span> vu64: <span class="tok-builtin">@Vector</span>(<span class="tok-number">4</span>, <span class="tok-type">u64</span>) = [_]<span class="tok-type">u64</span>{ <span class="tok-number">1000</span>, <span class="tok-number">2000</span>, <span class="tok-number">3000</span>, <span class="tok-number">4000</span> };</span>
-<span class="line" id="L2766"></span>
-<span class="line" id="L2767">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;{ true, false, true, false }&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{vbool});</span>
-<span class="line" id="L2768">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;{ -2, -1, 0, 1 }&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{vi64});</span>
-<span class="line" id="L2769">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;{    -2,    -1,    +0,    +1 }&quot;</span>, <span class="tok-str">&quot;{d:5}&quot;</span>, .{vi64});</span>
-<span class="line" id="L2770">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;{ 1000, 2000, 3000, 4000 }&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{vu64});</span>
-<span class="line" id="L2771">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;{ 3e8, 7d0, bb8, fa0 }&quot;</span>, <span class="tok-str">&quot;{x}&quot;</span>, .{vu64});</span>
-<span class="line" id="L2772">}</span>
-<span class="line" id="L2773"></span>
-<span class="line" id="L2774"><span class="tok-kw">test</span> <span class="tok-str">&quot;enum-literal&quot;</span> {</span>
-<span class="line" id="L2775">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;.hello_world&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{.hello_world});</span>
-<span class="line" id="L2776">}</span>
-<span class="line" id="L2777"></span>
-<span class="line" id="L2778"><span class="tok-kw">test</span> <span class="tok-str">&quot;padding&quot;</span> {</span>
-<span class="line" id="L2779">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;Simple&quot;</span>, <span class="tok-str">&quot;{s}&quot;</span>, .{<span class="tok-str">&quot;Simple&quot;</span>});</span>
-<span class="line" id="L2780">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;      true&quot;</span>, <span class="tok-str">&quot;{:10}&quot;</span>, .{<span class="tok-null">true</span>});</span>
-<span class="line" id="L2781">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;      true&quot;</span>, <span class="tok-str">&quot;{:&gt;10}&quot;</span>, .{<span class="tok-null">true</span>});</span>
-<span class="line" id="L2782">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;======true&quot;</span>, <span class="tok-str">&quot;{:=&gt;10}&quot;</span>, .{<span class="tok-null">true</span>});</span>
-<span class="line" id="L2783">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;true======&quot;</span>, <span class="tok-str">&quot;{:=&lt;10}&quot;</span>, .{<span class="tok-null">true</span>});</span>
-<span class="line" id="L2784">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;   true   &quot;</span>, <span class="tok-str">&quot;{:^10}&quot;</span>, .{<span class="tok-null">true</span>});</span>
-<span class="line" id="L2785">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;===true===&quot;</span>, <span class="tok-str">&quot;{:=^10}&quot;</span>, .{<span class="tok-null">true</span>});</span>
-<span class="line" id="L2786">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;           Minimum width&quot;</span>, <span class="tok-str">&quot;{s:18} width&quot;</span>, .{<span class="tok-str">&quot;Minimum&quot;</span>});</span>
-<span class="line" id="L2787">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;==================Filled&quot;</span>, <span class="tok-str">&quot;{s:=&gt;24}&quot;</span>, .{<span class="tok-str">&quot;Filled&quot;</span>});</span>
-<span class="line" id="L2788">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;        Centered        &quot;</span>, <span class="tok-str">&quot;{s:^24}&quot;</span>, .{<span class="tok-str">&quot;Centered&quot;</span>});</span>
-<span class="line" id="L2789">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;-&quot;</span>, <span class="tok-str">&quot;{s:-^1}&quot;</span>, .{<span class="tok-str">&quot;&quot;</span>});</span>
-<span class="line" id="L2790">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;==crêpe===&quot;</span>, <span class="tok-str">&quot;{s:=^10}&quot;</span>, .{<span class="tok-str">&quot;crêpe&quot;</span>});</span>
-<span class="line" id="L2791">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;=====crêpe&quot;</span>, <span class="tok-str">&quot;{s:=&gt;10}&quot;</span>, .{<span class="tok-str">&quot;crêpe&quot;</span>});</span>
-<span class="line" id="L2792">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;crêpe=====&quot;</span>, <span class="tok-str">&quot;{s:=&lt;10}&quot;</span>, .{<span class="tok-str">&quot;crêpe&quot;</span>});</span>
-<span class="line" id="L2793">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;====a&quot;</span>, <span class="tok-str">&quot;{c:=&gt;5}&quot;</span>, .{<span class="tok-str">'a'</span>});</span>
-<span class="line" id="L2794">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;==a==&quot;</span>, <span class="tok-str">&quot;{c:=^5}&quot;</span>, .{<span class="tok-str">'a'</span>});</span>
-<span class="line" id="L2795">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;a====&quot;</span>, <span class="tok-str">&quot;{c:=&lt;5}&quot;</span>, .{<span class="tok-str">'a'</span>});</span>
-<span class="line" id="L2796">}</span>
-<span class="line" id="L2797"></span>
-<span class="line" id="L2798"><span class="tok-kw">test</span> <span class="tok-str">&quot;decimal float padding&quot;</span> {</span>
-<span class="line" id="L2799">    <span class="tok-kw">var</span> number: <span class="tok-type">f32</span> = <span class="tok-number">3.1415</span>;</span>
-<span class="line" id="L2800">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;left-pad:   **3.141\n&quot;</span>, <span class="tok-str">&quot;left-pad:   {d:*&gt;7.3}\n&quot;</span>, .{number});</span>
-<span class="line" id="L2801">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;center-pad: *3.141*\n&quot;</span>, <span class="tok-str">&quot;center-pad: {d:*^7.3}\n&quot;</span>, .{number});</span>
-<span class="line" id="L2802">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;right-pad:  3.141**\n&quot;</span>, <span class="tok-str">&quot;right-pad:  {d:*&lt;7.3}\n&quot;</span>, .{number});</span>
-<span class="line" id="L2803">}</span>
-<span class="line" id="L2804"></span>
-<span class="line" id="L2805"><span class="tok-kw">test</span> <span class="tok-str">&quot;sci float padding&quot;</span> {</span>
-<span class="line" id="L2806">    <span class="tok-kw">var</span> number: <span class="tok-type">f32</span> = <span class="tok-number">3.1415</span>;</span>
-<span class="line" id="L2807">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;left-pad:   **3.141e+00\n&quot;</span>, <span class="tok-str">&quot;left-pad:   {e:*&gt;11.3}\n&quot;</span>, .{number});</span>
-<span class="line" id="L2808">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;center-pad: *3.141e+00*\n&quot;</span>, <span class="tok-str">&quot;center-pad: {e:*^11.3}\n&quot;</span>, .{number});</span>
-<span class="line" id="L2809">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;right-pad:  3.141e+00**\n&quot;</span>, <span class="tok-str">&quot;right-pad:  {e:*&lt;11.3}\n&quot;</span>, .{number});</span>
-<span class="line" id="L2810">}</span>
-<span class="line" id="L2811"></span>
-<span class="line" id="L2812"><span class="tok-kw">test</span> <span class="tok-str">&quot;null&quot;</span> {</span>
-<span class="line" id="L2813">    <span class="tok-kw">const</span> inst = <span class="tok-null">null</span>;</span>
-<span class="line" id="L2814">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;null&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{inst});</span>
-<span class="line" id="L2815">}</span>
-<span class="line" id="L2816"></span>
-<span class="line" id="L2817"><span class="tok-kw">test</span> <span class="tok-str">&quot;type&quot;</span> {</span>
-<span class="line" id="L2818">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;u8&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{<span class="tok-type">u8</span>});</span>
-<span class="line" id="L2819">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;?f32&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{?<span class="tok-type">f32</span>});</span>
-<span class="line" id="L2820">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;[]const u8&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{[]<span class="tok-kw">const</span> <span class="tok-type">u8</span>});</span>
-<span class="line" id="L2821">}</span>
-<span class="line" id="L2822"></span>
-<span class="line" id="L2823"><span class="tok-kw">test</span> <span class="tok-str">&quot;named arguments&quot;</span> {</span>
-<span class="line" id="L2824">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;hello world!&quot;</span>, <span class="tok-str">&quot;{s} world{c}&quot;</span>, .{ <span class="tok-str">&quot;hello&quot;</span>, <span class="tok-str">'!'</span> });</span>
-<span class="line" id="L2825">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;hello world!&quot;</span>, <span class="tok-str">&quot;{[greeting]s} world{[punctuation]c}&quot;</span>, .{ .punctuation = <span class="tok-str">'!'</span>, .greeting = <span class="tok-str">&quot;hello&quot;</span> });</span>
-<span class="line" id="L2826">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;hello world!&quot;</span>, <span class="tok-str">&quot;{[1]s} world{[0]c}&quot;</span>, .{ <span class="tok-str">'!'</span>, <span class="tok-str">&quot;hello&quot;</span> });</span>
-<span class="line" id="L2827">}</span>
-<span class="line" id="L2828"></span>
-<span class="line" id="L2829"><span class="tok-kw">test</span> <span class="tok-str">&quot;runtime width specifier&quot;</span> {</span>
-<span class="line" id="L2830">    <span class="tok-kw">var</span> width: <span class="tok-type">usize</span> = <span class="tok-number">9</span>;</span>
-<span class="line" id="L2831">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;~~hello~~&quot;</span>, <span class="tok-str">&quot;{s:~^[1]}&quot;</span>, .{ <span class="tok-str">&quot;hello&quot;</span>, width });</span>
-<span class="line" id="L2832">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;~~hello~~&quot;</span>, <span class="tok-str">&quot;{s:~^[width]}&quot;</span>, .{ .string = <span class="tok-str">&quot;hello&quot;</span>, .width = width });</span>
-<span class="line" id="L2833">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;    hello&quot;</span>, <span class="tok-str">&quot;{s:[1]}&quot;</span>, .{ <span class="tok-str">&quot;hello&quot;</span>, width });</span>
-<span class="line" id="L2834">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;42     hello&quot;</span>, <span class="tok-str">&quot;{d} {s:[2]}&quot;</span>, .{ <span class="tok-number">42</span>, <span class="tok-str">&quot;hello&quot;</span>, width });</span>
-<span class="line" id="L2835">}</span>
-<span class="line" id="L2836"></span>
-<span class="line" id="L2837"><span class="tok-kw">test</span> <span class="tok-str">&quot;runtime precision specifier&quot;</span> {</span>
-<span class="line" id="L2838">    <span class="tok-kw">var</span> number: <span class="tok-type">f32</span> = <span class="tok-number">3.1415</span>;</span>
-<span class="line" id="L2839">    <span class="tok-kw">var</span> precision: <span class="tok-type">usize</span> = <span class="tok-number">2</span>;</span>
-<span class="line" id="L2840">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;3.14e+00&quot;</span>, <span class="tok-str">&quot;{:1.[1]}&quot;</span>, .{ number, precision });</span>
-<span class="line" id="L2841">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;3.14e+00&quot;</span>, <span class="tok-str">&quot;{:1.[precision]}&quot;</span>, .{ .number = number, .precision = precision });</span>
-<span class="line" id="L2842">}</span>
-<span class="line" id="L2843"></span>
-<span class="line" id="L2844"><span class="tok-kw">test</span> <span class="tok-str">&quot;recursive format function&quot;</span> {</span>
-<span class="line" id="L2845">    <span class="tok-kw">const</span> R = <span class="tok-kw">union</span>(<span class="tok-kw">enum</span>) {</span>
-<span class="line" id="L2846">        <span class="tok-kw">const</span> R = <span class="tok-builtin">@This</span>();</span>
-<span class="line" id="L2847">        Leaf: <span class="tok-type">i32</span>,</span>
-<span class="line" id="L2848">        Branch: <span class="tok-kw">struct</span> { left: *<span class="tok-kw">const</span> R, right: *<span class="tok-kw">const</span> R },</span>
-<span class="line" id="L2849"></span>
-<span class="line" id="L2850">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">format</span>(self: R, <span class="tok-kw">comptime</span> _: []<span class="tok-kw">const</span> <span class="tok-type">u8</span>, _: std.fmt.FormatOptions, writer: <span class="tok-kw">anytype</span>) !<span class="tok-type">void</span> {</span>
-<span class="line" id="L2851">            <span class="tok-kw">return</span> <span class="tok-kw">switch</span> (self) {</span>
-<span class="line" id="L2852">                .Leaf =&gt; |n| std.fmt.format(writer, <span class="tok-str">&quot;Leaf({})&quot;</span>, .{n}),</span>
-<span class="line" id="L2853">                .Branch =&gt; |b| std.fmt.format(writer, <span class="tok-str">&quot;Branch({}, {})&quot;</span>, .{ b.left, b.right }),</span>
-<span class="line" id="L2854">            };</span>
-<span class="line" id="L2855">        }</span>
-<span class="line" id="L2856">    };</span>
-<span class="line" id="L2857"></span>
-<span class="line" id="L2858">    <span class="tok-kw">var</span> r = R{ .Leaf = <span class="tok-number">1</span> };</span>
-<span class="line" id="L2859">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;Leaf(1)\n&quot;</span>, <span class="tok-str">&quot;{}\n&quot;</span>, .{&amp;r});</span>
-<span class="line" id="L2860">}</span>
-<span class="line" id="L2861"></span>
+<span class="line" id="L2758">        <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L2759">    }</span>
+<span class="line" id="L2760"></span>
+<span class="line" id="L2761">    <span class="tok-kw">const</span> vbool: <span class="tok-builtin">@Vector</span>(<span class="tok-number">4</span>, <span class="tok-type">bool</span>) = [_]<span class="tok-type">bool</span>{ <span class="tok-null">true</span>, <span class="tok-null">false</span>, <span class="tok-null">true</span>, <span class="tok-null">false</span> };</span>
+<span class="line" id="L2762">    <span class="tok-kw">const</span> vi64: <span class="tok-builtin">@Vector</span>(<span class="tok-number">4</span>, <span class="tok-type">i64</span>) = [_]<span class="tok-type">i64</span>{ -<span class="tok-number">2</span>, -<span class="tok-number">1</span>, <span class="tok-number">0</span>, <span class="tok-number">1</span> };</span>
+<span class="line" id="L2763">    <span class="tok-kw">const</span> vu64: <span class="tok-builtin">@Vector</span>(<span class="tok-number">4</span>, <span class="tok-type">u64</span>) = [_]<span class="tok-type">u64</span>{ <span class="tok-number">1000</span>, <span class="tok-number">2000</span>, <span class="tok-number">3000</span>, <span class="tok-number">4000</span> };</span>
+<span class="line" id="L2764"></span>
+<span class="line" id="L2765">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;{ true, false, true, false }&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{vbool});</span>
+<span class="line" id="L2766">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;{ -2, -1, 0, 1 }&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{vi64});</span>
+<span class="line" id="L2767">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;{    -2,    -1,    +0,    +1 }&quot;</span>, <span class="tok-str">&quot;{d:5}&quot;</span>, .{vi64});</span>
+<span class="line" id="L2768">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;{ 1000, 2000, 3000, 4000 }&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{vu64});</span>
+<span class="line" id="L2769">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;{ 3e8, 7d0, bb8, fa0 }&quot;</span>, <span class="tok-str">&quot;{x}&quot;</span>, .{vu64});</span>
+<span class="line" id="L2770">}</span>
+<span class="line" id="L2771"></span>
+<span class="line" id="L2772"><span class="tok-kw">test</span> <span class="tok-str">&quot;enum-literal&quot;</span> {</span>
+<span class="line" id="L2773">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;.hello_world&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{.hello_world});</span>
+<span class="line" id="L2774">}</span>
+<span class="line" id="L2775"></span>
+<span class="line" id="L2776"><span class="tok-kw">test</span> <span class="tok-str">&quot;padding&quot;</span> {</span>
+<span class="line" id="L2777">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;Simple&quot;</span>, <span class="tok-str">&quot;{s}&quot;</span>, .{<span class="tok-str">&quot;Simple&quot;</span>});</span>
+<span class="line" id="L2778">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;      true&quot;</span>, <span class="tok-str">&quot;{:10}&quot;</span>, .{<span class="tok-null">true</span>});</span>
+<span class="line" id="L2779">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;      true&quot;</span>, <span class="tok-str">&quot;{:&gt;10}&quot;</span>, .{<span class="tok-null">true</span>});</span>
+<span class="line" id="L2780">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;======true&quot;</span>, <span class="tok-str">&quot;{:=&gt;10}&quot;</span>, .{<span class="tok-null">true</span>});</span>
+<span class="line" id="L2781">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;true======&quot;</span>, <span class="tok-str">&quot;{:=&lt;10}&quot;</span>, .{<span class="tok-null">true</span>});</span>
+<span class="line" id="L2782">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;   true   &quot;</span>, <span class="tok-str">&quot;{:^10}&quot;</span>, .{<span class="tok-null">true</span>});</span>
+<span class="line" id="L2783">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;===true===&quot;</span>, <span class="tok-str">&quot;{:=^10}&quot;</span>, .{<span class="tok-null">true</span>});</span>
+<span class="line" id="L2784">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;           Minimum width&quot;</span>, <span class="tok-str">&quot;{s:18} width&quot;</span>, .{<span class="tok-str">&quot;Minimum&quot;</span>});</span>
+<span class="line" id="L2785">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;==================Filled&quot;</span>, <span class="tok-str">&quot;{s:=&gt;24}&quot;</span>, .{<span class="tok-str">&quot;Filled&quot;</span>});</span>
+<span class="line" id="L2786">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;        Centered        &quot;</span>, <span class="tok-str">&quot;{s:^24}&quot;</span>, .{<span class="tok-str">&quot;Centered&quot;</span>});</span>
+<span class="line" id="L2787">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;-&quot;</span>, <span class="tok-str">&quot;{s:-^1}&quot;</span>, .{<span class="tok-str">&quot;&quot;</span>});</span>
+<span class="line" id="L2788">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;==crêpe===&quot;</span>, <span class="tok-str">&quot;{s:=^10}&quot;</span>, .{<span class="tok-str">&quot;crêpe&quot;</span>});</span>
+<span class="line" id="L2789">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;=====crêpe&quot;</span>, <span class="tok-str">&quot;{s:=&gt;10}&quot;</span>, .{<span class="tok-str">&quot;crêpe&quot;</span>});</span>
+<span class="line" id="L2790">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;crêpe=====&quot;</span>, <span class="tok-str">&quot;{s:=&lt;10}&quot;</span>, .{<span class="tok-str">&quot;crêpe&quot;</span>});</span>
+<span class="line" id="L2791">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;====a&quot;</span>, <span class="tok-str">&quot;{c:=&gt;5}&quot;</span>, .{<span class="tok-str">'a'</span>});</span>
+<span class="line" id="L2792">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;==a==&quot;</span>, <span class="tok-str">&quot;{c:=^5}&quot;</span>, .{<span class="tok-str">'a'</span>});</span>
+<span class="line" id="L2793">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;a====&quot;</span>, <span class="tok-str">&quot;{c:=&lt;5}&quot;</span>, .{<span class="tok-str">'a'</span>});</span>
+<span class="line" id="L2794">}</span>
+<span class="line" id="L2795"></span>
+<span class="line" id="L2796"><span class="tok-kw">test</span> <span class="tok-str">&quot;decimal float padding&quot;</span> {</span>
+<span class="line" id="L2797">    <span class="tok-kw">var</span> number: <span class="tok-type">f32</span> = <span class="tok-number">3.1415</span>;</span>
+<span class="line" id="L2798">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;left-pad:   **3.141\n&quot;</span>, <span class="tok-str">&quot;left-pad:   {d:*&gt;7.3}\n&quot;</span>, .{number});</span>
+<span class="line" id="L2799">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;center-pad: *3.141*\n&quot;</span>, <span class="tok-str">&quot;center-pad: {d:*^7.3}\n&quot;</span>, .{number});</span>
+<span class="line" id="L2800">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;right-pad:  3.141**\n&quot;</span>, <span class="tok-str">&quot;right-pad:  {d:*&lt;7.3}\n&quot;</span>, .{number});</span>
+<span class="line" id="L2801">}</span>
+<span class="line" id="L2802"></span>
+<span class="line" id="L2803"><span class="tok-kw">test</span> <span class="tok-str">&quot;sci float padding&quot;</span> {</span>
+<span class="line" id="L2804">    <span class="tok-kw">var</span> number: <span class="tok-type">f32</span> = <span class="tok-number">3.1415</span>;</span>
+<span class="line" id="L2805">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;left-pad:   **3.141e+00\n&quot;</span>, <span class="tok-str">&quot;left-pad:   {e:*&gt;11.3}\n&quot;</span>, .{number});</span>
+<span class="line" id="L2806">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;center-pad: *3.141e+00*\n&quot;</span>, <span class="tok-str">&quot;center-pad: {e:*^11.3}\n&quot;</span>, .{number});</span>
+<span class="line" id="L2807">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;right-pad:  3.141e+00**\n&quot;</span>, <span class="tok-str">&quot;right-pad:  {e:*&lt;11.3}\n&quot;</span>, .{number});</span>
+<span class="line" id="L2808">}</span>
+<span class="line" id="L2809"></span>
+<span class="line" id="L2810"><span class="tok-kw">test</span> <span class="tok-str">&quot;null&quot;</span> {</span>
+<span class="line" id="L2811">    <span class="tok-kw">const</span> inst = <span class="tok-null">null</span>;</span>
+<span class="line" id="L2812">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;null&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{inst});</span>
+<span class="line" id="L2813">}</span>
+<span class="line" id="L2814"></span>
+<span class="line" id="L2815"><span class="tok-kw">test</span> <span class="tok-str">&quot;type&quot;</span> {</span>
+<span class="line" id="L2816">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;u8&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{<span class="tok-type">u8</span>});</span>
+<span class="line" id="L2817">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;?f32&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{?<span class="tok-type">f32</span>});</span>
+<span class="line" id="L2818">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;[]const u8&quot;</span>, <span class="tok-str">&quot;{}&quot;</span>, .{[]<span class="tok-kw">const</span> <span class="tok-type">u8</span>});</span>
+<span class="line" id="L2819">}</span>
+<span class="line" id="L2820"></span>
+<span class="line" id="L2821"><span class="tok-kw">test</span> <span class="tok-str">&quot;named arguments&quot;</span> {</span>
+<span class="line" id="L2822">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;hello world!&quot;</span>, <span class="tok-str">&quot;{s} world{c}&quot;</span>, .{ <span class="tok-str">&quot;hello&quot;</span>, <span class="tok-str">'!'</span> });</span>
+<span class="line" id="L2823">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;hello world!&quot;</span>, <span class="tok-str">&quot;{[greeting]s} world{[punctuation]c}&quot;</span>, .{ .punctuation = <span class="tok-str">'!'</span>, .greeting = <span class="tok-str">&quot;hello&quot;</span> });</span>
+<span class="line" id="L2824">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;hello world!&quot;</span>, <span class="tok-str">&quot;{[1]s} world{[0]c}&quot;</span>, .{ <span class="tok-str">'!'</span>, <span class="tok-str">&quot;hello&quot;</span> });</span>
+<span class="line" id="L2825">}</span>
+<span class="line" id="L2826"></span>
+<span class="line" id="L2827"><span class="tok-kw">test</span> <span class="tok-str">&quot;runtime width specifier&quot;</span> {</span>
+<span class="line" id="L2828">    <span class="tok-kw">var</span> width: <span class="tok-type">usize</span> = <span class="tok-number">9</span>;</span>
+<span class="line" id="L2829">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;~~hello~~&quot;</span>, <span class="tok-str">&quot;{s:~^[1]}&quot;</span>, .{ <span class="tok-str">&quot;hello&quot;</span>, width });</span>
+<span class="line" id="L2830">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;~~hello~~&quot;</span>, <span class="tok-str">&quot;{s:~^[width]}&quot;</span>, .{ .string = <span class="tok-str">&quot;hello&quot;</span>, .width = width });</span>
+<span class="line" id="L2831">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;    hello&quot;</span>, <span class="tok-str">&quot;{s:[1]}&quot;</span>, .{ <span class="tok-str">&quot;hello&quot;</span>, width });</span>
+<span class="line" id="L2832">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;42     hello&quot;</span>, <span class="tok-str">&quot;{d} {s:[2]}&quot;</span>, .{ <span class="tok-number">42</span>, <span class="tok-str">&quot;hello&quot;</span>, width });</span>
+<span class="line" id="L2833">}</span>
+<span class="line" id="L2834"></span>
+<span class="line" id="L2835"><span class="tok-kw">test</span> <span class="tok-str">&quot;runtime precision specifier&quot;</span> {</span>
+<span class="line" id="L2836">    <span class="tok-kw">var</span> number: <span class="tok-type">f32</span> = <span class="tok-number">3.1415</span>;</span>
+<span class="line" id="L2837">    <span class="tok-kw">var</span> precision: <span class="tok-type">usize</span> = <span class="tok-number">2</span>;</span>
+<span class="line" id="L2838">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;3.14e+00&quot;</span>, <span class="tok-str">&quot;{:1.[1]}&quot;</span>, .{ number, precision });</span>
+<span class="line" id="L2839">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;3.14e+00&quot;</span>, <span class="tok-str">&quot;{:1.[precision]}&quot;</span>, .{ .number = number, .precision = precision });</span>
+<span class="line" id="L2840">}</span>
+<span class="line" id="L2841"></span>
+<span class="line" id="L2842"><span class="tok-kw">test</span> <span class="tok-str">&quot;recursive format function&quot;</span> {</span>
+<span class="line" id="L2843">    <span class="tok-kw">const</span> R = <span class="tok-kw">union</span>(<span class="tok-kw">enum</span>) {</span>
+<span class="line" id="L2844">        <span class="tok-kw">const</span> R = <span class="tok-builtin">@This</span>();</span>
+<span class="line" id="L2845">        Leaf: <span class="tok-type">i32</span>,</span>
+<span class="line" id="L2846">        Branch: <span class="tok-kw">struct</span> { left: *<span class="tok-kw">const</span> R, right: *<span class="tok-kw">const</span> R },</span>
+<span class="line" id="L2847"></span>
+<span class="line" id="L2848">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">format</span>(self: R, <span class="tok-kw">comptime</span> _: []<span class="tok-kw">const</span> <span class="tok-type">u8</span>, _: std.fmt.FormatOptions, writer: <span class="tok-kw">anytype</span>) !<span class="tok-type">void</span> {</span>
+<span class="line" id="L2849">            <span class="tok-kw">return</span> <span class="tok-kw">switch</span> (self) {</span>
+<span class="line" id="L2850">                .Leaf =&gt; |n| std.fmt.format(writer, <span class="tok-str">&quot;Leaf({})&quot;</span>, .{n}),</span>
+<span class="line" id="L2851">                .Branch =&gt; |b| std.fmt.format(writer, <span class="tok-str">&quot;Branch({}, {})&quot;</span>, .{ b.left, b.right }),</span>
+<span class="line" id="L2852">            };</span>
+<span class="line" id="L2853">        }</span>
+<span class="line" id="L2854">    };</span>
+<span class="line" id="L2855"></span>
+<span class="line" id="L2856">    <span class="tok-kw">var</span> r = R{ .Leaf = <span class="tok-number">1</span> };</span>
+<span class="line" id="L2857">    <span class="tok-kw">try</span> expectFmt(<span class="tok-str">&quot;Leaf(1)\n&quot;</span>, <span class="tok-str">&quot;{}\n&quot;</span>, .{&amp;r});</span>
+<span class="line" id="L2858">}</span>
+<span class="line" id="L2859"></span>
 </code></pre></body>
 </html>

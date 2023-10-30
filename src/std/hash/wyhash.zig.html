@@ -365,33 +365,31 @@
 <span class="line" id="L242">}</span>
 <span class="line" id="L243"></span>
 <span class="line" id="L244"><span class="tok-kw">test</span> <span class="tok-str">&quot;iterative api&quot;</span> {</span>
-<span class="line" id="L245">    <span class="tok-kw">if</span> (<span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>).zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
-<span class="line" id="L246"></span>
-<span class="line" id="L247">    <span class="tok-kw">const</span> Test = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L248">        <span class="tok-kw">fn</span> <span class="tok-fn">do</span>() !<span class="tok-type">void</span> {</span>
-<span class="line" id="L249">            <span class="tok-kw">try</span> verify.iterativeApi(Wyhash);</span>
-<span class="line" id="L250">        }</span>
-<span class="line" id="L251">    };</span>
-<span class="line" id="L252">    <span class="tok-kw">try</span> Test.do();</span>
-<span class="line" id="L253">    <span class="tok-builtin">@setEvalBranchQuota</span>(<span class="tok-number">50000</span>);</span>
-<span class="line" id="L254">    <span class="tok-kw">try</span> <span class="tok-kw">comptime</span> Test.do();</span>
-<span class="line" id="L255">}</span>
-<span class="line" id="L256"></span>
-<span class="line" id="L257"><span class="tok-kw">test</span> <span class="tok-str">&quot;iterative maintains last sixteen&quot;</span> {</span>
-<span class="line" id="L258">    <span class="tok-kw">const</span> input = <span class="tok-str">&quot;Z&quot;</span> ** <span class="tok-number">48</span> ++ <span class="tok-str">&quot;01234567890abcdefg&quot;</span>;</span>
-<span class="line" id="L259">    <span class="tok-kw">const</span> seed = <span class="tok-number">0</span>;</span>
-<span class="line" id="L260"></span>
-<span class="line" id="L261">    <span class="tok-kw">for</span> (<span class="tok-number">0</span>..<span class="tok-number">17</span>) |i| {</span>
-<span class="line" id="L262">        <span class="tok-kw">const</span> payload = input[<span class="tok-number">0</span> .. input.len - i];</span>
-<span class="line" id="L263">        <span class="tok-kw">const</span> non_iterative_hash = Wyhash.hash(seed, payload);</span>
-<span class="line" id="L264"></span>
-<span class="line" id="L265">        <span class="tok-kw">var</span> wh = Wyhash.init(seed);</span>
-<span class="line" id="L266">        wh.update(payload);</span>
-<span class="line" id="L267">        <span class="tok-kw">const</span> iterative_hash = wh.final();</span>
-<span class="line" id="L268"></span>
-<span class="line" id="L269">        <span class="tok-kw">try</span> expectEqual(non_iterative_hash, iterative_hash);</span>
-<span class="line" id="L270">    }</span>
-<span class="line" id="L271">}</span>
-<span class="line" id="L272"></span>
+<span class="line" id="L245">    <span class="tok-kw">const</span> Test = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L246">        <span class="tok-kw">fn</span> <span class="tok-fn">do</span>() !<span class="tok-type">void</span> {</span>
+<span class="line" id="L247">            <span class="tok-kw">try</span> verify.iterativeApi(Wyhash);</span>
+<span class="line" id="L248">        }</span>
+<span class="line" id="L249">    };</span>
+<span class="line" id="L250">    <span class="tok-kw">try</span> Test.do();</span>
+<span class="line" id="L251">    <span class="tok-builtin">@setEvalBranchQuota</span>(<span class="tok-number">50000</span>);</span>
+<span class="line" id="L252">    <span class="tok-kw">try</span> <span class="tok-kw">comptime</span> Test.do();</span>
+<span class="line" id="L253">}</span>
+<span class="line" id="L254"></span>
+<span class="line" id="L255"><span class="tok-kw">test</span> <span class="tok-str">&quot;iterative maintains last sixteen&quot;</span> {</span>
+<span class="line" id="L256">    <span class="tok-kw">const</span> input = <span class="tok-str">&quot;Z&quot;</span> ** <span class="tok-number">48</span> ++ <span class="tok-str">&quot;01234567890abcdefg&quot;</span>;</span>
+<span class="line" id="L257">    <span class="tok-kw">const</span> seed = <span class="tok-number">0</span>;</span>
+<span class="line" id="L258"></span>
+<span class="line" id="L259">    <span class="tok-kw">for</span> (<span class="tok-number">0</span>..<span class="tok-number">17</span>) |i| {</span>
+<span class="line" id="L260">        <span class="tok-kw">const</span> payload = input[<span class="tok-number">0</span> .. input.len - i];</span>
+<span class="line" id="L261">        <span class="tok-kw">const</span> non_iterative_hash = Wyhash.hash(seed, payload);</span>
+<span class="line" id="L262"></span>
+<span class="line" id="L263">        <span class="tok-kw">var</span> wh = Wyhash.init(seed);</span>
+<span class="line" id="L264">        wh.update(payload);</span>
+<span class="line" id="L265">        <span class="tok-kw">const</span> iterative_hash = wh.final();</span>
+<span class="line" id="L266"></span>
+<span class="line" id="L267">        <span class="tok-kw">try</span> expectEqual(non_iterative_hash, iterative_hash);</span>
+<span class="line" id="L268">    }</span>
+<span class="line" id="L269">}</span>
+<span class="line" id="L270"></span>
 </code></pre></body>
 </html>

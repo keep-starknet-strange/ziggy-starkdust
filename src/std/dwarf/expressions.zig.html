@@ -1210,608 +1210,606 @@
 <span class="line" id="L1054"></span>
 <span class="line" id="L1055"><span class="tok-kw">const</span> testing = std.testing;</span>
 <span class="line" id="L1056"><span class="tok-kw">test</span> <span class="tok-str">&quot;DWARF expressions&quot;</span> {</span>
-<span class="line" id="L1057">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_x86_64) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
+<span class="line" id="L1057">    <span class="tok-kw">const</span> allocator = std.testing.allocator;</span>
 <span class="line" id="L1058"></span>
-<span class="line" id="L1059">    <span class="tok-kw">const</span> allocator = std.testing.allocator;</span>
-<span class="line" id="L1060"></span>
-<span class="line" id="L1061">    <span class="tok-kw">const</span> options = ExpressionOptions{};</span>
-<span class="line" id="L1062">    <span class="tok-kw">var</span> stack_machine = StackMachine(options){};</span>
-<span class="line" id="L1063">    <span class="tok-kw">defer</span> stack_machine.deinit(allocator);</span>
+<span class="line" id="L1059">    <span class="tok-kw">const</span> options = ExpressionOptions{};</span>
+<span class="line" id="L1060">    <span class="tok-kw">var</span> stack_machine = StackMachine(options){};</span>
+<span class="line" id="L1061">    <span class="tok-kw">defer</span> stack_machine.deinit(allocator);</span>
+<span class="line" id="L1062"></span>
+<span class="line" id="L1063">    <span class="tok-kw">const</span> b = Builder(options);</span>
 <span class="line" id="L1064"></span>
-<span class="line" id="L1065">    <span class="tok-kw">const</span> b = Builder(options);</span>
-<span class="line" id="L1066"></span>
-<span class="line" id="L1067">    <span class="tok-kw">var</span> program = std.ArrayList(<span class="tok-type">u8</span>).init(allocator);</span>
-<span class="line" id="L1068">    <span class="tok-kw">defer</span> program.deinit();</span>
+<span class="line" id="L1065">    <span class="tok-kw">var</span> program = std.ArrayList(<span class="tok-type">u8</span>).init(allocator);</span>
+<span class="line" id="L1066">    <span class="tok-kw">defer</span> program.deinit();</span>
+<span class="line" id="L1067"></span>
+<span class="line" id="L1068">    <span class="tok-kw">const</span> writer = program.writer();</span>
 <span class="line" id="L1069"></span>
-<span class="line" id="L1070">    <span class="tok-kw">const</span> writer = program.writer();</span>
-<span class="line" id="L1071"></span>
-<span class="line" id="L1072">    <span class="tok-comment">// Literals</span>
+<span class="line" id="L1070">    <span class="tok-comment">// Literals</span>
 </span>
-<span class="line" id="L1073">    {</span>
-<span class="line" id="L1074">        <span class="tok-kw">const</span> context = ExpressionContext{};</span>
-<span class="line" id="L1075">        <span class="tok-kw">for</span> (<span class="tok-number">0</span>..<span class="tok-number">32</span>) |i| {</span>
-<span class="line" id="L1076">            <span class="tok-kw">try</span> b.writeLiteral(writer, <span class="tok-builtin">@intCast</span>(i));</span>
-<span class="line" id="L1077">        }</span>
+<span class="line" id="L1071">    {</span>
+<span class="line" id="L1072">        <span class="tok-kw">const</span> context = ExpressionContext{};</span>
+<span class="line" id="L1073">        <span class="tok-kw">for</span> (<span class="tok-number">0</span>..<span class="tok-number">32</span>) |i| {</span>
+<span class="line" id="L1074">            <span class="tok-kw">try</span> b.writeLiteral(writer, <span class="tok-builtin">@intCast</span>(i));</span>
+<span class="line" id="L1075">        }</span>
+<span class="line" id="L1076"></span>
+<span class="line" id="L1077">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-number">0</span>);</span>
 <span class="line" id="L1078"></span>
-<span class="line" id="L1079">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-number">0</span>);</span>
-<span class="line" id="L1080"></span>
-<span class="line" id="L1081">        <span class="tok-kw">for</span> (<span class="tok-number">0</span>..<span class="tok-number">32</span>) |i| {</span>
-<span class="line" id="L1082">            <span class="tok-kw">const</span> expected = <span class="tok-number">31</span> - i;</span>
-<span class="line" id="L1083">            <span class="tok-kw">try</span> testing.expectEqual(expected, stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1084">        }</span>
-<span class="line" id="L1085">    }</span>
-<span class="line" id="L1086"></span>
-<span class="line" id="L1087">    <span class="tok-comment">// Constants</span>
+<span class="line" id="L1079">        <span class="tok-kw">for</span> (<span class="tok-number">0</span>..<span class="tok-number">32</span>) |i| {</span>
+<span class="line" id="L1080">            <span class="tok-kw">const</span> expected = <span class="tok-number">31</span> - i;</span>
+<span class="line" id="L1081">            <span class="tok-kw">try</span> testing.expectEqual(expected, stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1082">        }</span>
+<span class="line" id="L1083">    }</span>
+<span class="line" id="L1084"></span>
+<span class="line" id="L1085">    <span class="tok-comment">// Constants</span>
 </span>
-<span class="line" id="L1088">    {</span>
-<span class="line" id="L1089">        stack_machine.reset();</span>
-<span class="line" id="L1090">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1091"></span>
-<span class="line" id="L1092">        <span class="tok-kw">const</span> input = [_]<span class="tok-type">comptime_int</span>{</span>
-<span class="line" id="L1093">            <span class="tok-number">1</span>,</span>
-<span class="line" id="L1094">            -<span class="tok-number">1</span>,</span>
-<span class="line" id="L1095">            <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@truncate</span>(<span class="tok-number">0x0fff</span>)),</span>
-<span class="line" id="L1096">            <span class="tok-builtin">@as</span>(<span class="tok-type">isize</span>, <span class="tok-builtin">@truncate</span>(-<span class="tok-number">0x0fff</span>)),</span>
-<span class="line" id="L1097">            <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@truncate</span>(<span class="tok-number">0x0fffffff</span>)),</span>
-<span class="line" id="L1098">            <span class="tok-builtin">@as</span>(<span class="tok-type">isize</span>, <span class="tok-builtin">@truncate</span>(-<span class="tok-number">0x0fffffff</span>)),</span>
-<span class="line" id="L1099">            <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@truncate</span>(<span class="tok-number">0x0fffffffffffffff</span>)),</span>
-<span class="line" id="L1100">            <span class="tok-builtin">@as</span>(<span class="tok-type">isize</span>, <span class="tok-builtin">@truncate</span>(-<span class="tok-number">0x0fffffffffffffff</span>)),</span>
-<span class="line" id="L1101">            <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@truncate</span>(<span class="tok-number">0x8000000</span>)),</span>
-<span class="line" id="L1102">            <span class="tok-builtin">@as</span>(<span class="tok-type">isize</span>, <span class="tok-builtin">@truncate</span>(-<span class="tok-number">0x8000000</span>)),</span>
-<span class="line" id="L1103">            <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@truncate</span>(<span class="tok-number">0x12345678_12345678</span>)),</span>
-<span class="line" id="L1104">            <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@truncate</span>(<span class="tok-number">0xffffffff_ffffffff</span>)),</span>
-<span class="line" id="L1105">            <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@truncate</span>(<span class="tok-number">0xeeeeeeee_eeeeeeee</span>)),</span>
-<span class="line" id="L1106">        };</span>
-<span class="line" id="L1107"></span>
-<span class="line" id="L1108">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, input[<span class="tok-number">0</span>]);</span>
-<span class="line" id="L1109">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">i8</span>, input[<span class="tok-number">1</span>]);</span>
-<span class="line" id="L1110">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, input[<span class="tok-number">2</span>]);</span>
-<span class="line" id="L1111">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">i16</span>, input[<span class="tok-number">3</span>]);</span>
-<span class="line" id="L1112">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u32</span>, input[<span class="tok-number">4</span>]);</span>
-<span class="line" id="L1113">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">i32</span>, input[<span class="tok-number">5</span>]);</span>
-<span class="line" id="L1114">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u64</span>, input[<span class="tok-number">6</span>]);</span>
-<span class="line" id="L1115">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">i64</span>, input[<span class="tok-number">7</span>]);</span>
-<span class="line" id="L1116">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u28</span>, input[<span class="tok-number">8</span>]);</span>
-<span class="line" id="L1117">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">i28</span>, input[<span class="tok-number">9</span>]);</span>
-<span class="line" id="L1118">        <span class="tok-kw">try</span> b.writeAddr(writer, input[<span class="tok-number">10</span>]);</span>
-<span class="line" id="L1119"></span>
-<span class="line" id="L1120">        <span class="tok-kw">var</span> mock_compile_unit: dwarf.CompileUnit = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L1121">        mock_compile_unit.addr_base = <span class="tok-number">1</span>;</span>
-<span class="line" id="L1122"></span>
-<span class="line" id="L1123">        <span class="tok-kw">var</span> mock_debug_addr = std.ArrayList(<span class="tok-type">u8</span>).init(allocator);</span>
-<span class="line" id="L1124">        <span class="tok-kw">defer</span> mock_debug_addr.deinit();</span>
-<span class="line" id="L1125"></span>
-<span class="line" id="L1126">        <span class="tok-kw">try</span> mock_debug_addr.writer().writeIntNative(<span class="tok-type">u16</span>, <span class="tok-number">0</span>);</span>
-<span class="line" id="L1127">        <span class="tok-kw">try</span> mock_debug_addr.writer().writeIntNative(<span class="tok-type">usize</span>, input[<span class="tok-number">11</span>]);</span>
-<span class="line" id="L1128">        <span class="tok-kw">try</span> mock_debug_addr.writer().writeIntNative(<span class="tok-type">usize</span>, input[<span class="tok-number">12</span>]);</span>
-<span class="line" id="L1129"></span>
-<span class="line" id="L1130">        <span class="tok-kw">const</span> context = ExpressionContext{</span>
-<span class="line" id="L1131">            .compile_unit = &amp;mock_compile_unit,</span>
-<span class="line" id="L1132">            .debug_addr = mock_debug_addr.items,</span>
-<span class="line" id="L1133">        };</span>
-<span class="line" id="L1134"></span>
-<span class="line" id="L1135">        <span class="tok-kw">try</span> b.writeConstx(writer, <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">1</span>));</span>
-<span class="line" id="L1136">        <span class="tok-kw">try</span> b.writeAddrx(writer, <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">1</span> + <span class="tok-builtin">@sizeOf</span>(<span class="tok-type">usize</span>)));</span>
-<span class="line" id="L1137"></span>
-<span class="line" id="L1138">        <span class="tok-kw">const</span> die_offset: <span class="tok-type">usize</span> = <span class="tok-builtin">@truncate</span>(<span class="tok-number">0xaabbccdd</span>);</span>
-<span class="line" id="L1139">        <span class="tok-kw">const</span> type_bytes: []<span class="tok-kw">const</span> <span class="tok-type">u8</span> = &amp;.{ <span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">3</span>, <span class="tok-number">4</span> };</span>
-<span class="line" id="L1140">        <span class="tok-kw">try</span> b.writeConstType(writer, die_offset, type_bytes);</span>
+<span class="line" id="L1086">    {</span>
+<span class="line" id="L1087">        stack_machine.reset();</span>
+<span class="line" id="L1088">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1089"></span>
+<span class="line" id="L1090">        <span class="tok-kw">const</span> input = [_]<span class="tok-type">comptime_int</span>{</span>
+<span class="line" id="L1091">            <span class="tok-number">1</span>,</span>
+<span class="line" id="L1092">            -<span class="tok-number">1</span>,</span>
+<span class="line" id="L1093">            <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@truncate</span>(<span class="tok-number">0x0fff</span>)),</span>
+<span class="line" id="L1094">            <span class="tok-builtin">@as</span>(<span class="tok-type">isize</span>, <span class="tok-builtin">@truncate</span>(-<span class="tok-number">0x0fff</span>)),</span>
+<span class="line" id="L1095">            <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@truncate</span>(<span class="tok-number">0x0fffffff</span>)),</span>
+<span class="line" id="L1096">            <span class="tok-builtin">@as</span>(<span class="tok-type">isize</span>, <span class="tok-builtin">@truncate</span>(-<span class="tok-number">0x0fffffff</span>)),</span>
+<span class="line" id="L1097">            <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@truncate</span>(<span class="tok-number">0x0fffffffffffffff</span>)),</span>
+<span class="line" id="L1098">            <span class="tok-builtin">@as</span>(<span class="tok-type">isize</span>, <span class="tok-builtin">@truncate</span>(-<span class="tok-number">0x0fffffffffffffff</span>)),</span>
+<span class="line" id="L1099">            <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@truncate</span>(<span class="tok-number">0x8000000</span>)),</span>
+<span class="line" id="L1100">            <span class="tok-builtin">@as</span>(<span class="tok-type">isize</span>, <span class="tok-builtin">@truncate</span>(-<span class="tok-number">0x8000000</span>)),</span>
+<span class="line" id="L1101">            <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@truncate</span>(<span class="tok-number">0x12345678_12345678</span>)),</span>
+<span class="line" id="L1102">            <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@truncate</span>(<span class="tok-number">0xffffffff_ffffffff</span>)),</span>
+<span class="line" id="L1103">            <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@truncate</span>(<span class="tok-number">0xeeeeeeee_eeeeeeee</span>)),</span>
+<span class="line" id="L1104">        };</span>
+<span class="line" id="L1105"></span>
+<span class="line" id="L1106">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, input[<span class="tok-number">0</span>]);</span>
+<span class="line" id="L1107">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">i8</span>, input[<span class="tok-number">1</span>]);</span>
+<span class="line" id="L1108">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, input[<span class="tok-number">2</span>]);</span>
+<span class="line" id="L1109">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">i16</span>, input[<span class="tok-number">3</span>]);</span>
+<span class="line" id="L1110">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u32</span>, input[<span class="tok-number">4</span>]);</span>
+<span class="line" id="L1111">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">i32</span>, input[<span class="tok-number">5</span>]);</span>
+<span class="line" id="L1112">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u64</span>, input[<span class="tok-number">6</span>]);</span>
+<span class="line" id="L1113">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">i64</span>, input[<span class="tok-number">7</span>]);</span>
+<span class="line" id="L1114">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u28</span>, input[<span class="tok-number">8</span>]);</span>
+<span class="line" id="L1115">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">i28</span>, input[<span class="tok-number">9</span>]);</span>
+<span class="line" id="L1116">        <span class="tok-kw">try</span> b.writeAddr(writer, input[<span class="tok-number">10</span>]);</span>
+<span class="line" id="L1117"></span>
+<span class="line" id="L1118">        <span class="tok-kw">var</span> mock_compile_unit: dwarf.CompileUnit = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L1119">        mock_compile_unit.addr_base = <span class="tok-number">1</span>;</span>
+<span class="line" id="L1120"></span>
+<span class="line" id="L1121">        <span class="tok-kw">var</span> mock_debug_addr = std.ArrayList(<span class="tok-type">u8</span>).init(allocator);</span>
+<span class="line" id="L1122">        <span class="tok-kw">defer</span> mock_debug_addr.deinit();</span>
+<span class="line" id="L1123"></span>
+<span class="line" id="L1124">        <span class="tok-kw">try</span> mock_debug_addr.writer().writeIntNative(<span class="tok-type">u16</span>, <span class="tok-number">0</span>);</span>
+<span class="line" id="L1125">        <span class="tok-kw">try</span> mock_debug_addr.writer().writeIntNative(<span class="tok-type">usize</span>, input[<span class="tok-number">11</span>]);</span>
+<span class="line" id="L1126">        <span class="tok-kw">try</span> mock_debug_addr.writer().writeIntNative(<span class="tok-type">usize</span>, input[<span class="tok-number">12</span>]);</span>
+<span class="line" id="L1127"></span>
+<span class="line" id="L1128">        <span class="tok-kw">const</span> context = ExpressionContext{</span>
+<span class="line" id="L1129">            .compile_unit = &amp;mock_compile_unit,</span>
+<span class="line" id="L1130">            .debug_addr = mock_debug_addr.items,</span>
+<span class="line" id="L1131">        };</span>
+<span class="line" id="L1132"></span>
+<span class="line" id="L1133">        <span class="tok-kw">try</span> b.writeConstx(writer, <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">1</span>));</span>
+<span class="line" id="L1134">        <span class="tok-kw">try</span> b.writeAddrx(writer, <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">1</span> + <span class="tok-builtin">@sizeOf</span>(<span class="tok-type">usize</span>)));</span>
+<span class="line" id="L1135"></span>
+<span class="line" id="L1136">        <span class="tok-kw">const</span> die_offset: <span class="tok-type">usize</span> = <span class="tok-builtin">@truncate</span>(<span class="tok-number">0xaabbccdd</span>);</span>
+<span class="line" id="L1137">        <span class="tok-kw">const</span> type_bytes: []<span class="tok-kw">const</span> <span class="tok-type">u8</span> = &amp;.{ <span class="tok-number">1</span>, <span class="tok-number">2</span>, <span class="tok-number">3</span>, <span class="tok-number">4</span> };</span>
+<span class="line" id="L1138">        <span class="tok-kw">try</span> b.writeConstType(writer, die_offset, type_bytes);</span>
+<span class="line" id="L1139"></span>
+<span class="line" id="L1140">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-number">0</span>);</span>
 <span class="line" id="L1141"></span>
-<span class="line" id="L1142">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-number">0</span>);</span>
-<span class="line" id="L1143"></span>
-<span class="line" id="L1144">        <span class="tok-kw">const</span> const_type = stack_machine.stack.popOrNull().?.const_type;</span>
-<span class="line" id="L1145">        <span class="tok-kw">try</span> testing.expectEqual(die_offset, const_type.type_offset);</span>
-<span class="line" id="L1146">        <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u8</span>, type_bytes, const_type.value_bytes);</span>
-<span class="line" id="L1147"></span>
-<span class="line" id="L1148">        <span class="tok-kw">const</span> expected = .{</span>
-<span class="line" id="L1149">            .{ <span class="tok-type">usize</span>, input[<span class="tok-number">12</span>], <span class="tok-type">usize</span> },</span>
-<span class="line" id="L1150">            .{ <span class="tok-type">usize</span>, input[<span class="tok-number">11</span>], <span class="tok-type">usize</span> },</span>
-<span class="line" id="L1151">            .{ <span class="tok-type">usize</span>, input[<span class="tok-number">10</span>], <span class="tok-type">usize</span> },</span>
-<span class="line" id="L1152">            .{ <span class="tok-type">isize</span>, input[<span class="tok-number">9</span>], <span class="tok-type">isize</span> },</span>
-<span class="line" id="L1153">            .{ <span class="tok-type">usize</span>, input[<span class="tok-number">8</span>], <span class="tok-type">usize</span> },</span>
-<span class="line" id="L1154">            .{ <span class="tok-type">isize</span>, input[<span class="tok-number">7</span>], <span class="tok-type">isize</span> },</span>
-<span class="line" id="L1155">            .{ <span class="tok-type">usize</span>, input[<span class="tok-number">6</span>], <span class="tok-type">usize</span> },</span>
-<span class="line" id="L1156">            .{ <span class="tok-type">isize</span>, input[<span class="tok-number">5</span>], <span class="tok-type">isize</span> },</span>
-<span class="line" id="L1157">            .{ <span class="tok-type">usize</span>, input[<span class="tok-number">4</span>], <span class="tok-type">usize</span> },</span>
-<span class="line" id="L1158">            .{ <span class="tok-type">isize</span>, input[<span class="tok-number">3</span>], <span class="tok-type">isize</span> },</span>
-<span class="line" id="L1159">            .{ <span class="tok-type">usize</span>, input[<span class="tok-number">2</span>], <span class="tok-type">usize</span> },</span>
-<span class="line" id="L1160">            .{ <span class="tok-type">isize</span>, input[<span class="tok-number">1</span>], <span class="tok-type">isize</span> },</span>
-<span class="line" id="L1161">            .{ <span class="tok-type">usize</span>, input[<span class="tok-number">0</span>], <span class="tok-type">usize</span> },</span>
-<span class="line" id="L1162">        };</span>
-<span class="line" id="L1163"></span>
-<span class="line" id="L1164">        <span class="tok-kw">inline</span> <span class="tok-kw">for</span> (expected) |e| {</span>
-<span class="line" id="L1165">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(e[<span class="tok-number">0</span>], e[<span class="tok-number">1</span>]), <span class="tok-builtin">@as</span>(e[<span class="tok-number">2</span>], <span class="tok-builtin">@bitCast</span>(stack_machine.stack.popOrNull().?.generic)));</span>
-<span class="line" id="L1166">        }</span>
-<span class="line" id="L1167">    }</span>
-<span class="line" id="L1168"></span>
-<span class="line" id="L1169">    <span class="tok-comment">// Register values</span>
+<span class="line" id="L1142">        <span class="tok-kw">const</span> const_type = stack_machine.stack.popOrNull().?.const_type;</span>
+<span class="line" id="L1143">        <span class="tok-kw">try</span> testing.expectEqual(die_offset, const_type.type_offset);</span>
+<span class="line" id="L1144">        <span class="tok-kw">try</span> testing.expectEqualSlices(<span class="tok-type">u8</span>, type_bytes, const_type.value_bytes);</span>
+<span class="line" id="L1145"></span>
+<span class="line" id="L1146">        <span class="tok-kw">const</span> expected = .{</span>
+<span class="line" id="L1147">            .{ <span class="tok-type">usize</span>, input[<span class="tok-number">12</span>], <span class="tok-type">usize</span> },</span>
+<span class="line" id="L1148">            .{ <span class="tok-type">usize</span>, input[<span class="tok-number">11</span>], <span class="tok-type">usize</span> },</span>
+<span class="line" id="L1149">            .{ <span class="tok-type">usize</span>, input[<span class="tok-number">10</span>], <span class="tok-type">usize</span> },</span>
+<span class="line" id="L1150">            .{ <span class="tok-type">isize</span>, input[<span class="tok-number">9</span>], <span class="tok-type">isize</span> },</span>
+<span class="line" id="L1151">            .{ <span class="tok-type">usize</span>, input[<span class="tok-number">8</span>], <span class="tok-type">usize</span> },</span>
+<span class="line" id="L1152">            .{ <span class="tok-type">isize</span>, input[<span class="tok-number">7</span>], <span class="tok-type">isize</span> },</span>
+<span class="line" id="L1153">            .{ <span class="tok-type">usize</span>, input[<span class="tok-number">6</span>], <span class="tok-type">usize</span> },</span>
+<span class="line" id="L1154">            .{ <span class="tok-type">isize</span>, input[<span class="tok-number">5</span>], <span class="tok-type">isize</span> },</span>
+<span class="line" id="L1155">            .{ <span class="tok-type">usize</span>, input[<span class="tok-number">4</span>], <span class="tok-type">usize</span> },</span>
+<span class="line" id="L1156">            .{ <span class="tok-type">isize</span>, input[<span class="tok-number">3</span>], <span class="tok-type">isize</span> },</span>
+<span class="line" id="L1157">            .{ <span class="tok-type">usize</span>, input[<span class="tok-number">2</span>], <span class="tok-type">usize</span> },</span>
+<span class="line" id="L1158">            .{ <span class="tok-type">isize</span>, input[<span class="tok-number">1</span>], <span class="tok-type">isize</span> },</span>
+<span class="line" id="L1159">            .{ <span class="tok-type">usize</span>, input[<span class="tok-number">0</span>], <span class="tok-type">usize</span> },</span>
+<span class="line" id="L1160">        };</span>
+<span class="line" id="L1161"></span>
+<span class="line" id="L1162">        <span class="tok-kw">inline</span> <span class="tok-kw">for</span> (expected) |e| {</span>
+<span class="line" id="L1163">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(e[<span class="tok-number">0</span>], e[<span class="tok-number">1</span>]), <span class="tok-builtin">@as</span>(e[<span class="tok-number">2</span>], <span class="tok-builtin">@bitCast</span>(stack_machine.stack.popOrNull().?.generic)));</span>
+<span class="line" id="L1164">        }</span>
+<span class="line" id="L1165">    }</span>
+<span class="line" id="L1166"></span>
+<span class="line" id="L1167">    <span class="tok-comment">// Register values</span>
 </span>
-<span class="line" id="L1170">    <span class="tok-kw">if</span> (<span class="tok-builtin">@sizeOf</span>(std.debug.ThreadContext) != <span class="tok-number">0</span>) {</span>
-<span class="line" id="L1171">        stack_machine.reset();</span>
-<span class="line" id="L1172">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1173"></span>
-<span class="line" id="L1174">        <span class="tok-kw">const</span> reg_context = abi.RegisterContext{</span>
-<span class="line" id="L1175">            .eh_frame = <span class="tok-null">true</span>,</span>
-<span class="line" id="L1176">            .is_macho = builtin.os.tag == .macos,</span>
-<span class="line" id="L1177">        };</span>
-<span class="line" id="L1178">        <span class="tok-kw">var</span> thread_context: std.debug.ThreadContext = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L1179">        std.debug.relocateContext(&amp;thread_context);</span>
-<span class="line" id="L1180">        <span class="tok-kw">const</span> context = ExpressionContext{</span>
-<span class="line" id="L1181">            .thread_context = &amp;thread_context,</span>
-<span class="line" id="L1182">            .reg_context = reg_context,</span>
-<span class="line" id="L1183">        };</span>
-<span class="line" id="L1184"></span>
-<span class="line" id="L1185">        <span class="tok-comment">// Only test register operations on arch / os that have them implemented</span>
+<span class="line" id="L1168">    <span class="tok-kw">if</span> (<span class="tok-builtin">@sizeOf</span>(std.debug.ThreadContext) != <span class="tok-number">0</span>) {</span>
+<span class="line" id="L1169">        stack_machine.reset();</span>
+<span class="line" id="L1170">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1171"></span>
+<span class="line" id="L1172">        <span class="tok-kw">const</span> reg_context = abi.RegisterContext{</span>
+<span class="line" id="L1173">            .eh_frame = <span class="tok-null">true</span>,</span>
+<span class="line" id="L1174">            .is_macho = builtin.os.tag == .macos,</span>
+<span class="line" id="L1175">        };</span>
+<span class="line" id="L1176">        <span class="tok-kw">var</span> thread_context: std.debug.ThreadContext = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L1177">        std.debug.relocateContext(&amp;thread_context);</span>
+<span class="line" id="L1178">        <span class="tok-kw">const</span> context = ExpressionContext{</span>
+<span class="line" id="L1179">            .thread_context = &amp;thread_context,</span>
+<span class="line" id="L1180">            .reg_context = reg_context,</span>
+<span class="line" id="L1181">        };</span>
+<span class="line" id="L1182"></span>
+<span class="line" id="L1183">        <span class="tok-comment">// Only test register operations on arch / os that have them implemented</span>
 </span>
-<span class="line" id="L1186">        <span class="tok-kw">if</span> (abi.regBytes(&amp;thread_context, <span class="tok-number">0</span>, reg_context)) |reg_bytes| {</span>
+<span class="line" id="L1184">        <span class="tok-kw">if</span> (abi.regBytes(&amp;thread_context, <span class="tok-number">0</span>, reg_context)) |reg_bytes| {</span>
+<span class="line" id="L1185"></span>
+<span class="line" id="L1186">            <span class="tok-comment">// TODO: Test fbreg (once implemented): mock a DIE and point compile_unit.frame_base at it</span>
+</span>
 <span class="line" id="L1187"></span>
-<span class="line" id="L1188">            <span class="tok-comment">// TODO: Test fbreg (once implemented): mock a DIE and point compile_unit.frame_base at it</span>
-</span>
-<span class="line" id="L1189"></span>
-<span class="line" id="L1190">            mem.writeIntSliceNative(<span class="tok-type">usize</span>, reg_bytes, <span class="tok-number">0xee</span>);</span>
-<span class="line" id="L1191">            (<span class="tok-kw">try</span> abi.regValueNative(<span class="tok-type">usize</span>, &amp;thread_context, abi.fpRegNum(reg_context), reg_context)).* = <span class="tok-number">1</span>;</span>
-<span class="line" id="L1192">            (<span class="tok-kw">try</span> abi.regValueNative(<span class="tok-type">usize</span>, &amp;thread_context, abi.spRegNum(reg_context), reg_context)).* = <span class="tok-number">2</span>;</span>
-<span class="line" id="L1193">            (<span class="tok-kw">try</span> abi.regValueNative(<span class="tok-type">usize</span>, &amp;thread_context, abi.ipRegNum(), reg_context)).* = <span class="tok-number">3</span>;</span>
-<span class="line" id="L1194"></span>
-<span class="line" id="L1195">            <span class="tok-kw">try</span> b.writeBreg(writer, abi.fpRegNum(reg_context), <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">100</span>));</span>
-<span class="line" id="L1196">            <span class="tok-kw">try</span> b.writeBreg(writer, abi.spRegNum(reg_context), <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">200</span>));</span>
-<span class="line" id="L1197">            <span class="tok-kw">try</span> b.writeBregx(writer, abi.ipRegNum(), <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">300</span>));</span>
-<span class="line" id="L1198">            <span class="tok-kw">try</span> b.writeRegvalType(writer, <span class="tok-builtin">@as</span>(<span class="tok-type">u8</span>, <span class="tok-number">0</span>), <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">400</span>));</span>
+<span class="line" id="L1188">            mem.writeIntSliceNative(<span class="tok-type">usize</span>, reg_bytes, <span class="tok-number">0xee</span>);</span>
+<span class="line" id="L1189">            (<span class="tok-kw">try</span> abi.regValueNative(<span class="tok-type">usize</span>, &amp;thread_context, abi.fpRegNum(reg_context), reg_context)).* = <span class="tok-number">1</span>;</span>
+<span class="line" id="L1190">            (<span class="tok-kw">try</span> abi.regValueNative(<span class="tok-type">usize</span>, &amp;thread_context, abi.spRegNum(reg_context), reg_context)).* = <span class="tok-number">2</span>;</span>
+<span class="line" id="L1191">            (<span class="tok-kw">try</span> abi.regValueNative(<span class="tok-type">usize</span>, &amp;thread_context, abi.ipRegNum(), reg_context)).* = <span class="tok-number">3</span>;</span>
+<span class="line" id="L1192"></span>
+<span class="line" id="L1193">            <span class="tok-kw">try</span> b.writeBreg(writer, abi.fpRegNum(reg_context), <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">100</span>));</span>
+<span class="line" id="L1194">            <span class="tok-kw">try</span> b.writeBreg(writer, abi.spRegNum(reg_context), <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">200</span>));</span>
+<span class="line" id="L1195">            <span class="tok-kw">try</span> b.writeBregx(writer, abi.ipRegNum(), <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">300</span>));</span>
+<span class="line" id="L1196">            <span class="tok-kw">try</span> b.writeRegvalType(writer, <span class="tok-builtin">@as</span>(<span class="tok-type">u8</span>, <span class="tok-number">0</span>), <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">400</span>));</span>
+<span class="line" id="L1197"></span>
+<span class="line" id="L1198">            _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-number">0</span>);</span>
 <span class="line" id="L1199"></span>
-<span class="line" id="L1200">            _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-number">0</span>);</span>
-<span class="line" id="L1201"></span>
-<span class="line" id="L1202">            <span class="tok-kw">const</span> regval_type = stack_machine.stack.popOrNull().?.regval_type;</span>
-<span class="line" id="L1203">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">400</span>), regval_type.type_offset);</span>
-<span class="line" id="L1204">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u8</span>, <span class="tok-builtin">@sizeOf</span>(<span class="tok-type">usize</span>)), regval_type.type_size);</span>
-<span class="line" id="L1205">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0xee</span>), regval_type.value);</span>
-<span class="line" id="L1206"></span>
-<span class="line" id="L1207">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">303</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1208">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">202</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1209">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">101</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1210">        } <span class="tok-kw">else</span> |err| {</span>
-<span class="line" id="L1211">            <span class="tok-kw">switch</span> (err) {</span>
-<span class="line" id="L1212">                <span class="tok-kw">error</span>.UnimplementedArch,</span>
-<span class="line" id="L1213">                <span class="tok-kw">error</span>.UnimplementedOs,</span>
-<span class="line" id="L1214">                <span class="tok-kw">error</span>.ThreadContextNotSupported,</span>
-<span class="line" id="L1215">                =&gt; {},</span>
-<span class="line" id="L1216">                <span class="tok-kw">else</span> =&gt; <span class="tok-kw">return</span> err,</span>
-<span class="line" id="L1217">            }</span>
-<span class="line" id="L1218">        }</span>
-<span class="line" id="L1219">    }</span>
-<span class="line" id="L1220"></span>
-<span class="line" id="L1221">    <span class="tok-comment">// Stack operations</span>
+<span class="line" id="L1200">            <span class="tok-kw">const</span> regval_type = stack_machine.stack.popOrNull().?.regval_type;</span>
+<span class="line" id="L1201">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">400</span>), regval_type.type_offset);</span>
+<span class="line" id="L1202">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u8</span>, <span class="tok-builtin">@sizeOf</span>(<span class="tok-type">usize</span>)), regval_type.type_size);</span>
+<span class="line" id="L1203">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0xee</span>), regval_type.value);</span>
+<span class="line" id="L1204"></span>
+<span class="line" id="L1205">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">303</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1206">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">202</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1207">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">101</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1208">        } <span class="tok-kw">else</span> |err| {</span>
+<span class="line" id="L1209">            <span class="tok-kw">switch</span> (err) {</span>
+<span class="line" id="L1210">                <span class="tok-kw">error</span>.UnimplementedArch,</span>
+<span class="line" id="L1211">                <span class="tok-kw">error</span>.UnimplementedOs,</span>
+<span class="line" id="L1212">                <span class="tok-kw">error</span>.ThreadContextNotSupported,</span>
+<span class="line" id="L1213">                =&gt; {},</span>
+<span class="line" id="L1214">                <span class="tok-kw">else</span> =&gt; <span class="tok-kw">return</span> err,</span>
+<span class="line" id="L1215">            }</span>
+<span class="line" id="L1216">        }</span>
+<span class="line" id="L1217">    }</span>
+<span class="line" id="L1218"></span>
+<span class="line" id="L1219">    <span class="tok-comment">// Stack operations</span>
 </span>
-<span class="line" id="L1222">    {</span>
-<span class="line" id="L1223">        <span class="tok-kw">var</span> context = ExpressionContext{};</span>
-<span class="line" id="L1224"></span>
-<span class="line" id="L1225">        stack_machine.reset();</span>
-<span class="line" id="L1226">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1227">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">1</span>);</span>
-<span class="line" id="L1228">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.dup);</span>
-<span class="line" id="L1229">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1230">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">1</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1231">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">1</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1232"></span>
-<span class="line" id="L1233">        stack_machine.reset();</span>
-<span class="line" id="L1234">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1235">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">1</span>);</span>
-<span class="line" id="L1236">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.drop);</span>
-<span class="line" id="L1237">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1238">        <span class="tok-kw">try</span> testing.expect(stack_machine.stack.popOrNull() == <span class="tok-null">null</span>);</span>
-<span class="line" id="L1239"></span>
-<span class="line" id="L1240">        stack_machine.reset();</span>
-<span class="line" id="L1241">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1242">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">4</span>);</span>
-<span class="line" id="L1243">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">5</span>);</span>
-<span class="line" id="L1244">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">6</span>);</span>
-<span class="line" id="L1245">        <span class="tok-kw">try</span> b.writePick(writer, <span class="tok-number">2</span>);</span>
-<span class="line" id="L1246">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1247">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">4</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1248"></span>
-<span class="line" id="L1249">        stack_machine.reset();</span>
-<span class="line" id="L1250">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1251">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">4</span>);</span>
-<span class="line" id="L1252">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">5</span>);</span>
-<span class="line" id="L1253">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">6</span>);</span>
-<span class="line" id="L1254">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.over);</span>
-<span class="line" id="L1255">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1256">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">5</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1257"></span>
-<span class="line" id="L1258">        stack_machine.reset();</span>
-<span class="line" id="L1259">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1260">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">5</span>);</span>
-<span class="line" id="L1261">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">6</span>);</span>
-<span class="line" id="L1262">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.swap);</span>
-<span class="line" id="L1263">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1264">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">5</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1265">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">6</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1266"></span>
-<span class="line" id="L1267">        stack_machine.reset();</span>
-<span class="line" id="L1268">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1269">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">4</span>);</span>
-<span class="line" id="L1270">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">5</span>);</span>
-<span class="line" id="L1271">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">6</span>);</span>
-<span class="line" id="L1272">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.rot);</span>
-<span class="line" id="L1273">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1274">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">5</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1275">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">4</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1276">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">6</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1220">    {</span>
+<span class="line" id="L1221">        <span class="tok-kw">var</span> context = ExpressionContext{};</span>
+<span class="line" id="L1222"></span>
+<span class="line" id="L1223">        stack_machine.reset();</span>
+<span class="line" id="L1224">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1225">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">1</span>);</span>
+<span class="line" id="L1226">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.dup);</span>
+<span class="line" id="L1227">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1228">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">1</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1229">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">1</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1230"></span>
+<span class="line" id="L1231">        stack_machine.reset();</span>
+<span class="line" id="L1232">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1233">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">1</span>);</span>
+<span class="line" id="L1234">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.drop);</span>
+<span class="line" id="L1235">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1236">        <span class="tok-kw">try</span> testing.expect(stack_machine.stack.popOrNull() == <span class="tok-null">null</span>);</span>
+<span class="line" id="L1237"></span>
+<span class="line" id="L1238">        stack_machine.reset();</span>
+<span class="line" id="L1239">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1240">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">4</span>);</span>
+<span class="line" id="L1241">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">5</span>);</span>
+<span class="line" id="L1242">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">6</span>);</span>
+<span class="line" id="L1243">        <span class="tok-kw">try</span> b.writePick(writer, <span class="tok-number">2</span>);</span>
+<span class="line" id="L1244">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1245">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">4</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1246"></span>
+<span class="line" id="L1247">        stack_machine.reset();</span>
+<span class="line" id="L1248">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1249">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">4</span>);</span>
+<span class="line" id="L1250">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">5</span>);</span>
+<span class="line" id="L1251">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">6</span>);</span>
+<span class="line" id="L1252">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.over);</span>
+<span class="line" id="L1253">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1254">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">5</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1255"></span>
+<span class="line" id="L1256">        stack_machine.reset();</span>
+<span class="line" id="L1257">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1258">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">5</span>);</span>
+<span class="line" id="L1259">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">6</span>);</span>
+<span class="line" id="L1260">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.swap);</span>
+<span class="line" id="L1261">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1262">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">5</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1263">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">6</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1264"></span>
+<span class="line" id="L1265">        stack_machine.reset();</span>
+<span class="line" id="L1266">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1267">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">4</span>);</span>
+<span class="line" id="L1268">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">5</span>);</span>
+<span class="line" id="L1269">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u8</span>, <span class="tok-number">6</span>);</span>
+<span class="line" id="L1270">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.rot);</span>
+<span class="line" id="L1271">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1272">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">5</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1273">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">4</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1274">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">6</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1275"></span>
+<span class="line" id="L1276">        <span class="tok-kw">const</span> deref_target: <span class="tok-type">usize</span> = <span class="tok-builtin">@truncate</span>(<span class="tok-number">0xffeeffee_ffeeffee</span>);</span>
 <span class="line" id="L1277"></span>
-<span class="line" id="L1278">        <span class="tok-kw">const</span> deref_target: <span class="tok-type">usize</span> = <span class="tok-builtin">@truncate</span>(<span class="tok-number">0xffeeffee_ffeeffee</span>);</span>
-<span class="line" id="L1279"></span>
-<span class="line" id="L1280">        stack_machine.reset();</span>
-<span class="line" id="L1281">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1282">        <span class="tok-kw">try</span> b.writeAddr(writer, <span class="tok-builtin">@intFromPtr</span>(&amp;deref_target));</span>
-<span class="line" id="L1283">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.deref);</span>
-<span class="line" id="L1284">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1285">        <span class="tok-kw">try</span> testing.expectEqual(deref_target, stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1286"></span>
-<span class="line" id="L1287">        stack_machine.reset();</span>
-<span class="line" id="L1288">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1289">        <span class="tok-kw">try</span> b.writeLiteral(writer, <span class="tok-number">0</span>);</span>
-<span class="line" id="L1290">        <span class="tok-kw">try</span> b.writeAddr(writer, <span class="tok-builtin">@intFromPtr</span>(&amp;deref_target));</span>
-<span class="line" id="L1291">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.xderef);</span>
-<span class="line" id="L1292">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1293">        <span class="tok-kw">try</span> testing.expectEqual(deref_target, stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1294"></span>
-<span class="line" id="L1295">        stack_machine.reset();</span>
-<span class="line" id="L1296">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1297">        <span class="tok-kw">try</span> b.writeAddr(writer, <span class="tok-builtin">@intFromPtr</span>(&amp;deref_target));</span>
-<span class="line" id="L1298">        <span class="tok-kw">try</span> b.writeDerefSize(writer, <span class="tok-number">1</span>);</span>
-<span class="line" id="L1299">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1300">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@as</span>(*<span class="tok-kw">const</span> <span class="tok-type">u8</span>, <span class="tok-builtin">@ptrCast</span>(&amp;deref_target)).*), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1301"></span>
-<span class="line" id="L1302">        stack_machine.reset();</span>
-<span class="line" id="L1303">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1304">        <span class="tok-kw">try</span> b.writeLiteral(writer, <span class="tok-number">0</span>);</span>
-<span class="line" id="L1305">        <span class="tok-kw">try</span> b.writeAddr(writer, <span class="tok-builtin">@intFromPtr</span>(&amp;deref_target));</span>
-<span class="line" id="L1306">        <span class="tok-kw">try</span> b.writeXDerefSize(writer, <span class="tok-number">1</span>);</span>
-<span class="line" id="L1307">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1308">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@as</span>(*<span class="tok-kw">const</span> <span class="tok-type">u8</span>, <span class="tok-builtin">@ptrCast</span>(&amp;deref_target)).*), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1278">        stack_machine.reset();</span>
+<span class="line" id="L1279">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1280">        <span class="tok-kw">try</span> b.writeAddr(writer, <span class="tok-builtin">@intFromPtr</span>(&amp;deref_target));</span>
+<span class="line" id="L1281">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.deref);</span>
+<span class="line" id="L1282">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1283">        <span class="tok-kw">try</span> testing.expectEqual(deref_target, stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1284"></span>
+<span class="line" id="L1285">        stack_machine.reset();</span>
+<span class="line" id="L1286">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1287">        <span class="tok-kw">try</span> b.writeLiteral(writer, <span class="tok-number">0</span>);</span>
+<span class="line" id="L1288">        <span class="tok-kw">try</span> b.writeAddr(writer, <span class="tok-builtin">@intFromPtr</span>(&amp;deref_target));</span>
+<span class="line" id="L1289">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.xderef);</span>
+<span class="line" id="L1290">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1291">        <span class="tok-kw">try</span> testing.expectEqual(deref_target, stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1292"></span>
+<span class="line" id="L1293">        stack_machine.reset();</span>
+<span class="line" id="L1294">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1295">        <span class="tok-kw">try</span> b.writeAddr(writer, <span class="tok-builtin">@intFromPtr</span>(&amp;deref_target));</span>
+<span class="line" id="L1296">        <span class="tok-kw">try</span> b.writeDerefSize(writer, <span class="tok-number">1</span>);</span>
+<span class="line" id="L1297">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1298">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@as</span>(*<span class="tok-kw">const</span> <span class="tok-type">u8</span>, <span class="tok-builtin">@ptrCast</span>(&amp;deref_target)).*), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1299"></span>
+<span class="line" id="L1300">        stack_machine.reset();</span>
+<span class="line" id="L1301">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1302">        <span class="tok-kw">try</span> b.writeLiteral(writer, <span class="tok-number">0</span>);</span>
+<span class="line" id="L1303">        <span class="tok-kw">try</span> b.writeAddr(writer, <span class="tok-builtin">@intFromPtr</span>(&amp;deref_target));</span>
+<span class="line" id="L1304">        <span class="tok-kw">try</span> b.writeXDerefSize(writer, <span class="tok-number">1</span>);</span>
+<span class="line" id="L1305">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1306">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@as</span>(*<span class="tok-kw">const</span> <span class="tok-type">u8</span>, <span class="tok-builtin">@ptrCast</span>(&amp;deref_target)).*), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1307"></span>
+<span class="line" id="L1308">        <span class="tok-kw">const</span> type_offset: <span class="tok-type">usize</span> = <span class="tok-builtin">@truncate</span>(<span class="tok-number">0xaabbaabb_aabbaabb</span>);</span>
 <span class="line" id="L1309"></span>
-<span class="line" id="L1310">        <span class="tok-kw">const</span> type_offset: <span class="tok-type">usize</span> = <span class="tok-builtin">@truncate</span>(<span class="tok-number">0xaabbaabb_aabbaabb</span>);</span>
-<span class="line" id="L1311"></span>
-<span class="line" id="L1312">        stack_machine.reset();</span>
-<span class="line" id="L1313">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1314">        <span class="tok-kw">try</span> b.writeAddr(writer, <span class="tok-builtin">@intFromPtr</span>(&amp;deref_target));</span>
-<span class="line" id="L1315">        <span class="tok-kw">try</span> b.writeDerefType(writer, <span class="tok-number">1</span>, type_offset);</span>
-<span class="line" id="L1316">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1317">        <span class="tok-kw">const</span> deref_type = stack_machine.stack.popOrNull().?.regval_type;</span>
-<span class="line" id="L1318">        <span class="tok-kw">try</span> testing.expectEqual(type_offset, deref_type.type_offset);</span>
-<span class="line" id="L1319">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u8</span>, <span class="tok-number">1</span>), deref_type.type_size);</span>
-<span class="line" id="L1320">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@as</span>(*<span class="tok-kw">const</span> <span class="tok-type">u8</span>, <span class="tok-builtin">@ptrCast</span>(&amp;deref_target)).*), deref_type.value);</span>
-<span class="line" id="L1321"></span>
-<span class="line" id="L1322">        stack_machine.reset();</span>
-<span class="line" id="L1323">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1324">        <span class="tok-kw">try</span> b.writeLiteral(writer, <span class="tok-number">0</span>);</span>
-<span class="line" id="L1325">        <span class="tok-kw">try</span> b.writeAddr(writer, <span class="tok-builtin">@intFromPtr</span>(&amp;deref_target));</span>
-<span class="line" id="L1326">        <span class="tok-kw">try</span> b.writeXDerefType(writer, <span class="tok-number">1</span>, type_offset);</span>
-<span class="line" id="L1327">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1328">        <span class="tok-kw">const</span> xderef_type = stack_machine.stack.popOrNull().?.regval_type;</span>
-<span class="line" id="L1329">        <span class="tok-kw">try</span> testing.expectEqual(type_offset, xderef_type.type_offset);</span>
-<span class="line" id="L1330">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u8</span>, <span class="tok-number">1</span>), xderef_type.type_size);</span>
-<span class="line" id="L1331">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@as</span>(*<span class="tok-kw">const</span> <span class="tok-type">u8</span>, <span class="tok-builtin">@ptrCast</span>(&amp;deref_target)).*), xderef_type.value);</span>
+<span class="line" id="L1310">        stack_machine.reset();</span>
+<span class="line" id="L1311">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1312">        <span class="tok-kw">try</span> b.writeAddr(writer, <span class="tok-builtin">@intFromPtr</span>(&amp;deref_target));</span>
+<span class="line" id="L1313">        <span class="tok-kw">try</span> b.writeDerefType(writer, <span class="tok-number">1</span>, type_offset);</span>
+<span class="line" id="L1314">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1315">        <span class="tok-kw">const</span> deref_type = stack_machine.stack.popOrNull().?.regval_type;</span>
+<span class="line" id="L1316">        <span class="tok-kw">try</span> testing.expectEqual(type_offset, deref_type.type_offset);</span>
+<span class="line" id="L1317">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u8</span>, <span class="tok-number">1</span>), deref_type.type_size);</span>
+<span class="line" id="L1318">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@as</span>(*<span class="tok-kw">const</span> <span class="tok-type">u8</span>, <span class="tok-builtin">@ptrCast</span>(&amp;deref_target)).*), deref_type.value);</span>
+<span class="line" id="L1319"></span>
+<span class="line" id="L1320">        stack_machine.reset();</span>
+<span class="line" id="L1321">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1322">        <span class="tok-kw">try</span> b.writeLiteral(writer, <span class="tok-number">0</span>);</span>
+<span class="line" id="L1323">        <span class="tok-kw">try</span> b.writeAddr(writer, <span class="tok-builtin">@intFromPtr</span>(&amp;deref_target));</span>
+<span class="line" id="L1324">        <span class="tok-kw">try</span> b.writeXDerefType(writer, <span class="tok-number">1</span>, type_offset);</span>
+<span class="line" id="L1325">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1326">        <span class="tok-kw">const</span> xderef_type = stack_machine.stack.popOrNull().?.regval_type;</span>
+<span class="line" id="L1327">        <span class="tok-kw">try</span> testing.expectEqual(type_offset, xderef_type.type_offset);</span>
+<span class="line" id="L1328">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">u8</span>, <span class="tok-number">1</span>), xderef_type.type_size);</span>
+<span class="line" id="L1329">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@as</span>(*<span class="tok-kw">const</span> <span class="tok-type">u8</span>, <span class="tok-builtin">@ptrCast</span>(&amp;deref_target)).*), xderef_type.value);</span>
+<span class="line" id="L1330"></span>
+<span class="line" id="L1331">        context.object_address = &amp;deref_target;</span>
 <span class="line" id="L1332"></span>
-<span class="line" id="L1333">        context.object_address = &amp;deref_target;</span>
-<span class="line" id="L1334"></span>
-<span class="line" id="L1335">        stack_machine.reset();</span>
-<span class="line" id="L1336">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1337">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.push_object_address);</span>
-<span class="line" id="L1338">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1339">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@intFromPtr</span>(context.object_address.?)), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1333">        stack_machine.reset();</span>
+<span class="line" id="L1334">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1335">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.push_object_address);</span>
+<span class="line" id="L1336">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1337">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@intFromPtr</span>(context.object_address.?)), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1338"></span>
+<span class="line" id="L1339">        <span class="tok-comment">// TODO: Test OP.form_tls_address</span>
+</span>
 <span class="line" id="L1340"></span>
-<span class="line" id="L1341">        <span class="tok-comment">// TODO: Test OP.form_tls_address</span>
-</span>
+<span class="line" id="L1341">        context.cfa = <span class="tok-builtin">@truncate</span>(<span class="tok-number">0xccddccdd_ccddccdd</span>);</span>
 <span class="line" id="L1342"></span>
-<span class="line" id="L1343">        context.cfa = <span class="tok-builtin">@truncate</span>(<span class="tok-number">0xccddccdd_ccddccdd</span>);</span>
-<span class="line" id="L1344"></span>
-<span class="line" id="L1345">        stack_machine.reset();</span>
-<span class="line" id="L1346">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1347">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.call_frame_cfa);</span>
-<span class="line" id="L1348">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1349">        <span class="tok-kw">try</span> testing.expectEqual(context.cfa.?, stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1350">    }</span>
-<span class="line" id="L1351"></span>
-<span class="line" id="L1352">    <span class="tok-comment">// Arithmetic and Logical Operations</span>
+<span class="line" id="L1343">        stack_machine.reset();</span>
+<span class="line" id="L1344">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1345">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.call_frame_cfa);</span>
+<span class="line" id="L1346">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1347">        <span class="tok-kw">try</span> testing.expectEqual(context.cfa.?, stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1348">    }</span>
+<span class="line" id="L1349"></span>
+<span class="line" id="L1350">    <span class="tok-comment">// Arithmetic and Logical Operations</span>
 </span>
-<span class="line" id="L1353">    {</span>
-<span class="line" id="L1354">        <span class="tok-kw">var</span> context = ExpressionContext{};</span>
-<span class="line" id="L1355"></span>
-<span class="line" id="L1356">        stack_machine.reset();</span>
-<span class="line" id="L1357">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1358">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">i16</span>, -<span class="tok-number">4096</span>);</span>
-<span class="line" id="L1359">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.abs);</span>
-<span class="line" id="L1360">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1361">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">4096</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1362"></span>
-<span class="line" id="L1363">        stack_machine.reset();</span>
-<span class="line" id="L1364">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1365">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0xff0f</span>);</span>
-<span class="line" id="L1366">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0xf0ff</span>);</span>
-<span class="line" id="L1367">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.@&quot;and&quot;);</span>
-<span class="line" id="L1368">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1369">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0xf00f</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1370"></span>
-<span class="line" id="L1371">        stack_machine.reset();</span>
-<span class="line" id="L1372">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1373">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">i16</span>, -<span class="tok-number">404</span>);</span>
-<span class="line" id="L1374">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">i16</span>, <span class="tok-number">100</span>);</span>
-<span class="line" id="L1375">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.div);</span>
-<span class="line" id="L1376">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1377">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">isize</span>, -<span class="tok-number">404</span> / <span class="tok-number">100</span>), <span class="tok-builtin">@as</span>(<span class="tok-type">isize</span>, <span class="tok-builtin">@bitCast</span>(stack_machine.stack.popOrNull().?.generic)));</span>
-<span class="line" id="L1378"></span>
-<span class="line" id="L1379">        stack_machine.reset();</span>
-<span class="line" id="L1380">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1381">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">200</span>);</span>
-<span class="line" id="L1382">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">50</span>);</span>
-<span class="line" id="L1383">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.minus);</span>
-<span class="line" id="L1384">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1385">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">150</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1386"></span>
-<span class="line" id="L1387">        stack_machine.reset();</span>
-<span class="line" id="L1388">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1389">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">123</span>);</span>
-<span class="line" id="L1390">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">100</span>);</span>
-<span class="line" id="L1391">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.mod);</span>
-<span class="line" id="L1392">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1393">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">23</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1394"></span>
-<span class="line" id="L1395">        stack_machine.reset();</span>
-<span class="line" id="L1396">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1397">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0xff</span>);</span>
-<span class="line" id="L1398">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0xee</span>);</span>
-<span class="line" id="L1399">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.mul);</span>
-<span class="line" id="L1400">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1401">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0xed12</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1402"></span>
-<span class="line" id="L1403">        stack_machine.reset();</span>
-<span class="line" id="L1404">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1405">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">5</span>);</span>
+<span class="line" id="L1351">    {</span>
+<span class="line" id="L1352">        <span class="tok-kw">var</span> context = ExpressionContext{};</span>
+<span class="line" id="L1353"></span>
+<span class="line" id="L1354">        stack_machine.reset();</span>
+<span class="line" id="L1355">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1356">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">i16</span>, -<span class="tok-number">4096</span>);</span>
+<span class="line" id="L1357">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.abs);</span>
+<span class="line" id="L1358">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1359">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">4096</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1360"></span>
+<span class="line" id="L1361">        stack_machine.reset();</span>
+<span class="line" id="L1362">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1363">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0xff0f</span>);</span>
+<span class="line" id="L1364">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0xf0ff</span>);</span>
+<span class="line" id="L1365">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.@&quot;and&quot;);</span>
+<span class="line" id="L1366">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1367">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0xf00f</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1368"></span>
+<span class="line" id="L1369">        stack_machine.reset();</span>
+<span class="line" id="L1370">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1371">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">i16</span>, -<span class="tok-number">404</span>);</span>
+<span class="line" id="L1372">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">i16</span>, <span class="tok-number">100</span>);</span>
+<span class="line" id="L1373">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.div);</span>
+<span class="line" id="L1374">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1375">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">isize</span>, -<span class="tok-number">404</span> / <span class="tok-number">100</span>), <span class="tok-builtin">@as</span>(<span class="tok-type">isize</span>, <span class="tok-builtin">@bitCast</span>(stack_machine.stack.popOrNull().?.generic)));</span>
+<span class="line" id="L1376"></span>
+<span class="line" id="L1377">        stack_machine.reset();</span>
+<span class="line" id="L1378">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1379">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">200</span>);</span>
+<span class="line" id="L1380">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">50</span>);</span>
+<span class="line" id="L1381">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.minus);</span>
+<span class="line" id="L1382">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1383">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">150</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1384"></span>
+<span class="line" id="L1385">        stack_machine.reset();</span>
+<span class="line" id="L1386">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1387">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">123</span>);</span>
+<span class="line" id="L1388">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">100</span>);</span>
+<span class="line" id="L1389">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.mod);</span>
+<span class="line" id="L1390">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1391">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">23</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1392"></span>
+<span class="line" id="L1393">        stack_machine.reset();</span>
+<span class="line" id="L1394">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1395">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0xff</span>);</span>
+<span class="line" id="L1396">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0xee</span>);</span>
+<span class="line" id="L1397">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.mul);</span>
+<span class="line" id="L1398">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1399">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0xed12</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1400"></span>
+<span class="line" id="L1401">        stack_machine.reset();</span>
+<span class="line" id="L1402">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1403">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">5</span>);</span>
+<span class="line" id="L1404">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.neg);</span>
+<span class="line" id="L1405">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">i16</span>, -<span class="tok-number">6</span>);</span>
 <span class="line" id="L1406">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.neg);</span>
-<span class="line" id="L1407">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">i16</span>, -<span class="tok-number">6</span>);</span>
-<span class="line" id="L1408">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.neg);</span>
-<span class="line" id="L1409">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1410">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">6</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1411">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">isize</span>, -<span class="tok-number">5</span>), <span class="tok-builtin">@as</span>(<span class="tok-type">isize</span>, <span class="tok-builtin">@bitCast</span>(stack_machine.stack.popOrNull().?.generic)));</span>
-<span class="line" id="L1412"></span>
-<span class="line" id="L1413">        stack_machine.reset();</span>
-<span class="line" id="L1414">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1415">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0xff0f</span>);</span>
-<span class="line" id="L1416">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.not);</span>
-<span class="line" id="L1417">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1418">        <span class="tok-kw">try</span> testing.expectEqual(~<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0xff0f</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1419"></span>
-<span class="line" id="L1420">        stack_machine.reset();</span>
-<span class="line" id="L1421">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1422">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0xff0f</span>);</span>
-<span class="line" id="L1423">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0xf0ff</span>);</span>
-<span class="line" id="L1424">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.@&quot;or&quot;);</span>
-<span class="line" id="L1425">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1426">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0xffff</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1427"></span>
-<span class="line" id="L1428">        stack_machine.reset();</span>
-<span class="line" id="L1429">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1430">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">i16</span>, <span class="tok-number">402</span>);</span>
-<span class="line" id="L1431">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">i16</span>, <span class="tok-number">100</span>);</span>
-<span class="line" id="L1432">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.plus);</span>
-<span class="line" id="L1433">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1434">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">502</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1435"></span>
-<span class="line" id="L1436">        stack_machine.reset();</span>
-<span class="line" id="L1437">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1438">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">4096</span>);</span>
-<span class="line" id="L1439">        <span class="tok-kw">try</span> b.writePlusUconst(writer, <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">8192</span>));</span>
-<span class="line" id="L1440">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1441">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">4096</span> + <span class="tok-number">8192</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1442"></span>
-<span class="line" id="L1443">        stack_machine.reset();</span>
-<span class="line" id="L1444">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1445">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0xfff</span>);</span>
-<span class="line" id="L1446">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">1</span>);</span>
-<span class="line" id="L1447">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.shl);</span>
-<span class="line" id="L1448">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1449">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0xfff</span> &lt;&lt; <span class="tok-number">1</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1450"></span>
-<span class="line" id="L1451">        stack_machine.reset();</span>
-<span class="line" id="L1452">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1453">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0xfff</span>);</span>
-<span class="line" id="L1454">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">1</span>);</span>
-<span class="line" id="L1455">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.shr);</span>
-<span class="line" id="L1456">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1457">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0xfff</span> &gt;&gt; <span class="tok-number">1</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1458"></span>
-<span class="line" id="L1459">        stack_machine.reset();</span>
-<span class="line" id="L1460">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1461">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0xfff</span>);</span>
-<span class="line" id="L1462">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">1</span>);</span>
-<span class="line" id="L1463">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.shr);</span>
-<span class="line" id="L1464">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1465">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@bitCast</span>(<span class="tok-builtin">@as</span>(<span class="tok-type">isize</span>, <span class="tok-number">0xfff</span>) &gt;&gt; <span class="tok-number">1</span>)), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1466"></span>
-<span class="line" id="L1467">        stack_machine.reset();</span>
-<span class="line" id="L1468">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1469">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0xf0ff</span>);</span>
-<span class="line" id="L1470">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0xff0f</span>);</span>
-<span class="line" id="L1471">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.xor);</span>
-<span class="line" id="L1472">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1473">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0x0ff0</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1474">    }</span>
-<span class="line" id="L1475"></span>
-<span class="line" id="L1476">    <span class="tok-comment">// Control Flow Operations</span>
+<span class="line" id="L1407">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1408">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">6</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1409">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">isize</span>, -<span class="tok-number">5</span>), <span class="tok-builtin">@as</span>(<span class="tok-type">isize</span>, <span class="tok-builtin">@bitCast</span>(stack_machine.stack.popOrNull().?.generic)));</span>
+<span class="line" id="L1410"></span>
+<span class="line" id="L1411">        stack_machine.reset();</span>
+<span class="line" id="L1412">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1413">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0xff0f</span>);</span>
+<span class="line" id="L1414">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.not);</span>
+<span class="line" id="L1415">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1416">        <span class="tok-kw">try</span> testing.expectEqual(~<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0xff0f</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1417"></span>
+<span class="line" id="L1418">        stack_machine.reset();</span>
+<span class="line" id="L1419">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1420">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0xff0f</span>);</span>
+<span class="line" id="L1421">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0xf0ff</span>);</span>
+<span class="line" id="L1422">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.@&quot;or&quot;);</span>
+<span class="line" id="L1423">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1424">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0xffff</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1425"></span>
+<span class="line" id="L1426">        stack_machine.reset();</span>
+<span class="line" id="L1427">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1428">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">i16</span>, <span class="tok-number">402</span>);</span>
+<span class="line" id="L1429">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">i16</span>, <span class="tok-number">100</span>);</span>
+<span class="line" id="L1430">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.plus);</span>
+<span class="line" id="L1431">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1432">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">502</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1433"></span>
+<span class="line" id="L1434">        stack_machine.reset();</span>
+<span class="line" id="L1435">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1436">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">4096</span>);</span>
+<span class="line" id="L1437">        <span class="tok-kw">try</span> b.writePlusUconst(writer, <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">8192</span>));</span>
+<span class="line" id="L1438">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1439">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">4096</span> + <span class="tok-number">8192</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1440"></span>
+<span class="line" id="L1441">        stack_machine.reset();</span>
+<span class="line" id="L1442">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1443">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0xfff</span>);</span>
+<span class="line" id="L1444">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">1</span>);</span>
+<span class="line" id="L1445">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.shl);</span>
+<span class="line" id="L1446">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1447">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0xfff</span> &lt;&lt; <span class="tok-number">1</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1448"></span>
+<span class="line" id="L1449">        stack_machine.reset();</span>
+<span class="line" id="L1450">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1451">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0xfff</span>);</span>
+<span class="line" id="L1452">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">1</span>);</span>
+<span class="line" id="L1453">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.shr);</span>
+<span class="line" id="L1454">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1455">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0xfff</span> &gt;&gt; <span class="tok-number">1</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1456"></span>
+<span class="line" id="L1457">        stack_machine.reset();</span>
+<span class="line" id="L1458">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1459">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0xfff</span>);</span>
+<span class="line" id="L1460">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">1</span>);</span>
+<span class="line" id="L1461">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.shr);</span>
+<span class="line" id="L1462">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1463">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-builtin">@bitCast</span>(<span class="tok-builtin">@as</span>(<span class="tok-type">isize</span>, <span class="tok-number">0xfff</span>) &gt;&gt; <span class="tok-number">1</span>)), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1464"></span>
+<span class="line" id="L1465">        stack_machine.reset();</span>
+<span class="line" id="L1466">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1467">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0xf0ff</span>);</span>
+<span class="line" id="L1468">        <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0xff0f</span>);</span>
+<span class="line" id="L1469">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.xor);</span>
+<span class="line" id="L1470">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1471">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0x0ff0</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1472">    }</span>
+<span class="line" id="L1473"></span>
+<span class="line" id="L1474">    <span class="tok-comment">// Control Flow Operations</span>
 </span>
-<span class="line" id="L1477">    {</span>
-<span class="line" id="L1478">        <span class="tok-kw">var</span> context = ExpressionContext{};</span>
-<span class="line" id="L1479">        <span class="tok-kw">const</span> expected = .{</span>
-<span class="line" id="L1480">            .{ OP.le, <span class="tok-number">1</span>, <span class="tok-number">1</span>, <span class="tok-number">0</span> },</span>
-<span class="line" id="L1481">            .{ OP.ge, <span class="tok-number">1</span>, <span class="tok-number">0</span>, <span class="tok-number">1</span> },</span>
-<span class="line" id="L1482">            .{ OP.eq, <span class="tok-number">1</span>, <span class="tok-number">0</span>, <span class="tok-number">0</span> },</span>
-<span class="line" id="L1483">            .{ OP.lt, <span class="tok-number">0</span>, <span class="tok-number">1</span>, <span class="tok-number">0</span> },</span>
-<span class="line" id="L1484">            .{ OP.gt, <span class="tok-number">0</span>, <span class="tok-number">0</span>, <span class="tok-number">1</span> },</span>
-<span class="line" id="L1485">            .{ OP.ne, <span class="tok-number">0</span>, <span class="tok-number">1</span>, <span class="tok-number">1</span> },</span>
-<span class="line" id="L1486">        };</span>
-<span class="line" id="L1487"></span>
-<span class="line" id="L1488">        <span class="tok-kw">inline</span> <span class="tok-kw">for</span> (expected) |e| {</span>
-<span class="line" id="L1489">            stack_machine.reset();</span>
-<span class="line" id="L1490">            program.clearRetainingCapacity();</span>
-<span class="line" id="L1491"></span>
-<span class="line" id="L1492">            <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0</span>);</span>
+<span class="line" id="L1475">    {</span>
+<span class="line" id="L1476">        <span class="tok-kw">var</span> context = ExpressionContext{};</span>
+<span class="line" id="L1477">        <span class="tok-kw">const</span> expected = .{</span>
+<span class="line" id="L1478">            .{ OP.le, <span class="tok-number">1</span>, <span class="tok-number">1</span>, <span class="tok-number">0</span> },</span>
+<span class="line" id="L1479">            .{ OP.ge, <span class="tok-number">1</span>, <span class="tok-number">0</span>, <span class="tok-number">1</span> },</span>
+<span class="line" id="L1480">            .{ OP.eq, <span class="tok-number">1</span>, <span class="tok-number">0</span>, <span class="tok-number">0</span> },</span>
+<span class="line" id="L1481">            .{ OP.lt, <span class="tok-number">0</span>, <span class="tok-number">1</span>, <span class="tok-number">0</span> },</span>
+<span class="line" id="L1482">            .{ OP.gt, <span class="tok-number">0</span>, <span class="tok-number">0</span>, <span class="tok-number">1</span> },</span>
+<span class="line" id="L1483">            .{ OP.ne, <span class="tok-number">0</span>, <span class="tok-number">1</span>, <span class="tok-number">1</span> },</span>
+<span class="line" id="L1484">        };</span>
+<span class="line" id="L1485"></span>
+<span class="line" id="L1486">        <span class="tok-kw">inline</span> <span class="tok-kw">for</span> (expected) |e| {</span>
+<span class="line" id="L1487">            stack_machine.reset();</span>
+<span class="line" id="L1488">            program.clearRetainingCapacity();</span>
+<span class="line" id="L1489"></span>
+<span class="line" id="L1490">            <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0</span>);</span>
+<span class="line" id="L1491">            <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0</span>);</span>
+<span class="line" id="L1492">            <span class="tok-kw">try</span> b.writeOpcode(writer, e[<span class="tok-number">0</span>]);</span>
 <span class="line" id="L1493">            <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0</span>);</span>
-<span class="line" id="L1494">            <span class="tok-kw">try</span> b.writeOpcode(writer, e[<span class="tok-number">0</span>]);</span>
-<span class="line" id="L1495">            <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0</span>);</span>
+<span class="line" id="L1494">            <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">1</span>);</span>
+<span class="line" id="L1495">            <span class="tok-kw">try</span> b.writeOpcode(writer, e[<span class="tok-number">0</span>]);</span>
 <span class="line" id="L1496">            <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">1</span>);</span>
-<span class="line" id="L1497">            <span class="tok-kw">try</span> b.writeOpcode(writer, e[<span class="tok-number">0</span>]);</span>
-<span class="line" id="L1498">            <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">1</span>);</span>
-<span class="line" id="L1499">            <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0</span>);</span>
-<span class="line" id="L1500">            <span class="tok-kw">try</span> b.writeOpcode(writer, e[<span class="tok-number">0</span>]);</span>
-<span class="line" id="L1501">            _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1502">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, e[<span class="tok-number">3</span>]), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1503">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, e[<span class="tok-number">2</span>]), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1504">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, e[<span class="tok-number">1</span>]), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1505">        }</span>
-<span class="line" id="L1506"></span>
-<span class="line" id="L1507">        stack_machine.reset();</span>
-<span class="line" id="L1508">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1509">        <span class="tok-kw">try</span> b.writeLiteral(writer, <span class="tok-number">2</span>);</span>
-<span class="line" id="L1510">        <span class="tok-kw">try</span> b.writeSkip(writer, <span class="tok-number">1</span>);</span>
-<span class="line" id="L1511">        <span class="tok-kw">try</span> b.writeLiteral(writer, <span class="tok-number">3</span>);</span>
-<span class="line" id="L1512">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1513">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">2</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1514"></span>
-<span class="line" id="L1515">        stack_machine.reset();</span>
-<span class="line" id="L1516">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1517">        <span class="tok-kw">try</span> b.writeLiteral(writer, <span class="tok-number">2</span>);</span>
-<span class="line" id="L1518">        <span class="tok-kw">try</span> b.writeBra(writer, <span class="tok-number">1</span>);</span>
-<span class="line" id="L1519">        <span class="tok-kw">try</span> b.writeLiteral(writer, <span class="tok-number">3</span>);</span>
-<span class="line" id="L1520">        <span class="tok-kw">try</span> b.writeLiteral(writer, <span class="tok-number">0</span>);</span>
-<span class="line" id="L1521">        <span class="tok-kw">try</span> b.writeBra(writer, <span class="tok-number">1</span>);</span>
-<span class="line" id="L1522">        <span class="tok-kw">try</span> b.writeLiteral(writer, <span class="tok-number">4</span>);</span>
-<span class="line" id="L1523">        <span class="tok-kw">try</span> b.writeLiteral(writer, <span class="tok-number">5</span>);</span>
-<span class="line" id="L1524">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1525">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">5</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1526">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">4</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1527">        <span class="tok-kw">try</span> testing.expect(stack_machine.stack.popOrNull() == <span class="tok-null">null</span>);</span>
+<span class="line" id="L1497">            <span class="tok-kw">try</span> b.writeConst(writer, <span class="tok-type">u16</span>, <span class="tok-number">0</span>);</span>
+<span class="line" id="L1498">            <span class="tok-kw">try</span> b.writeOpcode(writer, e[<span class="tok-number">0</span>]);</span>
+<span class="line" id="L1499">            _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1500">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, e[<span class="tok-number">3</span>]), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1501">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, e[<span class="tok-number">2</span>]), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1502">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, e[<span class="tok-number">1</span>]), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1503">        }</span>
+<span class="line" id="L1504"></span>
+<span class="line" id="L1505">        stack_machine.reset();</span>
+<span class="line" id="L1506">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1507">        <span class="tok-kw">try</span> b.writeLiteral(writer, <span class="tok-number">2</span>);</span>
+<span class="line" id="L1508">        <span class="tok-kw">try</span> b.writeSkip(writer, <span class="tok-number">1</span>);</span>
+<span class="line" id="L1509">        <span class="tok-kw">try</span> b.writeLiteral(writer, <span class="tok-number">3</span>);</span>
+<span class="line" id="L1510">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1511">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">2</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1512"></span>
+<span class="line" id="L1513">        stack_machine.reset();</span>
+<span class="line" id="L1514">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1515">        <span class="tok-kw">try</span> b.writeLiteral(writer, <span class="tok-number">2</span>);</span>
+<span class="line" id="L1516">        <span class="tok-kw">try</span> b.writeBra(writer, <span class="tok-number">1</span>);</span>
+<span class="line" id="L1517">        <span class="tok-kw">try</span> b.writeLiteral(writer, <span class="tok-number">3</span>);</span>
+<span class="line" id="L1518">        <span class="tok-kw">try</span> b.writeLiteral(writer, <span class="tok-number">0</span>);</span>
+<span class="line" id="L1519">        <span class="tok-kw">try</span> b.writeBra(writer, <span class="tok-number">1</span>);</span>
+<span class="line" id="L1520">        <span class="tok-kw">try</span> b.writeLiteral(writer, <span class="tok-number">4</span>);</span>
+<span class="line" id="L1521">        <span class="tok-kw">try</span> b.writeLiteral(writer, <span class="tok-number">5</span>);</span>
+<span class="line" id="L1522">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1523">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">5</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1524">        <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">4</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1525">        <span class="tok-kw">try</span> testing.expect(stack_machine.stack.popOrNull() == <span class="tok-null">null</span>);</span>
+<span class="line" id="L1526"></span>
+<span class="line" id="L1527">        <span class="tok-comment">// TODO: Test call2, call4, call_ref once implemented</span>
+</span>
 <span class="line" id="L1528"></span>
-<span class="line" id="L1529">        <span class="tok-comment">// TODO: Test call2, call4, call_ref once implemented</span>
-</span>
+<span class="line" id="L1529">    }</span>
 <span class="line" id="L1530"></span>
-<span class="line" id="L1531">    }</span>
-<span class="line" id="L1532"></span>
-<span class="line" id="L1533">    <span class="tok-comment">// Type conversions</span>
+<span class="line" id="L1531">    <span class="tok-comment">// Type conversions</span>
 </span>
-<span class="line" id="L1534">    {</span>
-<span class="line" id="L1535">        <span class="tok-kw">var</span> context = ExpressionContext{};</span>
-<span class="line" id="L1536">        stack_machine.reset();</span>
-<span class="line" id="L1537">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1532">    {</span>
+<span class="line" id="L1533">        <span class="tok-kw">var</span> context = ExpressionContext{};</span>
+<span class="line" id="L1534">        stack_machine.reset();</span>
+<span class="line" id="L1535">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1536"></span>
+<span class="line" id="L1537">        <span class="tok-comment">// TODO: Test typed OP.convert once implemented</span>
+</span>
 <span class="line" id="L1538"></span>
-<span class="line" id="L1539">        <span class="tok-comment">// TODO: Test typed OP.convert once implemented</span>
+<span class="line" id="L1539">        <span class="tok-kw">const</span> value: <span class="tok-type">usize</span> = <span class="tok-builtin">@truncate</span>(<span class="tok-number">0xffeeffee_ffeeffee</span>);</span>
+<span class="line" id="L1540">        <span class="tok-kw">var</span> value_bytes: [options.addr_size]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L1541">        mem.writeIntSliceNative(<span class="tok-type">usize</span>, &amp;value_bytes, value);</span>
+<span class="line" id="L1542"></span>
+<span class="line" id="L1543">        <span class="tok-comment">// Convert to generic type</span>
 </span>
-<span class="line" id="L1540"></span>
-<span class="line" id="L1541">        <span class="tok-kw">const</span> value: <span class="tok-type">usize</span> = <span class="tok-builtin">@truncate</span>(<span class="tok-number">0xffeeffee_ffeeffee</span>);</span>
-<span class="line" id="L1542">        <span class="tok-kw">var</span> value_bytes: [options.addr_size]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L1543">        mem.writeIntSliceNative(<span class="tok-type">usize</span>, &amp;value_bytes, value);</span>
-<span class="line" id="L1544"></span>
-<span class="line" id="L1545">        <span class="tok-comment">// Convert to generic type</span>
+<span class="line" id="L1544">        stack_machine.reset();</span>
+<span class="line" id="L1545">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1546">        <span class="tok-kw">try</span> b.writeConstType(writer, <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), &amp;value_bytes);</span>
+<span class="line" id="L1547">        <span class="tok-kw">try</span> b.writeConvert(writer, <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>));</span>
+<span class="line" id="L1548">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1549">        <span class="tok-kw">try</span> testing.expectEqual(value, stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1550"></span>
+<span class="line" id="L1551">        <span class="tok-comment">// Reinterpret to generic type</span>
 </span>
-<span class="line" id="L1546">        stack_machine.reset();</span>
-<span class="line" id="L1547">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1548">        <span class="tok-kw">try</span> b.writeConstType(writer, <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), &amp;value_bytes);</span>
-<span class="line" id="L1549">        <span class="tok-kw">try</span> b.writeConvert(writer, <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>));</span>
-<span class="line" id="L1550">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1551">        <span class="tok-kw">try</span> testing.expectEqual(value, stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1552"></span>
-<span class="line" id="L1553">        <span class="tok-comment">// Reinterpret to generic type</span>
+<span class="line" id="L1552">        stack_machine.reset();</span>
+<span class="line" id="L1553">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1554">        <span class="tok-kw">try</span> b.writeConstType(writer, <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), &amp;value_bytes);</span>
+<span class="line" id="L1555">        <span class="tok-kw">try</span> b.writeReinterpret(writer, <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>));</span>
+<span class="line" id="L1556">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1557">        <span class="tok-kw">try</span> testing.expectEqual(value, stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1558"></span>
+<span class="line" id="L1559">        <span class="tok-comment">// Reinterpret to new type</span>
 </span>
-<span class="line" id="L1554">        stack_machine.reset();</span>
-<span class="line" id="L1555">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1556">        <span class="tok-kw">try</span> b.writeConstType(writer, <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), &amp;value_bytes);</span>
-<span class="line" id="L1557">        <span class="tok-kw">try</span> b.writeReinterpret(writer, <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>));</span>
-<span class="line" id="L1558">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1559">        <span class="tok-kw">try</span> testing.expectEqual(value, stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1560"></span>
-<span class="line" id="L1561">        <span class="tok-comment">// Reinterpret to new type</span>
+<span class="line" id="L1560">        <span class="tok-kw">const</span> die_offset: <span class="tok-type">usize</span> = <span class="tok-number">0xffee</span>;</span>
+<span class="line" id="L1561"></span>
+<span class="line" id="L1562">        stack_machine.reset();</span>
+<span class="line" id="L1563">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1564">        <span class="tok-kw">try</span> b.writeConstType(writer, <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), &amp;value_bytes);</span>
+<span class="line" id="L1565">        <span class="tok-kw">try</span> b.writeReinterpret(writer, die_offset);</span>
+<span class="line" id="L1566">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1567">        <span class="tok-kw">const</span> const_type = stack_machine.stack.popOrNull().?.const_type;</span>
+<span class="line" id="L1568">        <span class="tok-kw">try</span> testing.expectEqual(die_offset, const_type.type_offset);</span>
+<span class="line" id="L1569"></span>
+<span class="line" id="L1570">        stack_machine.reset();</span>
+<span class="line" id="L1571">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1572">        <span class="tok-kw">try</span> b.writeLiteral(writer, <span class="tok-number">0</span>);</span>
+<span class="line" id="L1573">        <span class="tok-kw">try</span> b.writeReinterpret(writer, die_offset);</span>
+<span class="line" id="L1574">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1575">        <span class="tok-kw">const</span> regval_type = stack_machine.stack.popOrNull().?.regval_type;</span>
+<span class="line" id="L1576">        <span class="tok-kw">try</span> testing.expectEqual(die_offset, regval_type.type_offset);</span>
+<span class="line" id="L1577">    }</span>
+<span class="line" id="L1578"></span>
+<span class="line" id="L1579">    <span class="tok-comment">// Special operations</span>
 </span>
-<span class="line" id="L1562">        <span class="tok-kw">const</span> die_offset: <span class="tok-type">usize</span> = <span class="tok-number">0xffee</span>;</span>
-<span class="line" id="L1563"></span>
-<span class="line" id="L1564">        stack_machine.reset();</span>
-<span class="line" id="L1565">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1566">        <span class="tok-kw">try</span> b.writeConstType(writer, <span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0</span>), &amp;value_bytes);</span>
-<span class="line" id="L1567">        <span class="tok-kw">try</span> b.writeReinterpret(writer, die_offset);</span>
-<span class="line" id="L1568">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1569">        <span class="tok-kw">const</span> const_type = stack_machine.stack.popOrNull().?.const_type;</span>
-<span class="line" id="L1570">        <span class="tok-kw">try</span> testing.expectEqual(die_offset, const_type.type_offset);</span>
-<span class="line" id="L1571"></span>
-<span class="line" id="L1572">        stack_machine.reset();</span>
-<span class="line" id="L1573">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1574">        <span class="tok-kw">try</span> b.writeLiteral(writer, <span class="tok-number">0</span>);</span>
-<span class="line" id="L1575">        <span class="tok-kw">try</span> b.writeReinterpret(writer, die_offset);</span>
-<span class="line" id="L1576">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1577">        <span class="tok-kw">const</span> regval_type = stack_machine.stack.popOrNull().?.regval_type;</span>
-<span class="line" id="L1578">        <span class="tok-kw">try</span> testing.expectEqual(die_offset, regval_type.type_offset);</span>
-<span class="line" id="L1579">    }</span>
-<span class="line" id="L1580"></span>
-<span class="line" id="L1581">    <span class="tok-comment">// Special operations</span>
+<span class="line" id="L1580">    {</span>
+<span class="line" id="L1581">        <span class="tok-kw">var</span> context = ExpressionContext{};</span>
+<span class="line" id="L1582"></span>
+<span class="line" id="L1583">        stack_machine.reset();</span>
+<span class="line" id="L1584">        program.clearRetainingCapacity();</span>
+<span class="line" id="L1585">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.nop);</span>
+<span class="line" id="L1586">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1587">        <span class="tok-kw">try</span> testing.expect(stack_machine.stack.popOrNull() == <span class="tok-null">null</span>);</span>
+<span class="line" id="L1588"></span>
+<span class="line" id="L1589">        <span class="tok-comment">// Sub-expression</span>
 </span>
-<span class="line" id="L1582">    {</span>
-<span class="line" id="L1583">        <span class="tok-kw">var</span> context = ExpressionContext{};</span>
-<span class="line" id="L1584"></span>
-<span class="line" id="L1585">        stack_machine.reset();</span>
-<span class="line" id="L1586">        program.clearRetainingCapacity();</span>
-<span class="line" id="L1587">        <span class="tok-kw">try</span> b.writeOpcode(writer, OP.nop);</span>
-<span class="line" id="L1588">        _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1589">        <span class="tok-kw">try</span> testing.expect(stack_machine.stack.popOrNull() == <span class="tok-null">null</span>);</span>
-<span class="line" id="L1590"></span>
-<span class="line" id="L1591">        <span class="tok-comment">// Sub-expression</span>
+<span class="line" id="L1590">        {</span>
+<span class="line" id="L1591">            <span class="tok-kw">var</span> sub_program = std.ArrayList(<span class="tok-type">u8</span>).init(allocator);</span>
+<span class="line" id="L1592">            <span class="tok-kw">defer</span> sub_program.deinit();</span>
+<span class="line" id="L1593">            <span class="tok-kw">const</span> sub_writer = sub_program.writer();</span>
+<span class="line" id="L1594">            <span class="tok-kw">try</span> b.writeLiteral(sub_writer, <span class="tok-number">3</span>);</span>
+<span class="line" id="L1595"></span>
+<span class="line" id="L1596">            stack_machine.reset();</span>
+<span class="line" id="L1597">            program.clearRetainingCapacity();</span>
+<span class="line" id="L1598">            <span class="tok-kw">try</span> b.writeEntryValue(writer, sub_program.items);</span>
+<span class="line" id="L1599">            _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1600">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1601">        }</span>
+<span class="line" id="L1602"></span>
+<span class="line" id="L1603">        <span class="tok-comment">// Register location description</span>
 </span>
-<span class="line" id="L1592">        {</span>
-<span class="line" id="L1593">            <span class="tok-kw">var</span> sub_program = std.ArrayList(<span class="tok-type">u8</span>).init(allocator);</span>
-<span class="line" id="L1594">            <span class="tok-kw">defer</span> sub_program.deinit();</span>
-<span class="line" id="L1595">            <span class="tok-kw">const</span> sub_writer = sub_program.writer();</span>
-<span class="line" id="L1596">            <span class="tok-kw">try</span> b.writeLiteral(sub_writer, <span class="tok-number">3</span>);</span>
-<span class="line" id="L1597"></span>
-<span class="line" id="L1598">            stack_machine.reset();</span>
-<span class="line" id="L1599">            program.clearRetainingCapacity();</span>
-<span class="line" id="L1600">            <span class="tok-kw">try</span> b.writeEntryValue(writer, sub_program.items);</span>
-<span class="line" id="L1601">            _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1602">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">3</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1603">        }</span>
-<span class="line" id="L1604"></span>
-<span class="line" id="L1605">        <span class="tok-comment">// Register location description</span>
-</span>
-<span class="line" id="L1606">        <span class="tok-kw">const</span> reg_context = abi.RegisterContext{</span>
-<span class="line" id="L1607">            .eh_frame = <span class="tok-null">true</span>,</span>
-<span class="line" id="L1608">            .is_macho = builtin.os.tag == .macos,</span>
-<span class="line" id="L1609">        };</span>
-<span class="line" id="L1610">        <span class="tok-kw">var</span> thread_context: std.debug.ThreadContext = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L1611">        std.debug.relocateContext(&amp;thread_context);</span>
-<span class="line" id="L1612">        context = ExpressionContext{</span>
-<span class="line" id="L1613">            .thread_context = &amp;thread_context,</span>
-<span class="line" id="L1614">            .reg_context = reg_context,</span>
-<span class="line" id="L1615">        };</span>
-<span class="line" id="L1616"></span>
-<span class="line" id="L1617">        <span class="tok-kw">if</span> (abi.regBytes(&amp;thread_context, <span class="tok-number">0</span>, reg_context)) |reg_bytes| {</span>
-<span class="line" id="L1618">            mem.writeIntSliceNative(<span class="tok-type">usize</span>, reg_bytes, <span class="tok-number">0xee</span>);</span>
-<span class="line" id="L1619"></span>
-<span class="line" id="L1620">            <span class="tok-kw">var</span> sub_program = std.ArrayList(<span class="tok-type">u8</span>).init(allocator);</span>
-<span class="line" id="L1621">            <span class="tok-kw">defer</span> sub_program.deinit();</span>
-<span class="line" id="L1622">            <span class="tok-kw">const</span> sub_writer = sub_program.writer();</span>
-<span class="line" id="L1623">            <span class="tok-kw">try</span> b.writeReg(sub_writer, <span class="tok-number">0</span>);</span>
-<span class="line" id="L1624"></span>
-<span class="line" id="L1625">            stack_machine.reset();</span>
-<span class="line" id="L1626">            program.clearRetainingCapacity();</span>
-<span class="line" id="L1627">            <span class="tok-kw">try</span> b.writeEntryValue(writer, sub_program.items);</span>
-<span class="line" id="L1628">            _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
-<span class="line" id="L1629">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0xee</span>), stack_machine.stack.popOrNull().?.generic);</span>
-<span class="line" id="L1630">        } <span class="tok-kw">else</span> |err| {</span>
-<span class="line" id="L1631">            <span class="tok-kw">switch</span> (err) {</span>
-<span class="line" id="L1632">                <span class="tok-kw">error</span>.UnimplementedArch,</span>
-<span class="line" id="L1633">                <span class="tok-kw">error</span>.UnimplementedOs,</span>
-<span class="line" id="L1634">                <span class="tok-kw">error</span>.ThreadContextNotSupported,</span>
-<span class="line" id="L1635">                =&gt; {},</span>
-<span class="line" id="L1636">                <span class="tok-kw">else</span> =&gt; <span class="tok-kw">return</span> err,</span>
-<span class="line" id="L1637">            }</span>
-<span class="line" id="L1638">        }</span>
-<span class="line" id="L1639">    }</span>
-<span class="line" id="L1640">}</span>
-<span class="line" id="L1641"></span>
+<span class="line" id="L1604">        <span class="tok-kw">const</span> reg_context = abi.RegisterContext{</span>
+<span class="line" id="L1605">            .eh_frame = <span class="tok-null">true</span>,</span>
+<span class="line" id="L1606">            .is_macho = builtin.os.tag == .macos,</span>
+<span class="line" id="L1607">        };</span>
+<span class="line" id="L1608">        <span class="tok-kw">var</span> thread_context: std.debug.ThreadContext = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L1609">        std.debug.relocateContext(&amp;thread_context);</span>
+<span class="line" id="L1610">        context = ExpressionContext{</span>
+<span class="line" id="L1611">            .thread_context = &amp;thread_context,</span>
+<span class="line" id="L1612">            .reg_context = reg_context,</span>
+<span class="line" id="L1613">        };</span>
+<span class="line" id="L1614"></span>
+<span class="line" id="L1615">        <span class="tok-kw">if</span> (abi.regBytes(&amp;thread_context, <span class="tok-number">0</span>, reg_context)) |reg_bytes| {</span>
+<span class="line" id="L1616">            mem.writeIntSliceNative(<span class="tok-type">usize</span>, reg_bytes, <span class="tok-number">0xee</span>);</span>
+<span class="line" id="L1617"></span>
+<span class="line" id="L1618">            <span class="tok-kw">var</span> sub_program = std.ArrayList(<span class="tok-type">u8</span>).init(allocator);</span>
+<span class="line" id="L1619">            <span class="tok-kw">defer</span> sub_program.deinit();</span>
+<span class="line" id="L1620">            <span class="tok-kw">const</span> sub_writer = sub_program.writer();</span>
+<span class="line" id="L1621">            <span class="tok-kw">try</span> b.writeReg(sub_writer, <span class="tok-number">0</span>);</span>
+<span class="line" id="L1622"></span>
+<span class="line" id="L1623">            stack_machine.reset();</span>
+<span class="line" id="L1624">            program.clearRetainingCapacity();</span>
+<span class="line" id="L1625">            <span class="tok-kw">try</span> b.writeEntryValue(writer, sub_program.items);</span>
+<span class="line" id="L1626">            _ = <span class="tok-kw">try</span> stack_machine.run(program.items, allocator, context, <span class="tok-null">null</span>);</span>
+<span class="line" id="L1627">            <span class="tok-kw">try</span> testing.expectEqual(<span class="tok-builtin">@as</span>(<span class="tok-type">usize</span>, <span class="tok-number">0xee</span>), stack_machine.stack.popOrNull().?.generic);</span>
+<span class="line" id="L1628">        } <span class="tok-kw">else</span> |err| {</span>
+<span class="line" id="L1629">            <span class="tok-kw">switch</span> (err) {</span>
+<span class="line" id="L1630">                <span class="tok-kw">error</span>.UnimplementedArch,</span>
+<span class="line" id="L1631">                <span class="tok-kw">error</span>.UnimplementedOs,</span>
+<span class="line" id="L1632">                <span class="tok-kw">error</span>.ThreadContextNotSupported,</span>
+<span class="line" id="L1633">                =&gt; {},</span>
+<span class="line" id="L1634">                <span class="tok-kw">else</span> =&gt; <span class="tok-kw">return</span> err,</span>
+<span class="line" id="L1635">            }</span>
+<span class="line" id="L1636">        }</span>
+<span class="line" id="L1637">    }</span>
+<span class="line" id="L1638">}</span>
+<span class="line" id="L1639"></span>
 </code></pre></body>
 </html>

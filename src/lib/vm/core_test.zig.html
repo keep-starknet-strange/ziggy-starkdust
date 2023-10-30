@@ -1671,5 +1671,55 @@
 <span class="line" id="L1186">    <span class="tok-kw">try</span> expectError(<span class="tok-kw">error</span>.MulRelocForbidden, computeRes(&amp;instruction, op0, op1));</span>
 <span class="line" id="L1187">}</span>
 <span class="line" id="L1188"></span>
+<span class="line" id="L1189"><span class="tok-kw">test</span> <span class="tok-str">&quot;memory is not leaked upon allocation failure during initialization&quot;</span> {</span>
+<span class="line" id="L1190">    <span class="tok-kw">var</span> i: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
+<span class="line" id="L1191">    <span class="tok-kw">while</span> (i &lt; <span class="tok-number">20</span>) {</span>
+<span class="line" id="L1192">        <span class="tok-comment">// ************************************************************</span>
+</span>
+<span class="line" id="L1193">        <span class="tok-comment">// *                 SETUP TEST CONTEXT                       *</span>
+</span>
+<span class="line" id="L1194">        <span class="tok-comment">// ************************************************************</span>
+</span>
+<span class="line" id="L1195">        <span class="tok-kw">var</span> allocator = std.testing.FailingAllocator.init(std.testing.allocator, .{ .fail_index = i });</span>
+<span class="line" id="L1196">        i += <span class="tok-number">1</span>;</span>
+<span class="line" id="L1197"></span>
+<span class="line" id="L1198">        <span class="tok-comment">// ************************************************************</span>
+</span>
+<span class="line" id="L1199">        <span class="tok-comment">// *                      TEST BODY                           *</span>
+</span>
+<span class="line" id="L1200">        <span class="tok-comment">// ************************************************************</span>
+</span>
+<span class="line" id="L1201">        <span class="tok-comment">// Nothing.</span>
+</span>
+<span class="line" id="L1202"></span>
+<span class="line" id="L1203">        <span class="tok-comment">// ************************************************************</span>
+</span>
+<span class="line" id="L1204">        <span class="tok-comment">// *                      TEST CHECKS                         *</span>
+</span>
+<span class="line" id="L1205">        <span class="tok-comment">// ************************************************************</span>
+</span>
+<span class="line" id="L1206">        <span class="tok-comment">// Error must have occured!</span>
+</span>
+<span class="line" id="L1207"></span>
+<span class="line" id="L1208">        <span class="tok-comment">// It's not given that the final error will be an OutOfMemory. It's likely though.</span>
+</span>
+<span class="line" id="L1209">        <span class="tok-comment">// Plus we're not certain that the error will be thrown at the same place as the</span>
+</span>
+<span class="line" id="L1210">        <span class="tok-comment">// VM is upgraded. For this reason, we should just ensure that no memory has</span>
+</span>
+<span class="line" id="L1211">        <span class="tok-comment">// been leaked.</span>
+</span>
+<span class="line" id="L1212">        <span class="tok-comment">// try expectError(error.OutOfMemory, CairoVM.init(allocator.allocator(), .{}));</span>
+</span>
+<span class="line" id="L1213"></span>
+<span class="line" id="L1214">        <span class="tok-comment">// Note that `.deinit()` is not called in case of failure (obviously).</span>
+</span>
+<span class="line" id="L1215">        <span class="tok-comment">// If error handling is done correctly, no memory should be leaked.</span>
+</span>
+<span class="line" id="L1216">        <span class="tok-kw">var</span> vm = CairoVM.init(allocator.allocator(), .{}) <span class="tok-kw">catch</span> <span class="tok-kw">continue</span>;</span>
+<span class="line" id="L1217">        vm.deinit();</span>
+<span class="line" id="L1218">    }</span>
+<span class="line" id="L1219">}</span>
+<span class="line" id="L1220"></span>
 </code></pre></body>
 </html>
