@@ -11,3 +11,7 @@ pub const CairoVMError = error{
     TypeMismatchNotRelocatable,
     ValueTooLarge,
 };
+
+pub const MemoryError = error{
+    MissingSegmentUsedSizes,
+};

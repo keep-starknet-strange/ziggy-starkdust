@@ -110,6 +110,17 @@ pub const MemorySegmentManager = struct {
 
         return relocatable_address;
     }
+
+    /// Retrieves the size of a memory segment by its index if available, else returns null.
+    ///
+    /// # Parameters
+    /// - `index` (u32): The index of the memory segment.
+    ///
+    /// # Returns
+    /// A `u32` representing the size of the segment or null if not computed.
+    pub fn get_segment_used_size(self: *Self, index: u32) ?u32 {
+        return self.segment_used_sizes.get(index) orelse null;
+    }
 };
 
 // ************************************************************
@@ -192,4 +203,28 @@ test "set get integer value in segment memory" {
     const expected_value = value;
 
     try expect(expected_value.eq(actual_value));
+}
+
+test "MemorySegmentManager: get_segment_used_size should return null if segments not computed" {
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try expectEqual(
+        @as(?u32, null),
+        memory_segment_manager.get_segment_used_size(5),
+    );
+}
+
+test "MemorySegmentManager: get_segment_used_size should return the size of the used segments." {
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.segment_used_sizes.put(5, 4);
+    try memory_segment_manager.segment_used_sizes.put(0, 22);
+    try expectEqual(
+        @as(?u32, 22),
+        memory_segment_manager.get_segment_used_size(0),
+    );
+    try expectEqual(
+        @as(?u32, 4),
+        memory_segment_manager.get_segment_used_size(5),
+    );
 }
