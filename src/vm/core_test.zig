@@ -116,8 +116,11 @@ test "update pc regular no imm" {
     // ************************************************************
     const pc = vm.getPc();
     try expectEqual(
+        @as(
+            u64,
+            1,
+        ),
         pc.offset,
-        1,
     );
 }
 
@@ -149,8 +152,11 @@ test "update pc regular with imm" {
     // ************************************************************
     const pc = vm.getPc();
     try expectEqual(
+        @as(
+            u64,
+            2,
+        ),
         pc.offset,
-        2,
     );
 }
 
@@ -233,8 +239,11 @@ test "update pc jump with operands res relocatable" {
     // ************************************************************
     const pc = vm.getPc();
     try expectEqual(
+        @as(
+            u64,
+            42,
+        ),
         pc.offset,
-        42,
     );
 }
 
@@ -317,8 +326,11 @@ test "update pc jump rel with operands res felt" {
     // ************************************************************
     const pc = vm.getPc();
     try expectEqual(
+        @as(
+            u64,
+            42,
+        ),
         pc.offset,
-        42,
     );
 }
 
@@ -350,8 +362,11 @@ test "update pc update jnz with operands dst zero" {
     // ************************************************************
     const pc = vm.getPc();
     try expectEqual(
+        @as(
+            u64,
+            2,
+        ),
         pc.offset,
-        2,
     );
 }
 
@@ -415,8 +430,11 @@ test "update pc update jnz with operands dst not zero op1 felt" {
     // ************************************************************
     const pc = vm.getPc();
     try expectEqual(
+        @as(
+            u64,
+            42,
+        ),
         pc.offset,
-        42,
     );
 }
 
@@ -470,8 +488,11 @@ test "update ap add1" {
     // Verify the AP offset was incremented by 1.
     const ap = vm.getAp();
     try expectEqual(
+        @as(
+            u64,
+            1,
+        ),
         ap.offset,
-        1,
     );
 }
 
@@ -502,8 +523,11 @@ test "update ap add2" {
     // Verify the AP offset was incremented by 2.
     const ap = vm.getAp();
     try expectEqual(
+        @as(
+            u64,
+            2,
+        ),
         ap.offset,
-        2,
     );
 }
 
@@ -534,8 +558,11 @@ test "update fp appplus2" {
     // Verify the FP offset was incremented by 2.
     const fp = vm.getFp();
     try expectEqual(
+        @as(
+            u64,
+            2,
+        ),
         fp.offset,
-        2,
     );
 }
 
@@ -570,8 +597,11 @@ test "update fp dst relocatable" {
     // Verify the FP offset was incremented by 2.
     const fp = vm.getFp();
     try expectEqual(
+        @as(
+            u64,
+            42,
+        ),
         fp.offset,
-        42,
     );
 }
 
@@ -603,8 +633,11 @@ test "update fp dst felt" {
     // Verify the FP offset was incremented by 2.
     const fp = vm.getFp();
     try expectEqual(
+        @as(
+            u64,
+            42,
+        ),
         fp.offset,
-        42,
     );
 }
 
@@ -700,8 +733,14 @@ test "deduceOp1 when opcode == .Call" {
     // ************************************************************
     const expectedOp1: ?MaybeRelocatable = null; // temp var needed for type inference
     const expectedRes: ?MaybeRelocatable = null;
-    try expectEqual(expectedOp1, op1);
-    try expectEqual(expectedRes, res);
+    try expectEqual(
+        expectedOp1,
+        op1,
+    );
+    try expectEqual(
+        expectedRes,
+        res,
+    );
 }
 
 test "deduceOp1 when opcode == .AssertEq, res_logic == .Add, input is felt" {
@@ -783,8 +822,14 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
     // ************************************************************
     const expectedOp1: ?MaybeRelocatable = null; // temp var needed for type inference
     const expectedRes: ?MaybeRelocatable = null;
-    try expectEqual(expectedOp1, op1);
-    try expectEqual(expectedRes, res);
+    try expectEqual(
+        expectedOp1,
+        op1,
+    );
+    try expectEqual(
+        expectedRes,
+        res,
+    );
 }
 
 test "deduceOp1 when opcode == .AssertEq, res_logic = .Mul, no input" {
@@ -809,8 +854,14 @@ test "deduceOp1 when opcode == .AssertEq, res_logic = .Mul, no input" {
     // ************************************************************
     const expectedOp1: ?MaybeRelocatable = null; // temp var needed for type inference
     const expectedRes: ?MaybeRelocatable = null;
-    try expectEqual(expectedOp1, op1);
-    try expectEqual(expectedRes, res);
+    try expectEqual(
+        expectedOp1,
+        op1,
+    );
+    try expectEqual(
+        expectedRes,
+        res,
+    );
 }
 
 test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
@@ -837,8 +888,14 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
     // ************************************************************
     const expectedOp1: ?MaybeRelocatable = null; // temp var needed for type inference
     const expectedRes: ?MaybeRelocatable = null;
-    try expectEqual(expectedOp1, op1);
-    try expectEqual(expectedRes, res);
+    try expectEqual(
+        expectedOp1,
+        op1,
+    );
+    try expectEqual(
+        expectedRes,
+        res,
+    );
 }
 
 test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no op0" {
@@ -895,7 +952,10 @@ test "set get value in vm memory" {
     // Verify the value is correctly set to 42.
     const actual_value = try vm.segments.memory.get(address);
     const expected_value = value;
-    try expectEqual(expected_value, actual_value);
+    try expectEqual(
+        expected_value,
+        actual_value,
+    );
 }
 
 test "compute res op1 works" {
@@ -936,7 +996,10 @@ test "compute res op1 works" {
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
-    try expectEqual(expected_res, actual_res);
+    try expectEqual(
+        expected_res,
+        actual_res,
+    );
 }
 
 test "compute res add felts works" {
@@ -977,7 +1040,10 @@ test "compute res add felts works" {
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
-    try expectEqual(expected_res, actual_res);
+    try expectEqual(
+        expected_res,
+        actual_res,
+    );
 }
 
 test "compute res add felt to offset works" {
@@ -1021,7 +1087,10 @@ test "compute res add felt to offset works" {
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
-    try expectEqual(expected_res, actual_res);
+    try expectEqual(
+        expected_res,
+        actual_res,
+    );
 }
 
 test "compute res add fails two relocs" {
@@ -1103,7 +1172,10 @@ test "compute res mul works" {
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
-    try expectEqual(expected_res, actual_res);
+    try expectEqual(
+        expected_res,
+        actual_res,
+    );
 }
 
 test "compute res mul fails two relocs" {

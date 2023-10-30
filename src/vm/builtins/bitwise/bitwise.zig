@@ -171,8 +171,11 @@ test "valid bitwise and" {
     var expected = MaybeRelocatable{ .felt = Felt252.fromInteger(8) };
 
     // then
-    var result = deduce(address, mem);
-    try expectEqual(result, expected);
+    var result = try deduce(address, mem);
+    try expectEqual(
+        expected,
+        result,
+    );
 }
 
 test "valid bitwise xor" {
@@ -191,8 +194,11 @@ test "valid bitwise xor" {
     var expected = MaybeRelocatable{ .felt = Felt252.fromInteger(6) };
 
     // then
-    var result = deduce(address, mem);
-    try expectEqual(result, expected);
+    var result = try deduce(address, mem);
+    try expectEqual(
+        expected,
+        result,
+    );
 }
 
 test "valid bitwise or" {
@@ -211,6 +217,9 @@ test "valid bitwise or" {
     var expected = MaybeRelocatable{ .felt = Felt252.fromInteger(14) };
 
     // then
-    var result = deduce(address, mem);
-    try expectEqual(result, expected);
+    var result = try deduce(address, mem);
+    try expectEqual(
+        expected,
+        result,
+    );
 }
