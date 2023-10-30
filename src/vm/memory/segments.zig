@@ -1,8 +1,8 @@
 // Core imports.
 const std = @import("std");
 const Allocator = std.mem.Allocator;
-const expect = @import("std").testing.expect;
-const expectEqual = @import("std").testing.expectEqual;
+const expect = std.testing.expect;
+const expectEqual = std.testing.expectEqual;
 
 // Local imports.
 const Memory = @import("memory.zig").Memory;
@@ -63,7 +63,7 @@ pub const MemorySegmentManager = struct {
         errdefer memory.deinit();
 
         // Initialize the values of the MemorySegmentManager struct.
-        segment_manager.* = Self{
+        segment_manager.* = .{
             .allocator = allocator,
             .segment_used_sizes = std.AutoHashMap(
                 u32,

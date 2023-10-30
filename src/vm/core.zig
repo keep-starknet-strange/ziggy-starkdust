@@ -399,7 +399,7 @@ pub const CairoVM = struct {
         for (self.builtin_runners.items) |builtin_item| {
             if (@as(
                 u64,
-                builtin_item.base(),
+                @intCast(builtin_item.base()),
             ) == address.segment_index) {
                 return builtin.deduce(
                     address,

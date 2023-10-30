@@ -50,7 +50,7 @@ pub const RunContext = struct {
         const fp = try allocator.create(Relocatable);
         errdefer allocator.destroy(fp);
 
-        run_context.* = Self{
+        run_context.* = .{
             .allocator = allocator,
             .pc = pc,
             .ap = ap,
