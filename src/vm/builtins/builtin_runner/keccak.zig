@@ -175,6 +175,29 @@ pub const KeccakBuiltinRunner = struct {
         };
     }
 
+    /// Calculates the number of used instances for the Keccak runner.
+    ///
+    /// This function computes the number of used instances based on the available
+    /// used cells and the number of cells per instance. It performs a ceiling division
+    /// to ensure that any remaining cells are counted as an additional instance.
+    ///
+    /// # Parameters
+    /// - `segments`: A pointer to the `MemorySegmentManager` for segment information.
+    ///
+    /// # Returns
+    /// The number of used instances as a `usize`.
+    pub fn get_used_instances(self: *Self, segments: *MemorySegmentManager) !usize {
+        const used_cells = try self.get_used_cells(segments);
+        return std.math.divCeil(
+            usize,
+            used_cells,
+            @as(
+                usize,
+                @intCast(self.cells_per_instance),
+            ),
+        );
+    }
+
     /// Frees the resources owned by this instance of `KeccakBuiltinRunner`.
     pub fn deinit(self: *Self) void {
         self.state_rep.deinit();
@@ -293,5 +316,38 @@ test "KeccakBuiltinRunner: get_memory_segment_addresses should return base and s
             .{ 22, null },
         ),
         keccak_builtin.get_memory_segment_addresses(),
+    );
+}
+
+test "KeccakBuiltinRunner: get_used_instances should return memory error if segment used size is null" {
+    var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
+    defer keccak_instance_def.deinit();
+    var keccak_builtin = KeccakBuiltinRunner.new(
+        std.testing.allocator,
+        &keccak_instance_def,
+        true,
+    );
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try expectError(
+        MemoryError.MissingSegmentUsedSizes,
+        keccak_builtin.get_used_instances(memory_segment_manager),
+    );
+}
+
+test "KeccakBuiltinRunner: get_used_instances should return the number of used instances" {
+    var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
+    defer keccak_instance_def.deinit();
+    var keccak_builtin = KeccakBuiltinRunner.new(
+        std.testing.allocator,
+        &keccak_instance_def,
+        true,
+    );
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.segment_used_sizes.put(0, 345);
+    try expectEqual(
+        @as(usize, @intCast(22)),
+        try keccak_builtin.get_used_instances(memory_segment_manager),
     );
 }
