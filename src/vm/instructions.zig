@@ -585,21 +585,21 @@ test "decode offset negative" {
     try expectEqual(
         @as(
             i16,
-        @intCast(-1),
+            @intCast(-1),
         ),
         decoded_instruction.off_0,
     );
     try expectEqual(
         @as(
             i16,
-        @intCast(0),
+            @intCast(0),
         ),
         decoded_instruction.off_1,
     );
     try expectEqual(
         @as(
             i16,
-        @intCast(1),
+            @intCast(1),
         ),
         decoded_instruction.off_2,
     );
