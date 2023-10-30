@@ -25,6 +25,9 @@ const computeRes = @import("core.zig").computeRes;
 const OperandsResult = @import("core.zig").OperandsResult;
 const deduceOp1 = @import("core.zig").deduceOp1;
 
+var gpa = std.heap.GeneralPurposeAllocator(.{}){};
+const gpa_allocator = gpa.allocator();
+
 // ************************************************************
 // *                         TESTS                            *
 // ************************************************************
@@ -698,7 +701,7 @@ test "trace is disabled" {
 
 // This instruction is used in the functions that test the `deduceOp1` function. Only the
 // `opcode` and `res_logic` fields are usually changed.
-const deduceOp1TestInstr = instructions.Instruction{
+const deduceOpTestInstr = instructions.Instruction{
     .off_0 = 1,
     .off_1 = 2,
     .off_2 = 3,
@@ -721,7 +724,7 @@ test "deduceOp1 when opcode == .Call" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    var instr = deduceOp1TestInstr;
+    var instr = deduceOpTestInstr;
     instr.opcode = .Call;
 
     const tuple = try deduceOp1(&instr, null, null);
@@ -752,7 +755,7 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Add, input is felt" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    var instr = deduceOp1TestInstr;
+    var instr = deduceOpTestInstr;
     instr.opcode = .AssertEq;
     instr.res_logic = .Add;
 
@@ -779,7 +782,7 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, non-zero op0" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    var instr = deduceOp1TestInstr;
+    var instr = deduceOpTestInstr;
     instr.opcode = .AssertEq;
     instr.res_logic = .Mul;
 
@@ -806,7 +809,7 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    var instr = deduceOp1TestInstr;
+    var instr = deduceOpTestInstr;
     instr.opcode = .AssertEq;
     instr.res_logic = .Mul;
 
@@ -841,7 +844,7 @@ test "deduceOp1 when opcode == .AssertEq, res_logic = .Mul, no input" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    var instr = deduceOp1TestInstr;
+    var instr = deduceOpTestInstr;
     instr.opcode = .AssertEq;
     instr.res_logic = .Mul;
 
@@ -873,7 +876,7 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    var instr = deduceOp1TestInstr;
+    var instr = deduceOpTestInstr;
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
@@ -907,7 +910,7 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no op0" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    var instr = deduceOp1TestInstr;
+    var instr = deduceOpTestInstr;
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
@@ -922,6 +925,200 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no op0" {
     // ************************************************************
     try expect(op1.?.eq(relocatable.fromU64(7)));
     try expect(res.?.eq(relocatable.fromU64(7)));
+}
+
+test "deduceOp0 when opcode == .Call" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    var vm = try CairoVM.init(gpa_allocator, .{});
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    var instr = deduceOpTestInstr;
+    instr.opcode = .Call;
+
+    const tuple = try vm.deduceOp0(&instr, null, null);
+    const op1 = tuple[0];
+    const res = tuple[1];
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    const expectedOp0: ?MaybeRelocatable = relocatable.newFromRelocatable(relocatable.Relocatable.new(0, 1)); // temp var needed for type inference
+    const expectedRes: ?MaybeRelocatable = null;
+    try expectEqual(expectedOp0, op1);
+    try expectEqual(expectedRes, res);
+}
+
+test "deduceOp0 when opcode == .AssertEq, res_logic == .Add, input is felt" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    var vm = try CairoVM.init(gpa_allocator, .{});
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    var instr = deduceOpTestInstr;
+    instr.opcode = .AssertEq;
+    instr.res_logic = .Add;
+
+    const dst = relocatable.fromU64(3);
+    const op0 = relocatable.fromU64(2);
+
+    const tuple = try vm.deduceOp0(&instr, &dst, &op0);
+    const op1 = tuple[0];
+    const res = tuple[1];
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    try expect(op1.?.eq(relocatable.fromU64(1)));
+    try expect(res.?.eq(relocatable.fromU64(3)));
+}
+
+test "deduceOp0 when opcode == .AssertEq, res_logic == .Add, with no input" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    var vm = try CairoVM.init(gpa_allocator, .{});
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    var instr = deduceOpTestInstr;
+    instr.opcode = .AssertEq;
+    instr.res_logic = .Add;
+
+    const tuple = try vm.deduceOp0(&instr, null, null);
+    const op1 = tuple[0];
+    const res = tuple[1];
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    const expectedOp0: ?MaybeRelocatable = null; // temp var needed for type inference
+    const expectedRes: ?MaybeRelocatable = null;
+    try expectEqual(expectedOp0, op1);
+    try expectEqual(expectedRes, res);
+}
+
+test "deduceOp0 when opcode == .AssertEq, res_logic == .Mul, input is felt 1" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    var vm = try CairoVM.init(gpa_allocator, .{});
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    var instr = deduceOpTestInstr;
+    instr.opcode = .AssertEq;
+    instr.res_logic = .Mul;
+
+    const dst = relocatable.fromU64(4);
+    const op0 = relocatable.fromU64(2);
+
+    const tuple = try vm.deduceOp0(&instr, &dst, &op0);
+    const op1 = tuple[0];
+    const res = tuple[1];
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    const expectedOp0: ?MaybeRelocatable = relocatable.fromU64(2); // temp var needed for type inference
+    const expectedRes: ?MaybeRelocatable = relocatable.fromU64(4);
+    try expectEqual(expectedOp0, op1);
+    try expectEqual(expectedRes, res);
+}
+
+test "deduceOp0 when opcode == .AssertEq, res_logic == .Op1, input is felt" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    var vm = try CairoVM.init(gpa_allocator, .{});
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    var instr = deduceOpTestInstr;
+    instr.opcode = .AssertEq;
+    instr.res_logic = .Op1;
+
+    const dst = relocatable.fromU64(4);
+    const op0 = relocatable.fromU64(0);
+
+    const tuple = try vm.deduceOp0(&instr, &dst, &op0);
+    const op1 = tuple[0];
+    const res = tuple[1];
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    const expectedOp0: ?MaybeRelocatable = null; // temp var needed for type inference
+    const expectedRes: ?MaybeRelocatable = null;
+    try expectEqual(expectedOp0, op1);
+    try expectEqual(expectedRes, res);
+}
+
+test "deduceOp0 when opcode == .AssertEq, res_logic == .Mul, input is felt 2" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    var vm = try CairoVM.init(gpa_allocator, .{});
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    var instr = deduceOpTestInstr;
+    instr.opcode = .AssertEq;
+    instr.res_logic = .Mul;
+
+    const dst = relocatable.fromU64(4);
+    const op0 = relocatable.fromU64(0);
+
+    const tuple = try vm.deduceOp0(&instr, &dst, &op0);
+    const op1 = tuple[0];
+    const res = tuple[1];
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    const expectedOp0: ?MaybeRelocatable = null; // temp var needed for type inference
+    const expectedRes: ?MaybeRelocatable = null;
+    try expectEqual(expectedOp0, op1);
+    try expectEqual(expectedRes, res);
+}
+
+test "deduceOp0 when opcode == .Ret, res_logic == .Mul, input is felt" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    var vm = try CairoVM.init(gpa_allocator, .{});
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    var instr = deduceOpTestInstr;
+    instr.opcode = .Ret;
+    instr.res_logic = .Mul;
+
+    const dst = relocatable.fromU64(4);
+    const op0 = relocatable.fromU64(0);
+
+    const tuple = try vm.deduceOp0(&instr, &dst, &op0);
+    const op1 = tuple[0];
+    const res = tuple[1];
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    const expectedOp0: ?MaybeRelocatable = null; // temp var needed for type inference
+    const expectedRes: ?MaybeRelocatable = null;
+    try expectEqual(expectedOp0, op1);
+    try expectEqual(expectedRes, res);
 }
 
 test "set get value in vm memory" {

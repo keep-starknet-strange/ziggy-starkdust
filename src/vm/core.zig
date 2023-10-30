@@ -219,6 +219,41 @@ pub const CairoVM = struct {
         _ = op_o;
     }
 
+    /// Attempts to deduce `op0` and `res` for an instruction, given `dst` and `op0`.
+    ///
+    /// # Arguments
+    /// - `inst`: The instruction to deduce `op0` and `res` for.
+    /// - `dst`: The destination of the instruction.
+    /// - `op0`: The first operand of the instruction.
+    ///
+    /// # Returns
+    /// - `Tuple`: A tuple containing the deduced `op0` and `res`.
+    pub fn deduceOp0(
+        self: *Self,
+        inst: *const instructions.Instruction,
+        dst: ?*const relocatable.MaybeRelocatable,
+        op1: ?*const relocatable.MaybeRelocatable,
+    ) !std.meta.Tuple(&[_]type{ ?relocatable.MaybeRelocatable, ?relocatable.MaybeRelocatable }) {
+        if (inst.opcode == .Call) {
+            var result: ?MaybeRelocatable = relocatable.newFromRelocatable(try self.run_context.pc.addUint(inst.size()));
+            return .{ result, null };
+        } else if (inst.opcode == .AssertEq) {
+            if ((inst.res_logic == .Add) and (dst != null) and (op1 != null)) {
+                return .{ try subOperands(dst.?.*, op1.?.*), dst.?.* };
+            } else if (dst != null and op1 != null and
+                dst.?.isFelt() and op1.?.isFelt() and
+                !op1.?.felt.isZero())
+            {
+                return .{
+                    relocatable.fromFelt(try dst.?.felt.div(op1.?.felt)),
+                    dst.?.*,
+                };
+            }
+        }
+
+        return .{ null, null };
+    }
+
     /// Updates the value of PC according to the executed instruction.
     /// # Arguments
     /// - `instruction`: The instruction that was executed.
