@@ -480,14 +480,14 @@
 <span class="line" id="L301">        <span class="tok-number">2</span>,</span>
 <span class="line" id="L302">        <span class="tok-number">4</span>,</span>
 <span class="line" id="L303">    );</span>
-<span class="line" id="L304">    <span class="tok-kw">const</span> result = relocatable.addUint(<span class="tok-number">24</span>);</span>
+<span class="line" id="L304">    <span class="tok-kw">const</span> result = <span class="tok-kw">try</span> relocatable.addUint(<span class="tok-number">24</span>);</span>
 <span class="line" id="L305">    <span class="tok-kw">const</span> expected = Relocatable.new(</span>
 <span class="line" id="L306">        <span class="tok-number">2</span>,</span>
 <span class="line" id="L307">        <span class="tok-number">28</span>,</span>
 <span class="line" id="L308">    );</span>
 <span class="line" id="L309">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L310">        result,</span>
-<span class="line" id="L311">        expected,</span>
+<span class="line" id="L310">        expected,</span>
+<span class="line" id="L311">        result,</span>
 <span class="line" id="L312">    );</span>
 <span class="line" id="L313">}</span>
 <span class="line" id="L314"></span>
@@ -496,14 +496,14 @@
 <span class="line" id="L317">        <span class="tok-number">2</span>,</span>
 <span class="line" id="L318">        <span class="tok-number">4</span>,</span>
 <span class="line" id="L319">    );</span>
-<span class="line" id="L320">    <span class="tok-kw">const</span> result = relocatable.addInt(<span class="tok-number">24</span>);</span>
+<span class="line" id="L320">    <span class="tok-kw">const</span> result = <span class="tok-kw">try</span> relocatable.addInt(<span class="tok-number">24</span>);</span>
 <span class="line" id="L321">    <span class="tok-kw">const</span> expected = Relocatable.new(</span>
 <span class="line" id="L322">        <span class="tok-number">2</span>,</span>
 <span class="line" id="L323">        <span class="tok-number">28</span>,</span>
 <span class="line" id="L324">    );</span>
 <span class="line" id="L325">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L326">        result,</span>
-<span class="line" id="L327">        expected,</span>
+<span class="line" id="L326">        expected,</span>
+<span class="line" id="L327">        result,</span>
 <span class="line" id="L328">    );</span>
 <span class="line" id="L329">}</span>
 <span class="line" id="L330"></span>
@@ -512,14 +512,14 @@
 <span class="line" id="L333">        <span class="tok-number">2</span>,</span>
 <span class="line" id="L334">        <span class="tok-number">4</span>,</span>
 <span class="line" id="L335">    );</span>
-<span class="line" id="L336">    <span class="tok-kw">const</span> result = relocatable.addInt(-<span class="tok-number">4</span>);</span>
+<span class="line" id="L336">    <span class="tok-kw">const</span> result = <span class="tok-kw">try</span> relocatable.addInt(-<span class="tok-number">4</span>);</span>
 <span class="line" id="L337">    <span class="tok-kw">const</span> expected = Relocatable.new(</span>
 <span class="line" id="L338">        <span class="tok-number">2</span>,</span>
 <span class="line" id="L339">        <span class="tok-number">0</span>,</span>
 <span class="line" id="L340">    );</span>
 <span class="line" id="L341">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L342">        result,</span>
-<span class="line" id="L343">        expected,</span>
+<span class="line" id="L342">        expected,</span>
+<span class="line" id="L343">        result,</span>
 <span class="line" id="L344">    );</span>
 <span class="line" id="L345">}</span>
 <span class="line" id="L346"></span>
@@ -528,14 +528,14 @@
 <span class="line" id="L349">        <span class="tok-number">2</span>,</span>
 <span class="line" id="L350">        <span class="tok-number">4</span>,</span>
 <span class="line" id="L351">    );</span>
-<span class="line" id="L352">    <span class="tok-kw">const</span> result = relocatable.subUint(<span class="tok-number">2</span>);</span>
+<span class="line" id="L352">    <span class="tok-kw">const</span> result = <span class="tok-kw">try</span> relocatable.subUint(<span class="tok-number">2</span>);</span>
 <span class="line" id="L353">    <span class="tok-kw">const</span> expected = Relocatable.new(</span>
 <span class="line" id="L354">        <span class="tok-number">2</span>,</span>
 <span class="line" id="L355">        <span class="tok-number">2</span>,</span>
 <span class="line" id="L356">    );</span>
 <span class="line" id="L357">    <span class="tok-kw">try</span> expectEqual(</span>
-<span class="line" id="L358">        result,</span>
-<span class="line" id="L359">        expected,</span>
+<span class="line" id="L358">        expected,</span>
+<span class="line" id="L359">        result,</span>
 <span class="line" id="L360">    );</span>
 <span class="line" id="L361">}</span>
 <span class="line" id="L362"></span>

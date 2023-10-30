@@ -754,67 +754,76 @@
 <span class="line" id="L582"><span class="tok-kw">test</span> <span class="tok-str">&quot;decode offset negative&quot;</span> {</span>
 <span class="line" id="L583">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x0000800180007FFF</span>;</span>
 <span class="line" id="L584">    <span class="tok-kw">const</span> decoded_instruction = <span class="tok-kw">try</span> decode(encoded_instruction);</span>
-<span class="line" id="L585">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L586">        <span class="tok-type">i16</span>,</span>
-<span class="line" id="L587">        <span class="tok-builtin">@intCast</span>(-<span class="tok-number">1</span>),</span>
-<span class="line" id="L588">    ), decoded_instruction.off_0);</span>
-<span class="line" id="L589">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L590">        <span class="tok-type">i16</span>,</span>
-<span class="line" id="L591">        <span class="tok-builtin">@intCast</span>(<span class="tok-number">0</span>),</span>
-<span class="line" id="L592">    ), decoded_instruction.off_1);</span>
-<span class="line" id="L593">    <span class="tok-kw">try</span> expectEqual(<span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L594">        <span class="tok-type">i16</span>,</span>
-<span class="line" id="L595">        <span class="tok-builtin">@intCast</span>(<span class="tok-number">1</span>),</span>
-<span class="line" id="L596">    ), decoded_instruction.off_2);</span>
-<span class="line" id="L597">}</span>
-<span class="line" id="L598"></span>
-<span class="line" id="L599"><span class="tok-kw">test</span> <span class="tok-str">&quot;non zero high bit&quot;</span> {</span>
-<span class="line" id="L600">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x94A7800080008000</span>;</span>
-<span class="line" id="L601">    <span class="tok-kw">try</span> expectError(</span>
-<span class="line" id="L602">        Error.NonZeroHighBit,</span>
-<span class="line" id="L603">        decode(encoded_instruction),</span>
-<span class="line" id="L604">    );</span>
-<span class="line" id="L605">}</span>
-<span class="line" id="L606"></span>
-<span class="line" id="L607"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid op1 reg&quot;</span> {</span>
-<span class="line" id="L608">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x294F800080008000</span>;</span>
-<span class="line" id="L609">    <span class="tok-kw">try</span> expectError(</span>
-<span class="line" id="L610">        Error.InvalidOp1Reg,</span>
-<span class="line" id="L611">        decode(encoded_instruction),</span>
-<span class="line" id="L612">    );</span>
-<span class="line" id="L613">}</span>
-<span class="line" id="L614"></span>
-<span class="line" id="L615"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid pc update&quot;</span> {</span>
-<span class="line" id="L616">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x29A8800080008000</span>;</span>
-<span class="line" id="L617">    <span class="tok-kw">try</span> expectError(</span>
-<span class="line" id="L618">        Error.Invalidpc_update,</span>
-<span class="line" id="L619">        decode(encoded_instruction),</span>
-<span class="line" id="L620">    );</span>
-<span class="line" id="L621">}</span>
-<span class="line" id="L622"></span>
-<span class="line" id="L623"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid res logic&quot;</span> {</span>
-<span class="line" id="L624">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x2968800080008000</span>;</span>
-<span class="line" id="L625">    <span class="tok-kw">try</span> expectError(</span>
-<span class="line" id="L626">        Error.Invalidres_logic,</span>
-<span class="line" id="L627">        decode(encoded_instruction),</span>
-<span class="line" id="L628">    );</span>
-<span class="line" id="L629">}</span>
-<span class="line" id="L630"></span>
-<span class="line" id="L631"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid opcode&quot;</span> {</span>
-<span class="line" id="L632">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x3948800080008000</span>;</span>
-<span class="line" id="L633">    <span class="tok-kw">try</span> expectError(</span>
-<span class="line" id="L634">        Error.InvalidOpcode,</span>
-<span class="line" id="L635">        decode(encoded_instruction),</span>
-<span class="line" id="L636">    );</span>
-<span class="line" id="L637">}</span>
-<span class="line" id="L638"></span>
-<span class="line" id="L639"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid ap update&quot;</span> {</span>
-<span class="line" id="L640">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x2D48800080008000</span>;</span>
-<span class="line" id="L641">    <span class="tok-kw">try</span> expectError(</span>
-<span class="line" id="L642">        Error.Invalidap_update,</span>
-<span class="line" id="L643">        decode(encoded_instruction),</span>
-<span class="line" id="L644">    );</span>
-<span class="line" id="L645">}</span>
-<span class="line" id="L646"></span>
+<span class="line" id="L585">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L586">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L587">            <span class="tok-type">i16</span>,</span>
+<span class="line" id="L588">            <span class="tok-builtin">@intCast</span>(-<span class="tok-number">1</span>),</span>
+<span class="line" id="L589">        ),</span>
+<span class="line" id="L590">        decoded_instruction.off_0,</span>
+<span class="line" id="L591">    );</span>
+<span class="line" id="L592">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L593">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L594">            <span class="tok-type">i16</span>,</span>
+<span class="line" id="L595">            <span class="tok-builtin">@intCast</span>(<span class="tok-number">0</span>),</span>
+<span class="line" id="L596">        ),</span>
+<span class="line" id="L597">        decoded_instruction.off_1,</span>
+<span class="line" id="L598">    );</span>
+<span class="line" id="L599">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L600">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L601">            <span class="tok-type">i16</span>,</span>
+<span class="line" id="L602">            <span class="tok-builtin">@intCast</span>(<span class="tok-number">1</span>),</span>
+<span class="line" id="L603">        ),</span>
+<span class="line" id="L604">        decoded_instruction.off_2,</span>
+<span class="line" id="L605">    );</span>
+<span class="line" id="L606">}</span>
+<span class="line" id="L607"></span>
+<span class="line" id="L608"><span class="tok-kw">test</span> <span class="tok-str">&quot;non zero high bit&quot;</span> {</span>
+<span class="line" id="L609">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x94A7800080008000</span>;</span>
+<span class="line" id="L610">    <span class="tok-kw">try</span> expectError(</span>
+<span class="line" id="L611">        Error.NonZeroHighBit,</span>
+<span class="line" id="L612">        decode(encoded_instruction),</span>
+<span class="line" id="L613">    );</span>
+<span class="line" id="L614">}</span>
+<span class="line" id="L615"></span>
+<span class="line" id="L616"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid op1 reg&quot;</span> {</span>
+<span class="line" id="L617">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x294F800080008000</span>;</span>
+<span class="line" id="L618">    <span class="tok-kw">try</span> expectError(</span>
+<span class="line" id="L619">        Error.InvalidOp1Reg,</span>
+<span class="line" id="L620">        decode(encoded_instruction),</span>
+<span class="line" id="L621">    );</span>
+<span class="line" id="L622">}</span>
+<span class="line" id="L623"></span>
+<span class="line" id="L624"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid pc update&quot;</span> {</span>
+<span class="line" id="L625">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x29A8800080008000</span>;</span>
+<span class="line" id="L626">    <span class="tok-kw">try</span> expectError(</span>
+<span class="line" id="L627">        Error.Invalidpc_update,</span>
+<span class="line" id="L628">        decode(encoded_instruction),</span>
+<span class="line" id="L629">    );</span>
+<span class="line" id="L630">}</span>
+<span class="line" id="L631"></span>
+<span class="line" id="L632"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid res logic&quot;</span> {</span>
+<span class="line" id="L633">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x2968800080008000</span>;</span>
+<span class="line" id="L634">    <span class="tok-kw">try</span> expectError(</span>
+<span class="line" id="L635">        Error.Invalidres_logic,</span>
+<span class="line" id="L636">        decode(encoded_instruction),</span>
+<span class="line" id="L637">    );</span>
+<span class="line" id="L638">}</span>
+<span class="line" id="L639"></span>
+<span class="line" id="L640"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid opcode&quot;</span> {</span>
+<span class="line" id="L641">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x3948800080008000</span>;</span>
+<span class="line" id="L642">    <span class="tok-kw">try</span> expectError(</span>
+<span class="line" id="L643">        Error.InvalidOpcode,</span>
+<span class="line" id="L644">        decode(encoded_instruction),</span>
+<span class="line" id="L645">    );</span>
+<span class="line" id="L646">}</span>
+<span class="line" id="L647"></span>
+<span class="line" id="L648"><span class="tok-kw">test</span> <span class="tok-str">&quot;invalid ap update&quot;</span> {</span>
+<span class="line" id="L649">    <span class="tok-kw">const</span> encoded_instruction: <span class="tok-type">u64</span> = <span class="tok-number">0x2D48800080008000</span>;</span>
+<span class="line" id="L650">    <span class="tok-kw">try</span> expectError(</span>
+<span class="line" id="L651">        Error.Invalidap_update,</span>
+<span class="line" id="L652">        decode(encoded_instruction),</span>
+<span class="line" id="L653">    );</span>
+<span class="line" id="L654">}</span>
+<span class="line" id="L655"></span>
 </code></pre></body>
 </html>

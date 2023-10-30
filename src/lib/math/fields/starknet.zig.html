@@ -128,345 +128,432 @@
 <span class="line" id="L10">    <span class="tok-number">0x800000000000011000000000000000000000000000000000000000000000001</span>,</span>
 <span class="line" id="L11">);</span>
 <span class="line" id="L12"></span>
-<span class="line" id="L13"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 fromInteger&quot;</span> {</span>
-<span class="line" id="L14">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L15">        Felt252.fromInteger(<span class="tok-number">10</span>),</span>
-<span class="line" id="L16">        Felt252{ .fe = .{</span>
-<span class="line" id="L17">            <span class="tok-number">0xfffffffffffffec1</span>,</span>
-<span class="line" id="L18">            <span class="tok-number">0xffffffffffffffff</span>,</span>
-<span class="line" id="L19">            <span class="tok-number">0xffffffffffffffff</span>,</span>
-<span class="line" id="L20">            <span class="tok-number">0x7ffffffffffead0</span>,</span>
-<span class="line" id="L21">        } },</span>
-<span class="line" id="L22">    );</span>
-<span class="line" id="L23"></span>
-<span class="line" id="L24">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L25">        Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)),</span>
-<span class="line" id="L26">        Felt252{ .fe = .{</span>
-<span class="line" id="L27">            <span class="tok-number">0xfffffd737e000421</span>,</span>
-<span class="line" id="L28">            <span class="tok-number">0x1330fffff</span>,</span>
-<span class="line" id="L29">            <span class="tok-number">0xffffffffff6f8000</span>,</span>
-<span class="line" id="L30">            <span class="tok-number">0x7ffd4ab5e008a30</span>,</span>
-<span class="line" id="L31">        } },</span>
-<span class="line" id="L32">    );</span>
-<span class="line" id="L33">}</span>
-<span class="line" id="L34"></span>
-<span class="line" id="L35"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 toInteger&quot;</span> {</span>
-<span class="line" id="L36">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L37">        Felt252.fromInteger(<span class="tok-number">10</span>).toInteger(),</span>
-<span class="line" id="L38">        <span class="tok-number">10</span>,</span>
-<span class="line" id="L39">    );</span>
-<span class="line" id="L40"></span>
-<span class="line" id="L41">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L42">        Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)).toInteger(),</span>
-<span class="line" id="L43">        <span class="tok-number">0x7fffffffffffdf0ffffffffffffffffffffffffffffffffffffffffffffffe0</span>,</span>
-<span class="line" id="L44">    );</span>
-<span class="line" id="L45">}</span>
+<span class="line" id="L13"><span class="tok-kw">const</span> expect = std.testing.expect;</span>
+<span class="line" id="L14"><span class="tok-kw">const</span> expectEqual = std.testing.expectEqual;</span>
+<span class="line" id="L15"></span>
+<span class="line" id="L16"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 fromInteger&quot;</span> {</span>
+<span class="line" id="L17">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L18">        Felt252{ .fe = .{</span>
+<span class="line" id="L19">            <span class="tok-number">0xfffffffffffffec1</span>,</span>
+<span class="line" id="L20">            <span class="tok-number">0xffffffffffffffff</span>,</span>
+<span class="line" id="L21">            <span class="tok-number">0xffffffffffffffff</span>,</span>
+<span class="line" id="L22">            <span class="tok-number">0x7ffffffffffead0</span>,</span>
+<span class="line" id="L23">        } },</span>
+<span class="line" id="L24">        Felt252.fromInteger(<span class="tok-number">10</span>),</span>
+<span class="line" id="L25">    );</span>
+<span class="line" id="L26"></span>
+<span class="line" id="L27">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L28">        Felt252{ .fe = .{</span>
+<span class="line" id="L29">            <span class="tok-number">0xfffffd737e000421</span>,</span>
+<span class="line" id="L30">            <span class="tok-number">0x1330fffff</span>,</span>
+<span class="line" id="L31">            <span class="tok-number">0xffffffffff6f8000</span>,</span>
+<span class="line" id="L32">            <span class="tok-number">0x7ffd4ab5e008a30</span>,</span>
+<span class="line" id="L33">        } },</span>
+<span class="line" id="L34">        Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)),</span>
+<span class="line" id="L35">    );</span>
+<span class="line" id="L36">}</span>
+<span class="line" id="L37"></span>
+<span class="line" id="L38"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 toInteger&quot;</span> {</span>
+<span class="line" id="L39">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L40">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L41">            <span class="tok-type">u256</span>,</span>
+<span class="line" id="L42">            <span class="tok-number">10</span>,</span>
+<span class="line" id="L43">        ),</span>
+<span class="line" id="L44">        Felt252.fromInteger(<span class="tok-number">10</span>).toInteger(),</span>
+<span class="line" id="L45">    );</span>
 <span class="line" id="L46"></span>
-<span class="line" id="L47"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 one&quot;</span> {</span>
-<span class="line" id="L48">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L49">        Felt252.one(),</span>
-<span class="line" id="L50">        Felt252{ .fe = .{</span>
-<span class="line" id="L51">            <span class="tok-number">0xffffffffffffffe1</span>,</span>
-<span class="line" id="L52">            <span class="tok-number">0xffffffffffffffff</span>,</span>
-<span class="line" id="L53">            <span class="tok-number">0xffffffffffffffff</span>,</span>
-<span class="line" id="L54">            <span class="tok-number">0x7fffffffffffdf0</span>,</span>
-<span class="line" id="L55">        } },</span>
-<span class="line" id="L56">    );</span>
-<span class="line" id="L57">}</span>
-<span class="line" id="L58"></span>
-<span class="line" id="L59"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 zero&quot;</span> {</span>
-<span class="line" id="L60">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L61">        Felt252.zero(),</span>
-<span class="line" id="L62">        Felt252{ .fe = .{</span>
-<span class="line" id="L63">            <span class="tok-number">0</span>,</span>
-<span class="line" id="L64">            <span class="tok-number">0</span>,</span>
-<span class="line" id="L65">            <span class="tok-number">0</span>,</span>
-<span class="line" id="L66">            <span class="tok-number">0</span>,</span>
-<span class="line" id="L67">        } },</span>
-<span class="line" id="L68">    );</span>
-<span class="line" id="L69">}</span>
-<span class="line" id="L70"></span>
-<span class="line" id="L71"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 equal&quot;</span> {</span>
-<span class="line" id="L72">    <span class="tok-kw">try</span> std.testing.expect(Felt252.zero().equal(Felt252.zero()));</span>
-<span class="line" id="L73">    <span class="tok-kw">try</span> std.testing.expect(Felt252.fromInteger(<span class="tok-number">10</span>).equal(Felt252.fromInteger(<span class="tok-number">10</span>)));</span>
-<span class="line" id="L74">    <span class="tok-kw">try</span> std.testing.expect(!Felt252.fromInteger(<span class="tok-number">10</span>).equal(Felt252.fromInteger(<span class="tok-number">100</span>)));</span>
-<span class="line" id="L75">}</span>
-<span class="line" id="L76"></span>
-<span class="line" id="L77"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 isZero&quot;</span> {</span>
-<span class="line" id="L78">    <span class="tok-kw">try</span> std.testing.expect(Felt252.zero().isZero());</span>
-<span class="line" id="L79">    <span class="tok-kw">try</span> std.testing.expect(!Felt252.one().isZero());</span>
-<span class="line" id="L80">    <span class="tok-kw">try</span> std.testing.expect(!Felt252.fromInteger(<span class="tok-number">10</span>).isZero());</span>
-<span class="line" id="L81">}</span>
-<span class="line" id="L82"></span>
-<span class="line" id="L83"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 isOne&quot;</span> {</span>
-<span class="line" id="L84">    <span class="tok-kw">try</span> std.testing.expect(Felt252.one().isOne());</span>
-<span class="line" id="L85">    <span class="tok-kw">try</span> std.testing.expect(!Felt252.zero().isOne());</span>
-<span class="line" id="L86">    <span class="tok-kw">try</span> std.testing.expect(!Felt252.fromInteger(<span class="tok-number">10</span>).isOne());</span>
-<span class="line" id="L87">}</span>
-<span class="line" id="L88"></span>
-<span class="line" id="L89"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 fromBytes&quot;</span> {</span>
-<span class="line" id="L90">    <span class="tok-kw">const</span> a: [<span class="tok-number">32</span>]<span class="tok-type">u8</span> = .{</span>
-<span class="line" id="L91">        <span class="tok-number">0x4E</span>,</span>
-<span class="line" id="L92">        <span class="tok-number">0x5F</span>,</span>
-<span class="line" id="L93">        <span class="tok-number">0x5F</span>,</span>
-<span class="line" id="L94">        <span class="tok-number">0x5F</span>,</span>
-<span class="line" id="L95">        <span class="tok-number">0x5F</span>,</span>
-<span class="line" id="L96">        <span class="tok-number">0x5F</span>,</span>
-<span class="line" id="L97">        <span class="tok-number">0x5F</span>,</span>
-<span class="line" id="L98">        <span class="tok-number">0x5F</span>,</span>
-<span class="line" id="L99">        <span class="tok-number">0x5F</span>,</span>
-<span class="line" id="L100">        <span class="tok-number">0x19</span>,</span>
-<span class="line" id="L101">        <span class="tok-number">0x67</span>,</span>
-<span class="line" id="L102">        <span class="tok-number">0x2F</span>,</span>
-<span class="line" id="L103">        <span class="tok-number">0xDF</span>,</span>
-<span class="line" id="L104">        <span class="tok-number">0x76</span>,</span>
-<span class="line" id="L105">        <span class="tok-number">0xCE</span>,</span>
-<span class="line" id="L106">        <span class="tok-number">0x51</span>,</span>
-<span class="line" id="L107">        <span class="tok-number">0xBA</span>,</span>
-<span class="line" id="L108">        <span class="tok-number">0x69</span>,</span>
-<span class="line" id="L109">        <span class="tok-number">0xC6</span>,</span>
-<span class="line" id="L110">        <span class="tok-number">0x07</span>,</span>
-<span class="line" id="L111">        <span class="tok-number">0x6A</span>,</span>
-<span class="line" id="L112">        <span class="tok-number">0x0F</span>,</span>
-<span class="line" id="L113">        <span class="tok-number">0x77</span>,</span>
-<span class="line" id="L114">        <span class="tok-number">0xEA</span>,</span>
-<span class="line" id="L115">        <span class="tok-number">0xBC</span>,</span>
-<span class="line" id="L116">        <span class="tok-number">0xB2</span>,</span>
-<span class="line" id="L117">        <span class="tok-number">0xA9</span>,</span>
-<span class="line" id="L118">        <span class="tok-number">0x3B</span>,</span>
-<span class="line" id="L119">        <span class="tok-number">0xE6</span>,</span>
-<span class="line" id="L120">        <span class="tok-number">0xF8</span>,</span>
-<span class="line" id="L121">        <span class="tok-number">0x96</span>,</span>
-<span class="line" id="L122">        <span class="tok-number">0x00</span>,</span>
-<span class="line" id="L123">    };</span>
-<span class="line" id="L124"></span>
-<span class="line" id="L125">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L126">        Felt252.fromBytes(a).toInteger(),</span>
-<span class="line" id="L127">        <span class="tok-number">0x96f8e63ba9b2bcea770f6a07c669ba51ce76df2f67195f5f5f5f5f5f5f5f4e</span>,</span>
-<span class="line" id="L128">    );</span>
-<span class="line" id="L129"></span>
-<span class="line" id="L130">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L131">        Felt252.fromBytes(a),</span>
-<span class="line" id="L132">        Felt252.fromInteger(<span class="tok-number">0x96f8e63ba9b2bcea770f6a07c669ba51ce76df2f67195f5f5f5f5f5f5f5f4e</span>),</span>
-<span class="line" id="L133">    );</span>
-<span class="line" id="L134">}</span>
-<span class="line" id="L135"></span>
-<span class="line" id="L136"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 toBytes&quot;</span> {</span>
-<span class="line" id="L137">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L138">        Felt252.fromInteger(<span class="tok-number">0x96f8e63ba9b2bcea770f6a07c669ba51ce76df2f67195f5f5f5f5f5f5f5f4e</span>).toBytes(),</span>
-<span class="line" id="L139">        .{</span>
-<span class="line" id="L140">            <span class="tok-number">0x4E</span>,</span>
-<span class="line" id="L141">            <span class="tok-number">0x5F</span>,</span>
-<span class="line" id="L142">            <span class="tok-number">0x5F</span>,</span>
-<span class="line" id="L143">            <span class="tok-number">0x5F</span>,</span>
-<span class="line" id="L144">            <span class="tok-number">0x5F</span>,</span>
-<span class="line" id="L145">            <span class="tok-number">0x5F</span>,</span>
-<span class="line" id="L146">            <span class="tok-number">0x5F</span>,</span>
-<span class="line" id="L147">            <span class="tok-number">0x5F</span>,</span>
-<span class="line" id="L148">            <span class="tok-number">0x5F</span>,</span>
-<span class="line" id="L149">            <span class="tok-number">0x19</span>,</span>
-<span class="line" id="L150">            <span class="tok-number">0x67</span>,</span>
-<span class="line" id="L151">            <span class="tok-number">0x2F</span>,</span>
-<span class="line" id="L152">            <span class="tok-number">0xDF</span>,</span>
-<span class="line" id="L153">            <span class="tok-number">0x76</span>,</span>
-<span class="line" id="L154">            <span class="tok-number">0xCE</span>,</span>
-<span class="line" id="L155">            <span class="tok-number">0x51</span>,</span>
-<span class="line" id="L156">            <span class="tok-number">0xBA</span>,</span>
-<span class="line" id="L157">            <span class="tok-number">0x69</span>,</span>
-<span class="line" id="L158">            <span class="tok-number">0xC6</span>,</span>
-<span class="line" id="L159">            <span class="tok-number">0x07</span>,</span>
-<span class="line" id="L160">            <span class="tok-number">0x6A</span>,</span>
-<span class="line" id="L161">            <span class="tok-number">0x0F</span>,</span>
-<span class="line" id="L162">            <span class="tok-number">0x77</span>,</span>
-<span class="line" id="L163">            <span class="tok-number">0xEA</span>,</span>
-<span class="line" id="L164">            <span class="tok-number">0xBC</span>,</span>
-<span class="line" id="L165">            <span class="tok-number">0xB2</span>,</span>
-<span class="line" id="L166">            <span class="tok-number">0xA9</span>,</span>
-<span class="line" id="L167">            <span class="tok-number">0x3B</span>,</span>
-<span class="line" id="L168">            <span class="tok-number">0xE6</span>,</span>
-<span class="line" id="L169">            <span class="tok-number">0xF8</span>,</span>
-<span class="line" id="L170">            <span class="tok-number">0x96</span>,</span>
-<span class="line" id="L171">            <span class="tok-number">0x00</span>,</span>
-<span class="line" id="L172">        },</span>
-<span class="line" id="L173">    );</span>
-<span class="line" id="L174">}</span>
-<span class="line" id="L175"></span>
-<span class="line" id="L176"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 tryIntoU64&quot;</span> {</span>
-<span class="line" id="L177">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L178">        Felt252.fromInteger(<span class="tok-number">10</span>).tryIntoU64(),</span>
-<span class="line" id="L179">        <span class="tok-number">10</span>,</span>
-<span class="line" id="L180">    );</span>
-<span class="line" id="L181">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L182">        Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u64</span>)).tryIntoU64(),</span>
-<span class="line" id="L183">        std.math.maxInt(<span class="tok-type">u64</span>),</span>
-<span class="line" id="L184">    );</span>
-<span class="line" id="L185">    <span class="tok-kw">try</span> std.testing.expectError(</span>
-<span class="line" id="L186">        <span class="tok-kw">error</span>.ValueTooLarge,</span>
-<span class="line" id="L187">        Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u64</span>) + <span class="tok-number">1</span>).tryIntoU64(),</span>
-<span class="line" id="L188">    );</span>
-<span class="line" id="L189">}</span>
-<span class="line" id="L190"></span>
-<span class="line" id="L191"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 arithmetic operations&quot;</span> {</span>
-<span class="line" id="L192">    <span class="tok-kw">const</span> a = Felt252.one();</span>
-<span class="line" id="L193">    <span class="tok-kw">const</span> b = Felt252.fromInteger(<span class="tok-number">2</span>);</span>
-<span class="line" id="L194">    <span class="tok-kw">const</span> c = a.add(b);</span>
-<span class="line" id="L195">    <span class="tok-kw">try</span> std.testing.expect(c.equal(Felt252.fromInteger(<span class="tok-number">3</span>)));</span>
-<span class="line" id="L196">}</span>
-<span class="line" id="L197"></span>
-<span class="line" id="L198"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 add&quot;</span> {</span>
-<span class="line" id="L199">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L200">        Felt252.fromInteger(<span class="tok-number">10</span>).add(Felt252.fromInteger(<span class="tok-number">5</span>)).toInteger(),</span>
-<span class="line" id="L201">        <span class="tok-number">0xf</span>,</span>
+<span class="line" id="L47">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L48">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L49">            <span class="tok-type">u256</span>,</span>
+<span class="line" id="L50">            <span class="tok-number">0x7fffffffffffdf0ffffffffffffffffffffffffffffffffffffffffffffffe0</span>,</span>
+<span class="line" id="L51">        ),</span>
+<span class="line" id="L52">        Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)).toInteger(),</span>
+<span class="line" id="L53">    );</span>
+<span class="line" id="L54">}</span>
+<span class="line" id="L55"></span>
+<span class="line" id="L56"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 one&quot;</span> {</span>
+<span class="line" id="L57">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L58">        Felt252{ .fe = .{</span>
+<span class="line" id="L59">            <span class="tok-number">0xffffffffffffffe1</span>,</span>
+<span class="line" id="L60">            <span class="tok-number">0xffffffffffffffff</span>,</span>
+<span class="line" id="L61">            <span class="tok-number">0xffffffffffffffff</span>,</span>
+<span class="line" id="L62">            <span class="tok-number">0x7fffffffffffdf0</span>,</span>
+<span class="line" id="L63">        } },</span>
+<span class="line" id="L64">        Felt252.one(),</span>
+<span class="line" id="L65">    );</span>
+<span class="line" id="L66">}</span>
+<span class="line" id="L67"></span>
+<span class="line" id="L68"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 zero&quot;</span> {</span>
+<span class="line" id="L69">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L70">        Felt252{ .fe = .{</span>
+<span class="line" id="L71">            <span class="tok-number">0</span>,</span>
+<span class="line" id="L72">            <span class="tok-number">0</span>,</span>
+<span class="line" id="L73">            <span class="tok-number">0</span>,</span>
+<span class="line" id="L74">            <span class="tok-number">0</span>,</span>
+<span class="line" id="L75">        } },</span>
+<span class="line" id="L76">        Felt252.zero(),</span>
+<span class="line" id="L77">    );</span>
+<span class="line" id="L78">}</span>
+<span class="line" id="L79"></span>
+<span class="line" id="L80"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 equal&quot;</span> {</span>
+<span class="line" id="L81">    <span class="tok-kw">try</span> expect(Felt252.zero().equal(Felt252.zero()));</span>
+<span class="line" id="L82">    <span class="tok-kw">try</span> expect(Felt252.fromInteger(<span class="tok-number">10</span>).equal(Felt252.fromInteger(<span class="tok-number">10</span>)));</span>
+<span class="line" id="L83">    <span class="tok-kw">try</span> expect(!Felt252.fromInteger(<span class="tok-number">100</span>).equal(Felt252.fromInteger(<span class="tok-number">10</span>)));</span>
+<span class="line" id="L84">}</span>
+<span class="line" id="L85"></span>
+<span class="line" id="L86"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 isZero&quot;</span> {</span>
+<span class="line" id="L87">    <span class="tok-kw">try</span> expect(Felt252.zero().isZero());</span>
+<span class="line" id="L88">    <span class="tok-kw">try</span> expect(!Felt252.one().isZero());</span>
+<span class="line" id="L89">    <span class="tok-kw">try</span> expect(!Felt252.fromInteger(<span class="tok-number">10</span>).isZero());</span>
+<span class="line" id="L90">}</span>
+<span class="line" id="L91"></span>
+<span class="line" id="L92"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 isOne&quot;</span> {</span>
+<span class="line" id="L93">    <span class="tok-kw">try</span> expect(Felt252.one().isOne());</span>
+<span class="line" id="L94">    <span class="tok-kw">try</span> expect(!Felt252.zero().isOne());</span>
+<span class="line" id="L95">    <span class="tok-kw">try</span> expect(!Felt252.fromInteger(<span class="tok-number">10</span>).isOne());</span>
+<span class="line" id="L96">}</span>
+<span class="line" id="L97"></span>
+<span class="line" id="L98"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 fromBytes&quot;</span> {</span>
+<span class="line" id="L99">    <span class="tok-kw">const</span> a: [<span class="tok-number">32</span>]<span class="tok-type">u8</span> = .{</span>
+<span class="line" id="L100">        <span class="tok-number">0x4E</span>,</span>
+<span class="line" id="L101">        <span class="tok-number">0x5F</span>,</span>
+<span class="line" id="L102">        <span class="tok-number">0x5F</span>,</span>
+<span class="line" id="L103">        <span class="tok-number">0x5F</span>,</span>
+<span class="line" id="L104">        <span class="tok-number">0x5F</span>,</span>
+<span class="line" id="L105">        <span class="tok-number">0x5F</span>,</span>
+<span class="line" id="L106">        <span class="tok-number">0x5F</span>,</span>
+<span class="line" id="L107">        <span class="tok-number">0x5F</span>,</span>
+<span class="line" id="L108">        <span class="tok-number">0x5F</span>,</span>
+<span class="line" id="L109">        <span class="tok-number">0x19</span>,</span>
+<span class="line" id="L110">        <span class="tok-number">0x67</span>,</span>
+<span class="line" id="L111">        <span class="tok-number">0x2F</span>,</span>
+<span class="line" id="L112">        <span class="tok-number">0xDF</span>,</span>
+<span class="line" id="L113">        <span class="tok-number">0x76</span>,</span>
+<span class="line" id="L114">        <span class="tok-number">0xCE</span>,</span>
+<span class="line" id="L115">        <span class="tok-number">0x51</span>,</span>
+<span class="line" id="L116">        <span class="tok-number">0xBA</span>,</span>
+<span class="line" id="L117">        <span class="tok-number">0x69</span>,</span>
+<span class="line" id="L118">        <span class="tok-number">0xC6</span>,</span>
+<span class="line" id="L119">        <span class="tok-number">0x07</span>,</span>
+<span class="line" id="L120">        <span class="tok-number">0x6A</span>,</span>
+<span class="line" id="L121">        <span class="tok-number">0x0F</span>,</span>
+<span class="line" id="L122">        <span class="tok-number">0x77</span>,</span>
+<span class="line" id="L123">        <span class="tok-number">0xEA</span>,</span>
+<span class="line" id="L124">        <span class="tok-number">0xBC</span>,</span>
+<span class="line" id="L125">        <span class="tok-number">0xB2</span>,</span>
+<span class="line" id="L126">        <span class="tok-number">0xA9</span>,</span>
+<span class="line" id="L127">        <span class="tok-number">0x3B</span>,</span>
+<span class="line" id="L128">        <span class="tok-number">0xE6</span>,</span>
+<span class="line" id="L129">        <span class="tok-number">0xF8</span>,</span>
+<span class="line" id="L130">        <span class="tok-number">0x96</span>,</span>
+<span class="line" id="L131">        <span class="tok-number">0x00</span>,</span>
+<span class="line" id="L132">    };</span>
+<span class="line" id="L133">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L134">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L135">            <span class="tok-type">u256</span>,</span>
+<span class="line" id="L136">            <span class="tok-number">0x96f8e63ba9b2bcea770f6a07c669ba51ce76df2f67195f5f5f5f5f5f5f5f4e</span>,</span>
+<span class="line" id="L137">        ),</span>
+<span class="line" id="L138">        Felt252.fromBytes(a).toInteger(),</span>
+<span class="line" id="L139">    );</span>
+<span class="line" id="L140"></span>
+<span class="line" id="L141">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L142">        Felt252.fromInteger(<span class="tok-number">0x96f8e63ba9b2bcea770f6a07c669ba51ce76df2f67195f5f5f5f5f5f5f5f4e</span>),</span>
+<span class="line" id="L143">        Felt252.fromBytes(a),</span>
+<span class="line" id="L144">    );</span>
+<span class="line" id="L145">}</span>
+<span class="line" id="L146"></span>
+<span class="line" id="L147"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 toBytes&quot;</span> {</span>
+<span class="line" id="L148">    <span class="tok-kw">const</span> expected = [_]<span class="tok-type">u8</span>{</span>
+<span class="line" id="L149">        <span class="tok-number">0x4E</span>,</span>
+<span class="line" id="L150">        <span class="tok-number">0x5F</span>,</span>
+<span class="line" id="L151">        <span class="tok-number">0x5F</span>,</span>
+<span class="line" id="L152">        <span class="tok-number">0x5F</span>,</span>
+<span class="line" id="L153">        <span class="tok-number">0x5F</span>,</span>
+<span class="line" id="L154">        <span class="tok-number">0x5F</span>,</span>
+<span class="line" id="L155">        <span class="tok-number">0x5F</span>,</span>
+<span class="line" id="L156">        <span class="tok-number">0x5F</span>,</span>
+<span class="line" id="L157">        <span class="tok-number">0x5F</span>,</span>
+<span class="line" id="L158">        <span class="tok-number">0x19</span>,</span>
+<span class="line" id="L159">        <span class="tok-number">0x67</span>,</span>
+<span class="line" id="L160">        <span class="tok-number">0x2F</span>,</span>
+<span class="line" id="L161">        <span class="tok-number">0xDF</span>,</span>
+<span class="line" id="L162">        <span class="tok-number">0x76</span>,</span>
+<span class="line" id="L163">        <span class="tok-number">0xCE</span>,</span>
+<span class="line" id="L164">        <span class="tok-number">0x51</span>,</span>
+<span class="line" id="L165">        <span class="tok-number">0xBA</span>,</span>
+<span class="line" id="L166">        <span class="tok-number">0x69</span>,</span>
+<span class="line" id="L167">        <span class="tok-number">0xC6</span>,</span>
+<span class="line" id="L168">        <span class="tok-number">0x07</span>,</span>
+<span class="line" id="L169">        <span class="tok-number">0x6A</span>,</span>
+<span class="line" id="L170">        <span class="tok-number">0x0F</span>,</span>
+<span class="line" id="L171">        <span class="tok-number">0x77</span>,</span>
+<span class="line" id="L172">        <span class="tok-number">0xEA</span>,</span>
+<span class="line" id="L173">        <span class="tok-number">0xBC</span>,</span>
+<span class="line" id="L174">        <span class="tok-number">0xB2</span>,</span>
+<span class="line" id="L175">        <span class="tok-number">0xA9</span>,</span>
+<span class="line" id="L176">        <span class="tok-number">0x3B</span>,</span>
+<span class="line" id="L177">        <span class="tok-number">0xE6</span>,</span>
+<span class="line" id="L178">        <span class="tok-number">0xF8</span>,</span>
+<span class="line" id="L179">        <span class="tok-number">0x96</span>,</span>
+<span class="line" id="L180">        <span class="tok-number">0x00</span>,</span>
+<span class="line" id="L181">    };</span>
+<span class="line" id="L182">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L183">        expected,</span>
+<span class="line" id="L184">        Felt252.fromInteger(<span class="tok-number">0x96f8e63ba9b2bcea770f6a07c669ba51ce76df2f67195f5f5f5f5f5f5f5f4e</span>).toBytes(),</span>
+<span class="line" id="L185">    );</span>
+<span class="line" id="L186">}</span>
+<span class="line" id="L187"></span>
+<span class="line" id="L188"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 tryIntoU64&quot;</span> {</span>
+<span class="line" id="L189">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L190">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L191">            <span class="tok-type">u64</span>,</span>
+<span class="line" id="L192">            <span class="tok-number">10</span>,</span>
+<span class="line" id="L193">        ),</span>
+<span class="line" id="L194">        <span class="tok-kw">try</span> Felt252.fromInteger(<span class="tok-number">10</span>).tryIntoU64(),</span>
+<span class="line" id="L195">    );</span>
+<span class="line" id="L196">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L197">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L198">            <span class="tok-type">u64</span>,</span>
+<span class="line" id="L199">            std.math.maxInt(<span class="tok-type">u64</span>),</span>
+<span class="line" id="L200">        ),</span>
+<span class="line" id="L201">        <span class="tok-kw">try</span> Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u64</span>)).tryIntoU64(),</span>
 <span class="line" id="L202">    );</span>
-<span class="line" id="L203">    <span class="tok-kw">try</span> std.testing.expect(Felt252.fromInteger(<span class="tok-number">1</span>).add(Felt252.zero()).isOne());</span>
-<span class="line" id="L204">    <span class="tok-kw">try</span> std.testing.expect(Felt252.zero().add(Felt252.zero()).isZero());</span>
-<span class="line" id="L205">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L206">        Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)).add(Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>))).toInteger(),</span>
-<span class="line" id="L207">        <span class="tok-number">0x7fffffffffffbd0ffffffffffffffffffffffffffffffffffffffffffffffbf</span>,</span>
-<span class="line" id="L208">    );</span>
-<span class="line" id="L209">}</span>
-<span class="line" id="L210"></span>
-<span class="line" id="L211"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 sub&quot;</span> {</span>
-<span class="line" id="L212">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L213">        Felt252.fromInteger(<span class="tok-number">10</span>).sub(Felt252.fromInteger(<span class="tok-number">5</span>)).toInteger(),</span>
-<span class="line" id="L214">        <span class="tok-number">0x5</span>,</span>
-<span class="line" id="L215">    );</span>
-<span class="line" id="L216">    <span class="tok-kw">try</span> std.testing.expect(Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)).sub(Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>))).isZero());</span>
-<span class="line" id="L217">    <span class="tok-kw">try</span> std.testing.expect(Felt252.zero().sub(Felt252.zero()).isZero());</span>
-<span class="line" id="L218">}</span>
-<span class="line" id="L219"></span>
-<span class="line" id="L220"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 mul&quot;</span> {</span>
-<span class="line" id="L221">    <span class="tok-kw">try</span> std.testing.expect(Felt252.zero().mul(Felt252.zero()).isZero());</span>
-<span class="line" id="L222">    <span class="tok-kw">try</span> std.testing.expect(Felt252.one().mul(Felt252.one()).isOne());</span>
-<span class="line" id="L223">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L224">        Felt252.fromInteger(<span class="tok-number">10</span>).mul(Felt252.fromInteger(<span class="tok-number">5</span>)).toInteger(),</span>
-<span class="line" id="L225">        <span class="tok-number">0x32</span>,</span>
-<span class="line" id="L226">    );</span>
-<span class="line" id="L227">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L228">        Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)).mul(Felt252.fromInteger(<span class="tok-number">2</span>)).toInteger(),</span>
-<span class="line" id="L229">        <span class="tok-number">0x7fffffffffffbd0ffffffffffffffffffffffffffffffffffffffffffffffbf</span>,</span>
-<span class="line" id="L230">    );</span>
-<span class="line" id="L231">}</span>
-<span class="line" id="L232"></span>
-<span class="line" id="L233"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 mulBy5&quot;</span> {</span>
-<span class="line" id="L234">    <span class="tok-kw">try</span> std.testing.expect(Felt252.zero().mulBy5().isZero());</span>
-<span class="line" id="L235">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L236">        Felt252.one().mulBy5().toInteger(),</span>
-<span class="line" id="L237">        <span class="tok-number">5</span>,</span>
-<span class="line" id="L238">    );</span>
-<span class="line" id="L239">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L240">        Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)).mulBy5().toInteger(),</span>
-<span class="line" id="L241">        <span class="tok-number">0x7fffffffffff570ffffffffffffffffffffffffffffffffffffffffffffff5c</span>,</span>
+<span class="line" id="L203">    <span class="tok-kw">try</span> std.testing.expectError(</span>
+<span class="line" id="L204">        <span class="tok-kw">error</span>.ValueTooLarge,</span>
+<span class="line" id="L205">        Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u64</span>) + <span class="tok-number">1</span>).tryIntoU64(),</span>
+<span class="line" id="L206">    );</span>
+<span class="line" id="L207">}</span>
+<span class="line" id="L208"></span>
+<span class="line" id="L209"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 arithmetic operations&quot;</span> {</span>
+<span class="line" id="L210">    <span class="tok-kw">const</span> a = Felt252.one();</span>
+<span class="line" id="L211">    <span class="tok-kw">const</span> b = Felt252.fromInteger(<span class="tok-number">2</span>);</span>
+<span class="line" id="L212">    <span class="tok-kw">const</span> c = a.add(b);</span>
+<span class="line" id="L213">    <span class="tok-kw">try</span> expect(c.equal(Felt252.fromInteger(<span class="tok-number">3</span>)));</span>
+<span class="line" id="L214">}</span>
+<span class="line" id="L215"></span>
+<span class="line" id="L216"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 add&quot;</span> {</span>
+<span class="line" id="L217">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L218">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L219">            <span class="tok-type">u256</span>,</span>
+<span class="line" id="L220">            <span class="tok-number">0xf</span>,</span>
+<span class="line" id="L221">        ),</span>
+<span class="line" id="L222">        Felt252.fromInteger(<span class="tok-number">10</span>).add(Felt252.fromInteger(<span class="tok-number">5</span>)).toInteger(),</span>
+<span class="line" id="L223">    );</span>
+<span class="line" id="L224">    <span class="tok-kw">try</span> expect(Felt252.one().add(Felt252.zero()).isOne());</span>
+<span class="line" id="L225">    <span class="tok-kw">try</span> expect(Felt252.zero().add(Felt252.zero()).isZero());</span>
+<span class="line" id="L226">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L227">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L228">            <span class="tok-type">u256</span>,</span>
+<span class="line" id="L229">            <span class="tok-number">0x7fffffffffffbd0ffffffffffffffffffffffffffffffffffffffffffffffbf</span>,</span>
+<span class="line" id="L230">        ),</span>
+<span class="line" id="L231">        Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)).add(Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>))).toInteger(),</span>
+<span class="line" id="L232">    );</span>
+<span class="line" id="L233">}</span>
+<span class="line" id="L234"></span>
+<span class="line" id="L235"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 sub&quot;</span> {</span>
+<span class="line" id="L236">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L237">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L238">            <span class="tok-type">u256</span>,</span>
+<span class="line" id="L239">            <span class="tok-number">0x5</span>,</span>
+<span class="line" id="L240">        ),</span>
+<span class="line" id="L241">        Felt252.fromInteger(<span class="tok-number">10</span>).sub(Felt252.fromInteger(<span class="tok-number">5</span>)).toInteger(),</span>
 <span class="line" id="L242">    );</span>
-<span class="line" id="L243">}</span>
-<span class="line" id="L244"></span>
-<span class="line" id="L245"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 neg&quot;</span> {</span>
-<span class="line" id="L246">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L247">        Felt252.fromInteger(<span class="tok-number">10</span>).neg().toInteger(),</span>
-<span class="line" id="L248">        <span class="tok-number">0x800000000000010fffffffffffffffffffffffffffffffffffffffffffffff7</span>,</span>
-<span class="line" id="L249">    );</span>
-<span class="line" id="L250">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L251">        Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)).neg().toInteger(),</span>
-<span class="line" id="L252">        <span class="tok-number">0x220000000000000000000000000000000000000000000000021</span>,</span>
-<span class="line" id="L253">    );</span>
-<span class="line" id="L254">}</span>
-<span class="line" id="L255"></span>
-<span class="line" id="L256"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 square&quot;</span> {</span>
-<span class="line" id="L257">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L258">        Felt252.fromInteger(<span class="tok-number">10</span>).square().toInteger(),</span>
-<span class="line" id="L259">        <span class="tok-number">0x64</span>,</span>
-<span class="line" id="L260">    );</span>
-<span class="line" id="L261">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L262">        Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)).square().toInteger(),</span>
-<span class="line" id="L263">        <span class="tok-number">0x7ffd4ab5e008c50ffffffffff6f800000000001330ffffffffffd737e000442</span>,</span>
-<span class="line" id="L264">    );</span>
-<span class="line" id="L265">}</span>
-<span class="line" id="L266"></span>
-<span class="line" id="L267"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 pow2&quot;</span> {</span>
-<span class="line" id="L268">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L269">        Felt252.fromInteger(<span class="tok-number">10</span>).pow2(<span class="tok-number">10</span>).toInteger(),</span>
-<span class="line" id="L270">        <span class="tok-number">0x4cdffe7c7b3f76a6ce28dde767fa09b60e963927bbd16d8b0d3a0fc13c6fa0</span>,</span>
-<span class="line" id="L271">    );</span>
-<span class="line" id="L272">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L273">        Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)).pow2(<span class="tok-number">3</span>).toInteger(),</span>
-<span class="line" id="L274">        <span class="tok-number">0x25f7dc4108a227e91fb20740a4866274f449e9d427775a58bb7cb4eaff1e653</span>,</span>
-<span class="line" id="L275">    );</span>
-<span class="line" id="L276">}</span>
-<span class="line" id="L277"></span>
-<span class="line" id="L278"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 pow&quot;</span> {</span>
-<span class="line" id="L279">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L280">        Felt252.fromInteger(<span class="tok-number">10</span>).pow(<span class="tok-number">10</span>).toInteger(),</span>
-<span class="line" id="L281">        <span class="tok-number">0x2540be400</span>,</span>
-<span class="line" id="L282">    );</span>
-<span class="line" id="L283">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L284">        Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u64</span>)).pow(<span class="tok-number">5</span>).toInteger(),</span>
-<span class="line" id="L285">        <span class="tok-number">0x48ea9fffffffffffffff5ffffffffffffffe5000000000000449f</span>,</span>
-<span class="line" id="L286">    );</span>
-<span class="line" id="L287">}</span>
-<span class="line" id="L288"></span>
-<span class="line" id="L289"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 inv&quot;</span> {</span>
-<span class="line" id="L290">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L291">        Felt252.fromInteger(<span class="tok-number">10</span>).inv().?.toInteger(),</span>
-<span class="line" id="L292">        <span class="tok-number">0x733333333333342800000000000000000000000000000000000000000000001</span>,</span>
-<span class="line" id="L293">    );</span>
-<span class="line" id="L294">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L295">        Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)).inv().?.toInteger(),</span>
-<span class="line" id="L296">        <span class="tok-number">0x538bf4edb6bf78474ef0f1979a0db0bdd364ce7aeda9f3c6c04bea822682ba</span>,</span>
-<span class="line" id="L297">    );</span>
-<span class="line" id="L298">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L299">        Felt252.zero().inv(),</span>
-<span class="line" id="L300">        <span class="tok-null">null</span>,</span>
-<span class="line" id="L301">    );</span>
-<span class="line" id="L302">}</span>
-<span class="line" id="L303"></span>
-<span class="line" id="L304"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 batchInv&quot;</span> {</span>
-<span class="line" id="L305">    <span class="tok-kw">var</span> out: [<span class="tok-number">2</span>]Felt252 = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L306">    <span class="tok-kw">const</span> in: [<span class="tok-number">2</span>]Felt252 = .{ Felt252.fromInteger(<span class="tok-number">10</span>), Felt252.fromInteger(<span class="tok-number">5</span>) };</span>
-<span class="line" id="L307">    <span class="tok-kw">try</span> Felt252.batchInv(&amp;out, &amp;in);</span>
-<span class="line" id="L308">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L309">        out[<span class="tok-number">0</span>].toInteger(),</span>
-<span class="line" id="L310">        <span class="tok-number">0x733333333333342800000000000000000000000000000000000000000000001</span>,</span>
-<span class="line" id="L311">    );</span>
-<span class="line" id="L312">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L313">        out[<span class="tok-number">1</span>].toInteger(),</span>
-<span class="line" id="L314">        <span class="tok-number">0x666666666666674000000000000000000000000000000000000000000000001</span>,</span>
+<span class="line" id="L243">    <span class="tok-kw">try</span> expect(Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)).sub(Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>))).isZero());</span>
+<span class="line" id="L244">    <span class="tok-kw">try</span> expect(Felt252.zero().sub(Felt252.zero()).isZero());</span>
+<span class="line" id="L245">}</span>
+<span class="line" id="L246"></span>
+<span class="line" id="L247"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 mul&quot;</span> {</span>
+<span class="line" id="L248">    <span class="tok-kw">try</span> expect(Felt252.zero().mul(Felt252.zero()).isZero());</span>
+<span class="line" id="L249">    <span class="tok-kw">try</span> expect(Felt252.one().mul(Felt252.one()).isOne());</span>
+<span class="line" id="L250">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L251">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L252">            <span class="tok-type">u256</span>,</span>
+<span class="line" id="L253">            <span class="tok-number">0x32</span>,</span>
+<span class="line" id="L254">        ),</span>
+<span class="line" id="L255">        Felt252.fromInteger(<span class="tok-number">10</span>).mul(Felt252.fromInteger(<span class="tok-number">5</span>)).toInteger(),</span>
+<span class="line" id="L256">    );</span>
+<span class="line" id="L257">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L258">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L259">            <span class="tok-type">u256</span>,</span>
+<span class="line" id="L260">            <span class="tok-number">0x7fffffffffffbd0ffffffffffffffffffffffffffffffffffffffffffffffbf</span>,</span>
+<span class="line" id="L261">        ),</span>
+<span class="line" id="L262">        Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)).mul(Felt252.fromInteger(<span class="tok-number">2</span>)).toInteger(),</span>
+<span class="line" id="L263">    );</span>
+<span class="line" id="L264">}</span>
+<span class="line" id="L265"></span>
+<span class="line" id="L266"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 mulBy5&quot;</span> {</span>
+<span class="line" id="L267">    <span class="tok-kw">try</span> expect(Felt252.zero().mulBy5().isZero());</span>
+<span class="line" id="L268">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L269">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L270">            <span class="tok-type">u256</span>,</span>
+<span class="line" id="L271">            <span class="tok-number">5</span>,</span>
+<span class="line" id="L272">        ),</span>
+<span class="line" id="L273">        Felt252.one().mulBy5().toInteger(),</span>
+<span class="line" id="L274">    );</span>
+<span class="line" id="L275">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L276">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L277">            <span class="tok-type">u256</span>,</span>
+<span class="line" id="L278">            <span class="tok-number">0x7fffffffffff570ffffffffffffffffffffffffffffffffffffffffffffff5c</span>,</span>
+<span class="line" id="L279">        ),</span>
+<span class="line" id="L280">        Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)).mulBy5().toInteger(),</span>
+<span class="line" id="L281">    );</span>
+<span class="line" id="L282">}</span>
+<span class="line" id="L283"></span>
+<span class="line" id="L284"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 neg&quot;</span> {</span>
+<span class="line" id="L285">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L286">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L287">            <span class="tok-type">u256</span>,</span>
+<span class="line" id="L288">            <span class="tok-number">0x800000000000010fffffffffffffffffffffffffffffffffffffffffffffff7</span>,</span>
+<span class="line" id="L289">        ),</span>
+<span class="line" id="L290">        Felt252.fromInteger(<span class="tok-number">10</span>).neg().toInteger(),</span>
+<span class="line" id="L291">    );</span>
+<span class="line" id="L292">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L293">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L294">            <span class="tok-type">u256</span>,</span>
+<span class="line" id="L295">            <span class="tok-number">0x220000000000000000000000000000000000000000000000021</span>,</span>
+<span class="line" id="L296">        ),</span>
+<span class="line" id="L297">        Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)).neg().toInteger(),</span>
+<span class="line" id="L298">    );</span>
+<span class="line" id="L299">}</span>
+<span class="line" id="L300"></span>
+<span class="line" id="L301"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 square&quot;</span> {</span>
+<span class="line" id="L302">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L303">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L304">            <span class="tok-type">u256</span>,</span>
+<span class="line" id="L305">            <span class="tok-number">0x64</span>,</span>
+<span class="line" id="L306">        ),</span>
+<span class="line" id="L307">        Felt252.fromInteger(<span class="tok-number">10</span>).square().toInteger(),</span>
+<span class="line" id="L308">    );</span>
+<span class="line" id="L309">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L310">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L311">            <span class="tok-type">u256</span>,</span>
+<span class="line" id="L312">            <span class="tok-number">0x7ffd4ab5e008c50ffffffffff6f800000000001330ffffffffffd737e000442</span>,</span>
+<span class="line" id="L313">        ),</span>
+<span class="line" id="L314">        Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)).square().toInteger(),</span>
 <span class="line" id="L315">    );</span>
 <span class="line" id="L316">}</span>
 <span class="line" id="L317"></span>
-<span class="line" id="L318"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 batchInv with zero&quot;</span> {</span>
-<span class="line" id="L319">    <span class="tok-kw">var</span> out: [<span class="tok-number">3</span>]Felt252 = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L320">    <span class="tok-kw">const</span> in: [<span class="tok-number">3</span>]Felt252 = .{ Felt252.fromInteger(<span class="tok-number">10</span>), Felt252.fromInteger(<span class="tok-number">5</span>), Felt252.zero() };</span>
-<span class="line" id="L321">    <span class="tok-kw">try</span> std.testing.expectError(</span>
-<span class="line" id="L322">        <span class="tok-kw">error</span>.CantInvertZeroElement,</span>
-<span class="line" id="L323">        Felt252.batchInv(&amp;out, &amp;in),</span>
-<span class="line" id="L324">    );</span>
-<span class="line" id="L325">}</span>
-<span class="line" id="L326"></span>
-<span class="line" id="L327"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 div&quot;</span> {</span>
-<span class="line" id="L328">    <span class="tok-kw">const</span> div_10_by_10 = <span class="tok-kw">try</span> Felt252.fromInteger(<span class="tok-number">10</span>).div(Felt252.fromInteger(<span class="tok-number">10</span>));</span>
-<span class="line" id="L329">    <span class="tok-kw">try</span> std.testing.expect(</span>
-<span class="line" id="L330">        div_10_by_10.isOne(),</span>
-<span class="line" id="L331">    );</span>
-<span class="line" id="L332">    <span class="tok-kw">try</span> std.testing.expectError(</span>
-<span class="line" id="L333">        <span class="tok-kw">error</span>.DivisionByZero,</span>
-<span class="line" id="L334">        Felt252.fromInteger(<span class="tok-number">10</span>).div(Felt252.zero()),</span>
-<span class="line" id="L335">    );</span>
-<span class="line" id="L336">}</span>
-<span class="line" id="L337"></span>
-<span class="line" id="L338"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 legendre&quot;</span> {</span>
-<span class="line" id="L339">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L340">        Felt252.fromInteger(<span class="tok-number">0x1000000000000022000000000000000000000000000000000000000000000002</span>).legendre(),</span>
-<span class="line" id="L341">        <span class="tok-number">0</span>,</span>
+<span class="line" id="L318"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 pow2&quot;</span> {</span>
+<span class="line" id="L319">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L320">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L321">            <span class="tok-type">u256</span>,</span>
+<span class="line" id="L322">            <span class="tok-number">0x4cdffe7c7b3f76a6ce28dde767fa09b60e963927bbd16d8b0d3a0fc13c6fa0</span>,</span>
+<span class="line" id="L323">        ),</span>
+<span class="line" id="L324">        Felt252.fromInteger(<span class="tok-number">10</span>).pow2(<span class="tok-number">10</span>).toInteger(),</span>
+<span class="line" id="L325">    );</span>
+<span class="line" id="L326">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L327">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L328">            <span class="tok-type">u256</span>,</span>
+<span class="line" id="L329">            <span class="tok-number">0x25f7dc4108a227e91fb20740a4866274f449e9d427775a58bb7cb4eaff1e653</span>,</span>
+<span class="line" id="L330">        ),</span>
+<span class="line" id="L331">        Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)).pow2(<span class="tok-number">3</span>).toInteger(),</span>
+<span class="line" id="L332">    );</span>
+<span class="line" id="L333">}</span>
+<span class="line" id="L334"></span>
+<span class="line" id="L335"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 pow&quot;</span> {</span>
+<span class="line" id="L336">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L337">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L338">            <span class="tok-type">u256</span>,</span>
+<span class="line" id="L339">            <span class="tok-number">0x2540be400</span>,</span>
+<span class="line" id="L340">        ),</span>
+<span class="line" id="L341">        Felt252.fromInteger(<span class="tok-number">10</span>).pow(<span class="tok-number">10</span>).toInteger(),</span>
 <span class="line" id="L342">    );</span>
-<span class="line" id="L343">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L344">        Felt252.fromInteger(<span class="tok-number">10</span>).legendre(),</span>
-<span class="line" id="L345">        <span class="tok-number">1</span>,</span>
-<span class="line" id="L346">    );</span>
-<span class="line" id="L347">    <span class="tok-kw">try</span> std.testing.expectEqual(</span>
-<span class="line" id="L348">        Felt252.fromInteger(<span class="tok-number">135</span>).legendre(),</span>
-<span class="line" id="L349">        -<span class="tok-number">1</span>,</span>
-<span class="line" id="L350">    );</span>
-<span class="line" id="L351">}</span>
-<span class="line" id="L352"></span>
+<span class="line" id="L343">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L344">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L345">            <span class="tok-type">u256</span>,</span>
+<span class="line" id="L346">            <span class="tok-number">0x48ea9fffffffffffffff5ffffffffffffffe5000000000000449f</span>,</span>
+<span class="line" id="L347">        ),</span>
+<span class="line" id="L348">        Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u64</span>)).pow(<span class="tok-number">5</span>).toInteger(),</span>
+<span class="line" id="L349">    );</span>
+<span class="line" id="L350">}</span>
+<span class="line" id="L351"></span>
+<span class="line" id="L352"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 inv&quot;</span> {</span>
+<span class="line" id="L353">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L354">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L355">            <span class="tok-type">u256</span>,</span>
+<span class="line" id="L356">            <span class="tok-number">0x733333333333342800000000000000000000000000000000000000000000001</span>,</span>
+<span class="line" id="L357">        ),</span>
+<span class="line" id="L358">        Felt252.fromInteger(<span class="tok-number">10</span>).inv().?.toInteger(),</span>
+<span class="line" id="L359">    );</span>
+<span class="line" id="L360">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L361">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L362">            <span class="tok-type">u256</span>,</span>
+<span class="line" id="L363">            <span class="tok-number">0x538bf4edb6bf78474ef0f1979a0db0bdd364ce7aeda9f3c6c04bea822682ba</span>,</span>
+<span class="line" id="L364">        ),</span>
+<span class="line" id="L365">        Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)).inv().?.toInteger(),</span>
+<span class="line" id="L366">    );</span>
+<span class="line" id="L367">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L368">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L369">            ?Felt252,</span>
+<span class="line" id="L370">            <span class="tok-null">null</span>,</span>
+<span class="line" id="L371">        ),</span>
+<span class="line" id="L372">        Felt252.zero().inv(),</span>
+<span class="line" id="L373">    );</span>
+<span class="line" id="L374">}</span>
+<span class="line" id="L375"></span>
+<span class="line" id="L376"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 batchInv&quot;</span> {</span>
+<span class="line" id="L377">    <span class="tok-kw">var</span> out: [<span class="tok-number">2</span>]Felt252 = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L378">    <span class="tok-kw">const</span> in: [<span class="tok-number">2</span>]Felt252 = .{ Felt252.fromInteger(<span class="tok-number">10</span>), Felt252.fromInteger(<span class="tok-number">5</span>) };</span>
+<span class="line" id="L379">    <span class="tok-kw">try</span> Felt252.batchInv(&amp;out, &amp;in);</span>
+<span class="line" id="L380">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L381">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L382">            <span class="tok-type">u256</span>,</span>
+<span class="line" id="L383">            <span class="tok-number">0x733333333333342800000000000000000000000000000000000000000000001</span>,</span>
+<span class="line" id="L384">        ),</span>
+<span class="line" id="L385">        out[<span class="tok-number">0</span>].toInteger(),</span>
+<span class="line" id="L386">    );</span>
+<span class="line" id="L387">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L388">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L389">            <span class="tok-type">u256</span>,</span>
+<span class="line" id="L390">            <span class="tok-number">0x666666666666674000000000000000000000000000000000000000000000001</span>,</span>
+<span class="line" id="L391">        ),</span>
+<span class="line" id="L392">        out[<span class="tok-number">1</span>].toInteger(),</span>
+<span class="line" id="L393">    );</span>
+<span class="line" id="L394">}</span>
+<span class="line" id="L395"></span>
+<span class="line" id="L396"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 batchInv with zero&quot;</span> {</span>
+<span class="line" id="L397">    <span class="tok-kw">var</span> out: [<span class="tok-number">3</span>]Felt252 = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L398">    <span class="tok-kw">const</span> in: [<span class="tok-number">3</span>]Felt252 = .{ Felt252.fromInteger(<span class="tok-number">10</span>), Felt252.fromInteger(<span class="tok-number">5</span>), Felt252.zero() };</span>
+<span class="line" id="L399">    <span class="tok-kw">try</span> std.testing.expectError(</span>
+<span class="line" id="L400">        <span class="tok-kw">error</span>.CantInvertZeroElement,</span>
+<span class="line" id="L401">        Felt252.batchInv(&amp;out, &amp;in),</span>
+<span class="line" id="L402">    );</span>
+<span class="line" id="L403">}</span>
+<span class="line" id="L404"></span>
+<span class="line" id="L405"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 div&quot;</span> {</span>
+<span class="line" id="L406">    <span class="tok-kw">const</span> div_10_by_10 = <span class="tok-kw">try</span> Felt252.fromInteger(<span class="tok-number">10</span>).div(Felt252.fromInteger(<span class="tok-number">10</span>));</span>
+<span class="line" id="L407">    <span class="tok-kw">try</span> expect(</span>
+<span class="line" id="L408">        div_10_by_10.isOne(),</span>
+<span class="line" id="L409">    );</span>
+<span class="line" id="L410">    <span class="tok-kw">try</span> std.testing.expectError(</span>
+<span class="line" id="L411">        <span class="tok-kw">error</span>.DivisionByZero,</span>
+<span class="line" id="L412">        Felt252.fromInteger(<span class="tok-number">10</span>).div(Felt252.zero()),</span>
+<span class="line" id="L413">    );</span>
+<span class="line" id="L414">}</span>
+<span class="line" id="L415"></span>
+<span class="line" id="L416"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 legendre&quot;</span> {</span>
+<span class="line" id="L417">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L418">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L419">            <span class="tok-type">i2</span>,</span>
+<span class="line" id="L420">            <span class="tok-number">0</span>,</span>
+<span class="line" id="L421">        ),</span>
+<span class="line" id="L422">        Felt252.fromInteger(<span class="tok-number">0x1000000000000022000000000000000000000000000000000000000000000002</span>).legendre(),</span>
+<span class="line" id="L423">    );</span>
+<span class="line" id="L424">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L425">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L426">            <span class="tok-type">i2</span>,</span>
+<span class="line" id="L427">            <span class="tok-number">1</span>,</span>
+<span class="line" id="L428">        ),</span>
+<span class="line" id="L429">        Felt252.fromInteger(<span class="tok-number">10</span>).legendre(),</span>
+<span class="line" id="L430">    );</span>
+<span class="line" id="L431">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L432">        <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L433">            <span class="tok-type">i2</span>,</span>
+<span class="line" id="L434">            -<span class="tok-number">1</span>,</span>
+<span class="line" id="L435">        ),</span>
+<span class="line" id="L436">        Felt252.fromInteger(<span class="tok-number">135</span>).legendre(),</span>
+<span class="line" id="L437">    );</span>
+<span class="line" id="L438">}</span>
+<span class="line" id="L439"></span>
 </code></pre></body>
 </html>

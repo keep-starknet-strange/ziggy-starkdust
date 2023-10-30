@@ -315,55 +315,64 @@
 <span class="line" id="L172"></span>
 <span class="line" id="L173">    <span class="tok-comment">// then</span>
 </span>
-<span class="line" id="L174">    <span class="tok-kw">var</span> result = deduce(address, mem);</span>
-<span class="line" id="L175">    <span class="tok-kw">try</span> expectEqual(result, expected);</span>
-<span class="line" id="L176">}</span>
-<span class="line" id="L177"></span>
-<span class="line" id="L178"><span class="tok-kw">test</span> <span class="tok-str">&quot;valid bitwise xor&quot;</span> {</span>
-<span class="line" id="L179"></span>
-<span class="line" id="L180">    <span class="tok-comment">// given</span>
+<span class="line" id="L174">    <span class="tok-kw">var</span> result = <span class="tok-kw">try</span> deduce(address, mem);</span>
+<span class="line" id="L175">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L176">        expected,</span>
+<span class="line" id="L177">        result,</span>
+<span class="line" id="L178">    );</span>
+<span class="line" id="L179">}</span>
+<span class="line" id="L180"></span>
+<span class="line" id="L181"><span class="tok-kw">test</span> <span class="tok-str">&quot;valid bitwise xor&quot;</span> {</span>
+<span class="line" id="L182"></span>
+<span class="line" id="L183">    <span class="tok-comment">// given</span>
 </span>
-<span class="line" id="L181">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
-<span class="line" id="L182">    <span class="tok-kw">var</span> mem = <span class="tok-kw">try</span> Memory.init(allocator);</span>
-<span class="line" id="L183">    <span class="tok-kw">defer</span> mem.deinit();</span>
-<span class="line" id="L184"></span>
-<span class="line" id="L185">    <span class="tok-comment">// when</span>
+<span class="line" id="L184">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
+<span class="line" id="L185">    <span class="tok-kw">var</span> mem = <span class="tok-kw">try</span> Memory.init(allocator);</span>
+<span class="line" id="L186">    <span class="tok-kw">defer</span> mem.deinit();</span>
+<span class="line" id="L187"></span>
+<span class="line" id="L188">    <span class="tok-comment">// when</span>
 </span>
-<span class="line" id="L186">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">5</span>), fromU256(<span class="tok-number">10</span>));</span>
-<span class="line" id="L187">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">6</span>), fromU256(<span class="tok-number">12</span>));</span>
-<span class="line" id="L188">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">8</span>), fromU256(<span class="tok-number">0</span>));</span>
-<span class="line" id="L189"></span>
-<span class="line" id="L190">    <span class="tok-kw">var</span> address = Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">8</span>);</span>
-<span class="line" id="L191">    <span class="tok-kw">var</span> expected = MaybeRelocatable{ .felt = Felt252.fromInteger(<span class="tok-number">6</span>) };</span>
+<span class="line" id="L189">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">5</span>), fromU256(<span class="tok-number">10</span>));</span>
+<span class="line" id="L190">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">6</span>), fromU256(<span class="tok-number">12</span>));</span>
+<span class="line" id="L191">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">8</span>), fromU256(<span class="tok-number">0</span>));</span>
 <span class="line" id="L192"></span>
-<span class="line" id="L193">    <span class="tok-comment">// then</span>
+<span class="line" id="L193">    <span class="tok-kw">var</span> address = Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">8</span>);</span>
+<span class="line" id="L194">    <span class="tok-kw">var</span> expected = MaybeRelocatable{ .felt = Felt252.fromInteger(<span class="tok-number">6</span>) };</span>
+<span class="line" id="L195"></span>
+<span class="line" id="L196">    <span class="tok-comment">// then</span>
 </span>
-<span class="line" id="L194">    <span class="tok-kw">var</span> result = deduce(address, mem);</span>
-<span class="line" id="L195">    <span class="tok-kw">try</span> expectEqual(result, expected);</span>
-<span class="line" id="L196">}</span>
-<span class="line" id="L197"></span>
-<span class="line" id="L198"><span class="tok-kw">test</span> <span class="tok-str">&quot;valid bitwise or&quot;</span> {</span>
-<span class="line" id="L199"></span>
-<span class="line" id="L200">    <span class="tok-comment">// given</span>
+<span class="line" id="L197">    <span class="tok-kw">var</span> result = <span class="tok-kw">try</span> deduce(address, mem);</span>
+<span class="line" id="L198">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L199">        expected,</span>
+<span class="line" id="L200">        result,</span>
+<span class="line" id="L201">    );</span>
+<span class="line" id="L202">}</span>
+<span class="line" id="L203"></span>
+<span class="line" id="L204"><span class="tok-kw">test</span> <span class="tok-str">&quot;valid bitwise or&quot;</span> {</span>
+<span class="line" id="L205"></span>
+<span class="line" id="L206">    <span class="tok-comment">// given</span>
 </span>
-<span class="line" id="L201">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
-<span class="line" id="L202">    <span class="tok-kw">var</span> mem = <span class="tok-kw">try</span> Memory.init(allocator);</span>
-<span class="line" id="L203">    <span class="tok-kw">defer</span> mem.deinit();</span>
-<span class="line" id="L204"></span>
-<span class="line" id="L205">    <span class="tok-comment">// when</span>
+<span class="line" id="L207">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
+<span class="line" id="L208">    <span class="tok-kw">var</span> mem = <span class="tok-kw">try</span> Memory.init(allocator);</span>
+<span class="line" id="L209">    <span class="tok-kw">defer</span> mem.deinit();</span>
+<span class="line" id="L210"></span>
+<span class="line" id="L211">    <span class="tok-comment">// when</span>
 </span>
-<span class="line" id="L206">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">5</span>), fromU256(<span class="tok-number">10</span>));</span>
-<span class="line" id="L207">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">6</span>), fromU256(<span class="tok-number">12</span>));</span>
-<span class="line" id="L208">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">9</span>), fromU256(<span class="tok-number">0</span>));</span>
-<span class="line" id="L209"></span>
-<span class="line" id="L210">    <span class="tok-kw">var</span> address = Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">9</span>);</span>
-<span class="line" id="L211">    <span class="tok-kw">var</span> expected = MaybeRelocatable{ .felt = Felt252.fromInteger(<span class="tok-number">14</span>) };</span>
-<span class="line" id="L212"></span>
-<span class="line" id="L213">    <span class="tok-comment">// then</span>
+<span class="line" id="L212">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">5</span>), fromU256(<span class="tok-number">10</span>));</span>
+<span class="line" id="L213">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">6</span>), fromU256(<span class="tok-number">12</span>));</span>
+<span class="line" id="L214">    <span class="tok-kw">try</span> mem.set(Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">9</span>), fromU256(<span class="tok-number">0</span>));</span>
+<span class="line" id="L215"></span>
+<span class="line" id="L216">    <span class="tok-kw">var</span> address = Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">9</span>);</span>
+<span class="line" id="L217">    <span class="tok-kw">var</span> expected = MaybeRelocatable{ .felt = Felt252.fromInteger(<span class="tok-number">14</span>) };</span>
+<span class="line" id="L218"></span>
+<span class="line" id="L219">    <span class="tok-comment">// then</span>
 </span>
-<span class="line" id="L214">    <span class="tok-kw">var</span> result = deduce(address, mem);</span>
-<span class="line" id="L215">    <span class="tok-kw">try</span> expectEqual(result, expected);</span>
-<span class="line" id="L216">}</span>
-<span class="line" id="L217"></span>
+<span class="line" id="L220">    <span class="tok-kw">var</span> result = <span class="tok-kw">try</span> deduce(address, mem);</span>
+<span class="line" id="L221">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L222">        expected,</span>
+<span class="line" id="L223">        result,</span>
+<span class="line" id="L224">    );</span>
+<span class="line" id="L225">}</span>
+<span class="line" id="L226"></span>
 </code></pre></body>
 </html>
