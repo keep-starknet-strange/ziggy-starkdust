@@ -41,7 +41,7 @@ pub const RunContext = struct {
     /// - If a memory allocation fails.
     pub fn init(allocator: Allocator) !*Self {
         var run_context = try allocator.create(Self);
-        run_context.* = Self{
+        run_context.* = .{
             .allocator = allocator,
             .pc = try allocator.create(Relocatable),
             .ap = try allocator.create(Relocatable),

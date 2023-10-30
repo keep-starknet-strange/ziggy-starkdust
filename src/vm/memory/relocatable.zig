@@ -108,13 +108,19 @@ pub const Relocatable = struct {
         other: i64,
     ) !Self {
         if (other < 0) {
-            return self.subUint(@as(u64, @intCast(
-                -other,
-            )));
+            return self.subUint(@as(
+                u64,
+                @intCast(
+                    -other,
+                ),
+            ));
         }
-        return self.addUint(@as(u64, @intCast(
-            other,
-        )));
+        return self.addUint(@as(
+            u64,
+            @intCast(
+                other,
+            ),
+        ));
     }
 
     /// Add a felt to this Relocatable, modifying it in place.
@@ -125,12 +131,10 @@ pub const Relocatable = struct {
         self: *Self,
         other: Felt252,
     ) !void {
-        const new_offset_felt = Felt252.fromInteger(@as(
+        self.offset = try Felt252.fromInteger(@as(
             u256,
-            self.offset,
-        )).add(other);
-        const new_offset = try new_offset_felt.tryIntoU64();
-        self.offset = new_offset;
+            @intCast(self.offset),
+        )).add(other).tryIntoU64();
     }
 
     /// Performs additions if other contains a Felt value, fails otherwise.
@@ -140,8 +144,7 @@ pub const Relocatable = struct {
         self: *Self,
         other: MaybeRelocatable,
     ) !void {
-        const other_as_felt = try other.tryIntoFelt();
-        try self.addFeltInPlace(other_as_felt);
+        try self.addFeltInPlace(try other.tryIntoFelt());
     }
 };
 
@@ -282,7 +285,7 @@ pub fn fromU256(value: u256) MaybeRelocatable {
 pub fn fromU64(value: u64) MaybeRelocatable {
     return fromU256(@as(
         u256,
-        value,
+        @intCast(value),
     ));
 }
 

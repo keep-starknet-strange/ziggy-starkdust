@@ -53,7 +53,10 @@ pub const KeccakBuiltinRunner = struct {
         return .{
             .ratio = instance_def.ratio,
             .base = 0,
-            .n_input_cells = @as(u32, instance_def._state_rep.items.len),
+            .n_input_cells = @as(
+                u32,
+                @intCast(instance_def._state_rep.items.len),
+            ),
             .cell_per_instance = instance_def.cells_per_builtin(),
             .stop_ptr = null,
             .included = included,
