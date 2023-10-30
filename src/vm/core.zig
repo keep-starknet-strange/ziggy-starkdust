@@ -60,15 +60,21 @@ pub const CairoVM = struct {
     ) !Self {
         // Initialize the memory segment manager.
         const memory_segment_manager = try segments.MemorySegmentManager.init(allocator);
+        errdefer memory_segment_manager.deinit();
         // Initialize the run context.
         const run_context = try RunContext.init(allocator);
+        errdefer run_context.deinit();
         // Initialize the trace context.
         const trace_context = try TraceContext.init(allocator, config.enable_trace);
+        errdefer trace_context.deinit();
+        // Initialize the built-in runners.
+        const builtin_runners = ArrayList(BuiltinRunner).init(allocator);
+        errdefer builtin_runners.deinit();
 
         return Self{
             .allocator = allocator,
             .run_context = run_context,
-            .builtin_runners = ArrayList(BuiltinRunner).init(allocator),
+            .builtin_runners = builtin_runners,
             .segments = memory_segment_manager,
             .is_run_finished = false,
             .trace_context = trace_context,
@@ -396,7 +402,7 @@ pub const CairoVM = struct {
         for (self.builtin_runners.items) |builtin_item| {
             if (@as(
                 u64,
-                builtin_item.base(),
+                @intCast(builtin_item.base()),
             ) == address.segment_index) {
                 return builtin.deduce(
                     address,

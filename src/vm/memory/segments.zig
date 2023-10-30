@@ -1,8 +1,8 @@
 // Core imports.
 const std = @import("std");
 const Allocator = std.mem.Allocator;
-const expect = @import("std").testing.expect;
-const expectEqual = @import("std").testing.expectEqual;
+const expect = std.testing.expect;
+const expectEqual = std.testing.expectEqual;
 
 // Local imports.
 const Memory = @import("memory.zig").Memory;
@@ -57,8 +57,13 @@ pub const MemorySegmentManager = struct {
     pub fn init(allocator: Allocator) !*Self {
         // Create the pointer to the MemorySegmentManager.
         var segment_manager = try allocator.create(Self);
+        errdefer allocator.destroy(segment_manager);
+
+        const memory = try Memory.init(allocator);
+        errdefer memory.deinit();
+
         // Initialize the values of the MemorySegmentManager struct.
-        segment_manager.* = Self{
+        segment_manager.* = .{
             .allocator = allocator,
             .segment_used_sizes = std.AutoHashMap(
                 u32,
@@ -69,7 +74,7 @@ pub const MemorySegmentManager = struct {
                 u32,
             ).init(allocator),
             // Initialize the memory pointer.
-            .memory = try Memory.init(allocator),
+            .memory = memory,
             .public_memory_offsets = std.AutoHashMap(u32, u32).init(allocator),
         };
         // Return the pointer to the MemorySegmentManager.

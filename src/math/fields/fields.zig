@@ -322,7 +322,7 @@ pub fn Field(
             // Check if the value is small enough to fit into a u64
             if (asU256 > @as(
                 u256,
-                std.math.maxInt(u64),
+                @intCast(std.math.maxInt(u64)),
             )) {
                 return error.ValueTooLarge;
             }

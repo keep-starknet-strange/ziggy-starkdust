@@ -17,6 +17,9 @@ pub const KeccakInstanceDef = struct {
 
     /// Number of cells per built in
     pub fn cells_per_builtin(self: *Self) u32 {
-        return 2 * @as(u32, self._state_rep.items.len);
+        return 2 * @as(
+            u32,
+            @intCast(self._state_rep.items.len),
+        );
     }
 };
