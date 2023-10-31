@@ -12,6 +12,7 @@ const AutoHashMap = std.AutoHashMap;
 const Allocator = std.mem.Allocator;
 const MemorySegmentManager = Segments.MemorySegmentManager;
 const MemoryError = Error.MemoryError;
+const RunnerError = Error.RunnerError;
 const KeccakInstanceDef = Keccak_instance_def.KeccakInstanceDef;
 const Relocatable = relocatable.Relocatable;
 const MaybeRelocatable = relocatable.MaybeRelocatable;
@@ -155,10 +156,9 @@ pub const KeccakBuiltinRunner = struct {
     /// The number of used cells as a `u32`, or `MemoryError.MissingSegmentUsedSizes` if
     /// the size is not available.
     pub fn get_used_cells(self: *const Self, segments: *MemorySegmentManager) !u32 {
-        return segments.get_segment_used_size(@as(
-            u32,
+        return segments.get_segment_used_size(
             @intCast(self.base),
-        )) orelse MemoryError.MissingSegmentUsedSizes;
+        ) orelse MemoryError.MissingSegmentUsedSizes;
     }
 
     /// Retrieves memory segment addresses as a tuple.
@@ -190,14 +190,10 @@ pub const KeccakBuiltinRunner = struct {
     /// # Returns
     /// The number of used instances as a `usize`.
     pub fn get_used_instances(self: *Self, segments: *MemorySegmentManager) !usize {
-        const used_cells = try self.get_used_cells(segments);
         return std.math.divCeil(
             usize,
-            used_cells,
-            @as(
-                usize,
-                @intCast(self.cells_per_instance),
-            ),
+            try self.get_used_cells(segments),
+            @intCast(self.cells_per_instance),
         );
     }
 
@@ -217,10 +213,9 @@ pub const KeccakBuiltinRunner = struct {
         allocator: Allocator,
         vm: *CairoVM,
     ) !ArrayList(Relocatable) {
-        const segment_size = try (vm.segments.get_segment_used_size(@as(
-            u32,
+        const segment_size = try (vm.segments.get_segment_used_size(
             @intCast(self.base),
-        )) orelse MemoryError.MissingSegmentUsedSizes);
+        ) orelse MemoryError.MissingSegmentUsedSizes);
         var result = ArrayList(Relocatable).init(allocator);
         for (0..segment_size) |i| {
             try result.append(.{
@@ -255,14 +250,8 @@ pub const KeccakBuiltinRunner = struct {
         // So the real number is 4 * 64 * 1024 = 262144.
         return std.math.divExact(
             usize,
-            @as(
-                usize,
-                @intCast(262144),
-            ),
-            @as(
-                usize,
-                @intCast(diluted_n_bits),
-            ),
+            @intCast(262144),
+            @intCast(diluted_n_bits),
         ) catch 0;
     }
 
@@ -288,10 +277,7 @@ pub const KeccakBuiltinRunner = struct {
             bytes.*,
         );
         try bytes_vector.appendNTimes(
-            @as(
-                u8,
-                @intCast(0),
-            ),
+            @intCast(0),
             final_size - bytes.len,
         );
         return bytes_vector;
@@ -349,6 +335,54 @@ pub const KeccakBuiltinRunner = struct {
         }
 
         return result;
+    }
+
+    /// Calculate the final stack.
+    ///
+    /// This function calculates the final stack pointer for the Keccak runner, based on the provided `segments`, `pointer`, and `self` settings. If the runner is included,
+    /// it verifies the stop pointer for consistency and sets it. Otherwise, it sets the stop pointer to zero.
+    ///
+    /// # Parameters
+    ///
+    /// - `segments`: A pointer to the `MemorySegmentManager` for segment management.
+    /// - `pointer`: A `Relocatable` pointer to the current stack pointer.
+    ///
+    /// # Returns
+    ///
+    /// A `Relocatable` pointer to the final stack pointer, or an error code if the
+    /// verification fails.
+    pub fn final_stack(
+        self: *Self,
+        segments: *MemorySegmentManager,
+        pointer: Relocatable,
+    ) !Relocatable {
+        if (self.included) {
+            const stop_pointer_addr = pointer.subUint(
+                @intCast(1),
+            ) catch return RunnerError.NoStopPointer;
+            const stop_pointer = try (segments.memory.get(
+                stop_pointer_addr,
+            ) catch return RunnerError.NoStopPointer).tryIntoRelocatable();
+            if (@as(
+                isize,
+                @intCast(self.base),
+            ) != stop_pointer.segment_index) {
+                return RunnerError.InvalidStopPointerIndex;
+            }
+            const stop_ptr = stop_pointer.offset;
+
+            if (stop_ptr != try self.get_used_instances(segments) * @as(
+                usize,
+                @intCast(self.cells_per_instance),
+            )) {
+                return RunnerError.InvalidStopPointer;
+            }
+            self.stop_ptr = stop_ptr;
+            return stop_pointer_addr;
+        }
+
+        self.stop_ptr = 0;
+        return pointer;
     }
 
     /// Frees the resources owned by this instance of `KeccakBuiltinRunner`.
@@ -633,5 +667,189 @@ test "KeccakBuiltinRunner: keccak_f" {
         u8,
         expected_output_bytes,
         actual.items,
+    );
+}
+
+test "KeccakBuiltinRunner: final_stack should return relocatable pointer if not included" {
+    var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
+    defer keccak_instance_def.deinit();
+    var keccak_builtin = KeccakBuiltinRunner.new(
+        std.testing.allocator,
+        &keccak_instance_def,
+        false,
+    );
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+
+    try expectEqual(
+        Relocatable.new(
+            2,
+            2,
+        ),
+        try keccak_builtin.final_stack(
+            memory_segment_manager,
+            Relocatable.new(2, 2),
+        ),
+    );
+}
+
+test "KeccakBuiltinRunner: final_stack should return NoStopPointer error if pointer offset is 0" {
+    var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
+    defer keccak_instance_def.deinit();
+    var keccak_builtin = KeccakBuiltinRunner.new(
+        std.testing.allocator,
+        &keccak_instance_def,
+        true,
+    );
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try expectError(
+        RunnerError.NoStopPointer,
+        keccak_builtin.final_stack(
+            memory_segment_manager,
+            Relocatable.new(2, 0),
+        ),
+    );
+}
+
+test "KeccakBuiltinRunner: final_stack should return NoStopPointer error if no data in memory at the given stop pointer address" {
+    var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
+    defer keccak_instance_def.deinit();
+    var keccak_builtin = KeccakBuiltinRunner.new(
+        std.testing.allocator,
+        &keccak_instance_def,
+        true,
+    );
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try expectError(
+        RunnerError.NoStopPointer,
+        keccak_builtin.final_stack(
+            memory_segment_manager,
+            Relocatable.new(2, 2),
+        ),
+    );
+}
+
+test "KeccakBuiltinRunner: final_stack should return TypeMismatchNotRelocatable error if data in memory at the given stop pointer address is not Relocatable" {
+    var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
+    defer keccak_instance_def.deinit();
+    var keccak_builtin = KeccakBuiltinRunner.new(
+        std.testing.allocator,
+        &keccak_instance_def,
+        true,
+    );
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.memory.data.put(
+        try Relocatable.new(
+            2,
+            2,
+        ).subUint(@intCast(1)),
+        .{ .felt = Felt252.fromInteger(10) },
+    );
+    try expectError(
+        error.TypeMismatchNotRelocatable,
+        keccak_builtin.final_stack(
+            memory_segment_manager,
+            Relocatable.new(2, 2),
+        ),
+    );
+}
+
+test "KeccakBuiltinRunner: final_stack should return InvalidStopPointerIndex error if segment index of stop pointer is not KeccakBuiltinRunner base" {
+    var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
+    defer keccak_instance_def.deinit();
+    var keccak_builtin = KeccakBuiltinRunner.new(
+        std.testing.allocator,
+        &keccak_instance_def,
+        true,
+    );
+    keccak_builtin.base = 22;
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.memory.data.put(
+        try Relocatable.new(
+            2,
+            2,
+        ).subUint(@intCast(1)),
+        .{ .relocatable = Relocatable.new(
+            10,
+            2,
+        ) },
+    );
+    try expectError(
+        RunnerError.InvalidStopPointerIndex,
+        keccak_builtin.final_stack(
+            memory_segment_manager,
+            Relocatable.new(2, 2),
+        ),
+    );
+}
+
+test "KeccakBuiltinRunner: final_stack should return InvalidStopPointer error if stop pointer offset is not cells used" {
+    var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
+    defer keccak_instance_def.deinit();
+    var keccak_builtin = KeccakBuiltinRunner.new(
+        std.testing.allocator,
+        &keccak_instance_def,
+        true,
+    );
+    keccak_builtin.base = 22;
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.memory.data.put(
+        try Relocatable.new(
+            2,
+            2,
+        ).subUint(@intCast(1)),
+        .{ .relocatable = Relocatable.new(
+            22,
+            2,
+        ) },
+    );
+    try memory_segment_manager.segment_used_sizes.put(22, 345);
+    try expectError(
+        RunnerError.InvalidStopPointer,
+        keccak_builtin.final_stack(
+            memory_segment_manager,
+            Relocatable.new(2, 2),
+        ),
+    );
+}
+
+test "KeccakBuiltinRunner: final_stack should return stop pointer address and update stop_ptr" {
+    var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
+    defer keccak_instance_def.deinit();
+    var keccak_builtin = KeccakBuiltinRunner.new(
+        std.testing.allocator,
+        &keccak_instance_def,
+        true,
+    );
+    keccak_builtin.base = 22;
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.memory.data.put(
+        try Relocatable.new(
+            2,
+            2,
+        ).subUint(@intCast(1)),
+        .{ .relocatable = Relocatable.new(
+            22,
+            22 * 16,
+        ) },
+    );
+    try memory_segment_manager.segment_used_sizes.put(22, 345);
+
+    try expectEqual(
+        Relocatable.new(2, 1),
+        try keccak_builtin.final_stack(
+            memory_segment_manager,
+            Relocatable.new(2, 2),
+        ),
+    );
+    try expectEqual(
+        @as(?usize, @intCast(352)),
+        keccak_builtin.stop_ptr.?,
     );
 }

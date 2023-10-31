@@ -15,3 +15,9 @@ pub const CairoVMError = error{
 pub const MemoryError = error{
     MissingSegmentUsedSizes,
 };
+
+pub const RunnerError = error{
+    NoStopPointer,
+    InvalidStopPointerIndex,
+    InvalidStopPointer,
+};
