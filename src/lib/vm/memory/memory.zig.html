@@ -266,98 +266,94 @@
 <span class="line" id="L116">        self: *Self,</span>
 <span class="line" id="L117">        address: Relocatable,</span>
 <span class="line" id="L118">    ) <span class="tok-kw">error</span>{MemoryOutOfBounds}!MaybeRelocatable {</span>
-<span class="line" id="L119">        <span class="tok-kw">var</span> maybe_value = self.data.get(address);</span>
-<span class="line" id="L120">        <span class="tok-kw">if</span> (maybe_value == <span class="tok-null">null</span>) {</span>
-<span class="line" id="L121">            <span class="tok-kw">return</span> CairoVMError.MemoryOutOfBounds;</span>
-<span class="line" id="L122">        }</span>
-<span class="line" id="L123">        <span class="tok-kw">return</span> maybe_value.?;</span>
-<span class="line" id="L124">    }</span>
-<span class="line" id="L125">};</span>
-<span class="line" id="L126"></span>
-<span class="line" id="L127"><span class="tok-kw">test</span> <span class="tok-str">&quot;memory get without value raises error&quot;</span> {</span>
-<span class="line" id="L128">    <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L119">        <span class="tok-kw">return</span> self.data.get(address) <span class="tok-kw">orelse</span> CairoVMError.MemoryOutOfBounds;</span>
+<span class="line" id="L120">    }</span>
+<span class="line" id="L121">};</span>
+<span class="line" id="L122"></span>
+<span class="line" id="L123"><span class="tok-kw">test</span> <span class="tok-str">&quot;memory get without value raises error&quot;</span> {</span>
+<span class="line" id="L124">    <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L129">    <span class="tok-comment">// *                 SETUP TEST CONTEXT                       *</span>
+<span class="line" id="L125">    <span class="tok-comment">// *                 SETUP TEST CONTEXT                       *</span>
 </span>
-<span class="line" id="L130">    <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L126">    <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L131">    <span class="tok-comment">// Initialize an allocator.</span>
+<span class="line" id="L127">    <span class="tok-comment">// Initialize an allocator.</span>
 </span>
-<span class="line" id="L132">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
+<span class="line" id="L128">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
+<span class="line" id="L129"></span>
+<span class="line" id="L130">    <span class="tok-comment">// Initialize a memory instance.</span>
+</span>
+<span class="line" id="L131">    <span class="tok-kw">var</span> memory = <span class="tok-kw">try</span> Memory.init(allocator);</span>
+<span class="line" id="L132">    <span class="tok-kw">defer</span> memory.deinit();</span>
 <span class="line" id="L133"></span>
-<span class="line" id="L134">    <span class="tok-comment">// Initialize a memory instance.</span>
+<span class="line" id="L134">    <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L135">    <span class="tok-kw">var</span> memory = <span class="tok-kw">try</span> Memory.init(allocator);</span>
-<span class="line" id="L136">    <span class="tok-kw">defer</span> memory.deinit();</span>
-<span class="line" id="L137"></span>
-<span class="line" id="L138">    <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L135">    <span class="tok-comment">// *                      TEST CHECKS                         *</span>
 </span>
-<span class="line" id="L139">    <span class="tok-comment">// *                      TEST CHECKS                         *</span>
+<span class="line" id="L136">    <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L140">    <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L137">    <span class="tok-comment">// Get a value from the memory at an address that doesn't exist.</span>
 </span>
-<span class="line" id="L141">    <span class="tok-comment">// Get a value from the memory at an address that doesn't exist.</span>
+<span class="line" id="L138">    _ = memory.get(Relocatable.new(</span>
+<span class="line" id="L139">        <span class="tok-number">0</span>,</span>
+<span class="line" id="L140">        <span class="tok-number">0</span>,</span>
+<span class="line" id="L141">    )) <span class="tok-kw">catch</span> |err| {</span>
+<span class="line" id="L142">        <span class="tok-comment">// Assert that the error is the expected error.</span>
 </span>
-<span class="line" id="L142">    _ = memory.get(Relocatable.new(</span>
-<span class="line" id="L143">        <span class="tok-number">0</span>,</span>
-<span class="line" id="L144">        <span class="tok-number">0</span>,</span>
-<span class="line" id="L145">    )) <span class="tok-kw">catch</span> |err| {</span>
-<span class="line" id="L146">        <span class="tok-comment">// Assert that the error is the expected error.</span>
+<span class="line" id="L143">        <span class="tok-kw">try</span> expect(err == <span class="tok-kw">error</span>.MemoryOutOfBounds);</span>
+<span class="line" id="L144">        <span class="tok-kw">return</span>;</span>
+<span class="line" id="L145">    };</span>
+<span class="line" id="L146">}</span>
+<span class="line" id="L147"></span>
+<span class="line" id="L148"><span class="tok-kw">test</span> <span class="tok-str">&quot;memory set and get&quot;</span> {</span>
+<span class="line" id="L149">    <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L147">        <span class="tok-kw">try</span> expect(err == <span class="tok-kw">error</span>.MemoryOutOfBounds);</span>
-<span class="line" id="L148">        <span class="tok-kw">return</span>;</span>
-<span class="line" id="L149">    };</span>
-<span class="line" id="L150">}</span>
-<span class="line" id="L151"></span>
-<span class="line" id="L152"><span class="tok-kw">test</span> <span class="tok-str">&quot;memory set and get&quot;</span> {</span>
-<span class="line" id="L153">    <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L150">    <span class="tok-comment">// *                 SETUP TEST CONTEXT                       *</span>
 </span>
-<span class="line" id="L154">    <span class="tok-comment">// *                 SETUP TEST CONTEXT                       *</span>
+<span class="line" id="L151">    <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L155">    <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L152">    <span class="tok-comment">// Initialize an allocator.</span>
 </span>
-<span class="line" id="L156">    <span class="tok-comment">// Initialize an allocator.</span>
+<span class="line" id="L153">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
+<span class="line" id="L154"></span>
+<span class="line" id="L155">    <span class="tok-comment">// Initialize a memory instance.</span>
 </span>
-<span class="line" id="L157">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
+<span class="line" id="L156">    <span class="tok-kw">var</span> memory = <span class="tok-kw">try</span> Memory.init(allocator);</span>
+<span class="line" id="L157">    <span class="tok-kw">defer</span> memory.deinit();</span>
 <span class="line" id="L158"></span>
-<span class="line" id="L159">    <span class="tok-comment">// Initialize a memory instance.</span>
+<span class="line" id="L159">    <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L160">    <span class="tok-kw">var</span> memory = <span class="tok-kw">try</span> Memory.init(allocator);</span>
-<span class="line" id="L161">    <span class="tok-kw">defer</span> memory.deinit();</span>
-<span class="line" id="L162"></span>
-<span class="line" id="L163">    <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L160">    <span class="tok-comment">// *                      TEST BODY                           *</span>
 </span>
-<span class="line" id="L164">    <span class="tok-comment">// *                      TEST BODY                           *</span>
+<span class="line" id="L161">    <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L165">    <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L162">    <span class="tok-kw">const</span> address_1 = Relocatable.new(</span>
+<span class="line" id="L163">        <span class="tok-number">0</span>,</span>
+<span class="line" id="L164">        <span class="tok-number">0</span>,</span>
+<span class="line" id="L165">    );</span>
+<span class="line" id="L166">    <span class="tok-kw">const</span> value_1 = relocatable.fromFelt(starknet_felt.Felt252.one());</span>
+<span class="line" id="L167"></span>
+<span class="line" id="L168">    <span class="tok-comment">// Set a value into the memory.</span>
 </span>
-<span class="line" id="L166">    <span class="tok-kw">const</span> address_1 = Relocatable.new(</span>
-<span class="line" id="L167">        <span class="tok-number">0</span>,</span>
-<span class="line" id="L168">        <span class="tok-number">0</span>,</span>
-<span class="line" id="L169">    );</span>
-<span class="line" id="L170">    <span class="tok-kw">const</span> value_1 = relocatable.fromFelt(starknet_felt.Felt252.one());</span>
-<span class="line" id="L171"></span>
-<span class="line" id="L172">    <span class="tok-comment">// Set a value into the memory.</span>
+<span class="line" id="L169">    _ = <span class="tok-kw">try</span> memory.set(</span>
+<span class="line" id="L170">        address_1,</span>
+<span class="line" id="L171">        value_1,</span>
+<span class="line" id="L172">    );</span>
+<span class="line" id="L173"></span>
+<span class="line" id="L174">    <span class="tok-comment">// Get the value from the memory.</span>
 </span>
-<span class="line" id="L173">    _ = <span class="tok-kw">try</span> memory.set(</span>
-<span class="line" id="L174">        address_1,</span>
-<span class="line" id="L175">        value_1,</span>
-<span class="line" id="L176">    );</span>
-<span class="line" id="L177"></span>
-<span class="line" id="L178">    <span class="tok-comment">// Get the value from the memory.</span>
+<span class="line" id="L175">    <span class="tok-kw">const</span> maybe_value_1 = <span class="tok-kw">try</span> memory.get(address_1);</span>
+<span class="line" id="L176"></span>
+<span class="line" id="L177">    <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L179">    <span class="tok-kw">const</span> maybe_value_1 = <span class="tok-kw">try</span> memory.get(address_1);</span>
-<span class="line" id="L180"></span>
-<span class="line" id="L181">    <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L178">    <span class="tok-comment">// *                      TEST CHECKS                         *</span>
 </span>
-<span class="line" id="L182">    <span class="tok-comment">// *                      TEST CHECKS                         *</span>
+<span class="line" id="L179">    <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L183">    <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L180">    <span class="tok-comment">// Assert that the value is the expected value.</span>
 </span>
-<span class="line" id="L184">    <span class="tok-comment">// Assert that the value is the expected value.</span>
-</span>
-<span class="line" id="L185">    <span class="tok-kw">try</span> expect(maybe_value_1.eq(value_1));</span>
-<span class="line" id="L186">}</span>
-<span class="line" id="L187"></span>
+<span class="line" id="L181">    <span class="tok-kw">try</span> expect(maybe_value_1.eq(value_1));</span>
+<span class="line" id="L182">}</span>
+<span class="line" id="L183"></span>
 </code></pre></body>
 </html>
