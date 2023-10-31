@@ -374,445 +374,485 @@
 <span class="line" id="L219">        _ = op_o;</span>
 <span class="line" id="L220">    }</span>
 <span class="line" id="L221"></span>
-<span class="line" id="L222">    <span class="tok-comment">/// Updates the value of PC according to the executed instruction.</span></span>
-<span class="line" id="L223">    <span class="tok-comment">/// # Arguments</span></span>
-<span class="line" id="L224">    <span class="tok-comment">/// - `instruction`: The instruction that was executed.</span></span>
-<span class="line" id="L225">    <span class="tok-comment">/// - `operands`: The operands of the instruction.</span></span>
-<span class="line" id="L226">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">updatePc</span>(</span>
-<span class="line" id="L227">        self: *Self,</span>
-<span class="line" id="L228">        instruction: *<span class="tok-kw">const</span> instructions.Instruction,</span>
-<span class="line" id="L229">        operands: OperandsResult,</span>
-<span class="line" id="L230">    ) !<span class="tok-type">void</span> {</span>
-<span class="line" id="L231">        <span class="tok-kw">switch</span> (instruction.pc_update) {</span>
-<span class="line" id="L232">            <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L222">    <span class="tok-comment">/// Attempts to deduce `op0` and `res` for an instruction, given `dst` and `op1`.</span></span>
+<span class="line" id="L223">    <span class="tok-comment">///</span></span>
+<span class="line" id="L224">    <span class="tok-comment">/// # Arguments</span></span>
+<span class="line" id="L225">    <span class="tok-comment">/// - `inst`: The instruction to deduce `op0` and `res` for.</span></span>
+<span class="line" id="L226">    <span class="tok-comment">/// - `dst`: The destination of the instruction.</span></span>
+<span class="line" id="L227">    <span class="tok-comment">/// - `op1`: The first operand of the instruction.</span></span>
+<span class="line" id="L228">    <span class="tok-comment">///</span></span>
+<span class="line" id="L229">    <span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L230">    <span class="tok-comment">/// - `Tuple`: A tuple containing the deduced `op0` and `res`.</span></span>
+<span class="line" id="L231">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">deduceOp0</span>(</span>
+<span class="line" id="L232">        self: *Self,</span>
+<span class="line" id="L233">        inst: *<span class="tok-kw">const</span> instructions.Instruction,</span>
+<span class="line" id="L234">        dst: ?*<span class="tok-kw">const</span> MaybeRelocatable,</span>
+<span class="line" id="L235">        op1: ?*<span class="tok-kw">const</span> MaybeRelocatable,</span>
+<span class="line" id="L236">    ) !std.meta.Tuple(&amp;.{ ?relocatable.MaybeRelocatable, ?relocatable.MaybeRelocatable }) {</span>
+<span class="line" id="L237">        <span class="tok-kw">switch</span> (inst.opcode) {</span>
+<span class="line" id="L238">            .Call =&gt; {</span>
+<span class="line" id="L239">                <span class="tok-kw">return</span> .{ relocatable.newFromRelocatable(<span class="tok-kw">try</span> self.run_context.pc.addUint(inst.size())), <span class="tok-null">null</span> };</span>
+<span class="line" id="L240">            },</span>
+<span class="line" id="L241">            .AssertEq =&gt; {</span>
+<span class="line" id="L242">                <span class="tok-kw">const</span> dst_val = dst <span class="tok-kw">orelse</span> <span class="tok-kw">return</span> .{ <span class="tok-null">null</span>, <span class="tok-null">null</span> };</span>
+<span class="line" id="L243">                <span class="tok-kw">const</span> op1_val = op1 <span class="tok-kw">orelse</span> <span class="tok-kw">return</span> .{ <span class="tok-null">null</span>, <span class="tok-null">null</span> };</span>
+<span class="line" id="L244">                <span class="tok-kw">if</span> ((inst.res_logic == .Add)) {</span>
+<span class="line" id="L245">                    <span class="tok-kw">return</span> .{ <span class="tok-kw">try</span> subOperands(dst_val.*, op1_val.*), dst_val.* };</span>
+<span class="line" id="L246">                } <span class="tok-kw">else</span> <span class="tok-kw">if</span> (dst_val.isFelt() <span class="tok-kw">and</span> op1_val.isFelt() <span class="tok-kw">and</span></span>
+<span class="line" id="L247">                    !op1_val.felt.isZero())</span>
+<span class="line" id="L248">                {</span>
+<span class="line" id="L249">                    <span class="tok-kw">return</span> .{</span>
+<span class="line" id="L250">                        relocatable.fromFelt(<span class="tok-kw">try</span> dst_val.felt.div(op1_val.felt)),</span>
+<span class="line" id="L251">                        dst_val.*,</span>
+<span class="line" id="L252">                    };</span>
+<span class="line" id="L253">                }</span>
+<span class="line" id="L254">            },</span>
+<span class="line" id="L255">            <span class="tok-kw">else</span> =&gt; {</span>
+<span class="line" id="L256">                <span class="tok-kw">return</span> .{ <span class="tok-null">null</span>, <span class="tok-null">null</span> };</span>
+<span class="line" id="L257">            },</span>
+<span class="line" id="L258">        }</span>
+<span class="line" id="L259">        <span class="tok-kw">return</span> .{ <span class="tok-null">null</span>, <span class="tok-null">null</span> };</span>
+<span class="line" id="L260">    }</span>
+<span class="line" id="L261"></span>
+<span class="line" id="L262">    <span class="tok-comment">/// Updates the value of PC according to the executed instruction.</span></span>
+<span class="line" id="L263">    <span class="tok-comment">/// # Arguments</span></span>
+<span class="line" id="L264">    <span class="tok-comment">/// - `instruction`: The instruction that was executed.</span></span>
+<span class="line" id="L265">    <span class="tok-comment">/// - `operands`: The operands of the instruction.</span></span>
+<span class="line" id="L266">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">updatePc</span>(</span>
+<span class="line" id="L267">        self: *Self,</span>
+<span class="line" id="L268">        instruction: *<span class="tok-kw">const</span> instructions.Instruction,</span>
+<span class="line" id="L269">        operands: OperandsResult,</span>
+<span class="line" id="L270">    ) !<span class="tok-type">void</span> {</span>
+<span class="line" id="L271">        <span class="tok-kw">switch</span> (instruction.pc_update) {</span>
+<span class="line" id="L272">            <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L233">            <span class="tok-comment">// *                PC UPDATE REGULAR                         *</span>
+<span class="line" id="L273">            <span class="tok-comment">// *                PC UPDATE REGULAR                         *</span>
 </span>
-<span class="line" id="L234">            <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L274">            <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L235">            instructions.PcUpdate.Regular =&gt; {</span>
-<span class="line" id="L236">                <span class="tok-comment">// Update the PC.</span>
+<span class="line" id="L275">            instructions.PcUpdate.Regular =&gt; {</span>
+<span class="line" id="L276">                <span class="tok-comment">// Update the PC.</span>
 </span>
-<span class="line" id="L237">                self.run_context.pc.*.addUintInPlace(instruction.size());</span>
-<span class="line" id="L238">            },</span>
-<span class="line" id="L239">            <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L277">                self.run_context.pc.*.addUintInPlace(instruction.size());</span>
+<span class="line" id="L278">            },</span>
+<span class="line" id="L279">            <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L240">            <span class="tok-comment">// *                PC UPDATE JUMP                            *</span>
+<span class="line" id="L280">            <span class="tok-comment">// *                PC UPDATE JUMP                            *</span>
 </span>
-<span class="line" id="L241">            <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L281">            <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L242">            instructions.PcUpdate.Jump =&gt; {</span>
-<span class="line" id="L243">                <span class="tok-comment">// Check that the res is not null.</span>
+<span class="line" id="L282">            instructions.PcUpdate.Jump =&gt; {</span>
+<span class="line" id="L283">                <span class="tok-comment">// Check that the res is not null.</span>
 </span>
-<span class="line" id="L244">                <span class="tok-kw">if</span> (operands.res == <span class="tok-null">null</span>) {</span>
-<span class="line" id="L245">                    <span class="tok-kw">return</span> <span class="tok-kw">error</span>.ResUnconstrainedUsedWithPcUpdateJump;</span>
-<span class="line" id="L246">                }</span>
-<span class="line" id="L247">                <span class="tok-comment">// Check that the res is a relocatable.</span>
+<span class="line" id="L284">                <span class="tok-kw">if</span> (operands.res == <span class="tok-null">null</span>) {</span>
+<span class="line" id="L285">                    <span class="tok-kw">return</span> <span class="tok-kw">error</span>.ResUnconstrainedUsedWithPcUpdateJump;</span>
+<span class="line" id="L286">                }</span>
+<span class="line" id="L287">                <span class="tok-comment">// Check that the res is a relocatable.</span>
 </span>
-<span class="line" id="L248">                <span class="tok-kw">const</span> res = operands.res.?.tryIntoRelocatable() <span class="tok-kw">catch</span> {</span>
-<span class="line" id="L249">                    <span class="tok-kw">return</span> <span class="tok-kw">error</span>.PcUpdateJumpResNotRelocatable;</span>
-<span class="line" id="L250">                };</span>
-<span class="line" id="L251">                <span class="tok-comment">// Update the PC.</span>
+<span class="line" id="L288">                <span class="tok-kw">const</span> res = operands.res.?.tryIntoRelocatable() <span class="tok-kw">catch</span> {</span>
+<span class="line" id="L289">                    <span class="tok-kw">return</span> <span class="tok-kw">error</span>.PcUpdateJumpResNotRelocatable;</span>
+<span class="line" id="L290">                };</span>
+<span class="line" id="L291">                <span class="tok-comment">// Update the PC.</span>
 </span>
-<span class="line" id="L252">                self.run_context.pc.* = res;</span>
-<span class="line" id="L253">            },</span>
-<span class="line" id="L254">            <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L292">                self.run_context.pc.* = res;</span>
+<span class="line" id="L293">            },</span>
+<span class="line" id="L294">            <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L255">            <span class="tok-comment">// *                PC UPDATE JUMP REL                        *</span>
+<span class="line" id="L295">            <span class="tok-comment">// *                PC UPDATE JUMP REL                        *</span>
 </span>
-<span class="line" id="L256">            <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L296">            <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L257">            instructions.PcUpdate.JumpRel =&gt; {</span>
-<span class="line" id="L258">                <span class="tok-comment">// Check that the res is not null.</span>
-</span>
-<span class="line" id="L259">                <span class="tok-kw">if</span> (operands.res == <span class="tok-null">null</span>) {</span>
-<span class="line" id="L260">                    <span class="tok-kw">return</span> <span class="tok-kw">error</span>.ResUnconstrainedUsedWithPcUpdateJumpRel;</span>
-<span class="line" id="L261">                }</span>
-<span class="line" id="L262">                <span class="tok-comment">// Check that the res is a felt.</span>
-</span>
-<span class="line" id="L263">                <span class="tok-kw">const</span> res = operands.res.?.tryIntoFelt() <span class="tok-kw">catch</span> {</span>
-<span class="line" id="L264">                    <span class="tok-kw">return</span> <span class="tok-kw">error</span>.PcUpdateJumpRelResNotFelt;</span>
-<span class="line" id="L265">                };</span>
-<span class="line" id="L266">                <span class="tok-comment">// Update the PC.</span>
-</span>
-<span class="line" id="L267">                <span class="tok-kw">try</span> self.run_context.pc.*.addFeltInPlace(res);</span>
-<span class="line" id="L268">            },</span>
-<span class="line" id="L269">            <span class="tok-comment">// ************************************************************</span>
-</span>
-<span class="line" id="L270">            <span class="tok-comment">// *                PC UPDATE JNZ                            *</span>
-</span>
-<span class="line" id="L271">            <span class="tok-comment">// ************************************************************</span>
-</span>
-<span class="line" id="L272">            instructions.PcUpdate.Jnz =&gt; {</span>
-<span class="line" id="L273">                <span class="tok-kw">if</span> (operands.dst.isZero()) {</span>
-<span class="line" id="L274">                    <span class="tok-comment">// Update the PC.</span>
-</span>
-<span class="line" id="L275">                    self.run_context.pc.*.addUintInPlace(instruction.size());</span>
-<span class="line" id="L276">                } <span class="tok-kw">else</span> {</span>
-<span class="line" id="L277">                    <span class="tok-comment">// Update the PC.</span>
-</span>
-<span class="line" id="L278">                    <span class="tok-kw">try</span> self.run_context.pc.*.addMaybeRelocatableInplace(operands.op_1);</span>
-<span class="line" id="L279">                }</span>
-<span class="line" id="L280">            },</span>
-<span class="line" id="L281">        }</span>
-<span class="line" id="L282">    }</span>
-<span class="line" id="L283"></span>
-<span class="line" id="L284">    <span class="tok-comment">/// Updates the value of AP according to the executed instruction.</span></span>
-<span class="line" id="L285">    <span class="tok-comment">/// # Arguments</span></span>
-<span class="line" id="L286">    <span class="tok-comment">/// - `instruction`: The instruction that was executed.</span></span>
-<span class="line" id="L287">    <span class="tok-comment">/// - `operands`: The operands of the instruction.</span></span>
-<span class="line" id="L288">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">updateAp</span>(</span>
-<span class="line" id="L289">        self: *Self,</span>
-<span class="line" id="L290">        instruction: *<span class="tok-kw">const</span> instructions.Instruction,</span>
-<span class="line" id="L291">        operands: OperandsResult,</span>
-<span class="line" id="L292">    ) !<span class="tok-type">void</span> {</span>
-<span class="line" id="L293">        <span class="tok-kw">switch</span> (instruction.ap_update) {</span>
-<span class="line" id="L294">            <span class="tok-comment">// *********************************************************</span>
-</span>
-<span class="line" id="L295">            <span class="tok-comment">// *                      AP UPDATE ADD                    *</span>
-</span>
-<span class="line" id="L296">            <span class="tok-comment">// *********************************************************</span>
-</span>
-<span class="line" id="L297">            instructions.ApUpdate.Add =&gt; {</span>
-<span class="line" id="L298">                <span class="tok-comment">// Check that Res is not null.</span>
+<span class="line" id="L297">            instructions.PcUpdate.JumpRel =&gt; {</span>
+<span class="line" id="L298">                <span class="tok-comment">// Check that the res is not null.</span>
 </span>
 <span class="line" id="L299">                <span class="tok-kw">if</span> (operands.res == <span class="tok-null">null</span>) {</span>
-<span class="line" id="L300">                    <span class="tok-kw">return</span> <span class="tok-kw">error</span>.ApUpdateAddResUnconstrained;</span>
+<span class="line" id="L300">                    <span class="tok-kw">return</span> <span class="tok-kw">error</span>.ResUnconstrainedUsedWithPcUpdateJumpRel;</span>
 <span class="line" id="L301">                }</span>
-<span class="line" id="L302">                <span class="tok-comment">// Update AP.</span>
+<span class="line" id="L302">                <span class="tok-comment">// Check that the res is a felt.</span>
 </span>
-<span class="line" id="L303">                <span class="tok-kw">try</span> self.run_context.ap.*.addMaybeRelocatableInplace(operands.res.?);</span>
-<span class="line" id="L304">            },</span>
-<span class="line" id="L305">            <span class="tok-comment">// *********************************************************</span>
+<span class="line" id="L303">                <span class="tok-kw">const</span> res = operands.res.?.tryIntoFelt() <span class="tok-kw">catch</span> {</span>
+<span class="line" id="L304">                    <span class="tok-kw">return</span> <span class="tok-kw">error</span>.PcUpdateJumpRelResNotFelt;</span>
+<span class="line" id="L305">                };</span>
+<span class="line" id="L306">                <span class="tok-comment">// Update the PC.</span>
 </span>
-<span class="line" id="L306">            <span class="tok-comment">// *                    AP UPDATE ADD1                     *</span>
+<span class="line" id="L307">                <span class="tok-kw">try</span> self.run_context.pc.*.addFeltInPlace(res);</span>
+<span class="line" id="L308">            },</span>
+<span class="line" id="L309">            <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L307">            <span class="tok-comment">// *********************************************************</span>
+<span class="line" id="L310">            <span class="tok-comment">// *                PC UPDATE JNZ                            *</span>
 </span>
-<span class="line" id="L308">            instructions.ApUpdate.Add1 =&gt; {</span>
-<span class="line" id="L309">                self.run_context.ap.*.addUintInPlace(<span class="tok-number">1</span>);</span>
-<span class="line" id="L310">            },</span>
-<span class="line" id="L311">            <span class="tok-comment">// *********************************************************</span>
+<span class="line" id="L311">            <span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L312">            <span class="tok-comment">// *                    AP UPDATE ADD2                     *</span>
+<span class="line" id="L312">            instructions.PcUpdate.Jnz =&gt; {</span>
+<span class="line" id="L313">                <span class="tok-kw">if</span> (operands.dst.isZero()) {</span>
+<span class="line" id="L314">                    <span class="tok-comment">// Update the PC.</span>
 </span>
-<span class="line" id="L313">            <span class="tok-comment">// *********************************************************</span>
+<span class="line" id="L315">                    self.run_context.pc.*.addUintInPlace(instruction.size());</span>
+<span class="line" id="L316">                } <span class="tok-kw">else</span> {</span>
+<span class="line" id="L317">                    <span class="tok-comment">// Update the PC.</span>
 </span>
-<span class="line" id="L314">            instructions.ApUpdate.Add2 =&gt; {</span>
-<span class="line" id="L315">                self.run_context.ap.*.addUintInPlace(<span class="tok-number">2</span>);</span>
-<span class="line" id="L316">            },</span>
-<span class="line" id="L317">            <span class="tok-kw">else</span> =&gt; {},</span>
-<span class="line" id="L318">        }</span>
-<span class="line" id="L319">    }</span>
-<span class="line" id="L320"></span>
-<span class="line" id="L321">    <span class="tok-comment">/// Updates the value of AP according to the executed instruction.</span></span>
-<span class="line" id="L322">    <span class="tok-comment">/// # Arguments</span></span>
-<span class="line" id="L323">    <span class="tok-comment">/// - `instruction`: The instruction that was executed.</span></span>
-<span class="line" id="L324">    <span class="tok-comment">/// - `operands`: The operands of the instruction.</span></span>
-<span class="line" id="L325">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">updateFp</span>(</span>
-<span class="line" id="L326">        self: *Self,</span>
-<span class="line" id="L327">        instruction: *<span class="tok-kw">const</span> instructions.Instruction,</span>
-<span class="line" id="L328">        operands: OperandsResult,</span>
-<span class="line" id="L329">    ) !<span class="tok-type">void</span> {</span>
-<span class="line" id="L330">        <span class="tok-kw">switch</span> (instruction.fp_update) {</span>
-<span class="line" id="L331">            <span class="tok-comment">// *********************************************************</span>
+<span class="line" id="L318">                    <span class="tok-kw">try</span> self.run_context.pc.*.addMaybeRelocatableInplace(operands.op_1);</span>
+<span class="line" id="L319">                }</span>
+<span class="line" id="L320">            },</span>
+<span class="line" id="L321">        }</span>
+<span class="line" id="L322">    }</span>
+<span class="line" id="L323"></span>
+<span class="line" id="L324">    <span class="tok-comment">/// Updates the value of AP according to the executed instruction.</span></span>
+<span class="line" id="L325">    <span class="tok-comment">/// # Arguments</span></span>
+<span class="line" id="L326">    <span class="tok-comment">/// - `instruction`: The instruction that was executed.</span></span>
+<span class="line" id="L327">    <span class="tok-comment">/// - `operands`: The operands of the instruction.</span></span>
+<span class="line" id="L328">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">updateAp</span>(</span>
+<span class="line" id="L329">        self: *Self,</span>
+<span class="line" id="L330">        instruction: *<span class="tok-kw">const</span> instructions.Instruction,</span>
+<span class="line" id="L331">        operands: OperandsResult,</span>
+<span class="line" id="L332">    ) !<span class="tok-type">void</span> {</span>
+<span class="line" id="L333">        <span class="tok-kw">switch</span> (instruction.ap_update) {</span>
+<span class="line" id="L334">            <span class="tok-comment">// *********************************************************</span>
 </span>
-<span class="line" id="L332">            <span class="tok-comment">// *                FP UPDATE AP PLUS 2                    *</span>
+<span class="line" id="L335">            <span class="tok-comment">// *                      AP UPDATE ADD                    *</span>
 </span>
-<span class="line" id="L333">            <span class="tok-comment">// *********************************************************</span>
+<span class="line" id="L336">            <span class="tok-comment">// *********************************************************</span>
 </span>
-<span class="line" id="L334">            instructions.FpUpdate.APPlus2 =&gt; {</span>
-<span class="line" id="L335">                <span class="tok-comment">// Update the FP.</span>
+<span class="line" id="L337">            instructions.ApUpdate.Add =&gt; {</span>
+<span class="line" id="L338">                <span class="tok-comment">// Check that Res is not null.</span>
 </span>
-<span class="line" id="L336">                <span class="tok-comment">// FP = AP + 2.</span>
+<span class="line" id="L339">                <span class="tok-kw">if</span> (operands.res == <span class="tok-null">null</span>) {</span>
+<span class="line" id="L340">                    <span class="tok-kw">return</span> <span class="tok-kw">error</span>.ApUpdateAddResUnconstrained;</span>
+<span class="line" id="L341">                }</span>
+<span class="line" id="L342">                <span class="tok-comment">// Update AP.</span>
 </span>
-<span class="line" id="L337">                self.run_context.fp.*.offset = self.run_context.ap.*.offset + <span class="tok-number">2</span>;</span>
-<span class="line" id="L338">            },</span>
-<span class="line" id="L339">            <span class="tok-comment">// *********************************************************</span>
+<span class="line" id="L343">                <span class="tok-kw">try</span> self.run_context.ap.*.addMaybeRelocatableInplace(operands.res.?);</span>
+<span class="line" id="L344">            },</span>
+<span class="line" id="L345">            <span class="tok-comment">// *********************************************************</span>
 </span>
-<span class="line" id="L340">            <span class="tok-comment">// *                    FP UPDATE DST                      *</span>
+<span class="line" id="L346">            <span class="tok-comment">// *                    AP UPDATE ADD1                     *</span>
 </span>
-<span class="line" id="L341">            <span class="tok-comment">// *********************************************************</span>
+<span class="line" id="L347">            <span class="tok-comment">// *********************************************************</span>
 </span>
-<span class="line" id="L342">            instructions.FpUpdate.Dst =&gt; {</span>
-<span class="line" id="L343">                <span class="tok-kw">switch</span> (operands.dst) {</span>
-<span class="line" id="L344">                    .relocatable =&gt; |rel| {</span>
-<span class="line" id="L345">                        <span class="tok-comment">// Update the FP.</span>
+<span class="line" id="L348">            instructions.ApUpdate.Add1 =&gt; {</span>
+<span class="line" id="L349">                self.run_context.ap.*.addUintInPlace(<span class="tok-number">1</span>);</span>
+<span class="line" id="L350">            },</span>
+<span class="line" id="L351">            <span class="tok-comment">// *********************************************************</span>
 </span>
-<span class="line" id="L346">                        <span class="tok-comment">// FP = DST.</span>
+<span class="line" id="L352">            <span class="tok-comment">// *                    AP UPDATE ADD2                     *</span>
 </span>
-<span class="line" id="L347">                        self.run_context.fp.* = rel;</span>
-<span class="line" id="L348">                    },</span>
-<span class="line" id="L349">                    .felt =&gt; |f| {</span>
-<span class="line" id="L350">                        <span class="tok-comment">// Update the FP.</span>
+<span class="line" id="L353">            <span class="tok-comment">// *********************************************************</span>
 </span>
-<span class="line" id="L351">                        <span class="tok-comment">// FP += DST.</span>
+<span class="line" id="L354">            instructions.ApUpdate.Add2 =&gt; {</span>
+<span class="line" id="L355">                self.run_context.ap.*.addUintInPlace(<span class="tok-number">2</span>);</span>
+<span class="line" id="L356">            },</span>
+<span class="line" id="L357">            <span class="tok-kw">else</span> =&gt; {},</span>
+<span class="line" id="L358">        }</span>
+<span class="line" id="L359">    }</span>
+<span class="line" id="L360"></span>
+<span class="line" id="L361">    <span class="tok-comment">/// Updates the value of AP according to the executed instruction.</span></span>
+<span class="line" id="L362">    <span class="tok-comment">/// # Arguments</span></span>
+<span class="line" id="L363">    <span class="tok-comment">/// - `instruction`: The instruction that was executed.</span></span>
+<span class="line" id="L364">    <span class="tok-comment">/// - `operands`: The operands of the instruction.</span></span>
+<span class="line" id="L365">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">updateFp</span>(</span>
+<span class="line" id="L366">        self: *Self,</span>
+<span class="line" id="L367">        instruction: *<span class="tok-kw">const</span> instructions.Instruction,</span>
+<span class="line" id="L368">        operands: OperandsResult,</span>
+<span class="line" id="L369">    ) !<span class="tok-type">void</span> {</span>
+<span class="line" id="L370">        <span class="tok-kw">switch</span> (instruction.fp_update) {</span>
+<span class="line" id="L371">            <span class="tok-comment">// *********************************************************</span>
 </span>
-<span class="line" id="L352">                        <span class="tok-kw">try</span> self.run_context.fp.*.addFeltInPlace(f);</span>
-<span class="line" id="L353">                    },</span>
-<span class="line" id="L354">                }</span>
-<span class="line" id="L355">            },</span>
-<span class="line" id="L356">            <span class="tok-kw">else</span> =&gt; {},</span>
-<span class="line" id="L357">        }</span>
-<span class="line" id="L358">    }</span>
-<span class="line" id="L359"></span>
-<span class="line" id="L360">    <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L372">            <span class="tok-comment">// *                FP UPDATE AP PLUS 2                    *</span>
 </span>
-<span class="line" id="L361">    <span class="tok-comment">// *                    ACCESSORS                             *</span>
+<span class="line" id="L373">            <span class="tok-comment">// *********************************************************</span>
 </span>
-<span class="line" id="L362">    <span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L374">            instructions.FpUpdate.APPlus2 =&gt; {</span>
+<span class="line" id="L375">                <span class="tok-comment">// Update the FP.</span>
 </span>
-<span class="line" id="L363"></span>
-<span class="line" id="L364">    <span class="tok-comment">/// Returns whether the run is finished or not.</span></span>
-<span class="line" id="L365">    <span class="tok-comment">/// # Returns</span></span>
-<span class="line" id="L366">    <span class="tok-comment">/// - `bool`: Whether the run is finished or not.</span></span>
-<span class="line" id="L367">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">isRunFinished</span>(self: *<span class="tok-kw">const</span> Self) <span class="tok-type">bool</span> {</span>
-<span class="line" id="L368">        <span class="tok-kw">return</span> self.is_run_finished;</span>
-<span class="line" id="L369">    }</span>
-<span class="line" id="L370"></span>
-<span class="line" id="L371">    <span class="tok-comment">/// Returns the current ap.</span></span>
-<span class="line" id="L372">    <span class="tok-comment">/// # Returns</span></span>
-<span class="line" id="L373">    <span class="tok-comment">/// - `MaybeRelocatable`: The current ap.</span></span>
-<span class="line" id="L374">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">getAp</span>(self: *<span class="tok-kw">const</span> Self) Relocatable {</span>
-<span class="line" id="L375">        <span class="tok-kw">return</span> self.run_context.ap.*;</span>
-<span class="line" id="L376">    }</span>
-<span class="line" id="L377"></span>
-<span class="line" id="L378">    <span class="tok-comment">/// Returns the current fp.</span></span>
-<span class="line" id="L379">    <span class="tok-comment">/// # Returns</span></span>
-<span class="line" id="L380">    <span class="tok-comment">/// - `MaybeRelocatable`: The current fp.</span></span>
-<span class="line" id="L381">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">getFp</span>(self: *<span class="tok-kw">const</span> Self) Relocatable {</span>
-<span class="line" id="L382">        <span class="tok-kw">return</span> self.run_context.fp.*;</span>
-<span class="line" id="L383">    }</span>
-<span class="line" id="L384"></span>
-<span class="line" id="L385">    <span class="tok-comment">/// Returns the current pc.</span></span>
-<span class="line" id="L386">    <span class="tok-comment">/// # Returns</span></span>
-<span class="line" id="L387">    <span class="tok-comment">/// - `MaybeRelocatable`: The current pc.</span></span>
-<span class="line" id="L388">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">getPc</span>(self: *<span class="tok-kw">const</span> Self) Relocatable {</span>
-<span class="line" id="L389">        <span class="tok-kw">return</span> self.run_context.pc.*;</span>
-<span class="line" id="L390">    }</span>
-<span class="line" id="L391"></span>
-<span class="line" id="L392">    <span class="tok-comment">/// Applies the corresponding builtin's deduction rules if addr's segment index corresponds to a builtin segment</span></span>
-<span class="line" id="L393">    <span class="tok-comment">/// Returns null if there is no deduction for the address</span></span>
-<span class="line" id="L394">    <span class="tok-comment">/// # Arguments</span></span>
-<span class="line" id="L395">    <span class="tok-comment">/// - `address`: The address to deduce.</span></span>
-<span class="line" id="L396">    <span class="tok-comment">/// # Returns</span></span>
-<span class="line" id="L397">    <span class="tok-comment">/// - `MaybeRelocatable`: The deduced value.</span></span>
-<span class="line" id="L398">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">deduceMemoryCell</span>(</span>
-<span class="line" id="L399">        self: *Self,</span>
-<span class="line" id="L400">        address: Relocatable,</span>
-<span class="line" id="L401">    ) CairoVMError!?MaybeRelocatable {</span>
-<span class="line" id="L402">        <span class="tok-kw">for</span> (self.builtin_runners.items) |builtin_item| {</span>
-<span class="line" id="L403">            <span class="tok-kw">if</span> (<span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L404">                <span class="tok-type">u64</span>,</span>
-<span class="line" id="L405">                <span class="tok-builtin">@intCast</span>(builtin_item.base()),</span>
-<span class="line" id="L406">            ) == address.segment_index) {</span>
-<span class="line" id="L407">                <span class="tok-kw">return</span> builtin.deduce(</span>
-<span class="line" id="L408">                    address,</span>
-<span class="line" id="L409">                    self.segments.memory,</span>
-<span class="line" id="L410">                ) <span class="tok-kw">catch</span> {</span>
-<span class="line" id="L411">                    <span class="tok-kw">return</span> CairoVMError.RunnerError;</span>
-<span class="line" id="L412">                };</span>
-<span class="line" id="L413">            }</span>
-<span class="line" id="L414">        }</span>
-<span class="line" id="L415">        <span class="tok-kw">return</span> <span class="tok-null">null</span>;</span>
+<span class="line" id="L376">                <span class="tok-comment">// FP = AP + 2.</span>
+</span>
+<span class="line" id="L377">                self.run_context.fp.*.offset = self.run_context.ap.*.offset + <span class="tok-number">2</span>;</span>
+<span class="line" id="L378">            },</span>
+<span class="line" id="L379">            <span class="tok-comment">// *********************************************************</span>
+</span>
+<span class="line" id="L380">            <span class="tok-comment">// *                    FP UPDATE DST                      *</span>
+</span>
+<span class="line" id="L381">            <span class="tok-comment">// *********************************************************</span>
+</span>
+<span class="line" id="L382">            instructions.FpUpdate.Dst =&gt; {</span>
+<span class="line" id="L383">                <span class="tok-kw">switch</span> (operands.dst) {</span>
+<span class="line" id="L384">                    .relocatable =&gt; |rel| {</span>
+<span class="line" id="L385">                        <span class="tok-comment">// Update the FP.</span>
+</span>
+<span class="line" id="L386">                        <span class="tok-comment">// FP = DST.</span>
+</span>
+<span class="line" id="L387">                        self.run_context.fp.* = rel;</span>
+<span class="line" id="L388">                    },</span>
+<span class="line" id="L389">                    .felt =&gt; |f| {</span>
+<span class="line" id="L390">                        <span class="tok-comment">// Update the FP.</span>
+</span>
+<span class="line" id="L391">                        <span class="tok-comment">// FP += DST.</span>
+</span>
+<span class="line" id="L392">                        <span class="tok-kw">try</span> self.run_context.fp.*.addFeltInPlace(f);</span>
+<span class="line" id="L393">                    },</span>
+<span class="line" id="L394">                }</span>
+<span class="line" id="L395">            },</span>
+<span class="line" id="L396">            <span class="tok-kw">else</span> =&gt; {},</span>
+<span class="line" id="L397">        }</span>
+<span class="line" id="L398">    }</span>
+<span class="line" id="L399"></span>
+<span class="line" id="L400">    <span class="tok-comment">// ************************************************************</span>
+</span>
+<span class="line" id="L401">    <span class="tok-comment">// *                    ACCESSORS                             *</span>
+</span>
+<span class="line" id="L402">    <span class="tok-comment">// ************************************************************</span>
+</span>
+<span class="line" id="L403"></span>
+<span class="line" id="L404">    <span class="tok-comment">/// Returns whether the run is finished or not.</span></span>
+<span class="line" id="L405">    <span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L406">    <span class="tok-comment">/// - `bool`: Whether the run is finished or not.</span></span>
+<span class="line" id="L407">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">isRunFinished</span>(self: *<span class="tok-kw">const</span> Self) <span class="tok-type">bool</span> {</span>
+<span class="line" id="L408">        <span class="tok-kw">return</span> self.is_run_finished;</span>
+<span class="line" id="L409">    }</span>
+<span class="line" id="L410"></span>
+<span class="line" id="L411">    <span class="tok-comment">/// Returns the current ap.</span></span>
+<span class="line" id="L412">    <span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L413">    <span class="tok-comment">/// - `MaybeRelocatable`: The current ap.</span></span>
+<span class="line" id="L414">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">getAp</span>(self: *<span class="tok-kw">const</span> Self) Relocatable {</span>
+<span class="line" id="L415">        <span class="tok-kw">return</span> self.run_context.ap.*;</span>
 <span class="line" id="L416">    }</span>
-<span class="line" id="L417">};</span>
-<span class="line" id="L418"></span>
-<span class="line" id="L419"><span class="tok-comment">/// Compute the result operand for a given instruction on op 0 and op 1.</span></span>
-<span class="line" id="L420"><span class="tok-comment">/// # Arguments</span></span>
-<span class="line" id="L421"><span class="tok-comment">/// - `instruction`: The instruction to compute the operands for.</span></span>
-<span class="line" id="L422"><span class="tok-comment">/// - `op_0`: The operand 0.</span></span>
-<span class="line" id="L423"><span class="tok-comment">/// - `op_1`: The operand 1.</span></span>
-<span class="line" id="L424"><span class="tok-comment">/// # Returns</span></span>
-<span class="line" id="L425"><span class="tok-comment">/// - `res`: The result of the operation.</span></span>
-<span class="line" id="L426"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">computeRes</span>(</span>
-<span class="line" id="L427">    instruction: *<span class="tok-kw">const</span> Instruction,</span>
-<span class="line" id="L428">    op_0: MaybeRelocatable,</span>
-<span class="line" id="L429">    op_1: MaybeRelocatable,</span>
-<span class="line" id="L430">) CairoVMError!MaybeRelocatable {</span>
-<span class="line" id="L431">    <span class="tok-kw">var</span> res = <span class="tok-kw">switch</span> (instruction.res_logic) {</span>
-<span class="line" id="L432">        instructions.ResLogic.Op1 =&gt; op_1,</span>
-<span class="line" id="L433">        instructions.ResLogic.Add =&gt; {</span>
-<span class="line" id="L434">            <span class="tok-kw">var</span> sum = <span class="tok-kw">try</span> addOperands(op_0, op_1);</span>
-<span class="line" id="L435">            <span class="tok-kw">return</span> sum;</span>
-<span class="line" id="L436">        },</span>
-<span class="line" id="L437">        instructions.ResLogic.Mul =&gt; {</span>
-<span class="line" id="L438">            <span class="tok-kw">var</span> product = <span class="tok-kw">try</span> mulOperands(op_0, op_1);</span>
-<span class="line" id="L439">            <span class="tok-kw">return</span> product;</span>
-<span class="line" id="L440">        },</span>
-<span class="line" id="L441">        instructions.ResLogic.Unconstrained =&gt; <span class="tok-null">null</span>,</span>
-<span class="line" id="L442">    };</span>
-<span class="line" id="L443">    <span class="tok-kw">return</span> res.?;</span>
-<span class="line" id="L444">}</span>
-<span class="line" id="L445"></span>
-<span class="line" id="L446"><span class="tok-comment">/// Add two operands which can either be a &quot;relocatable&quot; or a &quot;felt&quot;.</span></span>
-<span class="line" id="L447"><span class="tok-comment">/// The operation is allowed between:</span></span>
-<span class="line" id="L448"><span class="tok-comment">/// 1. A felt and another felt.</span></span>
-<span class="line" id="L449"><span class="tok-comment">/// 2. A felt and a relocatable.</span></span>
-<span class="line" id="L450"><span class="tok-comment">/// Adding two relocatables is forbidden.</span></span>
-<span class="line" id="L451"><span class="tok-comment">/// # Arguments</span></span>
-<span class="line" id="L452"><span class="tok-comment">/// - `op_0`: The operand 0.</span></span>
-<span class="line" id="L453"><span class="tok-comment">/// - `op_1`: The operand 1.</span></span>
-<span class="line" id="L454"><span class="tok-comment">/// # Returns</span></span>
-<span class="line" id="L455"><span class="tok-comment">/// - `MaybeRelocatable`: The result of the operation or an error.</span></span>
-<span class="line" id="L456"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">addOperands</span>(</span>
-<span class="line" id="L457">    op_0: MaybeRelocatable,</span>
-<span class="line" id="L458">    op_1: MaybeRelocatable,</span>
-<span class="line" id="L459">) CairoVMError!MaybeRelocatable {</span>
-<span class="line" id="L460">    <span class="tok-comment">// Both operands are relocatables, operation forbidden</span>
+<span class="line" id="L417"></span>
+<span class="line" id="L418">    <span class="tok-comment">/// Returns the current fp.</span></span>
+<span class="line" id="L419">    <span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L420">    <span class="tok-comment">/// - `MaybeRelocatable`: The current fp.</span></span>
+<span class="line" id="L421">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">getFp</span>(self: *<span class="tok-kw">const</span> Self) Relocatable {</span>
+<span class="line" id="L422">        <span class="tok-kw">return</span> self.run_context.fp.*;</span>
+<span class="line" id="L423">    }</span>
+<span class="line" id="L424"></span>
+<span class="line" id="L425">    <span class="tok-comment">/// Returns the current pc.</span></span>
+<span class="line" id="L426">    <span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L427">    <span class="tok-comment">/// - `MaybeRelocatable`: The current pc.</span></span>
+<span class="line" id="L428">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">getPc</span>(self: *<span class="tok-kw">const</span> Self) Relocatable {</span>
+<span class="line" id="L429">        <span class="tok-kw">return</span> self.run_context.pc.*;</span>
+<span class="line" id="L430">    }</span>
+<span class="line" id="L431"></span>
+<span class="line" id="L432">    <span class="tok-comment">/// Applies the corresponding builtin's deduction rules if addr's segment index corresponds to a builtin segment</span></span>
+<span class="line" id="L433">    <span class="tok-comment">/// Returns null if there is no deduction for the address</span></span>
+<span class="line" id="L434">    <span class="tok-comment">/// # Arguments</span></span>
+<span class="line" id="L435">    <span class="tok-comment">/// - `address`: The address to deduce.</span></span>
+<span class="line" id="L436">    <span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L437">    <span class="tok-comment">/// - `MaybeRelocatable`: The deduced value.</span></span>
+<span class="line" id="L438">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">deduceMemoryCell</span>(</span>
+<span class="line" id="L439">        self: *Self,</span>
+<span class="line" id="L440">        address: Relocatable,</span>
+<span class="line" id="L441">    ) CairoVMError!?MaybeRelocatable {</span>
+<span class="line" id="L442">        <span class="tok-kw">for</span> (self.builtin_runners.items) |builtin_item| {</span>
+<span class="line" id="L443">            <span class="tok-kw">if</span> (<span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L444">                <span class="tok-type">u64</span>,</span>
+<span class="line" id="L445">                <span class="tok-builtin">@intCast</span>(builtin_item.base()),</span>
+<span class="line" id="L446">            ) == address.segment_index) {</span>
+<span class="line" id="L447">                <span class="tok-kw">return</span> builtin.deduce(</span>
+<span class="line" id="L448">                    address,</span>
+<span class="line" id="L449">                    self.segments.memory,</span>
+<span class="line" id="L450">                ) <span class="tok-kw">catch</span> {</span>
+<span class="line" id="L451">                    <span class="tok-kw">return</span> CairoVMError.RunnerError;</span>
+<span class="line" id="L452">                };</span>
+<span class="line" id="L453">            }</span>
+<span class="line" id="L454">        }</span>
+<span class="line" id="L455">        <span class="tok-kw">return</span> <span class="tok-null">null</span>;</span>
+<span class="line" id="L456">    }</span>
+<span class="line" id="L457">};</span>
+<span class="line" id="L458"></span>
+<span class="line" id="L459"><span class="tok-comment">/// Compute the result operand for a given instruction on op 0 and op 1.</span></span>
+<span class="line" id="L460"><span class="tok-comment">/// # Arguments</span></span>
+<span class="line" id="L461"><span class="tok-comment">/// - `instruction`: The instruction to compute the operands for.</span></span>
+<span class="line" id="L462"><span class="tok-comment">/// - `op_0`: The operand 0.</span></span>
+<span class="line" id="L463"><span class="tok-comment">/// - `op_1`: The operand 1.</span></span>
+<span class="line" id="L464"><span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L465"><span class="tok-comment">/// - `res`: The result of the operation.</span></span>
+<span class="line" id="L466"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">computeRes</span>(</span>
+<span class="line" id="L467">    instruction: *<span class="tok-kw">const</span> Instruction,</span>
+<span class="line" id="L468">    op_0: MaybeRelocatable,</span>
+<span class="line" id="L469">    op_1: MaybeRelocatable,</span>
+<span class="line" id="L470">) CairoVMError!MaybeRelocatable {</span>
+<span class="line" id="L471">    <span class="tok-kw">var</span> res = <span class="tok-kw">switch</span> (instruction.res_logic) {</span>
+<span class="line" id="L472">        instructions.ResLogic.Op1 =&gt; op_1,</span>
+<span class="line" id="L473">        instructions.ResLogic.Add =&gt; {</span>
+<span class="line" id="L474">            <span class="tok-kw">var</span> sum = <span class="tok-kw">try</span> addOperands(op_0, op_1);</span>
+<span class="line" id="L475">            <span class="tok-kw">return</span> sum;</span>
+<span class="line" id="L476">        },</span>
+<span class="line" id="L477">        instructions.ResLogic.Mul =&gt; {</span>
+<span class="line" id="L478">            <span class="tok-kw">var</span> product = <span class="tok-kw">try</span> mulOperands(op_0, op_1);</span>
+<span class="line" id="L479">            <span class="tok-kw">return</span> product;</span>
+<span class="line" id="L480">        },</span>
+<span class="line" id="L481">        instructions.ResLogic.Unconstrained =&gt; <span class="tok-null">null</span>,</span>
+<span class="line" id="L482">    };</span>
+<span class="line" id="L483">    <span class="tok-kw">return</span> res.?;</span>
+<span class="line" id="L484">}</span>
+<span class="line" id="L485"></span>
+<span class="line" id="L486"><span class="tok-comment">/// Add two operands which can either be a &quot;relocatable&quot; or a &quot;felt&quot;.</span></span>
+<span class="line" id="L487"><span class="tok-comment">/// The operation is allowed between:</span></span>
+<span class="line" id="L488"><span class="tok-comment">/// 1. A felt and another felt.</span></span>
+<span class="line" id="L489"><span class="tok-comment">/// 2. A felt and a relocatable.</span></span>
+<span class="line" id="L490"><span class="tok-comment">/// Adding two relocatables is forbidden.</span></span>
+<span class="line" id="L491"><span class="tok-comment">/// # Arguments</span></span>
+<span class="line" id="L492"><span class="tok-comment">/// - `op_0`: The operand 0.</span></span>
+<span class="line" id="L493"><span class="tok-comment">/// - `op_1`: The operand 1.</span></span>
+<span class="line" id="L494"><span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L495"><span class="tok-comment">/// - `MaybeRelocatable`: The result of the operation or an error.</span></span>
+<span class="line" id="L496"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">addOperands</span>(</span>
+<span class="line" id="L497">    op_0: MaybeRelocatable,</span>
+<span class="line" id="L498">    op_1: MaybeRelocatable,</span>
+<span class="line" id="L499">) CairoVMError!MaybeRelocatable {</span>
+<span class="line" id="L500">    <span class="tok-comment">// Both operands are relocatables, operation forbidden</span>
 </span>
-<span class="line" id="L461">    <span class="tok-kw">if</span> (op_0.isRelocatable() <span class="tok-kw">and</span> op_1.isRelocatable()) {</span>
-<span class="line" id="L462">        <span class="tok-kw">return</span> <span class="tok-kw">error</span>.AddRelocToRelocForbidden;</span>
-<span class="line" id="L463">    }</span>
-<span class="line" id="L464"></span>
-<span class="line" id="L465">    <span class="tok-comment">// One of the operands is relocatable, the other is felt</span>
+<span class="line" id="L501">    <span class="tok-kw">if</span> (op_0.isRelocatable() <span class="tok-kw">and</span> op_1.isRelocatable()) {</span>
+<span class="line" id="L502">        <span class="tok-kw">return</span> <span class="tok-kw">error</span>.AddRelocToRelocForbidden;</span>
+<span class="line" id="L503">    }</span>
+<span class="line" id="L504"></span>
+<span class="line" id="L505">    <span class="tok-comment">// One of the operands is relocatable, the other is felt</span>
 </span>
-<span class="line" id="L466">    <span class="tok-kw">if</span> (op_0.isRelocatable() <span class="tok-kw">or</span> op_1.isRelocatable()) {</span>
-<span class="line" id="L467">        <span class="tok-comment">// Determine which operand is relocatable and which one is felt</span>
+<span class="line" id="L506">    <span class="tok-kw">if</span> (op_0.isRelocatable() <span class="tok-kw">or</span> op_1.isRelocatable()) {</span>
+<span class="line" id="L507">        <span class="tok-comment">// Determine which operand is relocatable and which one is felt</span>
 </span>
-<span class="line" id="L468">        <span class="tok-kw">const</span> reloc_op = <span class="tok-kw">if</span> (op_0.isRelocatable()) op_0 <span class="tok-kw">else</span> op_1;</span>
-<span class="line" id="L469">        <span class="tok-kw">const</span> felt_op = <span class="tok-kw">if</span> (op_0.isRelocatable()) op_1 <span class="tok-kw">else</span> op_0;</span>
-<span class="line" id="L470"></span>
-<span class="line" id="L471">        <span class="tok-kw">var</span> reloc = <span class="tok-kw">try</span> reloc_op.tryIntoRelocatable();</span>
-<span class="line" id="L472">        <span class="tok-kw">var</span> felt = <span class="tok-kw">try</span> felt_op.tryIntoFelt();</span>
-<span class="line" id="L473"></span>
-<span class="line" id="L474">        <span class="tok-comment">// Add the felt to the relocatable's offset</span>
+<span class="line" id="L508">        <span class="tok-kw">const</span> reloc_op = <span class="tok-kw">if</span> (op_0.isRelocatable()) op_0 <span class="tok-kw">else</span> op_1;</span>
+<span class="line" id="L509">        <span class="tok-kw">const</span> felt_op = <span class="tok-kw">if</span> (op_0.isRelocatable()) op_1 <span class="tok-kw">else</span> op_0;</span>
+<span class="line" id="L510"></span>
+<span class="line" id="L511">        <span class="tok-kw">var</span> reloc = <span class="tok-kw">try</span> reloc_op.tryIntoRelocatable();</span>
+<span class="line" id="L512">        <span class="tok-kw">var</span> felt = <span class="tok-kw">try</span> felt_op.tryIntoFelt();</span>
+<span class="line" id="L513"></span>
+<span class="line" id="L514">        <span class="tok-comment">// Add the felt to the relocatable's offset</span>
 </span>
-<span class="line" id="L475">        <span class="tok-kw">try</span> reloc.addFeltInPlace(felt);</span>
-<span class="line" id="L476"></span>
-<span class="line" id="L477">        <span class="tok-kw">return</span> relocatable.newFromRelocatable(reloc);</span>
-<span class="line" id="L478">    }</span>
-<span class="line" id="L479"></span>
-<span class="line" id="L480">    <span class="tok-comment">// Both operands are felts</span>
+<span class="line" id="L515">        <span class="tok-kw">try</span> reloc.addFeltInPlace(felt);</span>
+<span class="line" id="L516"></span>
+<span class="line" id="L517">        <span class="tok-kw">return</span> relocatable.newFromRelocatable(reloc);</span>
+<span class="line" id="L518">    }</span>
+<span class="line" id="L519"></span>
+<span class="line" id="L520">    <span class="tok-comment">// Both operands are felts</span>
 </span>
-<span class="line" id="L481">    <span class="tok-kw">const</span> op_0_felt = <span class="tok-kw">try</span> op_0.tryIntoFelt();</span>
-<span class="line" id="L482">    <span class="tok-kw">const</span> op_1_felt = <span class="tok-kw">try</span> op_1.tryIntoFelt();</span>
-<span class="line" id="L483"></span>
-<span class="line" id="L484">    <span class="tok-comment">// Add the felts and return as a new felt wrapped in a relocatable</span>
+<span class="line" id="L521">    <span class="tok-kw">const</span> op_0_felt = <span class="tok-kw">try</span> op_0.tryIntoFelt();</span>
+<span class="line" id="L522">    <span class="tok-kw">const</span> op_1_felt = <span class="tok-kw">try</span> op_1.tryIntoFelt();</span>
+<span class="line" id="L523"></span>
+<span class="line" id="L524">    <span class="tok-comment">// Add the felts and return as a new felt wrapped in a relocatable</span>
 </span>
-<span class="line" id="L485">    <span class="tok-kw">return</span> relocatable.fromFelt(op_0_felt.add(op_1_felt));</span>
-<span class="line" id="L486">}</span>
-<span class="line" id="L487"></span>
-<span class="line" id="L488"><span class="tok-comment">/// Compute the product of two operands op 0 and op 1.</span></span>
-<span class="line" id="L489"><span class="tok-comment">/// # Arguments</span></span>
-<span class="line" id="L490"><span class="tok-comment">/// - `op_0`: The operand 0.</span></span>
-<span class="line" id="L491"><span class="tok-comment">/// - `op_1`: The operand 1.</span></span>
-<span class="line" id="L492"><span class="tok-comment">/// # Returns</span></span>
-<span class="line" id="L493"><span class="tok-comment">/// - `MaybeRelocatable`: The result of the operation or an error.</span></span>
-<span class="line" id="L494"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">mulOperands</span>(</span>
-<span class="line" id="L495">    op_0: MaybeRelocatable,</span>
-<span class="line" id="L496">    op_1: MaybeRelocatable,</span>
-<span class="line" id="L497">) CairoVMError!MaybeRelocatable {</span>
-<span class="line" id="L498">    <span class="tok-comment">// At least one of the operands is relocatable</span>
-</span>
-<span class="line" id="L499">    <span class="tok-kw">if</span> (op_0.isRelocatable() <span class="tok-kw">or</span> op_1.isRelocatable()) {</span>
-<span class="line" id="L500">        <span class="tok-kw">return</span> CairoVMError.MulRelocForbidden;</span>
-<span class="line" id="L501">    }</span>
-<span class="line" id="L502"></span>
-<span class="line" id="L503">    <span class="tok-kw">const</span> op_0_felt = <span class="tok-kw">try</span> op_0.tryIntoFelt();</span>
-<span class="line" id="L504">    <span class="tok-kw">const</span> op_1_felt = <span class="tok-kw">try</span> op_1.tryIntoFelt();</span>
-<span class="line" id="L505"></span>
-<span class="line" id="L506">    <span class="tok-comment">// Multiply the felts and return as a new felt wrapped in a relocatable</span>
-</span>
-<span class="line" id="L507">    <span class="tok-kw">return</span> relocatable.fromFelt(op_0_felt.mul(op_1_felt));</span>
-<span class="line" id="L508">}</span>
-<span class="line" id="L509"></span>
-<span class="line" id="L510"><span class="tok-comment">/// Subtracts a `MaybeRelocatable` from this one and returns the new value.</span></span>
-<span class="line" id="L511"><span class="tok-comment">///</span></span>
-<span class="line" id="L512"><span class="tok-comment">/// Only values of the same type may be subtracted. Specifically, attempting to</span></span>
-<span class="line" id="L513"><span class="tok-comment">/// subtract a `.felt` with a `.relocatable` will result in an error.</span></span>
-<span class="line" id="L514"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">subOperands</span>(self: MaybeRelocatable, other: MaybeRelocatable) !MaybeRelocatable {</span>
-<span class="line" id="L515">    <span class="tok-kw">switch</span> (self) {</span>
-<span class="line" id="L516">        .felt =&gt; |self_value| <span class="tok-kw">switch</span> (other) {</span>
-<span class="line" id="L517">            .felt =&gt; |other_value| <span class="tok-kw">return</span> relocatable.fromFelt(self_value.sub(other_value)),</span>
-<span class="line" id="L518">            .relocatable =&gt; <span class="tok-kw">return</span> <span class="tok-kw">error</span>.TypeMismatchNotFelt,</span>
-<span class="line" id="L519">        },</span>
-<span class="line" id="L520">        .relocatable =&gt; |self_value| <span class="tok-kw">switch</span> (other) {</span>
-<span class="line" id="L521">            .felt =&gt; <span class="tok-kw">return</span> <span class="tok-kw">error</span>.TypeMismatchNotFelt,</span>
-<span class="line" id="L522">            .relocatable =&gt; |other_value| <span class="tok-kw">return</span> relocatable.newFromRelocatable(<span class="tok-kw">try</span> self_value.sub(other_value)),</span>
-<span class="line" id="L523">        },</span>
-<span class="line" id="L524">    }</span>
-<span class="line" id="L525">}</span>
-<span class="line" id="L526"></span>
-<span class="line" id="L527"><span class="tok-comment">/// Attempts to deduce `op1` and `res` for an instruction, given `dst` and `op0`.</span></span>
-<span class="line" id="L528"><span class="tok-comment">///</span></span>
+<span class="line" id="L525">    <span class="tok-kw">return</span> relocatable.fromFelt(op_0_felt.add(op_1_felt));</span>
+<span class="line" id="L526">}</span>
+<span class="line" id="L527"></span>
+<span class="line" id="L528"><span class="tok-comment">/// Compute the product of two operands op 0 and op 1.</span></span>
 <span class="line" id="L529"><span class="tok-comment">/// # Arguments</span></span>
-<span class="line" id="L530"><span class="tok-comment">/// - `inst`: The instruction to deduce `op1` and `res` for.</span></span>
-<span class="line" id="L531"><span class="tok-comment">/// - `dst`: The destination of the instruction.</span></span>
-<span class="line" id="L532"><span class="tok-comment">/// - `op0`: The first operand of the instruction.</span></span>
-<span class="line" id="L533"><span class="tok-comment">///</span></span>
-<span class="line" id="L534"><span class="tok-comment">/// # Returns</span></span>
-<span class="line" id="L535"><span class="tok-comment">/// - `Tuple`: A tuple containing the deduced `op1` and `res`.</span></span>
-<span class="line" id="L536"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">deduceOp1</span>(</span>
-<span class="line" id="L537">    inst: *<span class="tok-kw">const</span> instructions.Instruction,</span>
-<span class="line" id="L538">    dst: ?*<span class="tok-kw">const</span> relocatable.MaybeRelocatable,</span>
-<span class="line" id="L539">    op0: ?*<span class="tok-kw">const</span> relocatable.MaybeRelocatable,</span>
-<span class="line" id="L540">) !std.meta.Tuple(&amp;[_]<span class="tok-type">type</span>{ ?relocatable.MaybeRelocatable, ?relocatable.MaybeRelocatable }) {</span>
-<span class="line" id="L541">    <span class="tok-kw">if</span> (inst.opcode != .AssertEq) {</span>
-<span class="line" id="L542">        <span class="tok-kw">return</span> .{ <span class="tok-null">null</span>, <span class="tok-null">null</span> };</span>
-<span class="line" id="L543">    }</span>
-<span class="line" id="L544"></span>
-<span class="line" id="L545">    <span class="tok-kw">switch</span> (inst.res_logic) {</span>
-<span class="line" id="L546">        .Op1 =&gt; <span class="tok-kw">if</span> (dst) |dst_val| {</span>
-<span class="line" id="L547">            <span class="tok-kw">return</span> .{ dst_val.*, dst_val.* };</span>
-<span class="line" id="L548">        },</span>
-<span class="line" id="L549">        .Add =&gt; <span class="tok-kw">if</span> (dst != <span class="tok-null">null</span> <span class="tok-kw">and</span> op0 != <span class="tok-null">null</span>) {</span>
-<span class="line" id="L550">            <span class="tok-kw">return</span> .{ <span class="tok-kw">try</span> subOperands(dst.?.*, op0.?.*), dst.?.* };</span>
-<span class="line" id="L551">        },</span>
-<span class="line" id="L552">        .Mul =&gt; {</span>
-<span class="line" id="L553">            <span class="tok-kw">if</span> (dst != <span class="tok-null">null</span> <span class="tok-kw">and</span> op0 != <span class="tok-null">null</span> <span class="tok-kw">and</span></span>
-<span class="line" id="L554">                dst.?.isFelt() <span class="tok-kw">and</span> op0.?.isFelt() <span class="tok-kw">and</span></span>
-<span class="line" id="L555">                !op0.?.felt.isZero())</span>
-<span class="line" id="L556">            {</span>
-<span class="line" id="L557">                <span class="tok-kw">return</span> .{</span>
-<span class="line" id="L558">                    relocatable.fromFelt(<span class="tok-kw">try</span> dst.?.felt.div(op0.?.felt)),</span>
-<span class="line" id="L559">                    dst.?.*,</span>
-<span class="line" id="L560">                };</span>
-<span class="line" id="L561">            }</span>
-<span class="line" id="L562">        },</span>
-<span class="line" id="L563">        <span class="tok-kw">else</span> =&gt; {},</span>
+<span class="line" id="L530"><span class="tok-comment">/// - `op_0`: The operand 0.</span></span>
+<span class="line" id="L531"><span class="tok-comment">/// - `op_1`: The operand 1.</span></span>
+<span class="line" id="L532"><span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L533"><span class="tok-comment">/// - `MaybeRelocatable`: The result of the operation or an error.</span></span>
+<span class="line" id="L534"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">mulOperands</span>(</span>
+<span class="line" id="L535">    op_0: MaybeRelocatable,</span>
+<span class="line" id="L536">    op_1: MaybeRelocatable,</span>
+<span class="line" id="L537">) CairoVMError!MaybeRelocatable {</span>
+<span class="line" id="L538">    <span class="tok-comment">// At least one of the operands is relocatable</span>
+</span>
+<span class="line" id="L539">    <span class="tok-kw">if</span> (op_0.isRelocatable() <span class="tok-kw">or</span> op_1.isRelocatable()) {</span>
+<span class="line" id="L540">        <span class="tok-kw">return</span> CairoVMError.MulRelocForbidden;</span>
+<span class="line" id="L541">    }</span>
+<span class="line" id="L542"></span>
+<span class="line" id="L543">    <span class="tok-kw">const</span> op_0_felt = <span class="tok-kw">try</span> op_0.tryIntoFelt();</span>
+<span class="line" id="L544">    <span class="tok-kw">const</span> op_1_felt = <span class="tok-kw">try</span> op_1.tryIntoFelt();</span>
+<span class="line" id="L545"></span>
+<span class="line" id="L546">    <span class="tok-comment">// Multiply the felts and return as a new felt wrapped in a relocatable</span>
+</span>
+<span class="line" id="L547">    <span class="tok-kw">return</span> relocatable.fromFelt(op_0_felt.mul(op_1_felt));</span>
+<span class="line" id="L548">}</span>
+<span class="line" id="L549"></span>
+<span class="line" id="L550"><span class="tok-comment">/// Subtracts a `MaybeRelocatable` from this one and returns the new value.</span></span>
+<span class="line" id="L551"><span class="tok-comment">///</span></span>
+<span class="line" id="L552"><span class="tok-comment">/// Only values of the same type may be subtracted. Specifically, attempting to</span></span>
+<span class="line" id="L553"><span class="tok-comment">/// subtract a `.felt` with a `.relocatable` will result in an error.</span></span>
+<span class="line" id="L554"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">subOperands</span>(self: MaybeRelocatable, other: MaybeRelocatable) !MaybeRelocatable {</span>
+<span class="line" id="L555">    <span class="tok-kw">switch</span> (self) {</span>
+<span class="line" id="L556">        .felt =&gt; |self_value| <span class="tok-kw">switch</span> (other) {</span>
+<span class="line" id="L557">            .felt =&gt; |other_value| <span class="tok-kw">return</span> relocatable.fromFelt(self_value.sub(other_value)),</span>
+<span class="line" id="L558">            .relocatable =&gt; <span class="tok-kw">return</span> <span class="tok-kw">error</span>.TypeMismatchNotFelt,</span>
+<span class="line" id="L559">        },</span>
+<span class="line" id="L560">        .relocatable =&gt; |self_value| <span class="tok-kw">switch</span> (other) {</span>
+<span class="line" id="L561">            .felt =&gt; <span class="tok-kw">return</span> <span class="tok-kw">error</span>.TypeMismatchNotFelt,</span>
+<span class="line" id="L562">            .relocatable =&gt; |other_value| <span class="tok-kw">return</span> relocatable.newFromRelocatable(<span class="tok-kw">try</span> self_value.sub(other_value)),</span>
+<span class="line" id="L563">        },</span>
 <span class="line" id="L564">    }</span>
-<span class="line" id="L565"></span>
-<span class="line" id="L566">    <span class="tok-kw">return</span> .{ <span class="tok-null">null</span>, <span class="tok-null">null</span> };</span>
-<span class="line" id="L567">}</span>
-<span class="line" id="L568"></span>
-<span class="line" id="L569"><span class="tok-comment">// *****************************************************************************</span>
-</span>
-<span class="line" id="L570"><span class="tok-comment">// *                       CUSTOM TYPES                                        *</span>
-</span>
-<span class="line" id="L571"><span class="tok-comment">// *****************************************************************************</span>
-</span>
-<span class="line" id="L572"></span>
-<span class="line" id="L573"><span class="tok-comment">/// Represents the operands for an instruction.</span></span>
-<span class="line" id="L574"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> OperandsResult = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L575">    <span class="tok-kw">const</span> Self = <span class="tok-builtin">@This</span>();</span>
-<span class="line" id="L576"></span>
-<span class="line" id="L577">    dst: MaybeRelocatable,</span>
-<span class="line" id="L578">    res: ?MaybeRelocatable,</span>
-<span class="line" id="L579">    op_0: MaybeRelocatable,</span>
-<span class="line" id="L580">    op_1: MaybeRelocatable,</span>
-<span class="line" id="L581">    dst_addr: Relocatable,</span>
-<span class="line" id="L582">    op_0_addr: Relocatable,</span>
-<span class="line" id="L583">    op_1_addr: Relocatable,</span>
+<span class="line" id="L565">}</span>
+<span class="line" id="L566"></span>
+<span class="line" id="L567"><span class="tok-comment">/// Attempts to deduce `op1` and `res` for an instruction, given `dst` and `op0`.</span></span>
+<span class="line" id="L568"><span class="tok-comment">///</span></span>
+<span class="line" id="L569"><span class="tok-comment">/// # Arguments</span></span>
+<span class="line" id="L570"><span class="tok-comment">/// - `inst`: The instruction to deduce `op1` and `res` for.</span></span>
+<span class="line" id="L571"><span class="tok-comment">/// - `dst`: The destination of the instruction.</span></span>
+<span class="line" id="L572"><span class="tok-comment">/// - `op0`: The first operand of the instruction.</span></span>
+<span class="line" id="L573"><span class="tok-comment">///</span></span>
+<span class="line" id="L574"><span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L575"><span class="tok-comment">/// - `Tuple`: A tuple containing the deduced `op1` and `res`.</span></span>
+<span class="line" id="L576"><span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">deduceOp1</span>(</span>
+<span class="line" id="L577">    inst: *<span class="tok-kw">const</span> instructions.Instruction,</span>
+<span class="line" id="L578">    dst: ?*<span class="tok-kw">const</span> MaybeRelocatable,</span>
+<span class="line" id="L579">    op0: ?*<span class="tok-kw">const</span> MaybeRelocatable,</span>
+<span class="line" id="L580">) !std.meta.Tuple(&amp;[_]<span class="tok-type">type</span>{ ?relocatable.MaybeRelocatable, ?relocatable.MaybeRelocatable }) {</span>
+<span class="line" id="L581">    <span class="tok-kw">if</span> (inst.opcode != .AssertEq) {</span>
+<span class="line" id="L582">        <span class="tok-kw">return</span> .{ <span class="tok-null">null</span>, <span class="tok-null">null</span> };</span>
+<span class="line" id="L583">    }</span>
 <span class="line" id="L584"></span>
-<span class="line" id="L585">    <span class="tok-comment">/// Returns a default instance of the OperandsResult struct.</span></span>
-<span class="line" id="L586">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">default</span>() Self {</span>
-<span class="line" id="L587">        <span class="tok-kw">return</span> .{</span>
-<span class="line" id="L588">            .dst = relocatable.fromU64(<span class="tok-number">0</span>),</span>
-<span class="line" id="L589">            .res = relocatable.fromU64(<span class="tok-number">0</span>),</span>
-<span class="line" id="L590">            .op_0 = relocatable.fromU64(<span class="tok-number">0</span>),</span>
-<span class="line" id="L591">            .op_1 = relocatable.fromU64(<span class="tok-number">0</span>),</span>
-<span class="line" id="L592">            .dst_addr = .{},</span>
-<span class="line" id="L593">            .op_0_addr = .{},</span>
-<span class="line" id="L594">            .op_1_addr = .{},</span>
-<span class="line" id="L595">        };</span>
-<span class="line" id="L596">    }</span>
-<span class="line" id="L597">};</span>
-<span class="line" id="L598"></span>
-<span class="line" id="L599"><span class="tok-kw">const</span> Op0Result = <span class="tok-kw">struct</span> {</span>
-<span class="line" id="L600">    op_0: MaybeRelocatable,</span>
-<span class="line" id="L601">    res: MaybeRelocatable,</span>
-<span class="line" id="L602">};</span>
-<span class="line" id="L603"></span>
+<span class="line" id="L585">    <span class="tok-kw">switch</span> (inst.res_logic) {</span>
+<span class="line" id="L586">        .Op1 =&gt; <span class="tok-kw">if</span> (dst) |dst_val| {</span>
+<span class="line" id="L587">            <span class="tok-kw">return</span> .{ dst_val.*, dst_val.* };</span>
+<span class="line" id="L588">        },</span>
+<span class="line" id="L589">        .Add =&gt; <span class="tok-kw">if</span> (dst != <span class="tok-null">null</span> <span class="tok-kw">and</span> op0 != <span class="tok-null">null</span>) {</span>
+<span class="line" id="L590">            <span class="tok-kw">return</span> .{ <span class="tok-kw">try</span> subOperands(dst.?.*, op0.?.*), dst.?.* };</span>
+<span class="line" id="L591">        },</span>
+<span class="line" id="L592">        .Mul =&gt; {</span>
+<span class="line" id="L593">            <span class="tok-kw">if</span> (dst != <span class="tok-null">null</span> <span class="tok-kw">and</span> op0 != <span class="tok-null">null</span> <span class="tok-kw">and</span></span>
+<span class="line" id="L594">                dst.?.isFelt() <span class="tok-kw">and</span> op0.?.isFelt() <span class="tok-kw">and</span></span>
+<span class="line" id="L595">                !op0.?.felt.isZero())</span>
+<span class="line" id="L596">            {</span>
+<span class="line" id="L597">                <span class="tok-kw">return</span> .{</span>
+<span class="line" id="L598">                    relocatable.fromFelt(<span class="tok-kw">try</span> dst.?.felt.div(op0.?.felt)),</span>
+<span class="line" id="L599">                    dst.?.*,</span>
+<span class="line" id="L600">                };</span>
+<span class="line" id="L601">            }</span>
+<span class="line" id="L602">        },</span>
+<span class="line" id="L603">        <span class="tok-kw">else</span> =&gt; {},</span>
+<span class="line" id="L604">    }</span>
+<span class="line" id="L605"></span>
+<span class="line" id="L606">    <span class="tok-kw">return</span> .{ <span class="tok-null">null</span>, <span class="tok-null">null</span> };</span>
+<span class="line" id="L607">}</span>
+<span class="line" id="L608"></span>
+<span class="line" id="L609"><span class="tok-comment">// *****************************************************************************</span>
+</span>
+<span class="line" id="L610"><span class="tok-comment">// *                       CUSTOM TYPES                                        *</span>
+</span>
+<span class="line" id="L611"><span class="tok-comment">// *****************************************************************************</span>
+</span>
+<span class="line" id="L612"></span>
+<span class="line" id="L613"><span class="tok-comment">/// Represents the operands for an instruction.</span></span>
+<span class="line" id="L614"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> OperandsResult = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L615">    <span class="tok-kw">const</span> Self = <span class="tok-builtin">@This</span>();</span>
+<span class="line" id="L616"></span>
+<span class="line" id="L617">    dst: MaybeRelocatable,</span>
+<span class="line" id="L618">    res: ?MaybeRelocatable,</span>
+<span class="line" id="L619">    op_0: MaybeRelocatable,</span>
+<span class="line" id="L620">    op_1: MaybeRelocatable,</span>
+<span class="line" id="L621">    dst_addr: Relocatable,</span>
+<span class="line" id="L622">    op_0_addr: Relocatable,</span>
+<span class="line" id="L623">    op_1_addr: Relocatable,</span>
+<span class="line" id="L624"></span>
+<span class="line" id="L625">    <span class="tok-comment">/// Returns a default instance of the OperandsResult struct.</span></span>
+<span class="line" id="L626">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">default</span>() Self {</span>
+<span class="line" id="L627">        <span class="tok-kw">return</span> .{</span>
+<span class="line" id="L628">            .dst = relocatable.fromU64(<span class="tok-number">0</span>),</span>
+<span class="line" id="L629">            .res = relocatable.fromU64(<span class="tok-number">0</span>),</span>
+<span class="line" id="L630">            .op_0 = relocatable.fromU64(<span class="tok-number">0</span>),</span>
+<span class="line" id="L631">            .op_1 = relocatable.fromU64(<span class="tok-number">0</span>),</span>
+<span class="line" id="L632">            .dst_addr = .{},</span>
+<span class="line" id="L633">            .op_0_addr = .{},</span>
+<span class="line" id="L634">            .op_1_addr = .{},</span>
+<span class="line" id="L635">        };</span>
+<span class="line" id="L636">    }</span>
+<span class="line" id="L637">};</span>
+<span class="line" id="L638"></span>
+<span class="line" id="L639"><span class="tok-kw">const</span> Op0Result = <span class="tok-kw">struct</span> {</span>
+<span class="line" id="L640">    op_0: MaybeRelocatable,</span>
+<span class="line" id="L641">    res: MaybeRelocatable,</span>
+<span class="line" id="L642">};</span>
+<span class="line" id="L643"></span>
 </code></pre></body>
 </html>
