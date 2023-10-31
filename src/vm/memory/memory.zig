@@ -113,7 +113,7 @@ pub const Memory = struct {
     // # Returns
     // The value at the given address.
     pub fn get(
-        self: *Self,
+        self: *const Self,
         address: Relocatable,
     ) error{MemoryOutOfBounds}!MaybeRelocatable {
         return self.data.get(address) orelse CairoVMError.MemoryOutOfBounds;

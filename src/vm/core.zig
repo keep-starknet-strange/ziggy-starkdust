@@ -206,7 +206,7 @@ pub const CairoVM = struct {
     /// - `dst`: The destination.
     /// - `op1`: The op1.
     pub fn computeOp0Deductions(
-        self: *Self,
+        self: *const Self,
         op_0_addr: MaybeRelocatable,
         instruction: *const instructions.Instruction,
         dst: ?MaybeRelocatable,
@@ -217,6 +217,27 @@ pub const CairoVM = struct {
         _ = instruction;
         const op_o = try self.deduceMemoryCell(op_0_addr);
         _ = op_o;
+    }
+
+    /// Runs deductions for op1.
+    pub fn computeOp1Deductions(
+        self: *const Self,
+        op1_addr: Relocatable,
+        res: *?MaybeRelocatable,
+        instruction: *const instructions.Instruction,
+        dst_op: *const ?MaybeRelocatable,
+        op0: *const MaybeRelocatable,
+    ) CairoVMError!MaybeRelocatable {
+        if (try self.deduceMemoryCell(op1_addr)) |op1| {
+            return op1;
+        } else {
+            const op1_deductions = deduceOp1(instruction, dst_op, op0);
+            if (op1_deductions[1]) |deduced_res| {
+                res.* = deduced_res;
+            }
+            const deducted_op1 = op1_deductions[0] orelse return CairoVMError.FailedToComputeOp1;
+            return deducted_op1;
+        }
     }
 
     /// Attempts to deduce `op0` and `res` for an instruction, given `dst` and `op1`.
@@ -436,7 +457,7 @@ pub const CairoVM = struct {
     /// # Returns
     /// - `MaybeRelocatable`: The deduced value.
     pub fn deduceMemoryCell(
-        self: *Self,
+        self: *const Self,
         address: Relocatable,
     ) CairoVMError!?MaybeRelocatable {
         for (self.builtin_runners.items) |builtin_item| {
