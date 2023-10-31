@@ -5,6 +5,7 @@ const Keccak_instance_def = @import("../../types/keccak_instance_def.zig");
 const Segments = @import("../../memory/segments.zig");
 const Error = @import("../../error.zig");
 const CoreVM = @import("../../../vm/core.zig");
+const KeccakPrimitives = @import("../../../math/crypto/keccak.zig");
 
 const ArrayList = std.ArrayList;
 const AutoHashMap = std.AutoHashMap;
@@ -277,7 +278,7 @@ pub const KeccakBuiltinRunner = struct {
     ///
     /// # Returns
     /// An ArrayList containing the right-padded bytes.
-    pub fn right_pad(
+    fn right_pad(
         allocator: Allocator,
         bytes: *[]u8,
         final_size: usize,
@@ -294,6 +295,60 @@ pub const KeccakBuiltinRunner = struct {
             final_size - bytes.len,
         );
         return bytes_vector;
+    }
+
+    /// Calculates the Keccak hash of the input message.
+    ///
+    /// This function computes the Keccak hash of the provided input message and returns
+    /// it as an `ArrayList(u8)`. The Keccak hash function involves multiple steps of data
+    /// processing.
+    ///
+    /// # Arguments
+    ///
+    /// - `allocator`: An allocator for managing memory.
+    /// - `input_message`: A pointer to the input message as an array of bytes.
+    ///
+    /// # Returns
+    ///
+    /// An `ArrayList(u8)` containing the Keccak hash.
+    fn keccak_f(allocator: Allocator, input_message: *[]const u8) !ArrayList(u8) {
+        var result = ArrayList(u8).init(allocator);
+        var vec = ArrayList(u64).init(allocator);
+        defer vec.deinit();
+
+        var i: usize = 0;
+        while (i + @sizeOf(u64) <= input_message.len) {
+            try vec.append(std.mem.readIntLittle(
+                u64,
+                @ptrCast(input_message.*[i .. i + @sizeOf(u64)]),
+            ));
+            i += @sizeOf(u64);
+        }
+
+        try vec.appendNTimes(
+            0,
+            KeccakPrimitives.PLEN - vec.items.len,
+        );
+
+        try KeccakPrimitives.keccak_p(
+            @ptrCast(
+                vec.items.ptr,
+            ),
+            KeccakPrimitives.KECCAK_F_ROUND_COUNT,
+        );
+
+        for (
+            @as(
+                *[KeccakPrimitives.PLEN]u64,
+                @ptrCast(vec.items.ptr),
+            ),
+        ) |item| {
+            var buf: [8]u8 = undefined;
+            std.mem.writeIntLittle(u64, buf[0..], item);
+            try result.appendSlice(&buf);
+        }
+
+        return result;
     }
 
     /// Frees the resources owned by this instance of `KeccakBuiltinRunner`.
@@ -522,28 +577,28 @@ test "KeccakBuiltinRunner: get_memory_accesses should return the memory accesses
     );
 }
 
-test "get_used_diluted_check_units should return used diluted check units" {
+test "KeccakBuiltinRunner: get_used_diluted_check_units should return used diluted check units" {
     try expectEqual(
         @as(usize, @intCast(16384)),
         KeccakBuiltinRunner.get_used_diluted_check_units(16),
     );
 }
 
-test "get_used_diluted_check_units should return 0 if division by zero" {
+test "KeccakBuiltinRunner: get_used_diluted_check_units should return 0 if division by zero" {
     try expectEqual(
         @as(usize, @intCast(0)),
         KeccakBuiltinRunner.get_used_diluted_check_units(0),
     );
 }
 
-test "get_used_diluted_check_units should return 0 if quotient is not an integer" {
+test "KeccakBuiltinRunner: get_used_diluted_check_units should return 0 if quotient is not an integer" {
     try expectEqual(
         @as(usize, @intCast(0)),
         KeccakBuiltinRunner.get_used_diluted_check_units(12),
     );
 }
 
-test "right_pad should return right pad result" {
+test "KeccakBuiltinRunner: right_pad should return right pad result" {
     var num = ArrayList(u8).init(std.testing.allocator);
     try num.append(1);
     var num_slice = try num.toOwnedSlice();
@@ -560,6 +615,23 @@ test "right_pad should return right pad result" {
     try expectEqualSlices(
         u8,
         expected.items,
+        actual.items,
+    );
+}
+
+test "KeccakBuiltinRunner: keccak_f" {
+    const expected_output_bytes = "\xf6\x98\x81\xe1\x00!\x1f.\xc4*\x8c\x0c\x7fF\xc8q8\xdf\xb9\xbe\x07H\xca7T1\xab\x16\x17\xa9\x11\xff-L\x87\xb2iY.\x96\x82x\xde\xbb\\up?uz:0\xee\x08\x1b\x15\xd6\n\xab\r\x0b\x87T:w\x0fH\xe7!f},\x08a\xe5\xbe8\x16\x13\x9a?\xad~<9\xf7\x03`\x8b\xd8\xa3F\x8aQ\xf9\n9\xcdD\xb7.X\xf7\x8e\x1f\x17\x9e \xe5i\x01rr\xdf\xaf\x99k\x9f\x8e\x84\\\xday`\xf1``\x02q+\x8e\xad\x96\xd8\xff\xff3<\xb6\x01o\xd7\xa6\x86\x9d\xea\xbc\xfb\x08\xe1\xa3\x1c\x06z\xab@\xa1\xc1\xb1xZ\x92\x96\xc0.\x01\x13g\x93\x87!\xa6\xa8z\x9c@\x0bY'\xe7\xa7Qr\xe5\xc1\xa3\xa6\x88H\xa5\xc0@9k:y\xd1Kw\xd5";
+
+    var input_bytes: []const u8 = "\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x05\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x07\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
+
+    var actual = try (KeccakBuiltinRunner.keccak_f(
+        std.testing.allocator,
+        &input_bytes,
+    ));
+    defer actual.deinit();
+    try expectEqualSlices(
+        u8,
+        expected_output_bytes,
         actual.items,
     );
 }
