@@ -726,7 +726,7 @@ test "deduceOp0 when opcode == .Call" {
     instr.opcode = .Call;
 
     const tuple = try vm.deduceOp0(&instr, null, null);
-    const op1 = tuple[0];
+    const op0 = tuple[0];
     const res = tuple[1];
 
     // ************************************************************
@@ -734,7 +734,7 @@ test "deduceOp0 when opcode == .Call" {
     // ************************************************************
     const expected_op_0: ?MaybeRelocatable = relocatable.newFromRelocatable(relocatable.Relocatable.new(0, 1)); // temp var needed for type inference
     const expected_res: ?MaybeRelocatable = null;
-    try expectEqual(expected_op_0, op1);
+    try expectEqual(expected_op_0, op0);
     try expectEqual(expected_res, res);
 }
 
