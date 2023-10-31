@@ -115,10 +115,7 @@ pub const KeccakBuiltinRunner = struct {
         if (self.included) {
             try result.append(.{
                 .relocatable = Relocatable.new(
-                    @as(
-                        u64,
-                        @intCast(self.base),
-                    ),
+                    @intCast(self.base),
                     0,
                 ),
             });
