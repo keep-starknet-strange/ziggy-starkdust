@@ -6,6 +6,7 @@ const Segments = @import("../../memory/segments.zig");
 const Error = @import("../../error.zig");
 const CoreVM = @import("../../../vm/core.zig");
 const KeccakPrimitives = @import("../../../math/crypto/keccak.zig");
+const Memory = @import("../../memory/memory.zig").Memory;
 
 const ArrayList = std.ArrayList;
 const AutoHashMap = std.AutoHashMap;
@@ -380,6 +381,51 @@ pub const KeccakBuiltinRunner = struct {
 
         self.stop_ptr = 0;
         return pointer;
+    }
+
+    pub fn deduce_memory_cell(
+        self: *Self,
+        allocator: Allocator,
+        address: Relocatable,
+        memory: *Memory,
+    ) !?MaybeRelocatable {
+        const index = @mod(
+            @as(
+                usize,
+                @intCast(address.offset),
+            ),
+            @as(
+                usize,
+                @intCast(self.cells_per_instance),
+            ),
+        );
+
+        if (index < @as(usize, @intCast(self.n_input_cells))) {
+            return null;
+        }
+
+        const felt = self.cache.get(&address);
+
+        if (felt != null) {
+            return MaybeRelocatable{ .felt = felt.? };
+        }
+
+        const first_input_addr = try address.subUint(@intCast(index));
+        const first_output_addr = try first_input_addr.addUint(@intCast(self.n_input_cells));
+        _ = first_output_addr;
+
+        var input_felts = ArrayList(Felt252).init(allocator);
+        defer input_felts.deinit();
+
+        for (0..@as(usize, @intCast(self.n_input_cells))) |i| {
+            const m_index = try first_input_addr.addUint(@intCast(i));
+
+            const mem = memory.get(m_index) catch return null;
+            const num = mem.tryIntoFelt() catch return RunnerError.BuiltinExpectedInteger;
+            _ = num;
+
+            // if (num >= )
+        }
     }
 
     /// Frees the resources owned by this instance of `KeccakBuiltinRunner`.

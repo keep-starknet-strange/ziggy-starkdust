@@ -20,4 +20,5 @@ pub const RunnerError = error{
     NoStopPointer,
     InvalidStopPointerIndex,
     InvalidStopPointer,
+    BuiltinExpectedInteger,
 };
