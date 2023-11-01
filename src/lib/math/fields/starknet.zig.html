@@ -555,5 +555,84 @@
 <span class="line" id="L437">    );</span>
 <span class="line" id="L438">}</span>
 <span class="line" id="L439"></span>
+<span class="line" id="L440"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 cmp&quot;</span> {</span>
+<span class="line" id="L441">    <span class="tok-kw">try</span> expect(Felt252.fromInteger(<span class="tok-number">10</span>).cmp(</span>
+<span class="line" id="L442">        Felt252.fromInteger(<span class="tok-number">343535</span>),</span>
+<span class="line" id="L443">    ) == .gt);</span>
+<span class="line" id="L444">    <span class="tok-kw">try</span> expect(Felt252.fromInteger(<span class="tok-number">433</span>).cmp(</span>
+<span class="line" id="L445">        Felt252.fromInteger(<span class="tok-number">343535</span>),</span>
+<span class="line" id="L446">    ) == .gt);</span>
+<span class="line" id="L447">    <span class="tok-kw">try</span> expect(Felt252.fromInteger(<span class="tok-number">543636535</span>).cmp(</span>
+<span class="line" id="L448">        Felt252.fromInteger(<span class="tok-number">434</span>),</span>
+<span class="line" id="L449">    ) == .lt);</span>
+<span class="line" id="L450">    <span class="tok-kw">try</span> expect(Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)).cmp(</span>
+<span class="line" id="L451">        Felt252.fromInteger(<span class="tok-number">21313</span>),</span>
+<span class="line" id="L452">    ) == .lt);</span>
+<span class="line" id="L453">    <span class="tok-kw">try</span> expect(Felt252.fromInteger(<span class="tok-number">10</span>).cmp(</span>
+<span class="line" id="L454">        Felt252.fromInteger(<span class="tok-number">10</span>),</span>
+<span class="line" id="L455">    ) == .eq);</span>
+<span class="line" id="L456">    <span class="tok-kw">try</span> expect(Felt252.one().cmp(</span>
+<span class="line" id="L457">        Felt252.one(),</span>
+<span class="line" id="L458">    ) == .eq);</span>
+<span class="line" id="L459">    <span class="tok-kw">try</span> expect(Felt252.zero().cmp(</span>
+<span class="line" id="L460">        Felt252.zero(),</span>
+<span class="line" id="L461">    ) == .eq);</span>
+<span class="line" id="L462">    <span class="tok-kw">try</span> expect(Felt252.fromInteger(<span class="tok-number">10</span>).cmp(</span>
+<span class="line" id="L463">        Felt252.fromInteger(<span class="tok-number">10</span> + <span class="tok-number">0x800000000000011000000000000000000000000000000000000000000000001</span>),</span>
+<span class="line" id="L464">    ) == .eq);</span>
+<span class="line" id="L465">}</span>
+<span class="line" id="L466"></span>
+<span class="line" id="L467"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 lt&quot;</span> {</span>
+<span class="line" id="L468">    <span class="tok-kw">try</span> expect(!Felt252.fromInteger(<span class="tok-number">10</span>).lt(Felt252.fromInteger(<span class="tok-number">343535</span>)));</span>
+<span class="line" id="L469">    <span class="tok-kw">try</span> expect(!Felt252.fromInteger(<span class="tok-number">433</span>).lt(Felt252.fromInteger(<span class="tok-number">343535</span>)));</span>
+<span class="line" id="L470">    <span class="tok-kw">try</span> expect(Felt252.fromInteger(<span class="tok-number">543636535</span>).lt(Felt252.fromInteger(<span class="tok-number">434</span>)));</span>
+<span class="line" id="L471">    <span class="tok-kw">try</span> expect(Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)).lt(Felt252.fromInteger(<span class="tok-number">21313</span>)));</span>
+<span class="line" id="L472">    <span class="tok-kw">try</span> expect(!Felt252.fromInteger(<span class="tok-number">10</span>).lt(Felt252.fromInteger(<span class="tok-number">10</span>)));</span>
+<span class="line" id="L473">    <span class="tok-kw">try</span> expect(!Felt252.one().lt(Felt252.one()));</span>
+<span class="line" id="L474">    <span class="tok-kw">try</span> expect(!Felt252.zero().lt(Felt252.zero()));</span>
+<span class="line" id="L475">    <span class="tok-kw">try</span> expect(!Felt252.fromInteger(<span class="tok-number">10</span>).lt(</span>
+<span class="line" id="L476">        Felt252.fromInteger(<span class="tok-number">10</span> + <span class="tok-number">0x800000000000011000000000000000000000000000000000000000000000001</span>),</span>
+<span class="line" id="L477">    ));</span>
+<span class="line" id="L478">}</span>
+<span class="line" id="L479"></span>
+<span class="line" id="L480"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 le&quot;</span> {</span>
+<span class="line" id="L481">    <span class="tok-kw">try</span> expect(!Felt252.fromInteger(<span class="tok-number">10</span>).le(Felt252.fromInteger(<span class="tok-number">343535</span>)));</span>
+<span class="line" id="L482">    <span class="tok-kw">try</span> expect(!Felt252.fromInteger(<span class="tok-number">433</span>).le(Felt252.fromInteger(<span class="tok-number">343535</span>)));</span>
+<span class="line" id="L483">    <span class="tok-kw">try</span> expect(Felt252.fromInteger(<span class="tok-number">543636535</span>).le(Felt252.fromInteger(<span class="tok-number">434</span>)));</span>
+<span class="line" id="L484">    <span class="tok-kw">try</span> expect(Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)).le(Felt252.fromInteger(<span class="tok-number">21313</span>)));</span>
+<span class="line" id="L485">    <span class="tok-kw">try</span> expect(Felt252.fromInteger(<span class="tok-number">10</span>).le(Felt252.fromInteger(<span class="tok-number">10</span>)));</span>
+<span class="line" id="L486">    <span class="tok-kw">try</span> expect(Felt252.one().le(Felt252.one()));</span>
+<span class="line" id="L487">    <span class="tok-kw">try</span> expect(Felt252.zero().le(Felt252.zero()));</span>
+<span class="line" id="L488">    <span class="tok-kw">try</span> expect(Felt252.fromInteger(<span class="tok-number">10</span>).le(</span>
+<span class="line" id="L489">        Felt252.fromInteger(<span class="tok-number">10</span> + <span class="tok-number">0x800000000000011000000000000000000000000000000000000000000000001</span>),</span>
+<span class="line" id="L490">    ));</span>
+<span class="line" id="L491">}</span>
+<span class="line" id="L492"></span>
+<span class="line" id="L493"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 gt&quot;</span> {</span>
+<span class="line" id="L494">    <span class="tok-kw">try</span> expect(Felt252.fromInteger(<span class="tok-number">10</span>).gt(Felt252.fromInteger(<span class="tok-number">343535</span>)));</span>
+<span class="line" id="L495">    <span class="tok-kw">try</span> expect(Felt252.fromInteger(<span class="tok-number">433</span>).gt(Felt252.fromInteger(<span class="tok-number">343535</span>)));</span>
+<span class="line" id="L496">    <span class="tok-kw">try</span> expect(!Felt252.fromInteger(<span class="tok-number">543636535</span>).gt(Felt252.fromInteger(<span class="tok-number">434</span>)));</span>
+<span class="line" id="L497">    <span class="tok-kw">try</span> expect(!Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)).gt(Felt252.fromInteger(<span class="tok-number">21313</span>)));</span>
+<span class="line" id="L498">    <span class="tok-kw">try</span> expect(!Felt252.fromInteger(<span class="tok-number">10</span>).gt(Felt252.fromInteger(<span class="tok-number">10</span>)));</span>
+<span class="line" id="L499">    <span class="tok-kw">try</span> expect(!Felt252.one().gt(Felt252.one()));</span>
+<span class="line" id="L500">    <span class="tok-kw">try</span> expect(!Felt252.zero().gt(Felt252.zero()));</span>
+<span class="line" id="L501">    <span class="tok-kw">try</span> expect(!Felt252.fromInteger(<span class="tok-number">10</span>).gt(</span>
+<span class="line" id="L502">        Felt252.fromInteger(<span class="tok-number">10</span> + <span class="tok-number">0x800000000000011000000000000000000000000000000000000000000000001</span>),</span>
+<span class="line" id="L503">    ));</span>
+<span class="line" id="L504">}</span>
+<span class="line" id="L505"></span>
+<span class="line" id="L506"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 ge&quot;</span> {</span>
+<span class="line" id="L507">    <span class="tok-kw">try</span> expect(Felt252.fromInteger(<span class="tok-number">10</span>).ge(Felt252.fromInteger(<span class="tok-number">343535</span>)));</span>
+<span class="line" id="L508">    <span class="tok-kw">try</span> expect(Felt252.fromInteger(<span class="tok-number">433</span>).ge(Felt252.fromInteger(<span class="tok-number">343535</span>)));</span>
+<span class="line" id="L509">    <span class="tok-kw">try</span> expect(!Felt252.fromInteger(<span class="tok-number">543636535</span>).ge(Felt252.fromInteger(<span class="tok-number">434</span>)));</span>
+<span class="line" id="L510">    <span class="tok-kw">try</span> expect(!Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)).ge(Felt252.fromInteger(<span class="tok-number">21313</span>)));</span>
+<span class="line" id="L511">    <span class="tok-kw">try</span> expect(Felt252.fromInteger(<span class="tok-number">10</span>).ge(Felt252.fromInteger(<span class="tok-number">10</span>)));</span>
+<span class="line" id="L512">    <span class="tok-kw">try</span> expect(Felt252.one().ge(Felt252.one()));</span>
+<span class="line" id="L513">    <span class="tok-kw">try</span> expect(Felt252.zero().ge(Felt252.zero()));</span>
+<span class="line" id="L514">    <span class="tok-kw">try</span> expect(Felt252.fromInteger(<span class="tok-number">10</span>).ge(</span>
+<span class="line" id="L515">        Felt252.fromInteger(<span class="tok-number">10</span> + <span class="tok-number">0x800000000000011000000000000000000000000000000000000000000000001</span>),</span>
+<span class="line" id="L516">    ));</span>
+<span class="line" id="L517">}</span>
+<span class="line" id="L518"></span>
 </code></pre></body>
 </html>

@@ -546,8 +546,90 @@
 <span class="line" id="L423">            }</span>
 <span class="line" id="L424">            <span class="tok-kw">return</span> <span class="tok-number">1</span>;</span>
 <span class="line" id="L425">        }</span>
-<span class="line" id="L426">    };</span>
-<span class="line" id="L427">}</span>
-<span class="line" id="L428"></span>
+<span class="line" id="L426"></span>
+<span class="line" id="L427">        <span class="tok-comment">/// Compare two field elements and return the ordering result.</span></span>
+<span class="line" id="L428">        <span class="tok-comment">///</span></span>
+<span class="line" id="L429">        <span class="tok-comment">/// # Parameters</span></span>
+<span class="line" id="L430">        <span class="tok-comment">/// - `self` - The first field element to compare.</span></span>
+<span class="line" id="L431">        <span class="tok-comment">/// - `other` - The second field element to compare.</span></span>
+<span class="line" id="L432">        <span class="tok-comment">///</span></span>
+<span class="line" id="L433">        <span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L434">        <span class="tok-comment">/// A `std.math.Order` enum indicating the ordering relationship.</span></span>
+<span class="line" id="L435">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">cmp</span>(self: Self, other: Self) std.math.Order {</span>
+<span class="line" id="L436">            <span class="tok-kw">var</span> a = self.fe;</span>
+<span class="line" id="L437">            <span class="tok-kw">var</span> b = other.fe;</span>
+<span class="line" id="L438">            _ = std.mem.reverse(<span class="tok-type">u64</span>, a[<span class="tok-number">0</span>..]);</span>
+<span class="line" id="L439">            _ = std.mem.reverse(<span class="tok-type">u64</span>, b[<span class="tok-number">0</span>..]);</span>
+<span class="line" id="L440">            <span class="tok-kw">return</span> std.mem.order(</span>
+<span class="line" id="L441">                <span class="tok-type">u64</span>,</span>
+<span class="line" id="L442">                &amp;a,</span>
+<span class="line" id="L443">                &amp;b,</span>
+<span class="line" id="L444">            );</span>
+<span class="line" id="L445">        }</span>
+<span class="line" id="L446"></span>
+<span class="line" id="L447">        <span class="tok-comment">/// Check if this field element is less than the other.</span></span>
+<span class="line" id="L448">        <span class="tok-comment">///</span></span>
+<span class="line" id="L449">        <span class="tok-comment">/// # Parameters</span></span>
+<span class="line" id="L450">        <span class="tok-comment">/// - `self` - The field element to check.</span></span>
+<span class="line" id="L451">        <span class="tok-comment">/// - `other` - The field element to compare against.</span></span>
+<span class="line" id="L452">        <span class="tok-comment">///</span></span>
+<span class="line" id="L453">        <span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L454">        <span class="tok-comment">/// `true` if `self` is less than `other`, `false` otherwise.</span></span>
+<span class="line" id="L455">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">lt</span>(self: Self, other: Self) <span class="tok-type">bool</span> {</span>
+<span class="line" id="L456">            <span class="tok-kw">return</span> <span class="tok-kw">switch</span> (self.cmp(other)) {</span>
+<span class="line" id="L457">                .lt =&gt; <span class="tok-null">true</span>,</span>
+<span class="line" id="L458">                <span class="tok-kw">else</span> =&gt; <span class="tok-null">false</span>,</span>
+<span class="line" id="L459">            };</span>
+<span class="line" id="L460">        }</span>
+<span class="line" id="L461"></span>
+<span class="line" id="L462">        <span class="tok-comment">/// Check if this field element is less than or equal to the other.</span></span>
+<span class="line" id="L463">        <span class="tok-comment">///</span></span>
+<span class="line" id="L464">        <span class="tok-comment">/// # Parameters</span></span>
+<span class="line" id="L465">        <span class="tok-comment">/// - `self` - The field element to check.</span></span>
+<span class="line" id="L466">        <span class="tok-comment">/// - `other` - The field element to compare against.</span></span>
+<span class="line" id="L467">        <span class="tok-comment">///</span></span>
+<span class="line" id="L468">        <span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L469">        <span class="tok-comment">/// `true` if `self` is less than or equal to `other`, `false` otherwise.</span></span>
+<span class="line" id="L470">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">le</span>(self: Self, other: Self) <span class="tok-type">bool</span> {</span>
+<span class="line" id="L471">            <span class="tok-kw">return</span> <span class="tok-kw">switch</span> (self.cmp(other)) {</span>
+<span class="line" id="L472">                .lt =&gt; <span class="tok-null">true</span>,</span>
+<span class="line" id="L473">                .eq =&gt; <span class="tok-null">true</span>,</span>
+<span class="line" id="L474">                <span class="tok-kw">else</span> =&gt; <span class="tok-null">false</span>,</span>
+<span class="line" id="L475">            };</span>
+<span class="line" id="L476">        }</span>
+<span class="line" id="L477"></span>
+<span class="line" id="L478">        <span class="tok-comment">/// Check if this field element is greater than the other.</span></span>
+<span class="line" id="L479">        <span class="tok-comment">///</span></span>
+<span class="line" id="L480">        <span class="tok-comment">/// # Parameters</span></span>
+<span class="line" id="L481">        <span class="tok-comment">/// - `self` - The field element to check.</span></span>
+<span class="line" id="L482">        <span class="tok-comment">/// - `other` - The field element to compare against.</span></span>
+<span class="line" id="L483">        <span class="tok-comment">///</span></span>
+<span class="line" id="L484">        <span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L485">        <span class="tok-comment">/// `true` if `self` is greater than `other`, `false` otherwise.</span></span>
+<span class="line" id="L486">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">gt</span>(self: Self, other: Self) <span class="tok-type">bool</span> {</span>
+<span class="line" id="L487">            <span class="tok-kw">return</span> <span class="tok-kw">switch</span> (self.cmp(other)) {</span>
+<span class="line" id="L488">                .gt =&gt; <span class="tok-null">true</span>,</span>
+<span class="line" id="L489">                <span class="tok-kw">else</span> =&gt; <span class="tok-null">false</span>,</span>
+<span class="line" id="L490">            };</span>
+<span class="line" id="L491">        }</span>
+<span class="line" id="L492"></span>
+<span class="line" id="L493">        <span class="tok-comment">/// Check if this field element is greater than or equal to the other.</span></span>
+<span class="line" id="L494">        <span class="tok-comment">///</span></span>
+<span class="line" id="L495">        <span class="tok-comment">/// # Parameters</span></span>
+<span class="line" id="L496">        <span class="tok-comment">/// - `self` - The field element to check.</span></span>
+<span class="line" id="L497">        <span class="tok-comment">/// - `other` - The field element to compare against.</span></span>
+<span class="line" id="L498">        <span class="tok-comment">///</span></span>
+<span class="line" id="L499">        <span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L500">        <span class="tok-comment">/// `true` if `self` is greater than or equal to `other`, `false` otherwise.</span></span>
+<span class="line" id="L501">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">ge</span>(self: Self, other: Self) <span class="tok-type">bool</span> {</span>
+<span class="line" id="L502">            <span class="tok-kw">return</span> <span class="tok-kw">switch</span> (self.cmp(other)) {</span>
+<span class="line" id="L503">                .gt =&gt; <span class="tok-null">true</span>,</span>
+<span class="line" id="L504">                .eq =&gt; <span class="tok-null">true</span>,</span>
+<span class="line" id="L505">                <span class="tok-kw">else</span> =&gt; <span class="tok-null">false</span>,</span>
+<span class="line" id="L506">            };</span>
+<span class="line" id="L507">        }</span>
+<span class="line" id="L508">    };</span>
+<span class="line" id="L509">}</span>
+<span class="line" id="L510"></span>
 </code></pre></body>
 </html>
