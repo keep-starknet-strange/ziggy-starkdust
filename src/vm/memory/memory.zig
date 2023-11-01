@@ -116,11 +116,7 @@ pub const Memory = struct {
         self: *Self,
         address: Relocatable,
     ) error{MemoryOutOfBounds}!MaybeRelocatable {
-        var maybe_value = self.data.get(address);
-        if (maybe_value == null) {
-            return CairoVMError.MemoryOutOfBounds;
-        }
-        return maybe_value.?;
+        return self.data.get(address) orelse CairoVMError.MemoryOutOfBounds;
     }
 };
 
