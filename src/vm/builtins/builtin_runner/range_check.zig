@@ -1,5 +1,17 @@
+const std = @import("std");
+const Allocator = std.mem.Allocator;
+const ArrayList = std.ArrayList;
+
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
 const range_check_instance_def = @import("../../types/range_check_instance_def.zig");
+const MemorySegmentManager = @import("../../memory/segments.zig").MemorySegmentManager;
+const relocatable = @import("../../memory/relocatable.zig");
+const Error = @import("../../error.zig");
+
+const Relocatable = relocatable.Relocatable;
+const MaybeRelocatable = relocatable.MaybeRelocatable;
+const MemoryError = Error.MemoryError;
+const RunnerError = Error.RunnerError;
 
 /// Range check built-in runner
 pub const RangeCheckBuiltinRunner = struct {
@@ -59,12 +71,140 @@ pub const RangeCheckBuiltinRunner = struct {
         };
     }
 
-    /// Get the base value of this range check runner.
+    /// Get the base value of this Range Check runner.
     ///
     /// # Returns
     ///
     /// The base value as a `usize`.
     pub fn get_base(self: *const Self) usize {
         return self.base;
+    }
+
+    /// Get the ratio value of this Range Check runner.
+    ///
+    /// # Returns
+    ///
+    /// The ratio value as an `u32`.
+    pub fn get_ratio(self: *const Self) ?u32 {
+        return self.ratio;
+    }
+
+    /// Initializes memory segments and sets the base value for the Range Check runner.
+    ///
+    /// This function adds a memory segment using the provided `segments` manager and
+    /// sets the `base` value to the index of the new segment.
+    ///
+    /// # Parameters
+    /// - `segments`: A pointer to the `MemorySegmentManager` for segment management.
+    ///
+    /// # Modifies
+    /// - `self`: Updates the `base` value to the new segment's index.
+    pub fn initialize_segments(self: *Self, segments: *MemorySegmentManager) void {
+        self.base = @as(usize, @intCast(segments.add().segment_index));
+    }
+
+    /// Initializes and returns an `ArrayList` of `MaybeRelocatable` values.
+    ///
+    /// If the range check runner is included, it appends a `Relocatable` element to the `ArrayList`
+    /// with the base value. Otherwise, it returns an empty `ArrayList`.
+    ///
+    /// # Parameters
+    /// - `allocator`: An allocator for initializing the `ArrayList`.
+    ///
+    /// # Returns
+    /// An `ArrayList` of `MaybeRelocatable` values.
+    pub fn initial_stack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
+        var result = ArrayList(MaybeRelocatable).init(allocator);
+        if (self.included) {
+            try result.append(.{
+                .relocatable = Relocatable.new(
+                    @intCast(self.base),
+                    0,
+                ),
+            });
+            return result;
+        }
+        return result;
+    }
+
+    /// Get the number of used cells associated with this Range Check runner.
+    ///
+    /// # Parameters
+    ///
+    /// - `segments`: A pointer to a `MemorySegmentManager` for segment size information.
+    ///
+    /// # Returns
+    ///
+    /// The number of used cells as a `u32`, or `MemoryError.MissingSegmentUsedSizes` if
+    /// the size is not available.
+    pub fn get_used_cells(self: *const Self, segments: *MemorySegmentManager) !u32 {
+        return segments.get_segment_used_size(
+            @intCast(self.base),
+        ) orelse MemoryError.MissingSegmentUsedSizes;
+    }
+
+    /// Retrieves memory segment addresses as a tuple.
+    ///
+    /// Returns a tuple containing the `base` and `stop_ptr` addresses associated
+    /// with the Keccak runner's memory segments. The `stop_ptr` may be `null`.
+    ///
+    /// # Returns
+    /// A tuple of `usize` and `?usize` addresses.
+    pub fn get_memory_segment_addresses(self: *Self) std.meta.Tuple(&.{
+        usize,
+        ?usize,
+    }) {
+        return .{
+            self.base,
+            self.stop_ptr,
+        };
+    }
+
+    /// Calculate the final stack.
+    ///
+    /// This function calculates the final stack pointer for the Range Check runner, based on the provided `segments`, `pointer`, and `self` settings. If the runner is included,
+    /// it verifies the stop pointer for consistency and sets it. Otherwise, it sets the stop pointer to zero.
+    ///
+    /// # Parameters
+    ///
+    /// - `segments`: A pointer to the `MemorySegmentManager` for segment management.
+    /// - `pointer`: A `Relocatable` pointer to the current stack pointer.
+    ///
+    /// # Returns
+    ///
+    /// A `Relocatable` pointer to the final stack pointer, or an error code if the
+    /// verification fails.
+    pub fn final_stack(
+        self: *Self,
+        segments: *MemorySegmentManager,
+        pointer: Relocatable,
+    ) !Relocatable {
+        if (self.included) {
+            const stop_pointer_addr = pointer.subUint(
+                @intCast(1),
+            ) catch return RunnerError.NoStopPointer;
+            const stop_pointer = try (segments.memory.get(
+                stop_pointer_addr,
+            ) catch return RunnerError.NoStopPointer).tryIntoRelocatable();
+            if (@as(
+                isize,
+                @intCast(self.base),
+            ) != stop_pointer.segment_index) {
+                return RunnerError.InvalidStopPointerIndex;
+            }
+            const stop_ptr = stop_pointer.offset;
+
+            if (stop_ptr != try self.get_used_instances(segments) * @as(
+                usize,
+                @intCast(self.cells_per_instance),
+            )) {
+                return RunnerError.InvalidStopPointer;
+            }
+            self.stop_ptr = stop_ptr;
+            return stop_pointer_addr;
+        }
+
+        self.stop_ptr = 0;
+        return pointer;
     }
 };
