@@ -220,6 +220,17 @@ pub const CairoVM = struct {
     }
 
     /// Runs deductions for op1.
+    ///
+    /// # Arguments
+    /// - `op1_addr`: The address computed from the second operand of the instruction.
+    /// - `res`: A pointer to which will be written the deduced result (if any).
+    /// - `instruction`: The instruction to deduce the operand for.
+    /// - `dst_op`: The destination operand.
+    /// - `op0`: The first operand.
+    ///
+    /// # Returns
+    /// - The deduced `op1`, or an error if it could not be deduced.
+    /// - If a result can be deduced from the instruction, it will be written to `res`.
     pub fn computeOp1Deductions(
         self: *const Self,
         op1_addr: Relocatable,
