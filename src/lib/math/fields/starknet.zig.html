@@ -634,5 +634,19 @@
 <span class="line" id="L516">    ));</span>
 <span class="line" id="L517">}</span>
 <span class="line" id="L518"></span>
+<span class="line" id="L519"><span class="tok-kw">test</span> <span class="tok-str">&quot;Felt252 lexographicallyLargest&quot;</span> {</span>
+<span class="line" id="L520">    <span class="tok-kw">try</span> expect(!Felt252.fromInteger(<span class="tok-number">0</span>).lexographicallyLargest());</span>
+<span class="line" id="L521">    <span class="tok-kw">try</span> expect(!Felt252.fromInteger(</span>
+<span class="line" id="L522">        <span class="tok-number">0x400000000000008800000000000000000000000000000000000000000000000</span>,</span>
+<span class="line" id="L523">    ).lexographicallyLargest());</span>
+<span class="line" id="L524">    <span class="tok-kw">try</span> expect(!Felt252.fromInteger(</span>
+<span class="line" id="L525">        <span class="tok-number">0x4000000000000087fffffffffffffffffffffffffffffffffffffffffffffff</span>,</span>
+<span class="line" id="L526">    ).lexographicallyLargest());</span>
+<span class="line" id="L527">    <span class="tok-kw">try</span> expect(Felt252.fromInteger(</span>
+<span class="line" id="L528">        <span class="tok-number">0x400000000000008800000000000000000000000000000000000000000000001</span>,</span>
+<span class="line" id="L529">    ).lexographicallyLargest());</span>
+<span class="line" id="L530">    <span class="tok-kw">try</span> expect(Felt252.fromInteger(std.math.maxInt(<span class="tok-type">u256</span>)).lexographicallyLargest());</span>
+<span class="line" id="L531">}</span>
+<span class="line" id="L532"></span>
 </code></pre></body>
 </html>
