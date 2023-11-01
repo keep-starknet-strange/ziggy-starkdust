@@ -232,159 +232,135 @@
 <span class="line" id="L113">        <span class="tok-kw">if</span> (instruction.off_0 &lt; <span class="tok-number">0</span>) {</span>
 <span class="line" id="L114">            <span class="tok-comment">// Convert i16 to u64 safely and then negate</span>
 </span>
-<span class="line" id="L115">            <span class="tok-kw">const</span> abs_offset = <span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L116">                <span class="tok-type">u64</span>,</span>
-<span class="line" id="L117">                <span class="tok-builtin">@intCast</span>(-instruction.off_0),</span>
-<span class="line" id="L118">            );</span>
-<span class="line" id="L119">            <span class="tok-kw">return</span> <span class="tok-kw">try</span> base_addr.subUint(abs_offset);</span>
-<span class="line" id="L120">        } <span class="tok-kw">else</span> {</span>
-<span class="line" id="L121">            <span class="tok-comment">// Convert i16 to u64 safely</span>
+<span class="line" id="L115">            <span class="tok-kw">return</span> <span class="tok-kw">try</span> base_addr.subUint(<span class="tok-builtin">@intCast</span>(-instruction.off_0));</span>
+<span class="line" id="L116">        } <span class="tok-kw">else</span> {</span>
+<span class="line" id="L117">            <span class="tok-comment">// Convert i16 to u64 safely</span>
 </span>
-<span class="line" id="L122">            <span class="tok-kw">const</span> offset = <span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L123">                <span class="tok-type">u64</span>,</span>
-<span class="line" id="L124">                <span class="tok-builtin">@intCast</span>(instruction.off_0),</span>
-<span class="line" id="L125">            );</span>
-<span class="line" id="L126">            <span class="tok-kw">return</span> <span class="tok-kw">try</span> base_addr.addUint(offset);</span>
-<span class="line" id="L127">        }</span>
-<span class="line" id="L128">    }</span>
-<span class="line" id="L129"></span>
-<span class="line" id="L130">    <span class="tok-comment">/// Compute OP 0 address for a given instruction.</span></span>
-<span class="line" id="L131">    <span class="tok-comment">/// # Arguments</span></span>
-<span class="line" id="L132">    <span class="tok-comment">/// - instruction: The instruction to compute the OP 0 address for.</span></span>
-<span class="line" id="L133">    <span class="tok-comment">/// # Returns</span></span>
-<span class="line" id="L134">    <span class="tok-comment">/// - The computed OP 0 address.</span></span>
-<span class="line" id="L135">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">compute_op_0_addr</span>(</span>
-<span class="line" id="L136">        self: *Self,</span>
-<span class="line" id="L137">        instruction: *<span class="tok-kw">const</span> Instruction,</span>
-<span class="line" id="L138">    ) !Relocatable {</span>
-<span class="line" id="L139">        <span class="tok-kw">var</span> base_addr = <span class="tok-kw">switch</span> (instruction.op_0_reg) {</span>
-<span class="line" id="L140">            .AP =&gt; self.ap.*,</span>
-<span class="line" id="L141">            .FP =&gt; self.fp.*,</span>
-<span class="line" id="L142">        };</span>
-<span class="line" id="L143"></span>
-<span class="line" id="L144">        <span class="tok-kw">if</span> (instruction.off_1 &lt; <span class="tok-number">0</span>) {</span>
-<span class="line" id="L145">            <span class="tok-comment">// Convert i16 to u64 safely and then negate</span>
+<span class="line" id="L118">            <span class="tok-kw">return</span> <span class="tok-kw">try</span> base_addr.addUint(<span class="tok-builtin">@intCast</span>(instruction.off_0));</span>
+<span class="line" id="L119">        }</span>
+<span class="line" id="L120">    }</span>
+<span class="line" id="L121"></span>
+<span class="line" id="L122">    <span class="tok-comment">/// Compute OP 0 address for a given instruction.</span></span>
+<span class="line" id="L123">    <span class="tok-comment">/// # Arguments</span></span>
+<span class="line" id="L124">    <span class="tok-comment">/// - instruction: The instruction to compute the OP 0 address for.</span></span>
+<span class="line" id="L125">    <span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L126">    <span class="tok-comment">/// - The computed OP 0 address.</span></span>
+<span class="line" id="L127">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">compute_op_0_addr</span>(</span>
+<span class="line" id="L128">        self: *Self,</span>
+<span class="line" id="L129">        instruction: *<span class="tok-kw">const</span> Instruction,</span>
+<span class="line" id="L130">    ) !Relocatable {</span>
+<span class="line" id="L131">        <span class="tok-kw">var</span> base_addr = <span class="tok-kw">switch</span> (instruction.op_0_reg) {</span>
+<span class="line" id="L132">            .AP =&gt; self.ap.*,</span>
+<span class="line" id="L133">            .FP =&gt; self.fp.*,</span>
+<span class="line" id="L134">        };</span>
+<span class="line" id="L135"></span>
+<span class="line" id="L136">        <span class="tok-kw">if</span> (instruction.off_1 &lt; <span class="tok-number">0</span>) {</span>
+<span class="line" id="L137">            <span class="tok-comment">// Convert i16 to u64 safely and then negate</span>
 </span>
-<span class="line" id="L146">            <span class="tok-kw">const</span> abs_offset = <span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L147">                <span class="tok-type">u64</span>,</span>
-<span class="line" id="L148">                <span class="tok-builtin">@intCast</span>(-instruction.off_1),</span>
-<span class="line" id="L149">            );</span>
-<span class="line" id="L150">            <span class="tok-kw">return</span> <span class="tok-kw">try</span> base_addr.subUint(abs_offset);</span>
-<span class="line" id="L151">        } <span class="tok-kw">else</span> {</span>
-<span class="line" id="L152">            <span class="tok-comment">// Convert i16 to u64 safely</span>
+<span class="line" id="L138">            <span class="tok-kw">return</span> <span class="tok-kw">try</span> base_addr.subUint(<span class="tok-builtin">@intCast</span>(-instruction.off_1));</span>
+<span class="line" id="L139">        } <span class="tok-kw">else</span> {</span>
+<span class="line" id="L140">            <span class="tok-comment">// Convert i16 to u64 safely</span>
 </span>
-<span class="line" id="L153">            <span class="tok-kw">const</span> offset = <span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L154">                <span class="tok-type">u64</span>,</span>
-<span class="line" id="L155">                <span class="tok-builtin">@intCast</span>(instruction.off_1),</span>
-<span class="line" id="L156">            );</span>
-<span class="line" id="L157">            <span class="tok-kw">return</span> <span class="tok-kw">try</span> base_addr.addUint(offset);</span>
-<span class="line" id="L158">        }</span>
-<span class="line" id="L159">    }</span>
-<span class="line" id="L160"></span>
-<span class="line" id="L161">    <span class="tok-comment">/// Compute OP 1 address for a given instruction.</span></span>
-<span class="line" id="L162">    <span class="tok-comment">/// # Arguments</span></span>
-<span class="line" id="L163">    <span class="tok-comment">/// - instruction: The instruction to compute the OP 1 address for.</span></span>
-<span class="line" id="L164">    <span class="tok-comment">/// # Returns</span></span>
-<span class="line" id="L165">    <span class="tok-comment">/// - The computed OP 1 address.</span></span>
-<span class="line" id="L166">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">compute_op_1_addr</span>(</span>
-<span class="line" id="L167">        self: *Self,</span>
-<span class="line" id="L168">        instruction: *<span class="tok-kw">const</span> Instruction,</span>
-<span class="line" id="L169">        op_0: ?MaybeRelocatable,</span>
-<span class="line" id="L170">    ) !Relocatable {</span>
-<span class="line" id="L171">        <span class="tok-kw">var</span> base_addr: Relocatable = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L172">        <span class="tok-kw">switch</span> (instruction.op_1_addr) {</span>
-<span class="line" id="L173">            .FP =&gt; base_addr = self.fp.*,</span>
-<span class="line" id="L174">            .AP =&gt; base_addr = self.ap.*,</span>
-<span class="line" id="L175">            .Imm =&gt; {</span>
-<span class="line" id="L176">                <span class="tok-kw">if</span> (instruction.off_2 == <span class="tok-number">1</span>) {</span>
-<span class="line" id="L177">                    base_addr = self.pc.*;</span>
-<span class="line" id="L178">                } <span class="tok-kw">else</span> {</span>
-<span class="line" id="L179">                    <span class="tok-kw">return</span> <span class="tok-kw">error</span>.ImmShouldBe1;</span>
-<span class="line" id="L180">                }</span>
-<span class="line" id="L181">            },</span>
-<span class="line" id="L182">            .Op0 =&gt; {</span>
-<span class="line" id="L183">                <span class="tok-kw">if</span> (op_0) |val| {</span>
-<span class="line" id="L184">                    base_addr = <span class="tok-kw">try</span> val.tryIntoRelocatable();</span>
-<span class="line" id="L185">                } <span class="tok-kw">else</span> {</span>
-<span class="line" id="L186">                    <span class="tok-kw">return</span> <span class="tok-kw">error</span>.UnknownOp0;</span>
-<span class="line" id="L187">                }</span>
-<span class="line" id="L188">            },</span>
-<span class="line" id="L189">        }</span>
-<span class="line" id="L190"></span>
-<span class="line" id="L191">        <span class="tok-kw">if</span> (instruction.off_2 &lt; <span class="tok-number">0</span>) {</span>
-<span class="line" id="L192">            <span class="tok-comment">// Convert i16 to u64 safely and then negate</span>
+<span class="line" id="L141">            <span class="tok-kw">return</span> <span class="tok-kw">try</span> base_addr.addUint(<span class="tok-builtin">@intCast</span>(instruction.off_1));</span>
+<span class="line" id="L142">        }</span>
+<span class="line" id="L143">    }</span>
+<span class="line" id="L144"></span>
+<span class="line" id="L145">    <span class="tok-comment">/// Compute OP 1 address for a given instruction.</span></span>
+<span class="line" id="L146">    <span class="tok-comment">/// # Arguments</span></span>
+<span class="line" id="L147">    <span class="tok-comment">/// - instruction: The instruction to compute the OP 1 address for.</span></span>
+<span class="line" id="L148">    <span class="tok-comment">/// # Returns</span></span>
+<span class="line" id="L149">    <span class="tok-comment">/// - The computed OP 1 address.</span></span>
+<span class="line" id="L150">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">compute_op_1_addr</span>(</span>
+<span class="line" id="L151">        self: *Self,</span>
+<span class="line" id="L152">        instruction: *<span class="tok-kw">const</span> Instruction,</span>
+<span class="line" id="L153">        op_0: ?MaybeRelocatable,</span>
+<span class="line" id="L154">    ) !Relocatable {</span>
+<span class="line" id="L155">        <span class="tok-kw">var</span> base_addr: Relocatable = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L156">        <span class="tok-kw">switch</span> (instruction.op_1_addr) {</span>
+<span class="line" id="L157">            .FP =&gt; base_addr = self.fp.*,</span>
+<span class="line" id="L158">            .AP =&gt; base_addr = self.ap.*,</span>
+<span class="line" id="L159">            .Imm =&gt; {</span>
+<span class="line" id="L160">                <span class="tok-kw">if</span> (instruction.off_2 == <span class="tok-number">1</span>) {</span>
+<span class="line" id="L161">                    base_addr = self.pc.*;</span>
+<span class="line" id="L162">                } <span class="tok-kw">else</span> {</span>
+<span class="line" id="L163">                    <span class="tok-kw">return</span> <span class="tok-kw">error</span>.ImmShouldBe1;</span>
+<span class="line" id="L164">                }</span>
+<span class="line" id="L165">            },</span>
+<span class="line" id="L166">            .Op0 =&gt; {</span>
+<span class="line" id="L167">                <span class="tok-kw">if</span> (op_0) |val| {</span>
+<span class="line" id="L168">                    base_addr = <span class="tok-kw">try</span> val.tryIntoRelocatable();</span>
+<span class="line" id="L169">                } <span class="tok-kw">else</span> {</span>
+<span class="line" id="L170">                    <span class="tok-kw">return</span> <span class="tok-kw">error</span>.UnknownOp0;</span>
+<span class="line" id="L171">                }</span>
+<span class="line" id="L172">            },</span>
+<span class="line" id="L173">        }</span>
+<span class="line" id="L174"></span>
+<span class="line" id="L175">        <span class="tok-kw">if</span> (instruction.off_2 &lt; <span class="tok-number">0</span>) {</span>
+<span class="line" id="L176">            <span class="tok-comment">// Convert i16 to u64 safely and then negate</span>
 </span>
-<span class="line" id="L193">            <span class="tok-kw">const</span> abs_offset = <span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L194">                <span class="tok-type">u64</span>,</span>
-<span class="line" id="L195">                <span class="tok-builtin">@intCast</span>(-instruction.off_2),</span>
-<span class="line" id="L196">            );</span>
-<span class="line" id="L197">            <span class="tok-kw">return</span> <span class="tok-kw">try</span> base_addr.subUint(abs_offset);</span>
-<span class="line" id="L198">        } <span class="tok-kw">else</span> {</span>
-<span class="line" id="L199">            <span class="tok-comment">// Convert i16 to u64 safely</span>
+<span class="line" id="L177">            <span class="tok-kw">return</span> <span class="tok-kw">try</span> base_addr.subUint(<span class="tok-builtin">@intCast</span>(-instruction.off_2));</span>
+<span class="line" id="L178">        } <span class="tok-kw">else</span> {</span>
+<span class="line" id="L179">            <span class="tok-comment">// Convert i16 to u64 safely</span>
 </span>
-<span class="line" id="L200">            <span class="tok-kw">const</span> offset = <span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L201">                <span class="tok-type">u64</span>,</span>
-<span class="line" id="L202">                <span class="tok-builtin">@intCast</span>(instruction.off_2),</span>
-<span class="line" id="L203">            );</span>
-<span class="line" id="L204">            <span class="tok-kw">return</span> <span class="tok-kw">try</span> base_addr.addUint(offset);</span>
-<span class="line" id="L205">        }</span>
-<span class="line" id="L206">    }</span>
-<span class="line" id="L207">};</span>
-<span class="line" id="L208"></span>
-<span class="line" id="L209"><span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L180">            <span class="tok-kw">return</span> <span class="tok-kw">try</span> base_addr.addUint(<span class="tok-builtin">@intCast</span>(instruction.off_2));</span>
+<span class="line" id="L181">        }</span>
+<span class="line" id="L182">    }</span>
+<span class="line" id="L183">};</span>
+<span class="line" id="L184"></span>
+<span class="line" id="L185"><span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L210"><span class="tok-comment">// *                         TESTS                            *</span>
+<span class="line" id="L186"><span class="tok-comment">// *                         TESTS                            *</span>
 </span>
-<span class="line" id="L211"><span class="tok-comment">// ************************************************************</span>
+<span class="line" id="L187"><span class="tok-comment">// ************************************************************</span>
 </span>
-<span class="line" id="L212"><span class="tok-kw">const</span> expect = std.testing.expect;</span>
-<span class="line" id="L213"><span class="tok-kw">const</span> expectEqual = std.testing.expectEqual;</span>
-<span class="line" id="L214"><span class="tok-kw">const</span> expectError = std.testing.expectError;</span>
-<span class="line" id="L215"></span>
-<span class="line" id="L216"><span class="tok-kw">test</span> <span class="tok-str">&quot;compute_op1_addr for fp op1 addr&quot;</span> {</span>
-<span class="line" id="L217">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
-<span class="line" id="L218"></span>
-<span class="line" id="L219">    <span class="tok-kw">const</span> instruction =</span>
-<span class="line" id="L220">        Instruction{</span>
-<span class="line" id="L221">        .off_0 = <span class="tok-number">1</span>,</span>
-<span class="line" id="L222">        .off_1 = <span class="tok-number">2</span>,</span>
-<span class="line" id="L223">        .off_2 = <span class="tok-number">3</span>,</span>
-<span class="line" id="L224">        .dst_reg = .FP,</span>
-<span class="line" id="L225">        .op_0_reg = .AP,</span>
-<span class="line" id="L226">        .op_1_addr = .FP,</span>
-<span class="line" id="L227">        .res_logic = .Add,</span>
-<span class="line" id="L228">        .pc_update = .Regular,</span>
-<span class="line" id="L229">        .ap_update = .Regular,</span>
-<span class="line" id="L230">        .fp_update = .Regular,</span>
-<span class="line" id="L231">        .opcode = .NOp,</span>
-<span class="line" id="L232">    };</span>
-<span class="line" id="L233"></span>
-<span class="line" id="L234">    <span class="tok-kw">const</span> run_context = <span class="tok-kw">try</span> RunContext.init_with_values(</span>
-<span class="line" id="L235">        allocator,</span>
-<span class="line" id="L236">        Relocatable.new(</span>
-<span class="line" id="L237">            <span class="tok-number">0</span>,</span>
-<span class="line" id="L238">            <span class="tok-number">4</span>,</span>
-<span class="line" id="L239">        ),</span>
-<span class="line" id="L240">        Relocatable.new(</span>
-<span class="line" id="L241">            <span class="tok-number">0</span>,</span>
-<span class="line" id="L242">            <span class="tok-number">5</span>,</span>
-<span class="line" id="L243">        ),</span>
-<span class="line" id="L244">        Relocatable.new(</span>
-<span class="line" id="L245">            <span class="tok-number">0</span>,</span>
-<span class="line" id="L246">            <span class="tok-number">6</span>,</span>
-<span class="line" id="L247">        ),</span>
-<span class="line" id="L248">    );</span>
-<span class="line" id="L249">    <span class="tok-kw">defer</span> run_context.deinit();</span>
-<span class="line" id="L250">    <span class="tok-kw">const</span> relocatable_addr = <span class="tok-kw">try</span> run_context.compute_op_1_addr(</span>
-<span class="line" id="L251">        &amp;instruction,</span>
-<span class="line" id="L252">        <span class="tok-null">null</span>,</span>
-<span class="line" id="L253">    );</span>
-<span class="line" id="L254"></span>
-<span class="line" id="L255">    <span class="tok-kw">try</span> expect(relocatable_addr.eq(Relocatable.new(</span>
-<span class="line" id="L256">        <span class="tok-number">0</span>,</span>
-<span class="line" id="L257">        <span class="tok-number">9</span>,</span>
-<span class="line" id="L258">    )));</span>
-<span class="line" id="L259">}</span>
-<span class="line" id="L260"></span>
+<span class="line" id="L188"><span class="tok-kw">const</span> expect = std.testing.expect;</span>
+<span class="line" id="L189"><span class="tok-kw">const</span> expectEqual = std.testing.expectEqual;</span>
+<span class="line" id="L190"><span class="tok-kw">const</span> expectError = std.testing.expectError;</span>
+<span class="line" id="L191"></span>
+<span class="line" id="L192"><span class="tok-kw">test</span> <span class="tok-str">&quot;compute_op1_addr for fp op1 addr&quot;</span> {</span>
+<span class="line" id="L193">    <span class="tok-kw">var</span> allocator = std.testing.allocator;</span>
+<span class="line" id="L194"></span>
+<span class="line" id="L195">    <span class="tok-kw">const</span> instruction =</span>
+<span class="line" id="L196">        Instruction{</span>
+<span class="line" id="L197">        .off_0 = <span class="tok-number">1</span>,</span>
+<span class="line" id="L198">        .off_1 = <span class="tok-number">2</span>,</span>
+<span class="line" id="L199">        .off_2 = <span class="tok-number">3</span>,</span>
+<span class="line" id="L200">        .dst_reg = .FP,</span>
+<span class="line" id="L201">        .op_0_reg = .AP,</span>
+<span class="line" id="L202">        .op_1_addr = .FP,</span>
+<span class="line" id="L203">        .res_logic = .Add,</span>
+<span class="line" id="L204">        .pc_update = .Regular,</span>
+<span class="line" id="L205">        .ap_update = .Regular,</span>
+<span class="line" id="L206">        .fp_update = .Regular,</span>
+<span class="line" id="L207">        .opcode = .NOp,</span>
+<span class="line" id="L208">    };</span>
+<span class="line" id="L209"></span>
+<span class="line" id="L210">    <span class="tok-kw">const</span> run_context = <span class="tok-kw">try</span> RunContext.init_with_values(</span>
+<span class="line" id="L211">        allocator,</span>
+<span class="line" id="L212">        Relocatable.new(</span>
+<span class="line" id="L213">            <span class="tok-number">0</span>,</span>
+<span class="line" id="L214">            <span class="tok-number">4</span>,</span>
+<span class="line" id="L215">        ),</span>
+<span class="line" id="L216">        Relocatable.new(</span>
+<span class="line" id="L217">            <span class="tok-number">0</span>,</span>
+<span class="line" id="L218">            <span class="tok-number">5</span>,</span>
+<span class="line" id="L219">        ),</span>
+<span class="line" id="L220">        Relocatable.new(</span>
+<span class="line" id="L221">            <span class="tok-number">0</span>,</span>
+<span class="line" id="L222">            <span class="tok-number">6</span>,</span>
+<span class="line" id="L223">        ),</span>
+<span class="line" id="L224">    );</span>
+<span class="line" id="L225">    <span class="tok-kw">defer</span> run_context.deinit();</span>
+<span class="line" id="L226">    <span class="tok-kw">const</span> relocatable_addr = <span class="tok-kw">try</span> run_context.compute_op_1_addr(</span>
+<span class="line" id="L227">        &amp;instruction,</span>
+<span class="line" id="L228">        <span class="tok-null">null</span>,</span>
+<span class="line" id="L229">    );</span>
+<span class="line" id="L230"></span>
+<span class="line" id="L231">    <span class="tok-kw">try</span> expect(relocatable_addr.eq(Relocatable.new(</span>
+<span class="line" id="L232">        <span class="tok-number">0</span>,</span>
+<span class="line" id="L233">        <span class="tok-number">9</span>,</span>
+<span class="line" id="L234">    )));</span>
+<span class="line" id="L235">}</span>
+<span class="line" id="L236"></span>
 </code></pre></body>
 </html>

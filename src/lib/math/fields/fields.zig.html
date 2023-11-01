@@ -138,346 +138,416 @@
 <span class="line" id="L24"></span>
 <span class="line" id="L25">        fe: F.MontgomeryDomainFieldElement,</span>
 <span class="line" id="L26"></span>
-<span class="line" id="L27">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">fromInteger</span>(num: <span class="tok-type">u256</span>) Self {</span>
-<span class="line" id="L28">            <span class="tok-kw">var</span> lbe: [BytesSize]<span class="tok-type">u8</span> = [_]<span class="tok-type">u8</span>{<span class="tok-number">0</span>} ** BytesSize;</span>
-<span class="line" id="L29">            std.mem.writeInt(</span>
-<span class="line" id="L30">                <span class="tok-type">u256</span>,</span>
-<span class="line" id="L31">                lbe[<span class="tok-number">0</span>..],</span>
-<span class="line" id="L32">                num % Modulo,</span>
-<span class="line" id="L33">                std.builtin.Endian.Little,</span>
-<span class="line" id="L34">            );</span>
-<span class="line" id="L35"></span>
-<span class="line" id="L36">            <span class="tok-kw">var</span> nonMont: F.NonMontgomeryDomainFieldElement = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L37">            F.fromBytes(</span>
-<span class="line" id="L38">                &amp;nonMont,</span>
-<span class="line" id="L39">                lbe,</span>
-<span class="line" id="L40">            );</span>
-<span class="line" id="L41">            <span class="tok-kw">var</span> mont: F.MontgomeryDomainFieldElement = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L42">            F.toMontgomery(</span>
-<span class="line" id="L43">                &amp;mont,</span>
-<span class="line" id="L44">                nonMont,</span>
-<span class="line" id="L45">            );</span>
-<span class="line" id="L46"></span>
-<span class="line" id="L47">            <span class="tok-kw">return</span> .{ .fe = mont };</span>
-<span class="line" id="L48">        }</span>
+<span class="line" id="L27">        <span class="tok-comment">/// Create a field element from an integer in Montgomery representation.</span></span>
+<span class="line" id="L28">        <span class="tok-comment">///</span></span>
+<span class="line" id="L29">        <span class="tok-comment">/// This function converts an integer to a field element in Montgomery form.</span></span>
+<span class="line" id="L30">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">fromInteger</span>(num: <span class="tok-type">u256</span>) Self {</span>
+<span class="line" id="L31">            <span class="tok-kw">var</span> lbe: [BytesSize]<span class="tok-type">u8</span> = [_]<span class="tok-type">u8</span>{<span class="tok-number">0</span>} ** BytesSize;</span>
+<span class="line" id="L32">            std.mem.writeInt(</span>
+<span class="line" id="L33">                <span class="tok-type">u256</span>,</span>
+<span class="line" id="L34">                lbe[<span class="tok-number">0</span>..],</span>
+<span class="line" id="L35">                num % Modulo,</span>
+<span class="line" id="L36">                std.builtin.Endian.Little,</span>
+<span class="line" id="L37">            );</span>
+<span class="line" id="L38"></span>
+<span class="line" id="L39">            <span class="tok-kw">var</span> nonMont: F.NonMontgomeryDomainFieldElement = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L40">            F.fromBytes(</span>
+<span class="line" id="L41">                &amp;nonMont,</span>
+<span class="line" id="L42">                lbe,</span>
+<span class="line" id="L43">            );</span>
+<span class="line" id="L44">            <span class="tok-kw">var</span> mont: F.MontgomeryDomainFieldElement = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L45">            F.toMontgomery(</span>
+<span class="line" id="L46">                &amp;mont,</span>
+<span class="line" id="L47">                nonMont,</span>
+<span class="line" id="L48">            );</span>
 <span class="line" id="L49"></span>
-<span class="line" id="L50">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">zero</span>() Self {</span>
-<span class="line" id="L51">            <span class="tok-kw">return</span> base_zero;</span>
-<span class="line" id="L52">        }</span>
-<span class="line" id="L53"></span>
-<span class="line" id="L54">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">one</span>() Self {</span>
-<span class="line" id="L55">            <span class="tok-kw">const</span> oneValue = <span class="tok-kw">comptime</span> blk: {</span>
-<span class="line" id="L56">                <span class="tok-kw">var</span> baseOne: F.MontgomeryDomainFieldElement = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L57">                F.setOne(&amp;baseOne);</span>
-<span class="line" id="L58">                <span class="tok-kw">break</span> :blk .{ .fe = baseOne };</span>
-<span class="line" id="L59">            };</span>
-<span class="line" id="L60">            <span class="tok-kw">return</span> oneValue;</span>
-<span class="line" id="L61">        }</span>
-<span class="line" id="L62"></span>
-<span class="line" id="L63">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">fromBytes</span>(bytes: [BytesSize]<span class="tok-type">u8</span>) Self {</span>
-<span class="line" id="L64">            <span class="tok-kw">var</span> non_mont: F.NonMontgomeryDomainFieldElement = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L65">            <span class="tok-kw">inline</span> <span class="tok-kw">for</span> (<span class="tok-number">0</span>..<span class="tok-number">4</span>) |i| {</span>
-<span class="line" id="L66">                non_mont[i] = std.mem.readIntSlice(</span>
-<span class="line" id="L67">                    <span class="tok-type">u64</span>,</span>
-<span class="line" id="L68">                    bytes[i * <span class="tok-number">8</span> .. (i + <span class="tok-number">1</span>) * <span class="tok-number">8</span>],</span>
-<span class="line" id="L69">                    std.builtin.Endian.Little,</span>
-<span class="line" id="L70">                );</span>
-<span class="line" id="L71">            }</span>
-<span class="line" id="L72">            <span class="tok-kw">var</span> ret: Self = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L73">            F.toMontgomery(</span>
-<span class="line" id="L74">                &amp;ret.fe,</span>
-<span class="line" id="L75">                non_mont,</span>
-<span class="line" id="L76">            );</span>
-<span class="line" id="L77"></span>
-<span class="line" id="L78">            <span class="tok-kw">return</span> ret;</span>
-<span class="line" id="L79">        }</span>
-<span class="line" id="L80"></span>
-<span class="line" id="L81">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">toBytes</span>(self: Self) [BytesSize]<span class="tok-type">u8</span> {</span>
-<span class="line" id="L82">            <span class="tok-kw">var</span> non_mont: F.NonMontgomeryDomainFieldElement = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L83">            F.fromMontgomery(</span>
-<span class="line" id="L84">                &amp;non_mont,</span>
-<span class="line" id="L85">                self.fe,</span>
-<span class="line" id="L86">            );</span>
-<span class="line" id="L87">            <span class="tok-kw">var</span> ret: [BytesSize]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L88">            <span class="tok-kw">inline</span> <span class="tok-kw">for</span> (<span class="tok-number">0</span>..<span class="tok-number">4</span>) |i| {</span>
-<span class="line" id="L89">                std.mem.writeIntSlice(</span>
-<span class="line" id="L90">                    <span class="tok-type">u64</span>,</span>
-<span class="line" id="L91">                    ret[i * <span class="tok-number">8</span> .. (i + <span class="tok-number">1</span>) * <span class="tok-number">8</span>],</span>
-<span class="line" id="L92">                    non_mont[i],</span>
-<span class="line" id="L93">                    std.builtin.Endian.Little,</span>
-<span class="line" id="L94">                );</span>
-<span class="line" id="L95">            }</span>
-<span class="line" id="L96"></span>
-<span class="line" id="L97">            <span class="tok-kw">return</span> ret;</span>
-<span class="line" id="L98">        }</span>
-<span class="line" id="L99"></span>
-<span class="line" id="L100">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">lexographicallyLargest</span>(self: Self) <span class="tok-type">bool</span> {</span>
-<span class="line" id="L101">            <span class="tok-kw">const</span> selfNonMont = self.toInteger();</span>
-<span class="line" id="L102">            <span class="tok-kw">return</span> selfNonMont &gt; QMinOneDiv2;</span>
-<span class="line" id="L103">        }</span>
-<span class="line" id="L104"></span>
-<span class="line" id="L105">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">fromMontgomery</span>(self: Self) F.NonMontgomeryDomainFieldElement {</span>
-<span class="line" id="L106">            <span class="tok-kw">var</span> nonMont: F.NonMontgomeryDomainFieldElement = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L107">            F.fromMontgomery(</span>
-<span class="line" id="L108">                &amp;nonMont,</span>
-<span class="line" id="L109">                self.fe,</span>
-<span class="line" id="L110">            );</span>
-<span class="line" id="L111">            <span class="tok-kw">return</span> nonMont;</span>
-<span class="line" id="L112">        }</span>
-<span class="line" id="L113">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">add</span>(</span>
-<span class="line" id="L114">            self: Self,</span>
-<span class="line" id="L115">            other: Self,</span>
-<span class="line" id="L116">        ) Self {</span>
-<span class="line" id="L117">            <span class="tok-kw">var</span> ret: F.NonMontgomeryDomainFieldElement = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L118">            F.add(</span>
-<span class="line" id="L119">                &amp;ret,</span>
-<span class="line" id="L120">                self.fe,</span>
-<span class="line" id="L121">                other.fe,</span>
-<span class="line" id="L122">            );</span>
-<span class="line" id="L123">            <span class="tok-kw">return</span> .{ .fe = ret };</span>
-<span class="line" id="L124">        }</span>
-<span class="line" id="L125"></span>
-<span class="line" id="L126">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">sub</span>(</span>
-<span class="line" id="L127">            self: Self,</span>
-<span class="line" id="L128">            other: Self,</span>
-<span class="line" id="L129">        ) Self {</span>
-<span class="line" id="L130">            <span class="tok-kw">var</span> ret: F.MontgomeryDomainFieldElement = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L131">            F.sub(</span>
-<span class="line" id="L132">                &amp;ret,</span>
-<span class="line" id="L133">                self.fe,</span>
-<span class="line" id="L134">                other.fe,</span>
-<span class="line" id="L135">            );</span>
-<span class="line" id="L136">            <span class="tok-kw">return</span> .{ .fe = ret };</span>
-<span class="line" id="L137">        }</span>
-<span class="line" id="L138"></span>
-<span class="line" id="L139">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">mul</span>(</span>
-<span class="line" id="L140">            self: Self,</span>
-<span class="line" id="L141">            other: Self,</span>
-<span class="line" id="L142">        ) Self {</span>
-<span class="line" id="L143">            <span class="tok-kw">var</span> ret: F.MontgomeryDomainFieldElement = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L144">            F.mul(</span>
-<span class="line" id="L145">                &amp;ret,</span>
-<span class="line" id="L146">                self.fe,</span>
-<span class="line" id="L147">                other.fe,</span>
-<span class="line" id="L148">            );</span>
-<span class="line" id="L149">            <span class="tok-kw">return</span> .{ .fe = ret };</span>
-<span class="line" id="L150">        }</span>
-<span class="line" id="L151"></span>
-<span class="line" id="L152">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">mulBy5</span>(self: Self) Self {</span>
-<span class="line" id="L153">            <span class="tok-kw">var</span> ret: F.MontgomeryDomainFieldElement = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L154">            F.add(</span>
-<span class="line" id="L155">                &amp;ret,</span>
-<span class="line" id="L156">                self.fe,</span>
-<span class="line" id="L157">                self.fe,</span>
-<span class="line" id="L158">            );</span>
-<span class="line" id="L159">            F.add(</span>
+<span class="line" id="L50">            <span class="tok-kw">return</span> .{ .fe = mont };</span>
+<span class="line" id="L51">        }</span>
+<span class="line" id="L52"></span>
+<span class="line" id="L53">        <span class="tok-comment">/// Get the field element representing zero.</span></span>
+<span class="line" id="L54">        <span class="tok-comment">///</span></span>
+<span class="line" id="L55">        <span class="tok-comment">/// Returns a field element with a value of zero.</span></span>
+<span class="line" id="L56">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">zero</span>() Self {</span>
+<span class="line" id="L57">            <span class="tok-kw">return</span> base_zero;</span>
+<span class="line" id="L58">        }</span>
+<span class="line" id="L59"></span>
+<span class="line" id="L60">        <span class="tok-comment">/// Get the field element representing one.</span></span>
+<span class="line" id="L61">        <span class="tok-comment">///</span></span>
+<span class="line" id="L62">        <span class="tok-comment">/// Returns a field element with a value of one.</span></span>
+<span class="line" id="L63">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">one</span>() Self {</span>
+<span class="line" id="L64">            <span class="tok-kw">const</span> oneValue = <span class="tok-kw">comptime</span> blk: {</span>
+<span class="line" id="L65">                <span class="tok-kw">var</span> baseOne: F.MontgomeryDomainFieldElement = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L66">                F.setOne(&amp;baseOne);</span>
+<span class="line" id="L67">                <span class="tok-kw">break</span> :blk .{ .fe = baseOne };</span>
+<span class="line" id="L68">            };</span>
+<span class="line" id="L69">            <span class="tok-kw">return</span> oneValue;</span>
+<span class="line" id="L70">        }</span>
+<span class="line" id="L71"></span>
+<span class="line" id="L72">        <span class="tok-comment">/// Create a field element from a byte array.</span></span>
+<span class="line" id="L73">        <span class="tok-comment">///</span></span>
+<span class="line" id="L74">        <span class="tok-comment">/// Converts a byte array into a field element in Montgomery representation.</span></span>
+<span class="line" id="L75">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">fromBytes</span>(bytes: [BytesSize]<span class="tok-type">u8</span>) Self {</span>
+<span class="line" id="L76">            <span class="tok-kw">var</span> non_mont: F.NonMontgomeryDomainFieldElement = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L77">            <span class="tok-kw">inline</span> <span class="tok-kw">for</span> (<span class="tok-number">0</span>..<span class="tok-number">4</span>) |i| {</span>
+<span class="line" id="L78">                non_mont[i] = std.mem.readIntSlice(</span>
+<span class="line" id="L79">                    <span class="tok-type">u64</span>,</span>
+<span class="line" id="L80">                    bytes[i * <span class="tok-number">8</span> .. (i + <span class="tok-number">1</span>) * <span class="tok-number">8</span>],</span>
+<span class="line" id="L81">                    std.builtin.Endian.Little,</span>
+<span class="line" id="L82">                );</span>
+<span class="line" id="L83">            }</span>
+<span class="line" id="L84">            <span class="tok-kw">var</span> ret: Self = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L85">            F.toMontgomery(</span>
+<span class="line" id="L86">                &amp;ret.fe,</span>
+<span class="line" id="L87">                non_mont,</span>
+<span class="line" id="L88">            );</span>
+<span class="line" id="L89"></span>
+<span class="line" id="L90">            <span class="tok-kw">return</span> ret;</span>
+<span class="line" id="L91">        }</span>
+<span class="line" id="L92"></span>
+<span class="line" id="L93">        <span class="tok-comment">/// Convert the field element to a byte array.</span></span>
+<span class="line" id="L94">        <span class="tok-comment">///</span></span>
+<span class="line" id="L95">        <span class="tok-comment">/// This function converts the field element to a byte array for serialization.</span></span>
+<span class="line" id="L96">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">toBytes</span>(self: Self) [BytesSize]<span class="tok-type">u8</span> {</span>
+<span class="line" id="L97">            <span class="tok-kw">var</span> non_mont: F.NonMontgomeryDomainFieldElement = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L98">            F.fromMontgomery(</span>
+<span class="line" id="L99">                &amp;non_mont,</span>
+<span class="line" id="L100">                self.fe,</span>
+<span class="line" id="L101">            );</span>
+<span class="line" id="L102">            <span class="tok-kw">var</span> ret: [BytesSize]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L103">            <span class="tok-kw">inline</span> <span class="tok-kw">for</span> (<span class="tok-number">0</span>..<span class="tok-number">4</span>) |i| {</span>
+<span class="line" id="L104">                std.mem.writeIntSlice(</span>
+<span class="line" id="L105">                    <span class="tok-type">u64</span>,</span>
+<span class="line" id="L106">                    ret[i * <span class="tok-number">8</span> .. (i + <span class="tok-number">1</span>) * <span class="tok-number">8</span>],</span>
+<span class="line" id="L107">                    non_mont[i],</span>
+<span class="line" id="L108">                    std.builtin.Endian.Little,</span>
+<span class="line" id="L109">                );</span>
+<span class="line" id="L110">            }</span>
+<span class="line" id="L111"></span>
+<span class="line" id="L112">            <span class="tok-kw">return</span> ret;</span>
+<span class="line" id="L113">        }</span>
+<span class="line" id="L114"></span>
+<span class="line" id="L115">        <span class="tok-comment">/// Check if the field element is lexicographically largest.</span></span>
+<span class="line" id="L116">        <span class="tok-comment">///</span></span>
+<span class="line" id="L117">        <span class="tok-comment">/// Determines whether the field element is larger than half of the field's modulus.</span></span>
+<span class="line" id="L118">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">lexographicallyLargest</span>(self: Self) <span class="tok-type">bool</span> {</span>
+<span class="line" id="L119">            <span class="tok-kw">const</span> selfNonMont = self.toInteger();</span>
+<span class="line" id="L120">            <span class="tok-kw">return</span> selfNonMont &gt; QMinOneDiv2;</span>
+<span class="line" id="L121">        }</span>
+<span class="line" id="L122"></span>
+<span class="line" id="L123">        <span class="tok-comment">/// Convert the field element to its non-Montgomery representation.</span></span>
+<span class="line" id="L124">        <span class="tok-comment">///</span></span>
+<span class="line" id="L125">        <span class="tok-comment">/// Converts a field element from Montgomery form to non-Montgomery representation.</span></span>
+<span class="line" id="L126">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">fromMontgomery</span>(self: Self) F.NonMontgomeryDomainFieldElement {</span>
+<span class="line" id="L127">            <span class="tok-kw">var</span> nonMont: F.NonMontgomeryDomainFieldElement = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L128">            F.fromMontgomery(</span>
+<span class="line" id="L129">                &amp;nonMont,</span>
+<span class="line" id="L130">                self.fe,</span>
+<span class="line" id="L131">            );</span>
+<span class="line" id="L132">            <span class="tok-kw">return</span> nonMont;</span>
+<span class="line" id="L133">        }</span>
+<span class="line" id="L134"></span>
+<span class="line" id="L135">        <span class="tok-comment">/// Add two field elements.</span></span>
+<span class="line" id="L136">        <span class="tok-comment">///</span></span>
+<span class="line" id="L137">        <span class="tok-comment">/// Adds the current field element to another field element.</span></span>
+<span class="line" id="L138">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">add</span>(</span>
+<span class="line" id="L139">            self: Self,</span>
+<span class="line" id="L140">            other: Self,</span>
+<span class="line" id="L141">        ) Self {</span>
+<span class="line" id="L142">            <span class="tok-kw">var</span> ret: F.NonMontgomeryDomainFieldElement = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L143">            F.add(</span>
+<span class="line" id="L144">                &amp;ret,</span>
+<span class="line" id="L145">                self.fe,</span>
+<span class="line" id="L146">                other.fe,</span>
+<span class="line" id="L147">            );</span>
+<span class="line" id="L148">            <span class="tok-kw">return</span> .{ .fe = ret };</span>
+<span class="line" id="L149">        }</span>
+<span class="line" id="L150"></span>
+<span class="line" id="L151">        <span class="tok-comment">/// Subtract one field element from another.</span></span>
+<span class="line" id="L152">        <span class="tok-comment">///</span></span>
+<span class="line" id="L153">        <span class="tok-comment">/// Subtracts another field element from the current field element.</span></span>
+<span class="line" id="L154">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">sub</span>(</span>
+<span class="line" id="L155">            self: Self,</span>
+<span class="line" id="L156">            other: Self,</span>
+<span class="line" id="L157">        ) Self {</span>
+<span class="line" id="L158">            <span class="tok-kw">var</span> ret: F.MontgomeryDomainFieldElement = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L159">            F.sub(</span>
 <span class="line" id="L160">                &amp;ret,</span>
-<span class="line" id="L161">                ret,</span>
-<span class="line" id="L162">                ret,</span>
+<span class="line" id="L161">                self.fe,</span>
+<span class="line" id="L162">                other.fe,</span>
 <span class="line" id="L163">            );</span>
-<span class="line" id="L164">            F.add(</span>
-<span class="line" id="L165">                &amp;ret,</span>
-<span class="line" id="L166">                ret,</span>
-<span class="line" id="L167">                self.fe,</span>
-<span class="line" id="L168">            );</span>
-<span class="line" id="L169">            <span class="tok-kw">return</span> .{ .fe = ret };</span>
-<span class="line" id="L170">        }</span>
-<span class="line" id="L171"></span>
-<span class="line" id="L172">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">neg</span>(self: Self) Self {</span>
-<span class="line" id="L173">            <span class="tok-kw">var</span> ret: F.MontgomeryDomainFieldElement = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L174">            F.sub(</span>
-<span class="line" id="L175">                &amp;ret,</span>
-<span class="line" id="L176">                base_zero.fe,</span>
+<span class="line" id="L164">            <span class="tok-kw">return</span> .{ .fe = ret };</span>
+<span class="line" id="L165">        }</span>
+<span class="line" id="L166"></span>
+<span class="line" id="L167">        <span class="tok-comment">/// Multiply two field elements.</span></span>
+<span class="line" id="L168">        <span class="tok-comment">///</span></span>
+<span class="line" id="L169">        <span class="tok-comment">/// Multiplies the current field element by another field element.</span></span>
+<span class="line" id="L170">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">mul</span>(</span>
+<span class="line" id="L171">            self: Self,</span>
+<span class="line" id="L172">            other: Self,</span>
+<span class="line" id="L173">        ) Self {</span>
+<span class="line" id="L174">            <span class="tok-kw">var</span> ret: F.MontgomeryDomainFieldElement = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L175">            F.mul(</span>
+<span class="line" id="L176">                &amp;ret,</span>
 <span class="line" id="L177">                self.fe,</span>
-<span class="line" id="L178">            );</span>
-<span class="line" id="L179">            <span class="tok-kw">return</span> .{ .fe = ret };</span>
-<span class="line" id="L180">        }</span>
-<span class="line" id="L181"></span>
-<span class="line" id="L182">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">isZero</span>(self: Self) <span class="tok-type">bool</span> {</span>
-<span class="line" id="L183">            <span class="tok-kw">return</span> self.equal(base_zero);</span>
-<span class="line" id="L184">        }</span>
-<span class="line" id="L185"></span>
-<span class="line" id="L186">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">isOne</span>(self: Self) <span class="tok-type">bool</span> {</span>
-<span class="line" id="L187">            <span class="tok-kw">return</span> self.equal(one());</span>
-<span class="line" id="L188">        }</span>
-<span class="line" id="L189"></span>
-<span class="line" id="L190">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">square</span>(self: Self) Self {</span>
-<span class="line" id="L191">            <span class="tok-kw">return</span> self.mul(self);</span>
-<span class="line" id="L192">        }</span>
-<span class="line" id="L193"></span>
-<span class="line" id="L194">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">pow2</span>(</span>
-<span class="line" id="L195">            self: Self,</span>
-<span class="line" id="L196">            <span class="tok-kw">comptime</span> exponent: <span class="tok-type">u8</span>,</span>
-<span class="line" id="L197">        ) Self {</span>
-<span class="line" id="L198">            <span class="tok-kw">var</span> ret = self;</span>
-<span class="line" id="L199">            <span class="tok-kw">inline</span> <span class="tok-kw">for</span> (exponent) |_| {</span>
-<span class="line" id="L200">                ret = ret.mul(ret);</span>
-<span class="line" id="L201">            }</span>
-<span class="line" id="L202">            <span class="tok-kw">return</span> ret;</span>
-<span class="line" id="L203">        }</span>
-<span class="line" id="L204"></span>
-<span class="line" id="L205">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">pow</span>(</span>
-<span class="line" id="L206">            self: Self,</span>
-<span class="line" id="L207">            exponent: <span class="tok-type">u256</span>,</span>
-<span class="line" id="L208">        ) Self {</span>
-<span class="line" id="L209">            <span class="tok-kw">var</span> res = one();</span>
-<span class="line" id="L210">            <span class="tok-kw">var</span> exp = exponent;</span>
-<span class="line" id="L211">            <span class="tok-kw">var</span> base = self;</span>
-<span class="line" id="L212"></span>
-<span class="line" id="L213">            <span class="tok-kw">while</span> (exp &gt; <span class="tok-number">0</span>) : (exp = exp / <span class="tok-number">2</span>) {</span>
-<span class="line" id="L214">                <span class="tok-kw">if</span> (exp &amp; <span class="tok-number">1</span> == <span class="tok-number">1</span>) {</span>
-<span class="line" id="L215">                    res = res.mul(base);</span>
-<span class="line" id="L216">                }</span>
-<span class="line" id="L217">                base = base.mul(base);</span>
-<span class="line" id="L218">            }</span>
-<span class="line" id="L219">            <span class="tok-kw">return</span> res;</span>
-<span class="line" id="L220">        }</span>
-<span class="line" id="L221"></span>
-<span class="line" id="L222">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">batchInv</span>(</span>
-<span class="line" id="L223">            out: []Self,</span>
-<span class="line" id="L224">            in: []<span class="tok-kw">const</span> Self,</span>
-<span class="line" id="L225">        ) !<span class="tok-type">void</span> {</span>
-<span class="line" id="L226">            std.debug.assert(out.len == in.len);</span>
-<span class="line" id="L227"></span>
-<span class="line" id="L228">            <span class="tok-kw">var</span> acc = one();</span>
-<span class="line" id="L229">            <span class="tok-kw">for</span> (<span class="tok-number">0</span>..in.len) |i| {</span>
-<span class="line" id="L230">                out[i] = acc;</span>
-<span class="line" id="L231">                acc = mul(</span>
-<span class="line" id="L232">                    acc,</span>
-<span class="line" id="L233">                    in[i],</span>
-<span class="line" id="L234">                );</span>
-<span class="line" id="L235">            }</span>
-<span class="line" id="L236">            acc = acc.inv() <span class="tok-kw">orelse</span> <span class="tok-kw">return</span> <span class="tok-kw">error</span>.CantInvertZeroElement;</span>
-<span class="line" id="L237">            <span class="tok-kw">for</span> (<span class="tok-number">0</span>..in.len) |i| {</span>
-<span class="line" id="L238">                out[in.len - i - <span class="tok-number">1</span>] = mul(</span>
-<span class="line" id="L239">                    out[in.len - i - <span class="tok-number">1</span>],</span>
-<span class="line" id="L240">                    acc,</span>
-<span class="line" id="L241">                );</span>
-<span class="line" id="L242">                acc = mul(</span>
-<span class="line" id="L243">                    acc,</span>
-<span class="line" id="L244">                    in[in.len - i - <span class="tok-number">1</span>],</span>
-<span class="line" id="L245">                );</span>
-<span class="line" id="L246">            }</span>
-<span class="line" id="L247">        }</span>
-<span class="line" id="L248"></span>
-<span class="line" id="L249">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">inv</span>(self: Self) ?Self {</span>
-<span class="line" id="L250">            <span class="tok-kw">var</span> r: <span class="tok-type">u256</span> = Modulo;</span>
-<span class="line" id="L251">            <span class="tok-kw">var</span> t: <span class="tok-type">i512</span> = <span class="tok-number">0</span>;</span>
-<span class="line" id="L252"></span>
-<span class="line" id="L253">            <span class="tok-kw">var</span> newr: <span class="tok-type">u256</span> = self.toInteger();</span>
-<span class="line" id="L254">            <span class="tok-kw">var</span> newt: <span class="tok-type">i512</span> = <span class="tok-number">1</span>;</span>
-<span class="line" id="L255"></span>
-<span class="line" id="L256">            <span class="tok-kw">while</span> (newr != <span class="tok-number">0</span>) {</span>
-<span class="line" id="L257">                <span class="tok-kw">const</span> quotient = r / newr;</span>
-<span class="line" id="L258">                <span class="tok-kw">const</span> tempt = t - quotient * newt;</span>
-<span class="line" id="L259">                <span class="tok-kw">const</span> tempr = r - quotient * newr;</span>
-<span class="line" id="L260"></span>
-<span class="line" id="L261">                r = newr;</span>
-<span class="line" id="L262">                t = newt;</span>
-<span class="line" id="L263">                newr = tempr;</span>
-<span class="line" id="L264">                newt = tempt;</span>
-<span class="line" id="L265">            }</span>
-<span class="line" id="L266"></span>
-<span class="line" id="L267">            <span class="tok-comment">// Not invertible</span>
-</span>
-<span class="line" id="L268">            <span class="tok-kw">if</span> (r &gt; <span class="tok-number">1</span>) {</span>
-<span class="line" id="L269">                <span class="tok-kw">return</span> <span class="tok-null">null</span>;</span>
-<span class="line" id="L270">            }</span>
-<span class="line" id="L271"></span>
-<span class="line" id="L272">            <span class="tok-kw">if</span> (t &lt; <span class="tok-number">0</span>) {</span>
-<span class="line" id="L273">                t = t + Modulo;</span>
-<span class="line" id="L274">            }</span>
-<span class="line" id="L275"></span>
-<span class="line" id="L276">            <span class="tok-kw">return</span> Self.fromInteger(<span class="tok-builtin">@intCast</span>(t));</span>
-<span class="line" id="L277">        }</span>
-<span class="line" id="L278"></span>
-<span class="line" id="L279">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">div</span>(</span>
-<span class="line" id="L280">            self: Self,</span>
-<span class="line" id="L281">            den: Self,</span>
-<span class="line" id="L282">        ) !Self {</span>
-<span class="line" id="L283">            <span class="tok-kw">const</span> den_inv = den.inv() <span class="tok-kw">orelse</span> <span class="tok-kw">return</span> <span class="tok-kw">error</span>.DivisionByZero;</span>
-<span class="line" id="L284">            <span class="tok-kw">return</span> self.mul(den_inv);</span>
-<span class="line" id="L285">        }</span>
-<span class="line" id="L286"></span>
-<span class="line" id="L287">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">equal</span>(</span>
-<span class="line" id="L288">            self: Self,</span>
-<span class="line" id="L289">            other: Self,</span>
-<span class="line" id="L290">        ) <span class="tok-type">bool</span> {</span>
-<span class="line" id="L291">            <span class="tok-kw">return</span> std.mem.eql(</span>
-<span class="line" id="L292">                <span class="tok-type">u64</span>,</span>
-<span class="line" id="L293">                &amp;self.fe,</span>
-<span class="line" id="L294">                &amp;other.fe,</span>
-<span class="line" id="L295">            );</span>
-<span class="line" id="L296">        }</span>
-<span class="line" id="L297"></span>
-<span class="line" id="L298">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">toInteger</span>(self: Self) <span class="tok-type">u256</span> {</span>
-<span class="line" id="L299">            <span class="tok-kw">var</span> non_mont: F.NonMontgomeryDomainFieldElement = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L300">            F.fromMontgomery(</span>
-<span class="line" id="L301">                &amp;non_mont,</span>
-<span class="line" id="L302">                self.fe,</span>
-<span class="line" id="L303">            );</span>
+<span class="line" id="L178">                other.fe,</span>
+<span class="line" id="L179">            );</span>
+<span class="line" id="L180">            <span class="tok-kw">return</span> .{ .fe = ret };</span>
+<span class="line" id="L181">        }</span>
+<span class="line" id="L182"></span>
+<span class="line" id="L183">        <span class="tok-comment">/// Multiply a field element by 5.</span></span>
+<span class="line" id="L184">        <span class="tok-comment">///</span></span>
+<span class="line" id="L185">        <span class="tok-comment">/// Multiplies the current field element by the constant 5.</span></span>
+<span class="line" id="L186">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">mulBy5</span>(self: Self) Self {</span>
+<span class="line" id="L187">            <span class="tok-kw">var</span> ret: F.MontgomeryDomainFieldElement = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L188">            F.add(</span>
+<span class="line" id="L189">                &amp;ret,</span>
+<span class="line" id="L190">                self.fe,</span>
+<span class="line" id="L191">                self.fe,</span>
+<span class="line" id="L192">            );</span>
+<span class="line" id="L193">            F.add(</span>
+<span class="line" id="L194">                &amp;ret,</span>
+<span class="line" id="L195">                ret,</span>
+<span class="line" id="L196">                ret,</span>
+<span class="line" id="L197">            );</span>
+<span class="line" id="L198">            F.add(</span>
+<span class="line" id="L199">                &amp;ret,</span>
+<span class="line" id="L200">                ret,</span>
+<span class="line" id="L201">                self.fe,</span>
+<span class="line" id="L202">            );</span>
+<span class="line" id="L203">            <span class="tok-kw">return</span> .{ .fe = ret };</span>
+<span class="line" id="L204">        }</span>
+<span class="line" id="L205"></span>
+<span class="line" id="L206">        <span class="tok-comment">/// Negate a field element.</span></span>
+<span class="line" id="L207">        <span class="tok-comment">///</span></span>
+<span class="line" id="L208">        <span class="tok-comment">/// Negates the value of the current field element.</span></span>
+<span class="line" id="L209">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">neg</span>(self: Self) Self {</span>
+<span class="line" id="L210">            <span class="tok-kw">var</span> ret: F.MontgomeryDomainFieldElement = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L211">            F.sub(</span>
+<span class="line" id="L212">                &amp;ret,</span>
+<span class="line" id="L213">                base_zero.fe,</span>
+<span class="line" id="L214">                self.fe,</span>
+<span class="line" id="L215">            );</span>
+<span class="line" id="L216">            <span class="tok-kw">return</span> .{ .fe = ret };</span>
+<span class="line" id="L217">        }</span>
+<span class="line" id="L218"></span>
+<span class="line" id="L219">        <span class="tok-comment">/// Check if the field element is zero.</span></span>
+<span class="line" id="L220">        <span class="tok-comment">///</span></span>
+<span class="line" id="L221">        <span class="tok-comment">/// Determines if the current field element is equal to zero.</span></span>
+<span class="line" id="L222">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">isZero</span>(self: Self) <span class="tok-type">bool</span> {</span>
+<span class="line" id="L223">            <span class="tok-kw">return</span> self.equal(base_zero);</span>
+<span class="line" id="L224">        }</span>
+<span class="line" id="L225"></span>
+<span class="line" id="L226">        <span class="tok-comment">/// Check if the field element is one.</span></span>
+<span class="line" id="L227">        <span class="tok-comment">///</span></span>
+<span class="line" id="L228">        <span class="tok-comment">/// Determines if the current field element is equal to one.</span></span>
+<span class="line" id="L229">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">isOne</span>(self: Self) <span class="tok-type">bool</span> {</span>
+<span class="line" id="L230">            <span class="tok-kw">return</span> self.equal(one());</span>
+<span class="line" id="L231">        }</span>
+<span class="line" id="L232"></span>
+<span class="line" id="L233">        <span class="tok-comment">/// Calculate the square of a field element.</span></span>
+<span class="line" id="L234">        <span class="tok-comment">///</span></span>
+<span class="line" id="L235">        <span class="tok-comment">/// Computes the square of the current field element.</span></span>
+<span class="line" id="L236">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">square</span>(self: Self) Self {</span>
+<span class="line" id="L237">            <span class="tok-kw">return</span> self.mul(self);</span>
+<span class="line" id="L238">        }</span>
+<span class="line" id="L239"></span>
+<span class="line" id="L240">        <span class="tok-comment">/// Raise a field element to a power of 2.</span></span>
+<span class="line" id="L241">        <span class="tok-comment">///</span></span>
+<span class="line" id="L242">        <span class="tok-comment">/// Computes the current field element raised to the power of 2 to the `exponent` power.</span></span>
+<span class="line" id="L243">        <span class="tok-comment">/// The result is equivalent to repeatedly squaring the field element.</span></span>
+<span class="line" id="L244">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">pow2</span>(</span>
+<span class="line" id="L245">            self: Self,</span>
+<span class="line" id="L246">            <span class="tok-kw">comptime</span> exponent: <span class="tok-type">u8</span>,</span>
+<span class="line" id="L247">        ) Self {</span>
+<span class="line" id="L248">            <span class="tok-kw">var</span> ret = self;</span>
+<span class="line" id="L249">            <span class="tok-kw">inline</span> <span class="tok-kw">for</span> (exponent) |_| {</span>
+<span class="line" id="L250">                ret = ret.mul(ret);</span>
+<span class="line" id="L251">            }</span>
+<span class="line" id="L252">            <span class="tok-kw">return</span> ret;</span>
+<span class="line" id="L253">        }</span>
+<span class="line" id="L254"></span>
+<span class="line" id="L255">        <span class="tok-comment">/// Raise a field element to a general power.</span></span>
+<span class="line" id="L256">        <span class="tok-comment">///</span></span>
+<span class="line" id="L257">        <span class="tok-comment">/// Computes the field element raised to a general power specified by the `exponent`.</span></span>
+<span class="line" id="L258">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">pow</span>(</span>
+<span class="line" id="L259">            self: Self,</span>
+<span class="line" id="L260">            exponent: <span class="tok-type">u256</span>,</span>
+<span class="line" id="L261">        ) Self {</span>
+<span class="line" id="L262">            <span class="tok-kw">var</span> res = one();</span>
+<span class="line" id="L263">            <span class="tok-kw">var</span> exp = exponent;</span>
+<span class="line" id="L264">            <span class="tok-kw">var</span> base = self;</span>
+<span class="line" id="L265"></span>
+<span class="line" id="L266">            <span class="tok-kw">while</span> (exp &gt; <span class="tok-number">0</span>) : (exp = exp / <span class="tok-number">2</span>) {</span>
+<span class="line" id="L267">                <span class="tok-kw">if</span> (exp &amp; <span class="tok-number">1</span> == <span class="tok-number">1</span>) {</span>
+<span class="line" id="L268">                    res = res.mul(base);</span>
+<span class="line" id="L269">                }</span>
+<span class="line" id="L270">                base = base.mul(base);</span>
+<span class="line" id="L271">            }</span>
+<span class="line" id="L272">            <span class="tok-kw">return</span> res;</span>
+<span class="line" id="L273">        }</span>
+<span class="line" id="L274"></span>
+<span class="line" id="L275">        <span class="tok-comment">/// Batch inversion of multiple field elements.</span></span>
+<span class="line" id="L276">        <span class="tok-comment">///</span></span>
+<span class="line" id="L277">        <span class="tok-comment">/// Performs batch inversion of a slice of field elements in place.</span></span>
+<span class="line" id="L278">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">batchInv</span>(</span>
+<span class="line" id="L279">            out: []Self,</span>
+<span class="line" id="L280">            in: []<span class="tok-kw">const</span> Self,</span>
+<span class="line" id="L281">        ) !<span class="tok-type">void</span> {</span>
+<span class="line" id="L282">            std.debug.assert(out.len == in.len);</span>
+<span class="line" id="L283"></span>
+<span class="line" id="L284">            <span class="tok-kw">var</span> acc = one();</span>
+<span class="line" id="L285">            <span class="tok-kw">for</span> (<span class="tok-number">0</span>..in.len) |i| {</span>
+<span class="line" id="L286">                out[i] = acc;</span>
+<span class="line" id="L287">                acc = mul(</span>
+<span class="line" id="L288">                    acc,</span>
+<span class="line" id="L289">                    in[i],</span>
+<span class="line" id="L290">                );</span>
+<span class="line" id="L291">            }</span>
+<span class="line" id="L292">            acc = acc.inv() <span class="tok-kw">orelse</span> <span class="tok-kw">return</span> <span class="tok-kw">error</span>.CantInvertZeroElement;</span>
+<span class="line" id="L293">            <span class="tok-kw">for</span> (<span class="tok-number">0</span>..in.len) |i| {</span>
+<span class="line" id="L294">                out[in.len - i - <span class="tok-number">1</span>] = mul(</span>
+<span class="line" id="L295">                    out[in.len - i - <span class="tok-number">1</span>],</span>
+<span class="line" id="L296">                    acc,</span>
+<span class="line" id="L297">                );</span>
+<span class="line" id="L298">                acc = mul(</span>
+<span class="line" id="L299">                    acc,</span>
+<span class="line" id="L300">                    in[in.len - i - <span class="tok-number">1</span>],</span>
+<span class="line" id="L301">                );</span>
+<span class="line" id="L302">            }</span>
+<span class="line" id="L303">        }</span>
 <span class="line" id="L304"></span>
-<span class="line" id="L305">            <span class="tok-kw">var</span> bytes: [BytesSize]<span class="tok-type">u8</span> = [_]<span class="tok-type">u8</span>{<span class="tok-number">0</span>} ** BytesSize;</span>
-<span class="line" id="L306">            F.toBytes(</span>
-<span class="line" id="L307">                &amp;bytes,</span>
-<span class="line" id="L308">                non_mont,</span>
-<span class="line" id="L309">            );</span>
-<span class="line" id="L310"></span>
-<span class="line" id="L311">            <span class="tok-kw">return</span> std.mem.readInt(</span>
-<span class="line" id="L312">                <span class="tok-type">u256</span>,</span>
-<span class="line" id="L313">                &amp;bytes,</span>
-<span class="line" id="L314">                std.builtin.Endian.Little,</span>
-<span class="line" id="L315">            );</span>
-<span class="line" id="L316">        }</span>
-<span class="line" id="L317"></span>
-<span class="line" id="L318">        <span class="tok-comment">// Try to convert the field element into a u64.</span>
+<span class="line" id="L305">        <span class="tok-comment">/// Calculate the multiplicative inverse of a field element.</span></span>
+<span class="line" id="L306">        <span class="tok-comment">///</span></span>
+<span class="line" id="L307">        <span class="tok-comment">/// Computes the multiplicative inverse of the current field element.</span></span>
+<span class="line" id="L308">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">inv</span>(self: Self) ?Self {</span>
+<span class="line" id="L309">            <span class="tok-kw">var</span> r: <span class="tok-type">u256</span> = Modulo;</span>
+<span class="line" id="L310">            <span class="tok-kw">var</span> t: <span class="tok-type">i512</span> = <span class="tok-number">0</span>;</span>
+<span class="line" id="L311"></span>
+<span class="line" id="L312">            <span class="tok-kw">var</span> newr: <span class="tok-type">u256</span> = self.toInteger();</span>
+<span class="line" id="L313">            <span class="tok-kw">var</span> newt: <span class="tok-type">i512</span> = <span class="tok-number">1</span>;</span>
+<span class="line" id="L314"></span>
+<span class="line" id="L315">            <span class="tok-kw">while</span> (newr != <span class="tok-number">0</span>) {</span>
+<span class="line" id="L316">                <span class="tok-kw">const</span> quotient = r / newr;</span>
+<span class="line" id="L317">                <span class="tok-kw">const</span> tempt = t - quotient * newt;</span>
+<span class="line" id="L318">                <span class="tok-kw">const</span> tempr = r - quotient * newr;</span>
+<span class="line" id="L319"></span>
+<span class="line" id="L320">                r = newr;</span>
+<span class="line" id="L321">                t = newt;</span>
+<span class="line" id="L322">                newr = tempr;</span>
+<span class="line" id="L323">                newt = tempt;</span>
+<span class="line" id="L324">            }</span>
+<span class="line" id="L325"></span>
+<span class="line" id="L326">            <span class="tok-comment">// Not invertible</span>
 </span>
-<span class="line" id="L319">        <span class="tok-comment">// If the value is too large, return an error.</span>
+<span class="line" id="L327">            <span class="tok-kw">if</span> (r &gt; <span class="tok-number">1</span>) {</span>
+<span class="line" id="L328">                <span class="tok-kw">return</span> <span class="tok-null">null</span>;</span>
+<span class="line" id="L329">            }</span>
+<span class="line" id="L330"></span>
+<span class="line" id="L331">            <span class="tok-kw">if</span> (t &lt; <span class="tok-number">0</span>) {</span>
+<span class="line" id="L332">                t = t + Modulo;</span>
+<span class="line" id="L333">            }</span>
+<span class="line" id="L334"></span>
+<span class="line" id="L335">            <span class="tok-kw">return</span> Self.fromInteger(<span class="tok-builtin">@intCast</span>(t));</span>
+<span class="line" id="L336">        }</span>
+<span class="line" id="L337"></span>
+<span class="line" id="L338">        <span class="tok-comment">/// Divide one field element by another.</span></span>
+<span class="line" id="L339">        <span class="tok-comment">///</span></span>
+<span class="line" id="L340">        <span class="tok-comment">/// Divides the current field element by another field element.</span></span>
+<span class="line" id="L341">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">div</span>(</span>
+<span class="line" id="L342">            self: Self,</span>
+<span class="line" id="L343">            den: Self,</span>
+<span class="line" id="L344">        ) !Self {</span>
+<span class="line" id="L345">            <span class="tok-kw">const</span> den_inv = den.inv() <span class="tok-kw">orelse</span> <span class="tok-kw">return</span> <span class="tok-kw">error</span>.DivisionByZero;</span>
+<span class="line" id="L346">            <span class="tok-kw">return</span> self.mul(den_inv);</span>
+<span class="line" id="L347">        }</span>
+<span class="line" id="L348"></span>
+<span class="line" id="L349">        <span class="tok-comment">/// Check if two field elements are equal.</span></span>
+<span class="line" id="L350">        <span class="tok-comment">///</span></span>
+<span class="line" id="L351">        <span class="tok-comment">/// Determines whether the current field element is equal to another field element.</span></span>
+<span class="line" id="L352">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">equal</span>(</span>
+<span class="line" id="L353">            self: Self,</span>
+<span class="line" id="L354">            other: Self,</span>
+<span class="line" id="L355">        ) <span class="tok-type">bool</span> {</span>
+<span class="line" id="L356">            <span class="tok-kw">return</span> std.mem.eql(</span>
+<span class="line" id="L357">                <span class="tok-type">u64</span>,</span>
+<span class="line" id="L358">                &amp;self.fe,</span>
+<span class="line" id="L359">                &amp;other.fe,</span>
+<span class="line" id="L360">            );</span>
+<span class="line" id="L361">        }</span>
+<span class="line" id="L362"></span>
+<span class="line" id="L363">        <span class="tok-comment">/// Convert the field element to a u256 integer.</span></span>
+<span class="line" id="L364">        <span class="tok-comment">///</span></span>
+<span class="line" id="L365">        <span class="tok-comment">/// Converts the field element to a u256 integer.</span></span>
+<span class="line" id="L366">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">toInteger</span>(self: Self) <span class="tok-type">u256</span> {</span>
+<span class="line" id="L367">            <span class="tok-kw">var</span> non_mont: F.NonMontgomeryDomainFieldElement = <span class="tok-null">undefined</span>;</span>
+<span class="line" id="L368">            F.fromMontgomery(</span>
+<span class="line" id="L369">                &amp;non_mont,</span>
+<span class="line" id="L370">                self.fe,</span>
+<span class="line" id="L371">            );</span>
+<span class="line" id="L372"></span>
+<span class="line" id="L373">            <span class="tok-kw">var</span> bytes: [BytesSize]<span class="tok-type">u8</span> = [_]<span class="tok-type">u8</span>{<span class="tok-number">0</span>} ** BytesSize;</span>
+<span class="line" id="L374">            F.toBytes(</span>
+<span class="line" id="L375">                &amp;bytes,</span>
+<span class="line" id="L376">                non_mont,</span>
+<span class="line" id="L377">            );</span>
+<span class="line" id="L378"></span>
+<span class="line" id="L379">            <span class="tok-kw">return</span> std.mem.readInt(</span>
+<span class="line" id="L380">                <span class="tok-type">u256</span>,</span>
+<span class="line" id="L381">                &amp;bytes,</span>
+<span class="line" id="L382">                std.builtin.Endian.Little,</span>
+<span class="line" id="L383">            );</span>
+<span class="line" id="L384">        }</span>
+<span class="line" id="L385"></span>
+<span class="line" id="L386">        <span class="tok-comment">/// Try to convert the field element to a u64 if its value is small enough.</span></span>
+<span class="line" id="L387">        <span class="tok-comment">///</span></span>
+<span class="line" id="L388">        <span class="tok-comment">/// Attempts to convert the field element to a u64 if its value is within the representable range.</span></span>
+<span class="line" id="L389">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">tryIntoU64</span>(self: Self) !<span class="tok-type">u64</span> {</span>
+<span class="line" id="L390">            <span class="tok-kw">const</span> asU256 = self.toInteger();</span>
+<span class="line" id="L391">            <span class="tok-comment">// Check if the value is small enough to fit into a u64</span>
 </span>
-<span class="line" id="L320">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">tryIntoU64</span>(self: Self) !<span class="tok-type">u64</span> {</span>
-<span class="line" id="L321">            <span class="tok-kw">const</span> asU256 = self.toInteger();</span>
-<span class="line" id="L322">            <span class="tok-comment">// Check if the value is small enough to fit into a u64</span>
+<span class="line" id="L392">            <span class="tok-kw">if</span> (asU256 &gt; <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L393">                <span class="tok-type">u256</span>,</span>
+<span class="line" id="L394">                <span class="tok-builtin">@intCast</span>(std.math.maxInt(<span class="tok-type">u64</span>)),</span>
+<span class="line" id="L395">            )) {</span>
+<span class="line" id="L396">                <span class="tok-kw">return</span> <span class="tok-kw">error</span>.ValueTooLarge;</span>
+<span class="line" id="L397">            }</span>
+<span class="line" id="L398"></span>
+<span class="line" id="L399">            <span class="tok-comment">// Otherwise, it's safe to cast</span>
 </span>
-<span class="line" id="L323">            <span class="tok-kw">if</span> (asU256 &gt; <span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L324">                <span class="tok-type">u256</span>,</span>
-<span class="line" id="L325">                <span class="tok-builtin">@intCast</span>(std.math.maxInt(<span class="tok-type">u64</span>)),</span>
-<span class="line" id="L326">            )) {</span>
-<span class="line" id="L327">                <span class="tok-kw">return</span> <span class="tok-kw">error</span>.ValueTooLarge;</span>
-<span class="line" id="L328">            }</span>
-<span class="line" id="L329"></span>
-<span class="line" id="L330">            <span class="tok-comment">// Otherwise, it's safe to cast</span>
+<span class="line" id="L400">            <span class="tok-kw">return</span> <span class="tok-builtin">@as</span>(</span>
+<span class="line" id="L401">                <span class="tok-type">u64</span>,</span>
+<span class="line" id="L402">                <span class="tok-builtin">@intCast</span>(asU256),</span>
+<span class="line" id="L403">            );</span>
+<span class="line" id="L404">        }</span>
+<span class="line" id="L405"></span>
+<span class="line" id="L406">        <span class="tok-comment">/// Calculate the Legendre symbol of a field element.</span></span>
+<span class="line" id="L407">        <span class="tok-comment">///</span></span>
+<span class="line" id="L408">        <span class="tok-comment">/// Computes the Legendre symbol of the field element using Euler's criterion.</span></span>
+<span class="line" id="L409">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">legendre</span>(a: Self) <span class="tok-type">i2</span> {</span>
+<span class="line" id="L410">            <span class="tok-comment">// Compute the Legendre symbol a|p using</span>
 </span>
-<span class="line" id="L331">            <span class="tok-kw">return</span> <span class="tok-builtin">@as</span>(</span>
-<span class="line" id="L332">                <span class="tok-type">u64</span>,</span>
-<span class="line" id="L333">                <span class="tok-builtin">@intCast</span>(asU256),</span>
-<span class="line" id="L334">            );</span>
-<span class="line" id="L335">        }</span>
-<span class="line" id="L336"></span>
-<span class="line" id="L337">        <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">legendre</span>(a: Self) <span class="tok-type">i2</span> {</span>
-<span class="line" id="L338">            <span class="tok-comment">// Compute the Legendre symbol a|p using</span>
+<span class="line" id="L411">            <span class="tok-comment">// Euler's criterion. p is a prime, a is</span>
 </span>
-<span class="line" id="L339">            <span class="tok-comment">// Euler's criterion. p is a prime, a is</span>
+<span class="line" id="L412">            <span class="tok-comment">// relatively prime to p (if p divides</span>
 </span>
-<span class="line" id="L340">            <span class="tok-comment">// relatively prime to p (if p divides</span>
+<span class="line" id="L413">            <span class="tok-comment">// a, then a|p = 0)</span>
 </span>
-<span class="line" id="L341">            <span class="tok-comment">// a, then a|p = 0)</span>
+<span class="line" id="L414">            <span class="tok-comment">// Returns 1 if a has a square root modulo</span>
 </span>
-<span class="line" id="L342">            <span class="tok-comment">// Returns 1 if a has a square root modulo</span>
+<span class="line" id="L415">            <span class="tok-comment">// p, -1 otherwise.</span>
 </span>
-<span class="line" id="L343">            <span class="tok-comment">// p, -1 otherwise.</span>
-</span>
-<span class="line" id="L344">            <span class="tok-kw">const</span> ls = a.pow((Modulo - <span class="tok-number">1</span>) / <span class="tok-number">2</span>);</span>
-<span class="line" id="L345"></span>
-<span class="line" id="L346">            <span class="tok-kw">const</span> modulo_minus_one = <span class="tok-kw">comptime</span> fromInteger(Modulo - <span class="tok-number">1</span>);</span>
-<span class="line" id="L347">            <span class="tok-kw">if</span> (ls.equal(modulo_minus_one)) {</span>
-<span class="line" id="L348">                <span class="tok-kw">return</span> -<span class="tok-number">1</span>;</span>
-<span class="line" id="L349">            } <span class="tok-kw">else</span> <span class="tok-kw">if</span> (ls.isZero()) {</span>
-<span class="line" id="L350">                <span class="tok-kw">return</span> <span class="tok-number">0</span>;</span>
-<span class="line" id="L351">            }</span>
-<span class="line" id="L352">            <span class="tok-kw">return</span> <span class="tok-number">1</span>;</span>
-<span class="line" id="L353">        }</span>
-<span class="line" id="L354">    };</span>
-<span class="line" id="L355">}</span>
-<span class="line" id="L356"></span>
+<span class="line" id="L416">            <span class="tok-kw">const</span> ls = a.pow((Modulo - <span class="tok-number">1</span>) / <span class="tok-number">2</span>);</span>
+<span class="line" id="L417"></span>
+<span class="line" id="L418">            <span class="tok-kw">const</span> modulo_minus_one = <span class="tok-kw">comptime</span> fromInteger(Modulo - <span class="tok-number">1</span>);</span>
+<span class="line" id="L419">            <span class="tok-kw">if</span> (ls.equal(modulo_minus_one)) {</span>
+<span class="line" id="L420">                <span class="tok-kw">return</span> -<span class="tok-number">1</span>;</span>
+<span class="line" id="L421">            } <span class="tok-kw">else</span> <span class="tok-kw">if</span> (ls.isZero()) {</span>
+<span class="line" id="L422">                <span class="tok-kw">return</span> <span class="tok-number">0</span>;</span>
+<span class="line" id="L423">            }</span>
+<span class="line" id="L424">            <span class="tok-kw">return</span> <span class="tok-number">1</span>;</span>
+<span class="line" id="L425">        }</span>
+<span class="line" id="L426">    };</span>
+<span class="line" id="L427">}</span>
+<span class="line" id="L428"></span>
 </code></pre></body>
 </html>
