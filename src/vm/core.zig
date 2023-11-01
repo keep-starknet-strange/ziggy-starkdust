@@ -219,6 +219,46 @@ pub const CairoVM = struct {
         _ = op_o;
     }
 
+    /// Attempts to deduce `op0` and `res` for an instruction, given `dst` and `op1`.
+    ///
+    /// # Arguments
+    /// - `inst`: The instruction to deduce `op0` and `res` for.
+    /// - `dst`: The destination of the instruction.
+    /// - `op1`: The first operand of the instruction.
+    ///
+    /// # Returns
+    /// - `Tuple`: A tuple containing the deduced `op0` and `res`.
+    pub fn deduceOp0(
+        self: *Self,
+        inst: *const instructions.Instruction,
+        dst: ?*const MaybeRelocatable,
+        op1: ?*const MaybeRelocatable,
+    ) !std.meta.Tuple(&.{ ?relocatable.MaybeRelocatable, ?relocatable.MaybeRelocatable }) {
+        switch (inst.opcode) {
+            .Call => {
+                return .{ relocatable.newFromRelocatable(try self.run_context.pc.addUint(inst.size())), null };
+            },
+            .AssertEq => {
+                const dst_val = dst orelse return .{ null, null };
+                const op1_val = op1 orelse return .{ null, null };
+                if ((inst.res_logic == .Add)) {
+                    return .{ try subOperands(dst_val.*, op1_val.*), dst_val.* };
+                } else if (dst_val.isFelt() and op1_val.isFelt() and
+                    !op1_val.felt.isZero())
+                {
+                    return .{
+                        relocatable.fromFelt(try dst_val.felt.div(op1_val.felt)),
+                        dst_val.*,
+                    };
+                }
+            },
+            else => {
+                return .{ null, null };
+            },
+        }
+        return .{ null, null };
+    }
+
     /// Updates the value of PC according to the executed instruction.
     /// # Arguments
     /// - `instruction`: The instruction that was executed.
@@ -535,8 +575,8 @@ pub fn subOperands(self: MaybeRelocatable, other: MaybeRelocatable) !MaybeReloca
 /// - `Tuple`: A tuple containing the deduced `op1` and `res`.
 pub fn deduceOp1(
     inst: *const instructions.Instruction,
-    dst: ?*const relocatable.MaybeRelocatable,
-    op0: ?*const relocatable.MaybeRelocatable,
+    dst: ?*const MaybeRelocatable,
+    op0: ?*const MaybeRelocatable,
 ) !std.meta.Tuple(&[_]type{ ?relocatable.MaybeRelocatable, ?relocatable.MaybeRelocatable }) {
     if (inst.opcode != .AssertEq) {
         return .{ null, null };

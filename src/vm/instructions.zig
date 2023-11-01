@@ -22,11 +22,17 @@ const std = @import("std");
 
 /// Error type to represent different error conditions during instruction decoding.
 pub const Error = error{
+    /// Represents an error condition where the high bit in the instruction's first word is non-zero.
     NonZeroHighBit,
+    /// Indicates an error when an invalid register value is encountered for the `op1` field in the instruction.
     InvalidOp1Reg,
+    /// Represents an error when the `pc_update` field in the instruction is invalid.
     Invalidpc_update,
+    /// Signifies an error related to an invalid value for the `res_logic` field in the instruction.
     Invalidres_logic,
+    /// Indicates an error condition when the opcode in the instruction is invalid.
     InvalidOpcode,
+    /// Represents an error when the `ap_update` field in the instruction is invalid.
     Invalidap_update,
 };
 
@@ -342,10 +348,7 @@ pub fn fromBiasedRepresentation(biased_repr: u16) i16 {
         i32,
         @intCast(biased_repr),
     );
-    return @as(
-        i16,
-        @intCast(as_i32 - 32768),
-    );
+    return @intCast(as_i32 - 32768);
 }
 
 // ************************************************************

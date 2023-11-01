@@ -24,6 +24,9 @@ pub fn Field(
 
         fe: F.MontgomeryDomainFieldElement,
 
+        /// Create a field element from an integer in Montgomery representation.
+        ///
+        /// This function converts an integer to a field element in Montgomery form.
         pub fn fromInteger(num: u256) Self {
             var lbe: [BytesSize]u8 = [_]u8{0} ** BytesSize;
             std.mem.writeInt(
@@ -47,10 +50,16 @@ pub fn Field(
             return .{ .fe = mont };
         }
 
+        /// Get the field element representing zero.
+        ///
+        /// Returns a field element with a value of zero.
         pub fn zero() Self {
             return base_zero;
         }
 
+        /// Get the field element representing one.
+        ///
+        /// Returns a field element with a value of one.
         pub fn one() Self {
             const oneValue = comptime blk: {
                 var baseOne: F.MontgomeryDomainFieldElement = undefined;
@@ -60,6 +69,9 @@ pub fn Field(
             return oneValue;
         }
 
+        /// Create a field element from a byte array.
+        ///
+        /// Converts a byte array into a field element in Montgomery representation.
         pub fn fromBytes(bytes: [BytesSize]u8) Self {
             var non_mont: F.NonMontgomeryDomainFieldElement = undefined;
             inline for (0..4) |i| {
@@ -78,6 +90,9 @@ pub fn Field(
             return ret;
         }
 
+        /// Convert the field element to a byte array.
+        ///
+        /// This function converts the field element to a byte array for serialization.
         pub fn toBytes(self: Self) [BytesSize]u8 {
             var non_mont: F.NonMontgomeryDomainFieldElement = undefined;
             F.fromMontgomery(
@@ -97,11 +112,16 @@ pub fn Field(
             return ret;
         }
 
+        /// Check if the field element is lexicographically largest.
+        ///
+        /// Determines whether the field element is larger than half of the field's modulus.
         pub fn lexographicallyLargest(self: Self) bool {
-            const selfNonMont = self.toInteger();
-            return selfNonMont > QMinOneDiv2;
+            return self.toInteger() > QMinOneDiv2;
         }
 
+        /// Convert the field element to its non-Montgomery representation.
+        ///
+        /// Converts a field element from Montgomery form to non-Montgomery representation.
         pub fn fromMontgomery(self: Self) F.NonMontgomeryDomainFieldElement {
             var nonMont: F.NonMontgomeryDomainFieldElement = undefined;
             F.fromMontgomery(
@@ -110,6 +130,10 @@ pub fn Field(
             );
             return nonMont;
         }
+
+        /// Add two field elements.
+        ///
+        /// Adds the current field element to another field element.
         pub fn add(
             self: Self,
             other: Self,
@@ -123,6 +147,9 @@ pub fn Field(
             return .{ .fe = ret };
         }
 
+        /// Subtract one field element from another.
+        ///
+        /// Subtracts another field element from the current field element.
         pub fn sub(
             self: Self,
             other: Self,
@@ -136,6 +163,9 @@ pub fn Field(
             return .{ .fe = ret };
         }
 
+        /// Multiply two field elements.
+        ///
+        /// Multiplies the current field element by another field element.
         pub fn mul(
             self: Self,
             other: Self,
@@ -149,6 +179,9 @@ pub fn Field(
             return .{ .fe = ret };
         }
 
+        /// Multiply a field element by 5.
+        ///
+        /// Multiplies the current field element by the constant 5.
         pub fn mulBy5(self: Self) Self {
             var ret: F.MontgomeryDomainFieldElement = undefined;
             F.add(
@@ -169,6 +202,9 @@ pub fn Field(
             return .{ .fe = ret };
         }
 
+        /// Negate a field element.
+        ///
+        /// Negates the value of the current field element.
         pub fn neg(self: Self) Self {
             var ret: F.MontgomeryDomainFieldElement = undefined;
             F.sub(
@@ -179,18 +215,31 @@ pub fn Field(
             return .{ .fe = ret };
         }
 
+        /// Check if the field element is zero.
+        ///
+        /// Determines if the current field element is equal to zero.
         pub fn isZero(self: Self) bool {
             return self.equal(base_zero);
         }
 
+        /// Check if the field element is one.
+        ///
+        /// Determines if the current field element is equal to one.
         pub fn isOne(self: Self) bool {
             return self.equal(one());
         }
 
+        /// Calculate the square of a field element.
+        ///
+        /// Computes the square of the current field element.
         pub fn square(self: Self) Self {
             return self.mul(self);
         }
 
+        /// Raise a field element to a power of 2.
+        ///
+        /// Computes the current field element raised to the power of 2 to the `exponent` power.
+        /// The result is equivalent to repeatedly squaring the field element.
         pub fn pow2(
             self: Self,
             comptime exponent: u8,
@@ -202,6 +251,9 @@ pub fn Field(
             return ret;
         }
 
+        /// Raise a field element to a general power.
+        ///
+        /// Computes the field element raised to a general power specified by the `exponent`.
         pub fn pow(
             self: Self,
             exponent: u256,
@@ -219,6 +271,9 @@ pub fn Field(
             return res;
         }
 
+        /// Batch inversion of multiple field elements.
+        ///
+        /// Performs batch inversion of a slice of field elements in place.
         pub fn batchInv(
             out: []Self,
             in: []const Self,
@@ -246,6 +301,9 @@ pub fn Field(
             }
         }
 
+        /// Calculate the multiplicative inverse of a field element.
+        ///
+        /// Computes the multiplicative inverse of the current field element.
         pub fn inv(self: Self) ?Self {
             var r: u256 = Modulo;
             var t: i512 = 0;
@@ -276,6 +334,9 @@ pub fn Field(
             return Self.fromInteger(@intCast(t));
         }
 
+        /// Divide one field element by another.
+        ///
+        /// Divides the current field element by another field element.
         pub fn div(
             self: Self,
             den: Self,
@@ -284,6 +345,9 @@ pub fn Field(
             return self.mul(den_inv);
         }
 
+        /// Check if two field elements are equal.
+        ///
+        /// Determines whether the current field element is equal to another field element.
         pub fn equal(
             self: Self,
             other: Self,
@@ -295,6 +359,9 @@ pub fn Field(
             );
         }
 
+        /// Convert the field element to a u256 integer.
+        ///
+        /// Converts the field element to a u256 integer.
         pub fn toInteger(self: Self) u256 {
             var non_mont: F.NonMontgomeryDomainFieldElement = undefined;
             F.fromMontgomery(
@@ -315,8 +382,9 @@ pub fn Field(
             );
         }
 
-        // Try to convert the field element into a u64.
-        // If the value is too large, return an error.
+        /// Try to convert the field element to a u64 if its value is small enough.
+        ///
+        /// Attempts to convert the field element to a u64 if its value is within the representable range.
         pub fn tryIntoU64(self: Self) !u64 {
             const asU256 = self.toInteger();
             // Check if the value is small enough to fit into a u64
@@ -334,6 +402,9 @@ pub fn Field(
             );
         }
 
+        /// Calculate the Legendre symbol of a field element.
+        ///
+        /// Computes the Legendre symbol of the field element using Euler's criterion.
         pub fn legendre(a: Self) i2 {
             // Compute the Legendre symbol a|p using
             // Euler's criterion. p is a prime, a is
@@ -350,6 +421,88 @@ pub fn Field(
                 return 0;
             }
             return 1;
+        }
+
+        /// Compare two field elements and return the ordering result.
+        ///
+        /// # Parameters
+        /// - `self` - The first field element to compare.
+        /// - `other` - The second field element to compare.
+        ///
+        /// # Returns
+        /// A `std.math.Order` enum indicating the ordering relationship.
+        pub fn cmp(self: Self, other: Self) std.math.Order {
+            var a = self.fe;
+            var b = other.fe;
+            _ = std.mem.reverse(u64, a[0..]);
+            _ = std.mem.reverse(u64, b[0..]);
+            return std.mem.order(
+                u64,
+                &a,
+                &b,
+            );
+        }
+
+        /// Check if this field element is less than the other.
+        ///
+        /// # Parameters
+        /// - `self` - The field element to check.
+        /// - `other` - The field element to compare against.
+        ///
+        /// # Returns
+        /// `true` if `self` is less than `other`, `false` otherwise.
+        pub fn lt(self: Self, other: Self) bool {
+            return switch (self.cmp(other)) {
+                .lt => true,
+                else => false,
+            };
+        }
+
+        /// Check if this field element is less than or equal to the other.
+        ///
+        /// # Parameters
+        /// - `self` - The field element to check.
+        /// - `other` - The field element to compare against.
+        ///
+        /// # Returns
+        /// `true` if `self` is less than or equal to `other`, `false` otherwise.
+        pub fn le(self: Self, other: Self) bool {
+            return switch (self.cmp(other)) {
+                .lt => true,
+                .eq => true,
+                else => false,
+            };
+        }
+
+        /// Check if this field element is greater than the other.
+        ///
+        /// # Parameters
+        /// - `self` - The field element to check.
+        /// - `other` - The field element to compare against.
+        ///
+        /// # Returns
+        /// `true` if `self` is greater than `other`, `false` otherwise.
+        pub fn gt(self: Self, other: Self) bool {
+            return switch (self.cmp(other)) {
+                .gt => true,
+                else => false,
+            };
+        }
+
+        /// Check if this field element is greater than or equal to the other.
+        ///
+        /// # Parameters
+        /// - `self` - The field element to check.
+        /// - `other` - The field element to compare against.
+        ///
+        /// # Returns
+        /// `true` if `self` is greater than or equal to `other`, `false` otherwise.
+        pub fn ge(self: Self, other: Self) bool {
+            return switch (self.cmp(other)) {
+                .gt => true,
+                .eq => true,
+                else => false,
+            };
         }
     };
 }
