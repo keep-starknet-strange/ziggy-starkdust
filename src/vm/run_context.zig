@@ -112,18 +112,10 @@ pub const RunContext = struct {
 
         if (instruction.off_0 < 0) {
             // Convert i16 to u64 safely and then negate
-            const abs_offset = @as(
-                u64,
-                @intCast(-instruction.off_0),
-            );
-            return try base_addr.subUint(abs_offset);
+            return try base_addr.subUint(@intCast(-instruction.off_0));
         } else {
             // Convert i16 to u64 safely
-            const offset = @as(
-                u64,
-                @intCast(instruction.off_0),
-            );
-            return try base_addr.addUint(offset);
+            return try base_addr.addUint(@intCast(instruction.off_0));
         }
     }
 
@@ -143,18 +135,10 @@ pub const RunContext = struct {
 
         if (instruction.off_1 < 0) {
             // Convert i16 to u64 safely and then negate
-            const abs_offset = @as(
-                u64,
-                @intCast(-instruction.off_1),
-            );
-            return try base_addr.subUint(abs_offset);
+            return try base_addr.subUint(@intCast(-instruction.off_1));
         } else {
             // Convert i16 to u64 safely
-            const offset = @as(
-                u64,
-                @intCast(instruction.off_1),
-            );
-            return try base_addr.addUint(offset);
+            return try base_addr.addUint(@intCast(instruction.off_1));
         }
     }
 
@@ -190,18 +174,10 @@ pub const RunContext = struct {
 
         if (instruction.off_2 < 0) {
             // Convert i16 to u64 safely and then negate
-            const abs_offset = @as(
-                u64,
-                @intCast(-instruction.off_2),
-            );
-            return try base_addr.subUint(abs_offset);
+            return try base_addr.subUint(@intCast(-instruction.off_2));
         } else {
             // Convert i16 to u64 safely
-            const offset = @as(
-                u64,
-                @intCast(instruction.off_2),
-            );
-            return try base_addr.addUint(offset);
+            return try base_addr.addUint(@intCast(instruction.off_2));
         }
     }
 };
