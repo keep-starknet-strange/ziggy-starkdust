@@ -423,5 +423,87 @@ pub fn Field(
             }
             return 1;
         }
+
+        /// Compare two field elements and return the ordering result.
+        ///
+        /// # Parameters
+        /// - `self` - The first field element to compare.
+        /// - `other` - The second field element to compare.
+        ///
+        /// # Returns
+        /// A `std.math.Order` enum indicating the ordering relationship.
+        pub fn cmp(self: Self, other: Self) std.math.Order {
+            var a = self.fe;
+            var b = other.fe;
+            _ = std.mem.reverse(u64, a[0..]);
+            _ = std.mem.reverse(u64, b[0..]);
+            return std.mem.order(
+                u64,
+                &a,
+                &b,
+            );
+        }
+
+        /// Check if this field element is less than the other.
+        ///
+        /// # Parameters
+        /// - `self` - The field element to check.
+        /// - `other` - The field element to compare against.
+        ///
+        /// # Returns
+        /// `true` if `self` is less than `other`, `false` otherwise.
+        pub fn lt(self: Self, other: Self) bool {
+            return switch (self.cmp(other)) {
+                .lt => true,
+                else => false,
+            };
+        }
+
+        /// Check if this field element is less than or equal to the other.
+        ///
+        /// # Parameters
+        /// - `self` - The field element to check.
+        /// - `other` - The field element to compare against.
+        ///
+        /// # Returns
+        /// `true` if `self` is less than or equal to `other`, `false` otherwise.
+        pub fn le(self: Self, other: Self) bool {
+            return switch (self.cmp(other)) {
+                .lt => true,
+                .eq => true,
+                else => false,
+            };
+        }
+
+        /// Check if this field element is greater than the other.
+        ///
+        /// # Parameters
+        /// - `self` - The field element to check.
+        /// - `other` - The field element to compare against.
+        ///
+        /// # Returns
+        /// `true` if `self` is greater than `other`, `false` otherwise.
+        pub fn gt(self: Self, other: Self) bool {
+            return switch (self.cmp(other)) {
+                .gt => true,
+                else => false,
+            };
+        }
+
+        /// Check if this field element is greater than or equal to the other.
+        ///
+        /// # Parameters
+        /// - `self` - The field element to check.
+        /// - `other` - The field element to compare against.
+        ///
+        /// # Returns
+        /// `true` if `self` is greater than or equal to `other`, `false` otherwise.
+        pub fn ge(self: Self, other: Self) bool {
+            return switch (self.cmp(other)) {
+                .gt => true,
+                .eq => true,
+                else => false,
+            };
+        }
     };
 }
