@@ -531,11 +531,22 @@ pub fn Field(
 
         /// Left shift by `rhs` bits with overflow detection.
         ///
-        /// Returns $\mod{\mathtt{value} ⋅ 2^{\mathtt{rhs}}}_{2^{\mathtt{BITS}}}$.
-        /// If the product is $≥ 2^{\mathtt{BITS}}$ it returns `true`. That is, it
-        /// returns true if the bits shifted out are non-zero.
+        /// This function shifts the value left by `rhs` bits and detects overflow.
+        /// It returns the result of the shift and a boolean indicating whether overflow occurred.
+        ///
+        /// If the product after the shift is greater than or equal to 2^BITS, it returns true.
+        /// In other words, it returns true if the bits shifted out are non-zero.
+        ///
+        /// # Parameters
+        ///
+        /// - `self`: The value to be shifted.
+        /// - `rhs`: The number of bits to shift left.
+        ///
+        /// # Returns
+        ///
+        /// A tuple containing the shifted value and a boolean indicating overflow.
         pub fn overflowing_shl(
-            self: *Self,
+            self: Self,
             rhs: usize,
         ) std.meta.Tuple(&.{ Self, bool }) {
             const limbs = rhs / 64;
@@ -547,45 +558,45 @@ pub fn Field(
                     !self.equal(Self.zero()),
                 };
             }
-
+            var res = self;
             if (bits == 0) {
                 // Check for overflow
                 var overflow = false;
                 for (Limbs - limbs..Limbs) |i| {
-                    overflow = overflow or (self.fe[i] != 0);
+                    overflow = overflow or (res.fe[i] != 0);
                 }
-                if (self.fe[Limbs - limbs - 1] > Self.Mask) {
+                if (res.fe[Limbs - limbs - 1] > Self.Mask) {
                     overflow = true;
                 }
 
                 // Shift
                 var idx = Limbs - 1;
                 while (idx >= limbs) : (idx -= 1) {
-                    self.fe[idx] = self.fe[idx - limbs];
+                    res.fe[idx] = res.fe[idx - limbs];
                 }
                 for (0..limbs) |i| {
-                    self.fe[i] = 0;
+                    res.fe[i] = 0;
                 }
-                self.fe[Limbs - 1] &= Self.Mask;
-                return .{ self.*, overflow };
+                res.fe[Limbs - 1] &= Self.Mask;
+                return .{ res, overflow };
             }
 
             // Check for overflow
             var overflow = false;
             for (Limbs - limbs..Limbs) |i| {
-                overflow = overflow or (self.fe[i] != 0);
+                overflow = overflow or (res.fe[i] != 0);
             }
 
             if (std.math.shr(
                 u64,
-                self.fe[Limbs - limbs - 1],
+                res.fe[Limbs - limbs - 1],
                 64 - bits,
             ) != 0) {
                 overflow = true;
             }
             if (std.math.shl(
                 u64,
-                self.fe[Limbs - limbs - 1],
+                res.fe[Limbs - limbs - 1],
                 bits,
             ) > Self.Mask) {
                 overflow = true;
@@ -594,27 +605,44 @@ pub fn Field(
             // Shift
             var idx = Limbs - 1;
             while (idx > limbs) : (idx -= 1) {
-                self.fe[idx] = std.math.shl(
+                res.fe[idx] = std.math.shl(
                     u64,
-                    self.fe[idx - limbs],
+                    res.fe[idx - limbs],
                     bits,
                 ) | std.math.shr(
                     u64,
-                    self.fe[idx - limbs - 1],
+                    res.fe[idx - limbs - 1],
                     64 - bits,
                 );
             }
 
-            self.fe[limbs] = std.math.shl(
+            res.fe[limbs] = std.math.shl(
                 u64,
-                self.fe[0],
+                res.fe[0],
                 bits,
             );
             for (0..limbs) |i| {
-                self.fe[i] = 0;
+                res.fe[i] = 0;
             }
-            self.fe[Limbs - 1] &= Self.Mask;
-            return .{ self.*, overflow };
+            res.fe[Limbs - 1] &= Self.Mask;
+            return .{ res, overflow };
+        }
+
+        /// Left shift by `rhs` bits with wrapping behavior.
+        ///
+        /// This function shifts the value left by `rhs` bits, and it wraps around if an overflow occurs.
+        /// It returns the result of the shift.
+        ///
+        /// # Parameters
+        ///
+        /// - `self`: The value to be shifted.
+        /// - `rhs`: The number of bits to shift left.
+        ///
+        /// # Returns
+        ///
+        /// The shifted value with wrapping behavior.
+        pub fn wrapping_shl(self: Self, rhs: usize) Self {
+            return self.overflowing_shl(rhs)[0];
         }
     };
 }
