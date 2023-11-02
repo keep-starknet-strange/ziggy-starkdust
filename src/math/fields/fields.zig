@@ -33,7 +33,7 @@ pub fn Field(
                 u256,
                 lbe[0..],
                 num % Modulo,
-                std.builtin.Endian.Little,
+                .little,
             );
 
             var nonMont: F.NonMontgomeryDomainFieldElement = undefined;
@@ -75,10 +75,10 @@ pub fn Field(
         pub fn fromBytes(bytes: [BytesSize]u8) Self {
             var non_mont: F.NonMontgomeryDomainFieldElement = undefined;
             inline for (0..4) |i| {
-                non_mont[i] = std.mem.readIntSlice(
+                non_mont[i] = std.mem.readInt(
                     u64,
                     bytes[i * 8 .. (i + 1) * 8],
-                    std.builtin.Endian.Little,
+                    .little,
                 );
             }
             var ret: Self = undefined;
@@ -101,11 +101,11 @@ pub fn Field(
             );
             var ret: [BytesSize]u8 = undefined;
             inline for (0..4) |i| {
-                std.mem.writeIntSlice(
+                std.mem.writeInt(
                     u64,
                     ret[i * 8 .. (i + 1) * 8],
                     non_mont[i],
-                    std.builtin.Endian.Little,
+                    .little,
                 );
             }
 
@@ -378,7 +378,7 @@ pub fn Field(
             return std.mem.readInt(
                 u256,
                 &bytes,
-                std.builtin.Endian.Little,
+                std.builtin.Endian.little,
             );
         }
 
