@@ -516,6 +516,20 @@ test "Felt252 ge" {
     ));
 }
 
+test "Felt252 lexographicallyLargest" {
+    try expect(!Felt252.fromInteger(0).lexographicallyLargest());
+    try expect(!Felt252.fromInteger(
+        0x400000000000008800000000000000000000000000000000000000000000000,
+    ).lexographicallyLargest());
+    try expect(!Felt252.fromInteger(
+        0x4000000000000087fffffffffffffffffffffffffffffffffffffffffffffff,
+    ).lexographicallyLargest());
+    try expect(Felt252.fromInteger(
+        0x400000000000008800000000000000000000000000000000000000000000001,
+    ).lexographicallyLargest());
+    try expect(Felt252.fromInteger(std.math.maxInt(u256)).lexographicallyLargest());
+}
+
 test "Felt252 overflowing_shl" {
     var a = Felt252.fromInteger(10);
     try expectEqual(

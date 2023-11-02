@@ -149,8 +149,7 @@ pub fn Field(
         ///
         /// Determines whether the field element is larger than half of the field's modulus.
         pub fn lexographicallyLargest(self: Self) bool {
-            const selfNonMont = self.toInteger();
-            return selfNonMont > QMinOneDiv2;
+            return self.toInteger() > QMinOneDiv2;
         }
 
         /// Convert the field element to its non-Montgomery representation.
