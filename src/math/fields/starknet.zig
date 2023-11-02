@@ -577,7 +577,7 @@ test "Felt252 overflowing_shl" {
         @as(
             std.meta.Tuple(&.{ Felt252, bool }),
             .{
-                Felt252{ .fe = .{ 0, 0, 0, 18446744072642884961 } },
+                Felt252{ .fe = .{ 0x0, 0x0, 0x0, 0xffffffffc06bf561 } },
                 true,
             },
         ),
@@ -619,7 +619,7 @@ test "Felt252 wrapping_shl" {
     );
     var d = Felt252.fromInteger(33333333);
     try expectEqual(
-        Felt252{ .fe = .{ 0, 0, 0, 18446744072642884961 } },
+        Felt252{ .fe = .{ 0x0, 0x0, 0x0, 0xffffffffc06bf561 } },
         d.wrapping_shl(3 * 64),
     );
 }
@@ -713,12 +713,183 @@ test "Felt252 checked_shl" {
     );
 }
 
-pub fn main() void {
-    std.debug.print("Hello, {s}!\n", .{"World"});
+test "Felt252 overflowing_shr" {
+    var a = Felt252.fromInteger(10);
+    try expectEqual(
+        @as(
+            std.meta.Tuple(&.{ Felt252, bool }),
+            .{
+                Felt252{ .fe = .{
+                    0xffffffffffffff60,
+                    0xffffffffffffffff,
+                    0x7fffffffffffffff,
+                    0x3fffffffffff568,
+                } },
+                true,
+            },
+        ),
+        a.overflowing_shr(1),
+    );
+    var b = Felt252.fromInteger(std.math.maxInt(u256));
+    try expectEqual(
+        @as(
+            std.meta.Tuple(&.{ Felt252, bool }),
+            .{
+                Felt252{ .fe = .{
+                    0xffffffeb9bf00021, 0x9987fff, 0x87fffffffffb7c00, 0x3ffea55af00451,
+                } },
+                true,
+            },
+        ),
+        b.overflowing_shr(5),
+    );
+    var c = Felt252.fromInteger(44444444);
+    try expectEqual(
+        @as(
+            std.meta.Tuple(&.{ Felt252, bool }),
+            .{
+                Felt252{ .fe = .{
+                    0xffffffffffeacea7, 0xffffffffffffffff, 0x243fffffffffffff, 0x1fffffe97b919,
+                } },
+                true,
+            },
+        ),
+        c.overflowing_shr(10),
+    );
+    try expectEqual(
+        @as(
+            std.meta.Tuple(&.{ Felt252, bool }),
+            .{
+                Felt252.zero(),
+                true,
+            },
+        ),
+        c.overflowing_shr(5 * 64),
+    );
+    var d = Felt252.fromInteger(33333333);
+    try expectEqual(
+        @as(
+            std.meta.Tuple(&.{ Felt252, bool }),
+            .{
+                Felt252{ .fe = .{
+                    0x7fffffbc72b4b70,
+                    0x0,
+                    0x0,
+                    0x0,
+                } },
+                true,
+            },
+        ),
+        d.overflowing_shr(3 * 64),
+    );
+    var e = Felt252{ .fe = .{
+        0x0,
+        0xffffffffffffffff,
+        0xffffffffffffffff,
+        0x0,
+    } };
+    try expectEqual(
+        @as(
+            std.meta.Tuple(&.{ Felt252, bool }),
+            .{
+                Felt252{ .fe = .{
+                    0x8000000000000000, 0xffffffffffffffff, 0x7fffffffffffffff, 0x0,
+                } },
+                false,
+            },
+        ),
+        e.overflowing_shr(1),
+    );
+}
 
-    var a = Felt252.fromInteger(std.math.maxInt(u256));
+test "Felt252 checked_shr" {
+    var a = Felt252.fromInteger(10);
+    try expectEqual(
+        @as(?Felt252, null),
+        a.checked_shr(1),
+    );
+    var b = Felt252.fromInteger(std.math.maxInt(u256));
+    try expectEqual(
+        @as(?Felt252, null),
+        b.checked_shr(5),
+    );
+    var c = Felt252.fromInteger(44444444);
+    try expectEqual(
+        @as(?Felt252, null),
+        c.checked_shr(10),
+    );
+    try expectEqual(
+        @as(?Felt252, null),
+        c.checked_shr(5 * 64),
+    );
+    var d = Felt252.fromInteger(33333333);
+    try expectEqual(
+        @as(?Felt252, null),
+        d.checked_shr(3 * 64),
+    );
+    var e = Felt252{ .fe = .{
+        0x0,
+        0xffffffffffffffff,
+        0xffffffffffffffff,
+        0x0,
+    } };
+    try expectEqual(
+        Felt252{ .fe = .{
+            0x8000000000000000, 0xffffffffffffffff, 0x7fffffffffffffff, 0x0,
+        } },
+        e.checked_shr(1).?,
+    );
+}
 
-    std.debug.print("a avant = {any}\n", .{a});
-
-    std.debug.print("EMPTY_UNCLE_HASH = {any}\n", .{a.overflowing_shl(3 * 64)});
+test "Felt252 wrapping_shr" {
+    var a = Felt252.fromInteger(10);
+    try expectEqual(
+        Felt252{ .fe = .{
+            0xffffffffffffff60,
+            0xffffffffffffffff,
+            0x7fffffffffffffff,
+            0x3fffffffffff568,
+        } },
+        a.wrapping_shr(1),
+    );
+    var b = Felt252.fromInteger(std.math.maxInt(u256));
+    try expectEqual(
+        Felt252{ .fe = .{
+            0xffffffeb9bf00021, 0x9987fff, 0x87fffffffffb7c00, 0x3ffea55af00451,
+        } },
+        b.wrapping_shr(5),
+    );
+    var c = Felt252.fromInteger(44444444);
+    try expectEqual(
+        Felt252{ .fe = .{
+            0xffffffffffeacea7, 0xffffffffffffffff, 0x243fffffffffffff, 0x1fffffe97b919,
+        } },
+        c.wrapping_shr(10),
+    );
+    try expectEqual(
+        Felt252.zero(),
+        c.wrapping_shr(5 * 64),
+    );
+    var d = Felt252.fromInteger(33333333);
+    try expectEqual(
+        Felt252{ .fe = .{
+            0x7fffffbc72b4b70,
+            0x0,
+            0x0,
+            0x0,
+        } },
+        d.wrapping_shr(3 * 64),
+    );
+    var e = Felt252{ .fe = .{
+        0x0,
+        0xffffffffffffffff,
+        0xffffffffffffffff,
+        0x0,
+    } };
+    try expectEqual(
+        Felt252{ .fe = .{
+            0x8000000000000000, 0xffffffffffffffff, 0x7fffffffffffffff, 0x0,
+        } },
+        e.wrapping_shr(1),
+    );
 }

@@ -697,5 +697,132 @@ pub fn Field(
                 else => null,
             };
         }
+
+        /// Right shift by `rhs` bits with underflow detection.
+        ///
+        /// This function performs a right shift of `self` by `rhs` bits. It returns the
+        /// floor value of the division $\floor{\frac{\mathtt{self}}{2^{\mathtt{rhs}}}}$
+        /// and a boolean indicating whether the division was exact (false) or rounded down (true).
+        ///
+        /// # Parameters
+        ///
+        /// - `self`: The value to be shifted.
+        /// - `rhs`: The number of bits to shift right.
+        ///
+        /// # Returns
+        ///
+        /// A tuple containing the shifted value and a boolean indicating underflow.
+        pub fn overflowing_shr(
+            self: Self,
+            rhs: usize,
+        ) std.meta.Tuple(&.{ Self, bool }) {
+            const limbs = rhs / 64;
+            const bits = @mod(rhs, 64);
+
+            if (limbs >= Limbs) {
+                return .{
+                    Self.zero(),
+                    !self.equal(Self.zero()),
+                };
+            }
+
+            var res = self;
+            if (bits == 0) {
+                // Check for overflow
+                var overflow = false;
+                for (0..limbs) |i| {
+                    overflow = overflow or (res.fe[i] != 0);
+                }
+
+                // Shift
+                var idx = Limbs - limbs - 1;
+                while (idx >= 0) : (idx -= 1) {
+                    res.fe[idx] = res.fe[idx + limbs];
+                    if (idx == 0) {
+                        break;
+                    }
+                }
+                idx = Limbs - 1;
+                while (idx >= Limbs - limbs) : (idx -= 1) {
+                    res.fe[idx] = 0;
+                }
+                return .{ res, overflow };
+            }
+
+            // Check for overflow
+            var overflow = false;
+            for (0..limbs) |i| {
+                overflow = overflow or (res.fe[i] != 0);
+            }
+            overflow = overflow or (std.math.shr(
+                u64,
+                res.fe[limbs],
+                bits,
+            ) != 0);
+
+            // Shift
+            var idx: usize = Limbs - limbs - 2;
+            while (idx >= 0) : (idx -= 1) {
+                res.fe[idx] = std.math.shr(
+                    u64,
+                    res.fe[idx + limbs],
+                    bits,
+                ) | std.math.shl(
+                    u64,
+                    res.fe[idx + limbs + 1],
+                    64 - bits,
+                );
+                if (idx == 0) {
+                    break;
+                }
+            }
+
+            res.fe[Limbs - limbs - 1] = std.math.shr(
+                u64,
+                res.fe[Limbs - 1],
+                bits,
+            );
+            for (Limbs - limbs..Limbs) |i| {
+                res.fe[i] = 0;
+            }
+            return .{ res, overflow };
+        }
+
+        /// Right shift by `rhs` bits with checked underflow.
+        ///
+        /// This function performs a right shift of `self` by `rhs` bits. It returns `Some(value)` with the result of the shift if no underflow occurs. If underflow happens (bits are shifted out), it returns [`null`].
+        ///
+        /// # Parameters
+        ///
+        /// - `self`: The value to be shifted.
+        /// - `rhs`: The number of bits to shift right.
+        ///
+        /// # Returns
+        ///
+        /// - `Some(value)`: The shifted value if no underflow occurs.
+        /// - [`null`]: If the division is not exact.
+        pub fn checked_shr(self: Self, rhs: usize) ?Self {
+            const _shl = self.overflowing_shr(rhs);
+            return switch (_shl[1]) {
+                false => _shl[0],
+                else => null,
+            };
+        }
+
+        /// Right shift by `rhs` bits with wrapping behavior.
+        ///
+        /// This function performs a right shift of `self` by `rhs` bits, and it wraps around if an underflow occurs. It returns the result of the shift.
+        ///
+        /// # Parameters
+        ///
+        /// - `self`: The value to be shifted.
+        /// - `rhs`: The number of bits to shift right.
+        ///
+        /// # Returns
+        ///
+        /// The shifted value with wrapping behavior.
+        pub fn wrapping_shr(self: Self, rhs: usize) Self {
+            return self.overflowing_shr(rhs)[0];
+        }
     };
 }
