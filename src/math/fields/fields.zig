@@ -735,16 +735,11 @@ pub fn Field(
                 }
 
                 // Shift
-                var idx = Limbs - limbs - 1;
-                while (idx >= 0) : (idx -= 1) {
-                    res.fe[idx] = res.fe[idx + limbs];
-                    if (idx == 0) {
-                        break;
-                    }
+                for (0..Limbs - limbs) |i| {
+                    res.fe[i] = res.fe[i + limbs];
                 }
-                idx = Limbs - 1;
-                while (idx >= Limbs - limbs) : (idx -= 1) {
-                    res.fe[idx] = 0;
+                for (Limbs - limbs..Limbs) |i| {
+                    res.fe[i] = 0;
                 }
                 return .{ res, overflow };
             }
@@ -761,20 +756,16 @@ pub fn Field(
             ) != 0);
 
             // Shift
-            var idx: usize = Limbs - limbs - 2;
-            while (idx >= 0) : (idx -= 1) {
-                res.fe[idx] = std.math.shr(
+            for (0..Limbs - limbs - 1) |i| {
+                res.fe[i] = std.math.shr(
                     u64,
-                    res.fe[idx + limbs],
+                    res.fe[i + limbs],
                     bits,
                 ) | std.math.shl(
                     u64,
-                    res.fe[idx + limbs + 1],
+                    res.fe[i + limbs + 1],
                     64 - bits,
                 );
-                if (idx == 0) {
-                    break;
-                }
             }
 
             res.fe[Limbs - limbs - 1] = std.math.shr(
