@@ -515,3 +515,82 @@ test "Felt252 ge" {
         Felt252.fromInteger(10 + 0x800000000000011000000000000000000000000000000000000000000000001),
     ));
 }
+
+test "Felt252 overflowing_shl" {
+    var a = Felt252.fromInteger(10);
+    try expectEqual(
+        @as(
+            std.meta.Tuple(&.{ Felt252, bool }),
+            .{
+                Felt252{ .fe = .{
+                    0xfffffffffffffd82,
+                    0xffffffffffffffff,
+                    0xffffffffffffffff,
+                    0xfffffffffffd5a1,
+                } },
+                false,
+            },
+        ),
+        a.overflowing_shl(1),
+    );
+    var b = Felt252.fromInteger(std.math.maxInt(u256));
+    try expectEqual(
+        @as(
+            std.meta.Tuple(&.{ Felt252, bool }),
+            .{
+                Felt252{ .fe = .{
+                    0xffffae6fc0008420,
+                    0x2661ffffff,
+                    0xffffffffedf00000,
+                    0xfffa956bc011461f,
+                } },
+                false,
+            },
+        ),
+        b.overflowing_shl(5),
+    );
+    var c = Felt252.fromInteger(44444444);
+    try expectEqual(
+        @as(
+            std.meta.Tuple(&.{ Felt252, bool }),
+            .{
+                Felt252{ .fe = .{
+                    0xfffffeacea720400, 0xffffffffffffffff, 0xffffffffffffffff, 0xffffe97b919243ff,
+                } },
+                true,
+            },
+        ),
+        c.overflowing_shl(10),
+    );
+    try expectEqual(
+        @as(
+            std.meta.Tuple(&.{ Felt252, bool }),
+            .{
+                Felt252.zero(),
+                true,
+            },
+        ),
+        c.overflowing_shl(5 * 64),
+    );
+    var d = Felt252.fromInteger(33333333);
+    try expectEqual(
+        @as(
+            std.meta.Tuple(&.{ Felt252, bool }),
+            .{
+                Felt252{ .fe = .{ 0, 0, 0, 18446744072642884961 } },
+                true,
+            },
+        ),
+        d.overflowing_shl(3 * 64),
+    );
+}
+
+pub fn main() void {
+    std.debug.print("Hello, {s}!\n", .{"World"});
+
+    var a = Felt252.fromInteger(1);
+
+    std.debug.print("a avant = {any}\n", .{a});
+
+    std.debug.print("EMPTY_UNCLE_HASH = {any}\n", .{a.overflowing_shl(3 * 64)});
+}

@@ -7,10 +7,20 @@ pub fn Field(
     comptime mod: u256,
 ) type {
     return struct {
+        /// Number of bits needed to represent a field element with the given modulo.
         pub const BitSize = @bitSizeOf(u256) - @clz(mod);
+        /// Number of bytes required to store a field element.
         pub const BytesSize = @sizeOf(u256);
+        /// The modulo value representing the finite field.
         pub const Modulo = mod;
+        /// Half of the modulo value (Modulo - 1) divided by 2.
         pub const QMinOneDiv2 = (Modulo - 1) / 2;
+        /// The number of bits in each limb (typically 64 for u64).
+        pub const Bits: usize = 64;
+        /// Bit mask for the last limb.
+        pub const Mask: u64 = mask(Bits);
+        /// Number of limbs used to represent a field element.
+        pub const Limbs: usize = 4;
 
         const Self = @This();
         const base_zero = val: {
@@ -23,6 +33,19 @@ pub fn Field(
         };
 
         fe: F.MontgomeryDomainFieldElement,
+
+        /// Mask to apply to the highest limb to get the correct number of bits.
+        pub fn mask(bits: usize) u64 {
+            if (bits == 0) {
+                return 0;
+            }
+            const _bits = @mod(bits, 64);
+            if (_bits == 0) {
+                return std.math.maxInt(u64);
+            } else {
+                return std.math.shl(u64, 1, _bits) - 1;
+            }
+        }
 
         /// Create a field element from an integer in Montgomery representation.
         ///
@@ -504,6 +527,94 @@ pub fn Field(
                 .eq => true,
                 else => false,
             };
+        }
+
+        /// Left shift by `rhs` bits with overflow detection.
+        ///
+        /// Returns $\mod{\mathtt{value} ⋅ 2^{\mathtt{rhs}}}_{2^{\mathtt{BITS}}}$.
+        /// If the product is $≥ 2^{\mathtt{BITS}}$ it returns `true`. That is, it
+        /// returns true if the bits shifted out are non-zero.
+        pub fn overflowing_shl(
+            self: *Self,
+            rhs: usize,
+        ) std.meta.Tuple(&.{ Self, bool }) {
+            const limbs = rhs / 64;
+            const bits = @mod(rhs, 64);
+
+            if (limbs >= Limbs) {
+                return .{
+                    Self.zero(),
+                    !self.equal(Self.zero()),
+                };
+            }
+
+            if (bits == 0) {
+                // Check for overflow
+                var overflow = false;
+                for (Limbs - limbs..Limbs) |i| {
+                    overflow = overflow or (self.fe[i] != 0);
+                }
+                if (self.fe[Limbs - limbs - 1] > Self.Mask) {
+                    overflow = true;
+                }
+
+                // Shift
+                var idx = Limbs - 1;
+                while (idx >= limbs) : (idx -= 1) {
+                    self.fe[idx] = self.fe[idx - limbs];
+                }
+                for (0..limbs) |i| {
+                    self.fe[i] = 0;
+                }
+                self.fe[Limbs - 1] &= Self.Mask;
+                return .{ self.*, overflow };
+            }
+
+            // Check for overflow
+            var overflow = false;
+            for (Limbs - limbs..Limbs) |i| {
+                overflow = overflow or (self.fe[i] != 0);
+            }
+
+            if (std.math.shr(
+                u64,
+                self.fe[Limbs - limbs - 1],
+                64 - bits,
+            ) != 0) {
+                overflow = true;
+            }
+            if (std.math.shl(
+                u64,
+                self.fe[Limbs - limbs - 1],
+                bits,
+            ) > Self.Mask) {
+                overflow = true;
+            }
+
+            // Shift
+            var idx = Limbs - 1;
+            while (idx > limbs) : (idx -= 1) {
+                self.fe[idx] = std.math.shl(
+                    u64,
+                    self.fe[idx - limbs],
+                    bits,
+                ) | std.math.shr(
+                    u64,
+                    self.fe[idx - limbs - 1],
+                    64 - bits,
+                );
+            }
+
+            self.fe[limbs] = std.math.shl(
+                u64,
+                self.fe[0],
+                bits,
+            );
+            for (0..limbs) |i| {
+                self.fe[i] = 0;
+            }
+            self.fe[Limbs - 1] &= Self.Mask;
+            return .{ self.*, overflow };
         }
     };
 }
