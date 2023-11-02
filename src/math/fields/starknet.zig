@@ -624,10 +624,62 @@ test "Felt252 wrapping_shl" {
     );
 }
 
+test "Felt252 saturating_shl" {
+    var a = Felt252.fromInteger(10);
+    try expectEqual(
+        Felt252{ .fe = .{
+            0xfffffffffffffd82,
+            0xffffffffffffffff,
+            0xffffffffffffffff,
+            0xfffffffffffd5a1,
+        } },
+        a.saturating_shl(1),
+    );
+    var b = Felt252.fromInteger(std.math.maxInt(u256));
+    try expectEqual(
+        Felt252{ .fe = .{
+            0xffffae6fc0008420,
+            0x2661ffffff,
+            0xffffffffedf00000,
+            0xfffa956bc011461f,
+        } },
+        b.saturating_shl(5),
+    );
+    var c = Felt252.fromInteger(44444444);
+    try expectEqual(
+        Felt252{ .fe = .{
+            std.math.maxInt(u64),
+            std.math.maxInt(u64),
+            std.math.maxInt(u64),
+            std.math.maxInt(u64),
+        } },
+        c.saturating_shl(10),
+    );
+    try expectEqual(
+        Felt252{ .fe = .{
+            std.math.maxInt(u64),
+            std.math.maxInt(u64),
+            std.math.maxInt(u64),
+            std.math.maxInt(u64),
+        } },
+        c.saturating_shl(5 * 64),
+    );
+    var d = Felt252.fromInteger(33333333);
+    try expectEqual(
+        Felt252{ .fe = .{
+            std.math.maxInt(u64),
+            std.math.maxInt(u64),
+            std.math.maxInt(u64),
+            std.math.maxInt(u64),
+        } },
+        d.saturating_shl(3 * 64),
+    );
+}
+
 pub fn main() void {
     std.debug.print("Hello, {s}!\n", .{"World"});
 
-    var a = Felt252.fromInteger(1);
+    var a = Felt252.fromInteger(std.math.maxInt(u256));
 
     std.debug.print("a avant = {any}\n", .{a});
 

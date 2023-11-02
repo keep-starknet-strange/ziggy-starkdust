@@ -7,6 +7,8 @@ pub fn Field(
     comptime mod: u256,
 ) type {
     return struct {
+        const Self = @This();
+
         /// Number of bits needed to represent a field element with the given modulo.
         pub const BitSize = @bitSizeOf(u256) - @clz(mod);
         /// Number of bytes required to store a field element.
@@ -21,8 +23,16 @@ pub fn Field(
         pub const Mask: u64 = mask(Bits);
         /// Number of limbs used to represent a field element.
         pub const Limbs: usize = 4;
+        /// The smallest value that can be represented by this integer type.
+        pub const Min = Self.zero();
+        /// The largest value that can be represented by this integer type.
+        pub const Max: Self = .{ .fe = .{
+            std.math.maxInt(u64),
+            std.math.maxInt(u64),
+            std.math.maxInt(u64),
+            std.math.maxInt(u64),
+        } };
 
-        const Self = @This();
         const base_zero = val: {
             var bz: F.MontgomeryDomainFieldElement = undefined;
             F.fromBytes(
@@ -534,7 +544,7 @@ pub fn Field(
         /// This function shifts the value left by `rhs` bits and detects overflow.
         /// It returns the result of the shift and a boolean indicating whether overflow occurred.
         ///
-        /// If the product after the shift is greater than or equal to 2^BITS, it returns true.
+        /// If the product $\mod{\mathtt{value} ⋅ 2^{\mathtt{rhs}}}_{2^{\mathtt{BITS}}}$ is greater than or equal to 2^BITS, it returns true.
         /// In other words, it returns true if the bits shifted out are non-zero.
         ///
         /// # Parameters
@@ -643,6 +653,27 @@ pub fn Field(
         /// The shifted value with wrapping behavior.
         pub fn wrapping_shl(self: Self, rhs: usize) Self {
             return self.overflowing_shl(rhs)[0];
+        }
+
+        /// Left shift by `rhs` bits with saturation.
+        ///
+        /// This function shifts the value left by `rhs` bits with saturation behavior.
+        /// If an overflow occurs, it returns `Self.Max`, otherwise, it returns the result of the shift.
+        ///
+        /// # Parameters
+        ///
+        /// - `self`: The value to be shifted.
+        /// - `rhs`: The number of bits to shift left.
+        ///
+        /// # Returns
+        ///
+        /// The shifted value with saturation behavior, or `Self.Max` on overflow.
+        pub fn saturating_shl(self: Self, rhs: usize) Self {
+            const _shl = self.overflowing_shl(rhs);
+            return switch (_shl[1]) {
+                false => _shl[0],
+                else => Self.Max,
+            };
         }
     };
 }
