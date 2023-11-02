@@ -1459,34 +1459,34 @@ test "compute res mul fails felt and reloc" {
     try expectError(error.MulRelocForbidden, computeRes(&instruction, op0, op1));
 }
 
-// test "memory is not leaked upon allocation failure during initialization" {
-//     var i: usize = 0;
-//     while (i < 20) {
-//         // ************************************************************
-//         // *                 SETUP TEST CONTEXT                       *
-//         // ************************************************************
-//         var allocator = std.testing.FailingAllocator.init(std.testing.allocator, .{ .fail_index = i });
-//         i += 1;
+test "memory is not leaked upon allocation failure during initialization" {
+    var i: usize = 0;
+    while (i < 20) {
+        // ************************************************************
+        // *                 SETUP TEST CONTEXT                       *
+        // ************************************************************
+        var allocator = std.testing.FailingAllocator.init(std.testing.allocator, .{ .fail_index = i });
+        i += 1;
 
-//         // ************************************************************
-//         // *                      TEST BODY                           *
-//         // ************************************************************
-//         // Nothing.
+        // ************************************************************
+        // *                      TEST BODY                           *
+        // ************************************************************
+        // Nothing.
 
-//         // ************************************************************
-//         // *                      TEST CHECKS                         *
-//         // ************************************************************
-//         // Error must have occured!
+        // ************************************************************
+        // *                      TEST CHECKS                         *
+        // ************************************************************
+        // Error must have occured!
 
-//         // It's not given that the final error will be an OutOfMemory. It's likely though.
-//         // Plus we're not certain that the error will be thrown at the same place as the
-//         // VM is upgraded. For this reason, we should just ensure that no memory has
-//         // been leaked.
-//         // try expectError(error.OutOfMemory, CairoVM.init(allocator.allocator(), .{}));
+        // It's not given that the final error will be an OutOfMemory. It's likely though.
+        // Plus we're not certain that the error will be thrown at the same place as the
+        // VM is upgraded. For this reason, we should just ensure that no memory has
+        // been leaked.
+        // try expectError(error.OutOfMemory, CairoVM.init(allocator.allocator(), .{}));
 
-//         // Note that `.deinit()` is not called in case of failure (obviously).
-//         // If error handling is done correctly, no memory should be leaked.
-//         var vm = CairoVM.init(allocator.allocator(), .{}) catch continue;
-//         vm.deinit();
-//     }
-// }
+        // Note that `.deinit()` is not called in case of failure (obviously).
+        // If error handling is done correctly, no memory should be leaked.
+        var vm = CairoVM.init(allocator.allocator(), .{}) catch continue;
+        vm.deinit();
+    }
+}
