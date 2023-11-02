@@ -675,5 +675,27 @@ pub fn Field(
                 else => Self.Max,
             };
         }
+
+        /// Checked left shift by `rhs` bits.
+        ///
+        /// This function performs a left shift of `self` by `rhs` bits. It returns `Some(value)` if the result is less than `2^BITS`, where `value` is the shifted result. If the result
+        /// would be greater than or equal to `2^BITS`, it returns [`null`], indicating an overflow condition where the shifted-out bits would be non-zero.
+        ///
+        /// # Parameters
+        ///
+        /// - `self`: The value to be shifted.
+        /// - `rhs`: The number of bits to shift left.
+        ///
+        /// # Returns
+        ///
+        /// - `Some(value)`: The shifted value if no overflow occurs.
+        /// - [`null`]: If the bits shifted out would be non-zero.
+        pub fn checked_shl(self: Self, rhs: usize) ?Self {
+            const _shl = self.overflowing_shl(rhs);
+            return switch (_shl[1]) {
+                false => _shl[0],
+                else => null,
+            };
+        }
     };
 }
