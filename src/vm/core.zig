@@ -270,9 +270,9 @@ pub const CairoVM = struct {
     ) !void {
         switch (instruction.pc_update) {
             // PC update regular
-            instructions.PcUpdate.Regular =>
-            // Update the PC.
-            self.run_context.pc.*.addUintInPlace(instruction.size()),
+            instructions.PcUpdate.Regular => { // Update the PC.
+                self.run_context.pc.*.addUintInPlace(instruction.size());
+            },
             // PC update jump
             instructions.PcUpdate.Jump => {
                 // Check that the res is not null.
@@ -350,10 +350,10 @@ pub const CairoVM = struct {
     ) !void {
         switch (instruction.fp_update) {
             // FP update Add + 2
-            instructions.FpUpdate.APPlus2 =>
-            // Update the FP.
-            // FP = AP + 2.
-            self.run_context.fp.*.offset = self.run_context.ap.*.offset + 2,
+            instructions.FpUpdate.APPlus2 => { // Update the FP.
+                // FP = AP + 2.
+                self.run_context.fp.*.offset = self.run_context.ap.*.offset + 2;
+            },
             // FP update Dst
             instructions.FpUpdate.Dst => {
                 switch (operands.dst) {
