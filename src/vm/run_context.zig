@@ -233,3 +233,155 @@ test "compute_op1_addr for fp op1 addr" {
         9,
     )));
 }
+
+test "RunContext: compute_dst_addr should return self.ap - instruction.off_0 if instruction.off_0 is negative" {
+    const run_context = try RunContext.init_with_values(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            25,
+        ),
+        Relocatable.new(
+            0,
+            6,
+        ),
+    );
+    defer run_context.deinit();
+    try expectEqual(
+        Relocatable.new(
+            0,
+            15,
+        ),
+        try run_context.compute_dst_addr(&.{
+            .off_0 = -10,
+            .off_1 = 2,
+            .off_2 = 3,
+            .dst_reg = .AP,
+            .op_0_reg = .AP,
+            .op_1_addr = .FP,
+            .res_logic = .Add,
+            .pc_update = .Regular,
+            .ap_update = .Regular,
+            .fp_update = .Regular,
+            .opcode = .NOp,
+        }),
+    );
+}
+
+test "RunContext: compute_dst_addr should return self.ap + instruction.off_0 if instruction.off_0 is positive" {
+    const run_context = try RunContext.init_with_values(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            25,
+        ),
+        Relocatable.new(
+            0,
+            6,
+        ),
+    );
+    defer run_context.deinit();
+    try expectEqual(
+        Relocatable.new(
+            0,
+            35,
+        ),
+        try run_context.compute_dst_addr(&.{
+            .off_0 = 10,
+            .off_1 = 2,
+            .off_2 = 3,
+            .dst_reg = .AP,
+            .op_0_reg = .AP,
+            .op_1_addr = .FP,
+            .res_logic = .Add,
+            .pc_update = .Regular,
+            .ap_update = .Regular,
+            .fp_update = .Regular,
+            .opcode = .NOp,
+        }),
+    );
+}
+
+test "RunContext: compute_dst_addr should return self.fp - instruction.off_0 if instruction.off_0 is negative" {
+    const run_context = try RunContext.init_with_values(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            25,
+        ),
+        Relocatable.new(
+            0,
+            40,
+        ),
+    );
+    defer run_context.deinit();
+    try expectEqual(
+        Relocatable.new(
+            0,
+            30,
+        ),
+        try run_context.compute_dst_addr(&.{
+            .off_0 = -10,
+            .off_1 = 2,
+            .off_2 = 3,
+            .dst_reg = .FP,
+            .op_0_reg = .AP,
+            .op_1_addr = .FP,
+            .res_logic = .Add,
+            .pc_update = .Regular,
+            .ap_update = .Regular,
+            .fp_update = .Regular,
+            .opcode = .NOp,
+        }),
+    );
+}
+
+test "RunContext: compute_dst_addr should return self.fp + instruction.off_0 if instruction.off_0 is positive" {
+    const run_context = try RunContext.init_with_values(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            25,
+        ),
+        Relocatable.new(
+            0,
+            30,
+        ),
+    );
+    defer run_context.deinit();
+    try expectEqual(
+        Relocatable.new(
+            0,
+            40,
+        ),
+        try run_context.compute_dst_addr(&.{
+            .off_0 = 10,
+            .off_1 = 2,
+            .off_2 = 3,
+            .dst_reg = .FP,
+            .op_0_reg = .AP,
+            .op_1_addr = .FP,
+            .res_logic = .Add,
+            .pc_update = .Regular,
+            .ap_update = .Regular,
+            .fp_update = .Regular,
+            .opcode = .NOp,
+        }),
+    );
+}
