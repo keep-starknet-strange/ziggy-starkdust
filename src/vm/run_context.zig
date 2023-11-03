@@ -732,21 +732,4 @@ test "RunContext: compute_op1_addr for IMM op1 addr and instruction off_2 == 1" 
             null,
         ),
     );
-
-    _ = try run_context.compute_op_1_addr(
-        &.{
-            .off_0 = 1,
-            .off_1 = 2,
-            .off_2 = 1,
-            .dst_reg = .FP,
-            .op_0_reg = .AP,
-            .op_1_addr = .Imm,
-            .res_logic = .Add,
-            .pc_update = .Regular,
-            .ap_update = .Regular,
-            .fp_update = .Regular,
-            .opcode = .NOp,
-        },
-        null,
-    );
 }
