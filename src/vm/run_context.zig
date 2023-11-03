@@ -573,3 +573,85 @@ test "RunContext: compute_op1_addr for FP op1 addr and instruction off_2 > 0" {
         ),
     );
 }
+
+test "RunContext: compute_op1_addr for AP op1 addr and instruction off_2 < 0" {
+    const run_context = try RunContext.init_with_values(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            5,
+        ),
+        Relocatable.new(
+            0,
+            6,
+        ),
+    );
+    defer run_context.deinit();
+    try expectEqual(
+        Relocatable.new(
+            0,
+            2,
+        ),
+        try run_context.compute_op_1_addr(
+            &.{
+                .off_0 = 1,
+                .off_1 = 2,
+                .off_2 = -3,
+                .dst_reg = .FP,
+                .op_0_reg = .AP,
+                .op_1_addr = .AP,
+                .res_logic = .Add,
+                .pc_update = .Regular,
+                .ap_update = .Regular,
+                .fp_update = .Regular,
+                .opcode = .NOp,
+            },
+            null,
+        ),
+    );
+}
+
+test "RunContext: compute_op1_addr for AP op1 addr and instruction off_2 > 0" {
+    const run_context = try RunContext.init_with_values(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            5,
+        ),
+        Relocatable.new(
+            0,
+            6,
+        ),
+    );
+    defer run_context.deinit();
+    try expectEqual(
+        Relocatable.new(
+            0,
+            8,
+        ),
+        try run_context.compute_op_1_addr(
+            &.{
+                .off_0 = 1,
+                .off_1 = 2,
+                .off_2 = 3,
+                .dst_reg = .FP,
+                .op_0_reg = .AP,
+                .op_1_addr = .AP,
+                .res_logic = .Add,
+                .pc_update = .Regular,
+                .ap_update = .Regular,
+                .fp_update = .Regular,
+                .opcode = .NOp,
+            },
+            null,
+        ),
+    );
+}
