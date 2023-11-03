@@ -152,25 +152,24 @@ pub const RunContext = struct {
         instruction: *const Instruction,
         op_0: ?MaybeRelocatable,
     ) !Relocatable {
-        var base_addr: Relocatable = undefined;
-        switch (instruction.op_1_addr) {
-            .FP => base_addr = self.fp.*,
-            .AP => base_addr = self.ap.*,
+        const base_addr = switch (instruction.op_1_addr) {
+            .FP => self.fp.*,
+            .AP => self.ap.*,
             .Imm => {
                 if (instruction.off_2 == 1) {
-                    base_addr = self.pc.*;
+                    return self.pc.*;
                 } else {
                     return error.ImmShouldBe1;
                 }
             },
             .Op0 => {
                 if (op_0) |val| {
-                    base_addr = try val.tryIntoRelocatable();
+                    return val.tryIntoRelocatable();
                 } else {
                     return error.UnknownOp0;
                 }
             },
-        }
+        };
 
         if (instruction.off_2 < 0) {
             // Convert i16 to u64 safely and then negate
@@ -188,51 +187,6 @@ pub const RunContext = struct {
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
-
-test "compute_op1_addr for fp op1 addr" {
-    var allocator = std.testing.allocator;
-
-    const instruction =
-        Instruction{
-        .off_0 = 1,
-        .off_1 = 2,
-        .off_2 = 3,
-        .dst_reg = .FP,
-        .op_0_reg = .AP,
-        .op_1_addr = .FP,
-        .res_logic = .Add,
-        .pc_update = .Regular,
-        .ap_update = .Regular,
-        .fp_update = .Regular,
-        .opcode = .NOp,
-    };
-
-    const run_context = try RunContext.init_with_values(
-        allocator,
-        Relocatable.new(
-            0,
-            4,
-        ),
-        Relocatable.new(
-            0,
-            5,
-        ),
-        Relocatable.new(
-            0,
-            6,
-        ),
-    );
-    defer run_context.deinit();
-    const relocatable_addr = try run_context.compute_op_1_addr(
-        &instruction,
-        null,
-    );
-
-    try expect(relocatable_addr.eq(Relocatable.new(
-        0,
-        9,
-    )));
-}
 
 test "RunContext: compute_dst_addr should return self.ap - instruction.off_0 if instruction.off_0 is negative" {
     const run_context = try RunContext.init_with_values(
@@ -535,5 +489,87 @@ test "RunContext: compute_op_0_addr should return self.fp + instruction.off_1 if
             .fp_update = .Regular,
             .opcode = .NOp,
         }),
+    );
+}
+
+test "RunContext: compute_op1_addr for FP op1 addr and instruction off_2 < 0" {
+    const run_context = try RunContext.init_with_values(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            5,
+        ),
+        Relocatable.new(
+            0,
+            6,
+        ),
+    );
+    defer run_context.deinit();
+    try expectEqual(
+        Relocatable.new(
+            0,
+            3,
+        ),
+        try run_context.compute_op_1_addr(
+            &.{
+                .off_0 = 1,
+                .off_1 = 2,
+                .off_2 = -3,
+                .dst_reg = .FP,
+                .op_0_reg = .AP,
+                .op_1_addr = .FP,
+                .res_logic = .Add,
+                .pc_update = .Regular,
+                .ap_update = .Regular,
+                .fp_update = .Regular,
+                .opcode = .NOp,
+            },
+            null,
+        ),
+    );
+}
+
+test "RunContext: compute_op1_addr for FP op1 addr and instruction off_2 > 0" {
+    const run_context = try RunContext.init_with_values(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            5,
+        ),
+        Relocatable.new(
+            0,
+            6,
+        ),
+    );
+    defer run_context.deinit();
+    try expectEqual(
+        Relocatable.new(
+            0,
+            9,
+        ),
+        try run_context.compute_op_1_addr(
+            &.{
+                .off_0 = 1,
+                .off_1 = 2,
+                .off_2 = 3,
+                .dst_reg = .FP,
+                .op_0_reg = .AP,
+                .op_1_addr = .FP,
+                .res_logic = .Add,
+                .pc_update = .Regular,
+                .ap_update = .Regular,
+                .fp_update = .Regular,
+                .opcode = .NOp,
+            },
+            null,
+        ),
     );
 }
