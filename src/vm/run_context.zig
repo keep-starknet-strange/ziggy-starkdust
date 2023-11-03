@@ -156,18 +156,7 @@ pub const RunContext = struct {
             .FP => self.fp.*,
             .AP => self.ap.*,
             .Imm => if (instruction.off_2 == 1) self.pc.* else return error.ImmShouldBe1,
-            // .Op0 => {
-            //     if (op_0) |val| {
-            //         return val.tryIntoRelocatable();
-            //     } else {
-            //         return error.UnknownOp0;
-            //     }
-            // },
-
-            .Op0 => if (op_0) |val|
-                try val.tryIntoRelocatable()
-            else
-                return error.UnknownOp0,
+            .Op0 => if (op_0) |val| try val.tryIntoRelocatable() else return error.UnknownOp0,
         };
 
         if (instruction.off_2 < 0) {
@@ -730,6 +719,132 @@ test "RunContext: compute_op1_addr for IMM op1 addr and instruction off_2 == 1" 
                 .opcode = .NOp,
             },
             null,
+        ),
+    );
+}
+
+test "RunContext: compute_op1_addr for OP0 op1 addr and instruction op_0 is null" {
+    const run_context = try RunContext.init_with_values(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            5,
+        ),
+        Relocatable.new(
+            0,
+            6,
+        ),
+    );
+    defer run_context.deinit();
+    try expectError(
+        error.UnknownOp0,
+        run_context.compute_op_1_addr(
+            &.{
+                .off_0 = 1,
+                .off_1 = 2,
+                .off_2 = -3,
+                .dst_reg = .FP,
+                .op_0_reg = .AP,
+                .op_1_addr = .Op0,
+                .res_logic = .Add,
+                .pc_update = .Regular,
+                .ap_update = .Regular,
+                .fp_update = .Regular,
+                .opcode = .NOp,
+            },
+            null,
+        ),
+    );
+}
+
+test "RunContext: compute_op1_addr for OP0 op1 addr and instruction off_2 < 0" {
+    const run_context = try RunContext.init_with_values(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            5,
+        ),
+        Relocatable.new(
+            0,
+            6,
+        ),
+    );
+    defer run_context.deinit();
+    try expectEqual(
+        Relocatable.new(
+            0,
+            28,
+        ),
+        try run_context.compute_op_1_addr(
+            &.{
+                .off_0 = 1,
+                .off_1 = 2,
+                .off_2 = -4,
+                .dst_reg = .FP,
+                .op_0_reg = .AP,
+                .op_1_addr = .Op0,
+                .res_logic = .Add,
+                .pc_update = .Regular,
+                .ap_update = .Regular,
+                .fp_update = .Regular,
+                .opcode = .NOp,
+            },
+            .{ .relocatable = Relocatable.new(
+                0,
+                32,
+            ) },
+        ),
+    );
+}
+
+test "RunContext: compute_op1_addr for OP0 op1 addr and instruction off_2 > 0" {
+    const run_context = try RunContext.init_with_values(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            5,
+        ),
+        Relocatable.new(
+            0,
+            6,
+        ),
+    );
+    defer run_context.deinit();
+    try expectEqual(
+        Relocatable.new(
+            0,
+            36,
+        ),
+        try run_context.compute_op_1_addr(
+            &.{
+                .off_0 = 1,
+                .off_1 = 2,
+                .off_2 = 4,
+                .dst_reg = .FP,
+                .op_0_reg = .AP,
+                .op_1_addr = .Op0,
+                .res_logic = .Add,
+                .pc_update = .Regular,
+                .ap_update = .Regular,
+                .fp_update = .Regular,
+                .opcode = .NOp,
+            },
+            .{ .relocatable = Relocatable.new(
+                0,
+                32,
+            ) },
         ),
     );
 }
