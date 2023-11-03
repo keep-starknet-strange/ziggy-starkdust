@@ -1160,303 +1160,267 @@ test "set get value in vm memory" {
 }
 
 test "compute res op1 works" {
-    // ************************************************************
-    // *                 SETUP TEST CONTEXT                       *
-    // ************************************************************
-    // Initialize an allocator.
-    var allocator = std.testing.allocator;
-    var instruction = Instruction{
-        .off_0 = 0,
-        .off_1 = 1,
-        .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Op1,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.NOp,
-    };
-
     // Create a new VM instance.
-    var vm = try CairoVM.init(allocator, .{});
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
     defer vm.deinit();
-
     vm.run_context.ap.* = Relocatable.new(1, 0);
-    // ************************************************************
-    // *                      TEST BODY                           *
-    // ************************************************************
 
-    const value_op0 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
-    const value_op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
-
-    const actual_res = try computeRes(&instruction, value_op0, value_op1);
-    const expected_res = value_op1;
-
-    // ************************************************************
-    // *                      TEST CHECKS                         *
-    // ************************************************************
     try expectEqual(
-        expected_res,
-        actual_res,
+        relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3)),
+        (try computeRes(
+            &.{
+                .off_0 = 0,
+                .off_1 = 1,
+                .off_2 = 2,
+                .dst_reg = instructions.Register.AP,
+                .op_0_reg = instructions.Register.AP,
+                .op_1_addr = instructions.Op1Src.AP,
+                .res_logic = instructions.ResLogic.Op1,
+                .pc_update = instructions.PcUpdate.Regular,
+                .ap_update = instructions.ApUpdate.Regular,
+                .fp_update = instructions.FpUpdate.Regular,
+                .opcode = instructions.Opcode.NOp,
+            },
+            relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2)),
+            relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3)),
+        )).?,
     );
 }
 
 test "compute res add felts works" {
-    // ************************************************************
-    // *                 SETUP TEST CONTEXT                       *
-    // ************************************************************
-    // Initialize an allocator.
-    var allocator = std.testing.allocator;
-    var instruction = Instruction{
-        .off_0 = 0,
-        .off_1 = 1,
-        .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Add,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.NOp,
-    };
-
     // Create a new VM instance.
-    var vm = try CairoVM.init(allocator, .{});
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
     defer vm.deinit();
-
     vm.run_context.ap.* = Relocatable.new(1, 0);
-    // ************************************************************
-    // *                      TEST BODY                           *
-    // ************************************************************
 
-    const value_op0 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
-    const value_op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
-
-    const actual_res = try computeRes(&instruction, value_op0, value_op1);
-    const expected_res = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(5));
-
-    // ************************************************************
-    // *                      TEST CHECKS                         *
-    // ************************************************************
     try expectEqual(
-        expected_res,
-        actual_res,
+        relocatable.fromFelt(starknet_felt.Felt252.fromInteger(5)),
+        (try computeRes(
+            &.{
+                .off_0 = 0,
+                .off_1 = 1,
+                .off_2 = 2,
+                .dst_reg = instructions.Register.AP,
+                .op_0_reg = instructions.Register.AP,
+                .op_1_addr = instructions.Op1Src.AP,
+                .res_logic = instructions.ResLogic.Add,
+                .pc_update = instructions.PcUpdate.Regular,
+                .ap_update = instructions.ApUpdate.Regular,
+                .fp_update = instructions.FpUpdate.Regular,
+                .opcode = instructions.Opcode.NOp,
+            },
+            relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2)),
+            relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3)),
+        )).?,
     );
 }
 
 test "compute res add felt to offset works" {
-    // ************************************************************
-    // *                 SETUP TEST CONTEXT                       *
-    // ************************************************************
-    // Initialize an allocator.
-    var allocator = std.testing.allocator;
-    var instruction = Instruction{
-        .off_0 = 0,
-        .off_1 = 1,
-        .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Add,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.NOp,
-    };
-
     // Create a new VM instance.
-    var vm = try CairoVM.init(allocator, .{});
+    var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
     vm.run_context.ap.* = Relocatable.new(1, 0);
-    // ************************************************************
-    // *                      TEST BODY                           *
-    // ************************************************************
 
-    const value_op0 = Relocatable.new(1, 1);
-    const op0 = relocatable.newFromRelocatable(value_op0);
-
-    const op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
-
-    const actual_res = try computeRes(&instruction, op0, op1);
-    const res = Relocatable.new(1, 4);
-    const expected_res = relocatable.newFromRelocatable(res);
-
-    // ************************************************************
-    // *                      TEST CHECKS                         *
-    // ************************************************************
     try expectEqual(
-        expected_res,
-        actual_res,
+        relocatable.newFromRelocatable(
+            Relocatable.new(1, 4),
+        ),
+        (try computeRes(
+            &.{
+                .off_0 = 0,
+                .off_1 = 1,
+                .off_2 = 2,
+                .dst_reg = instructions.Register.AP,
+                .op_0_reg = instructions.Register.AP,
+                .op_1_addr = instructions.Op1Src.AP,
+                .res_logic = instructions.ResLogic.Add,
+                .pc_update = instructions.PcUpdate.Regular,
+                .ap_update = instructions.ApUpdate.Regular,
+                .fp_update = instructions.FpUpdate.Regular,
+                .opcode = instructions.Opcode.NOp,
+            },
+            relocatable.newFromRelocatable(
+                Relocatable.new(1, 1),
+            ),
+            relocatable.fromFelt(
+                starknet_felt.Felt252.fromInteger(3),
+            ),
+        )).?,
     );
 }
 
 test "compute res add fails two relocs" {
-    // ************************************************************
-    // *                 SETUP TEST CONTEXT                       *
-    // ************************************************************
-    // Initialize an allocator.
-    var allocator = std.testing.allocator;
-    var instruction = Instruction{
-        .off_0 = 0,
-        .off_1 = 1,
-        .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Add,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.NOp,
-    };
-
     // Create a new VM instance.
-    var vm = try CairoVM.init(allocator, .{});
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
     defer vm.deinit();
-
     vm.run_context.ap.* = Relocatable.new(1, 0);
-    // ************************************************************
-    // *                      TEST BODY                           *
-    // ************************************************************
 
-    const value_op0 = Relocatable.new(1, 0);
-    const value_op1 = Relocatable.new(1, 1);
-
-    const op0 = relocatable.newFromRelocatable(value_op0);
-    const op1 = relocatable.newFromRelocatable(value_op1);
-
-    // ************************************************************
-    // *                      TEST CHECKS                         *
-    // ************************************************************
-    try expectError(error.AddRelocToRelocForbidden, computeRes(&instruction, op0, op1));
+    try expectError(
+        error.AddRelocToRelocForbidden,
+        computeRes(
+            &.{
+                .off_0 = 0,
+                .off_1 = 1,
+                .off_2 = 2,
+                .dst_reg = instructions.Register.AP,
+                .op_0_reg = instructions.Register.AP,
+                .op_1_addr = instructions.Op1Src.AP,
+                .res_logic = instructions.ResLogic.Add,
+                .pc_update = instructions.PcUpdate.Regular,
+                .ap_update = instructions.ApUpdate.Regular,
+                .fp_update = instructions.FpUpdate.Regular,
+                .opcode = instructions.Opcode.NOp,
+            },
+            relocatable.newFromRelocatable(Relocatable.new(
+                1,
+                0,
+            )),
+            relocatable.newFromRelocatable(Relocatable.new(
+                1,
+                1,
+            )),
+        ),
+    );
 }
 
 test "compute res mul works" {
-    // ************************************************************
-    // *                 SETUP TEST CONTEXT                       *
-    // ************************************************************
-    // Initialize an allocator.
-    var allocator = std.testing.allocator;
-    var instruction = Instruction{
-        .off_0 = 0,
-        .off_1 = 1,
-        .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Mul,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.NOp,
-    };
-
     // Create a new VM instance.
-    var vm = try CairoVM.init(allocator, .{});
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
     defer vm.deinit();
-
     vm.run_context.ap.* = Relocatable.new(1, 0);
-    // ************************************************************
-    // *                      TEST BODY                           *
-    // ************************************************************
 
-    const value_op0 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
-    const value_op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
-
-    const actual_res = try computeRes(&instruction, value_op0, value_op1);
-    const expected_res = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(6));
-
-    // ************************************************************
-    // *                      TEST CHECKS                         *
-    // ************************************************************
     try expectEqual(
-        expected_res,
-        actual_res,
+        relocatable.fromFelt(
+            starknet_felt.Felt252.fromInteger(6),
+        ),
+        (try computeRes(
+            &.{
+                .off_0 = 0,
+                .off_1 = 1,
+                .off_2 = 2,
+                .dst_reg = instructions.Register.AP,
+                .op_0_reg = instructions.Register.AP,
+                .op_1_addr = instructions.Op1Src.AP,
+                .res_logic = instructions.ResLogic.Mul,
+                .pc_update = instructions.PcUpdate.Regular,
+                .ap_update = instructions.ApUpdate.Regular,
+                .fp_update = instructions.FpUpdate.Regular,
+                .opcode = instructions.Opcode.NOp,
+            },
+            relocatable.fromFelt(
+                starknet_felt.Felt252.fromInteger(2),
+            ),
+            relocatable.fromFelt(
+                starknet_felt.Felt252.fromInteger(3),
+            ),
+        )).?,
     );
 }
 
 test "compute res mul fails two relocs" {
-    // ************************************************************
-    // *                 SETUP TEST CONTEXT                       *
-    // ************************************************************
-    // Initialize an allocator.
-    var allocator = std.testing.allocator;
-    var instruction = Instruction{
-        .off_0 = 0,
-        .off_1 = 1,
-        .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Mul,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.NOp,
-    };
-
     // Create a new VM instance.
-    var vm = try CairoVM.init(allocator, .{});
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
     defer vm.deinit();
-
     vm.run_context.ap.* = Relocatable.new(1, 0);
-    // ************************************************************
-    // *                      TEST BODY                           *
-    // ************************************************************
 
-    const value_op0 = Relocatable.new(1, 0);
-    const value_op1 = Relocatable.new(1, 1);
-
-    const op0 = relocatable.newFromRelocatable(value_op0);
-    const op1 = relocatable.newFromRelocatable(value_op1);
-
-    // ************************************************************
-    // *                      TEST CHECKS                         *
-    // ************************************************************
-    try expectError(error.MulRelocForbidden, computeRes(&instruction, op0, op1));
+    try expectError(
+        error.MulRelocForbidden,
+        computeRes(
+            &.{
+                .off_0 = 0,
+                .off_1 = 1,
+                .off_2 = 2,
+                .dst_reg = instructions.Register.AP,
+                .op_0_reg = instructions.Register.AP,
+                .op_1_addr = instructions.Op1Src.AP,
+                .res_logic = instructions.ResLogic.Mul,
+                .pc_update = instructions.PcUpdate.Regular,
+                .ap_update = instructions.ApUpdate.Regular,
+                .fp_update = instructions.FpUpdate.Regular,
+                .opcode = instructions.Opcode.NOp,
+            },
+            relocatable.newFromRelocatable(
+                Relocatable.new(1, 0),
+            ),
+            relocatable.newFromRelocatable(
+                Relocatable.new(1, 1),
+            ),
+        ),
+    );
 }
 
 test "compute res mul fails felt and reloc" {
-    // ************************************************************
-    // *                 SETUP TEST CONTEXT                       *
-    // ************************************************************
-    // Initialize an allocator.
-    var allocator = std.testing.allocator;
-    var instruction = Instruction{
-        .off_0 = 0,
-        .off_1 = 1,
-        .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Mul,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.NOp,
-    };
-
     // Create a new VM instance.
-    var vm = try CairoVM.init(allocator, .{});
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
     defer vm.deinit();
-
     vm.run_context.ap.* = Relocatable.new(1, 0);
-    // ************************************************************
-    // *                      TEST BODY                           *
-    // ************************************************************
 
-    const value_op0 = Relocatable.new(1, 0);
-    const op0 = relocatable.newFromRelocatable(value_op0);
-    const op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+    try expectError(error.MulRelocForbidden, computeRes(
+        &.{
+            .off_0 = 0,
+            .off_1 = 1,
+            .off_2 = 2,
+            .dst_reg = instructions.Register.AP,
+            .op_0_reg = instructions.Register.AP,
+            .op_1_addr = instructions.Op1Src.AP,
+            .res_logic = instructions.ResLogic.Mul,
+            .pc_update = instructions.PcUpdate.Regular,
+            .ap_update = instructions.ApUpdate.Regular,
+            .fp_update = instructions.FpUpdate.Regular,
+            .opcode = instructions.Opcode.NOp,
+        },
+        relocatable.newFromRelocatable(
+            Relocatable.new(1, 0),
+        ),
+        relocatable.fromFelt(
+            starknet_felt.Felt252.fromInteger(2),
+        ),
+    ));
+}
 
-    // ************************************************************
-    // *                      TEST CHECKS                         *
-    // ************************************************************
-    try expectError(error.MulRelocForbidden, computeRes(&instruction, op0, op1));
+test "compute res mul with res_logic unconstrained should return null" {
+    // Create a new VM instance.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+    try expectEqual(@as(?MaybeRelocatable, null), try computeRes(
+        &.{
+            .off_0 = 0,
+            .off_1 = 1,
+            .off_2 = 2,
+            .dst_reg = instructions.Register.AP,
+            .op_0_reg = instructions.Register.AP,
+            .op_1_addr = instructions.Op1Src.AP,
+            .res_logic = instructions.ResLogic.Unconstrained,
+            .pc_update = instructions.PcUpdate.Regular,
+            .ap_update = instructions.ApUpdate.Regular,
+            .fp_update = instructions.FpUpdate.Regular,
+            .opcode = instructions.Opcode.NOp,
+        },
+        relocatable.newFromRelocatable(Relocatable.new(
+            1,
+            0,
+        )),
+        relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2)),
+    ));
 }
 
 test "memory is not leaked upon allocation failure during initialization" {
