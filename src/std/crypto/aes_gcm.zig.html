@@ -147,7 +147,7 @@
 <span class="line" id="L33">            <span class="tok-kw">var</span> t: [<span class="tok-number">16</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
 <span class="line" id="L34">            <span class="tok-kw">var</span> j: [<span class="tok-number">16</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
 <span class="line" id="L35">            j[<span class="tok-number">0</span>..nonce_length].* = npub;</span>
-<span class="line" id="L36">            mem.writeIntBig(<span class="tok-type">u32</span>, j[nonce_length..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], <span class="tok-number">1</span>);</span>
+<span class="line" id="L36">            mem.writeInt(<span class="tok-type">u32</span>, j[nonce_length..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], <span class="tok-number">1</span>, .big);</span>
 <span class="line" id="L37">            aes.encrypt(&amp;t, &amp;j);</span>
 <span class="line" id="L38"></span>
 <span class="line" id="L39">            <span class="tok-kw">const</span> block_count = (math.divCeil(<span class="tok-type">usize</span>, ad.len, Ghash.block_length) <span class="tok-kw">catch</span> <span class="tok-kw">unreachable</span>) + (math.divCeil(<span class="tok-type">usize</span>, c.len, Ghash.block_length) <span class="tok-kw">catch</span> <span class="tok-kw">unreachable</span>) + <span class="tok-number">1</span>;</span>
@@ -155,14 +155,14 @@
 <span class="line" id="L41">            mac.update(ad);</span>
 <span class="line" id="L42">            mac.pad();</span>
 <span class="line" id="L43"></span>
-<span class="line" id="L44">            mem.writeIntBig(<span class="tok-type">u32</span>, j[nonce_length..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], <span class="tok-number">2</span>);</span>
-<span class="line" id="L45">            modes.ctr(<span class="tok-builtin">@TypeOf</span>(aes), aes, c, m, j, std.builtin.Endian.Big);</span>
+<span class="line" id="L44">            mem.writeInt(<span class="tok-type">u32</span>, j[nonce_length..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], <span class="tok-number">2</span>, .big);</span>
+<span class="line" id="L45">            modes.ctr(<span class="tok-builtin">@TypeOf</span>(aes), aes, c, m, j, std.builtin.Endian.big);</span>
 <span class="line" id="L46">            mac.update(c[<span class="tok-number">0</span>..m.len][<span class="tok-number">0</span>..]);</span>
 <span class="line" id="L47">            mac.pad();</span>
 <span class="line" id="L48"></span>
 <span class="line" id="L49">            <span class="tok-kw">var</span> final_block = h;</span>
-<span class="line" id="L50">            mem.writeIntBig(<span class="tok-type">u64</span>, final_block[<span class="tok-number">0</span>..<span class="tok-number">8</span>], ad.len * <span class="tok-number">8</span>);</span>
-<span class="line" id="L51">            mem.writeIntBig(<span class="tok-type">u64</span>, final_block[<span class="tok-number">8</span>..<span class="tok-number">16</span>], m.len * <span class="tok-number">8</span>);</span>
+<span class="line" id="L50">            mem.writeInt(<span class="tok-type">u64</span>, final_block[<span class="tok-number">0</span>..<span class="tok-number">8</span>], ad.len * <span class="tok-number">8</span>, .big);</span>
+<span class="line" id="L51">            mem.writeInt(<span class="tok-type">u64</span>, final_block[<span class="tok-number">8</span>..<span class="tok-number">16</span>], m.len * <span class="tok-number">8</span>, .big);</span>
 <span class="line" id="L52">            mac.update(&amp;final_block);</span>
 <span class="line" id="L53">            mac.final(tag);</span>
 <span class="line" id="L54">            <span class="tok-kw">for</span> (t, <span class="tok-number">0</span>..) |x, i| {</span>
@@ -189,7 +189,7 @@
 <span class="line" id="L75">            <span class="tok-kw">var</span> t: [<span class="tok-number">16</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
 <span class="line" id="L76">            <span class="tok-kw">var</span> j: [<span class="tok-number">16</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
 <span class="line" id="L77">            j[<span class="tok-number">0</span>..nonce_length].* = npub;</span>
-<span class="line" id="L78">            mem.writeIntBig(<span class="tok-type">u32</span>, j[nonce_length..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], <span class="tok-number">1</span>);</span>
+<span class="line" id="L78">            mem.writeInt(<span class="tok-type">u32</span>, j[nonce_length..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], <span class="tok-number">1</span>, .big);</span>
 <span class="line" id="L79">            aes.encrypt(&amp;t, &amp;j);</span>
 <span class="line" id="L80"></span>
 <span class="line" id="L81">            <span class="tok-kw">const</span> block_count = (math.divCeil(<span class="tok-type">usize</span>, ad.len, Ghash.block_length) <span class="tok-kw">catch</span> <span class="tok-kw">unreachable</span>) + (math.divCeil(<span class="tok-type">usize</span>, c.len, Ghash.block_length) <span class="tok-kw">catch</span> <span class="tok-kw">unreachable</span>) + <span class="tok-number">1</span>;</span>
@@ -201,8 +201,8 @@
 <span class="line" id="L87">            mac.pad();</span>
 <span class="line" id="L88"></span>
 <span class="line" id="L89">            <span class="tok-kw">var</span> final_block = h;</span>
-<span class="line" id="L90">            mem.writeIntBig(<span class="tok-type">u64</span>, final_block[<span class="tok-number">0</span>..<span class="tok-number">8</span>], ad.len * <span class="tok-number">8</span>);</span>
-<span class="line" id="L91">            mem.writeIntBig(<span class="tok-type">u64</span>, final_block[<span class="tok-number">8</span>..<span class="tok-number">16</span>], m.len * <span class="tok-number">8</span>);</span>
+<span class="line" id="L90">            mem.writeInt(<span class="tok-type">u64</span>, final_block[<span class="tok-number">0</span>..<span class="tok-number">8</span>], ad.len * <span class="tok-number">8</span>, .big);</span>
+<span class="line" id="L91">            mem.writeInt(<span class="tok-type">u64</span>, final_block[<span class="tok-number">8</span>..<span class="tok-number">16</span>], m.len * <span class="tok-number">8</span>, .big);</span>
 <span class="line" id="L92">            mac.update(&amp;final_block);</span>
 <span class="line" id="L93">            <span class="tok-kw">var</span> computed_tag: [Ghash.mac_length]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
 <span class="line" id="L94">            mac.final(&amp;computed_tag);</span>
@@ -217,8 +217,8 @@
 <span class="line" id="L103">                <span class="tok-kw">return</span> <span class="tok-kw">error</span>.AuthenticationFailed;</span>
 <span class="line" id="L104">            }</span>
 <span class="line" id="L105"></span>
-<span class="line" id="L106">            mem.writeIntBig(<span class="tok-type">u32</span>, j[nonce_length..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], <span class="tok-number">2</span>);</span>
-<span class="line" id="L107">            modes.ctr(<span class="tok-builtin">@TypeOf</span>(aes), aes, m, c, j, std.builtin.Endian.Big);</span>
+<span class="line" id="L106">            mem.writeInt(<span class="tok-type">u32</span>, j[nonce_length..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], <span class="tok-number">2</span>, .big);</span>
+<span class="line" id="L107">            modes.ctr(<span class="tok-builtin">@TypeOf</span>(aes), aes, m, c, j, std.builtin.Endian.big);</span>
 <span class="line" id="L108">        }</span>
 <span class="line" id="L109">    };</span>
 <span class="line" id="L110">}</span>

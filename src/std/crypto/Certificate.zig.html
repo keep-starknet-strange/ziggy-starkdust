@@ -1257,7 +1257,7 @@
 </span>
 <span class="line" id="L1077">            <span class="tok-comment">// but establish some limit now to ratchet in what we can.</span>
 </span>
-<span class="line" id="L1078">            <span class="tok-kw">const</span> _n = Modulus.fromBytes(modulus_bytes, .Big) <span class="tok-kw">catch</span> <span class="tok-kw">return</span> <span class="tok-kw">error</span>.CertificatePublicKeyInvalid;</span>
+<span class="line" id="L1078">            <span class="tok-kw">const</span> _n = Modulus.fromBytes(modulus_bytes, .big) <span class="tok-kw">catch</span> <span class="tok-kw">return</span> <span class="tok-kw">error</span>.CertificatePublicKeyInvalid;</span>
 <span class="line" id="L1079">            <span class="tok-kw">if</span> (_n.bits() &lt; <span class="tok-number">512</span>) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.CertificatePublicKeyInvalid;</span>
 <span class="line" id="L1080"></span>
 <span class="line" id="L1081">            <span class="tok-comment">// Exponent must be odd and greater than 2.</span>
@@ -1273,7 +1273,7 @@
 <span class="line" id="L1086">            <span class="tok-comment">// [1] https://learn.microsoft.com/en-us/windows/win32/api/wincrypt/ns-wincrypt-rsapubkey</span>
 </span>
 <span class="line" id="L1087">            <span class="tok-kw">if</span> (pub_bytes.len &gt; <span class="tok-number">4</span>) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.CertificatePublicKeyInvalid;</span>
-<span class="line" id="L1088">            <span class="tok-kw">const</span> _e = Fe.fromBytes(_n, pub_bytes, .Big) <span class="tok-kw">catch</span> <span class="tok-kw">return</span> <span class="tok-kw">error</span>.CertificatePublicKeyInvalid;</span>
+<span class="line" id="L1088">            <span class="tok-kw">const</span> _e = Fe.fromBytes(_n, pub_bytes, .big) <span class="tok-kw">catch</span> <span class="tok-kw">return</span> <span class="tok-kw">error</span>.CertificatePublicKeyInvalid;</span>
 <span class="line" id="L1089">            <span class="tok-kw">if</span> (!_e.isOdd()) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.CertificatePublicKeyInvalid;</span>
 <span class="line" id="L1090">            <span class="tok-kw">const</span> e_v = _e.toPrimitive(<span class="tok-type">u32</span>) <span class="tok-kw">catch</span> <span class="tok-kw">return</span> <span class="tok-kw">error</span>.CertificatePublicKeyInvalid;</span>
 <span class="line" id="L1091">            <span class="tok-kw">if</span> (e_v &lt; <span class="tok-number">2</span>) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.CertificatePublicKeyInvalid;</span>
@@ -1305,10 +1305,10 @@
 <span class="line" id="L1116">    };</span>
 <span class="line" id="L1117"></span>
 <span class="line" id="L1118">    <span class="tok-kw">fn</span> <span class="tok-fn">encrypt</span>(<span class="tok-kw">comptime</span> modulus_len: <span class="tok-type">usize</span>, msg: [modulus_len]<span class="tok-type">u8</span>, public_key: PublicKey) ![modulus_len]<span class="tok-type">u8</span> {</span>
-<span class="line" id="L1119">        <span class="tok-kw">const</span> m = Fe.fromBytes(public_key.n, &amp;msg, .Big) <span class="tok-kw">catch</span> <span class="tok-kw">return</span> <span class="tok-kw">error</span>.MessageTooLong;</span>
+<span class="line" id="L1119">        <span class="tok-kw">const</span> m = Fe.fromBytes(public_key.n, &amp;msg, .big) <span class="tok-kw">catch</span> <span class="tok-kw">return</span> <span class="tok-kw">error</span>.MessageTooLong;</span>
 <span class="line" id="L1120">        <span class="tok-kw">const</span> e = public_key.n.powPublic(m, public_key.e) <span class="tok-kw">catch</span> <span class="tok-kw">unreachable</span>;</span>
 <span class="line" id="L1121">        <span class="tok-kw">var</span> res: [modulus_len]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L1122">        e.toBytes(&amp;res, .Big) <span class="tok-kw">catch</span> <span class="tok-kw">unreachable</span>;</span>
+<span class="line" id="L1122">        e.toBytes(&amp;res, .big) <span class="tok-kw">catch</span> <span class="tok-kw">unreachable</span>;</span>
 <span class="line" id="L1123">        <span class="tok-kw">return</span> res;</span>
 <span class="line" id="L1124">    }</span>
 <span class="line" id="L1125">};</span>

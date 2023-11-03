@@ -218,14 +218,14 @@
 <span class="line" id="L104">        <span class="tok-kw">var</span> idx: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
 <span class="line" id="L105">        <span class="tok-kw">var</span> out_idx: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
 <span class="line" id="L106">        <span class="tok-kw">while</span> (idx + <span class="tok-number">15</span> &lt; source.len) : (idx += <span class="tok-number">12</span>) {</span>
-<span class="line" id="L107">            <span class="tok-kw">const</span> bits = std.mem.readIntBig(<span class="tok-type">u128</span>, source[idx..][<span class="tok-number">0</span>..<span class="tok-number">16</span>]);</span>
+<span class="line" id="L107">            <span class="tok-kw">const</span> bits = std.mem.readInt(<span class="tok-type">u128</span>, source[idx..][<span class="tok-number">0</span>..<span class="tok-number">16</span>], .big);</span>
 <span class="line" id="L108">            <span class="tok-kw">inline</span> <span class="tok-kw">for</span> (<span class="tok-number">0</span>..<span class="tok-number">16</span>) |i| {</span>
 <span class="line" id="L109">                dest[out_idx + i] = encoder.alphabet_chars[<span class="tok-builtin">@truncate</span>((bits &gt;&gt; (<span class="tok-number">122</span> - i * <span class="tok-number">6</span>)) &amp; <span class="tok-number">0x3f</span>)];</span>
 <span class="line" id="L110">            }</span>
 <span class="line" id="L111">            out_idx += <span class="tok-number">16</span>;</span>
 <span class="line" id="L112">        }</span>
 <span class="line" id="L113">        <span class="tok-kw">while</span> (idx + <span class="tok-number">3</span> &lt; source.len) : (idx += <span class="tok-number">3</span>) {</span>
-<span class="line" id="L114">            <span class="tok-kw">const</span> bits = std.mem.readIntBig(<span class="tok-type">u32</span>, source[idx..][<span class="tok-number">0</span>..<span class="tok-number">4</span>]);</span>
+<span class="line" id="L114">            <span class="tok-kw">const</span> bits = std.mem.readInt(<span class="tok-type">u32</span>, source[idx..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], .big);</span>
 <span class="line" id="L115">            dest[out_idx] = encoder.alphabet_chars[(bits &gt;&gt; <span class="tok-number">26</span>) &amp; <span class="tok-number">0x3f</span>];</span>
 <span class="line" id="L116">            dest[out_idx + <span class="tok-number">1</span>] = encoder.alphabet_chars[(bits &gt;&gt; <span class="tok-number">20</span>) &amp; <span class="tok-number">0x3f</span>];</span>
 <span class="line" id="L117">            dest[out_idx + <span class="tok-number">2</span>] = encoder.alphabet_chars[(bits &gt;&gt; <span class="tok-number">14</span>) &amp; <span class="tok-number">0x3f</span>];</span>
@@ -340,7 +340,7 @@
 <span class="line" id="L226">                <span class="tok-kw">if</span> ((new_bits &amp; invalid_char_tst) != <span class="tok-number">0</span>) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.InvalidCharacter;</span>
 <span class="line" id="L227">                bits |= (new_bits &lt;&lt; (<span class="tok-number">24</span> * i));</span>
 <span class="line" id="L228">            }</span>
-<span class="line" id="L229">            std.mem.writeIntLittle(<span class="tok-type">u128</span>, dest[dest_idx..][<span class="tok-number">0</span>..<span class="tok-number">16</span>], bits);</span>
+<span class="line" id="L229">            std.mem.writeInt(<span class="tok-type">u128</span>, dest[dest_idx..][<span class="tok-number">0</span>..<span class="tok-number">16</span>], bits, .little);</span>
 <span class="line" id="L230">        }</span>
 <span class="line" id="L231">        <span class="tok-kw">while</span> (fast_src_idx + <span class="tok-number">4</span> &lt; source.len <span class="tok-kw">and</span> dest_idx + <span class="tok-number">3</span> &lt; dest.len) : ({</span>
 <span class="line" id="L232">            fast_src_idx += <span class="tok-number">4</span>;</span>
@@ -351,7 +351,7 @@
 <span class="line" id="L237">            bits |= decoder.fast_char_to_index[<span class="tok-number">2</span>][source[fast_src_idx + <span class="tok-number">2</span>]];</span>
 <span class="line" id="L238">            bits |= decoder.fast_char_to_index[<span class="tok-number">3</span>][source[fast_src_idx + <span class="tok-number">3</span>]];</span>
 <span class="line" id="L239">            <span class="tok-kw">if</span> ((bits &amp; invalid_char_tst) != <span class="tok-number">0</span>) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.InvalidCharacter;</span>
-<span class="line" id="L240">            std.mem.writeIntLittle(<span class="tok-type">u32</span>, dest[dest_idx..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], bits);</span>
+<span class="line" id="L240">            std.mem.writeInt(<span class="tok-type">u32</span>, dest[dest_idx..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], bits, .little);</span>
 <span class="line" id="L241">        }</span>
 <span class="line" id="L242">        <span class="tok-kw">var</span> remaining = source[fast_src_idx..];</span>
 <span class="line" id="L243">        <span class="tok-kw">for</span> (remaining, fast_src_idx..) |c, src_idx| {</span>

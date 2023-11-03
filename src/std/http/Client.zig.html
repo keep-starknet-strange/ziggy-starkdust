@@ -645,7 +645,7 @@
 <span class="line" id="L521"></span>
 <span class="line" id="L522"><span class="tok-comment">/// A HTTP request that has been sent.</span></span>
 <span class="line" id="L523"><span class="tok-comment">///</span></span>
-<span class="line" id="L524"><span class="tok-comment">/// Order of operations: request -&gt; start[ -&gt; write -&gt; finish] -&gt; wait -&gt; read</span></span>
+<span class="line" id="L524"><span class="tok-comment">/// Order of operations: open -&gt; send[ -&gt; write -&gt; finish] -&gt; wait -&gt; read</span></span>
 <span class="line" id="L525"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> Request = <span class="tok-kw">struct</span> {</span>
 <span class="line" id="L526">    uri: Uri,</span>
 <span class="line" id="L527">    client: *Client,</span>
@@ -881,7 +881,7 @@
 <span class="line" id="L754">    <span class="tok-comment">/// If `handle_redirects` is true and the request has no payload, then this function will automatically follow</span></span>
 <span class="line" id="L755">    <span class="tok-comment">/// redirects. If a request payload is present, then this function will error with error.RedirectRequiresResend.</span></span>
 <span class="line" id="L756">    <span class="tok-comment">///</span></span>
-<span class="line" id="L757">    <span class="tok-comment">/// Must be called after `start` and, if any data was written to the request body, then also after `finish`.</span></span>
+<span class="line" id="L757">    <span class="tok-comment">/// Must be called after `send` and, if any data was written to the request body, then also after `finish`.</span></span>
 <span class="line" id="L758">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">wait</span>(req: *Request) WaitError!<span class="tok-type">void</span> {</span>
 <span class="line" id="L759">        <span class="tok-kw">while</span> (<span class="tok-null">true</span>) { <span class="tok-comment">// handle redirects</span>
 </span>
@@ -1085,7 +1085,7 @@
 <span class="line" id="L943">    }</span>
 <span class="line" id="L944"></span>
 <span class="line" id="L945">    <span class="tok-comment">/// Write `bytes` to the server. The `transfer_encoding` field determines how data will be sent.</span></span>
-<span class="line" id="L946">    <span class="tok-comment">/// Must be called after `start` and before `finish`.</span></span>
+<span class="line" id="L946">    <span class="tok-comment">/// Must be called after `send` and before `finish`.</span></span>
 <span class="line" id="L947">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">write</span>(req: *Request, bytes: []<span class="tok-kw">const</span> <span class="tok-type">u8</span>) WriteError!<span class="tok-type">usize</span> {</span>
 <span class="line" id="L948">        <span class="tok-kw">switch</span> (req.transfer_encoding) {</span>
 <span class="line" id="L949">            .chunked =&gt; {</span>
@@ -1107,7 +1107,7 @@
 <span class="line" id="L965">    }</span>
 <span class="line" id="L966"></span>
 <span class="line" id="L967">    <span class="tok-comment">/// Write `bytes` to the server. The `transfer_encoding` field determines how data will be sent.</span></span>
-<span class="line" id="L968">    <span class="tok-comment">/// Must be called after `start` and before `finish`.</span></span>
+<span class="line" id="L968">    <span class="tok-comment">/// Must be called after `send` and before `finish`.</span></span>
 <span class="line" id="L969">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">writeAll</span>(req: *Request, bytes: []<span class="tok-kw">const</span> <span class="tok-type">u8</span>) WriteError!<span class="tok-type">void</span> {</span>
 <span class="line" id="L970">        <span class="tok-kw">var</span> index: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
 <span class="line" id="L971">        <span class="tok-kw">while</span> (index &lt; bytes.len) {</span>
@@ -1118,7 +1118,7 @@
 <span class="line" id="L976">    <span class="tok-kw">pub</span> <span class="tok-kw">const</span> FinishError = WriteError || <span class="tok-kw">error</span>{MessageNotCompleted};</span>
 <span class="line" id="L977"></span>
 <span class="line" id="L978">    <span class="tok-comment">/// Finish the body of a request. This notifies the server that you have no more data to send.</span></span>
-<span class="line" id="L979">    <span class="tok-comment">/// Must be called after `start`.</span></span>
+<span class="line" id="L979">    <span class="tok-comment">/// Must be called after `send`.</span></span>
 <span class="line" id="L980">    <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">finish</span>(req: *Request) FinishError!<span class="tok-type">void</span> {</span>
 <span class="line" id="L981">        <span class="tok-kw">switch</span> (req.transfer_encoding) {</span>
 <span class="line" id="L982">            .chunked =&gt; <span class="tok-kw">try</span> req.connection.?.writer().writeAll(<span class="tok-str">&quot;0\r\n\r\n&quot;</span>),</span>
@@ -1464,7 +1464,7 @@
 <span class="line" id="L1308">    };</span>
 <span class="line" id="L1309">}</span>
 <span class="line" id="L1310"></span>
-<span class="line" id="L1311"><span class="tok-comment">// Prevents a dependency loop in request()</span>
+<span class="line" id="L1311"><span class="tok-comment">// Prevents a dependency loop in open()</span>
 </span>
 <span class="line" id="L1312"><span class="tok-kw">const</span> ConnectErrorPartial = ConnectTcpError || <span class="tok-kw">error</span>{ UnsupportedUrlScheme, ConnectionRefused };</span>
 <span class="line" id="L1313"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> ConnectError = ConnectErrorPartial || RequestError;</span>
@@ -1746,7 +1746,7 @@
 <span class="line" id="L1581"></span>
 <span class="line" id="L1582"><span class="tok-kw">test</span> {</span>
 <span class="line" id="L1583">    <span class="tok-kw">const</span> native_endian = <span class="tok-kw">comptime</span> builtin.cpu.arch.endian();</span>
-<span class="line" id="L1584">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_llvm <span class="tok-kw">and</span> native_endian == .Big) {</span>
+<span class="line" id="L1584">    <span class="tok-kw">if</span> (builtin.zig_backend == .stage2_llvm <span class="tok-kw">and</span> native_endian == .big) {</span>
 <span class="line" id="L1585">        <span class="tok-comment">// https://github.com/ziglang/zig/issues/13782</span>
 </span>
 <span class="line" id="L1586">        <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>

@@ -316,7 +316,7 @@
 <span class="line" id="L201">                <span class="tok-kw">if</span> (block_header.last_block) {</span>
 <span class="line" id="L202">                    self.state = .LastBlock;</span>
 <span class="line" id="L203">                    <span class="tok-kw">if</span> (self.frame_context.has_checksum) {</span>
-<span class="line" id="L204">                        <span class="tok-kw">const</span> checksum = source_reader.readIntLittle(<span class="tok-type">u32</span>) <span class="tok-kw">catch</span></span>
+<span class="line" id="L204">                        <span class="tok-kw">const</span> checksum = source_reader.readInt(<span class="tok-type">u32</span>, .little) <span class="tok-kw">catch</span></span>
 <span class="line" id="L205">                            <span class="tok-kw">return</span> <span class="tok-kw">error</span>.MalformedFrame;</span>
 <span class="line" id="L206">                        <span class="tok-kw">if</span> (<span class="tok-kw">comptime</span> options.verify_checksum) {</span>
 <span class="line" id="L207">                            <span class="tok-kw">if</span> (self.frame_context.hasher_opt) |*hasher| {</span>

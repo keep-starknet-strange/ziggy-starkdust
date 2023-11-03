@@ -612,8 +612,8 @@
 <span class="line" id="L497">        <span class="tok-kw">if</span> (hdr32.e_ident[EI_VERSION] != <span class="tok-number">1</span>) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.InvalidElfVersion;</span>
 <span class="line" id="L498"></span>
 <span class="line" id="L499">        <span class="tok-kw">const</span> endian: std.builtin.Endian = <span class="tok-kw">switch</span> (hdr32.e_ident[EI_DATA]) {</span>
-<span class="line" id="L500">            ELFDATA2LSB =&gt; .Little,</span>
-<span class="line" id="L501">            ELFDATA2MSB =&gt; .Big,</span>
+<span class="line" id="L500">            ELFDATA2LSB =&gt; .little,</span>
+<span class="line" id="L501">            ELFDATA2MSB =&gt; .big,</span>
 <span class="line" id="L502">            <span class="tok-kw">else</span> =&gt; <span class="tok-kw">return</span> <span class="tok-kw">error</span>.InvalidElfEndian,</span>
 <span class="line" id="L503">        };</span>
 <span class="line" id="L504">        <span class="tok-kw">const</span> need_bswap = endian != native_endian;</span>

@@ -983,7 +983,7 @@
 <span class="line" id="L798">        <span class="tok-kw">const</span> endian_mask: <span class="tok-type">usize</span> = (<span class="tok-builtin">@sizeOf</span>(Limb) - <span class="tok-number">1</span>) &lt;&lt; <span class="tok-number">3</span>;</span>
 <span class="line" id="L799"></span>
 <span class="line" id="L800">        <span class="tok-kw">var</span> bytes = std.mem.sliceAsBytes(r.limbs);</span>
-<span class="line" id="L801">        <span class="tok-kw">var</span> bits = std.packed_int_array.PackedIntSliceEndian(<span class="tok-type">u1</span>, .Little).init(bytes, limbs_required * <span class="tok-builtin">@bitSizeOf</span>(Limb));</span>
+<span class="line" id="L801">        <span class="tok-kw">var</span> bits = std.packed_int_array.PackedIntSliceEndian(<span class="tok-type">u1</span>, .little).init(bytes, limbs_required * <span class="tok-builtin">@bitSizeOf</span>(Limb));</span>
 <span class="line" id="L802"></span>
 <span class="line" id="L803">        <span class="tok-kw">var</span> k: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
 <span class="line" id="L804">        <span class="tok-kw">while</span> (k &lt; ((bit_count + <span class="tok-number">1</span>) / <span class="tok-number">2</span>)) : (k += <span class="tok-number">1</span>) {</span>
@@ -994,7 +994,7 @@
 </span>
 <span class="line" id="L809">            <span class="tok-comment">// (BE) byte in the Limb, without changing which limbs we are indexing</span>
 </span>
-<span class="line" id="L810">            <span class="tok-kw">if</span> (native_endian == .Big) {</span>
+<span class="line" id="L810">            <span class="tok-kw">if</span> (native_endian == .big) {</span>
 <span class="line" id="L811">                i ^= endian_mask;</span>
 <span class="line" id="L812">                rev_i ^= endian_mask;</span>
 <span class="line" id="L813">            }</span>
@@ -1009,8 +1009,8 @@
 </span>
 <span class="line" id="L822">        <span class="tok-kw">if</span> (signedness == .signed) {</span>
 <span class="line" id="L823">            <span class="tok-kw">const</span> last_bit = <span class="tok-kw">switch</span> (native_endian) {</span>
-<span class="line" id="L824">                .Little =&gt; bits.get(bit_count - <span class="tok-number">1</span>),</span>
-<span class="line" id="L825">                .Big =&gt; bits.get((bit_count - <span class="tok-number">1</span>) ^ endian_mask),</span>
+<span class="line" id="L824">                .little =&gt; bits.get(bit_count - <span class="tok-number">1</span>),</span>
+<span class="line" id="L825">                .big =&gt; bits.get((bit_count - <span class="tok-number">1</span>) ^ endian_mask),</span>
 <span class="line" id="L826">            };</span>
 <span class="line" id="L827">            <span class="tok-kw">if</span> (last_bit == <span class="tok-number">1</span>) {</span>
 <span class="line" id="L828">                r.bitNotWrap(r.toConst(), .unsigned, bit_count); <span class="tok-comment">// Bitwise NOT.</span>
@@ -1067,7 +1067,7 @@
 </span>
 <span class="line" id="L871">            <span class="tok-comment">// (BE) byte in the Limb, without changing which limbs we are indexing</span>
 </span>
-<span class="line" id="L872">            <span class="tok-kw">if</span> (native_endian == .Big) {</span>
+<span class="line" id="L872">            <span class="tok-kw">if</span> (native_endian == .big) {</span>
 <span class="line" id="L873">                i ^= endian_mask;</span>
 <span class="line" id="L874">                rev_i ^= endian_mask;</span>
 <span class="line" id="L875">            }</span>
@@ -1082,8 +1082,8 @@
 </span>
 <span class="line" id="L884">        <span class="tok-kw">if</span> (signedness == .signed) {</span>
 <span class="line" id="L885">            <span class="tok-kw">const</span> last_byte = <span class="tok-kw">switch</span> (native_endian) {</span>
-<span class="line" id="L886">                .Little =&gt; bytes[byte_count - <span class="tok-number">1</span>],</span>
-<span class="line" id="L887">                .Big =&gt; bytes[(byte_count - <span class="tok-number">1</span>) ^ endian_mask],</span>
+<span class="line" id="L886">                .little =&gt; bytes[byte_count - <span class="tok-number">1</span>],</span>
+<span class="line" id="L887">                .big =&gt; bytes[(byte_count - <span class="tok-number">1</span>) ^ endian_mask],</span>
 <span class="line" id="L888">            };</span>
 <span class="line" id="L889"></span>
 <span class="line" id="L890">            <span class="tok-kw">if</span> (last_byte &amp; (<span class="tok-number">1</span> &lt;&lt; <span class="tok-number">7</span>) != <span class="tok-number">0</span>) { <span class="tok-comment">// Check sign bit of last byte</span>
@@ -2330,8 +2330,8 @@
 <span class="line" id="L1912">        <span class="tok-kw">if</span> (signedness == .signed) {</span>
 <span class="line" id="L1913">            <span class="tok-kw">const</span> total_bits = bit_offset + bit_count;</span>
 <span class="line" id="L1914">            <span class="tok-kw">var</span> last_byte = <span class="tok-kw">switch</span> (endian) {</span>
-<span class="line" id="L1915">                .Little =&gt; ((total_bits + <span class="tok-number">7</span>) / <span class="tok-number">8</span>) - <span class="tok-number">1</span>,</span>
-<span class="line" id="L1916">                .Big =&gt; buffer.len - ((total_bits + <span class="tok-number">7</span>) / <span class="tok-number">8</span>),</span>
+<span class="line" id="L1915">                .little =&gt; ((total_bits + <span class="tok-number">7</span>) / <span class="tok-number">8</span>) - <span class="tok-number">1</span>,</span>
+<span class="line" id="L1916">                .big =&gt; buffer.len - ((total_bits + <span class="tok-number">7</span>) / <span class="tok-number">8</span>),</span>
 <span class="line" id="L1917">            };</span>
 <span class="line" id="L1918"></span>
 <span class="line" id="L1919">            <span class="tok-kw">const</span> sign_bit = <span class="tok-builtin">@as</span>(<span class="tok-type">u8</span>, <span class="tok-number">1</span>) &lt;&lt; <span class="tok-builtin">@as</span>(<span class="tok-type">u3</span>, <span class="tok-builtin">@intCast</span>((total_bits - <span class="tok-number">1</span>) % <span class="tok-number">8</span>));</span>

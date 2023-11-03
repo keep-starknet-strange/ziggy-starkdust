@@ -203,10 +203,10 @@
 <span class="line" id="L87">            <span class="tok-kw">switch</span> (degree) {</span>
 <span class="line" id="L88">                <span class="tok-number">1</span> =&gt; {</span>
 <span class="line" id="L89">                    <span class="tok-kw">const</span> constant_le = Lane{</span>
-<span class="line" id="L90">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">0</span>..<span class="tok-number">4</span>]),</span>
-<span class="line" id="L91">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">4</span>..<span class="tok-number">8</span>]),</span>
-<span class="line" id="L92">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">8</span>..<span class="tok-number">12</span>]),</span>
-<span class="line" id="L93">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">12</span>..<span class="tok-number">16</span>]),</span>
+<span class="line" id="L90">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">0</span>..<span class="tok-number">4</span>], .little),</span>
+<span class="line" id="L91">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">4</span>..<span class="tok-number">8</span>], .little),</span>
+<span class="line" id="L92">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">8</span>..<span class="tok-number">12</span>], .little),</span>
+<span class="line" id="L93">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">12</span>..<span class="tok-number">16</span>], .little),</span>
 <span class="line" id="L94">                    };</span>
 <span class="line" id="L95">                    <span class="tok-kw">return</span> BlockVec{</span>
 <span class="line" id="L96">                        constant_le,</span>
@@ -217,14 +217,14 @@
 <span class="line" id="L101">                },</span>
 <span class="line" id="L102">                <span class="tok-number">2</span> =&gt; {</span>
 <span class="line" id="L103">                    <span class="tok-kw">const</span> constant_le = Lane{</span>
-<span class="line" id="L104">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">0</span>..<span class="tok-number">4</span>]),</span>
-<span class="line" id="L105">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">4</span>..<span class="tok-number">8</span>]),</span>
-<span class="line" id="L106">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">8</span>..<span class="tok-number">12</span>]),</span>
-<span class="line" id="L107">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">12</span>..<span class="tok-number">16</span>]),</span>
-<span class="line" id="L108">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">0</span>..<span class="tok-number">4</span>]),</span>
-<span class="line" id="L109">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">4</span>..<span class="tok-number">8</span>]),</span>
-<span class="line" id="L110">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">8</span>..<span class="tok-number">12</span>]),</span>
-<span class="line" id="L111">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">12</span>..<span class="tok-number">16</span>]),</span>
+<span class="line" id="L104">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">0</span>..<span class="tok-number">4</span>], .little),</span>
+<span class="line" id="L105">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">4</span>..<span class="tok-number">8</span>], .little),</span>
+<span class="line" id="L106">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">8</span>..<span class="tok-number">12</span>], .little),</span>
+<span class="line" id="L107">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">12</span>..<span class="tok-number">16</span>], .little),</span>
+<span class="line" id="L108">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">0</span>..<span class="tok-number">4</span>], .little),</span>
+<span class="line" id="L109">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">4</span>..<span class="tok-number">8</span>], .little),</span>
+<span class="line" id="L110">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">8</span>..<span class="tok-number">12</span>], .little),</span>
+<span class="line" id="L111">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">12</span>..<span class="tok-number">16</span>], .little),</span>
 <span class="line" id="L112">                    };</span>
 <span class="line" id="L113">                    <span class="tok-kw">const</span> n1 = <span class="tok-builtin">@addWithOverflow</span>(d[<span class="tok-number">0</span>], <span class="tok-number">1</span>);</span>
 <span class="line" id="L114">                    <span class="tok-kw">return</span> BlockVec{</span>
@@ -239,22 +239,22 @@
 <span class="line" id="L123">                    <span class="tok-kw">const</span> n2 = <span class="tok-builtin">@addWithOverflow</span>(d[<span class="tok-number">0</span>], <span class="tok-number">2</span>);</span>
 <span class="line" id="L124">                    <span class="tok-kw">const</span> n3 = <span class="tok-builtin">@addWithOverflow</span>(d[<span class="tok-number">0</span>], <span class="tok-number">3</span>);</span>
 <span class="line" id="L125">                    <span class="tok-kw">const</span> constant_le = Lane{</span>
-<span class="line" id="L126">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">0</span>..<span class="tok-number">4</span>]),</span>
-<span class="line" id="L127">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">4</span>..<span class="tok-number">8</span>]),</span>
-<span class="line" id="L128">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">8</span>..<span class="tok-number">12</span>]),</span>
-<span class="line" id="L129">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">12</span>..<span class="tok-number">16</span>]),</span>
-<span class="line" id="L130">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">0</span>..<span class="tok-number">4</span>]),</span>
-<span class="line" id="L131">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">4</span>..<span class="tok-number">8</span>]),</span>
-<span class="line" id="L132">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">8</span>..<span class="tok-number">12</span>]),</span>
-<span class="line" id="L133">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">12</span>..<span class="tok-number">16</span>]),</span>
-<span class="line" id="L134">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">0</span>..<span class="tok-number">4</span>]),</span>
-<span class="line" id="L135">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">4</span>..<span class="tok-number">8</span>]),</span>
-<span class="line" id="L136">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">8</span>..<span class="tok-number">12</span>]),</span>
-<span class="line" id="L137">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">12</span>..<span class="tok-number">16</span>]),</span>
-<span class="line" id="L138">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">0</span>..<span class="tok-number">4</span>]),</span>
-<span class="line" id="L139">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">4</span>..<span class="tok-number">8</span>]),</span>
-<span class="line" id="L140">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">8</span>..<span class="tok-number">12</span>]),</span>
-<span class="line" id="L141">                        mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">12</span>..<span class="tok-number">16</span>]),</span>
+<span class="line" id="L126">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">0</span>..<span class="tok-number">4</span>], .little),</span>
+<span class="line" id="L127">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">4</span>..<span class="tok-number">8</span>], .little),</span>
+<span class="line" id="L128">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">8</span>..<span class="tok-number">12</span>], .little),</span>
+<span class="line" id="L129">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">12</span>..<span class="tok-number">16</span>], .little),</span>
+<span class="line" id="L130">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">0</span>..<span class="tok-number">4</span>], .little),</span>
+<span class="line" id="L131">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">4</span>..<span class="tok-number">8</span>], .little),</span>
+<span class="line" id="L132">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">8</span>..<span class="tok-number">12</span>], .little),</span>
+<span class="line" id="L133">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">12</span>..<span class="tok-number">16</span>], .little),</span>
+<span class="line" id="L134">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">0</span>..<span class="tok-number">4</span>], .little),</span>
+<span class="line" id="L135">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">4</span>..<span class="tok-number">8</span>], .little),</span>
+<span class="line" id="L136">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">8</span>..<span class="tok-number">12</span>], .little),</span>
+<span class="line" id="L137">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">12</span>..<span class="tok-number">16</span>], .little),</span>
+<span class="line" id="L138">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">0</span>..<span class="tok-number">4</span>], .little),</span>
+<span class="line" id="L139">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">4</span>..<span class="tok-number">8</span>], .little),</span>
+<span class="line" id="L140">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">8</span>..<span class="tok-number">12</span>], .little),</span>
+<span class="line" id="L141">                        mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">12</span>..<span class="tok-number">16</span>], .little),</span>
 <span class="line" id="L142">                    };</span>
 <span class="line" id="L143">                    <span class="tok-kw">return</span> BlockVec{</span>
 <span class="line" id="L144">                        constant_le,</span>
@@ -334,10 +334,10 @@
 <span class="line" id="L218">        <span class="tok-kw">inline</span> <span class="tok-kw">fn</span> <span class="tok-fn">hashToBytes</span>(<span class="tok-kw">comptime</span> dm: <span class="tok-type">usize</span>, out: *[<span class="tok-number">64</span> * dm]<span class="tok-type">u8</span>, x: BlockVec) <span class="tok-type">void</span> {</span>
 <span class="line" id="L219">            <span class="tok-kw">for</span> (<span class="tok-number">0</span>..dm) |d| {</span>
 <span class="line" id="L220">                <span class="tok-kw">for</span> (<span class="tok-number">0</span>..<span class="tok-number">4</span>) |i| {</span>
-<span class="line" id="L221">                    mem.writeIntLittle(<span class="tok-type">u32</span>, out[<span class="tok-number">64</span> * d + <span class="tok-number">16</span> * i + <span class="tok-number">0</span> ..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], x[i][<span class="tok-number">0</span> + <span class="tok-number">4</span> * d]);</span>
-<span class="line" id="L222">                    mem.writeIntLittle(<span class="tok-type">u32</span>, out[<span class="tok-number">64</span> * d + <span class="tok-number">16</span> * i + <span class="tok-number">4</span> ..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], x[i][<span class="tok-number">1</span> + <span class="tok-number">4</span> * d]);</span>
-<span class="line" id="L223">                    mem.writeIntLittle(<span class="tok-type">u32</span>, out[<span class="tok-number">64</span> * d + <span class="tok-number">16</span> * i + <span class="tok-number">8</span> ..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], x[i][<span class="tok-number">2</span> + <span class="tok-number">4</span> * d]);</span>
-<span class="line" id="L224">                    mem.writeIntLittle(<span class="tok-type">u32</span>, out[<span class="tok-number">64</span> * d + <span class="tok-number">16</span> * i + <span class="tok-number">12</span> ..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], x[i][<span class="tok-number">3</span> + <span class="tok-number">4</span> * d]);</span>
+<span class="line" id="L221">                    mem.writeInt(<span class="tok-type">u32</span>, out[<span class="tok-number">64</span> * d + <span class="tok-number">16</span> * i + <span class="tok-number">0</span> ..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], x[i][<span class="tok-number">0</span> + <span class="tok-number">4</span> * d], .little);</span>
+<span class="line" id="L222">                    mem.writeInt(<span class="tok-type">u32</span>, out[<span class="tok-number">64</span> * d + <span class="tok-number">16</span> * i + <span class="tok-number">4</span> ..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], x[i][<span class="tok-number">1</span> + <span class="tok-number">4</span> * d], .little);</span>
+<span class="line" id="L223">                    mem.writeInt(<span class="tok-type">u32</span>, out[<span class="tok-number">64</span> * d + <span class="tok-number">16</span> * i + <span class="tok-number">8</span> ..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], x[i][<span class="tok-number">2</span> + <span class="tok-number">4</span> * d], .little);</span>
+<span class="line" id="L224">                    mem.writeInt(<span class="tok-type">u32</span>, out[<span class="tok-number">64</span> * d + <span class="tok-number">16</span> * i + <span class="tok-number">12</span> ..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], x[i][<span class="tok-number">3</span> + <span class="tok-number">4</span> * d], .little);</span>
 <span class="line" id="L225">                }</span>
 <span class="line" id="L226">            }</span>
 <span class="line" id="L227">        }</span>
@@ -425,20 +425,20 @@
 <span class="line" id="L309">        <span class="tok-kw">fn</span> <span class="tok-fn">hchacha20</span>(input: [<span class="tok-number">16</span>]<span class="tok-type">u8</span>, key: [<span class="tok-number">32</span>]<span class="tok-type">u8</span>) [<span class="tok-number">32</span>]<span class="tok-type">u8</span> {</span>
 <span class="line" id="L310">            <span class="tok-kw">var</span> c: [<span class="tok-number">4</span>]<span class="tok-type">u32</span> = <span class="tok-null">undefined</span>;</span>
 <span class="line" id="L311">            <span class="tok-kw">for</span> (c, <span class="tok-number">0</span>..) |_, i| {</span>
-<span class="line" id="L312">                c[i] = mem.readIntLittle(<span class="tok-type">u32</span>, input[<span class="tok-number">4</span> * i ..][<span class="tok-number">0</span>..<span class="tok-number">4</span>]);</span>
+<span class="line" id="L312">                c[i] = mem.readInt(<span class="tok-type">u32</span>, input[<span class="tok-number">4</span> * i ..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], .little);</span>
 <span class="line" id="L313">            }</span>
 <span class="line" id="L314">            <span class="tok-kw">const</span> ctx = initContext(keyToWords(key), c);</span>
 <span class="line" id="L315">            <span class="tok-kw">var</span> x: BlockVec = <span class="tok-null">undefined</span>;</span>
 <span class="line" id="L316">            chacha20Core(x[<span class="tok-number">0</span>..], ctx);</span>
 <span class="line" id="L317">            <span class="tok-kw">var</span> out: [<span class="tok-number">32</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L318">            mem.writeIntLittle(<span class="tok-type">u32</span>, out[<span class="tok-number">0</span>..<span class="tok-number">4</span>], x[<span class="tok-number">0</span>][<span class="tok-number">0</span>]);</span>
-<span class="line" id="L319">            mem.writeIntLittle(<span class="tok-type">u32</span>, out[<span class="tok-number">4</span>..<span class="tok-number">8</span>], x[<span class="tok-number">0</span>][<span class="tok-number">1</span>]);</span>
-<span class="line" id="L320">            mem.writeIntLittle(<span class="tok-type">u32</span>, out[<span class="tok-number">8</span>..<span class="tok-number">12</span>], x[<span class="tok-number">0</span>][<span class="tok-number">2</span>]);</span>
-<span class="line" id="L321">            mem.writeIntLittle(<span class="tok-type">u32</span>, out[<span class="tok-number">12</span>..<span class="tok-number">16</span>], x[<span class="tok-number">0</span>][<span class="tok-number">3</span>]);</span>
-<span class="line" id="L322">            mem.writeIntLittle(<span class="tok-type">u32</span>, out[<span class="tok-number">16</span>..<span class="tok-number">20</span>], x[<span class="tok-number">3</span>][<span class="tok-number">0</span>]);</span>
-<span class="line" id="L323">            mem.writeIntLittle(<span class="tok-type">u32</span>, out[<span class="tok-number">20</span>..<span class="tok-number">24</span>], x[<span class="tok-number">3</span>][<span class="tok-number">1</span>]);</span>
-<span class="line" id="L324">            mem.writeIntLittle(<span class="tok-type">u32</span>, out[<span class="tok-number">24</span>..<span class="tok-number">28</span>], x[<span class="tok-number">3</span>][<span class="tok-number">2</span>]);</span>
-<span class="line" id="L325">            mem.writeIntLittle(<span class="tok-type">u32</span>, out[<span class="tok-number">28</span>..<span class="tok-number">32</span>], x[<span class="tok-number">3</span>][<span class="tok-number">3</span>]);</span>
+<span class="line" id="L318">            mem.writeInt(<span class="tok-type">u32</span>, out[<span class="tok-number">0</span>..<span class="tok-number">4</span>], x[<span class="tok-number">0</span>][<span class="tok-number">0</span>], .little);</span>
+<span class="line" id="L319">            mem.writeInt(<span class="tok-type">u32</span>, out[<span class="tok-number">4</span>..<span class="tok-number">8</span>], x[<span class="tok-number">0</span>][<span class="tok-number">1</span>], .little);</span>
+<span class="line" id="L320">            mem.writeInt(<span class="tok-type">u32</span>, out[<span class="tok-number">8</span>..<span class="tok-number">12</span>], x[<span class="tok-number">0</span>][<span class="tok-number">2</span>], .little);</span>
+<span class="line" id="L321">            mem.writeInt(<span class="tok-type">u32</span>, out[<span class="tok-number">12</span>..<span class="tok-number">16</span>], x[<span class="tok-number">0</span>][<span class="tok-number">3</span>], .little);</span>
+<span class="line" id="L322">            mem.writeInt(<span class="tok-type">u32</span>, out[<span class="tok-number">16</span>..<span class="tok-number">20</span>], x[<span class="tok-number">3</span>][<span class="tok-number">0</span>], .little);</span>
+<span class="line" id="L323">            mem.writeInt(<span class="tok-type">u32</span>, out[<span class="tok-number">20</span>..<span class="tok-number">24</span>], x[<span class="tok-number">3</span>][<span class="tok-number">1</span>], .little);</span>
+<span class="line" id="L324">            mem.writeInt(<span class="tok-type">u32</span>, out[<span class="tok-number">24</span>..<span class="tok-number">28</span>], x[<span class="tok-number">3</span>][<span class="tok-number">2</span>], .little);</span>
+<span class="line" id="L325">            mem.writeInt(<span class="tok-type">u32</span>, out[<span class="tok-number">28</span>..<span class="tok-number">32</span>], x[<span class="tok-number">3</span>][<span class="tok-number">3</span>], .little);</span>
 <span class="line" id="L326">            <span class="tok-kw">return</span> out;</span>
 <span class="line" id="L327">        }</span>
 <span class="line" id="L328">    };</span>
@@ -453,10 +453,10 @@
 <span class="line" id="L336">        <span class="tok-kw">fn</span> <span class="tok-fn">initContext</span>(key: [<span class="tok-number">8</span>]<span class="tok-type">u32</span>, d: [<span class="tok-number">4</span>]<span class="tok-type">u32</span>) BlockVec {</span>
 <span class="line" id="L337">            <span class="tok-kw">const</span> c = <span class="tok-str">&quot;expand 32-byte k&quot;</span>;</span>
 <span class="line" id="L338">            <span class="tok-kw">const</span> constant_le = <span class="tok-kw">comptime</span> [<span class="tok-number">4</span>]<span class="tok-type">u32</span>{</span>
-<span class="line" id="L339">                mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">0</span>..<span class="tok-number">4</span>]),</span>
-<span class="line" id="L340">                mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">4</span>..<span class="tok-number">8</span>]),</span>
-<span class="line" id="L341">                mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">8</span>..<span class="tok-number">12</span>]),</span>
-<span class="line" id="L342">                mem.readIntLittle(<span class="tok-type">u32</span>, c[<span class="tok-number">12</span>..<span class="tok-number">16</span>]),</span>
+<span class="line" id="L339">                mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">0</span>..<span class="tok-number">4</span>], .little),</span>
+<span class="line" id="L340">                mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">4</span>..<span class="tok-number">8</span>], .little),</span>
+<span class="line" id="L341">                mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">8</span>..<span class="tok-number">12</span>], .little),</span>
+<span class="line" id="L342">                mem.readInt(<span class="tok-type">u32</span>, c[<span class="tok-number">12</span>..<span class="tok-number">16</span>], .little),</span>
 <span class="line" id="L343">            };</span>
 <span class="line" id="L344">            <span class="tok-kw">return</span> BlockVec{</span>
 <span class="line" id="L345">                constant_le[<span class="tok-number">0</span>], constant_le[<span class="tok-number">1</span>], constant_le[<span class="tok-number">2</span>], constant_le[<span class="tok-number">3</span>],</span>
@@ -513,10 +513,10 @@
 <span class="line" id="L396"></span>
 <span class="line" id="L397">        <span class="tok-kw">inline</span> <span class="tok-kw">fn</span> <span class="tok-fn">hashToBytes</span>(out: *[<span class="tok-number">64</span>]<span class="tok-type">u8</span>, x: BlockVec) <span class="tok-type">void</span> {</span>
 <span class="line" id="L398">            <span class="tok-kw">for</span> (<span class="tok-number">0</span>..<span class="tok-number">4</span>) |i| {</span>
-<span class="line" id="L399">                mem.writeIntLittle(<span class="tok-type">u32</span>, out[<span class="tok-number">16</span> * i + <span class="tok-number">0</span> ..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], x[i * <span class="tok-number">4</span> + <span class="tok-number">0</span>]);</span>
-<span class="line" id="L400">                mem.writeIntLittle(<span class="tok-type">u32</span>, out[<span class="tok-number">16</span> * i + <span class="tok-number">4</span> ..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], x[i * <span class="tok-number">4</span> + <span class="tok-number">1</span>]);</span>
-<span class="line" id="L401">                mem.writeIntLittle(<span class="tok-type">u32</span>, out[<span class="tok-number">16</span> * i + <span class="tok-number">8</span> ..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], x[i * <span class="tok-number">4</span> + <span class="tok-number">2</span>]);</span>
-<span class="line" id="L402">                mem.writeIntLittle(<span class="tok-type">u32</span>, out[<span class="tok-number">16</span> * i + <span class="tok-number">12</span> ..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], x[i * <span class="tok-number">4</span> + <span class="tok-number">3</span>]);</span>
+<span class="line" id="L399">                mem.writeInt(<span class="tok-type">u32</span>, out[<span class="tok-number">16</span> * i + <span class="tok-number">0</span> ..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], x[i * <span class="tok-number">4</span> + <span class="tok-number">0</span>], .little);</span>
+<span class="line" id="L400">                mem.writeInt(<span class="tok-type">u32</span>, out[<span class="tok-number">16</span> * i + <span class="tok-number">4</span> ..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], x[i * <span class="tok-number">4</span> + <span class="tok-number">1</span>], .little);</span>
+<span class="line" id="L401">                mem.writeInt(<span class="tok-type">u32</span>, out[<span class="tok-number">16</span> * i + <span class="tok-number">8</span> ..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], x[i * <span class="tok-number">4</span> + <span class="tok-number">2</span>], .little);</span>
+<span class="line" id="L402">                mem.writeInt(<span class="tok-type">u32</span>, out[<span class="tok-number">16</span> * i + <span class="tok-number">12</span> ..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], x[i * <span class="tok-number">4</span> + <span class="tok-number">3</span>], .little);</span>
 <span class="line" id="L403">            }</span>
 <span class="line" id="L404">        }</span>
 <span class="line" id="L405"></span>
@@ -594,20 +594,20 @@
 <span class="line" id="L477">        <span class="tok-kw">fn</span> <span class="tok-fn">hchacha20</span>(input: [<span class="tok-number">16</span>]<span class="tok-type">u8</span>, key: [<span class="tok-number">32</span>]<span class="tok-type">u8</span>) [<span class="tok-number">32</span>]<span class="tok-type">u8</span> {</span>
 <span class="line" id="L478">            <span class="tok-kw">var</span> c: [<span class="tok-number">4</span>]<span class="tok-type">u32</span> = <span class="tok-null">undefined</span>;</span>
 <span class="line" id="L479">            <span class="tok-kw">for</span> (c, <span class="tok-number">0</span>..) |_, i| {</span>
-<span class="line" id="L480">                c[i] = mem.readIntLittle(<span class="tok-type">u32</span>, input[<span class="tok-number">4</span> * i ..][<span class="tok-number">0</span>..<span class="tok-number">4</span>]);</span>
+<span class="line" id="L480">                c[i] = mem.readInt(<span class="tok-type">u32</span>, input[<span class="tok-number">4</span> * i ..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], .little);</span>
 <span class="line" id="L481">            }</span>
 <span class="line" id="L482">            <span class="tok-kw">const</span> ctx = initContext(keyToWords(key), c);</span>
 <span class="line" id="L483">            <span class="tok-kw">var</span> x: BlockVec = <span class="tok-null">undefined</span>;</span>
 <span class="line" id="L484">            chacha20Core(x[<span class="tok-number">0</span>..], ctx);</span>
 <span class="line" id="L485">            <span class="tok-kw">var</span> out: [<span class="tok-number">32</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L486">            mem.writeIntLittle(<span class="tok-type">u32</span>, out[<span class="tok-number">0</span>..<span class="tok-number">4</span>], x[<span class="tok-number">0</span>]);</span>
-<span class="line" id="L487">            mem.writeIntLittle(<span class="tok-type">u32</span>, out[<span class="tok-number">4</span>..<span class="tok-number">8</span>], x[<span class="tok-number">1</span>]);</span>
-<span class="line" id="L488">            mem.writeIntLittle(<span class="tok-type">u32</span>, out[<span class="tok-number">8</span>..<span class="tok-number">12</span>], x[<span class="tok-number">2</span>]);</span>
-<span class="line" id="L489">            mem.writeIntLittle(<span class="tok-type">u32</span>, out[<span class="tok-number">12</span>..<span class="tok-number">16</span>], x[<span class="tok-number">3</span>]);</span>
-<span class="line" id="L490">            mem.writeIntLittle(<span class="tok-type">u32</span>, out[<span class="tok-number">16</span>..<span class="tok-number">20</span>], x[<span class="tok-number">12</span>]);</span>
-<span class="line" id="L491">            mem.writeIntLittle(<span class="tok-type">u32</span>, out[<span class="tok-number">20</span>..<span class="tok-number">24</span>], x[<span class="tok-number">13</span>]);</span>
-<span class="line" id="L492">            mem.writeIntLittle(<span class="tok-type">u32</span>, out[<span class="tok-number">24</span>..<span class="tok-number">28</span>], x[<span class="tok-number">14</span>]);</span>
-<span class="line" id="L493">            mem.writeIntLittle(<span class="tok-type">u32</span>, out[<span class="tok-number">28</span>..<span class="tok-number">32</span>], x[<span class="tok-number">15</span>]);</span>
+<span class="line" id="L486">            mem.writeInt(<span class="tok-type">u32</span>, out[<span class="tok-number">0</span>..<span class="tok-number">4</span>], x[<span class="tok-number">0</span>], .little);</span>
+<span class="line" id="L487">            mem.writeInt(<span class="tok-type">u32</span>, out[<span class="tok-number">4</span>..<span class="tok-number">8</span>], x[<span class="tok-number">1</span>], .little);</span>
+<span class="line" id="L488">            mem.writeInt(<span class="tok-type">u32</span>, out[<span class="tok-number">8</span>..<span class="tok-number">12</span>], x[<span class="tok-number">2</span>], .little);</span>
+<span class="line" id="L489">            mem.writeInt(<span class="tok-type">u32</span>, out[<span class="tok-number">12</span>..<span class="tok-number">16</span>], x[<span class="tok-number">3</span>], .little);</span>
+<span class="line" id="L490">            mem.writeInt(<span class="tok-type">u32</span>, out[<span class="tok-number">16</span>..<span class="tok-number">20</span>], x[<span class="tok-number">12</span>], .little);</span>
+<span class="line" id="L491">            mem.writeInt(<span class="tok-type">u32</span>, out[<span class="tok-number">20</span>..<span class="tok-number">24</span>], x[<span class="tok-number">13</span>], .little);</span>
+<span class="line" id="L492">            mem.writeInt(<span class="tok-type">u32</span>, out[<span class="tok-number">24</span>..<span class="tok-number">28</span>], x[<span class="tok-number">14</span>], .little);</span>
+<span class="line" id="L493">            mem.writeInt(<span class="tok-type">u32</span>, out[<span class="tok-number">28</span>..<span class="tok-number">32</span>], x[<span class="tok-number">15</span>], .little);</span>
 <span class="line" id="L494">            <span class="tok-kw">return</span> out;</span>
 <span class="line" id="L495">        }</span>
 <span class="line" id="L496">    };</span>
@@ -636,7 +636,7 @@
 <span class="line" id="L519"><span class="tok-kw">fn</span> <span class="tok-fn">keyToWords</span>(key: [<span class="tok-number">32</span>]<span class="tok-type">u8</span>) [<span class="tok-number">8</span>]<span class="tok-type">u32</span> {</span>
 <span class="line" id="L520">    <span class="tok-kw">var</span> k: [<span class="tok-number">8</span>]<span class="tok-type">u32</span> = <span class="tok-null">undefined</span>;</span>
 <span class="line" id="L521">    <span class="tok-kw">for</span> (<span class="tok-number">0</span>..<span class="tok-number">8</span>) |i| {</span>
-<span class="line" id="L522">        k[i] = mem.readIntLittle(<span class="tok-type">u32</span>, key[i * <span class="tok-number">4</span> ..][<span class="tok-number">0</span>..<span class="tok-number">4</span>]);</span>
+<span class="line" id="L522">        k[i] = mem.readInt(<span class="tok-type">u32</span>, key[i * <span class="tok-number">4</span> ..][<span class="tok-number">0</span>..<span class="tok-number">4</span>], .little);</span>
 <span class="line" id="L523">    }</span>
 <span class="line" id="L524">    <span class="tok-kw">return</span> k;</span>
 <span class="line" id="L525">}</span>
@@ -669,9 +669,9 @@
 <span class="line" id="L552"></span>
 <span class="line" id="L553">            <span class="tok-kw">var</span> d: [<span class="tok-number">4</span>]<span class="tok-type">u32</span> = <span class="tok-null">undefined</span>;</span>
 <span class="line" id="L554">            d[<span class="tok-number">0</span>] = counter;</span>
-<span class="line" id="L555">            d[<span class="tok-number">1</span>] = mem.readIntLittle(<span class="tok-type">u32</span>, nonce[<span class="tok-number">0</span>..<span class="tok-number">4</span>]);</span>
-<span class="line" id="L556">            d[<span class="tok-number">2</span>] = mem.readIntLittle(<span class="tok-type">u32</span>, nonce[<span class="tok-number">4</span>..<span class="tok-number">8</span>]);</span>
-<span class="line" id="L557">            d[<span class="tok-number">3</span>] = mem.readIntLittle(<span class="tok-type">u32</span>, nonce[<span class="tok-number">8</span>..<span class="tok-number">12</span>]);</span>
+<span class="line" id="L555">            d[<span class="tok-number">1</span>] = mem.readInt(<span class="tok-type">u32</span>, nonce[<span class="tok-number">0</span>..<span class="tok-number">4</span>], .little);</span>
+<span class="line" id="L556">            d[<span class="tok-number">2</span>] = mem.readInt(<span class="tok-type">u32</span>, nonce[<span class="tok-number">4</span>..<span class="tok-number">8</span>], .little);</span>
+<span class="line" id="L557">            d[<span class="tok-number">3</span>] = mem.readInt(<span class="tok-type">u32</span>, nonce[<span class="tok-number">8</span>..<span class="tok-number">12</span>], .little);</span>
 <span class="line" id="L558">            ChaChaImpl(rounds_nb).chacha20Xor(out, in, keyToWords(key), d, <span class="tok-null">false</span>);</span>
 <span class="line" id="L559">        }</span>
 <span class="line" id="L560"></span>
@@ -681,9 +681,9 @@
 <span class="line" id="L564"></span>
 <span class="line" id="L565">            <span class="tok-kw">var</span> d: [<span class="tok-number">4</span>]<span class="tok-type">u32</span> = <span class="tok-null">undefined</span>;</span>
 <span class="line" id="L566">            d[<span class="tok-number">0</span>] = counter;</span>
-<span class="line" id="L567">            d[<span class="tok-number">1</span>] = mem.readIntLittle(<span class="tok-type">u32</span>, nonce[<span class="tok-number">0</span>..<span class="tok-number">4</span>]);</span>
-<span class="line" id="L568">            d[<span class="tok-number">2</span>] = mem.readIntLittle(<span class="tok-type">u32</span>, nonce[<span class="tok-number">4</span>..<span class="tok-number">8</span>]);</span>
-<span class="line" id="L569">            d[<span class="tok-number">3</span>] = mem.readIntLittle(<span class="tok-type">u32</span>, nonce[<span class="tok-number">8</span>..<span class="tok-number">12</span>]);</span>
+<span class="line" id="L567">            d[<span class="tok-number">1</span>] = mem.readInt(<span class="tok-type">u32</span>, nonce[<span class="tok-number">0</span>..<span class="tok-number">4</span>], .little);</span>
+<span class="line" id="L568">            d[<span class="tok-number">2</span>] = mem.readInt(<span class="tok-type">u32</span>, nonce[<span class="tok-number">4</span>..<span class="tok-number">8</span>], .little);</span>
+<span class="line" id="L569">            d[<span class="tok-number">3</span>] = mem.readInt(<span class="tok-type">u32</span>, nonce[<span class="tok-number">8</span>..<span class="tok-number">12</span>], .little);</span>
 <span class="line" id="L570">            ChaChaImpl(rounds_nb).chacha20Stream(out, keyToWords(key), d, <span class="tok-null">false</span>);</span>
 <span class="line" id="L571">        }</span>
 <span class="line" id="L572">    };</span>
@@ -709,8 +709,8 @@
 <span class="line" id="L592">            <span class="tok-kw">var</span> c: [<span class="tok-number">4</span>]<span class="tok-type">u32</span> = <span class="tok-null">undefined</span>;</span>
 <span class="line" id="L593">            c[<span class="tok-number">0</span>] = <span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-builtin">@truncate</span>(counter));</span>
 <span class="line" id="L594">            c[<span class="tok-number">1</span>] = <span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-builtin">@truncate</span>(counter &gt;&gt; <span class="tok-number">32</span>));</span>
-<span class="line" id="L595">            c[<span class="tok-number">2</span>] = mem.readIntLittle(<span class="tok-type">u32</span>, nonce[<span class="tok-number">0</span>..<span class="tok-number">4</span>]);</span>
-<span class="line" id="L596">            c[<span class="tok-number">3</span>] = mem.readIntLittle(<span class="tok-type">u32</span>, nonce[<span class="tok-number">4</span>..<span class="tok-number">8</span>]);</span>
+<span class="line" id="L595">            c[<span class="tok-number">2</span>] = mem.readInt(<span class="tok-type">u32</span>, nonce[<span class="tok-number">0</span>..<span class="tok-number">4</span>], .little);</span>
+<span class="line" id="L596">            c[<span class="tok-number">3</span>] = mem.readInt(<span class="tok-type">u32</span>, nonce[<span class="tok-number">4</span>..<span class="tok-number">8</span>], .little);</span>
 <span class="line" id="L597">            ChaChaImpl(rounds_nb).chacha20Xor(out, in, k, c, <span class="tok-null">true</span>);</span>
 <span class="line" id="L598">        }</span>
 <span class="line" id="L599"></span>
@@ -722,8 +722,8 @@
 <span class="line" id="L605">            <span class="tok-kw">var</span> c: [<span class="tok-number">4</span>]<span class="tok-type">u32</span> = <span class="tok-null">undefined</span>;</span>
 <span class="line" id="L606">            c[<span class="tok-number">0</span>] = <span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-builtin">@truncate</span>(counter));</span>
 <span class="line" id="L607">            c[<span class="tok-number">1</span>] = <span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-builtin">@truncate</span>(counter &gt;&gt; <span class="tok-number">32</span>));</span>
-<span class="line" id="L608">            c[<span class="tok-number">2</span>] = mem.readIntLittle(<span class="tok-type">u32</span>, nonce[<span class="tok-number">0</span>..<span class="tok-number">4</span>]);</span>
-<span class="line" id="L609">            c[<span class="tok-number">3</span>] = mem.readIntLittle(<span class="tok-type">u32</span>, nonce[<span class="tok-number">4</span>..<span class="tok-number">8</span>]);</span>
+<span class="line" id="L608">            c[<span class="tok-number">2</span>] = mem.readInt(<span class="tok-type">u32</span>, nonce[<span class="tok-number">0</span>..<span class="tok-number">4</span>], .little);</span>
+<span class="line" id="L609">            c[<span class="tok-number">3</span>] = mem.readInt(<span class="tok-type">u32</span>, nonce[<span class="tok-number">4</span>..<span class="tok-number">8</span>], .little);</span>
 <span class="line" id="L610">            ChaChaImpl(rounds_nb).chacha20Stream(out, k, c, <span class="tok-null">true</span>);</span>
 <span class="line" id="L611">        }</span>
 <span class="line" id="L612">    };</span>
@@ -789,8 +789,8 @@
 <span class="line" id="L672">                mac.update(zeros[<span class="tok-number">0</span>..padding]);</span>
 <span class="line" id="L673">            }</span>
 <span class="line" id="L674">            <span class="tok-kw">var</span> lens: [<span class="tok-number">16</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L675">            mem.writeIntLittle(<span class="tok-type">u64</span>, lens[<span class="tok-number">0</span>..<span class="tok-number">8</span>], ad.len);</span>
-<span class="line" id="L676">            mem.writeIntLittle(<span class="tok-type">u64</span>, lens[<span class="tok-number">8</span>..<span class="tok-number">16</span>], m.len);</span>
+<span class="line" id="L675">            mem.writeInt(<span class="tok-type">u64</span>, lens[<span class="tok-number">0</span>..<span class="tok-number">8</span>], ad.len, .little);</span>
+<span class="line" id="L676">            mem.writeInt(<span class="tok-type">u64</span>, lens[<span class="tok-number">8</span>..<span class="tok-number">16</span>], m.len, .little);</span>
 <span class="line" id="L677">            mac.update(lens[<span class="tok-number">0</span>..]);</span>
 <span class="line" id="L678">            mac.final(tag);</span>
 <span class="line" id="L679">        }</span>
@@ -825,8 +825,8 @@
 <span class="line" id="L708">                mac.update(zeros[<span class="tok-number">0</span>..padding]);</span>
 <span class="line" id="L709">            }</span>
 <span class="line" id="L710">            <span class="tok-kw">var</span> lens: [<span class="tok-number">16</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L711">            mem.writeIntLittle(<span class="tok-type">u64</span>, lens[<span class="tok-number">0</span>..<span class="tok-number">8</span>], ad.len);</span>
-<span class="line" id="L712">            mem.writeIntLittle(<span class="tok-type">u64</span>, lens[<span class="tok-number">8</span>..<span class="tok-number">16</span>], c.len);</span>
+<span class="line" id="L711">            mem.writeInt(<span class="tok-type">u64</span>, lens[<span class="tok-number">0</span>..<span class="tok-number">8</span>], ad.len, .little);</span>
+<span class="line" id="L712">            mem.writeInt(<span class="tok-type">u64</span>, lens[<span class="tok-number">8</span>..<span class="tok-number">16</span>], c.len, .little);</span>
 <span class="line" id="L713">            mac.update(lens[<span class="tok-number">0</span>..]);</span>
 <span class="line" id="L714">            <span class="tok-kw">var</span> computed_tag: [<span class="tok-number">16</span>]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
 <span class="line" id="L715">            mac.final(computed_tag[<span class="tok-number">0</span>..]);</span>

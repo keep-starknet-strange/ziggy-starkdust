@@ -172,10 +172,10 @@
 <span class="line" id="L53">        }</span>
 <span class="line" id="L54"></span>
 <span class="line" id="L55">        <span class="tok-kw">fn</span> <span class="tok-fn">processStripe</span>(self: *Accumulator, buf: *<span class="tok-kw">const</span> [<span class="tok-number">32</span>]<span class="tok-type">u8</span>) <span class="tok-type">void</span> {</span>
-<span class="line" id="L56">            self.acc1 = round(self.acc1, mem.readIntLittle(<span class="tok-type">u64</span>, buf[<span class="tok-number">0</span>..<span class="tok-number">8</span>]));</span>
-<span class="line" id="L57">            self.acc2 = round(self.acc2, mem.readIntLittle(<span class="tok-type">u64</span>, buf[<span class="tok-number">8</span>..<span class="tok-number">16</span>]));</span>
-<span class="line" id="L58">            self.acc3 = round(self.acc3, mem.readIntLittle(<span class="tok-type">u64</span>, buf[<span class="tok-number">16</span>..<span class="tok-number">24</span>]));</span>
-<span class="line" id="L59">            self.acc4 = round(self.acc4, mem.readIntLittle(<span class="tok-type">u64</span>, buf[<span class="tok-number">24</span>..<span class="tok-number">32</span>]));</span>
+<span class="line" id="L56">            self.acc1 = round(self.acc1, mem.readInt(<span class="tok-type">u64</span>, buf[<span class="tok-number">0</span>..<span class="tok-number">8</span>], .little));</span>
+<span class="line" id="L57">            self.acc2 = round(self.acc2, mem.readInt(<span class="tok-type">u64</span>, buf[<span class="tok-number">8</span>..<span class="tok-number">16</span>], .little));</span>
+<span class="line" id="L58">            self.acc3 = round(self.acc3, mem.readInt(<span class="tok-type">u64</span>, buf[<span class="tok-number">16</span>..<span class="tok-number">24</span>], .little));</span>
+<span class="line" id="L59">            self.acc4 = round(self.acc4, mem.readInt(<span class="tok-type">u64</span>, buf[<span class="tok-number">24</span>..<span class="tok-number">32</span>], .little));</span>
 <span class="line" id="L60">        }</span>
 <span class="line" id="L61"></span>
 <span class="line" id="L62">        <span class="tok-kw">fn</span> <span class="tok-fn">merge</span>(self: Accumulator) <span class="tok-type">u64</span> {</span>
@@ -258,7 +258,7 @@
 <span class="line" id="L139"></span>
 <span class="line" id="L140">    <span class="tok-kw">fn</span> <span class="tok-fn">finalize8</span>(v: <span class="tok-type">u64</span>, bytes: *<span class="tok-kw">const</span> [<span class="tok-number">8</span>]<span class="tok-type">u8</span>) <span class="tok-type">u64</span> {</span>
 <span class="line" id="L141">        <span class="tok-kw">var</span> acc = v;</span>
-<span class="line" id="L142">        <span class="tok-kw">const</span> lane = mem.readIntLittle(<span class="tok-type">u64</span>, bytes);</span>
+<span class="line" id="L142">        <span class="tok-kw">const</span> lane = mem.readInt(<span class="tok-type">u64</span>, bytes, .little);</span>
 <span class="line" id="L143">        acc ^= round(<span class="tok-number">0</span>, lane);</span>
 <span class="line" id="L144">        acc = rotl(<span class="tok-type">u64</span>, acc, <span class="tok-number">27</span>) *% prime_1;</span>
 <span class="line" id="L145">        acc +%= prime_4;</span>
@@ -267,7 +267,7 @@
 <span class="line" id="L148"></span>
 <span class="line" id="L149">    <span class="tok-kw">fn</span> <span class="tok-fn">finalize4</span>(v: <span class="tok-type">u64</span>, bytes: *<span class="tok-kw">const</span> [<span class="tok-number">4</span>]<span class="tok-type">u8</span>) <span class="tok-type">u64</span> {</span>
 <span class="line" id="L150">        <span class="tok-kw">var</span> acc = v;</span>
-<span class="line" id="L151">        <span class="tok-kw">const</span> lane = <span class="tok-builtin">@as</span>(<span class="tok-type">u64</span>, mem.readIntLittle(<span class="tok-type">u32</span>, bytes));</span>
+<span class="line" id="L151">        <span class="tok-kw">const</span> lane = <span class="tok-builtin">@as</span>(<span class="tok-type">u64</span>, mem.readInt(<span class="tok-type">u32</span>, bytes, .little));</span>
 <span class="line" id="L152">        acc ^= lane *% prime_1;</span>
 <span class="line" id="L153">        acc = rotl(<span class="tok-type">u64</span>, acc, <span class="tok-number">23</span>) *% prime_2;</span>
 <span class="line" id="L154">        acc +%= prime_3;</span>
@@ -415,10 +415,10 @@
 <span class="line" id="L291">        }</span>
 <span class="line" id="L292"></span>
 <span class="line" id="L293">        <span class="tok-kw">fn</span> <span class="tok-fn">processStripe</span>(self: *Accumulator, buf: *<span class="tok-kw">const</span> [<span class="tok-number">16</span>]<span class="tok-type">u8</span>) <span class="tok-type">void</span> {</span>
-<span class="line" id="L294">            self.acc1 = round(self.acc1, mem.readIntLittle(<span class="tok-type">u32</span>, buf[<span class="tok-number">0</span>..<span class="tok-number">4</span>]));</span>
-<span class="line" id="L295">            self.acc2 = round(self.acc2, mem.readIntLittle(<span class="tok-type">u32</span>, buf[<span class="tok-number">4</span>..<span class="tok-number">8</span>]));</span>
-<span class="line" id="L296">            self.acc3 = round(self.acc3, mem.readIntLittle(<span class="tok-type">u32</span>, buf[<span class="tok-number">8</span>..<span class="tok-number">12</span>]));</span>
-<span class="line" id="L297">            self.acc4 = round(self.acc4, mem.readIntLittle(<span class="tok-type">u32</span>, buf[<span class="tok-number">12</span>..<span class="tok-number">16</span>]));</span>
+<span class="line" id="L294">            self.acc1 = round(self.acc1, mem.readInt(<span class="tok-type">u32</span>, buf[<span class="tok-number">0</span>..<span class="tok-number">4</span>], .little));</span>
+<span class="line" id="L295">            self.acc2 = round(self.acc2, mem.readInt(<span class="tok-type">u32</span>, buf[<span class="tok-number">4</span>..<span class="tok-number">8</span>], .little));</span>
+<span class="line" id="L296">            self.acc3 = round(self.acc3, mem.readInt(<span class="tok-type">u32</span>, buf[<span class="tok-number">8</span>..<span class="tok-number">12</span>], .little));</span>
+<span class="line" id="L297">            self.acc4 = round(self.acc4, mem.readInt(<span class="tok-type">u32</span>, buf[<span class="tok-number">12</span>..<span class="tok-number">16</span>], .little));</span>
 <span class="line" id="L298">        }</span>
 <span class="line" id="L299"></span>
 <span class="line" id="L300">        <span class="tok-kw">fn</span> <span class="tok-fn">merge</span>(self: Accumulator) <span class="tok-type">u32</span> {</span>
@@ -514,7 +514,7 @@
 <span class="line" id="L390"></span>
 <span class="line" id="L391">    <span class="tok-kw">fn</span> <span class="tok-fn">finalize4</span>(v: <span class="tok-type">u32</span>, bytes: *<span class="tok-kw">const</span> [<span class="tok-number">4</span>]<span class="tok-type">u8</span>) <span class="tok-type">u32</span> {</span>
 <span class="line" id="L392">        <span class="tok-kw">var</span> acc = v;</span>
-<span class="line" id="L393">        <span class="tok-kw">const</span> lane = mem.readIntLittle(<span class="tok-type">u32</span>, bytes);</span>
+<span class="line" id="L393">        <span class="tok-kw">const</span> lane = mem.readInt(<span class="tok-type">u32</span>, bytes, .little);</span>
 <span class="line" id="L394">        acc +%= lane *% prime_3;</span>
 <span class="line" id="L395">        acc = rotl(<span class="tok-type">u32</span>, acc, <span class="tok-number">17</span>) *% prime_4;</span>
 <span class="line" id="L396">        <span class="tok-kw">return</span> acc;</span>
@@ -596,7 +596,7 @@
 <span class="line" id="L472">    }</span>
 <span class="line" id="L473"></span>
 <span class="line" id="L474">    <span class="tok-kw">inline</span> <span class="tok-kw">fn</span> <span class="tok-fn">swap</span>(x: <span class="tok-kw">anytype</span>) <span class="tok-builtin">@TypeOf</span>(x) {</span>
-<span class="line" id="L475">        <span class="tok-kw">return</span> <span class="tok-kw">if</span> (builtin.cpu.arch.endian() == .Big) <span class="tok-builtin">@byteSwap</span>(x) <span class="tok-kw">else</span> x;</span>
+<span class="line" id="L475">        <span class="tok-kw">return</span> <span class="tok-kw">if</span> (builtin.cpu.arch.endian() == .big) <span class="tok-builtin">@byteSwap</span>(x) <span class="tok-kw">else</span> x;</span>
 <span class="line" id="L476">    }</span>
 <span class="line" id="L477"></span>
 <span class="line" id="L478">    <span class="tok-kw">inline</span> <span class="tok-kw">fn</span> <span class="tok-fn">disableAutoVectorization</span>(x: <span class="tok-kw">anytype</span>) <span class="tok-type">void</span> {</span>

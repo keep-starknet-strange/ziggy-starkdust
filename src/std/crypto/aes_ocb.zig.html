@@ -143,10 +143,10 @@
 <span class="line" id="L29">            upto: <span class="tok-type">usize</span>,</span>
 <span class="line" id="L30"></span>
 <span class="line" id="L31">            <span class="tok-kw">inline</span> <span class="tok-kw">fn</span> <span class="tok-fn">double</span>(l: Block) Block {</span>
-<span class="line" id="L32">                <span class="tok-kw">const</span> l_ = mem.readIntBig(<span class="tok-type">u128</span>, &amp;l);</span>
+<span class="line" id="L32">                <span class="tok-kw">const</span> l_ = mem.readInt(<span class="tok-type">u128</span>, &amp;l, .big);</span>
 <span class="line" id="L33">                <span class="tok-kw">const</span> l_2 = (l_ &lt;&lt; <span class="tok-number">1</span>) ^ (<span class="tok-number">0x87</span> &amp; -%(l_ &gt;&gt; <span class="tok-number">127</span>));</span>
 <span class="line" id="L34">                <span class="tok-kw">var</span> l2: Block = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L35">                mem.writeIntBig(<span class="tok-type">u128</span>, &amp;l2, l_2);</span>
+<span class="line" id="L35">                mem.writeInt(<span class="tok-type">u128</span>, &amp;l2, l_2, .big);</span>
 <span class="line" id="L36">                <span class="tok-kw">return</span> l2;</span>
 <span class="line" id="L37">            }</span>
 <span class="line" id="L38"></span>
@@ -208,10 +208,10 @@
 <span class="line" id="L94">            nx[<span class="tok-number">15</span>] &amp;= <span class="tok-number">0xc0</span>;</span>
 <span class="line" id="L95">            <span class="tok-kw">var</span> ktop_: Block = <span class="tok-null">undefined</span>;</span>
 <span class="line" id="L96">            aes_enc_ctx.encrypt(&amp;ktop_, &amp;nx);</span>
-<span class="line" id="L97">            <span class="tok-kw">const</span> ktop = mem.readIntBig(<span class="tok-type">u128</span>, &amp;ktop_);</span>
+<span class="line" id="L97">            <span class="tok-kw">const</span> ktop = mem.readInt(<span class="tok-type">u128</span>, &amp;ktop_, .big);</span>
 <span class="line" id="L98">            <span class="tok-kw">var</span> stretch = (<span class="tok-builtin">@as</span>(<span class="tok-type">u192</span>, ktop) &lt;&lt; <span class="tok-number">64</span>) | <span class="tok-builtin">@as</span>(<span class="tok-type">u192</span>, <span class="tok-builtin">@as</span>(<span class="tok-type">u64</span>, <span class="tok-builtin">@truncate</span>(ktop &gt;&gt; <span class="tok-number">64</span>)) ^ <span class="tok-builtin">@as</span>(<span class="tok-type">u64</span>, <span class="tok-builtin">@truncate</span>(ktop &gt;&gt; <span class="tok-number">56</span>)));</span>
 <span class="line" id="L99">            <span class="tok-kw">var</span> offset: Block = <span class="tok-null">undefined</span>;</span>
-<span class="line" id="L100">            mem.writeIntBig(<span class="tok-type">u128</span>, &amp;offset, <span class="tok-builtin">@as</span>(<span class="tok-type">u128</span>, <span class="tok-builtin">@truncate</span>(stretch &gt;&gt; (<span class="tok-number">64</span> - <span class="tok-builtin">@as</span>(<span class="tok-type">u7</span>, bottom)))));</span>
+<span class="line" id="L100">            mem.writeInt(<span class="tok-type">u128</span>, &amp;offset, <span class="tok-builtin">@as</span>(<span class="tok-type">u128</span>, <span class="tok-builtin">@truncate</span>(stretch &gt;&gt; (<span class="tok-number">64</span> - <span class="tok-builtin">@as</span>(<span class="tok-type">u7</span>, bottom)))), .big);</span>
 <span class="line" id="L101">            <span class="tok-kw">return</span> offset;</span>
 <span class="line" id="L102">        }</span>
 <span class="line" id="L103"></span>

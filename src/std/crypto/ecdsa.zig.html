@@ -324,17 +324,17 @@
 <span class="line" id="L209"></span>
 <span class="line" id="L210">                <span class="tok-kw">const</span> k = deterministicScalar(h_slice.*, self.secret_key.bytes, self.noise);</span>
 <span class="line" id="L211"></span>
-<span class="line" id="L212">                <span class="tok-kw">const</span> p = <span class="tok-kw">try</span> Curve.basePoint.mul(k.toBytes(.Big), .Big);</span>
-<span class="line" id="L213">                <span class="tok-kw">const</span> xs = p.affineCoordinates().x.toBytes(.Big);</span>
+<span class="line" id="L212">                <span class="tok-kw">const</span> p = <span class="tok-kw">try</span> Curve.basePoint.mul(k.toBytes(.big), .big);</span>
+<span class="line" id="L213">                <span class="tok-kw">const</span> xs = p.affineCoordinates().x.toBytes(.big);</span>
 <span class="line" id="L214">                <span class="tok-kw">const</span> r = reduceToScalar(Curve.Fe.encoded_length, xs);</span>
 <span class="line" id="L215">                <span class="tok-kw">if</span> (r.isZero()) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.IdentityElement;</span>
 <span class="line" id="L216"></span>
 <span class="line" id="L217">                <span class="tok-kw">const</span> k_inv = k.invert();</span>
-<span class="line" id="L218">                <span class="tok-kw">const</span> zrs = z.add(r.mul(<span class="tok-kw">try</span> Curve.scalar.Scalar.fromBytes(self.secret_key.bytes, .Big)));</span>
+<span class="line" id="L218">                <span class="tok-kw">const</span> zrs = z.add(r.mul(<span class="tok-kw">try</span> Curve.scalar.Scalar.fromBytes(self.secret_key.bytes, .big)));</span>
 <span class="line" id="L219">                <span class="tok-kw">const</span> s = k_inv.mul(zrs);</span>
 <span class="line" id="L220">                <span class="tok-kw">if</span> (s.isZero()) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.IdentityElement;</span>
 <span class="line" id="L221"></span>
-<span class="line" id="L222">                <span class="tok-kw">return</span> Signature{ .r = r.toBytes(.Big), .s = s.toBytes(.Big) };</span>
+<span class="line" id="L222">                <span class="tok-kw">return</span> Signature{ .r = r.toBytes(.big), .s = s.toBytes(.big) };</span>
 <span class="line" id="L223">            }</span>
 <span class="line" id="L224">        };</span>
 <span class="line" id="L225"></span>
@@ -347,8 +347,8 @@
 <span class="line" id="L232">            public_key: PublicKey,</span>
 <span class="line" id="L233"></span>
 <span class="line" id="L234">            <span class="tok-kw">fn</span> <span class="tok-fn">init</span>(sig: Signature, public_key: PublicKey) (IdentityElementError || NonCanonicalError)!Verifier {</span>
-<span class="line" id="L235">                <span class="tok-kw">const</span> r = <span class="tok-kw">try</span> Curve.scalar.Scalar.fromBytes(sig.r, .Big);</span>
-<span class="line" id="L236">                <span class="tok-kw">const</span> s = <span class="tok-kw">try</span> Curve.scalar.Scalar.fromBytes(sig.s, .Big);</span>
+<span class="line" id="L235">                <span class="tok-kw">const</span> r = <span class="tok-kw">try</span> Curve.scalar.Scalar.fromBytes(sig.r, .big);</span>
+<span class="line" id="L236">                <span class="tok-kw">const</span> s = <span class="tok-kw">try</span> Curve.scalar.Scalar.fromBytes(sig.s, .big);</span>
 <span class="line" id="L237">                <span class="tok-kw">if</span> (r.isZero() <span class="tok-kw">or</span> s.isZero()) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.IdentityElement;</span>
 <span class="line" id="L238"></span>
 <span class="line" id="L239">                <span class="tok-kw">return</span> Verifier{</span>
@@ -377,11 +377,11 @@
 <span class="line" id="L262">                }</span>
 <span class="line" id="L263"></span>
 <span class="line" id="L264">                <span class="tok-kw">const</span> s_inv = self.s.invert();</span>
-<span class="line" id="L265">                <span class="tok-kw">const</span> v1 = z.mul(s_inv).toBytes(.Little);</span>
-<span class="line" id="L266">                <span class="tok-kw">const</span> v2 = self.r.mul(s_inv).toBytes(.Little);</span>
-<span class="line" id="L267">                <span class="tok-kw">const</span> v1g = <span class="tok-kw">try</span> Curve.basePoint.mulPublic(v1, .Little);</span>
-<span class="line" id="L268">                <span class="tok-kw">const</span> v2pk = <span class="tok-kw">try</span> self.public_key.p.mulPublic(v2, .Little);</span>
-<span class="line" id="L269">                <span class="tok-kw">const</span> vxs = v1g.add(v2pk).affineCoordinates().x.toBytes(.Big);</span>
+<span class="line" id="L265">                <span class="tok-kw">const</span> v1 = z.mul(s_inv).toBytes(.little);</span>
+<span class="line" id="L266">                <span class="tok-kw">const</span> v2 = self.r.mul(s_inv).toBytes(.little);</span>
+<span class="line" id="L267">                <span class="tok-kw">const</span> v1g = <span class="tok-kw">try</span> Curve.basePoint.mulPublic(v1, .little);</span>
+<span class="line" id="L268">                <span class="tok-kw">const</span> v2pk = <span class="tok-kw">try</span> self.public_key.p.mulPublic(v2, .little);</span>
+<span class="line" id="L269">                <span class="tok-kw">const</span> vxs = v1g.add(v2pk).affineCoordinates().x.toBytes(.big);</span>
 <span class="line" id="L270">                <span class="tok-kw">const</span> vr = reduceToScalar(Curve.Fe.encoded_length, vxs);</span>
 <span class="line" id="L271">                <span class="tok-kw">if</span> (!self.r.equivalent(vr)) {</span>
 <span class="line" id="L272">                    <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SignatureVerificationFailed;</span>
@@ -410,13 +410,13 @@
 <span class="line" id="L295">                }</span>
 <span class="line" id="L296">                <span class="tok-kw">const</span> h = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x00</span>} ** Hash.digest_length;</span>
 <span class="line" id="L297">                <span class="tok-kw">const</span> k0 = [_]<span class="tok-type">u8</span>{<span class="tok-number">0x01</span>} ** SecretKey.encoded_length;</span>
-<span class="line" id="L298">                <span class="tok-kw">const</span> secret_key = deterministicScalar(h, k0, seed_).toBytes(.Big);</span>
+<span class="line" id="L298">                <span class="tok-kw">const</span> secret_key = deterministicScalar(h, k0, seed_).toBytes(.big);</span>
 <span class="line" id="L299">                <span class="tok-kw">return</span> fromSecretKey(SecretKey{ .bytes = secret_key });</span>
 <span class="line" id="L300">            }</span>
 <span class="line" id="L301"></span>
 <span class="line" id="L302">            <span class="tok-comment">/// Return the public key corresponding to the secret key.</span></span>
 <span class="line" id="L303">            <span class="tok-kw">pub</span> <span class="tok-kw">fn</span> <span class="tok-fn">fromSecretKey</span>(secret_key: SecretKey) IdentityElementError!KeyPair {</span>
-<span class="line" id="L304">                <span class="tok-kw">const</span> public_key = <span class="tok-kw">try</span> Curve.basePoint.mul(secret_key.bytes, .Big);</span>
+<span class="line" id="L304">                <span class="tok-kw">const</span> public_key = <span class="tok-kw">try</span> Curve.basePoint.mul(secret_key.bytes, .big);</span>
 <span class="line" id="L305">                <span class="tok-kw">return</span> KeyPair{ .secret_key = secret_key, .public_key = PublicKey{ .p = public_key } };</span>
 <span class="line" id="L306">            }</span>
 <span class="line" id="L307"></span>
@@ -442,11 +442,11 @@
 <span class="line" id="L326">            <span class="tok-kw">if</span> (unreduced_len &gt;= <span class="tok-number">48</span>) {</span>
 <span class="line" id="L327">                <span class="tok-kw">var</span> xs = [_]<span class="tok-type">u8</span>{<span class="tok-number">0</span>} ** <span class="tok-number">64</span>;</span>
 <span class="line" id="L328">                <span class="tok-builtin">@memcpy</span>(xs[xs.len - s.len ..], s[<span class="tok-number">0</span>..]);</span>
-<span class="line" id="L329">                <span class="tok-kw">return</span> Curve.scalar.Scalar.fromBytes64(xs, .Big);</span>
+<span class="line" id="L329">                <span class="tok-kw">return</span> Curve.scalar.Scalar.fromBytes64(xs, .big);</span>
 <span class="line" id="L330">            }</span>
 <span class="line" id="L331">            <span class="tok-kw">var</span> xs = [_]<span class="tok-type">u8</span>{<span class="tok-number">0</span>} ** <span class="tok-number">48</span>;</span>
 <span class="line" id="L332">            <span class="tok-builtin">@memcpy</span>(xs[xs.len - s.len ..], s[<span class="tok-number">0</span>..]);</span>
-<span class="line" id="L333">            <span class="tok-kw">return</span> Curve.scalar.Scalar.fromBytes48(xs, .Big);</span>
+<span class="line" id="L333">            <span class="tok-kw">return</span> Curve.scalar.Scalar.fromBytes48(xs, .big);</span>
 <span class="line" id="L334">        }</span>
 <span class="line" id="L335"></span>
 <span class="line" id="L336">        <span class="tok-comment">// Create a deterministic scalar according to a secret key and optional noise.</span>
@@ -480,7 +480,7 @@
 <span class="line" id="L362">                    Hmac.create(m_v, m_v, &amp;k);</span>
 <span class="line" id="L363">                    <span class="tok-builtin">@memcpy</span>(t[t_off..t_end], m_v[<span class="tok-number">0</span> .. t_end - t_off]);</span>
 <span class="line" id="L364">                }</span>
-<span class="line" id="L365">                <span class="tok-kw">if</span> (Curve.scalar.Scalar.fromBytes(t, .Big)) |s| <span class="tok-kw">return</span> s <span class="tok-kw">else</span> |_| {}</span>
+<span class="line" id="L365">                <span class="tok-kw">if</span> (Curve.scalar.Scalar.fromBytes(t, .big)) |s| <span class="tok-kw">return</span> s <span class="tok-kw">else</span> |_| {}</span>
 <span class="line" id="L366">                m_i.* = <span class="tok-number">0x00</span>;</span>
 <span class="line" id="L367">                Hmac.create(&amp;k, m[<span class="tok-number">0</span> .. m_v.len + <span class="tok-number">1</span>], &amp;k);</span>
 <span class="line" id="L368">                Hmac.create(m_v, m_v, &amp;k);</span>

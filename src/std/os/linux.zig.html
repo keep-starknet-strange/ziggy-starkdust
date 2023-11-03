@@ -326,11 +326,11 @@
 <span class="line" id="L206"><span class="tok-kw">fn</span> <span class="tok-fn">splitValue64</span>(val: <span class="tok-type">i64</span>) [<span class="tok-number">2</span>]<span class="tok-type">u32</span> {</span>
 <span class="line" id="L207">    <span class="tok-kw">const</span> u: <span class="tok-type">u64</span> = <span class="tok-builtin">@bitCast</span>(val);</span>
 <span class="line" id="L208">    <span class="tok-kw">switch</span> (native_endian) {</span>
-<span class="line" id="L209">        .Little =&gt; <span class="tok-kw">return</span> [<span class="tok-number">2</span>]<span class="tok-type">u32</span>{</span>
+<span class="line" id="L209">        .little =&gt; <span class="tok-kw">return</span> [<span class="tok-number">2</span>]<span class="tok-type">u32</span>{</span>
 <span class="line" id="L210">            <span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-builtin">@truncate</span>(u)),</span>
 <span class="line" id="L211">            <span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-builtin">@truncate</span>(u &gt;&gt; <span class="tok-number">32</span>)),</span>
 <span class="line" id="L212">        },</span>
-<span class="line" id="L213">        .Big =&gt; <span class="tok-kw">return</span> [<span class="tok-number">2</span>]<span class="tok-type">u32</span>{</span>
+<span class="line" id="L213">        .big =&gt; <span class="tok-kw">return</span> [<span class="tok-number">2</span>]<span class="tok-type">u32</span>{</span>
 <span class="line" id="L214">            <span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-builtin">@truncate</span>(u &gt;&gt; <span class="tok-number">32</span>)),</span>
 <span class="line" id="L215">            <span class="tok-builtin">@as</span>(<span class="tok-type">u32</span>, <span class="tok-builtin">@truncate</span>(u)),</span>
 <span class="line" id="L216">        },</span>
@@ -4245,7 +4245,7 @@
 <span class="line" id="L4044">    array: <span class="tok-type">u32</span>,</span>
 <span class="line" id="L4045"></span>
 <span class="line" id="L4046">    resv1: <span class="tok-type">u32</span>,</span>
-<span class="line" id="L4047">    resv2: <span class="tok-type">u64</span>,</span>
+<span class="line" id="L4047">    user_addr: <span class="tok-type">u64</span>,</span>
 <span class="line" id="L4048">};</span>
 <span class="line" id="L4049"></span>
 <span class="line" id="L4050"><span class="tok-comment">// io_sqring_offsets.flags</span>
@@ -6260,7 +6260,7 @@
 <span class="line" id="L6028"></span>
 <span class="line" id="L6029">        <span class="tok-kw">fn</span> <span class="tok-fn">toAudit</span>(arch: std.Target.Cpu.Arch) <span class="tok-type">u32</span> {</span>
 <span class="line" id="L6030">            <span class="tok-kw">var</span> res: <span class="tok-type">u32</span> = <span class="tok-builtin">@intFromEnum</span>(arch.toElfMachine());</span>
-<span class="line" id="L6031">            <span class="tok-kw">if</span> (arch.endian() == .Little) res |= LE;</span>
+<span class="line" id="L6031">            <span class="tok-kw">if</span> (arch.endian() == .little) res |= LE;</span>
 <span class="line" id="L6032">            <span class="tok-kw">switch</span> (arch) {</span>
 <span class="line" id="L6033">                .aarch64,</span>
 <span class="line" id="L6034">                .mips64,</span>

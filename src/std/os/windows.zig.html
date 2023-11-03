@@ -2845,7 +2845,7 @@
 <span class="line" id="L2532">    <span class="tok-kw">const</span> rc = ws2_32.WSAIoctl(</span>
 <span class="line" id="L2533">        sock,</span>
 <span class="line" id="L2534">        ws2_32.SIO_GET_EXTENSION_FUNCTION_POINTER,</span>
-<span class="line" id="L2535">        <span class="tok-builtin">@as</span>(*<span class="tok-kw">const</span> <span class="tok-type">anyopaque</span>, <span class="tok-builtin">@ptrCast</span>(&amp;guid)),</span>
+<span class="line" id="L2535">        &amp;guid,</span>
 <span class="line" id="L2536">        <span class="tok-builtin">@sizeOf</span>(GUID),</span>
 <span class="line" id="L2537">        <span class="tok-builtin">@as</span>(?*<span class="tok-type">anyopaque</span>, <span class="tok-builtin">@ptrFromInt</span>(<span class="tok-builtin">@intFromPtr</span>(&amp;function))),</span>
 <span class="line" id="L2538">        <span class="tok-builtin">@sizeOf</span>(T),</span>
@@ -3687,13 +3687,13 @@
 <span class="line" id="L3360">    Data4: [<span class="tok-number">8</span>]<span class="tok-type">u8</span>,</span>
 <span class="line" id="L3361"></span>
 <span class="line" id="L3362">    <span class="tok-kw">const</span> hex_offsets = <span class="tok-kw">switch</span> (builtin.target.cpu.arch.endian()) {</span>
-<span class="line" id="L3363">        .Big =&gt; [<span class="tok-number">16</span>]<span class="tok-type">u6</span>{</span>
+<span class="line" id="L3363">        .big =&gt; [<span class="tok-number">16</span>]<span class="tok-type">u6</span>{</span>
 <span class="line" id="L3364">            <span class="tok-number">0</span>,  <span class="tok-number">2</span>,  <span class="tok-number">4</span>,  <span class="tok-number">6</span>,</span>
 <span class="line" id="L3365">            <span class="tok-number">9</span>,  <span class="tok-number">11</span>, <span class="tok-number">14</span>, <span class="tok-number">16</span>,</span>
 <span class="line" id="L3366">            <span class="tok-number">19</span>, <span class="tok-number">21</span>, <span class="tok-number">24</span>, <span class="tok-number">26</span>,</span>
 <span class="line" id="L3367">            <span class="tok-number">28</span>, <span class="tok-number">30</span>, <span class="tok-number">32</span>, <span class="tok-number">34</span>,</span>
 <span class="line" id="L3368">        },</span>
-<span class="line" id="L3369">        .Little =&gt; [<span class="tok-number">16</span>]<span class="tok-type">u6</span>{</span>
+<span class="line" id="L3369">        .little =&gt; [<span class="tok-number">16</span>]<span class="tok-type">u6</span>{</span>
 <span class="line" id="L3370">            <span class="tok-number">6</span>,  <span class="tok-number">4</span>,  <span class="tok-number">2</span>,  <span class="tok-number">0</span>,</span>
 <span class="line" id="L3371">            <span class="tok-number">11</span>, <span class="tok-number">9</span>,  <span class="tok-number">16</span>, <span class="tok-number">14</span>,</span>
 <span class="line" id="L3372">            <span class="tok-number">19</span>, <span class="tok-number">21</span>, <span class="tok-number">24</span>, <span class="tok-number">26</span>,</span>
@@ -5582,7 +5582,7 @@
 <span class="line" id="L5208">    <span class="tok-kw">switch</span> (ntdll.NtWriteVirtualMemory(</span>
 <span class="line" id="L5209">        handle,</span>
 <span class="line" id="L5210">        addr,</span>
-<span class="line" id="L5211">        <span class="tok-builtin">@as</span>(*<span class="tok-kw">const</span> <span class="tok-type">anyopaque</span>, <span class="tok-builtin">@ptrCast</span>(buffer.ptr)),</span>
+<span class="line" id="L5211">        buffer.ptr,</span>
 <span class="line" id="L5212">        buffer.len,</span>
 <span class="line" id="L5213">        &amp;nwritten,</span>
 <span class="line" id="L5214">    )) {</span>

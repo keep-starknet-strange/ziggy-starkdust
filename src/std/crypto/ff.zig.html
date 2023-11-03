@@ -259,8 +259,8 @@
 <span class="line" id="L137">            <span class="tok-builtin">@memset</span>(bytes, <span class="tok-number">0</span>);</span>
 <span class="line" id="L138">            <span class="tok-kw">var</span> shift: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
 <span class="line" id="L139">            <span class="tok-kw">var</span> out_i: <span class="tok-type">usize</span> = <span class="tok-kw">switch</span> (endian) {</span>
-<span class="line" id="L140">                .Big =&gt; bytes.len - <span class="tok-number">1</span>,</span>
-<span class="line" id="L141">                .Little =&gt; <span class="tok-number">0</span>,</span>
+<span class="line" id="L140">                .big =&gt; bytes.len - <span class="tok-number">1</span>,</span>
+<span class="line" id="L141">                .little =&gt; <span class="tok-number">0</span>,</span>
 <span class="line" id="L142">            };</span>
 <span class="line" id="L143">            <span class="tok-kw">for</span> (<span class="tok-number">0</span>..self.limbs.len) |i| {</span>
 <span class="line" id="L144">                <span class="tok-kw">var</span> remaining_bits = t_bits;</span>
@@ -272,7 +272,7 @@
 <span class="line" id="L150">                    remaining_bits -= consumed;</span>
 <span class="line" id="L151">                    shift = <span class="tok-number">0</span>;</span>
 <span class="line" id="L152">                    <span class="tok-kw">switch</span> (endian) {</span>
-<span class="line" id="L153">                        .Big =&gt; {</span>
+<span class="line" id="L153">                        .big =&gt; {</span>
 <span class="line" id="L154">                            <span class="tok-kw">if</span> (out_i == <span class="tok-number">0</span>) {</span>
 <span class="line" id="L155">                                <span class="tok-kw">if</span> (i != self.limbs.len - <span class="tok-number">1</span> <span class="tok-kw">or</span> limb != <span class="tok-number">0</span>) {</span>
 <span class="line" id="L156">                                    <span class="tok-kw">return</span> <span class="tok-kw">error</span>.Overflow;</span>
@@ -281,7 +281,7 @@
 <span class="line" id="L159">                            }</span>
 <span class="line" id="L160">                            out_i -= <span class="tok-number">1</span>;</span>
 <span class="line" id="L161">                        },</span>
-<span class="line" id="L162">                        .Little =&gt; {</span>
+<span class="line" id="L162">                        .little =&gt; {</span>
 <span class="line" id="L163">                            out_i += <span class="tok-number">1</span>;</span>
 <span class="line" id="L164">                            <span class="tok-kw">if</span> (out_i == bytes.len) {</span>
 <span class="line" id="L165">                                <span class="tok-kw">if</span> (i != self.limbs.len - <span class="tok-number">1</span> <span class="tok-kw">or</span> limb != <span class="tok-number">0</span>) {</span>
@@ -304,8 +304,8 @@
 <span class="line" id="L182">            <span class="tok-kw">var</span> out = Self.zero;</span>
 <span class="line" id="L183">            <span class="tok-kw">var</span> out_i: <span class="tok-type">usize</span> = <span class="tok-number">0</span>;</span>
 <span class="line" id="L184">            <span class="tok-kw">var</span> i: <span class="tok-type">usize</span> = <span class="tok-kw">switch</span> (endian) {</span>
-<span class="line" id="L185">                .Big =&gt; bytes.len - <span class="tok-number">1</span>,</span>
-<span class="line" id="L186">                .Little =&gt; <span class="tok-number">0</span>,</span>
+<span class="line" id="L185">                .big =&gt; bytes.len - <span class="tok-number">1</span>,</span>
+<span class="line" id="L186">                .little =&gt; <span class="tok-number">0</span>,</span>
 <span class="line" id="L187">            };</span>
 <span class="line" id="L188">            <span class="tok-kw">while</span> (<span class="tok-null">true</span>) {</span>
 <span class="line" id="L189">                <span class="tok-kw">const</span> bi = bytes[i];</span>
@@ -325,11 +325,11 @@
 <span class="line" id="L203">                    out.limbs.set(out_i, overflow);</span>
 <span class="line" id="L204">                }</span>
 <span class="line" id="L205">                <span class="tok-kw">switch</span> (endian) {</span>
-<span class="line" id="L206">                    .Big =&gt; {</span>
+<span class="line" id="L206">                    .big =&gt; {</span>
 <span class="line" id="L207">                        <span class="tok-kw">if</span> (i == <span class="tok-number">0</span>) <span class="tok-kw">break</span>;</span>
 <span class="line" id="L208">                        i -= <span class="tok-number">1</span>;</span>
 <span class="line" id="L209">                    },</span>
-<span class="line" id="L210">                    .Little =&gt; {</span>
+<span class="line" id="L210">                    .little =&gt; {</span>
 <span class="line" id="L211">                        i += <span class="tok-number">1</span>;</span>
 <span class="line" id="L212">                        <span class="tok-kw">if</span> (i == bytes.len) <span class="tok-kw">break</span>;</span>
 <span class="line" id="L213">                    },</span>
@@ -349,7 +349,7 @@
 <span class="line" id="L227">                Limb,</span>
 <span class="line" id="L228">                x.limbs.constSlice(),</span>
 <span class="line" id="L229">                y.limbs.constSlice(),</span>
-<span class="line" id="L230">                .Little,</span>
+<span class="line" id="L230">                .little,</span>
 <span class="line" id="L231">            );</span>
 <span class="line" id="L232">        }</span>
 <span class="line" id="L233"></span>
@@ -805,7 +805,7 @@
 <span class="line" id="L667">            <span class="tok-kw">var</span> out = self.one();</span>
 <span class="line" id="L668">            self.toMontgomery(&amp;out) <span class="tok-kw">catch</span> <span class="tok-kw">unreachable</span>;</span>
 <span class="line" id="L669"></span>
-<span class="line" id="L670">            <span class="tok-kw">if</span> (public <span class="tok-kw">and</span> e.len &lt; <span class="tok-number">3</span> <span class="tok-kw">or</span> (e.len == <span class="tok-number">3</span> <span class="tok-kw">and</span> e[<span class="tok-kw">if</span> (endian == .Big) <span class="tok-number">0</span> <span class="tok-kw">else</span> <span class="tok-number">2</span>] &lt;= <span class="tok-number">0b1111</span>)) {</span>
+<span class="line" id="L670">            <span class="tok-kw">if</span> (public <span class="tok-kw">and</span> e.len &lt; <span class="tok-number">3</span> <span class="tok-kw">or</span> (e.len == <span class="tok-number">3</span> <span class="tok-kw">and</span> e[<span class="tok-kw">if</span> (endian == .big) <span class="tok-number">0</span> <span class="tok-kw">else</span> <span class="tok-number">2</span>] &lt;= <span class="tok-number">0b1111</span>)) {</span>
 <span class="line" id="L671">                <span class="tok-comment">// Do not use a precomputation table for short, public exponents</span>
 </span>
 <span class="line" id="L672">                <span class="tok-kw">var</span> x_m = x;</span>
@@ -813,8 +813,8 @@
 <span class="line" id="L674">                    self.toMontgomery(&amp;x_m) <span class="tok-kw">catch</span> <span class="tok-kw">unreachable</span>;</span>
 <span class="line" id="L675">                }</span>
 <span class="line" id="L676">                <span class="tok-kw">var</span> s = <span class="tok-kw">switch</span> (endian) {</span>
-<span class="line" id="L677">                    .Big =&gt; <span class="tok-number">0</span>,</span>
-<span class="line" id="L678">                    .Little =&gt; e.len - <span class="tok-number">1</span>,</span>
+<span class="line" id="L677">                    .big =&gt; <span class="tok-number">0</span>,</span>
+<span class="line" id="L678">                    .little =&gt; e.len - <span class="tok-number">1</span>,</span>
 <span class="line" id="L679">                };</span>
 <span class="line" id="L680">                <span class="tok-kw">while</span> (<span class="tok-null">true</span>) {</span>
 <span class="line" id="L681">                    <span class="tok-kw">const</span> b = e[s];</span>
@@ -829,11 +829,11 @@
 <span class="line" id="L690">                        <span class="tok-kw">if</span> (j == <span class="tok-number">0</span>) <span class="tok-kw">break</span>;</span>
 <span class="line" id="L691">                    }</span>
 <span class="line" id="L692">                    <span class="tok-kw">switch</span> (endian) {</span>
-<span class="line" id="L693">                        .Big =&gt; {</span>
+<span class="line" id="L693">                        .big =&gt; {</span>
 <span class="line" id="L694">                            s += <span class="tok-number">1</span>;</span>
 <span class="line" id="L695">                            <span class="tok-kw">if</span> (s == e.len) <span class="tok-kw">break</span>;</span>
 <span class="line" id="L696">                        },</span>
-<span class="line" id="L697">                        .Little =&gt; {</span>
+<span class="line" id="L697">                        .little =&gt; {</span>
 <span class="line" id="L698">                            <span class="tok-kw">if</span> (s == <span class="tok-number">0</span>) <span class="tok-kw">break</span>;</span>
 <span class="line" id="L699">                            s -= <span class="tok-number">1</span>;</span>
 <span class="line" id="L700">                        },</span>
@@ -851,8 +851,8 @@
 <span class="line" id="L711">                }</span>
 <span class="line" id="L712">                <span class="tok-kw">var</span> t0 = self.zero;</span>
 <span class="line" id="L713">                <span class="tok-kw">var</span> s = <span class="tok-kw">switch</span> (endian) {</span>
-<span class="line" id="L714">                    .Big =&gt; <span class="tok-number">0</span>,</span>
-<span class="line" id="L715">                    .Little =&gt; e.len - <span class="tok-number">1</span>,</span>
+<span class="line" id="L714">                    .big =&gt; <span class="tok-number">0</span>,</span>
+<span class="line" id="L715">                    .little =&gt; e.len - <span class="tok-number">1</span>,</span>
 <span class="line" id="L716">                };</span>
 <span class="line" id="L717">                <span class="tok-kw">while</span> (<span class="tok-null">true</span>) {</span>
 <span class="line" id="L718">                    <span class="tok-kw">const</span> b = e[s];</span>
@@ -877,11 +877,11 @@
 <span class="line" id="L737">                        }</span>
 <span class="line" id="L738">                    }</span>
 <span class="line" id="L739">                    <span class="tok-kw">switch</span> (endian) {</span>
-<span class="line" id="L740">                        .Big =&gt; {</span>
+<span class="line" id="L740">                        .big =&gt; {</span>
 <span class="line" id="L741">                            s += <span class="tok-number">1</span>;</span>
 <span class="line" id="L742">                            <span class="tok-kw">if</span> (s == e.len) <span class="tok-kw">break</span>;</span>
 <span class="line" id="L743">                        },</span>
-<span class="line" id="L744">                        .Little =&gt; {</span>
+<span class="line" id="L744">                        .little =&gt; {</span>
 <span class="line" id="L745">                            <span class="tok-kw">if</span> (s == <span class="tok-number">0</span>) <span class="tok-kw">break</span>;</span>
 <span class="line" id="L746">                            s -= <span class="tok-number">1</span>;</span>
 <span class="line" id="L747">                        },</span>
@@ -931,10 +931,10 @@
 <span class="line" id="L791">            <span class="tok-kw">var</span> e_normalized = Fe{ .v = e.v.normalize() };</span>
 <span class="line" id="L792">            <span class="tok-kw">var</span> buf_: [Fe.encoded_bytes]<span class="tok-type">u8</span> = <span class="tok-null">undefined</span>;</span>
 <span class="line" id="L793">            <span class="tok-kw">var</span> buf = buf_[<span class="tok-number">0</span> .. math.divCeil(<span class="tok-type">usize</span>, e_normalized.v.limbs_count() * t_bits, <span class="tok-number">8</span>) <span class="tok-kw">catch</span> <span class="tok-kw">unreachable</span>];</span>
-<span class="line" id="L794">            e_normalized.toBytes(buf, .Little) <span class="tok-kw">catch</span> <span class="tok-kw">unreachable</span>;</span>
+<span class="line" id="L794">            e_normalized.toBytes(buf, .little) <span class="tok-kw">catch</span> <span class="tok-kw">unreachable</span>;</span>
 <span class="line" id="L795">            <span class="tok-kw">const</span> leading = <span class="tok-builtin">@clz</span>(e_normalized.v.limbs.get(e_normalized.v.limbs_count() - carry_bits));</span>
 <span class="line" id="L796">            buf = buf[<span class="tok-number">0</span> .. buf.len - leading / <span class="tok-number">8</span>];</span>
-<span class="line" id="L797">            <span class="tok-kw">return</span> self.powWithEncodedPublicExponent(x, buf, .Little);</span>
+<span class="line" id="L797">            <span class="tok-kw">return</span> self.powWithEncodedPublicExponent(x, buf, .little);</span>
 <span class="line" id="L798">        }</span>
 <span class="line" id="L799"></span>
 <span class="line" id="L800">        <span class="tok-comment">/// Returns x^e (mod m), with the exponent provided as a byte string.</span></span>

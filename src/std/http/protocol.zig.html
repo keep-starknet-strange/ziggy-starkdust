@@ -734,8 +734,8 @@
 <span class="line" id="L617"></span>
 <span class="line" id="L618"><span class="tok-kw">inline</span> <span class="tok-kw">fn</span> <span class="tok-fn">intShift</span>(<span class="tok-kw">comptime</span> T: <span class="tok-type">type</span>, x: <span class="tok-kw">anytype</span>) T {</span>
 <span class="line" id="L619">    <span class="tok-kw">switch</span> (<span class="tok-builtin">@import</span>(<span class="tok-str">&quot;builtin&quot;</span>).cpu.arch.endian()) {</span>
-<span class="line" id="L620">        .Little =&gt; <span class="tok-kw">return</span> <span class="tok-builtin">@as</span>(T, <span class="tok-builtin">@truncate</span>(x &gt;&gt; (<span class="tok-builtin">@bitSizeOf</span>(<span class="tok-builtin">@TypeOf</span>(x)) - <span class="tok-builtin">@bitSizeOf</span>(T)))),</span>
-<span class="line" id="L621">        .Big =&gt; <span class="tok-kw">return</span> <span class="tok-builtin">@as</span>(T, <span class="tok-builtin">@truncate</span>(x)),</span>
+<span class="line" id="L620">        .little =&gt; <span class="tok-kw">return</span> <span class="tok-builtin">@as</span>(T, <span class="tok-builtin">@truncate</span>(x &gt;&gt; (<span class="tok-builtin">@bitSizeOf</span>(<span class="tok-builtin">@TypeOf</span>(x)) - <span class="tok-builtin">@bitSizeOf</span>(T)))),</span>
+<span class="line" id="L621">        .big =&gt; <span class="tok-kw">return</span> <span class="tok-builtin">@as</span>(T, <span class="tok-builtin">@truncate</span>(x)),</span>
 <span class="line" id="L622">    }</span>
 <span class="line" id="L623">}</span>
 <span class="line" id="L624"></span>

@@ -116,7 +116,7 @@
 <span class="line" id="L2"><span class="tok-comment">/// Zig version. When writing code that supports multiple versions of Zig, prefer</span></span>
 <span class="line" id="L3"><span class="tok-comment">/// feature detection (i.e. with `@hasDecl` or `@hasField`) over version checks.</span></span>
 <span class="line" id="L4"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> zig_version = std.SemanticVersion.parse(zig_version_string) <span class="tok-kw">catch</span> <span class="tok-kw">unreachable</span>;</span>
-<span class="line" id="L5"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> zig_version_string = <span class="tok-str">&quot;0.12.0-dev.1372+8457439a8&quot;</span>;</span>
+<span class="line" id="L5"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> zig_version_string = <span class="tok-str">&quot;0.12.0-dev.1388+d89266569&quot;</span>;</span>
 <span class="line" id="L6"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> zig_backend = std.builtin.CompilerBackend.stage2_llvm;</span>
 <span class="line" id="L7"></span>
 <span class="line" id="L8"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> output_mode = std.builtin.OutputMode.Exe;</span>
@@ -126,7 +126,7 @@
 <span class="line" id="L12"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> abi = std.Target.Abi.gnu;</span>
 <span class="line" id="L13"><span class="tok-kw">pub</span> <span class="tok-kw">const</span> cpu: std.Target.Cpu = .{</span>
 <span class="line" id="L14">    .arch = .x86_64,</span>
-<span class="line" id="L15">    .model = &amp;std.Target.x86.cpu.znver3,</span>
+<span class="line" id="L15">    .model = &amp;std.Target.x86.cpu.icelake_server,</span>
 <span class="line" id="L16">    .features = std.Target.x86.featureSet(&amp;[_]std.Target.x86.Feature{</span>
 <span class="line" id="L17">        .@&quot;64bit&quot;,</span>
 <span class="line" id="L18">        .adx,</span>
@@ -134,56 +134,56 @@
 <span class="line" id="L20">        .allow_light_256_bit,</span>
 <span class="line" id="L21">        .avx,</span>
 <span class="line" id="L22">        .avx2,</span>
-<span class="line" id="L23">        .bmi,</span>
-<span class="line" id="L24">        .bmi2,</span>
-<span class="line" id="L25">        .branchfusion,</span>
-<span class="line" id="L26">        .clflushopt,</span>
-<span class="line" id="L27">        .clwb,</span>
-<span class="line" id="L28">        .clzero,</span>
-<span class="line" id="L29">        .cmov,</span>
-<span class="line" id="L30">        .crc32,</span>
-<span class="line" id="L31">        .cx16,</span>
-<span class="line" id="L32">        .cx8,</span>
-<span class="line" id="L33">        .f16c,</span>
-<span class="line" id="L34">        .fast_15bytenop,</span>
-<span class="line" id="L35">        .fast_bextr,</span>
-<span class="line" id="L36">        .fast_lzcnt,</span>
-<span class="line" id="L37">        .fast_movbe,</span>
-<span class="line" id="L38">        .fast_scalar_fsqrt,</span>
-<span class="line" id="L39">        .fast_scalar_shift_masks,</span>
-<span class="line" id="L40">        .fast_variable_perlane_shuffle,</span>
-<span class="line" id="L41">        .fast_vector_fsqrt,</span>
-<span class="line" id="L42">        .fma,</span>
-<span class="line" id="L43">        .fsgsbase,</span>
-<span class="line" id="L44">        .fsrm,</span>
-<span class="line" id="L45">        .fxsr,</span>
-<span class="line" id="L46">        .invpcid,</span>
-<span class="line" id="L47">        .lzcnt,</span>
-<span class="line" id="L48">        .macrofusion,</span>
-<span class="line" id="L49">        .mmx,</span>
-<span class="line" id="L50">        .movbe,</span>
-<span class="line" id="L51">        .nopl,</span>
-<span class="line" id="L52">        .pclmul,</span>
-<span class="line" id="L53">        .popcnt,</span>
-<span class="line" id="L54">        .prfchw,</span>
-<span class="line" id="L55">        .rdpid,</span>
-<span class="line" id="L56">        .rdpru,</span>
-<span class="line" id="L57">        .rdrnd,</span>
-<span class="line" id="L58">        .rdseed,</span>
-<span class="line" id="L59">        .sahf,</span>
-<span class="line" id="L60">        .sbb_dep_breaking,</span>
-<span class="line" id="L61">        .sha,</span>
-<span class="line" id="L62">        .shstk,</span>
-<span class="line" id="L63">        .slow_shld,</span>
-<span class="line" id="L64">        .sse,</span>
-<span class="line" id="L65">        .sse2,</span>
-<span class="line" id="L66">        .sse3,</span>
-<span class="line" id="L67">        .sse4_1,</span>
-<span class="line" id="L68">        .sse4_2,</span>
-<span class="line" id="L69">        .sse4a,</span>
-<span class="line" id="L70">        .ssse3,</span>
-<span class="line" id="L71">        .vaes,</span>
-<span class="line" id="L72">        .vpclmulqdq,</span>
+<span class="line" id="L23">        .avx512bw,</span>
+<span class="line" id="L24">        .avx512cd,</span>
+<span class="line" id="L25">        .avx512dq,</span>
+<span class="line" id="L26">        .avx512f,</span>
+<span class="line" id="L27">        .avx512vl,</span>
+<span class="line" id="L28">        .bmi,</span>
+<span class="line" id="L29">        .bmi2,</span>
+<span class="line" id="L30">        .clflushopt,</span>
+<span class="line" id="L31">        .cmov,</span>
+<span class="line" id="L32">        .crc32,</span>
+<span class="line" id="L33">        .cx16,</span>
+<span class="line" id="L34">        .cx8,</span>
+<span class="line" id="L35">        .ermsb,</span>
+<span class="line" id="L36">        .f16c,</span>
+<span class="line" id="L37">        .fast_15bytenop,</span>
+<span class="line" id="L38">        .fast_gather,</span>
+<span class="line" id="L39">        .fast_scalar_fsqrt,</span>
+<span class="line" id="L40">        .fast_shld_rotate,</span>
+<span class="line" id="L41">        .fast_variable_crosslane_shuffle,</span>
+<span class="line" id="L42">        .fast_variable_perlane_shuffle,</span>
+<span class="line" id="L43">        .fast_vector_fsqrt,</span>
+<span class="line" id="L44">        .fma,</span>
+<span class="line" id="L45">        .fsgsbase,</span>
+<span class="line" id="L46">        .fsrm,</span>
+<span class="line" id="L47">        .fxsr,</span>
+<span class="line" id="L48">        .idivq_to_divl,</span>
+<span class="line" id="L49">        .invpcid,</span>
+<span class="line" id="L50">        .lzcnt,</span>
+<span class="line" id="L51">        .macrofusion,</span>
+<span class="line" id="L52">        .mmx,</span>
+<span class="line" id="L53">        .movbe,</span>
+<span class="line" id="L54">        .no_bypass_delay_blend,</span>
+<span class="line" id="L55">        .no_bypass_delay_mov,</span>
+<span class="line" id="L56">        .no_bypass_delay_shuffle,</span>
+<span class="line" id="L57">        .nopl,</span>
+<span class="line" id="L58">        .pclmul,</span>
+<span class="line" id="L59">        .popcnt,</span>
+<span class="line" id="L60">        .prefer_256_bit,</span>
+<span class="line" id="L61">        .prfchw,</span>
+<span class="line" id="L62">        .rdrnd,</span>
+<span class="line" id="L63">        .rdseed,</span>
+<span class="line" id="L64">        .rtm,</span>
+<span class="line" id="L65">        .sahf,</span>
+<span class="line" id="L66">        .sse,</span>
+<span class="line" id="L67">        .sse2,</span>
+<span class="line" id="L68">        .sse3,</span>
+<span class="line" id="L69">        .sse4_1,</span>
+<span class="line" id="L70">        .sse4_2,</span>
+<span class="line" id="L71">        .ssse3,</span>
+<span class="line" id="L72">        .tuning_fast_imm_vector_shift,</span>
 <span class="line" id="L73">        .vzeroupper,</span>
 <span class="line" id="L74">        .x87,</span>
 <span class="line" id="L75">        .xsave,</span>

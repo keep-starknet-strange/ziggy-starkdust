@@ -1635,7 +1635,7 @@
 <span class="line" id="L1376">        .capable_io_mode = .blocking,</span>
 <span class="line" id="L1377">        .intended_io_mode = .blocking,</span>
 <span class="line" id="L1378">    };</span>
-<span class="line" id="L1379">    file.writer().writeIntNative(<span class="tok-type">u64</span>, <span class="tok-builtin">@as</span>(<span class="tok-type">u64</span>, <span class="tok-builtin">@intCast</span>(value))) <span class="tok-kw">catch</span> <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SystemResources;</span>
+<span class="line" id="L1379">    file.writer().writeInt(<span class="tok-type">u64</span>, <span class="tok-builtin">@intCast</span>(value), .little) <span class="tok-kw">catch</span> <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SystemResources;</span>
 <span class="line" id="L1380">}</span>
 <span class="line" id="L1381"></span>
 <span class="line" id="L1382"><span class="tok-kw">fn</span> <span class="tok-fn">readIntFd</span>(fd: <span class="tok-type">i32</span>) !ErrInt {</span>
@@ -1644,7 +1644,7 @@
 <span class="line" id="L1385">        .capable_io_mode = .blocking,</span>
 <span class="line" id="L1386">        .intended_io_mode = .blocking,</span>
 <span class="line" id="L1387">    };</span>
-<span class="line" id="L1388">    <span class="tok-kw">return</span> <span class="tok-builtin">@as</span>(ErrInt, <span class="tok-builtin">@intCast</span>(file.reader().readIntNative(<span class="tok-type">u64</span>) <span class="tok-kw">catch</span> <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SystemResources));</span>
+<span class="line" id="L1388">    <span class="tok-kw">return</span> <span class="tok-builtin">@as</span>(ErrInt, <span class="tok-builtin">@intCast</span>(file.reader().readInt(<span class="tok-type">u64</span>, .little) <span class="tok-kw">catch</span> <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SystemResources));</span>
 <span class="line" id="L1389">}</span>
 <span class="line" id="L1390"></span>
 <span class="line" id="L1391"><span class="tok-comment">/// Caller must free result.</span></span>

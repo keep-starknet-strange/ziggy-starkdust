@@ -1973,7 +1973,7 @@
 <span class="line" id="L1829"><span class="tok-kw">test</span> <span class="tok-str">&quot;ComponentIterator windows UTF-16&quot;</span> {</span>
 <span class="line" id="L1830">    <span class="tok-comment">// TODO: Fix on big endian architectures</span>
 </span>
-<span class="line" id="L1831">    <span class="tok-kw">if</span> (builtin.cpu.arch.endian() != .Little) {</span>
+<span class="line" id="L1831">    <span class="tok-kw">if</span> (builtin.cpu.arch.endian() != .little) {</span>
 <span class="line" id="L1832">        <span class="tok-kw">return</span> <span class="tok-kw">error</span>.SkipZigTest;</span>
 <span class="line" id="L1833">    }</span>
 <span class="line" id="L1834"></span>

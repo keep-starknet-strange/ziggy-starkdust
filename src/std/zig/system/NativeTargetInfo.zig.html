@@ -687,8 +687,8 @@
 <span class="line" id="L488">    <span class="tok-kw">const</span> hdr64 = <span class="tok-builtin">@as</span>(*elf.Elf64_Ehdr, <span class="tok-builtin">@ptrCast</span>(&amp;hdr_buf));</span>
 <span class="line" id="L489">    <span class="tok-kw">if</span> (!mem.eql(<span class="tok-type">u8</span>, hdr32.e_ident[<span class="tok-number">0</span>..<span class="tok-number">4</span>], elf.MAGIC)) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.InvalidElfMagic;</span>
 <span class="line" id="L490">    <span class="tok-kw">const</span> elf_endian: std.builtin.Endian = <span class="tok-kw">switch</span> (hdr32.e_ident[elf.EI_DATA]) {</span>
-<span class="line" id="L491">        elf.ELFDATA2LSB =&gt; .Little,</span>
-<span class="line" id="L492">        elf.ELFDATA2MSB =&gt; .Big,</span>
+<span class="line" id="L491">        elf.ELFDATA2LSB =&gt; .little,</span>
+<span class="line" id="L492">        elf.ELFDATA2MSB =&gt; .big,</span>
 <span class="line" id="L493">        <span class="tok-kw">else</span> =&gt; <span class="tok-kw">return</span> <span class="tok-kw">error</span>.InvalidElfEndian,</span>
 <span class="line" id="L494">    };</span>
 <span class="line" id="L495">    <span class="tok-kw">const</span> need_bswap = elf_endian != native_endian;</span>
@@ -846,8 +846,8 @@
 <span class="line" id="L635">    <span class="tok-kw">const</span> hdr64 = <span class="tok-builtin">@as</span>(*elf.Elf64_Ehdr, <span class="tok-builtin">@ptrCast</span>(&amp;hdr_buf));</span>
 <span class="line" id="L636">    <span class="tok-kw">if</span> (!mem.eql(<span class="tok-type">u8</span>, hdr32.e_ident[<span class="tok-number">0</span>..<span class="tok-number">4</span>], elf.MAGIC)) <span class="tok-kw">return</span> <span class="tok-kw">error</span>.InvalidElfMagic;</span>
 <span class="line" id="L637">    <span class="tok-kw">const</span> elf_endian: std.builtin.Endian = <span class="tok-kw">switch</span> (hdr32.e_ident[elf.EI_DATA]) {</span>
-<span class="line" id="L638">        elf.ELFDATA2LSB =&gt; .Little,</span>
-<span class="line" id="L639">        elf.ELFDATA2MSB =&gt; .Big,</span>
+<span class="line" id="L638">        elf.ELFDATA2LSB =&gt; .little,</span>
+<span class="line" id="L639">        elf.ELFDATA2MSB =&gt; .big,</span>
 <span class="line" id="L640">        <span class="tok-kw">else</span> =&gt; <span class="tok-kw">return</span> <span class="tok-kw">error</span>.InvalidElfEndian,</span>
 <span class="line" id="L641">    };</span>
 <span class="line" id="L642">    <span class="tok-kw">const</span> need_bswap = elf_endian != native_endian;</span>
