@@ -2063,5 +2063,146 @@
 <span class="line" id="L1491">    }</span>
 <span class="line" id="L1492">}</span>
 <span class="line" id="L1493"></span>
+<span class="line" id="L1494"><span class="tok-kw">test</span> <span class="tok-str">&quot;updateRegisters all regular&quot;</span> {</span>
+<span class="line" id="L1495">    <span class="tok-comment">// Test setup</span>
+</span>
+<span class="line" id="L1496">    <span class="tok-kw">var</span> instruction = instructions.Instruction{</span>
+<span class="line" id="L1497">        .off_0 = <span class="tok-number">1</span>,</span>
+<span class="line" id="L1498">        .off_1 = <span class="tok-number">2</span>,</span>
+<span class="line" id="L1499">        .off_2 = <span class="tok-number">3</span>,</span>
+<span class="line" id="L1500">        .dst_reg = .FP,</span>
+<span class="line" id="L1501">        .op_0_reg = .AP,</span>
+<span class="line" id="L1502">        .op_1_addr = .AP,</span>
+<span class="line" id="L1503">        .res_logic = .Add,</span>
+<span class="line" id="L1504">        .pc_update = .Regular,</span>
+<span class="line" id="L1505">        .ap_update = .Regular,</span>
+<span class="line" id="L1506">        .fp_update = .Regular,</span>
+<span class="line" id="L1507">        .opcode = .NOp,</span>
+<span class="line" id="L1508">    };</span>
+<span class="line" id="L1509"></span>
+<span class="line" id="L1510">    <span class="tok-kw">var</span> operands = OperandsResult{</span>
+<span class="line" id="L1511">        .dst = .{ .felt = Felt252.fromInteger(<span class="tok-number">11</span>) },</span>
+<span class="line" id="L1512">        .res = .{ .felt = Felt252.fromInteger(<span class="tok-number">8</span>) },</span>
+<span class="line" id="L1513">        .op_0 = .{ .felt = Felt252.fromInteger(<span class="tok-number">9</span>) },</span>
+<span class="line" id="L1514">        .op_1 = .{ .felt = Felt252.fromInteger(<span class="tok-number">10</span>) },</span>
+<span class="line" id="L1515">        .dst_addr = .{},</span>
+<span class="line" id="L1516">        .op_0_addr = .{},</span>
+<span class="line" id="L1517">        .op_1_addr = .{},</span>
+<span class="line" id="L1518">    };</span>
+<span class="line" id="L1519"></span>
+<span class="line" id="L1520">    <span class="tok-comment">// Create a new VM instance.</span>
+</span>
+<span class="line" id="L1521">    <span class="tok-kw">var</span> vm = <span class="tok-kw">try</span> CairoVM.init(</span>
+<span class="line" id="L1522">        std.testing.allocator,</span>
+<span class="line" id="L1523">        .{},</span>
+<span class="line" id="L1524">    );</span>
+<span class="line" id="L1525">    <span class="tok-kw">defer</span> vm.deinit();</span>
+<span class="line" id="L1526">    vm.run_context.pc.* = Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">4</span>);</span>
+<span class="line" id="L1527">    vm.run_context.ap.* = Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">5</span>);</span>
+<span class="line" id="L1528">    vm.run_context.fp.* = Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">6</span>);</span>
+<span class="line" id="L1529"></span>
+<span class="line" id="L1530">    <span class="tok-comment">// Test body</span>
+</span>
+<span class="line" id="L1531">    <span class="tok-kw">try</span> vm.updateRegisters(</span>
+<span class="line" id="L1532">        &amp;instruction,</span>
+<span class="line" id="L1533">        operands,</span>
+<span class="line" id="L1534">    );</span>
+<span class="line" id="L1535"></span>
+<span class="line" id="L1536">    <span class="tok-comment">// Test checks</span>
+</span>
+<span class="line" id="L1537">    <span class="tok-comment">// Verify the PC offset was incremented by 5.</span>
+</span>
+<span class="line" id="L1538">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L1539">        Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">5</span>),</span>
+<span class="line" id="L1540">        vm.getPc(),</span>
+<span class="line" id="L1541">    );</span>
+<span class="line" id="L1542"></span>
+<span class="line" id="L1543">    <span class="tok-comment">// Verify the AP offset was incremented by 5.</span>
+</span>
+<span class="line" id="L1544">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L1545">        Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">5</span>),</span>
+<span class="line" id="L1546">        vm.getAp(),</span>
+<span class="line" id="L1547">    );</span>
+<span class="line" id="L1548"></span>
+<span class="line" id="L1549">    <span class="tok-comment">// Verify the FP offset was incremented by 6.</span>
+</span>
+<span class="line" id="L1550">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L1551">        Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">6</span>),</span>
+<span class="line" id="L1552">        vm.getFp(),</span>
+<span class="line" id="L1553">    );</span>
+<span class="line" id="L1554">}</span>
+<span class="line" id="L1555"></span>
+<span class="line" id="L1556"><span class="tok-kw">test</span> <span class="tok-str">&quot;updateRegisters with mixed types&quot;</span> {</span>
+<span class="line" id="L1557">    <span class="tok-comment">// Test setup</span>
+</span>
+<span class="line" id="L1558">    <span class="tok-kw">var</span> instruction = instructions.Instruction{</span>
+<span class="line" id="L1559">        .off_0 = <span class="tok-number">1</span>,</span>
+<span class="line" id="L1560">        .off_1 = <span class="tok-number">2</span>,</span>
+<span class="line" id="L1561">        .off_2 = <span class="tok-number">3</span>,</span>
+<span class="line" id="L1562">        .dst_reg = .FP,</span>
+<span class="line" id="L1563">        .op_0_reg = .AP,</span>
+<span class="line" id="L1564">        .op_1_addr = .AP,</span>
+<span class="line" id="L1565">        .res_logic = .Add,</span>
+<span class="line" id="L1566">        .pc_update = .JumpRel,</span>
+<span class="line" id="L1567">        .ap_update = .Add2,</span>
+<span class="line" id="L1568">        .fp_update = .Dst,</span>
+<span class="line" id="L1569">        .opcode = .NOp,</span>
+<span class="line" id="L1570">    };</span>
+<span class="line" id="L1571"></span>
+<span class="line" id="L1572">    <span class="tok-kw">var</span> operands = OperandsResult{</span>
+<span class="line" id="L1573">        .dst = .{ .relocatable = Relocatable.new(</span>
+<span class="line" id="L1574">            <span class="tok-number">1</span>,</span>
+<span class="line" id="L1575">            <span class="tok-number">11</span>,</span>
+<span class="line" id="L1576">        ) },</span>
+<span class="line" id="L1577">        .res = .{ .felt = Felt252.fromInteger(<span class="tok-number">8</span>) },</span>
+<span class="line" id="L1578">        .op_0 = .{ .felt = Felt252.fromInteger(<span class="tok-number">9</span>) },</span>
+<span class="line" id="L1579">        .op_1 = .{ .felt = Felt252.fromInteger(<span class="tok-number">10</span>) },</span>
+<span class="line" id="L1580">        .dst_addr = .{},</span>
+<span class="line" id="L1581">        .op_0_addr = .{},</span>
+<span class="line" id="L1582">        .op_1_addr = .{},</span>
+<span class="line" id="L1583">    };</span>
+<span class="line" id="L1584"></span>
+<span class="line" id="L1585">    <span class="tok-comment">// Create a new VM instance.</span>
+</span>
+<span class="line" id="L1586">    <span class="tok-kw">var</span> vm = <span class="tok-kw">try</span> CairoVM.init(</span>
+<span class="line" id="L1587">        std.testing.allocator,</span>
+<span class="line" id="L1588">        .{},</span>
+<span class="line" id="L1589">    );</span>
+<span class="line" id="L1590">    <span class="tok-kw">defer</span> vm.deinit();</span>
+<span class="line" id="L1591">    vm.run_context.pc.* = Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">4</span>);</span>
+<span class="line" id="L1592">    vm.run_context.ap.* = Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">5</span>);</span>
+<span class="line" id="L1593">    vm.run_context.fp.* = Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">6</span>);</span>
+<span class="line" id="L1594"></span>
+<span class="line" id="L1595">    <span class="tok-comment">// Test body</span>
+</span>
+<span class="line" id="L1596">    <span class="tok-kw">try</span> vm.updateRegisters(</span>
+<span class="line" id="L1597">        &amp;instruction,</span>
+<span class="line" id="L1598">        operands,</span>
+<span class="line" id="L1599">    );</span>
+<span class="line" id="L1600"></span>
+<span class="line" id="L1601">    <span class="tok-comment">// Test checks</span>
+</span>
+<span class="line" id="L1602">    <span class="tok-comment">// Verify the PC offset was incremented by 12.</span>
+</span>
+<span class="line" id="L1603">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L1604">        Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">12</span>),</span>
+<span class="line" id="L1605">        vm.getPc(),</span>
+<span class="line" id="L1606">    );</span>
+<span class="line" id="L1607"></span>
+<span class="line" id="L1608">    <span class="tok-comment">// Verify the AP offset was incremented by 7.</span>
+</span>
+<span class="line" id="L1609">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L1610">        Relocatable.new(<span class="tok-number">0</span>, <span class="tok-number">7</span>),</span>
+<span class="line" id="L1611">        vm.getAp(),</span>
+<span class="line" id="L1612">    );</span>
+<span class="line" id="L1613"></span>
+<span class="line" id="L1614">    <span class="tok-comment">// Verify the FP offset was incremented by 11.</span>
+</span>
+<span class="line" id="L1615">    <span class="tok-kw">try</span> expectEqual(</span>
+<span class="line" id="L1616">        Relocatable.new(<span class="tok-number">1</span>, <span class="tok-number">11</span>),</span>
+<span class="line" id="L1617">        vm.getFp(),</span>
+<span class="line" id="L1618">    );</span>
+<span class="line" id="L1619">}</span>
+<span class="line" id="L1620"></span>
 </code></pre></body>
 </html>
