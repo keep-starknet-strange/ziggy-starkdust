@@ -61,8 +61,8 @@ pub const RangeCheckBuiltinRunner = struct {
         n_parts: u32,
         included: bool,
     ) Self {
-        var bound = Felt252.one().overflowing_shl(16 * n_parts);
-        var _bound: ?Felt252 = if (n_parts != 0 and bound.zero()) null else Felt252.new(bound);
+        const bound = Felt252.one().overflowing_shl(16 * n_parts);
+        const _bound: ?Felt252 = if (n_parts != 0 and bound.zero()) null else Felt252.new(bound);
 
         return .{
             .ratio = ratio,
@@ -106,7 +106,7 @@ pub const RangeCheckBuiltinRunner = struct {
     /// # Modifies
     /// - `self`: Updates the `base` value to the new segment's index.
     pub fn initialize_segments(self: *Self, segments: *MemorySegmentManager) void {
-        self.base = @as(usize, @intCast(segments.add().segment_index));
+        self.base = segments.add().segment_index;
     }
 
     /// Initializes and returns an `ArrayList` of `MaybeRelocatable` values.
