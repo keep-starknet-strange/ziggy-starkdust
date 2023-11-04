@@ -753,9 +753,11 @@ test "deduceOp0 when opcode == .Call" {
     // *                      TEST CHECKS                         *
     // ************************************************************
     const expected_op_0: ?MaybeRelocatable = relocatable.newFromRelocatable(relocatable.Relocatable.new(0, 1)); // temp var needed for type inference
-    const expected_res: ?MaybeRelocatable = null;
     try expectEqual(expected_op_0, op0);
-    try expectEqual(expected_res, res);
+    try expectEqual(
+        @as(?MaybeRelocatable, null),
+        res,
+    );
 }
 
 test "deduceOp0 when opcode == .AssertEq, res_logic == .Add, input is felt" {
@@ -813,10 +815,14 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Add, with no input" {
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
-    const expected_op_0: ?MaybeRelocatable = null; // temp var needed for type inference
-    const expected_res: ?MaybeRelocatable = null;
-    try expectEqual(expected_op_0, op0);
-    try expectEqual(expected_res, res);
+    try expectEqual(
+        @as(?MaybeRelocatable, null),
+        op0,
+    );
+    try expectEqual(
+        @as(?MaybeRelocatable, null),
+        res,
+    );
 }
 
 test "deduceOp0 when opcode == .AssertEq, res_logic == .Mul, input is felt 1" {
@@ -879,10 +885,14 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Op1, input is felt" {
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
-    const expected_op_0: ?MaybeRelocatable = null; // temp var needed for type inference
-    const expected_res: ?MaybeRelocatable = null;
-    try expectEqual(expected_op_0, op0);
-    try expectEqual(expected_res, res);
+    try expectEqual(
+        @as(?MaybeRelocatable, null),
+        op0,
+    );
+    try expectEqual(
+        @as(?MaybeRelocatable, null),
+        res,
+    );
 }
 
 test "deduceOp0 when opcode == .AssertEq, res_logic == .Mul, input is felt 2" {
@@ -912,10 +922,14 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Mul, input is felt 2" {
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
-    const expected_op_0: ?MaybeRelocatable = null; // temp var needed for type inference
-    const expected_res: ?MaybeRelocatable = null;
-    try expectEqual(expected_op_0, op0);
-    try expectEqual(expected_res, res);
+    try expectEqual(
+        @as(?MaybeRelocatable, null),
+        op0,
+    );
+    try expectEqual(
+        @as(?MaybeRelocatable, null),
+        res,
+    );
 }
 
 test "deduceOp0 when opcode == .Ret, res_logic == .Mul, input is felt" {
@@ -945,10 +959,14 @@ test "deduceOp0 when opcode == .Ret, res_logic == .Mul, input is felt" {
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
-    const expected_op_0: ?MaybeRelocatable = null; // temp var needed for type inference
-    const expected_res: ?MaybeRelocatable = null;
-    try expectEqual(expected_op_0, op0);
-    try expectEqual(expected_res, res);
+    try expectEqual(
+        @as(?MaybeRelocatable, null),
+        op0,
+    );
+    try expectEqual(
+        @as(?MaybeRelocatable, null),
+        res,
+    );
 }
 
 test "deduceOp1 when opcode == .Call" {
@@ -970,14 +988,12 @@ test "deduceOp1 when opcode == .Call" {
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
-    const expected_op_1: ?MaybeRelocatable = null; // temp var needed for type inference
-    const expected_res: ?MaybeRelocatable = null;
     try expectEqual(
-        expected_op_1,
+        @as(?MaybeRelocatable, null),
         op1,
     );
     try expectEqual(
-        expected_res,
+        @as(?MaybeRelocatable, null),
         res,
     );
 }
@@ -1059,14 +1075,12 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
-    const expected_op_1: ?MaybeRelocatable = null; // temp var needed for type inference
-    const expected_res: ?MaybeRelocatable = null;
     try expectEqual(
-        expected_op_1,
+        @as(?MaybeRelocatable, null),
         op1,
     );
     try expectEqual(
-        expected_res,
+        @as(?MaybeRelocatable, null),
         res,
     );
 }
@@ -1091,14 +1105,12 @@ test "deduceOp1 when opcode == .AssertEq, res_logic = .Mul, no input" {
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
-    const expected_op_1: ?MaybeRelocatable = null; // temp var needed for type inference
-    const expected_res: ?MaybeRelocatable = null;
     try expectEqual(
-        expected_op_1,
+        @as(?MaybeRelocatable, null),
         op1,
     );
     try expectEqual(
-        expected_res,
+        @as(?MaybeRelocatable, null),
         res,
     );
 }
@@ -1125,14 +1137,12 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
-    const expected_op_1: ?MaybeRelocatable = null; // temp var needed for type inference
-    const expected_res: ?MaybeRelocatable = null;
     try expectEqual(
-        expected_op_1,
+        @as(?MaybeRelocatable, null),
         op1,
     );
     try expectEqual(
-        expected_res,
+        @as(?MaybeRelocatable, null),
         res,
     );
 }
