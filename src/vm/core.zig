@@ -151,7 +151,11 @@ pub const CairoVM = struct {
         }
 
         const operands_result = try self.computeOperands(instruction);
-        _ = operands_result;
+
+        try self.updateRegisters(
+            instruction,
+            operands_result,
+        );
     }
 
     /// Compute the operands for a given instruction.
@@ -371,6 +375,16 @@ pub const CairoVM = struct {
             },
             else => {},
         }
+    }
+
+    pub fn updateRegisters(
+        self: *Self,
+        instruction: *const instructions.Instruction,
+        operands: OperandsResult,
+    ) !void {
+        try self.updateFp(instruction, operands);
+        try self.updateAp(instruction, operands);
+        try self.updatePc(instruction, operands);
     }
 
     // ************************************************************
