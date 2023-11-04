@@ -11,8 +11,6 @@ const validation_rule = @import("../../memory/memory.zig").validation_rule;
 const Memory = @import("../../memory/memory.zig").Memory;
 const Field = @import("../../../math/fields/starknet.zig").Field;
 
-//const Memory = memory.Memory;
-//const validaiton_rule = memory.validation_rule;
 const Relocatable = relocatable.Relocatable;
 const MaybeRelocatable = relocatable.MaybeRelocatable;
 const MemoryError = Error.MemoryError;
@@ -238,9 +236,9 @@ pub const RangeCheckBuiltinRunner = struct {
     pub fn range_check_validation_rule(memory: *Memory, address: Relocatable) std.ArrayList(!Relocatable) {
         const addr = memory.get(address);
         if (addr.bits <= N_PARTS * INNER_RC_BOUND_SHIFT) {
-            return std.ArrayList(address);
+            return std.ArrayList.append(address);
         } else {
-            return std.ArrayList(Error.MemoryOutOfBounds);
+            return std.ArrayList.append(Error.MemoryOutOfBounds);
         }
     }
 

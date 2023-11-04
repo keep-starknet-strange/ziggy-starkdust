@@ -12,7 +12,7 @@ const CairoVMError = @import("../error.zig").CairoVMError;
 const starknet_felt = @import("../../math/fields/starknet.zig");
 
 // Function that validates a memory address and returns a list of validated adresses
-pub const validation_rule = fn (*Memory, Relocatable) (std.ArrayList(!Relocatable));
+pub const validation_rule = *const fn (*Memory, Relocatable) std.ArrayList(Relocatable);
 
 // Representation of the VM memory.
 pub const Memory = struct {
