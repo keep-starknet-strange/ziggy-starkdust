@@ -733,7 +733,10 @@ test "deduceOp0 when opcode == .Call" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
-    var vm = try CairoVM.init(std.testing.allocator, .{});
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
     defer vm.deinit();
 
     // ************************************************************
@@ -759,7 +762,10 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Add, input is felt" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
-    var vm = try CairoVM.init(std.testing.allocator, .{});
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
     defer vm.deinit();
 
     // ************************************************************
@@ -787,7 +793,10 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Add, with no input" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
-    var vm = try CairoVM.init(std.testing.allocator, .{});
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
     defer vm.deinit();
 
     // ************************************************************
@@ -814,7 +823,10 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Mul, input is felt 1" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
-    var vm = try CairoVM.init(std.testing.allocator, .{});
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
     defer vm.deinit();
 
     // ************************************************************
@@ -844,7 +856,10 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Op1, input is felt" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
-    var vm = try CairoVM.init(std.testing.allocator, .{});
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
     defer vm.deinit();
 
     // ************************************************************
@@ -874,7 +889,10 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Mul, input is felt 2" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
-    var vm = try CairoVM.init(std.testing.allocator, .{});
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
     defer vm.deinit();
 
     // ************************************************************
@@ -904,7 +922,10 @@ test "deduceOp0 when opcode == .Ret, res_logic == .Mul, input is felt" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
-    var vm = try CairoVM.init(std.testing.allocator, .{});
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
     defer vm.deinit();
 
     // ************************************************************
@@ -1240,7 +1261,10 @@ test "compute res add felts works" {
 
 test "compute res add felt to offset works" {
     // Create a new VM instance.
-    var vm = try CairoVM.init(std.testing.allocator, .{});
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
     defer vm.deinit();
 
     vm.run_context.ap.* = Relocatable.new(1, 0);
@@ -1416,7 +1440,10 @@ test "compute res mul fails felt and reloc" {
 
 test "compute res mul with res_logic unconstrained should return null" {
     // Create a new VM instance.
-    var vm = try CairoVM.init(std.testing.allocator, .{});
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
     defer vm.deinit();
     try expectEqual(
         @as(
