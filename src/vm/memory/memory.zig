@@ -11,6 +11,9 @@ const Relocatable = relocatable.Relocatable;
 const CairoVMError = @import("../error.zig").CairoVMError;
 const starknet_felt = @import("../../math/fields/starknet.zig");
 
+// Function that validates a memory address and returns a list of validated adresses
+pub const validation_rule = fn (*Memory, Relocatable) (std.ArrayList(!Relocatable));
+
 // Representation of the VM memory.
 pub const Memory = struct {
     const Self = @This();
@@ -37,6 +40,12 @@ pub const Memory = struct {
         std.hash_map.AutoContext(Relocatable),
         std.hash_map.default_max_load_percentage,
     ),
+    validation_rules: std.HashMap(
+        u32,
+        validation_rule,
+        std.hash_map.AutoContext(u32),
+        std.hash_map.default_max_load_percentage,
+    ),
 
     // ************************************************************
     // *             MEMORY ALLOCATION AND DEALLOCATION           *
@@ -60,6 +69,10 @@ pub const Memory = struct {
             .validated_addresses = std.AutoHashMap(
                 Relocatable,
                 bool,
+            ).init(allocator),
+            .validation_rules = std.AutoHashMap(
+                u32,
+                validation_rule,
             ).init(allocator),
         };
         return memory;
@@ -117,6 +130,14 @@ pub const Memory = struct {
         address: Relocatable,
     ) error{MemoryOutOfBounds}!MaybeRelocatable {
         return self.data.get(address) orelse CairoVMError.MemoryOutOfBounds;
+    }
+
+    // Adds a validation rule for a given segment.
+    // # Arguments
+    // - `segment_index` - The index of the segment.
+    // - `rule` - The validation rule.
+    pub fn add_validation_rule(self: *Self, segment_index: usize, rule: validation_rule) !void {
+        self.validation_rules.put(segment_index, rule);
     }
 };
 

@@ -7,11 +7,19 @@ const range_check_instance_def = @import("../../types/range_check_instance_def.z
 const MemorySegmentManager = @import("../../memory/segments.zig").MemorySegmentManager;
 const relocatable = @import("../../memory/relocatable.zig");
 const Error = @import("../../error.zig");
+const validation_rule = @import("../../memory/memory.zig").validation_rule;
+const Memory = @import("../../memory/memory.zig").Memory;
+const Field = @import("../../../math/fields/starknet.zig").Field;
 
+//const Memory = memory.Memory;
+//const validaiton_rule = memory.validation_rule;
 const Relocatable = relocatable.Relocatable;
 const MaybeRelocatable = relocatable.MaybeRelocatable;
 const MemoryError = Error.MemoryError;
 const RunnerError = Error.RunnerError;
+
+const N_PARTS: u64 = 8;
+const INNER_RC_BOUND_SHIFT: u64 = 16;
 
 /// Range check built-in runner
 pub const RangeCheckBuiltinRunner = struct {
@@ -55,7 +63,7 @@ pub const RangeCheckBuiltinRunner = struct {
         n_parts: u32,
         included: bool,
     ) Self {
-        var bound = Felt252.one().shl(16 * n_parts);
+        var bound = Felt252.one().overflowing_shl(16 * n_parts);
         var _bound: ?Felt252 = if (n_parts != 0 and bound.zero()) null else Felt252.new(bound);
 
         return .{
@@ -143,10 +151,29 @@ pub const RangeCheckBuiltinRunner = struct {
         ) orelse MemoryError.MissingSegmentUsedSizes;
     }
 
+    /// Calculates the number of used instances for the Range Check runner.
+    ///
+    /// This function computes the number of used instances based on the available
+    /// used cells and the number of cells per instance. It performs a ceiling division
+    /// to ensure that any remaining cells are counted as an additional instance.
+    ///
+    /// # Parameters
+    /// - `segments`: A pointer to the `MemorySegmentManager` for segment information.
+    ///
+    /// # Returns
+    /// The number of used instances as a `usize`.
+    pub fn get_used_instances(self: *Self, segments: *MemorySegmentManager) !usize {
+        return std.math.divCeil(
+            usize,
+            try self.get_used_cells(segments),
+            @intCast(self.cells_per_instance),
+        );
+    }
+
     /// Retrieves memory segment addresses as a tuple.
     ///
     /// Returns a tuple containing the `base` and `stop_ptr` addresses associated
-    /// with the Keccak runner's memory segments. The `stop_ptr` may be `null`.
+    /// with the Range Check runner's memory segments. The `stop_ptr` may be `null`.
     ///
     /// # Returns
     /// A tuple of `usize` and `?usize` addresses.
@@ -206,5 +233,18 @@ pub const RangeCheckBuiltinRunner = struct {
 
         self.stop_ptr = 0;
         return pointer;
+    }
+
+    pub fn range_check_validation_rule(memory: *Memory, address: Relocatable) std.ArrayList(!Relocatable) {
+        const addr = memory.get(address);
+        if (addr.bits <= N_PARTS * INNER_RC_BOUND_SHIFT) {
+            return std.ArrayList(address);
+        } else {
+            return std.ArrayList(Error.MemoryOutOfBounds);
+        }
+    }
+
+    pub fn add_validation_rule(self: *const Self, memory: *Memory) void {
+        memory.add_validation_rule(self.base.segment_index, range_check_validation_rule);
     }
 };
