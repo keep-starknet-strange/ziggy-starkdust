@@ -1490,3 +1490,130 @@ test "memory is not leaked upon allocation failure during initialization" {
         vm.deinit();
     }
 }
+
+test "updateRegisters all regular" {
+    // Test setup
+    var instruction = instructions.Instruction{
+        .off_0 = 1,
+        .off_1 = 2,
+        .off_2 = 3,
+        .dst_reg = .FP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
+    };
+
+    var operands = OperandsResult{
+        .dst = .{ .felt = Felt252.fromInteger(11) },
+        .res = .{ .felt = Felt252.fromInteger(8) },
+        .op_0 = .{ .felt = Felt252.fromInteger(9) },
+        .op_1 = .{ .felt = Felt252.fromInteger(10) },
+        .dst_addr = .{},
+        .op_0_addr = .{},
+        .op_1_addr = .{},
+    };
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+    vm.run_context.pc.* = Relocatable.new(0, 4);
+    vm.run_context.ap.* = Relocatable.new(0, 5);
+    vm.run_context.fp.* = Relocatable.new(0, 6);
+
+    // Test body
+    try vm.updateRegisters(
+        &instruction,
+        operands,
+    );
+
+    // Test checks
+    // Verify the PC offset was incremented by 5.
+    try expectEqual(
+        Relocatable.new(0, 5),
+        vm.getPc(),
+    );
+
+    // Verify the AP offset was incremented by 5.
+    try expectEqual(
+        Relocatable.new(0, 5),
+        vm.getAp(),
+    );
+
+    // Verify the FP offset was incremented by 6.
+    try expectEqual(
+        Relocatable.new(0, 6),
+        vm.getFp(),
+    );
+}
+
+test "updateRegisters with mixed types" {
+    // Test setup
+    var instruction = instructions.Instruction{
+        .off_0 = 1,
+        .off_1 = 2,
+        .off_2 = 3,
+        .dst_reg = .FP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .JumpRel,
+        .ap_update = .Add2,
+        .fp_update = .Dst,
+        .opcode = .NOp,
+    };
+
+    var operands = OperandsResult{
+        .dst = .{ .relocatable = Relocatable.new(
+            1,
+            11,
+        ) },
+        .res = .{ .felt = Felt252.fromInteger(8) },
+        .op_0 = .{ .felt = Felt252.fromInteger(9) },
+        .op_1 = .{ .felt = Felt252.fromInteger(10) },
+        .dst_addr = .{},
+        .op_0_addr = .{},
+        .op_1_addr = .{},
+    };
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+    vm.run_context.pc.* = Relocatable.new(0, 4);
+    vm.run_context.ap.* = Relocatable.new(0, 5);
+    vm.run_context.fp.* = Relocatable.new(0, 6);
+
+    // Test body
+    try vm.updateRegisters(
+        &instruction,
+        operands,
+    );
+
+    // Test checks
+    // Verify the PC offset was incremented by 12.
+    try expectEqual(
+        Relocatable.new(0, 12),
+        vm.getPc(),
+    );
+
+    // Verify the AP offset was incremented by 7.
+    try expectEqual(
+        Relocatable.new(0, 7),
+        vm.getAp(),
+    );
+
+    // Verify the FP offset was incremented by 11.
+    try expectEqual(
+        Relocatable.new(1, 11),
+        vm.getFp(),
+    );
+}
