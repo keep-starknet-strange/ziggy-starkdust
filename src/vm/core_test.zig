@@ -763,7 +763,7 @@ test "deduceOp0 when opcode == .Call" {
                 1,
             ),
         ),
-        op0,
+        op0.?,
     );
     try expectEqual(
         @as(?MaybeRelocatable, null),
@@ -877,11 +877,11 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Mul, input is felt 1" {
     // ************************************************************
     try expectEqual(
         relocatable.fromU64(2),
-        op0,
+        op0.?,
     );
     try expectEqual(
         relocatable.fromU64(4),
-        res,
+        res.?,
     );
 }
 
@@ -1256,7 +1256,9 @@ test "compute res op1 works" {
     vm.run_context.ap.* = Relocatable.new(1, 0);
 
     try expectEqual(
-        relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3)),
+        relocatable.fromFelt(
+            starknet_felt.Felt252.fromInteger(3),
+        ),
         (try computeRes(
             &.{
                 .off_0 = 0,
@@ -1271,8 +1273,12 @@ test "compute res op1 works" {
                 .fp_update = .Regular,
                 .opcode = .NOp,
             },
-            relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2)),
-            relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3)),
+            relocatable.fromFelt(
+                starknet_felt.Felt252.fromInteger(2),
+            ),
+            relocatable.fromFelt(
+                starknet_felt.Felt252.fromInteger(3),
+            ),
         )).?,
     );
 }
@@ -1302,8 +1308,12 @@ test "compute res add felts works" {
                 .fp_update = .Regular,
                 .opcode = .NOp,
             },
-            relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2)),
-            relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3)),
+            relocatable.fromFelt(
+                starknet_felt.Felt252.fromInteger(2),
+            ),
+            relocatable.fromFelt(
+                starknet_felt.Felt252.fromInteger(3),
+            ),
         )).?,
     );
 }
@@ -1517,7 +1527,9 @@ test "compute res mul with res_logic unconstrained should return null" {
                 1,
                 0,
             )),
-            relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2)),
+            relocatable.fromFelt(
+                starknet_felt.Felt252.fromInteger(2),
+            ),
         ),
     );
 }
