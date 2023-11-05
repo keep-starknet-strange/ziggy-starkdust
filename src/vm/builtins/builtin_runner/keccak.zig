@@ -302,9 +302,10 @@ pub const KeccakBuiltinRunner = struct {
 
         var i: usize = 0;
         while (i + @sizeOf(u64) <= input_message.len) {
-            try vec.append(std.mem.readIntLittle(
+            try vec.append(std.mem.readInt(
                 u64,
                 @ptrCast(input_message.*[i .. i + @sizeOf(u64)]),
+                .little,
             ));
             i += @sizeOf(u64);
         }
@@ -328,7 +329,7 @@ pub const KeccakBuiltinRunner = struct {
             ),
         ) |item| {
             var buf: [8]u8 = undefined;
-            std.mem.writeIntLittle(u64, buf[0..], item);
+            std.mem.writeInt(u64, buf[0..], item, .little);
             try result.appendSlice(&buf);
         }
 
