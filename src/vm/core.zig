@@ -151,7 +151,11 @@ pub const CairoVM = struct {
         }
 
         const operands_result = try self.computeOperands(instruction);
-        _ = operands_result;
+
+        try self.updateRegisters(
+            instruction,
+            operands_result,
+        );
     }
 
     /// Compute the operands for a given instruction.
@@ -219,6 +223,46 @@ pub const CairoVM = struct {
         _ = op_o;
     }
 
+    /// Attempts to deduce `op0` and `res` for an instruction, given `dst` and `op1`.
+    ///
+    /// # Arguments
+    /// - `inst`: The instruction to deduce `op0` and `res` for.
+    /// - `dst`: The destination of the instruction.
+    /// - `op1`: The first operand of the instruction.
+    ///
+    /// # Returns
+    /// - `Tuple`: A tuple containing the deduced `op0` and `res`.
+    pub fn deduceOp0(
+        self: *Self,
+        inst: *const instructions.Instruction,
+        dst: ?*const MaybeRelocatable,
+        op1: ?*const MaybeRelocatable,
+    ) !std.meta.Tuple(&.{ ?relocatable.MaybeRelocatable, ?relocatable.MaybeRelocatable }) {
+        switch (inst.opcode) {
+            .Call => {
+                return .{ relocatable.newFromRelocatable(try self.run_context.pc.addUint(inst.size())), null };
+            },
+            .AssertEq => {
+                const dst_val = dst orelse return .{ null, null };
+                const op1_val = op1 orelse return .{ null, null };
+                if ((inst.res_logic == .Add)) {
+                    return .{ try subOperands(dst_val.*, op1_val.*), dst_val.* };
+                } else if (dst_val.isFelt() and op1_val.isFelt() and
+                    !op1_val.felt.isZero())
+                {
+                    return .{
+                        relocatable.fromFelt(try dst_val.felt.div(op1_val.felt)),
+                        dst_val.*,
+                    };
+                }
+            },
+            else => {
+                return .{ null, null };
+            },
+        }
+        return .{ null, null };
+    }
+
     /// Updates the value of PC according to the executed instruction.
     /// # Arguments
     /// - `instruction`: The instruction that was executed.
@@ -229,46 +273,32 @@ pub const CairoVM = struct {
         operands: OperandsResult,
     ) !void {
         switch (instruction.pc_update) {
-            // ************************************************************
-            // *                PC UPDATE REGULAR                         *
-            // ************************************************************
-            instructions.PcUpdate.Regular => {
-                // Update the PC.
+            // PC update regular
+            instructions.PcUpdate.Regular => { // Update the PC.
                 self.run_context.pc.*.addUintInPlace(instruction.size());
             },
-            // ************************************************************
-            // *                PC UPDATE JUMP                            *
-            // ************************************************************
+            // PC update jump
             instructions.PcUpdate.Jump => {
                 // Check that the res is not null.
-                if (operands.res == null) {
+                if (operands.res) |val| {
+                    // Check that the res is a relocatable.
+                    self.run_context.pc.* = val.tryIntoRelocatable() catch
+                        return error.PcUpdateJumpResNotRelocatable;
+                } else {
                     return error.ResUnconstrainedUsedWithPcUpdateJump;
                 }
-                // Check that the res is a relocatable.
-                const res = operands.res.?.tryIntoRelocatable() catch {
-                    return error.PcUpdateJumpResNotRelocatable;
-                };
-                // Update the PC.
-                self.run_context.pc.* = res;
             },
-            // ************************************************************
-            // *                PC UPDATE JUMP REL                        *
-            // ************************************************************
+            // PC update Jump Rel
             instructions.PcUpdate.JumpRel => {
                 // Check that the res is not null.
-                if (operands.res == null) {
+                if (operands.res) |val| {
+                    // Check that the res is a felt.
+                    try self.run_context.pc.*.addFeltInPlace(val.tryIntoFelt() catch return error.PcUpdateJumpRelResNotFelt);
+                } else {
                     return error.ResUnconstrainedUsedWithPcUpdateJumpRel;
                 }
-                // Check that the res is a felt.
-                const res = operands.res.?.tryIntoFelt() catch {
-                    return error.PcUpdateJumpRelResNotFelt;
-                };
-                // Update the PC.
-                try self.run_context.pc.*.addFeltInPlace(res);
             },
-            // ************************************************************
-            // *                PC UPDATE JNZ                            *
-            // ************************************************************
+            // PC update Jnz
             instructions.PcUpdate.Jnz => {
                 if (operands.dst.isZero()) {
                     // Update the PC.
@@ -291,26 +321,21 @@ pub const CairoVM = struct {
         operands: OperandsResult,
     ) !void {
         switch (instruction.ap_update) {
-            // *********************************************************
-            // *                      AP UPDATE ADD                    *
-            // *********************************************************
+            // AP update Add
             instructions.ApUpdate.Add => {
                 // Check that Res is not null.
-                if (operands.res == null) {
+                if (operands.res) |val| {
+                    // Update AP.
+                    try self.run_context.ap.*.addMaybeRelocatableInplace(val);
+                } else {
                     return error.ApUpdateAddResUnconstrained;
                 }
-                // Update AP.
-                try self.run_context.ap.*.addMaybeRelocatableInplace(operands.res.?);
             },
-            // *********************************************************
-            // *                    AP UPDATE ADD1                     *
-            // *********************************************************
+            // AP update Add1
             instructions.ApUpdate.Add1 => {
                 self.run_context.ap.*.addUintInPlace(1);
             },
-            // *********************************************************
-            // *                    AP UPDATE ADD2                     *
-            // *********************************************************
+            // AP update Add2
             instructions.ApUpdate.Add2 => {
                 self.run_context.ap.*.addUintInPlace(2);
             },
@@ -328,17 +353,12 @@ pub const CairoVM = struct {
         operands: OperandsResult,
     ) !void {
         switch (instruction.fp_update) {
-            // *********************************************************
-            // *                FP UPDATE AP PLUS 2                    *
-            // *********************************************************
-            instructions.FpUpdate.APPlus2 => {
-                // Update the FP.
+            // FP update Add + 2
+            instructions.FpUpdate.APPlus2 => { // Update the FP.
                 // FP = AP + 2.
                 self.run_context.fp.*.offset = self.run_context.ap.*.offset + 2;
             },
-            // *********************************************************
-            // *                    FP UPDATE DST                      *
-            // *********************************************************
+            // FP update Dst
             instructions.FpUpdate.Dst => {
                 switch (operands.dst) {
                     .relocatable => |rel| {
@@ -355,6 +375,16 @@ pub const CairoVM = struct {
             },
             else => {},
         }
+    }
+
+    pub fn updateRegisters(
+        self: *Self,
+        instruction: *const instructions.Instruction,
+        operands: OperandsResult,
+    ) !void {
+        try self.updateFp(instruction, operands);
+        try self.updateAp(instruction, operands);
+        try self.updatePc(instruction, operands);
     }
 
     // ************************************************************
@@ -427,20 +457,13 @@ pub fn computeRes(
     instruction: *const Instruction,
     op_0: MaybeRelocatable,
     op_1: MaybeRelocatable,
-) CairoVMError!MaybeRelocatable {
-    var res = switch (instruction.res_logic) {
-        instructions.ResLogic.Op1 => op_1,
-        instructions.ResLogic.Add => {
-            var sum = try addOperands(op_0, op_1);
-            return sum;
-        },
-        instructions.ResLogic.Mul => {
-            var product = try mulOperands(op_0, op_1);
-            return product;
-        },
-        instructions.ResLogic.Unconstrained => null,
+) CairoVMError!?MaybeRelocatable {
+    return switch (instruction.res_logic) {
+        .Op1 => op_1,
+        .Add => return try addOperands(op_0, op_1),
+        .Mul => return try mulOperands(op_0, op_1),
+        .Unconstrained => null,
     };
-    return res.?;
 }
 
 /// Add two operands which can either be a "relocatable" or a "felt".
@@ -469,20 +492,17 @@ pub fn addOperands(
         const felt_op = if (op_0.isRelocatable()) op_1 else op_0;
 
         var reloc = try reloc_op.tryIntoRelocatable();
-        var felt = try felt_op.tryIntoFelt();
 
         // Add the felt to the relocatable's offset
-        try reloc.addFeltInPlace(felt);
+        try reloc.addFeltInPlace(try felt_op.tryIntoFelt());
 
         return relocatable.newFromRelocatable(reloc);
     }
 
-    // Both operands are felts
-    const op_0_felt = try op_0.tryIntoFelt();
-    const op_1_felt = try op_1.tryIntoFelt();
-
     // Add the felts and return as a new felt wrapped in a relocatable
-    return relocatable.fromFelt(op_0_felt.add(op_1_felt));
+    return relocatable.fromFelt((try op_0.tryIntoFelt()).add(
+        try op_1.tryIntoFelt(),
+    ));
 }
 
 /// Compute the product of two operands op 0 and op 1.
@@ -500,11 +520,10 @@ pub fn mulOperands(
         return CairoVMError.MulRelocForbidden;
     }
 
-    const op_0_felt = try op_0.tryIntoFelt();
-    const op_1_felt = try op_1.tryIntoFelt();
-
     // Multiply the felts and return as a new felt wrapped in a relocatable
-    return relocatable.fromFelt(op_0_felt.mul(op_1_felt));
+    return relocatable.fromFelt(
+        (try op_0.tryIntoFelt()).mul(try op_1.tryIntoFelt()),
+    );
 }
 
 /// Subtracts a `MaybeRelocatable` from this one and returns the new value.
@@ -514,12 +533,16 @@ pub fn mulOperands(
 pub fn subOperands(self: MaybeRelocatable, other: MaybeRelocatable) !MaybeRelocatable {
     switch (self) {
         .felt => |self_value| switch (other) {
-            .felt => |other_value| return relocatable.fromFelt(self_value.sub(other_value)),
+            .felt => |other_value| return relocatable.fromFelt(
+                self_value.sub(other_value),
+            ),
             .relocatable => return error.TypeMismatchNotFelt,
         },
         .relocatable => |self_value| switch (other) {
             .felt => return error.TypeMismatchNotFelt,
-            .relocatable => |other_value| return relocatable.newFromRelocatable(try self_value.sub(other_value)),
+            .relocatable => |other_value| return relocatable.newFromRelocatable(
+                try self_value.sub(other_value),
+            ),
         },
     }
 }
@@ -535,8 +558,8 @@ pub fn subOperands(self: MaybeRelocatable, other: MaybeRelocatable) !MaybeReloca
 /// - `Tuple`: A tuple containing the deduced `op1` and `res`.
 pub fn deduceOp1(
     inst: *const instructions.Instruction,
-    dst: ?*const relocatable.MaybeRelocatable,
-    op0: ?*const relocatable.MaybeRelocatable,
+    dst: ?*const MaybeRelocatable,
+    op0: ?*const MaybeRelocatable,
 ) !std.meta.Tuple(&[_]type{ ?relocatable.MaybeRelocatable, ?relocatable.MaybeRelocatable }) {
     if (inst.opcode != .AssertEq) {
         return .{ null, null };
@@ -547,7 +570,10 @@ pub fn deduceOp1(
             return .{ dst_val.*, dst_val.* };
         },
         .Add => if (dst != null and op0 != null) {
-            return .{ try subOperands(dst.?.*, op0.?.*), dst.?.* };
+            return .{ try subOperands(
+                dst.?.*,
+                op0.?.*,
+            ), dst.?.* };
         },
         .Mul => {
             if (dst != null and op0 != null and
@@ -555,7 +581,9 @@ pub fn deduceOp1(
                 !op0.?.felt.isZero())
             {
                 return .{
-                    relocatable.fromFelt(try dst.?.felt.div(op0.?.felt)),
+                    relocatable.fromFelt(
+                        try dst.?.felt.div(op0.?.felt),
+                    ),
                     dst.?.*,
                 };
             }

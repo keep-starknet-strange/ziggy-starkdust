@@ -7,12 +7,32 @@ pub fn Field(
     comptime mod: u256,
 ) type {
     return struct {
-        pub const BitSize = @bitSizeOf(u256) - @clz(mod);
-        pub const BytesSize = @sizeOf(u256);
-        pub const Modulo = mod;
-        pub const QMinOneDiv2 = (Modulo - 1) / 2;
-
         const Self = @This();
+
+        /// Number of bits needed to represent a field element with the given modulo.
+        pub const BitSize = @bitSizeOf(u256) - @clz(mod);
+        /// Number of bytes required to store a field element.
+        pub const BytesSize = @sizeOf(u256);
+        /// The modulo value representing the finite field.
+        pub const Modulo = mod;
+        /// Half of the modulo value (Modulo - 1) divided by 2.
+        pub const QMinOneDiv2 = (Modulo - 1) / 2;
+        /// The number of bits in each limb (typically 64 for u64).
+        pub const Bits: usize = 64;
+        /// Bit mask for the last limb.
+        pub const Mask: u64 = mask(Bits);
+        /// Number of limbs used to represent a field element.
+        pub const Limbs: usize = 4;
+        /// The smallest value that can be represented by this integer type.
+        pub const Min = Self.zero();
+        /// The largest value that can be represented by this integer type.
+        pub const Max: Self = .{ .fe = .{
+            std.math.maxInt(u64),
+            std.math.maxInt(u64),
+            std.math.maxInt(u64),
+            std.math.maxInt(u64),
+        } };
+
         const base_zero = val: {
             var bz: F.MontgomeryDomainFieldElement = undefined;
             F.fromBytes(
@@ -24,13 +44,29 @@ pub fn Field(
 
         fe: F.MontgomeryDomainFieldElement,
 
+        /// Mask to apply to the highest limb to get the correct number of bits.
+        pub fn mask(bits: usize) u64 {
+            if (bits == 0) {
+                return 0;
+            }
+            const _bits = @mod(bits, 64);
+            if (_bits == 0) {
+                return std.math.maxInt(u64);
+            } else {
+                return std.math.shl(u64, 1, _bits) - 1;
+            }
+        }
+
+        /// Create a field element from an integer in Montgomery representation.
+        ///
+        /// This function converts an integer to a field element in Montgomery form.
         pub fn fromInteger(num: u256) Self {
             var lbe: [BytesSize]u8 = [_]u8{0} ** BytesSize;
             std.mem.writeInt(
                 u256,
                 lbe[0..],
                 num % Modulo,
-                std.builtin.Endian.Little,
+                .little,
             );
 
             var nonMont: F.NonMontgomeryDomainFieldElement = undefined;
@@ -47,10 +83,16 @@ pub fn Field(
             return .{ .fe = mont };
         }
 
+        /// Get the field element representing zero.
+        ///
+        /// Returns a field element with a value of zero.
         pub fn zero() Self {
             return base_zero;
         }
 
+        /// Get the field element representing one.
+        ///
+        /// Returns a field element with a value of one.
         pub fn one() Self {
             const oneValue = comptime blk: {
                 var baseOne: F.MontgomeryDomainFieldElement = undefined;
@@ -60,13 +102,16 @@ pub fn Field(
             return oneValue;
         }
 
+        /// Create a field element from a byte array.
+        ///
+        /// Converts a byte array into a field element in Montgomery representation.
         pub fn fromBytes(bytes: [BytesSize]u8) Self {
             var non_mont: F.NonMontgomeryDomainFieldElement = undefined;
             inline for (0..4) |i| {
-                non_mont[i] = std.mem.readIntSlice(
+                non_mont[i] = std.mem.readInt(
                     u64,
                     bytes[i * 8 .. (i + 1) * 8],
-                    std.builtin.Endian.Little,
+                    .little,
                 );
             }
             var ret: Self = undefined;
@@ -78,6 +123,9 @@ pub fn Field(
             return ret;
         }
 
+        /// Convert the field element to a byte array.
+        ///
+        /// This function converts the field element to a byte array for serialization.
         pub fn toBytes(self: Self) [BytesSize]u8 {
             var non_mont: F.NonMontgomeryDomainFieldElement = undefined;
             F.fromMontgomery(
@@ -86,22 +134,27 @@ pub fn Field(
             );
             var ret: [BytesSize]u8 = undefined;
             inline for (0..4) |i| {
-                std.mem.writeIntSlice(
+                std.mem.writeInt(
                     u64,
                     ret[i * 8 .. (i + 1) * 8],
                     non_mont[i],
-                    std.builtin.Endian.Little,
+                    .little,
                 );
             }
 
             return ret;
         }
 
+        /// Check if the field element is lexicographically largest.
+        ///
+        /// Determines whether the field element is larger than half of the field's modulus.
         pub fn lexographicallyLargest(self: Self) bool {
-            const selfNonMont = self.toInteger();
-            return selfNonMont > QMinOneDiv2;
+            return self.toInteger() > QMinOneDiv2;
         }
 
+        /// Convert the field element to its non-Montgomery representation.
+        ///
+        /// Converts a field element from Montgomery form to non-Montgomery representation.
         pub fn fromMontgomery(self: Self) F.NonMontgomeryDomainFieldElement {
             var nonMont: F.NonMontgomeryDomainFieldElement = undefined;
             F.fromMontgomery(
@@ -110,6 +163,10 @@ pub fn Field(
             );
             return nonMont;
         }
+
+        /// Add two field elements.
+        ///
+        /// Adds the current field element to another field element.
         pub fn add(
             self: Self,
             other: Self,
@@ -123,6 +180,9 @@ pub fn Field(
             return .{ .fe = ret };
         }
 
+        /// Subtract one field element from another.
+        ///
+        /// Subtracts another field element from the current field element.
         pub fn sub(
             self: Self,
             other: Self,
@@ -136,6 +196,9 @@ pub fn Field(
             return .{ .fe = ret };
         }
 
+        /// Multiply two field elements.
+        ///
+        /// Multiplies the current field element by another field element.
         pub fn mul(
             self: Self,
             other: Self,
@@ -149,6 +212,9 @@ pub fn Field(
             return .{ .fe = ret };
         }
 
+        /// Multiply a field element by 5.
+        ///
+        /// Multiplies the current field element by the constant 5.
         pub fn mulBy5(self: Self) Self {
             var ret: F.MontgomeryDomainFieldElement = undefined;
             F.add(
@@ -169,6 +235,9 @@ pub fn Field(
             return .{ .fe = ret };
         }
 
+        /// Negate a field element.
+        ///
+        /// Negates the value of the current field element.
         pub fn neg(self: Self) Self {
             var ret: F.MontgomeryDomainFieldElement = undefined;
             F.sub(
@@ -179,18 +248,31 @@ pub fn Field(
             return .{ .fe = ret };
         }
 
+        /// Check if the field element is zero.
+        ///
+        /// Determines if the current field element is equal to zero.
         pub fn isZero(self: Self) bool {
             return self.equal(base_zero);
         }
 
+        /// Check if the field element is one.
+        ///
+        /// Determines if the current field element is equal to one.
         pub fn isOne(self: Self) bool {
             return self.equal(one());
         }
 
+        /// Calculate the square of a field element.
+        ///
+        /// Computes the square of the current field element.
         pub fn square(self: Self) Self {
             return self.mul(self);
         }
 
+        /// Raise a field element to a power of 2.
+        ///
+        /// Computes the current field element raised to the power of 2 to the `exponent` power.
+        /// The result is equivalent to repeatedly squaring the field element.
         pub fn pow2(
             self: Self,
             comptime exponent: u8,
@@ -202,6 +284,9 @@ pub fn Field(
             return ret;
         }
 
+        /// Raise a field element to a general power.
+        ///
+        /// Computes the field element raised to a general power specified by the `exponent`.
         pub fn pow(
             self: Self,
             exponent: u256,
@@ -219,6 +304,9 @@ pub fn Field(
             return res;
         }
 
+        /// Batch inversion of multiple field elements.
+        ///
+        /// Performs batch inversion of a slice of field elements in place.
         pub fn batchInv(
             out: []Self,
             in: []const Self,
@@ -246,6 +334,9 @@ pub fn Field(
             }
         }
 
+        /// Calculate the multiplicative inverse of a field element.
+        ///
+        /// Computes the multiplicative inverse of the current field element.
         pub fn inv(self: Self) ?Self {
             var r: u256 = Modulo;
             var t: i512 = 0;
@@ -276,6 +367,9 @@ pub fn Field(
             return Self.fromInteger(@intCast(t));
         }
 
+        /// Divide one field element by another.
+        ///
+        /// Divides the current field element by another field element.
         pub fn div(
             self: Self,
             den: Self,
@@ -284,6 +378,9 @@ pub fn Field(
             return self.mul(den_inv);
         }
 
+        /// Check if two field elements are equal.
+        ///
+        /// Determines whether the current field element is equal to another field element.
         pub fn equal(
             self: Self,
             other: Self,
@@ -295,6 +392,9 @@ pub fn Field(
             );
         }
 
+        /// Convert the field element to a u256 integer.
+        ///
+        /// Converts the field element to a u256 integer.
         pub fn toInteger(self: Self) u256 {
             var non_mont: F.NonMontgomeryDomainFieldElement = undefined;
             F.fromMontgomery(
@@ -311,12 +411,13 @@ pub fn Field(
             return std.mem.readInt(
                 u256,
                 &bytes,
-                std.builtin.Endian.Little,
+                std.builtin.Endian.little,
             );
         }
 
-        // Try to convert the field element into a u64.
-        // If the value is too large, return an error.
+        /// Try to convert the field element to a u64 if its value is small enough.
+        ///
+        /// Attempts to convert the field element to a u64 if its value is within the representable range.
         pub fn tryIntoU64(self: Self) !u64 {
             const asU256 = self.toInteger();
             // Check if the value is small enough to fit into a u64
@@ -334,6 +435,9 @@ pub fn Field(
             );
         }
 
+        /// Calculate the Legendre symbol of a field element.
+        ///
+        /// Computes the Legendre symbol of the field element using Euler's criterion.
         pub fn legendre(a: Self) i2 {
             // Compute the Legendre symbol a|p using
             // Euler's criterion. p is a prime, a is
@@ -350,6 +454,365 @@ pub fn Field(
                 return 0;
             }
             return 1;
+        }
+
+        /// Compare two field elements and return the ordering result.
+        ///
+        /// # Parameters
+        /// - `self` - The first field element to compare.
+        /// - `other` - The second field element to compare.
+        ///
+        /// # Returns
+        /// A `std.math.Order` enum indicating the ordering relationship.
+        pub fn cmp(self: Self, other: Self) std.math.Order {
+            var a = self.fe;
+            var b = other.fe;
+            _ = std.mem.reverse(u64, a[0..]);
+            _ = std.mem.reverse(u64, b[0..]);
+            return std.mem.order(
+                u64,
+                &a,
+                &b,
+            );
+        }
+
+        /// Check if this field element is less than the other.
+        ///
+        /// # Parameters
+        /// - `self` - The field element to check.
+        /// - `other` - The field element to compare against.
+        ///
+        /// # Returns
+        /// `true` if `self` is less than `other`, `false` otherwise.
+        pub fn lt(self: Self, other: Self) bool {
+            return switch (self.cmp(other)) {
+                .lt => true,
+                else => false,
+            };
+        }
+
+        /// Check if this field element is less than or equal to the other.
+        ///
+        /// # Parameters
+        /// - `self` - The field element to check.
+        /// - `other` - The field element to compare against.
+        ///
+        /// # Returns
+        /// `true` if `self` is less than or equal to `other`, `false` otherwise.
+        pub fn le(self: Self, other: Self) bool {
+            return switch (self.cmp(other)) {
+                .lt => true,
+                .eq => true,
+                else => false,
+            };
+        }
+
+        /// Check if this field element is greater than the other.
+        ///
+        /// # Parameters
+        /// - `self` - The field element to check.
+        /// - `other` - The field element to compare against.
+        ///
+        /// # Returns
+        /// `true` if `self` is greater than `other`, `false` otherwise.
+        pub fn gt(self: Self, other: Self) bool {
+            return switch (self.cmp(other)) {
+                .gt => true,
+                else => false,
+            };
+        }
+
+        /// Check if this field element is greater than or equal to the other.
+        ///
+        /// # Parameters
+        /// - `self` - The field element to check.
+        /// - `other` - The field element to compare against.
+        ///
+        /// # Returns
+        /// `true` if `self` is greater than or equal to `other`, `false` otherwise.
+        pub fn ge(self: Self, other: Self) bool {
+            return switch (self.cmp(other)) {
+                .gt => true,
+                .eq => true,
+                else => false,
+            };
+        }
+
+        /// Left shift by `rhs` bits with overflow detection.
+        ///
+        /// This function shifts the value left by `rhs` bits and detects overflow.
+        /// It returns the result of the shift and a boolean indicating whether overflow occurred.
+        ///
+        /// If the product $\mod{\mathtt{value} ⋅ 2^{\mathtt{rhs}}}_{2^{\mathtt{BITS}}}$ is greater than or equal to 2^BITS, it returns true.
+        /// In other words, it returns true if the bits shifted out are non-zero.
+        ///
+        /// # Parameters
+        ///
+        /// - `self`: The value to be shifted.
+        /// - `rhs`: The number of bits to shift left.
+        ///
+        /// # Returns
+        ///
+        /// A tuple containing the shifted value and a boolean indicating overflow.
+        pub fn overflowing_shl(
+            self: Self,
+            rhs: usize,
+        ) std.meta.Tuple(&.{ Self, bool }) {
+            const limbs = rhs / 64;
+            const bits = @mod(rhs, 64);
+
+            if (limbs >= Limbs) {
+                return .{
+                    Self.zero(),
+                    !self.equal(Self.zero()),
+                };
+            }
+            var res = self;
+            if (bits == 0) {
+                // Check for overflow
+                var overflow = false;
+                for (Limbs - limbs..Limbs) |i| {
+                    overflow = overflow or (res.fe[i] != 0);
+                }
+                if (res.fe[Limbs - limbs - 1] > Self.Mask) {
+                    overflow = true;
+                }
+
+                // Shift
+                var idx = Limbs - 1;
+                while (idx >= limbs) : (idx -= 1) {
+                    res.fe[idx] = res.fe[idx - limbs];
+                }
+                for (0..limbs) |i| {
+                    res.fe[i] = 0;
+                }
+                res.fe[Limbs - 1] &= Self.Mask;
+                return .{ res, overflow };
+            }
+
+            // Check for overflow
+            var overflow = false;
+            for (Limbs - limbs..Limbs) |i| {
+                overflow = overflow or (res.fe[i] != 0);
+            }
+
+            if (std.math.shr(
+                u64,
+                res.fe[Limbs - limbs - 1],
+                64 - bits,
+            ) != 0) {
+                overflow = true;
+            }
+            if (std.math.shl(
+                u64,
+                res.fe[Limbs - limbs - 1],
+                bits,
+            ) > Self.Mask) {
+                overflow = true;
+            }
+
+            // Shift
+            var idx = Limbs - 1;
+            while (idx > limbs) : (idx -= 1) {
+                res.fe[idx] = std.math.shl(
+                    u64,
+                    res.fe[idx - limbs],
+                    bits,
+                ) | std.math.shr(
+                    u64,
+                    res.fe[idx - limbs - 1],
+                    64 - bits,
+                );
+            }
+
+            res.fe[limbs] = std.math.shl(
+                u64,
+                res.fe[0],
+                bits,
+            );
+            for (0..limbs) |i| {
+                res.fe[i] = 0;
+            }
+            res.fe[Limbs - 1] &= Self.Mask;
+            return .{ res, overflow };
+        }
+
+        /// Left shift by `rhs` bits with wrapping behavior.
+        ///
+        /// This function shifts the value left by `rhs` bits, and it wraps around if an overflow occurs.
+        /// It returns the result of the shift.
+        ///
+        /// # Parameters
+        ///
+        /// - `self`: The value to be shifted.
+        /// - `rhs`: The number of bits to shift left.
+        ///
+        /// # Returns
+        ///
+        /// The shifted value with wrapping behavior.
+        pub fn wrapping_shl(self: Self, rhs: usize) Self {
+            return self.overflowing_shl(rhs)[0];
+        }
+
+        /// Left shift by `rhs` bits with saturation.
+        ///
+        /// This function shifts the value left by `rhs` bits with saturation behavior.
+        /// If an overflow occurs, it returns `Self.Max`, otherwise, it returns the result of the shift.
+        ///
+        /// # Parameters
+        ///
+        /// - `self`: The value to be shifted.
+        /// - `rhs`: The number of bits to shift left.
+        ///
+        /// # Returns
+        ///
+        /// The shifted value with saturation behavior, or `Self.Max` on overflow.
+        pub fn saturating_shl(self: Self, rhs: usize) Self {
+            const _shl = self.overflowing_shl(rhs);
+            return switch (_shl[1]) {
+                false => _shl[0],
+                else => Self.Max,
+            };
+        }
+
+        /// Checked left shift by `rhs` bits.
+        ///
+        /// This function performs a left shift of `self` by `rhs` bits. It returns `Some(value)` if the result is less than `2^BITS`, where `value` is the shifted result. If the result
+        /// would be greater than or equal to `2^BITS`, it returns [`null`], indicating an overflow condition where the shifted-out bits would be non-zero.
+        ///
+        /// # Parameters
+        ///
+        /// - `self`: The value to be shifted.
+        /// - `rhs`: The number of bits to shift left.
+        ///
+        /// # Returns
+        ///
+        /// - `Some(value)`: The shifted value if no overflow occurs.
+        /// - [`null`]: If the bits shifted out would be non-zero.
+        pub fn checked_shl(self: Self, rhs: usize) ?Self {
+            const _shl = self.overflowing_shl(rhs);
+            return switch (_shl[1]) {
+                false => _shl[0],
+                else => null,
+            };
+        }
+
+        /// Right shift by `rhs` bits with underflow detection.
+        ///
+        /// This function performs a right shift of `self` by `rhs` bits. It returns the
+        /// floor value of the division $\floor{\frac{\mathtt{self}}{2^{\mathtt{rhs}}}}$
+        /// and a boolean indicating whether the division was exact (false) or rounded down (true).
+        ///
+        /// # Parameters
+        ///
+        /// - `self`: The value to be shifted.
+        /// - `rhs`: The number of bits to shift right.
+        ///
+        /// # Returns
+        ///
+        /// A tuple containing the shifted value and a boolean indicating underflow.
+        pub fn overflowing_shr(
+            self: Self,
+            rhs: usize,
+        ) std.meta.Tuple(&.{ Self, bool }) {
+            const limbs = rhs / 64;
+            const bits = @mod(rhs, 64);
+
+            if (limbs >= Limbs) {
+                return .{
+                    Self.zero(),
+                    !self.equal(Self.zero()),
+                };
+            }
+
+            var res = self;
+            if (bits == 0) {
+                // Check for overflow
+                var overflow = false;
+                for (0..limbs) |i| {
+                    overflow = overflow or (res.fe[i] != 0);
+                }
+
+                // Shift
+                for (0..Limbs - limbs) |i| {
+                    res.fe[i] = res.fe[i + limbs];
+                }
+                for (Limbs - limbs..Limbs) |i| {
+                    res.fe[i] = 0;
+                }
+                return .{ res, overflow };
+            }
+
+            // Check for overflow
+            var overflow = false;
+            for (0..limbs) |i| {
+                overflow = overflow or (res.fe[i] != 0);
+            }
+            overflow = overflow or (std.math.shr(
+                u64,
+                res.fe[limbs],
+                bits,
+            ) != 0);
+
+            // Shift
+            for (0..Limbs - limbs - 1) |i| {
+                res.fe[i] = std.math.shr(
+                    u64,
+                    res.fe[i + limbs],
+                    bits,
+                ) | std.math.shl(
+                    u64,
+                    res.fe[i + limbs + 1],
+                    64 - bits,
+                );
+            }
+
+            res.fe[Limbs - limbs - 1] = std.math.shr(
+                u64,
+                res.fe[Limbs - 1],
+                bits,
+            );
+            for (Limbs - limbs..Limbs) |i| {
+                res.fe[i] = 0;
+            }
+            return .{ res, overflow };
+        }
+
+        /// Right shift by `rhs` bits with checked underflow.
+        ///
+        /// This function performs a right shift of `self` by `rhs` bits. It returns `Some(value)` with the result of the shift if no underflow occurs. If underflow happens (bits are shifted out), it returns [`null`].
+        ///
+        /// # Parameters
+        ///
+        /// - `self`: The value to be shifted.
+        /// - `rhs`: The number of bits to shift right.
+        ///
+        /// # Returns
+        ///
+        /// - `Some(value)`: The shifted value if no underflow occurs.
+        /// - [`null`]: If the division is not exact.
+        pub fn checked_shr(self: Self, rhs: usize) ?Self {
+            const _shl = self.overflowing_shr(rhs);
+            return switch (_shl[1]) {
+                false => _shl[0],
+                else => null,
+            };
+        }
+
+        /// Right shift by `rhs` bits with wrapping behavior.
+        ///
+        /// This function performs a right shift of `self` by `rhs` bits, and it wraps around if an underflow occurs. It returns the result of the shift.
+        ///
+        /// # Parameters
+        ///
+        /// - `self`: The value to be shifted.
+        /// - `rhs`: The number of bits to shift right.
+        ///
+        /// # Returns
+        ///
+        /// The shifted value with wrapping behavior.
+        pub fn wrapping_shr(self: Self, rhs: usize) Self {
+            return self.overflowing_shr(rhs)[0];
         }
     };
 }
