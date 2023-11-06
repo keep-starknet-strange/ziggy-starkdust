@@ -512,12 +512,12 @@ pub const KeccakBuiltinRunner = struct {
 
 test "KeccakBuiltinRunner: initialStack should return an empty array list if included is false" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
-    keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
         std.testing.allocator,
         &keccak_instance_def,
         false,
     );
+    defer keccak_builtin.deinit();
     var expected = ArrayList(MaybeRelocatable).init(std.testing.allocator);
     defer expected.deinit();
     var actual = try keccak_builtin.initialStack(std.testing.allocator);
@@ -530,12 +530,12 @@ test "KeccakBuiltinRunner: initialStack should return an empty array list if inc
 
 test "KeccakBuiltinRunner: initialStack should return an a proper array list if included is true" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
-    keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
         std.testing.allocator,
         &keccak_instance_def,
         true,
     );
+    defer keccak_builtin.deinit();
     keccak_builtin.base = 10;
     var expected = ArrayList(MaybeRelocatable).init(std.testing.allocator);
     try expected.append(.{ .relocatable = .{
@@ -554,12 +554,12 @@ test "KeccakBuiltinRunner: initialStack should return an a proper array list if 
 
 test "KeccakBuiltinRunner: initializeSegments should modify base field of Keccak built in" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
-    defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
         std.testing.allocator,
         &keccak_instance_def,
         true,
     );
+    defer keccak_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     keccak_builtin.initializeSegments(memory_segment_manager);
@@ -572,12 +572,12 @@ test "KeccakBuiltinRunner: initializeSegments should modify base field of Keccak
 
 test "KeccakBuiltinRunner: getUsedCells should return memory error if segment used size is null" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
-    defer keccak_instance_def.deinit();
-    const keccak_builtin = KeccakBuiltinRunner.new(
+    var keccak_builtin = KeccakBuiltinRunner.new(
         std.testing.allocator,
         &keccak_instance_def,
         true,
     );
+    defer keccak_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     try expectError(
@@ -588,12 +588,12 @@ test "KeccakBuiltinRunner: getUsedCells should return memory error if segment us
 
 test "KeccakBuiltinRunner: getUsedCells should return the number of used cells" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
-    defer keccak_instance_def.deinit();
-    const keccak_builtin = KeccakBuiltinRunner.new(
+    var keccak_builtin = KeccakBuiltinRunner.new(
         std.testing.allocator,
         &keccak_instance_def,
         true,
     );
+    defer keccak_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     try memory_segment_manager.segment_used_sizes.put(0, 10);
@@ -608,12 +608,12 @@ test "KeccakBuiltinRunner: getUsedCells should return the number of used cells" 
 
 test "KeccakBuiltinRunner: getMemorySegmentAddresses should return base and stop pointer" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
-    defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
         std.testing.allocator,
         &keccak_instance_def,
         true,
     );
+    defer keccak_builtin.deinit();
     keccak_builtin.base = 22;
     try expectEqual(
         @as(
@@ -626,12 +626,12 @@ test "KeccakBuiltinRunner: getMemorySegmentAddresses should return base and stop
 
 test "KeccakBuiltinRunner: getUsedInstances should return memory error if segment used size is null" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
-    defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
         std.testing.allocator,
         &keccak_instance_def,
         true,
     );
+    defer keccak_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     try expectError(
@@ -642,12 +642,12 @@ test "KeccakBuiltinRunner: getUsedInstances should return memory error if segmen
 
 test "KeccakBuiltinRunner: getUsedInstances should return the number of used instances" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
-    defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
         std.testing.allocator,
         &keccak_instance_def,
         true,
     );
+    defer keccak_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     try memory_segment_manager.segment_used_sizes.put(0, 345);
@@ -659,12 +659,12 @@ test "KeccakBuiltinRunner: getUsedInstances should return the number of used ins
 
 test "KeccakBuiltinRunner: getMemoryAccesses should return memory error if segment used size is null" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
-    defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
         std.testing.allocator,
         &keccak_instance_def,
         true,
     );
+    defer keccak_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     var vm = try CairoVM.init(
@@ -683,12 +683,12 @@ test "KeccakBuiltinRunner: getMemoryAccesses should return memory error if segme
 
 test "KeccakBuiltinRunner: getMemoryAccesses should return the memory accesses" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
-    defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
         std.testing.allocator,
         &keccak_instance_def,
         true,
     );
+    defer keccak_builtin.deinit();
     keccak_builtin.base = 5;
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
@@ -787,12 +787,12 @@ test "KeccakBuiltinRunner: keccakF" {
 
 test "KeccakBuiltinRunner: finalStack should return relocatable pointer if not included" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
-    defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
         std.testing.allocator,
         &keccak_instance_def,
         false,
     );
+    defer keccak_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
@@ -810,12 +810,12 @@ test "KeccakBuiltinRunner: finalStack should return relocatable pointer if not i
 
 test "KeccakBuiltinRunner: finalStack should return NoStopPointer error if pointer offset is 0" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
-    defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
         std.testing.allocator,
         &keccak_instance_def,
         true,
     );
+    defer keccak_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     try expectError(
@@ -829,12 +829,12 @@ test "KeccakBuiltinRunner: finalStack should return NoStopPointer error if point
 
 test "KeccakBuiltinRunner: finalStack should return NoStopPointer error if no data in memory at the given stop pointer address" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
-    defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
         std.testing.allocator,
         &keccak_instance_def,
         true,
     );
+    defer keccak_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     try expectError(
@@ -848,12 +848,12 @@ test "KeccakBuiltinRunner: finalStack should return NoStopPointer error if no da
 
 test "KeccakBuiltinRunner: finalStack should return TypeMismatchNotRelocatable error if data in memory at the given stop pointer address is not Relocatable" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
-    defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
         std.testing.allocator,
         &keccak_instance_def,
         true,
     );
+    defer keccak_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     try memory_segment_manager.memory.data.put(
@@ -874,12 +874,12 @@ test "KeccakBuiltinRunner: finalStack should return TypeMismatchNotRelocatable e
 
 test "KeccakBuiltinRunner: finalStack should return InvalidStopPointerIndex error if segment index of stop pointer is not KeccakBuiltinRunner base" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
-    defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
         std.testing.allocator,
         &keccak_instance_def,
         true,
     );
+    defer keccak_builtin.deinit();
     keccak_builtin.base = 22;
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
@@ -904,12 +904,12 @@ test "KeccakBuiltinRunner: finalStack should return InvalidStopPointerIndex erro
 
 test "KeccakBuiltinRunner: finalStack should return InvalidStopPointer error if stop pointer offset is not cells used" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
-    defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
         std.testing.allocator,
         &keccak_instance_def,
         true,
     );
+    defer keccak_builtin.deinit();
     keccak_builtin.base = 22;
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
@@ -935,12 +935,12 @@ test "KeccakBuiltinRunner: finalStack should return InvalidStopPointer error if 
 
 test "KeccakBuiltinRunner: finalStack should return stop pointer address and update stop_ptr" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
-    defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
         std.testing.allocator,
         &keccak_instance_def,
         true,
     );
+    defer keccak_builtin.deinit();
     keccak_builtin.base = 22;
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
@@ -970,13 +970,12 @@ test "KeccakBuiltinRunner: finalStack should return stop pointer address and upd
 
 test "KeccakBuiltinRunner: deduceMemoryCell memory valid" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
-    defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
         std.testing.allocator,
         &keccak_instance_def,
         true,
     );
-    defer keccak_builtin.cache.deinit();
+    defer keccak_builtin.deinit();
 
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
@@ -1074,13 +1073,12 @@ test "KeccakBuiltinRunner: deduceMemoryCell memory valid" {
 
 test "KeccakBuiltinRunner: deduceMemoryCell non relocatable address should return null" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
-    defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
         std.testing.allocator,
         &keccak_instance_def,
         true,
     );
-    defer keccak_builtin.cache.deinit();
+    defer keccak_builtin.deinit();
 
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
@@ -1118,13 +1116,12 @@ test "KeccakBuiltinRunner: deduceMemoryCell non relocatable address should retur
 
 test "KeccakBuiltinRunner: deduceMemoryCell offset less than input cell length should return null" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
-    defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
         std.testing.allocator,
         &keccak_instance_def,
         true,
     );
-    defer keccak_builtin.cache.deinit();
+    defer keccak_builtin.deinit();
 
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
@@ -1146,13 +1143,13 @@ test "KeccakBuiltinRunner: deduceMemoryCell offset less than input cell length s
 
 test "KeccakBuiltinRunner: deduceMemoryCell memory cell expected integer" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
-    defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
         std.testing.allocator,
         &keccak_instance_def,
         true,
     );
-    defer keccak_builtin.cache.deinit();
+    defer keccak_builtin.deinit();
+
     keccak_builtin.n_input_cells = 1;
     keccak_builtin.cells_per_instance = 100;
 
@@ -1176,13 +1173,13 @@ test "KeccakBuiltinRunner: deduceMemoryCell memory cell expected integer" {
 
 test "KeccakBuiltinRunner: deduceMemoryCell missing input cells" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
-    defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
         std.testing.allocator,
         &keccak_instance_def,
         true,
     );
-    defer keccak_builtin.cache.deinit();
+
+    defer keccak_builtin.deinit();
     keccak_builtin.n_input_cells = 1;
     keccak_builtin.cells_per_instance = 100;
 
@@ -1206,13 +1203,13 @@ test "KeccakBuiltinRunner: deduceMemoryCell missing input cells" {
 
 test "KeccakBuiltinRunner: deduceMemoryCell input cell" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
-    defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
         std.testing.allocator,
         &keccak_instance_def,
         true,
     );
-    defer keccak_builtin.cache.deinit();
+    defer keccak_builtin.deinit();
+
     keccak_builtin.n_input_cells = 1;
     keccak_builtin.cells_per_instance = 100;
 
@@ -1236,14 +1233,13 @@ test "KeccakBuiltinRunner: deduceMemoryCell input cell" {
 
 test "KeccakBuiltinRunner: deduceMemoryCell get memory error" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
-    defer keccak_instance_def.deinit();
 
     var keccak_builtin = KeccakBuiltinRunner.new(
         std.testing.allocator,
         &keccak_instance_def,
         true,
     );
-    defer keccak_builtin.cache.deinit();
+    defer keccak_builtin.deinit();
 
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
@@ -1272,7 +1268,6 @@ test "KeccakBuiltinRunner: deduceMemoryCell memory int larger than bits" {
         &keccak_instance_def,
         true,
     );
-    defer keccak_builtin.cache.deinit();
 
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
