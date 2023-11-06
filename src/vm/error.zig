@@ -21,4 +21,5 @@ pub const RunnerError = error{
     InvalidStopPointerIndex,
     InvalidStopPointer,
     BuiltinExpectedInteger,
+    IntegerBiggerThanPowerOfTwo,
 };

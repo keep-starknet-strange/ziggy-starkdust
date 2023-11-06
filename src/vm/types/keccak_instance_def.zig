@@ -27,6 +27,27 @@ pub const KeccakInstanceDef = struct {
         };
     }
 
+    /// Creates a new instance of `KeccakInstanceDef` with the specified ratio and state representation.
+    ///
+    /// This function initializes a new `KeccakInstanceDef` instance with the provided `ratio` and
+    /// `_state_rep` values, and sets the `_instance_per_component` to a default value of 16.
+    ///
+    /// # Parameters
+    ///
+    /// - `ratio`: An optional 32-bit integer representing the ratio for the Keccak instance.
+    /// - `_state_rep`: An `ArrayList` of 32-bit integers specifying the state representation pattern.
+    ///
+    /// # Returns
+    ///
+    /// A new `KeccakInstanceDef` instance with the specified parameters.
+    pub fn new(ratio: ?u32, _state_rep: ArrayList(u32)) Self {
+        return .{
+            .ratio = ratio,
+            ._state_rep = _state_rep,
+            ._instance_per_component = 16,
+        };
+    }
+
     /// Number of cells per built in
     pub fn cells_per_builtin(self: *const Self) u32 {
         return 2 * @as(
