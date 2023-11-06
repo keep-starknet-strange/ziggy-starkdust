@@ -11,3 +11,14 @@ pub const CairoVMError = error{
     TypeMismatchNotRelocatable,
     ValueTooLarge,
 };
+
+pub const MemoryError = error{
+    MissingSegmentUsedSizes,
+};
+
+pub const RunnerError = error{
+    NoStopPointer,
+    InvalidStopPointerIndex,
+    InvalidStopPointer,
+    BuiltinExpectedInteger,
+};

@@ -3,7 +3,7 @@ const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
-const range_check_instance_def = @import("../../types/range_check_instance_def.zig");
+const CELLS_PER_RANGE_CHECK = @import("../../types/range_check_instance_def.zig").CELLS_PER_RANGE_CHECK;
 const MemorySegmentManager = @import("../../memory/segments.zig").MemorySegmentManager;
 const relocatable = @import("../../memory/relocatable.zig");
 const Error = @import("../../error.zig");
@@ -18,6 +18,7 @@ const RunnerError = Error.RunnerError;
 
 const N_PARTS: u64 = 8;
 const INNER_RC_BOUND_SHIFT: u64 = 16;
+const INNER_RC_BOUND_MASK: u64 = @as(u64, @intCast(u16.MAX));
 
 /// Range check built-in runner
 pub const RangeCheckBuiltinRunner = struct {
@@ -61,15 +62,15 @@ pub const RangeCheckBuiltinRunner = struct {
         n_parts: u32,
         included: bool,
     ) Self {
-        const bound = Felt252.one().overflowing_shl(16 * n_parts);
-        const _bound: ?Felt252 = if (n_parts != 0 and bound.zero()) null else Felt252.new(bound);
+        const bound: Felt252 = Felt252.one().saturating_shl(16 * n_parts);
+        const _bound: ?Felt252 = if (n_parts != 0 and bound.isZero()) null else bound;
 
         return .{
             .ratio = ratio,
             .base = 0,
             .stop_ptr = null,
-            .cell_per_instance = range_check_instance_def.CELLS_PER_RANGE_CHECK,
-            .n_input_cells = range_check_instance_def.CELLS_PER_RANGE_CHECK,
+            .cells_per_instance = CELLS_PER_RANGE_CHECK,
+            .n_input_cells = CELLS_PER_RANGE_CHECK,
             ._bound = _bound,
             .included = included,
             .n_parts = n_parts,
@@ -82,7 +83,7 @@ pub const RangeCheckBuiltinRunner = struct {
     /// # Returns
     ///
     /// The base value as a `usize`.
-    pub fn get_base(self: *const Self) usize {
+    pub fn getBase(self: *const Self) usize {
         return self.base;
     }
 
@@ -91,7 +92,7 @@ pub const RangeCheckBuiltinRunner = struct {
     /// # Returns
     ///
     /// The ratio value as an `u32`.
-    pub fn get_ratio(self: *const Self) ?u32 {
+    pub fn getRatio(self: *const Self) ?u32 {
         return self.ratio;
     }
 
@@ -105,8 +106,8 @@ pub const RangeCheckBuiltinRunner = struct {
     ///
     /// # Modifies
     /// - `self`: Updates the `base` value to the new segment's index.
-    pub fn initialize_segments(self: *Self, segments: *MemorySegmentManager) void {
-        self.base = segments.add().segment_index;
+    pub fn initializeSegments(self: *Self, segments: *MemorySegmentManager) void {
+        self.base = @as(usize, segments.addSegment().segment_index);
     }
 
     /// Initializes and returns an `ArrayList` of `MaybeRelocatable` values.
@@ -119,7 +120,7 @@ pub const RangeCheckBuiltinRunner = struct {
     ///
     /// # Returns
     /// An `ArrayList` of `MaybeRelocatable` values.
-    pub fn initial_stack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
+    pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
         var result = ArrayList(MaybeRelocatable).init(allocator);
         if (self.included) {
             try result.append(.{
@@ -143,7 +144,7 @@ pub const RangeCheckBuiltinRunner = struct {
     ///
     /// The number of used cells as a `u32`, or `MemoryError.MissingSegmentUsedSizes` if
     /// the size is not available.
-    pub fn get_used_cells(self: *const Self, segments: *MemorySegmentManager) !u32 {
+    pub fn getUsedCells(self: *const Self, segments: *MemorySegmentManager) !u32 {
         return segments.get_segment_used_size(
             @intCast(self.base),
         ) orelse MemoryError.MissingSegmentUsedSizes;
@@ -160,10 +161,10 @@ pub const RangeCheckBuiltinRunner = struct {
     ///
     /// # Returns
     /// The number of used instances as a `usize`.
-    pub fn get_used_instances(self: *Self, segments: *MemorySegmentManager) !usize {
+    pub fn getUsedInstances(self: *Self, segments: *MemorySegmentManager) !usize {
         return std.math.divCeil(
             usize,
-            try self.get_used_cells(segments),
+            try self.getUsedCells(segments),
             @intCast(self.cells_per_instance),
         );
     }
@@ -175,7 +176,7 @@ pub const RangeCheckBuiltinRunner = struct {
     ///
     /// # Returns
     /// A tuple of `usize` and `?usize` addresses.
-    pub fn get_memory_segment_addresses(self: *Self) std.meta.Tuple(&.{
+    pub fn getMemorySegmentAddresses(self: *Self) std.meta.Tuple(&.{
         usize,
         ?usize,
     }) {
@@ -199,7 +200,7 @@ pub const RangeCheckBuiltinRunner = struct {
     ///
     /// A `Relocatable` pointer to the final stack pointer, or an error code if the
     /// verification fails.
-    pub fn final_stack(
+    pub fn finalStack(
         self: *Self,
         segments: *MemorySegmentManager,
         pointer: Relocatable,
@@ -219,7 +220,7 @@ pub const RangeCheckBuiltinRunner = struct {
             }
             const stop_ptr = stop_pointer.offset;
 
-            if (stop_ptr != try self.get_used_instances(segments) * @as(
+            if (stop_ptr != try self.getUsedInstances(segments) * @as(
                 usize,
                 @intCast(self.cells_per_instance),
             )) {
@@ -233,7 +234,18 @@ pub const RangeCheckBuiltinRunner = struct {
         return pointer;
     }
 
-    pub fn range_check_validation_rule(memory: *Memory, address: Relocatable) std.ArrayList(!Relocatable) {
+    /// Creates Validation Rules ArrayList
+    ///
+    /// # Parameters
+    ///
+    /// - `memory`: A `Memory` pointer of validation rules segment index.
+    /// - `address`: A `Relocatable` pointer to the validation rule.
+    ///
+    /// # Returns
+    ///
+    /// An `ArrayList(Relocatable)` containing the rules address
+    /// verification fails.
+    pub fn rangeCheckValidationRule(memory: *Memory, address: Relocatable) std.ArrayList(!Relocatable) {
         const addr = memory.get(address);
         if (addr.bits <= N_PARTS * INNER_RC_BOUND_SHIFT) {
             return std.ArrayList.append(address);
@@ -242,7 +254,45 @@ pub const RangeCheckBuiltinRunner = struct {
         }
     }
 
-    pub fn add_validation_rule(self: *const Self, memory: *Memory) void {
-        memory.add_validation_rule(self.base.segment_index, range_check_validation_rule);
+    /// Creates Validation Rule in Memory
+    ///
+    /// # Parameters
+    ///
+    /// - `memory`: A `Memory` pointer of validation rules segment index.
+    ///
+    /// # Modifies
+    ///
+    /// - `memory`: Adds validation rule to `memory`.
+    pub fn addValidationRule(self: *const Self, memory: *Memory) void {
+        memory.addValidationRule(self.base.segment_index, rangeCheckValidationRule);
     }
 };
+
+test "initialize segments for range check" {
+
+    // given
+    var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
+    var allocator = std.testing.allocator;
+    var mem = try MemorySegmentManager.init(allocator);
+    defer mem.deinit();
+
+    // assert
+    try std.testing.expectEqual(
+        builtin.base,
+        0,
+    );
+}
+
+test "used instances" {
+
+    // given
+    var builtin = RangeCheckBuiltinRunner.new(10, 12, true);
+
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.segment_used_sizes.put(0, 1);
+    try std.testing.expectEqual(
+        @as(usize, @intCast(1)),
+        try builtin.getUsedInstances(memory_segment_manager),
+    );
+}

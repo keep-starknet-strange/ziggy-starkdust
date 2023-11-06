@@ -13,12 +13,12 @@ pub const RangeCheckInstanceDef = struct {
     n_parts: u32,
 
     /// Number of cells per built in
-    pub fn cells_per_builtin() u32 {
+    pub fn cellsPerBuiltin() u32 {
         return CELLS_PER_RANGE_CHECK;
     }
 
     /// Number of units per builtin
-    pub fn range_check_units_per_builtin(self: *Self) u32 {
+    pub fn rangeCheckUnitsPerBuiltin(self: *Self) u32 {
         return self.n_parts;
     }
 };

@@ -11,6 +11,10 @@ const Relocatable = relocatable.Relocatable;
 const CairoVMError = @import("../error.zig").CairoVMError;
 const starknet_felt = @import("../../math/fields/starknet.zig");
 
+// Test imports.
+const MemorySegmentManager = @import("./segments.zig").MemorySegmentManager;
+const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
+
 // Function that validates a memory address and returns a list of validated adresses
 pub const validation_rule = *const fn (*Memory, Relocatable) std.ArrayList(Relocatable);
 
@@ -136,7 +140,7 @@ pub const Memory = struct {
     // # Arguments
     // - `segment_index` - The index of the segment.
     // - `rule` - The validation rule.
-    pub fn add_validation_rule(self: *Self, segment_index: usize, rule: validation_rule) !void {
+    pub fn addValidationRule(self: *Self, segment_index: usize, rule: validation_rule) !void {
         self.validation_rules.put(segment_index, rule);
     }
 };
@@ -176,6 +180,48 @@ test "memory set and get" {
     // Initialize a memory instance.
     var memory = try Memory.init(allocator);
     defer memory.deinit();
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    const address_1 = Relocatable.new(
+        0,
+        0,
+    );
+    const value_1 = relocatable.fromFelt(starknet_felt.Felt252.one());
+
+    // Set a value into the memory.
+    _ = try memory.set(
+        address_1,
+        value_1,
+    );
+
+    // Get the value from the memory.
+    const maybe_value_1 = try memory.get(address_1);
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    // Assert that the value is the expected value.
+    try expect(maybe_value_1.eq(value_1));
+}
+
+test "validate existing memory for range check within bound" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    var allocator = std.testing.allocator;
+
+    // Initialize a memory instance.
+    var memory = try Memory.init(allocator);
+    defer memory.deinit();
+
+    var segments = try MemorySegmentManager.init(allocator);
+    defer segments.deinit();
+
+    var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
+    builtin.initializeSegments(segments);
 
     // ************************************************************
     // *                      TEST BODY                           *
