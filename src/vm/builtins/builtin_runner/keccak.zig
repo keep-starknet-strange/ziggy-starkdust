@@ -443,12 +443,9 @@ pub const KeccakBuiltinRunner = struct {
             usize,
             @intCast(self.n_input_cells),
         )) |i| {
-            const m_index = try first_input_addr.addUint(@intCast(i));
-
-            const mem = memory.get(m_index) catch {
+            const num = (memory.get(try first_input_addr.addUint(@intCast(i))) catch {
                 return null;
-            };
-            const num = mem.tryIntoFelt() catch {
+            }).tryIntoFelt() catch {
                 return RunnerError.BuiltinExpectedInteger;
             };
 
@@ -476,10 +473,9 @@ pub const KeccakBuiltinRunner = struct {
             try input_message.appendSlice(rpad.items);
         }
 
-        var keccak_input_message: []const u8 = input_message.items;
         const keccak_result = try Self.keccakF(
             allocator,
-            &keccak_input_message,
+            &input_message.items,
         );
         defer keccak_result.deinit();
 
