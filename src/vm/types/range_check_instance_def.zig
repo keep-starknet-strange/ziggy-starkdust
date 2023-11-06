@@ -21,4 +21,11 @@ pub const RangeCheckInstanceDef = struct {
     pub fn rangeCheckUnitsPerBuiltin(self: *Self) u32 {
         return self.n_parts;
     }
+
+    pub fn default() !Self {
+        return .{
+            .ratio = 8,
+            .n_parts = 8,
+        };
+    }
 };

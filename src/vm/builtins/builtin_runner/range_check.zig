@@ -3,14 +3,15 @@ const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
-const CELLS_PER_RANGE_CHECK = @import("../../types/range_check_instance_def.zig").CELLS_PER_RANGE_CHECK;
 const MemorySegmentManager = @import("../../memory/segments.zig").MemorySegmentManager;
 const relocatable = @import("../../memory/relocatable.zig");
 const Error = @import("../../error.zig");
 const validation_rule = @import("../../memory/memory.zig").validation_rule;
 const Memory = @import("../../memory/memory.zig").Memory;
 const Field = @import("../../../math/fields/starknet.zig").Field;
+const range_check_instance_def = @import("../../types/range_check_instance_def.zig");
 
+const CELLS_PER_RANGE_CHECK = range_check_instance_def.CELLS_PER_RANGE_CHECK;
 const Relocatable = relocatable.Relocatable;
 const MaybeRelocatable = relocatable.MaybeRelocatable;
 const MemoryError = Error.MemoryError;
@@ -107,7 +108,7 @@ pub const RangeCheckBuiltinRunner = struct {
     /// # Modifies
     /// - `self`: Updates the `base` value to the new segment's index.
     pub fn initializeSegments(self: *Self, segments: *MemorySegmentManager) void {
-        self.base = @as(usize, segments.addSegment().segment_index);
+        self.base = @intCast(segments.addSegment().segment_index);
     }
 
     /// Initializes and returns an `ArrayList` of `MaybeRelocatable` values.
