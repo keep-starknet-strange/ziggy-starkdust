@@ -62,7 +62,7 @@ pub const RangeCheckBuiltinRunner = struct {
     /// # Returns
     ///
     /// The base value as a `usize`.
-    pub fn get_base(self: *const Self) usize {
+    pub fn getBase(self: *const Self) usize {
         return self.base;
     }
 };

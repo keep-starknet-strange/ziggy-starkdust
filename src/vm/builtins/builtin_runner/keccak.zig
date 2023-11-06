@@ -24,7 +24,7 @@ const expectEqual = std.testing.expectEqual;
 const expect = std.testing.expect;
 const expectEqualSlices = std.testing.expectEqualSlices;
 
-const KECCAK_FELT_BYTE_SIZE: usize = 25; // 200 / 8
+const keccakFELT_BYTE_SIZE: usize = 25; // 200 / 8
 
 /// Keccak built-in runner
 pub const KeccakBuiltinRunner = struct {
@@ -95,7 +95,7 @@ pub const KeccakBuiltinRunner = struct {
     ///
     /// # Modifies
     /// - `self`: Updates the `base` value to the new segment's index.
-    pub fn initialize_segments(self: *Self, segments: *MemorySegmentManager) void {
+    pub fn initializeSegments(self: *Self, segments: *MemorySegmentManager) void {
         // `segments.addSegment()` always returns a positive index
         self.base = @as(
             usize,
@@ -113,7 +113,7 @@ pub const KeccakBuiltinRunner = struct {
     ///
     /// # Returns
     /// An `ArrayList` of `MaybeRelocatable` values.
-    pub fn initial_stack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
+    pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
         var result = ArrayList(MaybeRelocatable).init(allocator);
         if (self.included) {
             try result.append(.{
@@ -132,7 +132,7 @@ pub const KeccakBuiltinRunner = struct {
     /// # Returns
     ///
     /// The base value as a `usize`.
-    pub fn get_base(self: *const Self) usize {
+    pub fn getBase(self: *const Self) usize {
         return self.base;
     }
 
@@ -141,7 +141,7 @@ pub const KeccakBuiltinRunner = struct {
     /// # Returns
     ///
     /// The ratio as a `u32`, or `null` if not available.
-    pub fn get_ratio(self: *const Self) ?u32 {
+    pub fn getRatio(self: *const Self) ?u32 {
         return self.ratio;
     }
 
@@ -155,7 +155,7 @@ pub const KeccakBuiltinRunner = struct {
     ///
     /// The number of used cells as a `u32`, or `MemoryError.MissingSegmentUsedSizes` if
     /// the size is not available.
-    pub fn get_used_cells(self: *const Self, segments: *MemorySegmentManager) !u32 {
+    pub fn getUsedCells(self: *const Self, segments: *MemorySegmentManager) !u32 {
         return segments.get_segment_used_size(
             @intCast(self.base),
         ) orelse MemoryError.MissingSegmentUsedSizes;
@@ -168,7 +168,7 @@ pub const KeccakBuiltinRunner = struct {
     ///
     /// # Returns
     /// A tuple of `usize` and `?usize` addresses.
-    pub fn get_memory_segment_addresses(self: *Self) std.meta.Tuple(&.{
+    pub fn getMemorySegmentAddresses(self: *Self) std.meta.Tuple(&.{
         usize,
         ?usize,
     }) {
@@ -189,10 +189,10 @@ pub const KeccakBuiltinRunner = struct {
     ///
     /// # Returns
     /// The number of used instances as a `usize`.
-    pub fn get_used_instances(self: *Self, segments: *MemorySegmentManager) !usize {
+    pub fn getUsedInstances(self: *Self, segments: *MemorySegmentManager) !usize {
         return std.math.divCeil(
             usize,
-            try self.get_used_cells(segments),
+            try self.getUsedCells(segments),
             @intCast(self.cells_per_instance),
         );
     }
@@ -208,7 +208,7 @@ pub const KeccakBuiltinRunner = struct {
     ///
     /// # Returns
     /// An `ArrayList` of `Relocatable` elements.
-    pub fn get_memory_accesses(
+    pub fn getMemoryAccesses(
         self: *Self,
         allocator: Allocator,
         vm: *CairoVM,
@@ -237,7 +237,7 @@ pub const KeccakBuiltinRunner = struct {
     ///
     /// # Returns
     /// The number of used diluted check units as a `usize`.
-    pub fn get_used_diluted_check_units(diluted_n_bits: u32) usize {
+    pub fn getUsedDilutedCheckUnits(diluted_n_bits: u32) usize {
         // The diluted cells are:
         // state - 25 rounds times 1600 elements.
         // parity - 24 rounds times 1600/5 elements times 3 auxiliaries.
@@ -267,7 +267,7 @@ pub const KeccakBuiltinRunner = struct {
     ///
     /// # Returns
     /// An ArrayList containing the right-padded bytes.
-    fn right_pad(
+    fn rightPad(
         allocator: Allocator,
         bytes: *[]u8,
         final_size: usize,
@@ -295,7 +295,7 @@ pub const KeccakBuiltinRunner = struct {
     /// # Returns
     ///
     /// An `ArrayList(u8)` containing the Keccak hash.
-    fn keccak_f(allocator: Allocator, input_message: *[]const u8) !ArrayList(u8) {
+    fn keccakF(allocator: Allocator, input_message: *[]const u8) !ArrayList(u8) {
         var result = ArrayList(u8).init(allocator);
         var vec = ArrayList(u64).init(allocator);
         defer vec.deinit();
@@ -319,7 +319,7 @@ pub const KeccakBuiltinRunner = struct {
             @ptrCast(
                 vec.items.ptr,
             ),
-            KeccakPrimitives.KECCAK_F_ROUND_COUNT,
+            KeccakPrimitives.keccakF_ROUND_COUNT,
         );
 
         for (
@@ -350,7 +350,7 @@ pub const KeccakBuiltinRunner = struct {
     ///
     /// A `Relocatable` pointer to the final stack pointer, or an error code if the
     /// verification fails.
-    pub fn final_stack(
+    pub fn finalStack(
         self: *Self,
         segments: *MemorySegmentManager,
         pointer: Relocatable,
@@ -370,7 +370,7 @@ pub const KeccakBuiltinRunner = struct {
             }
             const stop_ptr = stop_pointer.offset;
 
-            if (stop_ptr != try self.get_used_instances(segments) * @as(
+            if (stop_ptr != try self.getUsedInstances(segments) * @as(
                 usize,
                 @intCast(self.cells_per_instance),
             )) {
@@ -467,17 +467,17 @@ pub const KeccakBuiltinRunner = struct {
             var slice_len = tmp.len;
             while (tmp[slice_len - 1] == 0 and slice_len > 1) : (slice_len -= 1) {}
             var slice: []u8 = tmp[0..slice_len];
-            var rpad = try Self.right_pad(
+            var rpad = try Self.rightPad(
                 allocator,
                 &slice,
-                KECCAK_FELT_BYTE_SIZE,
+                keccakFELT_BYTE_SIZE,
             );
             defer rpad.deinit();
             try input_message.appendSlice(rpad.items);
         }
 
         var keccak_input_message: []const u8 = input_message.items;
-        const keccak_result = try Self.keccak_f(
+        const keccak_result = try Self.keccakF(
             allocator,
             &keccak_input_message,
         );
@@ -510,7 +510,7 @@ pub const KeccakBuiltinRunner = struct {
     }
 };
 
-test "KeccakBuiltinRunner: initial_stack should return an empty array list if included is false" {
+test "KeccakBuiltinRunner: initialStack should return an empty array list if included is false" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
     keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
@@ -520,7 +520,7 @@ test "KeccakBuiltinRunner: initial_stack should return an empty array list if in
     );
     var expected = ArrayList(MaybeRelocatable).init(std.testing.allocator);
     defer expected.deinit();
-    var actual = try keccak_builtin.initial_stack(std.testing.allocator);
+    var actual = try keccak_builtin.initialStack(std.testing.allocator);
     defer actual.deinit();
     try expectEqual(
         expected,
@@ -528,7 +528,7 @@ test "KeccakBuiltinRunner: initial_stack should return an empty array list if in
     );
 }
 
-test "KeccakBuiltinRunner: initial_stack should return an a proper array list if included is true" {
+test "KeccakBuiltinRunner: initialStack should return an a proper array list if included is true" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
     keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
@@ -543,7 +543,7 @@ test "KeccakBuiltinRunner: initial_stack should return an a proper array list if
         .offset = 0,
     } });
     defer expected.deinit();
-    var actual = try keccak_builtin.initial_stack(std.testing.allocator);
+    var actual = try keccak_builtin.initialStack(std.testing.allocator);
     defer actual.deinit();
     try expectEqualSlices(
         MaybeRelocatable,
@@ -552,7 +552,7 @@ test "KeccakBuiltinRunner: initial_stack should return an a proper array list if
     );
 }
 
-test "KeccakBuiltinRunner: initialize_segments should modify base field of Keccak built in" {
+test "KeccakBuiltinRunner: initializeSegments should modify base field of Keccak built in" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
     defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
@@ -562,15 +562,15 @@ test "KeccakBuiltinRunner: initialize_segments should modify base field of Kecca
     );
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    keccak_builtin.initialize_segments(memory_segment_manager);
-    keccak_builtin.initialize_segments(memory_segment_manager);
+    keccak_builtin.initializeSegments(memory_segment_manager);
+    keccak_builtin.initializeSegments(memory_segment_manager);
     try expectEqual(
         @as(usize, @intCast(1)),
         keccak_builtin.base,
     );
 }
 
-test "KeccakBuiltinRunner: get_used_cells should return memory error if segment used size is null" {
+test "KeccakBuiltinRunner: getUsedCells should return memory error if segment used size is null" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
     defer keccak_instance_def.deinit();
     const keccak_builtin = KeccakBuiltinRunner.new(
@@ -582,11 +582,11 @@ test "KeccakBuiltinRunner: get_used_cells should return memory error if segment 
     defer memory_segment_manager.deinit();
     try expectError(
         MemoryError.MissingSegmentUsedSizes,
-        keccak_builtin.get_used_cells(memory_segment_manager),
+        keccak_builtin.getUsedCells(memory_segment_manager),
     );
 }
 
-test "KeccakBuiltinRunner: get_used_cells should return the number of used cells" {
+test "KeccakBuiltinRunner: getUsedCells should return the number of used cells" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
     defer keccak_instance_def.deinit();
     const keccak_builtin = KeccakBuiltinRunner.new(
@@ -602,11 +602,11 @@ test "KeccakBuiltinRunner: get_used_cells should return the number of used cells
             u32,
             @intCast(10),
         ),
-        try keccak_builtin.get_used_cells(memory_segment_manager),
+        try keccak_builtin.getUsedCells(memory_segment_manager),
     );
 }
 
-test "KeccakBuiltinRunner: get_memory_segment_addresses should return base and stop pointer" {
+test "KeccakBuiltinRunner: getMemorySegmentAddresses should return base and stop pointer" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
     defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
@@ -620,11 +620,11 @@ test "KeccakBuiltinRunner: get_memory_segment_addresses should return base and s
             std.meta.Tuple(&.{ usize, ?usize }),
             .{ 22, null },
         ),
-        keccak_builtin.get_memory_segment_addresses(),
+        keccak_builtin.getMemorySegmentAddresses(),
     );
 }
 
-test "KeccakBuiltinRunner: get_used_instances should return memory error if segment used size is null" {
+test "KeccakBuiltinRunner: getUsedInstances should return memory error if segment used size is null" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
     defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
@@ -636,11 +636,11 @@ test "KeccakBuiltinRunner: get_used_instances should return memory error if segm
     defer memory_segment_manager.deinit();
     try expectError(
         MemoryError.MissingSegmentUsedSizes,
-        keccak_builtin.get_used_instances(memory_segment_manager),
+        keccak_builtin.getUsedInstances(memory_segment_manager),
     );
 }
 
-test "KeccakBuiltinRunner: get_used_instances should return the number of used instances" {
+test "KeccakBuiltinRunner: getUsedInstances should return the number of used instances" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
     defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
@@ -653,11 +653,11 @@ test "KeccakBuiltinRunner: get_used_instances should return the number of used i
     try memory_segment_manager.segment_used_sizes.put(0, 345);
     try expectEqual(
         @as(usize, @intCast(22)),
-        try keccak_builtin.get_used_instances(memory_segment_manager),
+        try keccak_builtin.getUsedInstances(memory_segment_manager),
     );
 }
 
-test "KeccakBuiltinRunner: get_memory_accesses should return memory error if segment used size is null" {
+test "KeccakBuiltinRunner: getMemoryAccesses should return memory error if segment used size is null" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
     defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
@@ -674,14 +674,14 @@ test "KeccakBuiltinRunner: get_memory_accesses should return memory error if seg
     defer vm.deinit();
     try expectError(
         MemoryError.MissingSegmentUsedSizes,
-        keccak_builtin.get_memory_accesses(
+        keccak_builtin.getMemoryAccesses(
             std.testing.allocator,
             &vm,
         ),
     );
 }
 
-test "KeccakBuiltinRunner: get_memory_accesses should return the memory accesses" {
+test "KeccakBuiltinRunner: getMemoryAccesses should return the memory accesses" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
     defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
@@ -716,7 +716,7 @@ test "KeccakBuiltinRunner: get_memory_accesses should return the memory accesses
         .segment_index = 5,
         .offset = 3,
     });
-    var actual = try keccak_builtin.get_memory_accesses(
+    var actual = try keccak_builtin.getMemoryAccesses(
         std.testing.allocator,
         &vm,
     );
@@ -728,28 +728,28 @@ test "KeccakBuiltinRunner: get_memory_accesses should return the memory accesses
     );
 }
 
-test "KeccakBuiltinRunner: get_used_diluted_check_units should return used diluted check units" {
+test "KeccakBuiltinRunner: getUsedDilutedCheckUnits should return used diluted check units" {
     try expectEqual(
         @as(usize, @intCast(16384)),
-        KeccakBuiltinRunner.get_used_diluted_check_units(16),
+        KeccakBuiltinRunner.getUsedDilutedCheckUnits(16),
     );
 }
 
-test "KeccakBuiltinRunner: get_used_diluted_check_units should return 0 if division by zero" {
+test "KeccakBuiltinRunner: getUsedDilutedCheckUnits should return 0 if division by zero" {
     try expectEqual(
         @as(usize, @intCast(0)),
-        KeccakBuiltinRunner.get_used_diluted_check_units(0),
+        KeccakBuiltinRunner.getUsedDilutedCheckUnits(0),
     );
 }
 
-test "KeccakBuiltinRunner: get_used_diluted_check_units should return 0 if quotient is not an integer" {
+test "KeccakBuiltinRunner: getUsedDilutedCheckUnits should return 0 if quotient is not an integer" {
     try expectEqual(
         @as(usize, @intCast(0)),
-        KeccakBuiltinRunner.get_used_diluted_check_units(12),
+        KeccakBuiltinRunner.getUsedDilutedCheckUnits(12),
     );
 }
 
-test "KeccakBuiltinRunner: right_pad should return right pad result" {
+test "KeccakBuiltinRunner: rightPad should return right pad result" {
     var num = ArrayList(u8).init(std.testing.allocator);
     defer num.deinit();
     try num.append(1);
@@ -757,7 +757,7 @@ test "KeccakBuiltinRunner: right_pad should return right pad result" {
     defer expected.deinit();
     try expected.append(1);
     try expected.appendNTimes(0, 4);
-    var actual = try KeccakBuiltinRunner.right_pad(
+    var actual = try KeccakBuiltinRunner.rightPad(
         std.testing.allocator,
         &num.items,
         5,
@@ -770,10 +770,10 @@ test "KeccakBuiltinRunner: right_pad should return right pad result" {
     );
 }
 
-test "KeccakBuiltinRunner: keccak_f" {
+test "KeccakBuiltinRunner: keccakF" {
     const expected_output_bytes = "\xf6\x98\x81\xe1\x00!\x1f.\xc4*\x8c\x0c\x7fF\xc8q8\xdf\xb9\xbe\x07H\xca7T1\xab\x16\x17\xa9\x11\xff-L\x87\xb2iY.\x96\x82x\xde\xbb\\up?uz:0\xee\x08\x1b\x15\xd6\n\xab\r\x0b\x87T:w\x0fH\xe7!f},\x08a\xe5\xbe8\x16\x13\x9a?\xad~<9\xf7\x03`\x8b\xd8\xa3F\x8aQ\xf9\n9\xcdD\xb7.X\xf7\x8e\x1f\x17\x9e \xe5i\x01rr\xdf\xaf\x99k\x9f\x8e\x84\\\xday`\xf1``\x02q+\x8e\xad\x96\xd8\xff\xff3<\xb6\x01o\xd7\xa6\x86\x9d\xea\xbc\xfb\x08\xe1\xa3\x1c\x06z\xab@\xa1\xc1\xb1xZ\x92\x96\xc0.\x01\x13g\x93\x87!\xa6\xa8z\x9c@\x0bY'\xe7\xa7Qr\xe5\xc1\xa3\xa6\x88H\xa5\xc0@9k:y\xd1Kw\xd5";
     var input_bytes: []const u8 = "\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x05\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x07\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
-    var actual = try (KeccakBuiltinRunner.keccak_f(
+    var actual = try (KeccakBuiltinRunner.keccakF(
         std.testing.allocator,
         &input_bytes,
     ));
@@ -785,7 +785,7 @@ test "KeccakBuiltinRunner: keccak_f" {
     );
 }
 
-test "KeccakBuiltinRunner: final_stack should return relocatable pointer if not included" {
+test "KeccakBuiltinRunner: finalStack should return relocatable pointer if not included" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
     defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
@@ -801,14 +801,14 @@ test "KeccakBuiltinRunner: final_stack should return relocatable pointer if not 
             2,
             2,
         ),
-        try keccak_builtin.final_stack(
+        try keccak_builtin.finalStack(
             memory_segment_manager,
             Relocatable.new(2, 2),
         ),
     );
 }
 
-test "KeccakBuiltinRunner: final_stack should return NoStopPointer error if pointer offset is 0" {
+test "KeccakBuiltinRunner: finalStack should return NoStopPointer error if pointer offset is 0" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
     defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
@@ -820,14 +820,14 @@ test "KeccakBuiltinRunner: final_stack should return NoStopPointer error if poin
     defer memory_segment_manager.deinit();
     try expectError(
         RunnerError.NoStopPointer,
-        keccak_builtin.final_stack(
+        keccak_builtin.finalStack(
             memory_segment_manager,
             Relocatable.new(2, 0),
         ),
     );
 }
 
-test "KeccakBuiltinRunner: final_stack should return NoStopPointer error if no data in memory at the given stop pointer address" {
+test "KeccakBuiltinRunner: finalStack should return NoStopPointer error if no data in memory at the given stop pointer address" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
     defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
@@ -839,14 +839,14 @@ test "KeccakBuiltinRunner: final_stack should return NoStopPointer error if no d
     defer memory_segment_manager.deinit();
     try expectError(
         RunnerError.NoStopPointer,
-        keccak_builtin.final_stack(
+        keccak_builtin.finalStack(
             memory_segment_manager,
             Relocatable.new(2, 2),
         ),
     );
 }
 
-test "KeccakBuiltinRunner: final_stack should return TypeMismatchNotRelocatable error if data in memory at the given stop pointer address is not Relocatable" {
+test "KeccakBuiltinRunner: finalStack should return TypeMismatchNotRelocatable error if data in memory at the given stop pointer address is not Relocatable" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
     defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
@@ -865,14 +865,14 @@ test "KeccakBuiltinRunner: final_stack should return TypeMismatchNotRelocatable 
     );
     try expectError(
         error.TypeMismatchNotRelocatable,
-        keccak_builtin.final_stack(
+        keccak_builtin.finalStack(
             memory_segment_manager,
             Relocatable.new(2, 2),
         ),
     );
 }
 
-test "KeccakBuiltinRunner: final_stack should return InvalidStopPointerIndex error if segment index of stop pointer is not KeccakBuiltinRunner base" {
+test "KeccakBuiltinRunner: finalStack should return InvalidStopPointerIndex error if segment index of stop pointer is not KeccakBuiltinRunner base" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
     defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
@@ -895,14 +895,14 @@ test "KeccakBuiltinRunner: final_stack should return InvalidStopPointerIndex err
     );
     try expectError(
         RunnerError.InvalidStopPointerIndex,
-        keccak_builtin.final_stack(
+        keccak_builtin.finalStack(
             memory_segment_manager,
             Relocatable.new(2, 2),
         ),
     );
 }
 
-test "KeccakBuiltinRunner: final_stack should return InvalidStopPointer error if stop pointer offset is not cells used" {
+test "KeccakBuiltinRunner: finalStack should return InvalidStopPointer error if stop pointer offset is not cells used" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
     defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
@@ -926,14 +926,14 @@ test "KeccakBuiltinRunner: final_stack should return InvalidStopPointer error if
     try memory_segment_manager.segment_used_sizes.put(22, 345);
     try expectError(
         RunnerError.InvalidStopPointer,
-        keccak_builtin.final_stack(
+        keccak_builtin.finalStack(
             memory_segment_manager,
             Relocatable.new(2, 2),
         ),
     );
 }
 
-test "KeccakBuiltinRunner: final_stack should return stop pointer address and update stop_ptr" {
+test "KeccakBuiltinRunner: finalStack should return stop pointer address and update stop_ptr" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
     defer keccak_instance_def.deinit();
     var keccak_builtin = KeccakBuiltinRunner.new(
@@ -957,7 +957,7 @@ test "KeccakBuiltinRunner: final_stack should return stop pointer address and up
     try memory_segment_manager.segment_used_sizes.put(22, 345);
     try expectEqual(
         Relocatable.new(2, 1),
-        try keccak_builtin.final_stack(
+        try keccak_builtin.finalStack(
             memory_segment_manager,
             Relocatable.new(2, 2),
         ),

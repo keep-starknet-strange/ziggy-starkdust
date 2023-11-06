@@ -9,7 +9,7 @@ pub const PLEN: usize = 25;
 /// TODO:
 /// This is only valid for `u64`
 /// See [here](https://github.com/RustCrypto/sponges/blob/329d4cdcb19d77658267367e8e3ce49e2e91c64e/keccak/src/lib.rs#L133-L161) for other implementations
-pub const KECCAK_F_ROUND_COUNT: usize = 24;
+pub const keccakF_ROUND_COUNT: usize = 24;
 
 const RHO = [_]u32{
     1,
@@ -83,14 +83,14 @@ const RC = [_]u64{
 /// Throws a panic if `round_count` exceeds the maximum supported round count.
 pub fn keccak_p(state: *[PLEN]u64, round_count: usize) !void {
     // Check if the requested round count is supported.
-    if (round_count > KECCAK_F_ROUND_COUNT) {
-        @panic("A round_count greater than KECCAK_F_ROUND_COUNT is not supported!");
+    if (round_count > keccakF_ROUND_COUNT) {
+        @panic("A round_count greater than keccakF_ROUND_COUNT is not supported!");
     }
 
     // https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf#page=25
     // "the rounds of KECCAK-p[b, nr] match the last rounds of KECCAK-f[b]"
     // Select round constants for the specified number of rounds.
-    var round_consts = RC[KECCAK_F_ROUND_COUNT - round_count .. KECCAK_F_ROUND_COUNT];
+    var round_consts = RC[keccakF_ROUND_COUNT - round_count .. keccakF_ROUND_COUNT];
 
     for (round_consts) |*rc| {
         var array = [_]u64{0} ** 5;
@@ -217,8 +217,8 @@ test "keccak_p" {
         0x20D06CD26A8FBF5C,
     };
     var state = [_]u64{0} ** PLEN;
-    _ = try keccak_p(&state, KECCAK_F_ROUND_COUNT);
+    _ = try keccak_p(&state, keccakF_ROUND_COUNT);
     try expectEqual(state_first, state);
-    _ = try keccak_p(&state, KECCAK_F_ROUND_COUNT);
+    _ = try keccak_p(&state, keccakF_ROUND_COUNT);
     try expectEqual(state_second, state);
 }
