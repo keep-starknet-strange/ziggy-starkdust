@@ -41,6 +41,8 @@ pub const CairoVM = struct {
     is_run_finished: bool,
     /// VM trace
     trace_context: TraceContext,
+    /// Current Step
+    current_step: usize,
 
     // ************************************************************
     // *             MEMORY ALLOCATION AND DEALLOCATION           *
@@ -78,6 +80,7 @@ pub const CairoVM = struct {
             .segments = memory_segment_manager,
             .is_run_finished = false,
             .trace_context = trace_context,
+            .current_step = 0,
         };
     }
 
@@ -156,6 +159,37 @@ pub const CairoVM = struct {
             instruction,
             operands_result,
         );
+
+        const OFFSET_BITS: u32 = 16;
+        const off_0 = instruction.off_0 + (@as(i16, 1) << (OFFSET_BITS - 1));
+        const off_1 = instruction.off_1 + (@as(i16, 1) << (OFFSET_BITS - 1));
+        const off_2 = instruction.off_2 + (@as(i16, 1) << (OFFSET_BITS - 1));
+
+       // let (min, max) = self.rc_limits.unwrap_or((off0, off0));
+       // self.rc_limits = Some((
+       //     min.min(off0).min(off1).min(off2),
+       //     max.max(off0).max(off1).max(off2),
+       // ));
+
+        self.segments.memory.markAsAccessed(operands_result.dst_addr);
+        self.segments.memory.markAsAccessed(operands_result.op0_addr);
+        self.segments.memory.markAsAccessed(operands_result.op1_addr);
+       // self.segments
+       //     .memory
+       //     .mark_as_accessed(operands_addresses.dst_addr);
+       // self.segments
+       //     .memory
+       //     .mark_as_accessed(operands_addresses.op0_addr);
+       // self.segments
+       //     .memory
+       //     .mark_as_accessed(operands_addresses.op1_addr);
+
+        self.current_step += 1;
+
+       // self.update_registers(instruction, operands)?;
+       // self.current_step += 1;
+
+       // Ok(())
     }
 
     /// Compute the operands for a given instruction.
