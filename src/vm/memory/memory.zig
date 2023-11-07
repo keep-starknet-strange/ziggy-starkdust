@@ -11,6 +11,13 @@ const Relocatable = relocatable.Relocatable;
 const CairoVMError = @import("../error.zig").CairoVMError;
 const starknet_felt = @import("../../math/fields/starknet.zig");
 
+// Test imports.
+const MemorySegmentManager = @import("./segments.zig").MemorySegmentManager;
+const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
+
+// Function that validates a memory address and returns a list of validated adresses
+pub const validation_rule = *const fn (*Memory, Relocatable) std.ArrayList(Relocatable);
+
 // Representation of the VM memory.
 pub const Memory = struct {
     const Self = @This();
@@ -37,6 +44,12 @@ pub const Memory = struct {
         std.hash_map.AutoContext(Relocatable),
         std.hash_map.default_max_load_percentage,
     ),
+    validation_rules: std.HashMap(
+        u32,
+        validation_rule,
+        std.hash_map.AutoContext(u32),
+        std.hash_map.default_max_load_percentage,
+    ),
 
     // ************************************************************
     // *             MEMORY ALLOCATION AND DEALLOCATION           *
@@ -60,6 +73,10 @@ pub const Memory = struct {
             .validated_addresses = std.AutoHashMap(
                 Relocatable,
                 bool,
+            ).init(allocator),
+            .validation_rules = std.AutoHashMap(
+                u32,
+                validation_rule,
             ).init(allocator),
         };
         return memory;
@@ -118,6 +135,14 @@ pub const Memory = struct {
     ) error{MemoryOutOfBounds}!MaybeRelocatable {
         return self.data.get(address) orelse CairoVMError.MemoryOutOfBounds;
     }
+
+    // Adds a validation rule for a given segment.
+    // # Arguments
+    // - `segment_index` - The index of the segment.
+    // - `rule` - The validation rule.
+    pub fn addValidationRule(self: *Self, segment_index: usize, rule: validation_rule) !void {
+        self.validation_rules.put(segment_index, rule);
+    }
 };
 
 test "memory get without value raises error" {
@@ -155,6 +180,48 @@ test "memory set and get" {
     // Initialize a memory instance.
     var memory = try Memory.init(allocator);
     defer memory.deinit();
+
+    // ************************************************************
+    // *                      TEST BODY                           *
+    // ************************************************************
+    const address_1 = Relocatable.new(
+        0,
+        0,
+    );
+    const value_1 = relocatable.fromFelt(starknet_felt.Felt252.one());
+
+    // Set a value into the memory.
+    _ = try memory.set(
+        address_1,
+        value_1,
+    );
+
+    // Get the value from the memory.
+    const maybe_value_1 = try memory.get(address_1);
+
+    // ************************************************************
+    // *                      TEST CHECKS                         *
+    // ************************************************************
+    // Assert that the value is the expected value.
+    try expect(maybe_value_1.eq(value_1));
+}
+
+test "validate existing memory for range check within bound" {
+    // ************************************************************
+    // *                 SETUP TEST CONTEXT                       *
+    // ************************************************************
+    // Initialize an allocator.
+    var allocator = std.testing.allocator;
+
+    // Initialize a memory instance.
+    var memory = try Memory.init(allocator);
+    defer memory.deinit();
+
+    var segments = try MemorySegmentManager.init(allocator);
+    defer segments.deinit();
+
+    var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
+    builtin.initializeSegments(segments);
 
     // ************************************************************
     // *                      TEST BODY                           *
