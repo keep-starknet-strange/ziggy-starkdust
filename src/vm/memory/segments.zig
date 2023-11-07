@@ -114,6 +114,7 @@ pub const MemorySegmentManager = struct {
 
         return relocatable_address;
     }
+
     /// Retrieves the size of a memory segment by its index if available, else returns null.
     ///
     /// # Parameters
@@ -153,6 +154,22 @@ pub const MemorySegmentManager = struct {
             }
         }
         return self.segment_used_sizes;
+    }
+
+    /// Retrieves the size of a memory segment by its index if available, else computes it.
+    ///
+    /// This function attempts to retrieve the size of a memory segment by its index. If the size
+    /// is not available in the segment sizes map, it calculates the effective size and returns it.
+    ///
+    /// # Parameters
+    ///
+    /// - `index` (u32): The index of the memory segment.
+    ///
+    /// # Returns
+    ///
+    /// A `u32` representing the size of the segment or a computed effective size if not available.
+    pub fn getSegmentSize(self: *Self, index: u32) ?u32 {
+        return self.segment_sizes.get(index) orelse self.getSegmentUsedSize(index);
     }
 };
 
@@ -372,4 +389,24 @@ test "MemorySegmentManager: getSegmentUsedSize after computeEffectiveSize" {
     try expectEqual(@as(u32, 8), memory_segment_manager.segment_used_sizes.get(0).?);
     try expectEqual(@as(u32, 2), memory_segment_manager.segment_used_sizes.get(1).?);
     try expectEqual(@as(u32, 8), memory_segment_manager.segment_used_sizes.get(2).?);
+}
+
+test "MemorySegmentManager: getSegmentSize should return the size of the segment if contained in segment_sizes" {
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.segment_sizes.put(10, 105);
+    try expectEqual(@as(u32, 105), memory_segment_manager.getSegmentSize(10).?);
+}
+
+test "MemorySegmentManager: getSegmentSize should return the size of the segment via getSegmentUsedSize if not contained in segment_sizes" {
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.segment_used_sizes.put(3, 6);
+    try expectEqual(@as(u32, 6), memory_segment_manager.getSegmentSize(3).?);
+}
+
+test "MemorySegmentManager: getSegmentSize should return null if missing segment" {
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try expectEqual(@as(?u32, null), memory_segment_manager.getSegmentSize(3));
 }
