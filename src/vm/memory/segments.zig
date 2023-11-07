@@ -110,6 +110,16 @@ pub const MemorySegmentManager = struct {
 
         return relocatable_address;
     }
+    /// Retrieves the size of a memory segment by its index if available, else returns null.
+    ///
+    /// # Parameters
+    /// - `index` (u32): The index of the memory segment.
+    ///
+    /// # Returns
+    /// A `u32` representing the size of the segment or null if not computed.
+    pub fn get_segment_used_size(self: *Self, index: u32) ?u32 {
+        return self.segment_used_sizes.get(index) orelse null;
+    }
 };
 
 // ************************************************************
