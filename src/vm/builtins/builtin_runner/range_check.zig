@@ -19,7 +19,6 @@ const RunnerError = Error.RunnerError;
 
 const N_PARTS: u64 = 8;
 const INNER_RC_BOUND_SHIFT: u64 = 16;
-const INNER_RC_BOUND_MASK: u64 = @as(u64, @intCast(u16.MAX));
 
 /// Range check built-in runner
 pub const RangeCheckBuiltinRunner = struct {
@@ -248,6 +247,7 @@ pub const RangeCheckBuiltinRunner = struct {
     /// verification fails.
     pub fn rangeCheckValidationRule(memory: *Memory, address: Relocatable, allocator: Allocator) !std.ArrayList(Relocatable) {
         var result = ArrayList(Relocatable).init(allocator);
+        errdefer result.deinit();
         const num = (memory.get(address) catch {
             return null;
         }).tryIntoFelt() catch {
