@@ -255,9 +255,9 @@ pub const RangeCheckBuiltinRunner = struct {
         };
 
         if (num.Mask <= N_PARTS * INNER_RC_BOUND_SHIFT) {
-            return result.append(address);
+            return try result.append(address);
         } else {
-            return result.append(Error.MemoryOutOfBounds);
+            return try result.append(Error.MemoryOutOfBounds);
         }
     }
 
