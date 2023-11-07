@@ -3,11 +3,15 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
+const expectEqualSlices = std.testing.expectEqualSlices;
 
 // Local imports.
 const Memory = @import("memory.zig").Memory;
 const relocatable = @import("relocatable.zig");
+const Relocatable = @import("relocatable.zig").Relocatable;
+const MaybeRelocatable = @import("relocatable.zig").MaybeRelocatable;
 const starknet_felt = @import("../../math/fields/starknet.zig");
+const Felt252 = starknet_felt.Felt252;
 
 // MemorySegmentManager manages the list of memory segments.
 // Also holds metadata useful for the relocation process of
@@ -21,11 +25,11 @@ pub const MemorySegmentManager = struct {
     /// The allocator used to allocate the memory.
     allocator: Allocator,
     // The size of the used segments.
-    segment_used_sizes: std.HashMap(
+    segment_used_sizes: std.ArrayHashMap(
         u32,
         u32,
-        std.hash_map.AutoContext(u32),
-        std.hash_map.default_max_load_percentage,
+        std.array_hash_map.AutoContext(u32),
+        false,
     ),
     // The size of the segments.
     segment_sizes: std.HashMap(
@@ -65,7 +69,7 @@ pub const MemorySegmentManager = struct {
         // Initialize the values of the MemorySegmentManager struct.
         segment_manager.* = .{
             .allocator = allocator,
-            .segment_used_sizes = std.AutoHashMap(
+            .segment_used_sizes = std.AutoArrayHashMap(
                 u32,
                 u32,
             ).init(allocator),
@@ -98,9 +102,9 @@ pub const MemorySegmentManager = struct {
     // ************************************************************
 
     // Adds a memory segment and returns the first address of the new segment.
-    pub fn addSegment(self: *Self) relocatable.Relocatable {
+    pub fn addSegment(self: *Self) Relocatable {
         // Create the relocatable address for the new segment.
-        const relocatable_address = relocatable.Relocatable{
+        const relocatable_address = Relocatable{
             .segment_index = self.memory.num_segments,
             .offset = 0,
         };
@@ -117,8 +121,38 @@ pub const MemorySegmentManager = struct {
     ///
     /// # Returns
     /// A `u32` representing the size of the segment or null if not computed.
-    pub fn get_segment_used_size(self: *Self, index: u32) ?u32 {
+    pub fn getSegmentUsedSize(self: *Self, index: u32) ?u32 {
         return self.segment_used_sizes.get(index) orelse null;
+    }
+
+    /// Retrieves the number of memory segments.
+    ///
+    /// # Returns
+    ///
+    /// The number of memory segments as a `usize`.
+    pub fn numSegments(self: *Self) usize {
+        return self.memory.data.count();
+    }
+
+    /// Computes and returns the effective size of memory segments.
+    ///
+    /// This function iterates through memory segments, calculates their effective sizes, and
+    /// updates the segment sizes map accordingly.
+    ///
+    /// # Returns
+    ///
+    /// An `AutoArrayHashMap` representing the computed effective sizes of memory segments.
+    pub fn computeEffectiveSize(self: *Self) !std.AutoArrayHashMap(u32, u32) {
+        for (self.memory.data.keys()) |item| {
+            const offset = self.segment_used_sizes.get(@intCast(item.segment_index));
+            if (offset == null or offset.? < item.offset + 1) {
+                try self.segment_used_sizes.put(
+                    @intCast(item.segment_index),
+                    @intCast(item.offset + 1),
+                );
+            }
+        }
+        return self.segment_used_sizes;
     }
 };
 
@@ -142,7 +176,7 @@ test "memory segment manager" {
 
     // Check if the relocatable address is correct.
     try expectEqual(
-        relocatable.Relocatable{
+        Relocatable{
             .segment_index = 0,
             .offset = 0,
         },
@@ -157,7 +191,7 @@ test "memory segment manager" {
 
     // Check if the relocatable address is correct.
     try expectEqual(
-        relocatable.Relocatable{
+        Relocatable{
             .segment_index = 1,
             .offset = 0,
         },
@@ -182,13 +216,13 @@ test "set get integer value in segment memory" {
     _ = memory_segment_manager.addSegment();
     _ = memory_segment_manager.addSegment();
 
-    const address = relocatable.Relocatable.new(
+    const address = Relocatable.new(
         0,
         0,
     );
     const value = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(42));
 
-    const wrong_address = relocatable.Relocatable.new(0, 1);
+    const wrong_address = Relocatable.new(0, 1);
 
     _ = try memory_segment_manager.memory.set(address, value);
 
@@ -202,4 +236,140 @@ test "set get integer value in segment memory" {
     const expected_value = value;
 
     try expect(expected_value.eq(actual_value));
+}
+
+test "MemorySegmentManager: getSegmentUsedSize should return the size of a memory segment by its index if available" {
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.segment_used_sizes.put(10, 4);
+    try expectEqual(
+        @as(u32, @intCast(4)),
+        memory_segment_manager.getSegmentUsedSize(10).?,
+    );
+}
+
+test "MemorySegmentManager: getSegmentUsedSize should return null if index not available" {
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try expectEqual(
+        @as(?u32, null),
+        memory_segment_manager.getSegmentUsedSize(10),
+    );
+}
+
+test "MemorySegmentManager: numSegments should return the number of segments in the real memory" {
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 1), .{ .felt = Felt252.fromInteger(10) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(1, 1), .{ .felt = Felt252.fromInteger(10) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(2, 1), .{ .felt = Felt252.fromInteger(10) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(3, 1), .{ .felt = Felt252.fromInteger(10) });
+    try expectEqual(
+        @as(usize, 4),
+        memory_segment_manager.numSegments(),
+    );
+}
+
+test "MemorySegmentManager: computeEffectiveSize for one segment memory" {
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 0), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 1), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 2), .{ .felt = Felt252.fromInteger(1) });
+
+    var actual = try memory_segment_manager.computeEffectiveSize();
+
+    try expectEqual(@as(usize, 1), actual.count());
+    try expectEqual(@as(u32, 3), actual.get(0).?);
+}
+
+test "MemorySegmentManager: computeEffectiveSize for one segment memory with gap" {
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    _ = memory_segment_manager.addSegment();
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 6), .{ .felt = Felt252.fromInteger(1) });
+
+    var actual = try memory_segment_manager.computeEffectiveSize();
+
+    try expectEqual(@as(usize, 1), actual.count());
+    try expectEqual(@as(u32, 7), actual.get(0).?);
+}
+
+test "MemorySegmentManager: computeEffectiveSize for one segment memory with gaps" {
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 3), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 4), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 7), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 9), .{ .felt = Felt252.fromInteger(1) });
+
+    var actual = try memory_segment_manager.computeEffectiveSize();
+
+    try expectEqual(@as(usize, 1), actual.count());
+    try expectEqual(@as(u32, 10), actual.get(0).?);
+}
+
+test "MemorySegmentManager: computeEffectiveSize for three segment memory" {
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 0), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 1), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 2), .{ .felt = Felt252.fromInteger(1) });
+
+    try memory_segment_manager.memory.data.put(Relocatable.new(1, 0), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(1, 1), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(1, 2), .{ .felt = Felt252.fromInteger(1) });
+
+    try memory_segment_manager.memory.data.put(Relocatable.new(2, 0), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(2, 1), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(2, 2), .{ .felt = Felt252.fromInteger(1) });
+
+    var actual = try memory_segment_manager.computeEffectiveSize();
+
+    try expectEqual(@as(usize, 3), actual.count());
+    try expectEqual(@as(u32, 3), actual.get(0).?);
+    try expectEqual(@as(u32, 3), actual.get(1).?);
+    try expectEqual(@as(u32, 3), actual.get(2).?);
+}
+
+test "MemorySegmentManager: computeEffectiveSize for three segment memory with gaps" {
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 2), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 5), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 7), .{ .felt = Felt252.fromInteger(1) });
+
+    try memory_segment_manager.memory.data.put(Relocatable.new(1, 1), .{ .felt = Felt252.fromInteger(1) });
+
+    try memory_segment_manager.memory.data.put(Relocatable.new(2, 2), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(2, 4), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(2, 7), .{ .felt = Felt252.fromInteger(1) });
+
+    var actual = try memory_segment_manager.computeEffectiveSize();
+
+    try expectEqual(@as(usize, 3), actual.count());
+    try expectEqual(@as(u32, 8), actual.get(0).?);
+    try expectEqual(@as(u32, 2), actual.get(1).?);
+    try expectEqual(@as(u32, 8), actual.get(2).?);
+}
+
+test "MemorySegmentManager: getSegmentUsedSize after computeEffectiveSize" {
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 2), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 5), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 7), .{ .felt = Felt252.fromInteger(1) });
+
+    try memory_segment_manager.memory.data.put(Relocatable.new(1, 1), .{ .felt = Felt252.fromInteger(1) });
+
+    try memory_segment_manager.memory.data.put(Relocatable.new(2, 2), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(2, 4), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(2, 7), .{ .felt = Felt252.fromInteger(1) });
+
+    _ = try memory_segment_manager.computeEffectiveSize();
+
+    try expectEqual(@as(usize, 3), memory_segment_manager.segment_used_sizes.count());
+    try expectEqual(@as(u32, 8), memory_segment_manager.segment_used_sizes.get(0).?);
+    try expectEqual(@as(u32, 2), memory_segment_manager.segment_used_sizes.get(1).?);
+    try expectEqual(@as(u32, 8), memory_segment_manager.segment_used_sizes.get(2).?);
 }
