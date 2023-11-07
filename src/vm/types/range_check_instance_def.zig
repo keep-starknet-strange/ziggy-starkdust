@@ -12,17 +12,12 @@ pub const RangeCheckInstanceDef = struct {
     /// For example, n_parts=8 defines the range [0, 2^128).
     n_parts: u32,
 
-    /// Number of cells per built in
-    pub fn cellsPerBuiltin() u32 {
-        return CELLS_PER_RANGE_CHECK;
-    }
-
     /// Number of units per builtin
     pub fn rangeCheckUnitsPerBuiltin(self: *Self) u32 {
         return self.n_parts;
     }
 
-    pub fn default() !Self {
+    pub fn default() Self {
         return .{
             .ratio = 8,
             .n_parts = 8,

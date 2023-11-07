@@ -246,12 +246,18 @@ pub const RangeCheckBuiltinRunner = struct {
     ///
     /// An `ArrayList(Relocatable)` containing the rules address
     /// verification fails.
-    pub fn rangeCheckValidationRule(memory: *Memory, address: Relocatable) std.ArrayList(!Relocatable) {
-        const addr = memory.get(address);
-        if (addr.bits <= N_PARTS * INNER_RC_BOUND_SHIFT) {
-            return std.ArrayList.append(address);
+    pub fn rangeCheckValidationRule(memory: *Memory, address: Relocatable, allocator: Allocator) !std.ArrayList(Relocatable) {
+        var result = ArrayList(Relocatable).init(allocator);
+        const num = (memory.get(address) catch {
+            return null;
+        }).tryIntoFelt() catch {
+            return RunnerError.BuiltinExpectedInteger;
+        };
+
+        if (num.Mask <= N_PARTS * INNER_RC_BOUND_SHIFT) {
+            return result.append(address);
         } else {
-            return std.ArrayList.append(Error.MemoryOutOfBounds);
+            return result.append(Error.MemoryOutOfBounds);
         }
     }
 
