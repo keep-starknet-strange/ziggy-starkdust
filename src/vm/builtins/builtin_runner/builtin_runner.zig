@@ -76,6 +76,7 @@ pub const BuiltinRunner = union(enum) {
         memory: *Memory,
     ) !?MaybeRelocatable {
         return switch (self.*) {
+            // TODO: switch to `BitwiseBuiltinRunner` `deduceMemoryCell` function after migration of `deduce` to `BitwiseBuiltinRunner`
             .Bitwise => try BitwiseBuiltinRunnerTmp.deduce(address, memory),
             .EcOp => |ec| ec.deduceMemoryCell(address, memory),
             .Hash => |hash| hash.deduceMemoryCell(address, memory),
