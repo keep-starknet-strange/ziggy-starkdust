@@ -4,6 +4,7 @@ const Allocator = std.mem.Allocator;
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 const expectEqualSlices = std.testing.expectEqualSlices;
+const expectError = std.testing.expectError;
 
 // Local imports.
 const Memory = @import("memory.zig").Memory;
@@ -12,6 +13,7 @@ const Relocatable = @import("relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("relocatable.zig").MaybeRelocatable;
 const starknet_felt = @import("../../math/fields/starknet.zig");
 const Felt252 = starknet_felt.Felt252;
+const MemoryError = @import("../error.zig").MemoryError;
 
 // MemorySegmentManager manages the list of memory segments.
 // Also holds metadata useful for the relocation process of
@@ -170,6 +172,28 @@ pub const MemorySegmentManager = struct {
     /// A `u32` representing the size of the segment or a computed effective size if not available.
     pub fn getSegmentSize(self: *Self, index: u32) ?u32 {
         return self.segment_sizes.get(index) orelse self.getSegmentUsedSize(index);
+    }
+
+    /// Checks if a memory value is valid within the MemorySegmentManager.
+    ///
+    /// This function validates whether a given memory value is within the bounds
+    /// of the memory segments managed by the MemorySegmentManager.
+    ///
+    /// # Parameters
+    ///
+    /// - `value` (*MaybeRelocatable): The memory value to validate.
+    ///
+    /// # Returns
+    ///
+    /// A boolean value indicating the validity of the memory value.
+    pub fn isValidMemoryValue(self: *Self, value: *MaybeRelocatable) bool {
+        return switch (value.*) {
+            .felt => true,
+            .relocatable => |item| @as(
+                usize,
+                @intCast(item.segment_index),
+            ) < self.segment_used_sizes.count(),
+        };
     }
 };
 
@@ -409,4 +433,27 @@ test "MemorySegmentManager: getSegmentSize should return null if missing segment
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     try expectEqual(@as(?u32, null), memory_segment_manager.getSegmentSize(3));
+}
+
+test "MemorySegmentManager: isValidMemoryValue should return true if Felt" {
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    var value: MaybeRelocatable = .{ .felt = Felt252.zero() };
+    try expect(memory_segment_manager.isValidMemoryValue(&value));
+}
+
+test "MemorySegmentManager: isValidMemoryValue should return false if invalid segment" {
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.segment_used_sizes.put(0, 10);
+    var value: MaybeRelocatable = .{ .relocatable = Relocatable.new(1, 1) };
+    try expect(!memory_segment_manager.isValidMemoryValue(&value));
+}
+
+test "MemorySegmentManager: isValidMemoryValue should return true if valid segment" {
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.segment_used_sizes.put(0, 10);
+    var value: MaybeRelocatable = .{ .relocatable = Relocatable.new(0, 5) };
+    try expect(memory_segment_manager.isValidMemoryValue(&value));
 }
