@@ -3,6 +3,7 @@ name: Docs
 on:
   push:
     branches: [main]
+  pull_request:
 
 jobs:
   docs:
@@ -19,7 +20,7 @@ jobs:
         run: zig test -femit-docs=./docsite src/lib.zig
 
       - name: Deploy
-        if: ${{ github.ref == 'refs/heads/main' }} && steps.check_changes.outcome == 'success'
+        if: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' && steps.check_changes.outcome == 'success' }}
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
