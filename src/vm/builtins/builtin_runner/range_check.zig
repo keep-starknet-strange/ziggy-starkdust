@@ -246,8 +246,8 @@ pub const RangeCheckBuiltinRunner = struct {
     /// An `ArrayList(Relocatable)` containing the rules address
     /// verification fails.
     pub fn rangeCheckValidationRule(memory: *Memory, address: Relocatable, allocator: Allocator) !std.ArrayList(Relocatable) {
-        var result = try ArrayList(Relocatable).init(allocator);
-        defer result.deinit();
+        var result = ArrayList(Relocatable).init(allocator);
+        errdefer result.deinit();
         const num = (memory.get(address) catch {
             return null;
         }).tryIntoFelt() catch {
