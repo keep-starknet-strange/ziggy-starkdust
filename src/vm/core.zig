@@ -16,7 +16,6 @@ const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
 const BuiltinRunner = @import("./builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
-const builtin = @import("./builtins/bitwise/bitwise.zig");
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const HashBuiltinRunner = @import("./builtins/builtin_runner/hash.zig").HashBuiltinRunner;
 const Instruction = @import("instructions.zig").Instruction;
@@ -434,7 +433,7 @@ pub const CairoVM = struct {
                 u64,
                 @intCast(builtin_item.base()),
             ) == address.segment_index) {
-                return builtin.deduce(
+                return builtin_item.deduceMemoryCell(
                     address,
                     self.segments.memory,
                 ) catch {

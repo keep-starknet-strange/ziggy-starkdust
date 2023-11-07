@@ -273,6 +273,17 @@ pub const RangeCheckBuiltinRunner = struct {
     pub fn addValidationRule(self: *const Self, memory: *Memory) void {
         memory.addValidationRule(self.base.segment_index, rangeCheckValidationRule);
     }
+
+    pub fn deduceMemoryCell(
+        self: *const Self,
+        address: Relocatable,
+        memory: *Memory,
+    ) ?MaybeRelocatable {
+        _ = memory;
+        _ = address;
+        _ = self;
+        return null;
+    }
 };
 
 test "initialize segments for range check" {

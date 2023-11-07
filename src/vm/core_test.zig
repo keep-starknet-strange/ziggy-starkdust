@@ -16,7 +16,8 @@ const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
 const BuiltinRunner = @import("./builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
-const builtin = @import("./builtins/bitwise/bitwise.zig");
+const BitwiseBuiltinRunner = @import("./builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
+const BitwiseInstanceDef = @import("./types/bitwise_instance_def.zig").BitwiseInstanceDef;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const HashBuiltinRunner = @import("./builtins/builtin_runner/hash.zig").HashBuiltinRunner;
 const Instruction = @import("instructions.zig").Instruction;
@@ -50,9 +51,9 @@ test "CairoVM: deduceMemoryCell builtin valid" {
         .{},
     );
     defer vm.deinit();
-    try vm.builtin_runners.append(BuiltinRunner{ .Hash = HashBuiltinRunner.new(
-        std.testing.allocator,
-        8,
+    var instance_def: BitwiseInstanceDef = .{ .ratio = null, .total_n_bits = 2 };
+    try vm.builtin_runners.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.new(
+        &instance_def,
         true,
     ) });
     try vm.segments.memory.set(

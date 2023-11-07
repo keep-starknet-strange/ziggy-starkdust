@@ -1,5 +1,8 @@
 const std = @import("std");
 const pedersen_instance_def = @import("../../types/pedersen_instance_def.zig");
+const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
+const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
+const Memory = @import("../../memory/memory.zig").Memory;
 
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
@@ -63,5 +66,16 @@ pub const HashBuiltinRunner = struct {
     /// The base value as a `usize`.
     pub fn getBase(self: *const Self) usize {
         return self.base;
+    }
+
+    pub fn deduceMemoryCell(
+        self: *const Self,
+        address: Relocatable,
+        memory: *Memory,
+    ) ?MaybeRelocatable {
+        _ = memory;
+        _ = address;
+        _ = self;
+        return null;
     }
 };
