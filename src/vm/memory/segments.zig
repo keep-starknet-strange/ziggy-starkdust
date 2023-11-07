@@ -11,9 +11,7 @@ const Memory = @import("memory.zig").Memory;
 const relocatable = @import("relocatable.zig");
 const Relocatable = @import("relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("relocatable.zig").MaybeRelocatable;
-const starknet_felt = @import("../../math/fields/starknet.zig");
-const Felt252 = starknet_felt.Felt252;
-const MemoryError = @import("../error.zig").MemoryError;
+const Felt252 = @import("../../math/fields/starknet.zig").Felt252;
 
 // MemorySegmentManager manages the list of memory segments.
 // Also holds metadata useful for the relocation process of
@@ -261,7 +259,7 @@ test "set get integer value in segment memory" {
         0,
         0,
     );
-    const value = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(42));
+    const value = relocatable.fromFelt(Felt252.fromInteger(42));
 
     const wrong_address = Relocatable.new(0, 1);
 
