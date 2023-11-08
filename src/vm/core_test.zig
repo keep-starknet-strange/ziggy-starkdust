@@ -564,7 +564,7 @@ test "trace is disabled" {
 
 // This instruction is used in the functions that test the `deduceOp1` function. Only the
 // `opcode` and `res_logic` fields are usually changed.
-const deduceOpTestInstr = instructions.Instruction{
+const deduceOpTestInstr = Instruction{
     .off_0 = 1,
     .off_1 = 2,
     .off_2 = 3,
@@ -592,7 +592,7 @@ test "deduceOp0 when opcode == .Call" {
     const res = tuple[1];
 
     // Test checks
-    const expected_op_0: ?MaybeRelocatable = relocatable.newFromRelocatable(relocatable.Relocatable.new(0, 1)); // temp var needed for type inference
+    const expected_op_0: ?MaybeRelocatable = relocatable.newFromRelocatable(Relocatable.new(0, 1)); // temp var needed for type inference
     const expected_res: ?MaybeRelocatable = null;
     try expectEqual(expected_op_0, op0);
     try expectEqual(expected_res, res);
@@ -1256,7 +1256,7 @@ test "memory is not leaked upon allocation failure during initialization" {
 
 test "updateRegisters all regular" {
     // Test setup
-    var instruction = instructions.Instruction{
+    var instruction = Instruction{
         .off_0 = 1,
         .off_1 = 2,
         .off_2 = 3,
@@ -1318,7 +1318,7 @@ test "updateRegisters all regular" {
 
 test "updateRegisters with mixed types" {
     // Test setup
-    var instruction = instructions.Instruction{
+    var instruction = Instruction{
         .off_0 = 1,
         .off_1 = 2,
         .off_2 = 3,
@@ -1378,5 +1378,92 @@ test "updateRegisters with mixed types" {
     try expectEqual(
         Relocatable.new(1, 11),
         vm.getFp(),
+    );
+}
+
+test "CairoVM: computeOp0Deductions should return op0 from deduceOp0 if deduceMemoryCell is null" {
+    // Test setup
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    var instr = deduceOpTestInstr;
+    instr.opcode = .Call;
+
+    // Test check
+    try expectEqual(
+        MaybeRelocatable{ .relocatable = Relocatable.new(0, 1) },
+        try vm.computeOp0Deductions(
+            Relocatable.new(0, 7),
+            &instr,
+            null,
+            null,
+        ),
+    );
+}
+
+test "CairoVM: computeOp0Deductions with a valid built in and non null deduceMemoryCell should return deduceMemoryCell" {
+    // Test setup
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+    var instance_def: BitwiseInstanceDef = .{ .ratio = null, .total_n_bits = 2 };
+    try vm.builtin_runners.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.new(
+        &instance_def,
+        true,
+    ) });
+    try vm.segments.memory.set(
+        Relocatable.new(
+            0,
+            5,
+        ),
+        relocatable.fromFelt(Felt252.fromInteger(10)),
+    );
+    try vm.segments.memory.set(
+        Relocatable.new(
+            0,
+            6,
+        ),
+        relocatable.fromFelt(Felt252.fromInteger(12)),
+    );
+    try vm.segments.memory.set(
+        Relocatable.new(
+            0,
+            7,
+        ),
+        relocatable.fromFelt(Felt252.fromInteger(0)),
+    );
+
+    // Test check
+    try expectEqual(
+        MaybeRelocatable{ .felt = Felt252.fromInteger(8) },
+        try vm.computeOp0Deductions(
+            Relocatable.new(0, 7),
+            &deduceOpTestInstr,
+            &.{ .relocatable = .{} },
+            &.{ .relocatable = .{} },
+        ),
+    );
+}
+
+test "CairoVM: computeOp0Deductions should return VM error if deduceOp0 and deduceMemoryCell are null" {
+    // Test setup
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    var instr = deduceOpTestInstr;
+    instr.opcode = .Ret;
+    instr.res_logic = .Mul;
+
+    // Test check
+    try expectError(
+        CairoVMError.FailedToComputeOperands,
+        vm.computeOp0Deductions(
+            Relocatable.new(0, 7),
+            &instr,
+            &relocatable.fromU64(4),
+            &relocatable.fromU64(0),
+        ),
     );
 }
