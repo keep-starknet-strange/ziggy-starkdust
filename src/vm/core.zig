@@ -168,11 +168,8 @@ pub const CairoVM = struct {
         const off_1 = instruction.off_1 + (@as(i16, 1) << (OFFSET_BITS - 1));
         const off_2 = instruction.off_2 + (@as(i16, 1) << (OFFSET_BITS - 1));
 
-        if (self.rc_limits == null) {
-            self.rc_limits = .{ @min(off_0, off_1, off_2), @max(off_0, off_1, off_2) };
-        } else {
-            self.rc_limits = .{ @min(self.rc_limits.?[0], off_0, off_1, off_2), @max(self.rc_limits.?[1], off_0, off_1, off_2) };
-        }
+        const limits = self.rc_limits orelse .{ off_0, off_0 };
+        self.rc_limits = .{ @min(limits[0], off_0, off_1, off_2), @max(limits[1], off_0, off_1, off_2) };
 
         self.segments.memory.markAsAccessed(operands_result.dst_addr);
         self.segments.memory.markAsAccessed(operands_result.op0_addr);
