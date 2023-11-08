@@ -10,6 +10,7 @@ pub const CairoVMError = error{
     RunnerError,
     TypeMismatchNotRelocatable,
     ValueTooLarge,
+    FailedToComputeOperands,
 };
 
 pub const MemoryError = error{

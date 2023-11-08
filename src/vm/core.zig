@@ -199,27 +199,33 @@ pub const CairoVM = struct {
         };
     }
 
-    /// Runs deductions for Op0, first runs builtin deductions, if this fails, attempts to deduce it based on dst and op1
-    /// Also returns res if it was also deduced in the process
-    /// Inserts the deduced operand
-    /// Fails if Op0 was not deduced or if an error arose in the process.
-    /// # Arguments
+    /// Compute Op0 deductions based on the provided instruction, destination, and Op1.
+    ///
+    /// This function first attempts to deduce Op0 using built-in deductions. If that returns a null,
+    /// it falls back to deducing Op0 based on the provided destination and Op1.
+    ///
+    /// ## Arguments
     /// - `op_0_addr`: The address of the operand to deduce.
     /// - `instruction`: The instruction to deduce the operand for.
-    /// - `dst`: The destination.
-    /// - `op1`: The op1.
+    /// - `dst`: The destination of the instruction.
+    /// - `op1`: The Op1 operand.
+    ///
+    /// ## Returns
+    /// - `MaybeRelocatable`: The deduced Op0 operand or an error if deducing Op0 fails.
     pub fn computeOp0Deductions(
         self: *Self,
-        op_0_addr: MaybeRelocatable,
+        op_0_addr: Relocatable,
         instruction: *const instructions.Instruction,
-        dst: ?MaybeRelocatable,
-        op1: ?MaybeRelocatable,
-    ) void {
-        _ = op1;
-        _ = dst;
-        _ = instruction;
-        const op_o = try self.deduceMemoryCell(op_0_addr);
-        _ = op_o;
+        dst: ?*const MaybeRelocatable,
+        op1: ?*const MaybeRelocatable,
+    ) !MaybeRelocatable {
+        const op0_op = try self.deduceMemoryCell(op_0_addr) orelse (try self.deduceOp0(
+            instruction,
+            dst,
+            op1,
+        ))[0];
+
+        return op0_op orelse CairoVMError.FailedToComputeOperands;
     }
 
     /// Attempts to deduce `op0` and `res` for an instruction, given `dst` and `op1`.
@@ -321,7 +327,7 @@ pub const CairoVM = struct {
     ) !void {
         switch (instruction.ap_update) {
             // AP update Add
-            instructions.ApUpdate.Add => {
+            .Add => {
                 // Check that Res is not null.
                 if (operands.res) |val| {
                     // Update AP.
@@ -331,11 +337,11 @@ pub const CairoVM = struct {
                 }
             },
             // AP update Add1
-            instructions.ApUpdate.Add1 => {
+            .Add1 => {
                 self.run_context.ap.*.addUintInPlace(1);
             },
             // AP update Add2
-            instructions.ApUpdate.Add2 => {
+            .Add2 => {
                 self.run_context.ap.*.addUintInPlace(2);
             },
             else => {},
