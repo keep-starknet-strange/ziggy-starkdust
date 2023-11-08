@@ -145,7 +145,7 @@ pub const RangeCheckBuiltinRunner = struct {
     /// The number of used cells as a `u32`, or `MemoryError.MissingSegmentUsedSizes` if
     /// the size is not available.
     pub fn getUsedCells(self: *const Self, segments: *MemorySegmentManager) !u32 {
-        return segments.get_segment_used_size(
+        return segments.getSegmentUsedSize(
             @intCast(self.base),
         ) orelse MemoryError.MissingSegmentUsedSizes;
     }
