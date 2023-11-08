@@ -28,11 +28,11 @@ pub const Memory = struct {
     /// The allocator used to allocate the memory.
     allocator: Allocator,
     // The data in the memory.
-    data: std.HashMap(
+    data: std.ArrayHashMap(
         Relocatable,
         MaybeRelocatable,
-        std.hash_map.AutoContext(Relocatable),
-        std.hash_map.default_max_load_percentage,
+        std.array_hash_map.AutoContext(Relocatable),
+        true,
     ),
     // The number of segments in the memory.
     num_segments: u32,
@@ -65,7 +65,7 @@ pub const Memory = struct {
 
         memory.* = Self{
             .allocator = allocator,
-            .data = std.AutoHashMap(
+            .data = std.AutoArrayHashMap(
                 Relocatable,
                 MaybeRelocatable,
             ).init(allocator),
