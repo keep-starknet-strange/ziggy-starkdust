@@ -1,4 +1,6 @@
-const relocatable = @import("../../memory/relocatable.zig");
+const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
+const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
+const Memory = @import("../../memory/memory.zig").Memory;
 
 /// Arena builtin size
 const ARENA_BUILTIN_SIZE: u32 = 3;
@@ -13,7 +15,7 @@ pub const SegmentArenaBuiltinRunner = struct {
     const Self = @This();
 
     /// Base
-    base: relocatable.Relocatable,
+    base: Relocatable,
     /// Included boolean flag
     included: bool,
     /// Number of cells per instance
@@ -36,7 +38,7 @@ pub const SegmentArenaBuiltinRunner = struct {
     /// A new `SegmentArenaBuiltinRunner` instance.
     pub fn new(included: bool) Self {
         return .{
-            .base = relocatable.Relocatable.default(),
+            .base = Relocatable.default(),
             .included = included,
             .cell_per_instance = ARENA_BUILTIN_SIZE,
             .n_input_cells_per_instance = ARENA_BUILTIN_SIZE,
@@ -54,5 +56,16 @@ pub const SegmentArenaBuiltinRunner = struct {
             usize,
             @intCast(self.base.segment_index),
         );
+    }
+
+    pub fn deduceMemoryCell(
+        self: *const Self,
+        address: Relocatable,
+        memory: *Memory,
+    ) ?MaybeRelocatable {
+        _ = memory;
+        _ = address;
+        _ = self;
+        return null;
     }
 };
