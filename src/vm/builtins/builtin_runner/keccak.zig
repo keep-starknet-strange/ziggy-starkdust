@@ -2,6 +2,9 @@ const std = @import("std");
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
 const relocatable = @import("../../memory/relocatable.zig");
 const keccak_instance_def = @import("../../types/keccak_instance_def.zig");
+const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
+const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
+const Memory = @import("../../memory/memory.zig").Memory;
 
 const ArrayList = std.ArrayList;
 const AutoHashMap = std.AutoHashMap;
@@ -73,5 +76,16 @@ pub const KeccakBuiltinRunner = struct {
     /// The base value as a `usize`.
     pub fn getBase(self: *const Self) usize {
         return self.base;
+    }
+
+    pub fn deduceMemoryCell(
+        self: *const Self,
+        address: Relocatable,
+        memory: *Memory,
+    ) ?MaybeRelocatable {
+        _ = memory;
+        _ = address;
+        _ = self;
+        return null;
     }
 };

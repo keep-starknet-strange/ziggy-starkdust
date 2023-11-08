@@ -8,6 +8,12 @@ const RangeCheckBuiltinRunner = @import("./range_check.zig").RangeCheckBuiltinRu
 const SegmentArenaBuiltinRunner = @import("./segment_arena.zig").SegmentArenaBuiltinRunner;
 const SignatureBuiltinRunner = @import("./signature.zig").SignatureBuiltinRunner;
 
+const BitwiseBuiltinRunnerTmp = @import("../bitwise/bitwise.zig");
+
+const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
+const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
+const Memory = @import("../../memory/memory.zig").Memory;
+
 /// Built-in runner
 pub const BuiltinRunner = union(enum) {
     const Self = @This();
@@ -49,6 +55,37 @@ pub const BuiltinRunner = union(enum) {
             .Signature => |*signature| signature.getBase(),
             .Poseidon => |*poseidon| poseidon.getBase(),
             .SegmentArena => |*segment_arena| segment_arena.getBase(),
+        };
+    }
+
+    /// Deduces memory cell information for the built-in runner.
+    ///
+    /// This function deduces memory cell information for the specific type of built-in runner.
+    ///
+    /// # Arguments
+    ///
+    /// - `address`: The address of the memory cell.
+    /// - `memory`: The memory manager for the current context.
+    ///
+    /// # Returns
+    ///
+    /// A `MaybeRelocatable` representing the deduced memory cell information, or an error if deduction fails.
+    pub fn deduceMemoryCell(
+        self: *const Self,
+        address: Relocatable,
+        memory: *Memory,
+    ) !?MaybeRelocatable {
+        return switch (self.*) {
+            // TODO: switch to `BitwiseBuiltinRunner` `deduceMemoryCell` function after migration of `deduce` to `BitwiseBuiltinRunner`
+            .Bitwise => try BitwiseBuiltinRunnerTmp.deduce(address, memory),
+            .EcOp => |ec| ec.deduceMemoryCell(address, memory),
+            .Hash => |hash| hash.deduceMemoryCell(address, memory),
+            .Output => |output| output.deduceMemoryCell(address, memory),
+            .RangeCheck => |range_check| range_check.deduceMemoryCell(address, memory),
+            .Keccak => |keccak| keccak.deduceMemoryCell(address, memory),
+            .Signature => |signature| signature.deduceMemoryCell(address, memory),
+            .Poseidon => |poseidon| poseidon.deduceMemoryCell(address, memory),
+            .SegmentArena => |segment_arena| segment_arena.deduceMemoryCell(address, memory),
         };
     }
 };
