@@ -569,38 +569,30 @@ pub fn deduceOp1(
     inst: *const instructions.Instruction,
     dst: ?*const MaybeRelocatable,
     op0: ?*const MaybeRelocatable,
-) !std.meta.Tuple(&[_]type{ ?relocatable.MaybeRelocatable, ?relocatable.MaybeRelocatable }) {
+) !Op1Result {
     if (inst.opcode != .AssertEq) {
-        return .{ null, null };
+        return .{ .op_1 = null, .res = null };
     }
 
     switch (inst.res_logic) {
         .Op1 => if (dst) |dst_val| {
-            return .{ dst_val.*, dst_val.* };
+            return .{ .op_1 = dst_val.*, .res = dst_val.* };
         },
         .Add => if (dst != null and op0 != null) {
-            return .{ try subOperands(
-                dst.?.*,
-                op0.?.*,
-            ), dst.?.* };
+            return .{ .op_1 = try subOperands(dst.?.*, op0.?.*), .res = dst.?.* };
         },
         .Mul => {
-            if (dst != null and op0 != null and
-                dst.?.isFelt() and op0.?.isFelt() and
-                !op0.?.felt.isZero())
-            {
+            if (dst != null and op0 != null and dst.?.isFelt() and op0.?.isFelt() and !op0.?.felt.isZero()) {
                 return .{
-                    relocatable.fromFelt(
-                        try dst.?.felt.div(op0.?.felt),
-                    ),
-                    dst.?.*,
+                    .op_1 = relocatable.fromFelt(try dst.?.felt.div(op0.?.felt)),
+                    .res = dst.?.*,
                 };
             }
         },
         else => {},
     }
 
-    return .{ null, null };
+    return .{ .op_1 = null, .res = null };
 }
 
 // *****************************************************************************
@@ -639,5 +631,14 @@ const Op0Result = struct {
     /// The computed operand Op0.
     op_0: ?MaybeRelocatable,
     /// The result of the operation involving Op0.
+    res: ?MaybeRelocatable,
+};
+
+/// Represents the result of deduce Op1 operation.
+const Op1Result = struct {
+    const Self = @This();
+    /// The computed operand Op1.
+    op_1: ?MaybeRelocatable,
+    /// The result of the operation involving Op1.
     res: ?MaybeRelocatable,
 };
