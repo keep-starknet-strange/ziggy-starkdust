@@ -1689,3 +1689,25 @@ test "CairoVM: getSegmentUsedSize should return the size of a memory segment by 
         vm.getSegmentUsedSize(10).?,
     );
 }
+
+test "MemorySegmentManager: getSegmentUsedSize should return the size of the segment if contained in segment_sizes" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.segment_sizes.put(10, 105);
+    try expectEqual(@as(u32, 105), vm.getSegmentSize(10).?);
+}
+
+test "MemorySegmentManager: getSegmentSize should return the size of the segment via getSegmentUsedSize if not contained in segment_sizes" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.segment_used_sizes.put(3, 6);
+    try expectEqual(@as(u32, 6), vm.getSegmentSize(3).?);
+}

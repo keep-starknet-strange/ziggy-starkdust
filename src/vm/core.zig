@@ -180,6 +180,22 @@ pub const CairoVM = struct {
         return self.segments.getSegmentUsedSize(index);
     }
 
+    /// Retrieves the size of a memory segment by its index, if available; otherwise, computes it.
+    ///
+    /// This function internally calls `getSegmentSize` on the memory segments manager, attempting
+    /// to retrieve the size of the segment at the specified index. If the size is not available,
+    /// it computes the effective size using `getSegmentUsedSize` and returns it.
+    ///
+    /// # Parameters
+    ///
+    /// - `index` (u32): The index of the memory segment.
+    /// # Returns
+    ///
+    /// - The size of the segment at the specified index, or a computed effective size if not available.
+    pub fn getSegmentSize(self: *Self, index: u32) ?u32 {
+        return self.segments.getSegmentSize(index);
+    }
+
     /// Do a single step of the VM.
     /// Process an instruction cycle using the typical fetch-decode-execute cycle.
     pub fn step(self: *Self) !void {
