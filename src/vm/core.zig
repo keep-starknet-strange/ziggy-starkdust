@@ -109,6 +109,18 @@ pub const CairoVM = struct {
         return self.segments.computeEffectiveSize();
     }
 
+    /// Adds a memory segment to the Cairo VM and returns the first address of the new segment.
+    ///
+    /// This function internally calls `addSegment` on the memory segments manager, creating a new
+    /// relocatable address for the new segment. It increments the number of segments in the VM.
+    ///
+    /// # Returns
+    ///
+    /// The relocatable address representing the first address of the new memory segment.
+    pub fn addMemorySegment(self: *Self) Relocatable {
+        return self.segments.addSegment();
+    }
+
     /// Do a single step of the VM.
     /// Process an instruction cycle using the typical fetch-decode-execute cycle.
     pub fn step(self: *Self) !void {

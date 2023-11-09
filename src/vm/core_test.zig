@@ -1589,3 +1589,31 @@ test "CairoVM: deduceDst should return VM error No dst if not AssertEq or Call o
         vm.deduceDst(&instruction, null),
     );
 }
+
+test "CairoVM: addMemorySegment should return a proper relocatable address for the new segment." {
+    // Test setup
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    // Test check
+    try expectEqual(
+        Relocatable.new(0, 0),
+        vm.addMemorySegment(),
+    );
+}
+
+test "CairoVM: addMemorySegment should increase by one the number of segments in the VM" {
+    // Test setup
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    _ = vm.addMemorySegment();
+    _ = vm.addMemorySegment();
+    _ = vm.addMemorySegment();
+
+    // Test check
+    try expectEqual(
+        @as(u32, 3),
+        vm.segments.memory.num_segments,
+    );
+}
