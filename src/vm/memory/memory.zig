@@ -1,7 +1,8 @@
 // Core imports.
 const std = @import("std");
-const expect = @import("std").testing.expect;
-const expectEqual = @import("std").testing.expectEqual;
+const expect = std.testing.expect;
+const expectEqual = std.testing.expectEqual;
+const expectError = std.testing.expectError;
 const Allocator = std.mem.Allocator;
 
 // Local imports.
@@ -10,6 +11,7 @@ const MaybeRelocatable = relocatable.MaybeRelocatable;
 const Relocatable = relocatable.Relocatable;
 const CairoVMError = @import("../error.zig").CairoVMError;
 const starknet_felt = @import("../../math/fields/starknet.zig");
+const Felt252 = starknet_felt.Felt252;
 
 // Test imports.
 const MemorySegmentManager = @import("./segments.zig").MemorySegmentManager;
@@ -136,6 +138,29 @@ pub const Memory = struct {
         return self.data.get(address) orelse CairoVMError.MemoryOutOfBounds;
     }
 
+    /// Retrieves a `Felt252` value from the memory at the specified relocatable address.
+    ///
+    /// This function internally calls `get` on the memory, attempting to retrieve a value at the given address.
+    /// If the value is of type `Felt252`, it is returned; otherwise, an error of type `ExpectedInteger` is returned.
+    ///
+    /// Additionally, it handles the possibility of an out-of-bounds memory access and returns an error of type `MemoryOutOfBounds` if needed.
+    ///
+    /// # Arguments
+    ///
+    /// - `address`: The relocatable address to retrieve the `Felt252` value from.
+    /// # Returns
+    ///
+    /// - The `Felt252` value at the specified address, or an error if not available or not of the expected type.
+    pub fn getFelt(
+        self: *Self,
+        address: Relocatable,
+    ) error{ MemoryOutOfBounds, ExpectedInteger }!Felt252 {
+        return switch (try self.get(address)) {
+            .felt => |fe| fe,
+            else => error.ExpectedInteger,
+        };
+    }
+
     // Adds a validation rule for a given segment.
     // # Arguments
     // - `segment_index` - The index of the segment.
@@ -246,4 +271,50 @@ test "validate existing memory for range check within bound" {
     // ************************************************************
     // Assert that the value is the expected value.
     try expect(maybe_value_1.eq(value_1));
+}
+
+test "Memory: getFelt should return MemoryOutOfBounds error if no value at the given address" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    // Test checks
+    try expectError(
+        error.MemoryOutOfBounds,
+        memory.getFelt(Relocatable.new(10, 30)),
+    );
+}
+
+test "Memory: getFelt should return Felt252 if available at the given address" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try memory.data.put(
+        Relocatable.new(10, 30),
+        .{ .felt = Felt252.fromInteger(23) },
+    );
+
+    // Test checks
+    try expectEqual(
+        Felt252.fromInteger(23),
+        try memory.getFelt(Relocatable.new(10, 30)),
+    );
+}
+
+test "Memory: getFelt should return ExpectedInteger error if Relocatable instead of Felt at the given address" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try memory.data.put(
+        Relocatable.new(10, 30),
+        .{ .relocatable = Relocatable.new(3, 7) },
+    );
+
+    // Test checks
+    try expectError(
+        error.ExpectedInteger,
+        memory.getFelt(Relocatable.new(10, 30)),
+    );
 }
