@@ -96,6 +96,19 @@ pub const CairoVM = struct {
     // *                        METHODS                           *
     // ************************************************************
 
+    /// Computes and returns the effective size of memory segments.
+    ///
+    /// This function iterates through the memory segments, calculates their effective sizes, and
+    /// updates the segment sizes map accordingly. It ensures that the map reflects the maximum
+    /// offset used in each segment.
+    ///
+    /// # Returns
+    ///
+    /// An AutoArrayHashMap representing the computed effective sizes of memory segments.
+    pub fn computeSegmentsEffectiveSizes(self: *Self) !std.AutoArrayHashMap(u32, u32) {
+        return self.segments.computeEffectiveSize();
+    }
+
     /// Do a single step of the VM.
     /// Process an instruction cycle using the typical fetch-decode-execute cycle.
     pub fn step(self: *Self) !void {

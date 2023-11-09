@@ -1467,3 +1467,18 @@ test "CairoVM: computeOp0Deductions should return VM error if deduceOp0 and dedu
         ),
     );
 }
+
+test "CairoVM: computeSegmentsEffectiveSizes should return the computed effective size for the VM segments" {
+    // Test setup
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    try vm.segments.memory.data.put(Relocatable.new(0, 0), .{ .felt = Felt252.fromInteger(1) });
+    try vm.segments.memory.data.put(Relocatable.new(0, 1), .{ .felt = Felt252.fromInteger(1) });
+    try vm.segments.memory.data.put(Relocatable.new(0, 2), .{ .felt = Felt252.fromInteger(1) });
+
+    var actual = try vm.computeSegmentsEffectiveSizes();
+
+    try expectEqual(@as(usize, 1), actual.count());
+    try expectEqual(@as(u32, 3), actual.get(0).?);
+}
