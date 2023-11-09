@@ -90,8 +90,8 @@ test "update pc regular no imm" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.pc_update = instructions.PcUpdate.Regular;
-    instruction.op_1_addr = instructions.Op1Src.AP;
+    instruction.pc_update = .Regular;
+    instruction.op_1_addr = .AP;
     const operands = OperandsResult.default();
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -118,8 +118,8 @@ test "update pc regular with imm" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.pc_update = instructions.PcUpdate.Regular;
-    instruction.op_1_addr = instructions.Op1Src.Imm;
+    instruction.pc_update = .Regular;
+    instruction.op_1_addr = .Imm;
     const operands = OperandsResult.default();
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -146,7 +146,7 @@ test "update pc jump with operands res null" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.pc_update = instructions.PcUpdate.Jump;
+    instruction.pc_update = .Jump;
     var operands = OperandsResult.default();
     operands.res = null;
     // Create a new VM instance.
@@ -164,7 +164,7 @@ test "update pc jump with operands res not relocatable" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.pc_update = instructions.PcUpdate.Jump;
+    instruction.pc_update = .Jump;
     var operands = OperandsResult.default();
     operands.res = relocatable.fromU64(0);
     // Create a new VM instance.
@@ -182,7 +182,7 @@ test "update pc jump with operands res relocatable" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.pc_update = instructions.PcUpdate.Jump;
+    instruction.pc_update = .Jump;
     var operands = OperandsResult.default();
     operands.res = relocatable.newFromRelocatable(Relocatable.new(
         0,
@@ -213,7 +213,7 @@ test "update pc jump rel with operands res null" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.pc_update = instructions.PcUpdate.JumpRel;
+    instruction.pc_update = .JumpRel;
     var operands = OperandsResult.default();
     operands.res = null;
     // Create a new VM instance.
@@ -231,7 +231,7 @@ test "update pc jump rel with operands res not felt" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.pc_update = instructions.PcUpdate.JumpRel;
+    instruction.pc_update = .JumpRel;
     var operands = OperandsResult.default();
     operands.res = relocatable.newFromRelocatable(Relocatable.new(
         0,
@@ -252,7 +252,7 @@ test "update pc jump rel with operands res felt" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.pc_update = instructions.PcUpdate.JumpRel;
+    instruction.pc_update = .JumpRel;
     var operands = OperandsResult.default();
     operands.res = relocatable.fromU64(42);
     // Create a new VM instance.
@@ -280,7 +280,7 @@ test "update pc update jnz with operands dst zero" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.pc_update = instructions.PcUpdate.Jnz;
+    instruction.pc_update = .Jnz;
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(0);
     // Create a new VM instance.
@@ -308,7 +308,7 @@ test "update pc update jnz with operands dst not zero op1 not felt" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.pc_update = instructions.PcUpdate.Jnz;
+    instruction.pc_update = .Jnz;
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(1);
     operands.op_1 = relocatable.newFromRelocatable(Relocatable.new(
@@ -333,7 +333,7 @@ test "update pc update jnz with operands dst not zero op1 felt" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.pc_update = instructions.PcUpdate.Jnz;
+    instruction.pc_update = .Jnz;
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(1);
     operands.op_1 = relocatable.fromU64(42);
@@ -362,7 +362,7 @@ test "update ap add with operands res unconstrained" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.ap_update = instructions.ApUpdate.Add;
+    instruction.ap_update = .Add;
     var operands = OperandsResult.default();
     operands.res = null; // Simulate unconstrained res
     // Create a new VM instance.
@@ -380,7 +380,7 @@ test "update ap add1" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.ap_update = instructions.ApUpdate.Add1;
+    instruction.ap_update = .Add1;
     var operands = OperandsResult.default();
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -408,7 +408,7 @@ test "update ap add2" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.ap_update = instructions.ApUpdate.Add2;
+    instruction.ap_update = .Add2;
     var operands = OperandsResult.default();
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -436,7 +436,7 @@ test "update fp appplus2" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.fp_update = instructions.FpUpdate.APPlus2;
+    instruction.fp_update = .APPlus2;
     var operands = OperandsResult.default();
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -464,7 +464,7 @@ test "update fp dst relocatable" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.fp_update = instructions.FpUpdate.Dst;
+    instruction.fp_update = .Dst;
     var operands = OperandsResult.default();
     operands.dst = relocatable.newFromRelocatable(Relocatable.new(
         0,
@@ -496,7 +496,7 @@ test "update fp dst felt" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.fp_update = instructions.FpUpdate.Dst;
+    instruction.fp_update = .Dst;
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(42);
     // Create a new VM instance.
@@ -941,14 +941,14 @@ test "compute res op1 works" {
         .off_0 = 0,
         .off_1 = 1,
         .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Op1,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.NOp,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Op1,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
     };
 
     // Create a new VM instance.
@@ -978,14 +978,14 @@ test "compute res add felts works" {
         .off_0 = 0,
         .off_1 = 1,
         .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Add,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.NOp,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
     };
 
     // Create a new VM instance.
@@ -1015,14 +1015,14 @@ test "compute res add felt to offset works" {
         .off_0 = 0,
         .off_1 = 1,
         .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Add,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.NOp,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
     };
 
     // Create a new VM instance.
@@ -1055,14 +1055,14 @@ test "compute res add fails two relocs" {
         .off_0 = 0,
         .off_1 = 1,
         .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Add,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.NOp,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
     };
 
     // Create a new VM instance.
@@ -1089,14 +1089,14 @@ test "compute res mul works" {
         .off_0 = 0,
         .off_1 = 1,
         .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Mul,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.NOp,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Mul,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
     };
 
     // Create a new VM instance.
@@ -1126,14 +1126,14 @@ test "compute res mul fails two relocs" {
         .off_0 = 0,
         .off_1 = 1,
         .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Mul,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.NOp,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Mul,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
     };
 
     // Create a new VM instance.
@@ -1160,14 +1160,14 @@ test "compute res mul fails felt and reloc" {
         .off_0 = 0,
         .off_1 = 1,
         .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Mul,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.NOp,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Mul,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
     };
 
     // Create a new VM instance.
@@ -1192,14 +1192,14 @@ test "compute res Unconstrained should return null" {
         .off_0 = 0,
         .off_1 = 1,
         .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Unconstrained,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.NOp,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Unconstrained,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
     };
 
     // Create a new VM instance.
@@ -1492,14 +1492,14 @@ test "CairoVM: deduceDst should return res if AssertEq opcode" {
         .off_0 = 0,
         .off_1 = 1,
         .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Add,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.AssertEq,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .AssertEq,
     };
 
     var res = MaybeRelocatable{ .felt = Felt252.fromInteger(7) };
@@ -1520,14 +1520,14 @@ test "CairoVM: deduceDst should return VM error No dst if AssertEq opcode withou
         .off_0 = 0,
         .off_1 = 1,
         .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Add,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.AssertEq,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .AssertEq,
     };
 
     // Test check
@@ -1547,14 +1547,14 @@ test "CairoVM: deduceDst should return fp Relocatable if Call opcode" {
         .off_0 = 0,
         .off_1 = 1,
         .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Add,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.Call,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .Call,
     };
 
     // Test check
@@ -1573,14 +1573,14 @@ test "CairoVM: deduceDst should return VM error No dst if not AssertEq or Call o
         .off_0 = 0,
         .off_1 = 1,
         .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Add,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.Ret,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .Ret,
     };
 
     // Test check
