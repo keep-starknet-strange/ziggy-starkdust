@@ -1675,3 +1675,17 @@ test "CairoVM: getBuiltinRunners should return a reference to the builtin runner
         vm.getBuiltinRunners().*.items,
     );
 }
+
+test "CairoVM: getSegmentUsedSize should return the size of a memory segment by its index if available" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.segment_used_sizes.put(10, 4);
+    try expectEqual(
+        @as(u32, @intCast(4)),
+        vm.getSegmentUsedSize(10).?,
+    );
+}
