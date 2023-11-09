@@ -395,6 +395,17 @@ pub const CairoVM = struct {
         }
     }
 
+    /// Updates the registers (fp, ap, and pc) based on the given instruction and operands.
+    ///
+    /// This function internally calls `updateFp`, `updateAp`, and `updatePc` to update the respective registers.
+    ///
+    /// # Arguments
+    ///
+    /// - `instruction`: The instruction to determine register updates.
+    /// - `operands`: The result of the instruction's operands.
+    /// # Returns
+    ///
+    /// - Returns `void` on success, an error on failure.
     pub fn updateRegisters(
         self: *Self,
         instruction: *const instructions.Instruction,
@@ -403,6 +414,38 @@ pub const CairoVM = struct {
         try self.updateFp(instruction, operands);
         try self.updateAp(instruction, operands);
         try self.updatePc(instruction, operands);
+    }
+
+    /// Deduces the destination register for a given instruction.
+    ///
+    /// This function analyzes the opcode of the instruction and deduces the destination register accordingly.
+    /// For `.AssertEq` opcode, it returns the value of the result if available, otherwise `CairoVMError.NoDst`.
+    /// For `.Call` opcode, it returns a new relocatable value based on the frame pointer.
+    /// For other opcodes, it returns `CairoVMError.NoDst`.
+    ///
+    /// # Arguments
+    ///
+    /// - `instruction`: The instruction to deduce the destination for.
+    /// - `res`: The result of the instruction's operands (nullable).
+    /// # Returns
+    ///
+    /// - Returns the deduced destination register, or an error if no destination is deducible.
+    pub fn deduceDst(
+        self: *Self,
+        instruction: *Instruction,
+        res: ?*MaybeRelocatable,
+    ) !MaybeRelocatable {
+        return switch (instruction.opcode) {
+            .AssertEq => {
+                if (res != null) {
+                    return res.?.*;
+                } else {
+                    return CairoVMError.NoDst;
+                }
+            },
+            .Call => relocatable.newFromRelocatable(self.run_context.fp.*),
+            else => CairoVMError.NoDst,
+        };
     }
 
     // ************************************************************

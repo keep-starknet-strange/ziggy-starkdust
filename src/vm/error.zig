@@ -11,6 +11,7 @@ pub const CairoVMError = error{
     TypeMismatchNotRelocatable,
     ValueTooLarge,
     FailedToComputeOperands,
+    NoDst,
 };
 
 pub const MemoryError = error{

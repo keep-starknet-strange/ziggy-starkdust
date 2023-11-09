@@ -1482,3 +1482,110 @@ test "CairoVM: computeSegmentsEffectiveSizes should return the computed effectiv
     try expectEqual(@as(usize, 1), actual.count());
     try expectEqual(@as(u32, 3), actual.get(0).?);
 }
+
+test "CairoVM: deduceDst should return res if AssertEq opcode" {
+    // Test setup
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    var instruction = Instruction{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = instructions.Register.AP,
+        .op_0_reg = instructions.Register.AP,
+        .op_1_addr = instructions.Op1Src.AP,
+        .res_logic = instructions.ResLogic.Add,
+        .pc_update = instructions.PcUpdate.Regular,
+        .ap_update = instructions.ApUpdate.Regular,
+        .fp_update = instructions.FpUpdate.Regular,
+        .opcode = instructions.Opcode.AssertEq,
+    };
+
+    var res = MaybeRelocatable{ .felt = Felt252.fromInteger(7) };
+
+    // Test check
+    try expectEqual(
+        MaybeRelocatable{ .felt = Felt252.fromInteger(7) },
+        try vm.deduceDst(&instruction, &res),
+    );
+}
+
+test "CairoVM: deduceDst should return VM error No dst if AssertEq opcode without res" {
+    // Test setup
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    var instruction = Instruction{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = instructions.Register.AP,
+        .op_0_reg = instructions.Register.AP,
+        .op_1_addr = instructions.Op1Src.AP,
+        .res_logic = instructions.ResLogic.Add,
+        .pc_update = instructions.PcUpdate.Regular,
+        .ap_update = instructions.ApUpdate.Regular,
+        .fp_update = instructions.FpUpdate.Regular,
+        .opcode = instructions.Opcode.AssertEq,
+    };
+
+    // Test check
+    try expectError(
+        CairoVMError.NoDst,
+        vm.deduceDst(&instruction, null),
+    );
+}
+
+test "CairoVM: deduceDst should return fp Relocatable if Call opcode" {
+    // Test setup
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+    vm.run_context.fp.* = Relocatable.new(3, 23);
+
+    var instruction = Instruction{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = instructions.Register.AP,
+        .op_0_reg = instructions.Register.AP,
+        .op_1_addr = instructions.Op1Src.AP,
+        .res_logic = instructions.ResLogic.Add,
+        .pc_update = instructions.PcUpdate.Regular,
+        .ap_update = instructions.ApUpdate.Regular,
+        .fp_update = instructions.FpUpdate.Regular,
+        .opcode = instructions.Opcode.Call,
+    };
+
+    // Test check
+    try expectEqual(
+        MaybeRelocatable{ .relocatable = Relocatable.new(3, 23) },
+        try vm.deduceDst(&instruction, null),
+    );
+}
+
+test "CairoVM: deduceDst should return VM error No dst if not AssertEq or Call opcode" {
+    // Test setup
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    var instruction = Instruction{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = instructions.Register.AP,
+        .op_0_reg = instructions.Register.AP,
+        .op_1_addr = instructions.Op1Src.AP,
+        .res_logic = instructions.ResLogic.Add,
+        .pc_update = instructions.PcUpdate.Regular,
+        .ap_update = instructions.ApUpdate.Regular,
+        .fp_update = instructions.FpUpdate.Regular,
+        .opcode = instructions.Opcode.Ret,
+    };
+
+    // Test check
+    try expectError(
+        CairoVMError.NoDst,
+        vm.deduceDst(&instruction, null),
+    );
+}
