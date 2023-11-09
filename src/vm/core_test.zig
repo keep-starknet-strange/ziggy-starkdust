@@ -587,15 +587,13 @@ test "deduceOp0 when opcode == .Call" {
     var instr = deduceOpTestInstr;
     instr.opcode = .Call;
 
-    const tuple = try vm.deduceOp0(&instr, null, null);
-    const op0 = tuple[0];
-    const res = tuple[1];
+    const deduceOp0 = try vm.deduceOp0(&instr, null, null);
 
     // Test checks
     const expected_op_0: ?MaybeRelocatable = relocatable.newFromRelocatable(Relocatable.new(0, 1)); // temp var needed for type inference
     const expected_res: ?MaybeRelocatable = null;
-    try expectEqual(expected_op_0, op0);
-    try expectEqual(expected_res, res);
+    try expectEqual(expected_op_0, deduceOp0.op_0);
+    try expectEqual(expected_res, deduceOp0.res);
 }
 
 test "deduceOp0 when opcode == .AssertEq, res_logic == .Add, input is felt" {
@@ -611,13 +609,11 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Add, input is felt" {
     const dst = relocatable.fromU64(3);
     const op1 = relocatable.fromU64(2);
 
-    const tuple = try vm.deduceOp0(&instr, &dst, &op1);
-    const op0 = tuple[0];
-    const res = tuple[1];
+    const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
     // Test checks
-    try expect(op0.?.eq(relocatable.fromU64(1)));
-    try expect(res.?.eq(relocatable.fromU64(3)));
+    try expect(deduceOp0.op_0.?.eq(relocatable.fromU64(1)));
+    try expect(deduceOp0.res.?.eq(relocatable.fromU64(3)));
 }
 
 test "deduceOp0 when opcode == .AssertEq, res_logic == .Add, with no input" {
@@ -630,15 +626,13 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Add, with no input" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Add;
 
-    const tuple = try vm.deduceOp0(&instr, null, null);
-    const op0 = tuple[0];
-    const res = tuple[1];
+    const deduceOp0 = try vm.deduceOp0(&instr, null, null);
 
     // Test checks
     const expected_op_0: ?MaybeRelocatable = null; // temp var needed for type inference
     const expected_res: ?MaybeRelocatable = null;
-    try expectEqual(expected_op_0, op0);
-    try expectEqual(expected_res, res);
+    try expectEqual(expected_op_0, deduceOp0.op_0);
+    try expectEqual(expected_res, deduceOp0.res);
 }
 
 test "deduceOp0 when opcode == .AssertEq, res_logic == .Mul, input is felt 1" {
@@ -654,15 +648,13 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Mul, input is felt 1" {
     const dst = relocatable.fromU64(4);
     const op1 = relocatable.fromU64(2);
 
-    const tuple = try vm.deduceOp0(&instr, &dst, &op1);
-    const op0 = tuple[0];
-    const res = tuple[1];
+    const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
     // Test checks
     const expected_op_0: ?MaybeRelocatable = relocatable.fromU64(2); // temp var needed for type inference
     const expected_res: ?MaybeRelocatable = relocatable.fromU64(4);
-    try expectEqual(expected_op_0, op0);
-    try expectEqual(expected_res, res);
+    try expectEqual(expected_op_0, deduceOp0.op_0);
+    try expectEqual(expected_res, deduceOp0.res);
 }
 
 test "deduceOp0 when opcode == .AssertEq, res_logic == .Op1, input is felt" {
@@ -678,15 +670,13 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Op1, input is felt" {
     const dst = relocatable.fromU64(4);
     const op1 = relocatable.fromU64(0);
 
-    const tuple = try vm.deduceOp0(&instr, &dst, &op1);
-    const op0 = tuple[0];
-    const res = tuple[1];
+    const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
     // Test checks
     const expected_op_0: ?MaybeRelocatable = null; // temp var needed for type inference
     const expected_res: ?MaybeRelocatable = null;
-    try expectEqual(expected_op_0, op0);
-    try expectEqual(expected_res, res);
+    try expectEqual(expected_op_0, deduceOp0.op_0);
+    try expectEqual(expected_res, deduceOp0.res);
 }
 
 test "deduceOp0 when opcode == .AssertEq, res_logic == .Mul, input is felt 2" {
@@ -702,15 +692,13 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Mul, input is felt 2" {
     const dst = relocatable.fromU64(4);
     const op1 = relocatable.fromU64(0);
 
-    const tuple = try vm.deduceOp0(&instr, &dst, &op1);
-    const op0 = tuple[0];
-    const res = tuple[1];
+    const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
     // Test checks
     const expected_op_0: ?MaybeRelocatable = null; // temp var needed for type inference
     const expected_res: ?MaybeRelocatable = null;
-    try expectEqual(expected_op_0, op0);
-    try expectEqual(expected_res, res);
+    try expectEqual(expected_op_0, deduceOp0.op_0);
+    try expectEqual(expected_res, deduceOp0.res);
 }
 
 test "deduceOp0 when opcode == .Ret, res_logic == .Mul, input is felt" {
@@ -726,15 +714,13 @@ test "deduceOp0 when opcode == .Ret, res_logic == .Mul, input is felt" {
     const dst = relocatable.fromU64(4);
     const op1 = relocatable.fromU64(0);
 
-    const tuple = try vm.deduceOp0(&instr, &dst, &op1);
-    const op0 = tuple[0];
-    const res = tuple[1];
+    const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
     // Test checks
     const expected_op_0: ?MaybeRelocatable = null; // temp var needed for type inference
     const expected_res: ?MaybeRelocatable = null;
-    try expectEqual(expected_op_0, op0);
-    try expectEqual(expected_res, res);
+    try expectEqual(expected_op_0, deduceOp0.op_0);
+    try expectEqual(expected_res, deduceOp0.res);
 }
 
 test "deduceOp1 when opcode == .Call" {
