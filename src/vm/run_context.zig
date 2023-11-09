@@ -167,36 +167,6 @@ pub const RunContext = struct {
             return try base_addr.addUint(@intCast(instruction.off_2));
         }
     }
-
-    /// Gets the current value of the program counter (pc).
-    ///
-    /// # Returns
-    ///
-    /// The current value of the program counter, representing the address in memory
-    /// of the current Cairo instruction to be executed.
-    pub fn getPc(self: *const Self) Relocatable {
-        return self.pc.*;
-    }
-
-    /// Gets the current value of the allocation pointer (ap).
-    ///
-    /// # Returns
-    ///
-    /// The current value of the allocation pointer, pointing to the first memory cell
-    /// that has not been used by the program so far.
-    pub fn getAp(self: *const Self) Relocatable {
-        return self.ap.*;
-    }
-
-    /// Gets the current value of the frame pointer (fp).
-    ///
-    /// # Returns
-    ///
-    /// The current value of the frame pointer, pointing to the beginning of the stack
-    /// frame of the current function.
-    pub fn getFp(self: *const Self) Relocatable {
-        return self.fp.*;
-    }
 };
 
 // ************************************************************
@@ -876,83 +846,5 @@ test "RunContext: compute_op1_addr for OP0 op1 addr and instruction off_2 > 0" {
                 32,
             ) },
         ),
-    );
-}
-
-test "RunContext: getPc should return Pc" {
-    const run_context = try RunContext.init_with_values(
-        std.testing.allocator,
-        Relocatable.new(
-            0,
-            4,
-        ),
-        Relocatable.new(
-            0,
-            5,
-        ),
-        Relocatable.new(
-            0,
-            6,
-        ),
-    );
-    defer run_context.deinit();
-    try expectEqual(
-        Relocatable.new(
-            0,
-            4,
-        ),
-        run_context.getPc(),
-    );
-}
-
-test "RunContext: getAp should return Ap" {
-    const run_context = try RunContext.init_with_values(
-        std.testing.allocator,
-        Relocatable.new(
-            0,
-            4,
-        ),
-        Relocatable.new(
-            0,
-            5,
-        ),
-        Relocatable.new(
-            0,
-            6,
-        ),
-    );
-    defer run_context.deinit();
-    try expectEqual(
-        Relocatable.new(
-            0,
-            5,
-        ),
-        run_context.getAp(),
-    );
-}
-
-test "RunContext: getFp should return Fp" {
-    const run_context = try RunContext.init_with_values(
-        std.testing.allocator,
-        Relocatable.new(
-            0,
-            4,
-        ),
-        Relocatable.new(
-            0,
-            5,
-        ),
-        Relocatable.new(
-            0,
-            6,
-        ),
-    );
-    defer run_context.deinit();
-    try expectEqual(
-        Relocatable.new(
-            0,
-            6,
-        ),
-        run_context.getFp(),
     );
 }
