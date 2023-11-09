@@ -196,6 +196,22 @@ pub const CairoVM = struct {
         return self.segments.getSegmentSize(index);
     }
 
+    /// Retrieves a `Felt252` value from the memory at the specified relocatable address in the Cairo VM.
+    ///
+    /// This function internally calls `getFelt` on the memory segments manager, attempting
+    /// to retrieve a `Felt252` value at the given address. It handles the possibility of an
+    /// out-of-bounds memory access and returns an error if needed.
+    ///
+    /// # Arguments
+    ///
+    /// - `address`: The relocatable address to retrieve the `Felt252` value from.
+    /// # Returns
+    ///
+    /// - The `Felt252` value at the specified address, or an error if not available.
+    pub fn getFelt(self: *Self, address: Relocatable) !Felt252 {
+        return self.segments.memory.getFelt(address);
+    }
+
     /// Do a single step of the VM.
     /// Process an instruction cycle using the typical fetch-decode-execute cycle.
     pub fn step(self: *Self) !void {

@@ -1690,7 +1690,7 @@ test "CairoVM: getSegmentUsedSize should return the size of a memory segment by 
     );
 }
 
-test "MemorySegmentManager: getSegmentUsedSize should return the size of the segment if contained in segment_sizes" {
+test "CairoVM: getSegmentUsedSize should return the size of the segment if contained in segment_sizes" {
     var vm = try CairoVM.init(
         std.testing.allocator,
         .{},
@@ -1701,7 +1701,7 @@ test "MemorySegmentManager: getSegmentUsedSize should return the size of the seg
     try expectEqual(@as(u32, 105), vm.getSegmentSize(10).?);
 }
 
-test "MemorySegmentManager: getSegmentSize should return the size of the segment via getSegmentUsedSize if not contained in segment_sizes" {
+test "CairoVM: getSegmentSize should return the size of the segment via getSegmentUsedSize if not contained in segment_sizes" {
     var vm = try CairoVM.init(
         std.testing.allocator,
         .{},
@@ -1710,4 +1710,59 @@ test "MemorySegmentManager: getSegmentSize should return the size of the segment
 
     try vm.segments.segment_used_sizes.put(3, 6);
     try expectEqual(@as(u32, 6), vm.getSegmentSize(3).?);
+}
+
+test "CairoVM: getFelt should return MemoryOutOfBounds error if no value at the given address" {
+    // Test setup
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    // Test checks
+    try expectError(
+        error.MemoryOutOfBounds,
+        vm.getFelt(Relocatable.new(10, 30)),
+    );
+}
+
+test "CairoVM: getFelt should return Felt252 if available at the given address" {
+    // Test setup
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.memory.data.put(
+        Relocatable.new(10, 30),
+        .{ .felt = Felt252.fromInteger(23) },
+    );
+
+    // Test checks
+    try expectEqual(
+        Felt252.fromInteger(23),
+        try vm.getFelt(Relocatable.new(10, 30)),
+    );
+}
+
+test "CairoVM: getFelt should return ExpectedInteger error if Relocatable instead of Felt at the given address" {
+    // Test setup
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.memory.data.put(
+        Relocatable.new(10, 30),
+        .{ .relocatable = Relocatable.new(3, 7) },
+    );
+
+    // Test checks
+    try expectError(
+        error.ExpectedInteger,
+        vm.getFelt(Relocatable.new(10, 30)),
+    );
 }
