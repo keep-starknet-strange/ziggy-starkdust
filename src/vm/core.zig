@@ -152,6 +152,18 @@ pub const CairoVM = struct {
         return &self.builtin_runners;
     }
 
+    pub fn insertInMemory(
+        self: *Self,
+        address: Relocatable,
+        value: MaybeRelocatable,
+    ) error{ InvalidMemoryAddress, MemoryOutOfBounds }!void {
+        _ = value;
+        _ = address;
+        _ = self;
+
+        // TODO: complete the implementation once set method is completed in Memory
+    }
+
     /// Do a single step of the VM.
     /// Process an instruction cycle using the typical fetch-decode-execute cycle.
     pub fn step(self: *Self) !void {
