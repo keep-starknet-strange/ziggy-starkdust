@@ -161,6 +161,28 @@ pub const Memory = struct {
         };
     }
 
+    /// Retrieves a `Relocatable` value from the memory at the specified relocatable address in the Cairo VM.
+    ///
+    /// This function internally calls `getRelocatable` on the memory segments manager, attempting
+    /// to retrieve a `Relocatable` value at the given address. It handles the possibility of an
+    /// out-of-bounds memory access and returns an error if needed.
+    ///
+    /// # Arguments
+    ///
+    /// - `address`: The relocatable address to retrieve the `Relocatable` value from.
+    /// # Returns
+    ///
+    /// - The `Relocatable` value at the specified address, or an error if not available.
+    pub fn getRelocatable(
+        self: *Self,
+        address: Relocatable,
+    ) error{ MemoryOutOfBounds, ExpectedRelocatable }!Relocatable {
+        return switch (try self.get(address)) {
+            .relocatable => |rel| rel,
+            else => error.ExpectedRelocatable,
+        };
+    }
+
     // Adds a validation rule for a given segment.
     // # Arguments
     // - `segment_index` - The index of the segment.
@@ -312,5 +334,51 @@ test "Memory: getFelt should return ExpectedInteger error if Relocatable instead
     try expectError(
         error.ExpectedInteger,
         memory.getFelt(Relocatable.new(10, 30)),
+    );
+}
+
+test "Memory: getRelocatable should return MemoryOutOfBounds error if no value at the given address" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    // Test checks
+    try expectError(
+        error.MemoryOutOfBounds,
+        memory.getRelocatable(Relocatable.new(10, 30)),
+    );
+}
+
+test "Memory: getRelocatable should return Relocatable if available at the given address" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try memory.data.put(
+        Relocatable.new(10, 30),
+        .{ .relocatable = Relocatable.new(4, 34) },
+    );
+
+    // Test checks
+    try expectEqual(
+        Relocatable.new(4, 34),
+        try memory.getRelocatable(Relocatable.new(10, 30)),
+    );
+}
+
+test "Memory: getRelocatable should return ExpectedRelocatable error if Felt instead of Relocatable at the given address" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try memory.data.put(
+        Relocatable.new(10, 30),
+        .{ .felt = Felt252.fromInteger(3) },
+    );
+
+    // Test checks
+    try expectError(
+        error.ExpectedRelocatable,
+        memory.getRelocatable(Relocatable.new(10, 30)),
     );
 }
