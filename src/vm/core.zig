@@ -420,21 +420,21 @@ pub const CairoVM = struct {
     /// # Returns
     /// - `MaybeRelocatable`: The current ap.
     pub fn getAp(self: *const Self) Relocatable {
-        return self.run_context.ap.*;
+        return self.run_context.getAp();
     }
 
     /// Returns the current fp.
     /// # Returns
     /// - `MaybeRelocatable`: The current fp.
     pub fn getFp(self: *const Self) Relocatable {
-        return self.run_context.fp.*;
+        return self.run_context.getFp();
     }
 
     /// Returns the current pc.
     /// # Returns
     /// - `MaybeRelocatable`: The current pc.
     pub fn getPc(self: *const Self) Relocatable {
-        return self.run_context.pc.*;
+        return self.run_context.getPc();
     }
 
     /// Applies the corresponding builtin's deduction rules if addr's segment index corresponds to a builtin segment
