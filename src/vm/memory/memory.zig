@@ -185,14 +185,10 @@ test "memory get without value raises error" {
     // *                      TEST CHECKS                         *
     // ************************************************************
     // Get a value from the memory at an address that doesn't exist.
-    _ = memory.get(Relocatable.new(
-        0,
-        0,
-    )) catch |err| {
-        // Assert that the error is the expected error.
-        try expect(err == error.MemoryOutOfBounds);
-        return;
-    };
+    try expectError(
+        error.MemoryOutOfBounds,
+        memory.get(Relocatable.new(0, 0)),
+    );
 }
 
 test "memory set and get" {
