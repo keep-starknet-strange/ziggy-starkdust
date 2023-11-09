@@ -121,6 +121,25 @@ pub const CairoVM = struct {
         return self.segments.addSegment();
     }
 
+    /// Retrieves a value from the memory at the specified relocatable address.
+    ///
+    /// This function internally calls `get` on the memory segments manager, returning the value
+    /// at the given address. It handles the possibility of an out-of-bounds access and returns
+    /// an error of type `MemoryOutOfBounds` in such cases.
+    ///
+    /// # Arguments
+    ///
+    /// - `address`: The relocatable address to retrieve the value from.
+    /// # Returns
+    ///
+    /// - The value at the specified address, or an error of type `MemoryOutOfBounds`.
+    pub fn getRelocatable(
+        self: *Self,
+        address: Relocatable,
+    ) error{MemoryOutOfBounds}!MaybeRelocatable {
+        return self.segments.memory.get(address);
+    }
+
     /// Do a single step of the VM.
     /// Process an instruction cycle using the typical fetch-decode-execute cycle.
     pub fn step(self: *Self) !void {

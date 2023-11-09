@@ -1617,3 +1617,32 @@ test "CairoVM: addMemorySegment should increase by one the number of segments in
         vm.segments.memory.num_segments,
     );
 }
+
+test "CairoVM: getRelocatable without value raises error" {
+    // Test setup
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    // Test check
+    try expectError(
+        error.MemoryOutOfBounds,
+        vm.getRelocatable(Relocatable.new(0, 0)),
+    );
+}
+
+test "CairoVM: getRelocatable with value should return a MaybeRelocatable" {
+    // Test setup
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    try vm.segments.memory.data.put(
+        Relocatable.new(34, 12),
+        .{ .felt = Felt252.fromInteger(5) },
+    );
+
+    // Test check
+    try expectEqual(
+        MaybeRelocatable{ .felt = Felt252.fromInteger(5) },
+        try vm.getRelocatable(Relocatable.new(34, 12)),
+    );
+}
