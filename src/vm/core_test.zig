@@ -29,6 +29,7 @@ const deduceOp1 = @import("core.zig").deduceOp1;
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
+const expectEqualSlices = std.testing.expectEqualSlices;
 
 test "CairoVM: deduceMemoryCell no builtin" {
     var vm = try CairoVM.init(
@@ -1644,5 +1645,33 @@ test "CairoVM: getRelocatable with value should return a MaybeRelocatable" {
     try expectEqual(
         MaybeRelocatable{ .felt = Felt252.fromInteger(5) },
         try vm.getRelocatable(Relocatable.new(34, 12)),
+    );
+}
+
+test "CairoVM: getBuiltinRunners should return a reference to the builtin runners ArrayList" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+    var instance_def: BitwiseInstanceDef = .{ .ratio = null, .total_n_bits = 2 };
+    try vm.builtin_runners.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.new(
+        &instance_def,
+        true,
+    ) });
+
+    // Test check
+    try expectEqual(&vm.builtin_runners, vm.getBuiltinRunners());
+
+    var expected = ArrayList(BuiltinRunner).init(std.testing.allocator);
+    defer expected.deinit();
+    try expected.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.new(
+        &instance_def,
+        true,
+    ) });
+    try expectEqualSlices(
+        BuiltinRunner,
+        expected.items,
+        vm.getBuiltinRunners().*.items,
     );
 }

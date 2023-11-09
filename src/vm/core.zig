@@ -140,6 +140,18 @@ pub const CairoVM = struct {
         return self.segments.memory.get(address);
     }
 
+    /// Gets a reference to the list of built-in runners in the Cairo VM.
+    ///
+    /// This function returns a mutable reference to the list of built-in runners,
+    /// allowing access and modification of the Cairo VM's built-in runner instances.
+    ///
+    /// # Returns
+    ///
+    /// A mutable reference to the list of built-in runners.
+    pub fn getBuiltinRunners(self: *Self) *ArrayList(BuiltinRunner) {
+        return &self.builtin_runners;
+    }
+
     /// Do a single step of the VM.
     /// Process an instruction cycle using the typical fetch-decode-execute cycle.
     pub fn step(self: *Self) !void {
