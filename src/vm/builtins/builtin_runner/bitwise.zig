@@ -1,4 +1,7 @@
 const bitwise_instance_def = @import("../../types/bitwise_instance_def.zig");
+const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
+const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
+const Memory = @import("../../memory/memory.zig").Memory;
 
 /// Bitwise built-in runner
 pub const BitwiseBuiltinRunner = struct {
@@ -41,21 +44,23 @@ pub const BitwiseBuiltinRunner = struct {
         return .{
             .ratio = instance_def.ratio,
             .base = 0,
-            .cell_per_instance = bitwise_instance_def.CELLS_PER_BITWISE,
+            .cells_per_instance = bitwise_instance_def.CELLS_PER_BITWISE,
             .n_input_cells = bitwise_instance_def.INPUT_CELLS_PER_BITWISE,
-            .bitwise_builtin = instance_def,
+            .bitwise_builtin = instance_def.*,
             .stop_ptr = null,
             .included = included,
             .instances_per_component = 1,
         };
     }
 
-    /// Get the base value of this runner.
-    ///
-    /// # Returns
-    ///
-    /// The base value as a `usize`.
-    pub fn getBase(self: *const Self) usize {
-        return self.base;
+    pub fn deduceMemoryCell(
+        self: *const Self,
+        address: Relocatable,
+        memory: *Memory,
+    ) ?MaybeRelocatable {
+        _ = memory;
+        _ = address;
+        _ = self;
+        return null;
     }
 };
