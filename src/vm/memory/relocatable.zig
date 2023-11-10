@@ -10,7 +10,7 @@ pub const Relocatable = struct {
     const Self = @This();
 
     // The index of the memory segment.
-    segment_index: u64 = 0,
+    segment_index: i64 = 0,
     // The offset in the memory segment.
     offset: u64 = 0,
 
@@ -21,7 +21,7 @@ pub const Relocatable = struct {
     // # Returns
     // A new Relocatable.
     pub fn new(
-        segment_index: u64,
+        segment_index: i64,
         offset: u64,
     ) Self {
         return .{
@@ -291,13 +291,14 @@ const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
 
 test "Relocatable: eq should return true if two Relocatable are the same." {
+    try expect(Relocatable.new(-1, 4).eq(Relocatable.new(-1, 4)));
     try expect(Relocatable.new(2, 4).eq(Relocatable.new(2, 4)));
 }
 
 test "Relocatable: eq should return false if two Relocatable are not the same." {
     const relocatable1 = Relocatable.new(2, 4);
     const relocatable2 = Relocatable.new(2, 5);
-    const relocatable3 = Relocatable.new(1, 4);
+    const relocatable3 = Relocatable.new(-1, 4);
     try expect(!relocatable1.eq(relocatable2));
     try expect(!relocatable1.eq(relocatable3));
 }
