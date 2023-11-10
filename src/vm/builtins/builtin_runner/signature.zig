@@ -60,15 +60,6 @@ pub const SignatureBuiltinRunner = struct {
         };
     }
 
-    /// Get the base value of this signature runner.
-    ///
-    /// # Returns
-    ///
-    /// The base value as a `usize`.
-    pub fn getBase(self: *const Self) usize {
-        return self.base;
-    }
-
     pub fn deduceMemoryCell(
         self: *const Self,
         address: Relocatable,

@@ -78,24 +78,6 @@ pub const RangeCheckBuiltinRunner = struct {
         };
     }
 
-    /// Get the base value of this Range Check runner.
-    ///
-    /// # Returns
-    ///
-    /// The base value as a `usize`.
-    pub fn getBase(self: *const Self) usize {
-        return self.base;
-    }
-
-    /// Get the ratio value of this Range Check runner.
-    ///
-    /// # Returns
-    ///
-    /// The ratio value as an `u32`.
-    pub fn getRatio(self: *const Self) ?u32 {
-        return self.ratio;
-    }
-
     /// Initializes memory segments and sets the base value for the Range Check runner.
     ///
     /// This function adds a memory segment using the provided `segments` manager and

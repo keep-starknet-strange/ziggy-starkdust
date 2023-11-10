@@ -105,7 +105,7 @@ test "update pc regular no imm" {
     );
 
     // Test checks
-    const pc = vm.getPc();
+    const pc = vm.run_context.pc.*;
     try expectEqual(
         @as(
             u64,
@@ -133,7 +133,7 @@ test "update pc regular with imm" {
     );
 
     // Test checks
-    const pc = vm.getPc();
+    const pc = vm.run_context.pc.*;
     try expectEqual(
         @as(
             u64,
@@ -200,7 +200,7 @@ test "update pc jump with operands res relocatable" {
     );
 
     // Test checks
-    const pc = vm.getPc();
+    const pc = vm.run_context.pc.*;
     try expectEqual(
         @as(
             u64,
@@ -267,7 +267,7 @@ test "update pc jump rel with operands res felt" {
     );
 
     // Test checks
-    const pc = vm.getPc();
+    const pc = vm.run_context.pc.*;
     try expectEqual(
         @as(
             u64,
@@ -295,7 +295,7 @@ test "update pc update jnz with operands dst zero" {
     );
 
     // Test checks
-    const pc = vm.getPc();
+    const pc = vm.run_context.pc.*;
     try expectEqual(
         @as(
             u64,
@@ -349,7 +349,7 @@ test "update pc update jnz with operands dst not zero op1 felt" {
     );
 
     // Test checks
-    const pc = vm.getPc();
+    const pc = vm.run_context.pc.*;
     try expectEqual(
         @as(
             u64,
@@ -395,7 +395,7 @@ test "update ap add1" {
 
     // Test checks
     // Verify the AP offset was incremented by 1.
-    const ap = vm.getAp();
+    const ap = vm.run_context.ap.*;
     try expectEqual(
         @as(
             u64,
@@ -423,7 +423,7 @@ test "update ap add2" {
 
     // Test checks
     // Verify the AP offset was incremented by 2.
-    const ap = vm.getAp();
+    const ap = vm.run_context.ap.*;
     try expectEqual(
         @as(
             u64,
@@ -451,7 +451,7 @@ test "update fp appplus2" {
 
     // Test checks
     // Verify the FP offset was incremented by 2.
-    const fp = vm.getFp();
+    const fp = vm.run_context.fp.*;
     try expectEqual(
         @as(
             u64,
@@ -483,7 +483,7 @@ test "update fp dst relocatable" {
 
     // Test checks
     // Verify the FP offset was incremented by 2.
-    const fp = vm.getFp();
+    const fp = vm.run_context.fp.*;
     try expectEqual(
         @as(
             u64,
@@ -512,7 +512,7 @@ test "update fp dst felt" {
 
     // Test checks
     // Verify the FP offset was incremented by 2.
-    const fp = vm.getFp();
+    const fp = vm.run_context.fp.*;
     try expectEqual(
         @as(
             u64,
@@ -1249,19 +1249,19 @@ test "updateRegisters all regular" {
     // Verify the PC offset was incremented by 5.
     try expectEqual(
         Relocatable.new(0, 5),
-        vm.getPc(),
+        vm.run_context.pc.*,
     );
 
     // Verify the AP offset was incremented by 5.
     try expectEqual(
         Relocatable.new(0, 5),
-        vm.getAp(),
+        vm.run_context.ap.*,
     );
 
     // Verify the FP offset was incremented by 6.
     try expectEqual(
         Relocatable.new(0, 6),
-        vm.getFp(),
+        vm.run_context.fp.*,
     );
 }
 
@@ -1314,19 +1314,19 @@ test "updateRegisters with mixed types" {
     // Verify the PC offset was incremented by 12.
     try expectEqual(
         Relocatable.new(0, 12),
-        vm.getPc(),
+        vm.run_context.pc.*,
     );
 
     // Verify the AP offset was incremented by 7.
     try expectEqual(
         Relocatable.new(0, 7),
-        vm.getAp(),
+        vm.run_context.ap.*,
     );
 
     // Verify the FP offset was incremented by 11.
     try expectEqual(
         Relocatable.new(1, 11),
-        vm.getFp(),
+        vm.run_context.fp.*,
     );
 }
 
