@@ -361,11 +361,20 @@ test "MemorySegmentManager: numSegments should return the number of segments in 
     defer memory_segment_manager.deinit();
     try memory_segment_manager.memory.data.put(Relocatable.new(0, 1), .{ .felt = Felt252.fromInteger(10) });
     try memory_segment_manager.memory.data.put(Relocatable.new(1, 1), .{ .felt = Felt252.fromInteger(10) });
-    try memory_segment_manager.memory.data.put(Relocatable.new(-2, 1), .{ .felt = Felt252.fromInteger(10) });
-    try memory_segment_manager.memory.data.put(Relocatable.new(-3, 1), .{ .felt = Felt252.fromInteger(10) });
     try expectEqual(
-        @as(usize, 4),
+        @as(usize, 2),
         memory_segment_manager.numSegments(),
+    );
+}
+
+test "MemorySegmentManager: numSegments should return the number of segments in the temporary memory" {
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.memory.temp_data.put(Relocatable.new(-1, 1), .{ .felt = Felt252.fromInteger(10) });
+    try memory_segment_manager.memory.temp_data.put(Relocatable.new(-2, 1), .{ .felt = Felt252.fromInteger(10) });
+    try expectEqual(
+        @as(usize, 2),
+        memory_segment_manager.numTempSegments(),
     );
 }
 
