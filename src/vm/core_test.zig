@@ -29,6 +29,7 @@ const deduceOp1 = @import("core.zig").deduceOp1;
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
+const expectEqualSlices = std.testing.expectEqualSlices;
 
 test "CairoVM: deduceMemoryCell no builtin" {
     var vm = try CairoVM.init(
@@ -90,8 +91,8 @@ test "update pc regular no imm" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.pc_update = instructions.PcUpdate.Regular;
-    instruction.op_1_addr = instructions.Op1Src.AP;
+    instruction.pc_update = .Regular;
+    instruction.op_1_addr = .AP;
     const operands = OperandsResult.default();
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -118,8 +119,8 @@ test "update pc regular with imm" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.pc_update = instructions.PcUpdate.Regular;
-    instruction.op_1_addr = instructions.Op1Src.Imm;
+    instruction.pc_update = .Regular;
+    instruction.op_1_addr = .Imm;
     const operands = OperandsResult.default();
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -146,7 +147,7 @@ test "update pc jump with operands res null" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.pc_update = instructions.PcUpdate.Jump;
+    instruction.pc_update = .Jump;
     var operands = OperandsResult.default();
     operands.res = null;
     // Create a new VM instance.
@@ -164,7 +165,7 @@ test "update pc jump with operands res not relocatable" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.pc_update = instructions.PcUpdate.Jump;
+    instruction.pc_update = .Jump;
     var operands = OperandsResult.default();
     operands.res = relocatable.fromU64(0);
     // Create a new VM instance.
@@ -182,7 +183,7 @@ test "update pc jump with operands res relocatable" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.pc_update = instructions.PcUpdate.Jump;
+    instruction.pc_update = .Jump;
     var operands = OperandsResult.default();
     operands.res = relocatable.newFromRelocatable(Relocatable.new(
         0,
@@ -213,7 +214,7 @@ test "update pc jump rel with operands res null" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.pc_update = instructions.PcUpdate.JumpRel;
+    instruction.pc_update = .JumpRel;
     var operands = OperandsResult.default();
     operands.res = null;
     // Create a new VM instance.
@@ -231,7 +232,7 @@ test "update pc jump rel with operands res not felt" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.pc_update = instructions.PcUpdate.JumpRel;
+    instruction.pc_update = .JumpRel;
     var operands = OperandsResult.default();
     operands.res = relocatable.newFromRelocatable(Relocatable.new(
         0,
@@ -252,7 +253,7 @@ test "update pc jump rel with operands res felt" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.pc_update = instructions.PcUpdate.JumpRel;
+    instruction.pc_update = .JumpRel;
     var operands = OperandsResult.default();
     operands.res = relocatable.fromU64(42);
     // Create a new VM instance.
@@ -280,7 +281,7 @@ test "update pc update jnz with operands dst zero" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.pc_update = instructions.PcUpdate.Jnz;
+    instruction.pc_update = .Jnz;
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(0);
     // Create a new VM instance.
@@ -308,7 +309,7 @@ test "update pc update jnz with operands dst not zero op1 not felt" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.pc_update = instructions.PcUpdate.Jnz;
+    instruction.pc_update = .Jnz;
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(1);
     operands.op_1 = relocatable.newFromRelocatable(Relocatable.new(
@@ -333,7 +334,7 @@ test "update pc update jnz with operands dst not zero op1 felt" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.pc_update = instructions.PcUpdate.Jnz;
+    instruction.pc_update = .Jnz;
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(1);
     operands.op_1 = relocatable.fromU64(42);
@@ -362,7 +363,7 @@ test "update ap add with operands res unconstrained" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.ap_update = instructions.ApUpdate.Add;
+    instruction.ap_update = .Add;
     var operands = OperandsResult.default();
     operands.res = null; // Simulate unconstrained res
     // Create a new VM instance.
@@ -380,7 +381,7 @@ test "update ap add1" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.ap_update = instructions.ApUpdate.Add1;
+    instruction.ap_update = .Add1;
     var operands = OperandsResult.default();
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -408,7 +409,7 @@ test "update ap add2" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.ap_update = instructions.ApUpdate.Add2;
+    instruction.ap_update = .Add2;
     var operands = OperandsResult.default();
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -436,7 +437,7 @@ test "update fp appplus2" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.fp_update = instructions.FpUpdate.APPlus2;
+    instruction.fp_update = .APPlus2;
     var operands = OperandsResult.default();
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -464,7 +465,7 @@ test "update fp dst relocatable" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.fp_update = instructions.FpUpdate.Dst;
+    instruction.fp_update = .Dst;
     var operands = OperandsResult.default();
     operands.dst = relocatable.newFromRelocatable(Relocatable.new(
         0,
@@ -496,7 +497,7 @@ test "update fp dst felt" {
     // Test setup
     var allocator = std.testing.allocator;
     var instruction = Instruction.default();
-    instruction.fp_update = instructions.FpUpdate.Dst;
+    instruction.fp_update = .Dst;
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(42);
     // Create a new VM instance.
@@ -889,14 +890,14 @@ test "compute res op1 works" {
         .off_0 = 0,
         .off_1 = 1,
         .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Op1,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.NOp,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Op1,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
     };
 
     // Create a new VM instance.
@@ -926,14 +927,14 @@ test "compute res add felts works" {
         .off_0 = 0,
         .off_1 = 1,
         .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Add,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.NOp,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
     };
 
     // Create a new VM instance.
@@ -963,14 +964,14 @@ test "compute res add felt to offset works" {
         .off_0 = 0,
         .off_1 = 1,
         .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Add,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.NOp,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
     };
 
     // Create a new VM instance.
@@ -1003,14 +1004,14 @@ test "compute res add fails two relocs" {
         .off_0 = 0,
         .off_1 = 1,
         .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Add,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.NOp,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
     };
 
     // Create a new VM instance.
@@ -1037,14 +1038,14 @@ test "compute res mul works" {
         .off_0 = 0,
         .off_1 = 1,
         .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Mul,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.NOp,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Mul,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
     };
 
     // Create a new VM instance.
@@ -1074,14 +1075,14 @@ test "compute res mul fails two relocs" {
         .off_0 = 0,
         .off_1 = 1,
         .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Mul,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.NOp,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Mul,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
     };
 
     // Create a new VM instance.
@@ -1108,14 +1109,14 @@ test "compute res mul fails felt and reloc" {
         .off_0 = 0,
         .off_1 = 1,
         .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Mul,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.NOp,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Mul,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
     };
 
     // Create a new VM instance.
@@ -1140,14 +1141,14 @@ test "compute res Unconstrained should return null" {
         .off_0 = 0,
         .off_1 = 1,
         .off_2 = 2,
-        .dst_reg = instructions.Register.AP,
-        .op_0_reg = instructions.Register.AP,
-        .op_1_addr = instructions.Op1Src.AP,
-        .res_logic = instructions.ResLogic.Unconstrained,
-        .pc_update = instructions.PcUpdate.Regular,
-        .ap_update = instructions.ApUpdate.Regular,
-        .fp_update = instructions.FpUpdate.Regular,
-        .opcode = instructions.Opcode.NOp,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Unconstrained,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
     };
 
     // Create a new VM instance.
@@ -1413,5 +1414,303 @@ test "CairoVM: computeOp0Deductions should return VM error if deduceOp0 and dedu
             &relocatable.fromU64(4),
             &relocatable.fromU64(0),
         ),
+    );
+}
+
+test "CairoVM: computeSegmentsEffectiveSizes should return the computed effective size for the VM segments" {
+    // Test setup
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    try vm.segments.memory.data.put(Relocatable.new(0, 0), .{ .felt = Felt252.fromInteger(1) });
+    try vm.segments.memory.data.put(Relocatable.new(0, 1), .{ .felt = Felt252.fromInteger(1) });
+    try vm.segments.memory.data.put(Relocatable.new(0, 2), .{ .felt = Felt252.fromInteger(1) });
+
+    var actual = try vm.computeSegmentsEffectiveSizes();
+
+    try expectEqual(@as(usize, 1), actual.count());
+    try expectEqual(@as(u32, 3), actual.get(0).?);
+}
+
+test "CairoVM: deduceDst should return res if AssertEq opcode" {
+    // Test setup
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    var instruction = Instruction{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .AssertEq,
+    };
+
+    var res = MaybeRelocatable{ .felt = Felt252.fromInteger(7) };
+
+    // Test check
+    try expectEqual(
+        MaybeRelocatable{ .felt = Felt252.fromInteger(7) },
+        try vm.deduceDst(&instruction, &res),
+    );
+}
+
+test "CairoVM: deduceDst should return VM error No dst if AssertEq opcode without res" {
+    // Test setup
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    var instruction = Instruction{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .AssertEq,
+    };
+
+    // Test check
+    try expectError(
+        CairoVMError.NoDst,
+        vm.deduceDst(&instruction, null),
+    );
+}
+
+test "CairoVM: deduceDst should return fp Relocatable if Call opcode" {
+    // Test setup
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+    vm.run_context.fp.* = Relocatable.new(3, 23);
+
+    var instruction = Instruction{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .Call,
+    };
+
+    // Test check
+    try expectEqual(
+        MaybeRelocatable{ .relocatable = Relocatable.new(3, 23) },
+        try vm.deduceDst(&instruction, null),
+    );
+}
+
+test "CairoVM: deduceDst should return VM error No dst if not AssertEq or Call opcode" {
+    // Test setup
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    var instruction = Instruction{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .Ret,
+    };
+
+    // Test check
+    try expectError(
+        CairoVMError.NoDst,
+        vm.deduceDst(&instruction, null),
+    );
+}
+
+test "CairoVM: addMemorySegment should return a proper relocatable address for the new segment." {
+    // Test setup
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    // Test check
+    try expectEqual(
+        Relocatable.new(0, 0),
+        vm.addMemorySegment(),
+    );
+}
+
+test "CairoVM: addMemorySegment should increase by one the number of segments in the VM" {
+    // Test setup
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    _ = vm.addMemorySegment();
+    _ = vm.addMemorySegment();
+    _ = vm.addMemorySegment();
+
+    // Test check
+    try expectEqual(
+        @as(u32, 3),
+        vm.segments.memory.num_segments,
+    );
+}
+
+test "CairoVM: getRelocatable without value raises error" {
+    // Test setup
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    // Test check
+    try expectError(
+        error.MemoryOutOfBounds,
+        vm.getRelocatable(Relocatable.new(0, 0)),
+    );
+}
+
+test "CairoVM: getRelocatable with value should return a MaybeRelocatable" {
+    // Test setup
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    try vm.segments.memory.data.put(
+        Relocatable.new(34, 12),
+        .{ .felt = Felt252.fromInteger(5) },
+    );
+
+    // Test check
+    try expectEqual(
+        MaybeRelocatable{ .felt = Felt252.fromInteger(5) },
+        try vm.getRelocatable(Relocatable.new(34, 12)),
+    );
+}
+
+test "CairoVM: getBuiltinRunners should return a reference to the builtin runners ArrayList" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+    var instance_def: BitwiseInstanceDef = .{ .ratio = null, .total_n_bits = 2 };
+    try vm.builtin_runners.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.new(
+        &instance_def,
+        true,
+    ) });
+
+    // Test check
+    try expectEqual(&vm.builtin_runners, vm.getBuiltinRunners());
+
+    var expected = ArrayList(BuiltinRunner).init(std.testing.allocator);
+    defer expected.deinit();
+    try expected.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.new(
+        &instance_def,
+        true,
+    ) });
+    try expectEqualSlices(
+        BuiltinRunner,
+        expected.items,
+        vm.getBuiltinRunners().*.items,
+    );
+}
+
+test "CairoVM: getSegmentUsedSize should return the size of a memory segment by its index if available" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.segment_used_sizes.put(10, 4);
+    try expectEqual(
+        @as(u32, @intCast(4)),
+        vm.getSegmentUsedSize(10).?,
+    );
+}
+
+test "CairoVM: getSegmentUsedSize should return the size of the segment if contained in segment_sizes" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.segment_sizes.put(10, 105);
+    try expectEqual(@as(u32, 105), vm.getSegmentSize(10).?);
+}
+
+test "CairoVM: getSegmentSize should return the size of the segment via getSegmentUsedSize if not contained in segment_sizes" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.segment_used_sizes.put(3, 6);
+    try expectEqual(@as(u32, 6), vm.getSegmentSize(3).?);
+}
+
+test "CairoVM: getFelt should return MemoryOutOfBounds error if no value at the given address" {
+    // Test setup
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    // Test checks
+    try expectError(
+        error.MemoryOutOfBounds,
+        vm.getFelt(Relocatable.new(10, 30)),
+    );
+}
+
+test "CairoVM: getFelt should return Felt252 if available at the given address" {
+    // Test setup
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.memory.data.put(
+        Relocatable.new(10, 30),
+        .{ .felt = Felt252.fromInteger(23) },
+    );
+
+    // Test checks
+    try expectEqual(
+        Felt252.fromInteger(23),
+        try vm.getFelt(Relocatable.new(10, 30)),
+    );
+}
+
+test "CairoVM: getFelt should return ExpectedInteger error if Relocatable instead of Felt at the given address" {
+    // Test setup
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.memory.data.put(
+        Relocatable.new(10, 30),
+        .{ .relocatable = Relocatable.new(3, 7) },
+    );
+
+    // Test checks
+    try expectError(
+        error.ExpectedInteger,
+        vm.getFelt(Relocatable.new(10, 30)),
     );
 }

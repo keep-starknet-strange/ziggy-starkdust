@@ -96,6 +96,122 @@ pub const CairoVM = struct {
     // *                        METHODS                           *
     // ************************************************************
 
+    /// Computes and returns the effective size of memory segments.
+    ///
+    /// This function iterates through the memory segments, calculates their effective sizes, and
+    /// updates the segment sizes map accordingly. It ensures that the map reflects the maximum
+    /// offset used in each segment.
+    ///
+    /// # Returns
+    ///
+    /// An AutoArrayHashMap representing the computed effective sizes of memory segments.
+    pub fn computeSegmentsEffectiveSizes(self: *Self) !std.AutoArrayHashMap(u32, u32) {
+        return self.segments.computeEffectiveSize();
+    }
+
+    /// Adds a memory segment to the Cairo VM and returns the first address of the new segment.
+    ///
+    /// This function internally calls `addSegment` on the memory segments manager, creating a new
+    /// relocatable address for the new segment. It increments the number of segments in the VM.
+    ///
+    /// # Returns
+    ///
+    /// The relocatable address representing the first address of the new memory segment.
+    pub fn addMemorySegment(self: *Self) Relocatable {
+        return self.segments.addSegment();
+    }
+
+    /// Retrieves a value from the memory at the specified relocatable address.
+    ///
+    /// This function internally calls `get` on the memory segments manager, returning the value
+    /// at the given address. It handles the possibility of an out-of-bounds access and returns
+    /// an error of type `MemoryOutOfBounds` in such cases.
+    ///
+    /// # Arguments
+    ///
+    /// - `address`: The relocatable address to retrieve the value from.
+    /// # Returns
+    ///
+    /// - The value at the specified address, or an error of type `MemoryOutOfBounds`.
+    pub fn getRelocatable(
+        self: *Self,
+        address: Relocatable,
+    ) error{MemoryOutOfBounds}!MaybeRelocatable {
+        return self.segments.memory.get(address);
+    }
+
+    /// Gets a reference to the list of built-in runners in the Cairo VM.
+    ///
+    /// This function returns a mutable reference to the list of built-in runners,
+    /// allowing access and modification of the Cairo VM's built-in runner instances.
+    ///
+    /// # Returns
+    ///
+    /// A mutable reference to the list of built-in runners.
+    pub fn getBuiltinRunners(self: *Self) *ArrayList(BuiltinRunner) {
+        return &self.builtin_runners;
+    }
+
+    pub fn insertInMemory(
+        self: *Self,
+        address: Relocatable,
+        value: MaybeRelocatable,
+    ) error{ InvalidMemoryAddress, MemoryOutOfBounds }!void {
+        _ = value;
+        _ = address;
+        _ = self;
+
+        // TODO: complete the implementation once set method is completed in Memory
+    }
+
+    /// Retrieves the used size of a memory segment by its index, if available; otherwise, returns null.
+    ///
+    /// This function internally calls `getSegmentUsedSize` on the memory segments manager, returning
+    /// the used size of the segment at the specified index. It handles the possibility of the size not
+    /// being computed and returns null if not available.
+    ///
+    /// # Parameters
+    ///
+    /// - `index` (u32): The index of the memory segment.
+    /// # Returns
+    ///
+    /// - The used size of the segment at the specified index, or null if not computed.
+    pub fn getSegmentUsedSize(self: *Self, index: u32) ?u32 {
+        return self.segments.getSegmentUsedSize(index);
+    }
+
+    /// Retrieves the size of a memory segment by its index, if available; otherwise, computes it.
+    ///
+    /// This function internally calls `getSegmentSize` on the memory segments manager, attempting
+    /// to retrieve the size of the segment at the specified index. If the size is not available,
+    /// it computes the effective size using `getSegmentUsedSize` and returns it.
+    ///
+    /// # Parameters
+    ///
+    /// - `index` (u32): The index of the memory segment.
+    /// # Returns
+    ///
+    /// - The size of the segment at the specified index, or a computed effective size if not available.
+    pub fn getSegmentSize(self: *Self, index: u32) ?u32 {
+        return self.segments.getSegmentSize(index);
+    }
+
+    /// Retrieves a `Felt252` value from the memory at the specified relocatable address in the Cairo VM.
+    ///
+    /// This function internally calls `getFelt` on the memory segments manager, attempting
+    /// to retrieve a `Felt252` value at the given address. It handles the possibility of an
+    /// out-of-bounds memory access and returns an error if needed.
+    ///
+    /// # Arguments
+    ///
+    /// - `address`: The relocatable address to retrieve the `Felt252` value from.
+    /// # Returns
+    ///
+    /// - The `Felt252` value at the specified address, or an error if not available.
+    pub fn getFelt(self: *Self, address: Relocatable) !Felt252 {
+        return self.segments.memory.getFelt(address);
+    }
+
     /// Do a single step of the VM.
     /// Process an instruction cycle using the typical fetch-decode-execute cycle.
     pub fn step(self: *Self) !void {
@@ -386,6 +502,17 @@ pub const CairoVM = struct {
         }
     }
 
+    /// Updates the registers (fp, ap, and pc) based on the given instruction and operands.
+    ///
+    /// This function internally calls `updateFp`, `updateAp`, and `updatePc` to update the respective registers.
+    ///
+    /// # Arguments
+    ///
+    /// - `instruction`: The instruction to determine register updates.
+    /// - `operands`: The result of the instruction's operands.
+    /// # Returns
+    ///
+    /// - Returns `void` on success, an error on failure.
     pub fn updateRegisters(
         self: *Self,
         instruction: *const instructions.Instruction,
@@ -394,6 +521,38 @@ pub const CairoVM = struct {
         try self.updateFp(instruction, operands);
         try self.updateAp(instruction, operands);
         try self.updatePc(instruction, operands);
+    }
+
+    /// Deduces the destination register for a given instruction.
+    ///
+    /// This function analyzes the opcode of the instruction and deduces the destination register accordingly.
+    /// For `.AssertEq` opcode, it returns the value of the result if available, otherwise `CairoVMError.NoDst`.
+    /// For `.Call` opcode, it returns a new relocatable value based on the frame pointer.
+    /// For other opcodes, it returns `CairoVMError.NoDst`.
+    ///
+    /// # Arguments
+    ///
+    /// - `instruction`: The instruction to deduce the destination for.
+    /// - `res`: The result of the instruction's operands (nullable).
+    /// # Returns
+    ///
+    /// - Returns the deduced destination register, or an error if no destination is deducible.
+    pub fn deduceDst(
+        self: *Self,
+        instruction: *Instruction,
+        res: ?*MaybeRelocatable,
+    ) !MaybeRelocatable {
+        return switch (instruction.opcode) {
+            .AssertEq => {
+                if (res != null) {
+                    return res.?.*;
+                } else {
+                    return CairoVMError.NoDst;
+                }
+            },
+            .Call => relocatable.newFromRelocatable(self.run_context.fp.*),
+            else => CairoVMError.NoDst,
+        };
     }
 
     // ************************************************************
