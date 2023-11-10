@@ -12,6 +12,7 @@ pub const CairoVMError = error{
     ValueTooLarge,
     FailedToComputeOperands,
     NoDst,
+    FailedToComputeOp1,
 };
 
 pub const MemoryError = error{
