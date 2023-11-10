@@ -46,18 +46,6 @@ pub const SegmentArenaBuiltinRunner = struct {
         };
     }
 
-    /// Get the base segment index of this segment arena runner.
-    ///
-    /// # Returns
-    ///
-    /// The base segment index as a `usize`.
-    pub fn getBase(self: *const Self) usize {
-        return @as(
-            usize,
-            @intCast(self.base.segment_index),
-        );
-    }
-
     pub fn deduceMemoryCell(
         self: *const Self,
         address: Relocatable,
