@@ -43,6 +43,8 @@ pub const Memory = struct {
     ),
     // The number of segments in the memory.
     num_segments: u32,
+    // The number of temporary segments in the memory.
+    num_temp_segments: u32,
     // Validated addresses are addresses that have been validated.
     // TODO: Consider merging this with `data` and benchmarking.
     validated_addresses: std.HashMap(
@@ -78,6 +80,7 @@ pub const Memory = struct {
             ).init(allocator),
             .temp_data = std.AutoArrayHashMap(Relocatable, MaybeRelocatable).init(allocator),
             .num_segments = 0,
+            .num_temp_segments = 0,
             .validated_addresses = std.AutoHashMap(
                 Relocatable,
                 bool,

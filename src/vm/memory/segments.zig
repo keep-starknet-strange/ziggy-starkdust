@@ -115,6 +115,20 @@ pub const MemorySegmentManager = struct {
         return relocatable_address;
     }
 
+    // Adds a temporary memory segment and returns the first address of the new segment.
+    pub fn addTempSegment(self: *Self) Relocatable {
+        // Increment the number of temporary segments.
+        self.memory.num_temp_segments += 1;
+
+        // Create the relocatable address for the new segment.
+        const relocatable_address = Relocatable{
+            .segment_index = -@as(i64, @intCast(self.memory.num_temp_segments)),
+            .offset = 0,
+        };
+
+        return relocatable_address;
+    }
+
     /// Retrieves the size of a memory segment by its index if available, else returns null.
     ///
     /// # Parameters
@@ -133,6 +147,15 @@ pub const MemorySegmentManager = struct {
     /// The number of memory segments as a `usize`.
     pub fn numSegments(self: *Self) usize {
         return self.memory.data.count();
+    }
+
+    /// Retrieves the number of temporary memory segments.
+    ///
+    /// # Returns
+    ///
+    /// The number of temporary memory segments as a `usize`.
+    pub fn numTempSegments(self: *Self) usize {
+        return self.memory.temp_data.count();
     }
 
     /// Computes and returns the effective size of memory segments.
@@ -213,6 +236,11 @@ test "memory segment manager" {
     // Check that the memory segment manager has one segment.
     try expect(memory_segment_manager.memory.num_segments == 1);
 
+    //Allocate a temporary memory segment.
+    const relocatable_address_2 = memory_segment_manager.addTempSegment();
+
+    try expect(memory_segment_manager.memory.num_temp_segments == 1);
+
     // Check if the relocatable address is correct.
     try expectEqual(
         Relocatable{
@@ -222,11 +250,24 @@ test "memory segment manager" {
         relocatable_address_1,
     );
 
+    try expectEqual(
+        Relocatable{
+            .segment_index = -1,
+            .offset = 0,
+        },
+        relocatable_address_2,
+    );
+
     // Allocate another memory segment.
-    const relocatable_address_2 = memory_segment_manager.addSegment();
+    const relocatable_address_3 = memory_segment_manager.addSegment();
+
+    // Allocate another temporary memory segment.
+    const relocatable_address_4 = memory_segment_manager.addTempSegment();
 
     // Check that the memory segment manager has two segments.
     try expect(memory_segment_manager.memory.num_segments == 2);
+    // Check that the memory segment manager has two temporary segments.
+    try expect(memory_segment_manager.memory.num_temp_segments == 2);
 
     // Check if the relocatable address is correct.
     try expectEqual(
@@ -234,7 +275,14 @@ test "memory segment manager" {
             .segment_index = 1,
             .offset = 0,
         },
-        relocatable_address_2,
+        relocatable_address_3,
+    );
+    try expectEqual(
+        Relocatable{
+            .segment_index = -2,
+            .offset = 0,
+        },
+        relocatable_address_4,
     );
 }
 
@@ -254,27 +302,39 @@ test "set get integer value in segment memory" {
     // ************************************************************
     _ = memory_segment_manager.addSegment();
     _ = memory_segment_manager.addSegment();
+    _ = memory_segment_manager.addTempSegment();
+    _ = memory_segment_manager.addTempSegment();
 
-    const address = Relocatable.new(
+    const address_1 = Relocatable.new(
         0,
         0,
     );
-    const value = relocatable.fromFelt(Felt252.fromInteger(42));
+    const address_2 = Relocatable.new(
+        -1,
+        0,
+    );
+    const value_1 = relocatable.fromFelt(Felt252.fromInteger(42));
+
+    const value_2 = relocatable.fromFelt(Felt252.fromInteger(84));
 
     const wrong_address = Relocatable.new(0, 1);
 
-    _ = try memory_segment_manager.memory.set(address, value);
+    _ = try memory_segment_manager.memory.set(address_1, value_1);
+    _ = try memory_segment_manager.memory.set(address_2, value_2);
 
-    try expect(memory_segment_manager.memory.data.contains(address));
+    try expect(memory_segment_manager.memory.data.contains(address_1));
     try expect(!memory_segment_manager.memory.data.contains(wrong_address));
 
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
-    const actual_value = try memory_segment_manager.memory.get(address);
-    const expected_value = value;
+    const actual_value_1 = try memory_segment_manager.memory.get(address_1);
+    const expected_value_1 = value_1;
+    const actual_value_2 = try memory_segment_manager.memory.get(address_2);
+    const expected_value_2 = value_2;
 
-    try expect(expected_value.eq(actual_value));
+    try expect(expected_value_1.eq(actual_value_1));
+    try expect(expected_value_2.eq(actual_value_2));
 }
 
 test "MemorySegmentManager: getSegmentUsedSize should return the size of a memory segment by its index if available" {
@@ -301,8 +361,8 @@ test "MemorySegmentManager: numSegments should return the number of segments in 
     defer memory_segment_manager.deinit();
     try memory_segment_manager.memory.data.put(Relocatable.new(0, 1), .{ .felt = Felt252.fromInteger(10) });
     try memory_segment_manager.memory.data.put(Relocatable.new(1, 1), .{ .felt = Felt252.fromInteger(10) });
-    try memory_segment_manager.memory.data.put(Relocatable.new(2, 1), .{ .felt = Felt252.fromInteger(10) });
-    try memory_segment_manager.memory.data.put(Relocatable.new(3, 1), .{ .felt = Felt252.fromInteger(10) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(-2, 1), .{ .felt = Felt252.fromInteger(10) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(-3, 1), .{ .felt = Felt252.fromInteger(10) });
     try expectEqual(
         @as(usize, 4),
         memory_segment_manager.numSegments(),
