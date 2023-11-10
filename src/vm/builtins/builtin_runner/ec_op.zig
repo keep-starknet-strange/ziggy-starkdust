@@ -5,6 +5,9 @@ const relocatable = @import("../../memory/relocatable.zig");
 const MaybeRelocatable = relocatable.MaybeRelocatable;
 const Relocatable = relocatable.Relocatable;
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
+const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
+const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
+const Memory = @import("../../memory/memory.zig").Memory;
 
 const AutoHashMap = std.AutoHashMap;
 const Allocator = std.mem.Allocator;
@@ -70,13 +73,15 @@ pub const EcOpBuiltinRunner = struct {
         };
     }
 
-    /// Get the base value of this runner.
-    ///
-    /// # Returns
-    ///
-    /// The base value as a `usize`.
-    pub fn getBase(self: *const Self) usize {
-        return self.base;
+    pub fn deduceMemoryCell(
+        self: *const Self,
+        address: Relocatable,
+        memory: *Memory,
+    ) ?MaybeRelocatable {
+        _ = memory;
+        _ = address;
+        _ = self;
+        return null;
     }
 };
 

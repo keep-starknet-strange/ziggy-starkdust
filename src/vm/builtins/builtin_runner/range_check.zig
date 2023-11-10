@@ -78,24 +78,6 @@ pub const RangeCheckBuiltinRunner = struct {
         };
     }
 
-    /// Get the base value of this Range Check runner.
-    ///
-    /// # Returns
-    ///
-    /// The base value as a `usize`.
-    pub fn getBase(self: *const Self) usize {
-        return self.base;
-    }
-
-    /// Get the ratio value of this Range Check runner.
-    ///
-    /// # Returns
-    ///
-    /// The ratio value as an `u32`.
-    pub fn getRatio(self: *const Self) ?u32 {
-        return self.ratio;
-    }
-
     /// Initializes memory segments and sets the base value for the Range Check runner.
     ///
     /// This function adds a memory segment using the provided `segments` manager and
@@ -145,7 +127,7 @@ pub const RangeCheckBuiltinRunner = struct {
     /// The number of used cells as a `u32`, or `MemoryError.MissingSegmentUsedSizes` if
     /// the size is not available.
     pub fn getUsedCells(self: *const Self, segments: *MemorySegmentManager) !u32 {
-        return segments.get_segment_used_size(
+        return segments.getSegmentUsedSize(
             @intCast(self.base),
         ) orelse MemoryError.MissingSegmentUsedSizes;
     }
@@ -272,6 +254,17 @@ pub const RangeCheckBuiltinRunner = struct {
     /// - `memory`: Adds validation rule to `memory`.
     pub fn addValidationRule(self: *const Self, memory: *Memory) void {
         memory.addValidationRule(self.base.segment_index, rangeCheckValidationRule);
+    }
+
+    pub fn deduceMemoryCell(
+        self: *const Self,
+        address: Relocatable,
+        memory: *Memory,
+    ) ?MaybeRelocatable {
+        _ = memory;
+        _ = address;
+        _ = self;
+        return null;
     }
 };
 
