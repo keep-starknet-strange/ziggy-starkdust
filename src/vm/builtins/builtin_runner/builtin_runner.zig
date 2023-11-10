@@ -46,15 +46,15 @@ pub const BuiltinRunner = union(enum) {
     /// The base value as a `usize`.
     pub fn base(self: *const Self) usize {
         return switch (self.*) {
-            .Bitwise => |*bitwise| bitwise.getBase(),
-            .EcOp => |*ec| ec.getBase(),
-            .Hash => |*hash| hash.getBase(),
-            .Output => |*output| output.getBase(),
-            .RangeCheck => |*range_check| range_check.getBase(),
-            .Keccak => |*keccak| keccak.getBase(),
-            .Signature => |*signature| signature.getBase(),
-            .Poseidon => |*poseidon| poseidon.getBase(),
-            .SegmentArena => |*segment_arena| segment_arena.getBase(),
+            .Bitwise => |*bitwise| bitwise.base,
+            .EcOp => |*ec| ec.base,
+            .Hash => |*hash| hash.base,
+            .Output => |*output| output.base,
+            .RangeCheck => |*range_check| range_check.base,
+            .Keccak => |*keccak| keccak.base,
+            .Signature => |*signature| signature.base,
+            .Poseidon => |*poseidon| poseidon.base,
+            .SegmentArena => |*segment_arena| @as(usize, @intCast(segment_arena.base.segment_index)),
         };
     }
 
