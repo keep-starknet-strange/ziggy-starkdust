@@ -339,7 +339,7 @@ pub const CairoVM = struct {
             instruction,
             dst,
             op1,
-        ))[0];
+        )).op_0;
 
         return op0_op orelse CairoVMError.FailedToComputeOperands;
     }
@@ -358,30 +358,34 @@ pub const CairoVM = struct {
         inst: *const instructions.Instruction,
         dst: ?*const MaybeRelocatable,
         op1: ?*const MaybeRelocatable,
-    ) !std.meta.Tuple(&.{ ?relocatable.MaybeRelocatable, ?relocatable.MaybeRelocatable }) {
+    ) !Op0Result {
         switch (inst.opcode) {
             .Call => {
-                return .{ relocatable.newFromRelocatable(try self.run_context.pc.addUint(inst.size())), null };
+                return .{
+                    .op_0 = relocatable.newFromRelocatable(try self.run_context.pc.addUint(inst.size())),
+                    .res = null,
+                };
             },
             .AssertEq => {
-                const dst_val = dst orelse return .{ null, null };
-                const op1_val = op1 orelse return .{ null, null };
+                const dst_val = dst orelse return .{ .op_0 = null, .res = null };
+                const op1_val = op1 orelse return .{ .op_0 = null, .res = null };
                 if ((inst.res_logic == .Add)) {
-                    return .{ try subOperands(dst_val.*, op1_val.*), dst_val.* };
-                } else if (dst_val.isFelt() and op1_val.isFelt() and
-                    !op1_val.felt.isZero())
-                {
                     return .{
-                        relocatable.fromFelt(try dst_val.felt.div(op1_val.felt)),
-                        dst_val.*,
+                        .op_0 = try subOperands(dst_val.*, op1_val.*),
+                        .res = dst_val.*,
+                    };
+                } else if (dst_val.isFelt() and op1_val.isFelt() and !op1_val.felt.isZero()) {
+                    return .{
+                        .op_0 = relocatable.fromFelt(try dst_val.felt.div(op1_val.felt)),
+                        .res = dst_val.*,
                     };
                 }
             },
             else => {
-                return .{ null, null };
+                return .{ .op_0 = null, .res = null };
             },
         }
-        return .{ null, null };
+        return .{ .op_0 = null, .res = null };
     }
 
     /// Updates the value of PC according to the executed instruction.
@@ -724,38 +728,30 @@ pub fn deduceOp1(
     inst: *const instructions.Instruction,
     dst: ?*const MaybeRelocatable,
     op0: ?*const MaybeRelocatable,
-) !std.meta.Tuple(&[_]type{ ?relocatable.MaybeRelocatable, ?relocatable.MaybeRelocatable }) {
+) !Op1Result {
     if (inst.opcode != .AssertEq) {
-        return .{ null, null };
+        return .{ .op_1 = null, .res = null };
     }
 
     switch (inst.res_logic) {
         .Op1 => if (dst) |dst_val| {
-            return .{ dst_val.*, dst_val.* };
+            return .{ .op_1 = dst_val.*, .res = dst_val.* };
         },
         .Add => if (dst != null and op0 != null) {
-            return .{ try subOperands(
-                dst.?.*,
-                op0.?.*,
-            ), dst.?.* };
+            return .{ .op_1 = try subOperands(dst.?.*, op0.?.*), .res = dst.?.* };
         },
         .Mul => {
-            if (dst != null and op0 != null and
-                dst.?.isFelt() and op0.?.isFelt() and
-                !op0.?.felt.isZero())
-            {
+            if (dst != null and op0 != null and dst.?.isFelt() and op0.?.isFelt() and !op0.?.felt.isZero()) {
                 return .{
-                    relocatable.fromFelt(
-                        try dst.?.felt.div(op0.?.felt),
-                    ),
-                    dst.?.*,
+                    .op_1 = relocatable.fromFelt(try dst.?.felt.div(op0.?.felt)),
+                    .res = dst.?.*,
                 };
             }
         },
         else => {},
     }
 
-    return .{ null, null };
+    return .{ .op_1 = null, .res = null };
 }
 
 // *****************************************************************************
@@ -788,7 +784,20 @@ pub const OperandsResult = struct {
     }
 };
 
+/// Represents the result of deduce Op0 operation.
 const Op0Result = struct {
-    op_0: MaybeRelocatable,
-    res: MaybeRelocatable,
+    const Self = @This();
+    /// The computed operand Op0.
+    op_0: ?MaybeRelocatable,
+    /// The result of the operation involving Op0.
+    res: ?MaybeRelocatable,
+};
+
+/// Represents the result of deduce Op1 operation.
+const Op1Result = struct {
+    const Self = @This();
+    /// The computed operand Op1.
+    op_1: ?MaybeRelocatable,
+    /// The result of the operation involving Op1.
+    res: ?MaybeRelocatable,
 };
