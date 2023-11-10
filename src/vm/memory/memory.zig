@@ -34,6 +34,13 @@ pub const Memory = struct {
         std.array_hash_map.AutoContext(Relocatable),
         true,
     ),
+    // The temporary data in the memory.
+    temp_data: std.ArrayHashMap(
+        Relocatable,
+        MaybeRelocatable,
+        std.array_hash_map.AutoContext(Relocatable),
+        true,
+    ),
     // The number of segments in the memory.
     num_segments: u32,
     // Validated addresses are addresses that have been validated.
@@ -69,6 +76,7 @@ pub const Memory = struct {
                 Relocatable,
                 MaybeRelocatable,
             ).init(allocator),
+            .temp_data = std.AutoArrayHashMap(Relocatable, MaybeRelocatable).init(allocator),
             .num_segments = 0,
             .validated_addresses = std.AutoHashMap(
                 Relocatable,
@@ -86,6 +94,7 @@ pub const Memory = struct {
     pub fn deinit(self: *Self) void {
         // Clear the hash maps
         self.data.deinit();
+        self.temp_data.deinit();
         self.validated_addresses.deinit();
         // Deallocate self.
         self.allocator.destroy(self);
@@ -108,19 +117,19 @@ pub const Memory = struct {
         MemoryOutOfBounds,
     }!void {
 
-        // Check if the address is valid.
-        if (address.segment_index < 0) {
-            return CairoVMError.InvalidMemoryAddress;
-        }
-
         // Insert the value into the memory.
-        self.data.put(
-            address,
-            value,
-        ) catch {
-            return CairoVMError.MemoryOutOfBounds;
-        };
-
+        if (address.segment_index < 0) {
+            self.temp_data.put(address, value) catch {
+                return CairoVMError.MemoryOutOfBounds;
+            };
+        } else {
+            self.data.put(
+                address,
+                value,
+            ) catch {
+                return CairoVMError.MemoryOutOfBounds;
+            };
+        }
         // TODO: Add all relevant checks.
     }
 
@@ -133,6 +142,9 @@ pub const Memory = struct {
         self: *Self,
         address: Relocatable,
     ) error{MemoryOutOfBounds}!MaybeRelocatable {
+        if (address.segment_index < 0) {
+            return self.temp_data.get(address) orelse CairoVMError.MemoryOutOfBounds;
+        }
         return self.data.get(address) orelse CairoVMError.MemoryOutOfBounds;
     }
 
@@ -190,20 +202,32 @@ test "memory set and get" {
     );
     const value_1 = relocatable.fromFelt(starknet_felt.Felt252.one());
 
+    const address_2 = Relocatable.new(
+        -1,
+        0,
+    );
+    const value_2 = relocatable.fromFelt(starknet_felt.Felt252.one());
+
     // Set a value into the memory.
     _ = try memory.set(
         address_1,
         value_1,
     );
+    _ = try memory.set(
+        address_2,
+        value_2,
+    );
 
     // Get the value from the memory.
     const maybe_value_1 = try memory.get(address_1);
+    const maybe_value_2 = try memory.get(address_2);
 
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
     // Assert that the value is the expected value.
     try expect(maybe_value_1.eq(value_1));
+    try expect(maybe_value_2.eq(value_2));
 }
 
 test "validate existing memory for range check within bound" {
