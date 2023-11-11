@@ -1,3 +1,7 @@
+const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
+const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
+const Memory = @import("../../memory/memory.zig").Memory;
+
 /// Output built-in runner
 pub const OutputBuiltinRunner = struct {
     const Self = @This();
@@ -28,12 +32,14 @@ pub const OutputBuiltinRunner = struct {
         };
     }
 
-    /// Get the base value of this output runner.
-    ///
-    /// # Returns
-    ///
-    /// The base value as a `usize`.
-    pub fn getBase(self: *const Self) usize {
-        return self.base;
+    pub fn deduceMemoryCell(
+        self: *const Self,
+        address: Relocatable,
+        memory: *Memory,
+    ) ?MaybeRelocatable {
+        _ = memory;
+        _ = address;
+        _ = self;
+        return null;
     }
 };
