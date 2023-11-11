@@ -207,6 +207,69 @@ pub const Memory = struct {
     }
 };
 
+// Utility function to help set up memory for tests
+//
+// # Arguments
+// - `memory` - memory to be set
+// - `vals` - complile time structure with heterogenous types
+fn memoryInner(memory: *Memory, comptime vals: anytype) !void {
+    inline for (vals) |row| {
+        const firstCol = row[0];
+        const relo = Relocatable.new(firstCol[0], firstCol[1]);
+        // Check number of inputs in row
+        if (row[1].len == 1) {
+            const nextCol = row[1];
+            const maybeFromFelt = MaybeRelocatable{ .felt = Felt252.fromInteger(nextCol[0]) };
+            try memory.set(relo, maybeFromFelt);
+        } else {
+            const val = row[1];
+            const T = @TypeOf(val[0]);
+            switch (@typeInfo(T)) {
+                .Pointer => {
+                    const num = try std.fmt.parseUnsigned(i64, val[0], 10);
+                    const strRelo = Relocatable.new(num, val[1]);
+                    const maybeFromString = MaybeRelocatable{ .relocatable = strRelo };
+                    try memory.set(relo, maybeFromString);
+                },
+                else => {
+                    const second = Relocatable.new(val[0], val[1]);
+                    const maybeSec = MaybeRelocatable{ .relocatable = second };
+                    try memory.set(relo, maybeSec);
+                },
+            }
+        }
+    }
+}
+
+test "memory inner for testing test" {
+    var allocator = std.testing.allocator;
+
+    var memory = try Memory.init(allocator);
+    defer memory.deinit();
+
+    try memoryInner(memory, .{
+        .{ .{ 1, 3 }, .{ 4, 5 } },
+        .{ .{ 2, 6 }, .{ 7, 8 } },
+        .{ .{ 9, 10 }, .{23} },
+        .{ .{ 1, 2 }, .{ "234", 10 } },
+    });
+
+    try expectEqual(
+        Felt252.fromInteger(23),
+        try memory.getFelt(Relocatable.new(9, 10)),
+    );
+
+    try expectEqual(
+        Relocatable.new(7, 8),
+        try memory.getRelocatable(Relocatable.new(2, 6)),
+    );
+
+    try expectEqual(
+        Relocatable.new(234, 10),
+        try memory.getRelocatable(Relocatable.new(1, 2)),
+    );
+}
+
 test "memory get without value raises error" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
