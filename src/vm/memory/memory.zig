@@ -215,26 +215,20 @@ pub const Memory = struct {
 fn memoryInner(memory: *Memory, comptime vals: anytype) !void {
     inline for (vals) |row| {
         const firstCol = row[0];
-        const relo = Relocatable.new(firstCol[0], firstCol[1]);
+        const address = Relocatable.new(firstCol[0], firstCol[1]);
+        const nextCol = row[1];
         // Check number of inputs in row
         if (row[1].len == 1) {
-            const nextCol = row[1];
-            const maybeFromFelt = MaybeRelocatable{ .felt = Felt252.fromInteger(nextCol[0]) };
-            try memory.set(relo, maybeFromFelt);
+            try memory.set(address, .{ .felt = Felt252.fromInteger(nextCol[0]) });
         } else {
-            const val = row[1];
-            const T = @TypeOf(val[0]);
+            const T = @TypeOf(nextCol[0]);
             switch (@typeInfo(T)) {
                 .Pointer => {
-                    const num = try std.fmt.parseUnsigned(i64, val[0], 10);
-                    const strRelo = Relocatable.new(num, val[1]);
-                    const maybeFromString = MaybeRelocatable{ .relocatable = strRelo };
-                    try memory.set(relo, maybeFromString);
+                    const num = try std.fmt.parseUnsigned(i64, nextCol[0], 10);
+                    try memory.set(address, .{ .relocatable = Relocatable.new(num, nextCol[1]) });
                 },
                 else => {
-                    const second = Relocatable.new(val[0], val[1]);
-                    const maybeSec = MaybeRelocatable{ .relocatable = second };
-                    try memory.set(relo, maybeSec);
+                    try memory.set(address, .{ .relocatable = Relocatable.new(nextCol[0], nextCol[1]) });
                 },
             }
         }
