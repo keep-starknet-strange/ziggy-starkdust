@@ -51,7 +51,7 @@ pub const Relocatable = struct {
         self: Self,
         other: Self,
     ) bool {
-        return self.segment_index < other.segment_index and self.offset < other.offset;
+        return self.segment_index < other.segment_index or (self.segment_index == other.segment_index and self.offset < other.offset);
     }
 
     // Determines if this Relocatable is less than or equal to another.
@@ -63,7 +63,7 @@ pub const Relocatable = struct {
         self: Self,
         other: Self,
     ) bool {
-        return self.lt(other) or self.eq(other);
+        return self.segment_index < other.segment_index or (self.segment_index == other.segment_index and self.offset <= other.offset);
     }
 
     // Determines if this Relocatable is greater than another.
@@ -75,7 +75,7 @@ pub const Relocatable = struct {
         self: Self,
         other: Self,
     ) bool {
-        return !self.lt(other);
+        return self.segment_index > other.segment_index or (self.segment_index == other.segment_index and self.offset > other.offset);
     }
 
     // Determines if this Relocatable is greater than or equal to another.
@@ -87,7 +87,7 @@ pub const Relocatable = struct {
         self: Self,
         other: Self,
     ) bool {
-        return !self.le(other);
+        return self.segment_index > other.segment_index or (self.segment_index == other.segment_index and self.offset >= other.offset);
     }
 
     /// Attempts to subtract a `Relocatable` from another.
@@ -610,6 +610,42 @@ test "Relocatable: addMaybeRelocatableInplace should return an error if other is
     );
 }
 
+test "Relocatable: lt should return true if other relocatable is greater than or equal, false otherwise" {
+    try expect(Relocatable.new(-1, 2).lt(Relocatable.new(-1, 3)));
+    try expect(Relocatable.new(1, 5).lt(Relocatable.new(2, 4)));
+
+    try expect(!Relocatable.new(2, 4).lt(Relocatable.new(2, 4)));
+    try expect(!Relocatable.new(2, 5).lt(Relocatable.new(2, 4)));
+    try expect(!Relocatable.new(3, 3).lt(Relocatable.new(2, 4)));
+}
+
+test "Relocatable: le should return true if other relocatable is greater, false otherwise" {
+    try expect(Relocatable.new(-1, 2).le(Relocatable.new(-1, 3)));
+    try expect(Relocatable.new(1, 5).le(Relocatable.new(2, 4)));
+    try expect(Relocatable.new(2, 4).le(Relocatable.new(2, 4)));
+
+    try expect(!Relocatable.new(2, 5).le(Relocatable.new(2, 4)));
+    try expect(!Relocatable.new(3, 3).le(Relocatable.new(2, 4)));
+}
+
+test "Relocatable: gt should return true if other relocatable is less than or equal, false otherwise" {
+    try expect(!Relocatable.new(-1, 2).gt(Relocatable.new(-1, 3)));
+    try expect(!Relocatable.new(1, 5).gt(Relocatable.new(2, 4)));
+    try expect(!Relocatable.new(2, 4).gt(Relocatable.new(2, 4)));
+
+    try expect(Relocatable.new(2, 5).gt(Relocatable.new(2, 4)));
+    try expect(Relocatable.new(3, 3).gt(Relocatable.new(2, 4)));
+}
+
+test "Relocatable: ge should return true if other relocatable is less, false otherwise" {
+    try expect(!Relocatable.new(-1, 2).gt(Relocatable.new(-1, 3)));
+    try expect(!Relocatable.new(1, 5).gt(Relocatable.new(2, 4)));
+    try expect(!Relocatable.new(2, 4).gt(Relocatable.new(2, 4)));
+
+    try expect(Relocatable.new(2, 5).gt(Relocatable.new(2, 4)));
+    try expect(Relocatable.new(3, 3).gt(Relocatable.new(2, 4)));
+}
+
 test "MaybeRelocatable: eq should return true if two MaybeRelocatable are the same (Relocatable)" {
     var maybeRelocatable1 = MaybeRelocatable{ .relocatable = Relocatable.new(0, 10) };
     var maybeRelocatable2 = MaybeRelocatable{ .relocatable = Relocatable.new(0, 10) };
@@ -707,6 +743,26 @@ test "MaybeRelocatable: tryIntoU64 should return an error if MaybeRelocatable is
 test "MaybeRelocatable: tryIntoU64 should return an error if MaybeRelocatable Felt cannot be coerced to u64" {
     var maybeRelocatable = MaybeRelocatable{ .felt = Felt252.fromInteger(std.math.maxInt(u64) + 1) };
     try expectError(error.ValueTooLarge, maybeRelocatable.tryIntoU64());
+}
+
+test "MaybeRelocatable: any comparision should return false if other MaybeRelocatable is of different variant 1" {
+    var maybeRelocatable1 = MaybeRelocatable{ .relocatable = Relocatable.new(0, 10) };
+    var maybeRelocatable2 = MaybeRelocatable{ .felt = Felt252.fromInteger(10) };
+
+    try expect(!maybeRelocatable1.lt(maybeRelocatable2));
+    try expect(!maybeRelocatable1.le(maybeRelocatable2));
+    try expect(!maybeRelocatable1.gt(maybeRelocatable2));
+    try expect(!maybeRelocatable1.ge(maybeRelocatable2));
+}
+
+test "MaybeRelocatable: any comparision should return false if other MaybeRelocatable is of different variant 2" {
+    var maybeRelocatable1 = MaybeRelocatable{ .felt = Felt252.fromInteger(10) };
+    var maybeRelocatable2 = MaybeRelocatable{ .relocatable = Relocatable.new(0, 10) };
+
+    try expect(!maybeRelocatable1.lt(maybeRelocatable2));
+    try expect(!maybeRelocatable1.le(maybeRelocatable2));
+    try expect(!maybeRelocatable1.gt(maybeRelocatable2));
+    try expect(!maybeRelocatable1.ge(maybeRelocatable2));
 }
 
 test "newFromRelocatable: should create a MaybeRelocatable from a Relocatable" {
