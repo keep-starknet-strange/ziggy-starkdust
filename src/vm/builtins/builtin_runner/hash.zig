@@ -3,7 +3,6 @@ const pedersen_instance_def = @import("../../types/pedersen_instance_def.zig");
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
 const Memory = @import("../../memory/memory.zig").Memory;
-
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 

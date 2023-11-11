@@ -5,7 +5,6 @@ const Allocator = std.mem.Allocator;
 // Local imports.
 const Relocatable = @import("memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("memory/relocatable.zig").MaybeRelocatable;
-
 const Instruction = @import("instructions.zig").Instruction;
 
 /// Contains the register states of the Cairo VM.
@@ -73,7 +72,7 @@ pub const RunContext = struct {
     /// - The initialized run context.
     /// # Errors
     /// - If a memory allocation fails.
-    pub fn init_with_values(
+    pub fn initWithValues(
         allocator: Allocator,
         pc: Relocatable,
         ap: Relocatable,
@@ -101,7 +100,7 @@ pub const RunContext = struct {
     /// - instruction: The instruction to compute the dst address for.
     /// # Returns
     /// - The computed dst address.
-    pub fn compute_dst_addr(
+    pub fn computeDstAddr(
         self: *Self,
         instruction: *const Instruction,
     ) !Relocatable {
@@ -124,7 +123,7 @@ pub const RunContext = struct {
     /// - instruction: The instruction to compute the OP 0 address for.
     /// # Returns
     /// - The computed OP 0 address.
-    pub fn compute_op_0_addr(
+    pub fn computeOp0Addr(
         self: *Self,
         instruction: *const Instruction,
     ) !Relocatable {
@@ -147,7 +146,7 @@ pub const RunContext = struct {
     /// - instruction: The instruction to compute the OP 1 address for.
     /// # Returns
     /// - The computed OP 1 address.
-    pub fn compute_op_1_addr(
+    pub fn computeOp1Addr(
         self: *Self,
         instruction: *const Instruction,
         op_0: ?MaybeRelocatable,
@@ -176,8 +175,8 @@ const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
 
-test "RunContext: compute_dst_addr should return self.ap - instruction.off_0 if instruction.off_0 is negative" {
-    const run_context = try RunContext.init_with_values(
+test "RunContext: computeDstAddr should return self.ap - instruction.off_0 if instruction.off_0 is negative" {
+    const run_context = try RunContext.initWithValues(
         std.testing.allocator,
         Relocatable.new(
             0,
@@ -198,7 +197,7 @@ test "RunContext: compute_dst_addr should return self.ap - instruction.off_0 if 
             0,
             15,
         ),
-        try run_context.compute_dst_addr(&.{
+        try run_context.computeDstAddr(&.{
             .off_0 = -10,
             .off_1 = 2,
             .off_2 = 3,
@@ -214,8 +213,8 @@ test "RunContext: compute_dst_addr should return self.ap - instruction.off_0 if 
     );
 }
 
-test "RunContext: compute_dst_addr should return self.ap + instruction.off_0 if instruction.off_0 is positive" {
-    const run_context = try RunContext.init_with_values(
+test "RunContext: computeDstAddr should return self.ap + instruction.off_0 if instruction.off_0 is positive" {
+    const run_context = try RunContext.initWithValues(
         std.testing.allocator,
         Relocatable.new(
             0,
@@ -236,7 +235,7 @@ test "RunContext: compute_dst_addr should return self.ap + instruction.off_0 if 
             0,
             35,
         ),
-        try run_context.compute_dst_addr(&.{
+        try run_context.computeDstAddr(&.{
             .off_0 = 10,
             .off_1 = 2,
             .off_2 = 3,
@@ -252,8 +251,8 @@ test "RunContext: compute_dst_addr should return self.ap + instruction.off_0 if 
     );
 }
 
-test "RunContext: compute_dst_addr should return self.fp - instruction.off_0 if instruction.off_0 is negative" {
-    const run_context = try RunContext.init_with_values(
+test "RunContext: computeDstAddr should return self.fp - instruction.off_0 if instruction.off_0 is negative" {
+    const run_context = try RunContext.initWithValues(
         std.testing.allocator,
         Relocatable.new(
             0,
@@ -274,7 +273,7 @@ test "RunContext: compute_dst_addr should return self.fp - instruction.off_0 if 
             0,
             30,
         ),
-        try run_context.compute_dst_addr(&.{
+        try run_context.computeDstAddr(&.{
             .off_0 = -10,
             .off_1 = 2,
             .off_2 = 3,
@@ -290,8 +289,8 @@ test "RunContext: compute_dst_addr should return self.fp - instruction.off_0 if 
     );
 }
 
-test "RunContext: compute_dst_addr should return self.fp + instruction.off_0 if instruction.off_0 is positive" {
-    const run_context = try RunContext.init_with_values(
+test "RunContext: computeDstAddr should return self.fp + instruction.off_0 if instruction.off_0 is positive" {
+    const run_context = try RunContext.initWithValues(
         std.testing.allocator,
         Relocatable.new(
             0,
@@ -312,7 +311,7 @@ test "RunContext: compute_dst_addr should return self.fp + instruction.off_0 if 
             0,
             40,
         ),
-        try run_context.compute_dst_addr(&.{
+        try run_context.computeDstAddr(&.{
             .off_0 = 10,
             .off_1 = 2,
             .off_2 = 3,
@@ -328,8 +327,8 @@ test "RunContext: compute_dst_addr should return self.fp + instruction.off_0 if 
     );
 }
 
-test "RunContext: compute_op_0_addr should return self.ap - instruction.off_1 if instruction.off_1 is negative" {
-    const run_context = try RunContext.init_with_values(
+test "RunContext: computeOp0Addr should return self.ap - instruction.off_1 if instruction.off_1 is negative" {
+    const run_context = try RunContext.initWithValues(
         std.testing.allocator,
         Relocatable.new(
             0,
@@ -350,7 +349,7 @@ test "RunContext: compute_op_0_addr should return self.ap - instruction.off_1 if
             0,
             23,
         ),
-        try run_context.compute_op_0_addr(&.{
+        try run_context.computeOp0Addr(&.{
             .off_0 = 10,
             .off_1 = -2,
             .off_2 = 3,
@@ -366,8 +365,8 @@ test "RunContext: compute_op_0_addr should return self.ap - instruction.off_1 if
     );
 }
 
-test "RunContext: compute_op_0_addr should return self.ap + instruction.off_1 if instruction.off_1 is positive" {
-    const run_context = try RunContext.init_with_values(
+test "RunContext: computeOp0Addr should return self.ap + instruction.off_1 if instruction.off_1 is positive" {
+    const run_context = try RunContext.initWithValues(
         std.testing.allocator,
         Relocatable.new(
             0,
@@ -388,7 +387,7 @@ test "RunContext: compute_op_0_addr should return self.ap + instruction.off_1 if
             0,
             27,
         ),
-        try run_context.compute_op_0_addr(&.{
+        try run_context.computeOp0Addr(&.{
             .off_0 = 10,
             .off_1 = 2,
             .off_2 = 3,
@@ -404,8 +403,8 @@ test "RunContext: compute_op_0_addr should return self.ap + instruction.off_1 if
     );
 }
 
-test "RunContext: compute_op_0_addr should return self.fp - instruction.off_1 if instruction.off_1 is negative" {
-    const run_context = try RunContext.init_with_values(
+test "RunContext: computeOp0Addr should return self.fp - instruction.off_1 if instruction.off_1 is negative" {
+    const run_context = try RunContext.initWithValues(
         std.testing.allocator,
         Relocatable.new(
             0,
@@ -426,7 +425,7 @@ test "RunContext: compute_op_0_addr should return self.fp - instruction.off_1 if
             0,
             38,
         ),
-        try run_context.compute_op_0_addr(&.{
+        try run_context.computeOp0Addr(&.{
             .off_0 = 10,
             .off_1 = -2,
             .off_2 = 3,
@@ -442,8 +441,8 @@ test "RunContext: compute_op_0_addr should return self.fp - instruction.off_1 if
     );
 }
 
-test "RunContext: compute_op_0_addr should return self.fp + instruction.off_1 if instruction.off_1 is positive" {
-    const run_context = try RunContext.init_with_values(
+test "RunContext: computeOp0Addr should return self.fp + instruction.off_1 if instruction.off_1 is positive" {
+    const run_context = try RunContext.initWithValues(
         std.testing.allocator,
         Relocatable.new(
             0,
@@ -464,7 +463,7 @@ test "RunContext: compute_op_0_addr should return self.fp + instruction.off_1 if
             0,
             32,
         ),
-        try run_context.compute_op_0_addr(&.{
+        try run_context.computeOp0Addr(&.{
             .off_0 = 10,
             .off_1 = 2,
             .off_2 = 3,
@@ -481,7 +480,7 @@ test "RunContext: compute_op_0_addr should return self.fp + instruction.off_1 if
 }
 
 test "RunContext: compute_op1_addr for FP op1 addr and instruction off_2 < 0" {
-    const run_context = try RunContext.init_with_values(
+    const run_context = try RunContext.initWithValues(
         std.testing.allocator,
         Relocatable.new(
             0,
@@ -502,7 +501,7 @@ test "RunContext: compute_op1_addr for FP op1 addr and instruction off_2 < 0" {
             0,
             3,
         ),
-        try run_context.compute_op_1_addr(
+        try run_context.computeOp1Addr(
             &.{
                 .off_0 = 1,
                 .off_1 = 2,
@@ -522,7 +521,7 @@ test "RunContext: compute_op1_addr for FP op1 addr and instruction off_2 < 0" {
 }
 
 test "RunContext: compute_op1_addr for FP op1 addr and instruction off_2 > 0" {
-    const run_context = try RunContext.init_with_values(
+    const run_context = try RunContext.initWithValues(
         std.testing.allocator,
         Relocatable.new(
             0,
@@ -543,7 +542,7 @@ test "RunContext: compute_op1_addr for FP op1 addr and instruction off_2 > 0" {
             0,
             9,
         ),
-        try run_context.compute_op_1_addr(
+        try run_context.computeOp1Addr(
             &.{
                 .off_0 = 1,
                 .off_1 = 2,
@@ -563,7 +562,7 @@ test "RunContext: compute_op1_addr for FP op1 addr and instruction off_2 > 0" {
 }
 
 test "RunContext: compute_op1_addr for AP op1 addr and instruction off_2 < 0" {
-    const run_context = try RunContext.init_with_values(
+    const run_context = try RunContext.initWithValues(
         std.testing.allocator,
         Relocatable.new(
             0,
@@ -584,7 +583,7 @@ test "RunContext: compute_op1_addr for AP op1 addr and instruction off_2 < 0" {
             0,
             2,
         ),
-        try run_context.compute_op_1_addr(
+        try run_context.computeOp1Addr(
             &.{
                 .off_0 = 1,
                 .off_1 = 2,
@@ -604,7 +603,7 @@ test "RunContext: compute_op1_addr for AP op1 addr and instruction off_2 < 0" {
 }
 
 test "RunContext: compute_op1_addr for AP op1 addr and instruction off_2 > 0" {
-    const run_context = try RunContext.init_with_values(
+    const run_context = try RunContext.initWithValues(
         std.testing.allocator,
         Relocatable.new(
             0,
@@ -625,7 +624,7 @@ test "RunContext: compute_op1_addr for AP op1 addr and instruction off_2 > 0" {
             0,
             8,
         ),
-        try run_context.compute_op_1_addr(
+        try run_context.computeOp1Addr(
             &.{
                 .off_0 = 1,
                 .off_1 = 2,
@@ -645,7 +644,7 @@ test "RunContext: compute_op1_addr for AP op1 addr and instruction off_2 > 0" {
 }
 
 test "RunContext: compute_op1_addr for IMM op1 addr and instruction off_2 != 1" {
-    const run_context = try RunContext.init_with_values(
+    const run_context = try RunContext.initWithValues(
         std.testing.allocator,
         Relocatable.new(
             0,
@@ -663,7 +662,7 @@ test "RunContext: compute_op1_addr for IMM op1 addr and instruction off_2 != 1" 
     defer run_context.deinit();
     try expectError(
         error.ImmShouldBe1,
-        run_context.compute_op_1_addr(
+        run_context.computeOp1Addr(
             &.{
                 .off_0 = 1,
                 .off_1 = 2,
@@ -683,7 +682,7 @@ test "RunContext: compute_op1_addr for IMM op1 addr and instruction off_2 != 1" 
 }
 
 test "RunContext: compute_op1_addr for IMM op1 addr and instruction off_2 == 1" {
-    const run_context = try RunContext.init_with_values(
+    const run_context = try RunContext.initWithValues(
         std.testing.allocator,
         Relocatable.new(
             0,
@@ -704,7 +703,7 @@ test "RunContext: compute_op1_addr for IMM op1 addr and instruction off_2 == 1" 
             0,
             5,
         ),
-        try run_context.compute_op_1_addr(
+        try run_context.computeOp1Addr(
             &.{
                 .off_0 = 1,
                 .off_1 = 2,
@@ -724,7 +723,7 @@ test "RunContext: compute_op1_addr for IMM op1 addr and instruction off_2 == 1" 
 }
 
 test "RunContext: compute_op1_addr for OP0 op1 addr and instruction op_0 is null" {
-    const run_context = try RunContext.init_with_values(
+    const run_context = try RunContext.initWithValues(
         std.testing.allocator,
         Relocatable.new(
             0,
@@ -742,7 +741,7 @@ test "RunContext: compute_op1_addr for OP0 op1 addr and instruction op_0 is null
     defer run_context.deinit();
     try expectError(
         error.UnknownOp0,
-        run_context.compute_op_1_addr(
+        run_context.computeOp1Addr(
             &.{
                 .off_0 = 1,
                 .off_1 = 2,
@@ -762,7 +761,7 @@ test "RunContext: compute_op1_addr for OP0 op1 addr and instruction op_0 is null
 }
 
 test "RunContext: compute_op1_addr for OP0 op1 addr and instruction off_2 < 0" {
-    const run_context = try RunContext.init_with_values(
+    const run_context = try RunContext.initWithValues(
         std.testing.allocator,
         Relocatable.new(
             0,
@@ -783,7 +782,7 @@ test "RunContext: compute_op1_addr for OP0 op1 addr and instruction off_2 < 0" {
             0,
             28,
         ),
-        try run_context.compute_op_1_addr(
+        try run_context.computeOp1Addr(
             &.{
                 .off_0 = 1,
                 .off_1 = 2,
@@ -806,7 +805,7 @@ test "RunContext: compute_op1_addr for OP0 op1 addr and instruction off_2 < 0" {
 }
 
 test "RunContext: compute_op1_addr for OP0 op1 addr and instruction off_2 > 0" {
-    const run_context = try RunContext.init_with_values(
+    const run_context = try RunContext.initWithValues(
         std.testing.allocator,
         Relocatable.new(
             0,
@@ -827,7 +826,7 @@ test "RunContext: compute_op1_addr for OP0 op1 addr and instruction off_2 > 0" {
             0,
             36,
         ),
-        try run_context.compute_op_1_addr(
+        try run_context.computeOp1Addr(
             &.{
                 .off_0 = 1,
                 .off_1 = 2,

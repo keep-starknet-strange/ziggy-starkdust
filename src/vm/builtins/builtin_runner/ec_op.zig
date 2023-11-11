@@ -30,7 +30,7 @@ pub const EcOpBuiltinRunner = struct {
     /// Number of instance per component
     instances_per_component: u32,
     /// Cache
-    cache: AutoHashMap(relocatable.Relocatable, Felt252),
+    cache: AutoHashMap(Relocatable, Felt252),
 
     /// Create a new ECOpBuiltinRunner instance.
     ///
@@ -60,7 +60,7 @@ pub const EcOpBuiltinRunner = struct {
             .stop_ptr = null,
             .included = included,
             .instances_per_component = 1,
-            .cache = AutoHashMap(relocatable.Relocatable, Felt252).init(allocator),
+            .cache = AutoHashMap(Relocatable, Felt252).init(allocator),
         };
     }
 
