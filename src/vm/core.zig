@@ -289,9 +289,10 @@ pub const CairoVM = struct {
             self.rc_limits = .{ @min(self.rc_limits.?[0], off_0, off_1, off_2), @max(self.rc_limits.?[1], off_0, off_1, off_2) };
         }
 
-        self.segments.memory.markAsAccessed(operands_result.dst_addr);
-        self.segments.memory.markAsAccessed(operands_result.op0_addr);
-        self.segments.memory.markAsAccessed(operands_result.op1_addr);
+        // TODO: Uncomment on completion of #109
+        //self.segments.memory.markAsAccessed(operands_result.dst_addr);
+        //self.segments.memory.markAsAccessed(operands_result.op0_addr);
+        //self.segments.memory.markAsAccessed(operands_result.op1_addr);
 
         self.current_step += 1;
     }
