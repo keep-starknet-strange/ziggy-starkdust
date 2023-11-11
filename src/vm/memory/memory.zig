@@ -16,9 +16,30 @@ const Felt252 = starknet_felt.Felt252;
 // Test imports.
 const MemorySegmentManager = @import("./segments.zig").MemorySegmentManager;
 const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
-
 // Function that validates a memory address and returns a list of validated adresses
 pub const validation_rule = *const fn (*Memory, Relocatable) std.ArrayList(Relocatable);
+
+pub const MemoryCell = struct {
+    const Self = @This();
+
+    maybeRelocatable: MaybeRelocatable,
+    isAccessed: bool,
+
+    // Determines if this Memory Cell is accessed.
+    // # Returns
+    // `true` if it has, `false` otherwise.
+    pub fn markAccessed(self: *Self) void {
+        self.isAccessed = true;
+    }
+
+    pub fn isAccessed(self: *const Self) bool {
+        return self.isAccessed;
+    }
+
+    pub fn getValue(self: *Self) *MaybeRelocatable {
+        return &self.maybeRelocatable;
+    }
+};
 
 // Representation of the VM memory.
 pub const Memory = struct {
@@ -32,14 +53,14 @@ pub const Memory = struct {
     // The data in the memory.
     data: std.ArrayHashMap(
         Relocatable,
-        MaybeRelocatable,
+        MemoryCell,
         std.array_hash_map.AutoContext(Relocatable),
         true,
     ),
     // The temporary data in the memory.
     temp_data: std.ArrayHashMap(
         Relocatable,
-        MaybeRelocatable,
+        MemoryCell,
         std.array_hash_map.AutoContext(Relocatable),
         true,
     ),
@@ -78,9 +99,9 @@ pub const Memory = struct {
             .allocator = allocator,
             .data = std.AutoArrayHashMap(
                 Relocatable,
-                MaybeRelocatable,
+                MemoryCell,
             ).init(allocator),
-            .temp_data = std.AutoArrayHashMap(Relocatable, MaybeRelocatable).init(allocator),
+            .temp_data = std.AutoArrayHashMap(Relocatable, MemoryCell).init(allocator),
             .num_segments = 0,
             .num_temp_segments = 0,
             .validated_addresses = std.AutoHashMap(
