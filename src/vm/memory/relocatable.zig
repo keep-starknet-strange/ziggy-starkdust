@@ -42,6 +42,54 @@ pub const Relocatable = struct {
         return self.segment_index == other.segment_index and self.offset == other.offset;
     }
 
+    // Determines if this Relocatable is less than another.
+    // # Arguments
+    // - other: The other Relocatable to compare to.
+    // # Returns
+    // `true` if self is less than other, `false` otherwise.
+    pub fn lt(
+        self: Self,
+        other: Self,
+    ) bool {
+        return self.segment_index < other.segment_index and self.offset < other.offset;
+    }
+
+    // Determines if this Relocatable is less than or equal to another.
+    // # Arguments
+    // - other: The other Relocatable to compare to.
+    // # Returns
+    // `true` if self is less than or equal to other, `false` otherwise.
+    pub fn le(
+        self: Self,
+        other: Self,
+    ) bool {
+        return self.lt(other) or self.eq(other);
+    }
+
+    // Determines if this Relocatable is greater than another.
+    // # Arguments
+    // - other: The other Relocatable to compare to.
+    // # Returns
+    // `true` if self is greater than other, `false` otherwise.
+    pub fn gt(
+        self: Self,
+        other: Self,
+    ) bool {
+        return !self.lt(other);
+    }
+
+    // Determines if this Relocatable is greater than or equal to another.
+    // # Arguments
+    // - other: The other Relocatable to compare to.
+    // # Returns
+    // `true` if self is greater than or equal to other, `false` otherwise.
+    pub fn ge(
+        self: Self,
+        other: Self,
+    ) bool {
+        return !self.le(other);
+    }
+
     /// Attempts to subtract a `Relocatable` from another.
     ///
     /// This method fails if `self` and other` are not from the same segment.
@@ -181,6 +229,130 @@ pub const MaybeRelocatable = union(enum) {
             .felt => |self_value| switch (other) {
                 // Compare the `felt` values if both `self` and `other` are `felt`
                 .felt => self_value.equal(other.felt),
+                // If `self` is `felt` and `other` is `relocatable`, they are not equal
+                .relocatable => false,
+            },
+        };
+    }
+
+    /// Determines if self is less than other.
+    ///
+    /// ## Arguments:
+    ///   * other: The other `MaybeRelocatable` instance to compare against.
+    ///
+    /// ## Returns:
+    ///   * `true` if self is less than other
+    ///   * `false` otherwise.
+    pub fn lt(
+        self: Self,
+        other: Self,
+    ) bool {
+        // Switch on the type of `self`
+        return switch (self) {
+            // If `self` is of type `relocatable`
+            .relocatable => |self_value| switch (other) {
+                // Compare the `relocatable` values if both `self` and `other` are `relocatable`
+                .relocatable => |other_value| self_value.lt(other_value),
+                // If `self` is `relocatable` and `other` is `felt`, they are not equal
+                .felt => false,
+            },
+            // If `self` is of type `felt`
+            .felt => |self_value| switch (other) {
+                // Compare the `felt` values if both `self` and `other` are `felt`
+                .felt => self_value.lt(other.felt),
+                // If `self` is `felt` and `other` is `relocatable`, they are not equal
+                .relocatable => false,
+            },
+        };
+    }
+
+    /// Determines if self is less than or equal to other.
+    ///
+    /// ## Arguments:
+    ///   * other: The other `MaybeRelocatable` instance to compare against.
+    ///
+    /// ## Returns:
+    ///   * `true` if self is less than or equal to other
+    ///   * `false` otherwise.
+    pub fn le(
+        self: Self,
+        other: Self,
+    ) bool {
+        // Switch on the type of `self`
+        return switch (self) {
+            // If `self` is of type `relocatable`
+            .relocatable => |self_value| switch (other) {
+                // Compare the `relocatable` values if both `self` and `other` are `relocatable`
+                .relocatable => |other_value| self_value.le(other_value),
+                // If `self` is `relocatable` and `other` is `felt`, they are not equal
+                .felt => false,
+            },
+            // If `self` is of type `felt`
+            .felt => |self_value| switch (other) {
+                // Compare the `felt` values if both `self` and `other` are `felt`
+                .felt => self_value.le(other.felt),
+                // If `self` is `felt` and `other` is `relocatable`, they are not equal
+                .relocatable => false,
+            },
+        };
+    }
+
+    /// Determines if self is greater than other.
+    ///
+    /// ## Arguments:
+    ///   * other: The other `MaybeRelocatable` instance to compare against.
+    ///
+    /// ## Returns:
+    ///   * `true` if self is greater than other
+    ///   * `false` otherwise.
+    pub fn gt(
+        self: Self,
+        other: Self,
+    ) bool {
+        // Switch on the type of `self`
+        return switch (self) {
+            // If `self` is of type `relocatable`
+            .relocatable => |self_value| switch (other) {
+                // Compare the `relocatable` values if both `self` and `other` are `relocatable`
+                .relocatable => |other_value| self_value.gt(other_value),
+                // If `self` is `relocatable` and `other` is `felt`, they are not equal
+                .felt => false,
+            },
+            // If `self` is of type `felt`
+            .felt => |self_value| switch (other) {
+                // Compare the `felt` values if both `self` and `other` are `felt`
+                .felt => self_value.gt(other.felt),
+                // If `self` is `felt` and `other` is `relocatable`, they are not equal
+                .relocatable => false,
+            },
+        };
+    }
+
+    /// Determines if self is greater than or equal to other.
+    ///
+    /// ## Arguments:
+    ///   * other: The other `MaybeRelocatable` instance to compare against.
+    ///
+    /// ## Returns:
+    ///   * `true` if self is greater than other
+    ///   * `false` otherwise.
+    pub fn ge(
+        self: Self,
+        other: Self,
+    ) bool {
+        // Switch on the type of `self`
+        return switch (self) {
+            // If `self` is of type `relocatable`
+            .relocatable => |self_value| switch (other) {
+                // Compare the `relocatable` values if both `self` and `other` are `relocatable`
+                .relocatable => |other_value| self_value.ge(other_value),
+                // If `self` is `relocatable` and `other` is `felt`, they are not equal
+                .felt => false,
+            },
+            // If `self` is of type `felt`
+            .felt => |self_value| switch (other) {
+                // Compare the `felt` values if both `self` and `other` are `felt`
+                .felt => self_value.ge(other.felt),
                 // If `self` is `felt` and `other` is `relocatable`, they are not equal
                 .relocatable => false,
             },
