@@ -105,7 +105,7 @@ test "update pc regular no imm" {
     );
 
     // Test checks
-    const pc = vm.getPc();
+    const pc = vm.run_context.pc.*;
     try expectEqual(
         @as(
             u64,
@@ -133,7 +133,7 @@ test "update pc regular with imm" {
     );
 
     // Test checks
-    const pc = vm.getPc();
+    const pc = vm.run_context.pc.*;
     try expectEqual(
         @as(
             u64,
@@ -200,7 +200,7 @@ test "update pc jump with operands res relocatable" {
     );
 
     // Test checks
-    const pc = vm.getPc();
+    const pc = vm.run_context.pc.*;
     try expectEqual(
         @as(
             u64,
@@ -267,7 +267,7 @@ test "update pc jump rel with operands res felt" {
     );
 
     // Test checks
-    const pc = vm.getPc();
+    const pc = vm.run_context.pc.*;
     try expectEqual(
         @as(
             u64,
@@ -295,7 +295,7 @@ test "update pc update jnz with operands dst zero" {
     );
 
     // Test checks
-    const pc = vm.getPc();
+    const pc = vm.run_context.pc.*;
     try expectEqual(
         @as(
             u64,
@@ -349,7 +349,7 @@ test "update pc update jnz with operands dst not zero op1 felt" {
     );
 
     // Test checks
-    const pc = vm.getPc();
+    const pc = vm.run_context.pc.*;
     try expectEqual(
         @as(
             u64,
@@ -395,7 +395,7 @@ test "update ap add1" {
 
     // Test checks
     // Verify the AP offset was incremented by 1.
-    const ap = vm.getAp();
+    const ap = vm.run_context.ap.*;
     try expectEqual(
         @as(
             u64,
@@ -423,7 +423,7 @@ test "update ap add2" {
 
     // Test checks
     // Verify the AP offset was incremented by 2.
-    const ap = vm.getAp();
+    const ap = vm.run_context.ap.*;
     try expectEqual(
         @as(
             u64,
@@ -451,7 +451,7 @@ test "update fp appplus2" {
 
     // Test checks
     // Verify the FP offset was incremented by 2.
-    const fp = vm.getFp();
+    const fp = vm.run_context.fp.*;
     try expectEqual(
         @as(
             u64,
@@ -483,7 +483,7 @@ test "update fp dst relocatable" {
 
     // Test checks
     // Verify the FP offset was incremented by 2.
-    const fp = vm.getFp();
+    const fp = vm.run_context.fp.*;
     try expectEqual(
         @as(
             u64,
@@ -512,7 +512,7 @@ test "update fp dst felt" {
 
     // Test checks
     // Verify the FP offset was incremented by 2.
-    const fp = vm.getFp();
+    const fp = vm.run_context.fp.*;
     try expectEqual(
         @as(
             u64,
@@ -1249,19 +1249,19 @@ test "updateRegisters all regular" {
     // Verify the PC offset was incremented by 5.
     try expectEqual(
         Relocatable.new(0, 5),
-        vm.getPc(),
+        vm.run_context.pc.*,
     );
 
     // Verify the AP offset was incremented by 5.
     try expectEqual(
         Relocatable.new(0, 5),
-        vm.getAp(),
+        vm.run_context.ap.*,
     );
 
     // Verify the FP offset was incremented by 6.
     try expectEqual(
         Relocatable.new(0, 6),
-        vm.getFp(),
+        vm.run_context.fp.*,
     );
 }
 
@@ -1314,19 +1314,19 @@ test "updateRegisters with mixed types" {
     // Verify the PC offset was incremented by 12.
     try expectEqual(
         Relocatable.new(0, 12),
-        vm.getPc(),
+        vm.run_context.pc.*,
     );
 
     // Verify the AP offset was incremented by 7.
     try expectEqual(
         Relocatable.new(0, 7),
-        vm.getAp(),
+        vm.run_context.ap.*,
     );
 
     // Verify the FP offset was incremented by 11.
     try expectEqual(
         Relocatable.new(1, 11),
-        vm.getFp(),
+        vm.run_context.fp.*,
     );
 }
 
@@ -1712,5 +1712,130 @@ test "CairoVM: getFelt should return ExpectedInteger error if Relocatable instea
     try expectError(
         error.ExpectedInteger,
         vm.getFelt(Relocatable.new(10, 30)),
+    );
+}
+
+test "CairoVM: computeOp1Deductions should return op1 from deduceMemoryCell if not null" {
+    // Test setup
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    var instance_def: BitwiseInstanceDef = .{ .ratio = null, .total_n_bits = 2 };
+    try vm.builtin_runners.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.new(
+        &instance_def,
+        true,
+    ) });
+    try vm.segments.memory.set(
+        Relocatable.new(
+            0,
+            5,
+        ),
+        relocatable.fromFelt(Felt252.fromInteger(10)),
+    );
+    try vm.segments.memory.set(
+        Relocatable.new(
+            0,
+            6,
+        ),
+        relocatable.fromFelt(Felt252.fromInteger(12)),
+    );
+    try vm.segments.memory.set(
+        Relocatable.new(
+            0,
+            7,
+        ),
+        relocatable.fromFelt(Felt252.fromInteger(0)),
+    );
+
+    var instr = deduceOpTestInstr;
+    var res: ?MaybeRelocatable = null;
+
+    // Test check
+    try expectEqual(
+        MaybeRelocatable{ .felt = Felt252.fromInteger(8) },
+        try vm.computeOp1Deductions(
+            Relocatable.new(0, 7),
+            &res,
+            &instr,
+            null,
+            null,
+        ),
+    );
+}
+
+test "CairoVM: computeOp1Deductions should return op1 from deduceOp1 if deduceMemoryCell is null" {
+    // Test setup
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    var instr = deduceOpTestInstr;
+    instr.opcode = .AssertEq;
+    instr.res_logic = .Op1;
+
+    const dst = relocatable.fromU64(7);
+    var res: ?MaybeRelocatable = relocatable.fromU64(7);
+
+    // Test check
+    try expectEqual(
+        relocatable.fromU64(7),
+        try vm.computeOp1Deductions(
+            Relocatable.new(0, 7),
+            &res,
+            &instr,
+            &dst,
+            null,
+        ),
+    );
+}
+
+test "CairoVM: computeOp1Deductions should modify res (if null) using res from deduceOp1 if deduceMemoryCell is null" {
+    // Test setup
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    var instr = deduceOpTestInstr;
+    instr.opcode = .AssertEq;
+    instr.res_logic = .Op1;
+
+    const dst = relocatable.fromU64(7);
+    var res: ?MaybeRelocatable = null;
+
+    _ = try vm.computeOp1Deductions(
+        Relocatable.new(0, 7),
+        &res,
+        &instr,
+        &dst,
+        null,
+    );
+
+    // Test check
+    try expectEqual(
+        relocatable.fromU64(7),
+        res.?,
+    );
+}
+
+test "CairoVM: computeOp1Deductions should return CairoVMError error if deduceMemoryCell is null and deduceOp1.op_1 is null" {
+    // Test setup
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    var instr = deduceOpTestInstr;
+    instr.opcode = .AssertEq;
+    instr.res_logic = .Op1;
+
+    const op0 = relocatable.fromU64(0);
+    var res: ?MaybeRelocatable = null;
+
+    // Test check
+    try expectError(
+        CairoVMError.FailedToComputeOp1,
+        vm.computeOp1Deductions(
+            Relocatable.new(0, 7),
+            &res,
+            &instr,
+            null,
+            &op0,
+        ),
     );
 }

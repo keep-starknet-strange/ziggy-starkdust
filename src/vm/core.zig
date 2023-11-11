@@ -344,6 +344,39 @@ pub const CairoVM = struct {
         return op0_op orelse CairoVMError.FailedToComputeOperands;
     }
 
+    /// Compute Op1 deductions based on the provided instruction, destination, and Op0.
+    ///
+    /// This function attempts to deduce Op1 using built-in deductions. If that returns a null,
+    /// it falls back to deducing Op1 based on the provided destination, Op0, and the result.
+    ///
+    /// ## Arguments
+    /// - `op1_addr`: The address of the operand to deduce.
+    /// - `res`: The result of the computation.
+    /// - `instruction`: The instruction to deduce the operand for.
+    /// - `dst_op`: The destination operand.
+    /// - `op0`: The Op0 operand.
+    ///
+    /// ## Returns
+    /// - `MaybeRelocatable`: The deduced Op1 operand or an error if deducing Op1 fails.
+    pub fn computeOp1Deductions(
+        self: *Self,
+        op1_addr: Relocatable,
+        res: *?MaybeRelocatable,
+        instruction: *const instructions.Instruction,
+        dst_op: ?*const MaybeRelocatable,
+        op0: ?*const MaybeRelocatable,
+    ) !MaybeRelocatable {
+        if (try self.deduceMemoryCell(op1_addr)) |op1| {
+            return op1;
+        } else {
+            const op1_deductions = try deduceOp1(instruction, dst_op, op0);
+            if (res.* == null) {
+                res.* = op1_deductions.res;
+            }
+            return op1_deductions.op_1 orelse return CairoVMError.FailedToComputeOp1;
+        }
+    }
+
     /// Attempts to deduce `op0` and `res` for an instruction, given `dst` and `op1`.
     ///
     /// # Arguments
@@ -564,27 +597,6 @@ pub const CairoVM = struct {
     /// - `bool`: Whether the run is finished or not.
     pub fn isRunFinished(self: *const Self) bool {
         return self.is_run_finished;
-    }
-
-    /// Returns the current ap.
-    /// # Returns
-    /// - `MaybeRelocatable`: The current ap.
-    pub fn getAp(self: *const Self) Relocatable {
-        return self.run_context.ap.*;
-    }
-
-    /// Returns the current fp.
-    /// # Returns
-    /// - `MaybeRelocatable`: The current fp.
-    pub fn getFp(self: *const Self) Relocatable {
-        return self.run_context.fp.*;
-    }
-
-    /// Returns the current pc.
-    /// # Returns
-    /// - `MaybeRelocatable`: The current pc.
-    pub fn getPc(self: *const Self) Relocatable {
-        return self.run_context.pc.*;
     }
 
     /// Applies the corresponding builtin's deduction rules if addr's segment index corresponds to a builtin segment
