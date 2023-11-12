@@ -253,16 +253,11 @@ pub const Memory = struct {
 
     pub fn markAsAccessed(self: *Self, address: Relocatable) void {
         if (address.segment_index < 0) {
-            var tempCell = self.temp_data.get(address).?;
-            std.debug.print("tempCell:  {?}\n", .{tempCell});
+            var tempCell = self.temp_data.getPtr(address).?;
             tempCell.markAccessed();
-            std.debug.print("tempCell after mark:  {?}\n", .{tempCell});
         } else {
-            var cell = self.data.get(address).?;
-            std.debug.print("Cell:  {?}\n", .{cell});
+            var cell = self.data.getPtr(address).?;
             cell.markAccessed();
-            std.debug.print("Cell after mark:  {?}\n", .{cell});
-            std.debug.print("Calling address again:  {?}\n", .{self.data.get(address)});
         }
     }
 };
@@ -532,15 +527,13 @@ test "Memory: markAsAccessed should mark memory cell" {
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    var relo = Relocatable.new(0, 0);
+    var relo = Relocatable.new(10, 30);
     try memory.data.put(
         relo,
         MemoryCell.new(MaybeRelocatable{ .relocatable = Relocatable.new(4, 34) }),
     );
 
-    std.debug.print("\nCell in test before:  {?}\n", .{memory.data.get(relo).?});
     memory.markAsAccessed(relo);
-    std.debug.print("Cell in test after mark:  {?}\n", .{memory.data.get(relo).?});
     // Test checks
     try expectEqual(
         true,
