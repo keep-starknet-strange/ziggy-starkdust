@@ -22,22 +22,35 @@ pub const validation_rule = *const fn (*Memory, Relocatable) std.ArrayList(Reloc
 pub const MemoryCell = struct {
     const Self = @This();
 
-    maybeRelocatable: MaybeRelocatable,
-    isAccessed: bool,
+    maybe_relocatable: MaybeRelocatable,
+    is_accessed: bool,
 
+    // Creates a new MemoryCell.
+    // # Arguments
+    // - maybe_relocatable - The index of the memory segment.
+    // # Returns
+    // A new MemoryCell.
+    pub fn new(
+        maybe_relocatable: MaybeRelocatable,
+    ) Self {
+        return .{
+            .maybe_relocatable = maybe_relocatable,
+            .is_accessed = false,
+        };
+    }
     // Determines if this Memory Cell is accessed.
     // # Returns
     // `true` if it has, `false` otherwise.
     pub fn markAccessed(self: *Self) void {
-        self.isAccessed = true;
+        self.is_accessed = true;
     }
 
     pub fn isAccessed(self: *const Self) bool {
-        return self.isAccessed;
+        return self.is_accessed;
     }
 
-    pub fn getValue(self: *Self) *MaybeRelocatable {
-        return &self.maybeRelocatable;
+    pub fn getValue(self: *Self) MaybeRelocatable {
+        return self.maybe_relocatable;
     }
 };
 
@@ -145,20 +158,19 @@ pub const Memory = struct {
 
         // Insert the value into the memory.
         if (address.segment_index < 0) {
-            self.temp_data.put(address, value) catch {
+            self.temp_data.put(address, MemoryCell.new(value)) catch {
                 return CairoVMError.MemoryOutOfBounds;
             };
         } else {
             self.data.put(
                 address,
-                value,
+                MemoryCell.new(value),
             ) catch {
                 return CairoVMError.MemoryOutOfBounds;
             };
         }
         // TODO: Add all relevant checks.
     }
-
     // Get some value from the memory at the given address.
     // # Arguments
     // - `address` - The address to get the value from.
@@ -168,10 +180,22 @@ pub const Memory = struct {
         self: *Self,
         address: Relocatable,
     ) error{MemoryOutOfBounds}!MaybeRelocatable {
+        //    ) error{MemoryOutOfBounds}!*MaybeRelocatable {
         if (address.segment_index < 0) {
-            return self.temp_data.get(address) orelse CairoVMError.MemoryOutOfBounds;
+            if (self.temp_data.get(address) == null) {
+                return CairoVMError.MemoryOutOfBounds;
+            } else {
+                var tempCell = self.temp_data.get(address).?;
+                return tempCell.getValue();
+            }
+        } else {
+            if (self.data.get(address) == null) {
+                return CairoVMError.MemoryOutOfBounds;
+            } else {
+                var cell = self.data.get(address).?;
+                return cell.getValue();
+            }
         }
-        return self.data.get(address) orelse CairoVMError.MemoryOutOfBounds;
     }
 
     /// Retrieves a `Felt252` value from the memory at the specified relocatable address.
@@ -225,6 +249,20 @@ pub const Memory = struct {
     // - `rule` - The validation rule.
     pub fn addValidationRule(self: *Self, segment_index: usize, rule: validation_rule) !void {
         self.validation_rules.put(segment_index, rule);
+    }
+
+    pub fn markAsAccessed(self: *Self, address: Relocatable) void {
+        if (address.segment_index < 0) {
+            var tempCell = self.temp_data.get(address).?;
+            std.debug.print("tempCell:  {?}\n", .{tempCell});
+            tempCell.markAccessed();
+            std.debug.print("tempCell after mark:  {?}\n", .{tempCell});
+        } else {
+            var cell = self.data.get(address).?;
+            std.debug.print("Cell:  {?}\n", .{cell});
+            cell.markAccessed();
+            std.debug.print("Cell after mark:  {?}\n", .{cell});
+        }
     }
 };
 
@@ -358,7 +396,7 @@ test "Memory: getFelt should return Felt252 if available at the given address" {
 
     try memory.data.put(
         Relocatable.new(10, 30),
-        .{ .felt = Felt252.fromInteger(23) },
+        MemoryCell.new(.{ .felt = Felt252.fromInteger(23) }),
     );
 
     // Test checks
@@ -375,7 +413,7 @@ test "Memory: getFelt should return ExpectedInteger error if Relocatable instead
 
     try memory.data.put(
         Relocatable.new(10, 30),
-        .{ .relocatable = Relocatable.new(3, 7) },
+        MemoryCell.new(MaybeRelocatable{ .relocatable = Relocatable.new(3, 7) }),
     );
 
     // Test checks
@@ -404,7 +442,7 @@ test "Memory: getRelocatable should return Relocatable if available at the given
 
     try memory.data.put(
         Relocatable.new(10, 30),
-        .{ .relocatable = Relocatable.new(4, 34) },
+        MemoryCell.new(MaybeRelocatable{ .relocatable = Relocatable.new(4, 34) }),
     );
 
     // Test checks
@@ -421,12 +459,33 @@ test "Memory: getRelocatable should return ExpectedRelocatable error if Felt ins
 
     try memory.data.put(
         Relocatable.new(10, 30),
-        .{ .felt = Felt252.fromInteger(3) },
+        MemoryCell.new(.{ .felt = Felt252.fromInteger(3) }),
     );
 
     // Test checks
     try expectError(
         error.ExpectedRelocatable,
         memory.getRelocatable(Relocatable.new(10, 30)),
+    );
+}
+
+test "Memory: markAsAccessed should mark memory cell" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    var relo = Relocatable.new(0, 0);
+    try memory.data.put(
+        relo,
+        MemoryCell.new(MaybeRelocatable{ .relocatable = Relocatable.new(4, 34) }),
+    );
+
+    std.debug.print("\nCell in test before:  {?}\n", .{memory.data.get(relo).?});
+    memory.markAsAccessed(relo);
+    std.debug.print("Cell in test after mark:  {?}\n", .{memory.data.get(relo).?});
+    // Test checks
+    try expectEqual(
+        true,
+        memory.data.get(relo).?.isAccessed(),
     );
 }
