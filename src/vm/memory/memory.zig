@@ -262,6 +262,7 @@ pub const Memory = struct {
             std.debug.print("Cell:  {?}\n", .{cell});
             cell.markAccessed();
             std.debug.print("Cell after mark:  {?}\n", .{cell});
+            std.debug.print("Calling address again:  {?}\n", .{self.data.get(address)});
         }
     }
 };
