@@ -1,6 +1,8 @@
 const std = @import("std");
 const Signature = @import("../../../math/crypto/signatures.zig").Signature;
-const relocatable = @import("../../memory/relocatable.zig");
+const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
+const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
+const Memory = @import("../../memory/memory.zig").Memory;
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
 const ecdsa_instance_def = @import("../../types/ecdsa_instance_def.zig");
 
@@ -28,7 +30,7 @@ pub const SignatureBuiltinRunner = struct {
     /// Number of instances per component
     instances_per_component: u32,
     /// Signatures HashMap
-    signatures: AutoHashMap(relocatable.Relocatable, Signature),
+    signatures: AutoHashMap(Relocatable, Signature),
 
     /// Create a new SignatureBuiltinRunner instance.
     ///
@@ -54,16 +56,18 @@ pub const SignatureBuiltinRunner = struct {
             ._total_n_bits = 251,
             .stop_ptr = null,
             .instances_per_component = 1,
-            .signatures = AutoHashMap(relocatable.Relocatable, Signature).init(allocator),
+            .signatures = AutoHashMap(Relocatable, Signature).init(allocator),
         };
     }
 
-    /// Get the base value of this signature runner.
-    ///
-    /// # Returns
-    ///
-    /// The base value as a `usize`.
-    pub fn getBase(self: *const Self) usize {
-        return self.base;
+    pub fn deduceMemoryCell(
+        self: *const Self,
+        address: Relocatable,
+        memory: *Memory,
+    ) ?MaybeRelocatable {
+        _ = memory;
+        _ = address;
+        _ = self;
+        return null;
     }
 };

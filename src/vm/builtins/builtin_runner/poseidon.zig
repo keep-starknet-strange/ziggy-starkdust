@@ -2,6 +2,9 @@ const std = @import("std");
 const relocatable = @import("../../memory/relocatable.zig");
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
 const poseidon_instance_def = @import("../../types/poseidon_instance_def.zig");
+const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
+const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
+const Memory = @import("../../memory/memory.zig").Memory;
 
 const AutoHashMap = std.AutoHashMap;
 const Allocator = std.mem.Allocator;
@@ -25,7 +28,7 @@ pub const PoseidonBuiltinRunner = struct {
     /// Cache
     ///
     /// Hashmap between an address in some memory segment and `Felt252` field element
-    cache: AutoHashMap(relocatable.Relocatable, Felt252),
+    cache: AutoHashMap(Relocatable, Felt252),
     /// Number of instances per component
     instances_per_component: u32,
 
@@ -55,17 +58,19 @@ pub const PoseidonBuiltinRunner = struct {
             .n_input_cells = poseidon_instance_def.INPUT_CELLS_PER_POSEIDON,
             .stop_ptr = null,
             .included = included,
-            .cache = AutoHashMap(relocatable.Relocatable, Felt252).init(allocator),
+            .cache = AutoHashMap(Relocatable, Felt252).init(allocator),
             .instances_per_component = 1,
         };
     }
 
-    /// Get the base value of this Poseidon runner.
-    ///
-    /// # Returns
-    ///
-    /// The base value as a `usize`.
-    pub fn getBase(self: *const Self) usize {
-        return self.base;
+    pub fn deduceMemoryCell(
+        self: *const Self,
+        address: Relocatable,
+        memory: *Memory,
+    ) ?MaybeRelocatable {
+        _ = memory;
+        _ = address;
+        _ = self;
+        return null;
     }
 };

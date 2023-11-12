@@ -10,6 +10,20 @@ pub const CairoVMError = error{
     RunnerError,
     TypeMismatchNotRelocatable,
     ValueTooLarge,
+    FailedToComputeOperands,
+    NoDst,
+    FailedToComputeOp1,
+};
+
+pub const MemoryError = error{
+    MissingSegmentUsedSizes,
+};
+
+pub const RunnerError = error{
+    NoStopPointer,
+    InvalidStopPointerIndex,
+    InvalidStopPointer,
+    BuiltinExpectedInteger,
 };
 
 pub const MemoryError = error{

@@ -5,7 +5,6 @@ const Allocator = std.mem.Allocator;
 // Local imports.
 const Relocatable = @import("memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("memory/relocatable.zig").MaybeRelocatable;
-
 const Instruction = @import("instructions.zig").Instruction;
 
 /// Contains the register states of the Cairo VM.
@@ -73,7 +72,7 @@ pub const RunContext = struct {
     /// - The initialized run context.
     /// # Errors
     /// - If a memory allocation fails.
-    pub fn init_with_values(
+    pub fn initWithValues(
         allocator: Allocator,
         pc: Relocatable,
         ap: Relocatable,
@@ -101,7 +100,7 @@ pub const RunContext = struct {
     /// - instruction: The instruction to compute the dst address for.
     /// # Returns
     /// - The computed dst address.
-    pub fn compute_dst_addr(
+    pub fn computeDstAddr(
         self: *Self,
         instruction: *const Instruction,
     ) !Relocatable {
@@ -124,7 +123,7 @@ pub const RunContext = struct {
     /// - instruction: The instruction to compute the OP 0 address for.
     /// # Returns
     /// - The computed OP 0 address.
-    pub fn compute_op_0_addr(
+    pub fn computeOp0Addr(
         self: *Self,
         instruction: *const Instruction,
     ) !Relocatable {
@@ -147,30 +146,17 @@ pub const RunContext = struct {
     /// - instruction: The instruction to compute the OP 1 address for.
     /// # Returns
     /// - The computed OP 1 address.
-    pub fn compute_op_1_addr(
+    pub fn computeOp1Addr(
         self: *Self,
         instruction: *const Instruction,
         op_0: ?MaybeRelocatable,
     ) !Relocatable {
-        var base_addr: Relocatable = undefined;
-        switch (instruction.op_1_addr) {
-            .FP => base_addr = self.fp.*,
-            .AP => base_addr = self.ap.*,
-            .Imm => {
-                if (instruction.off_2 == 1) {
-                    base_addr = self.pc.*;
-                } else {
-                    return error.ImmShouldBe1;
-                }
-            },
-            .Op0 => {
-                if (op_0) |val| {
-                    base_addr = try val.tryIntoRelocatable();
-                } else {
-                    return error.UnknownOp0;
-                }
-            },
-        }
+        const base_addr = switch (instruction.op_1_addr) {
+            .FP => self.fp.*,
+            .AP => self.ap.*,
+            .Imm => if (instruction.off_2 == 1) self.pc.* else return error.ImmShouldBe1,
+            .Op0 => if (op_0) |val| try val.tryIntoRelocatable() else return error.UnknownOp0,
+        };
 
         if (instruction.off_2 < 0) {
             // Convert i16 to u64 safely and then negate
@@ -189,26 +175,313 @@ const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
 
-test "compute_op1_addr for fp op1 addr" {
-    var allocator = std.testing.allocator;
+test "RunContext: computeDstAddr should return self.ap - instruction.off_0 if instruction.off_0 is negative" {
+    const run_context = try RunContext.initWithValues(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            25,
+        ),
+        Relocatable.new(
+            0,
+            6,
+        ),
+    );
+    defer run_context.deinit();
+    try expectEqual(
+        Relocatable.new(
+            0,
+            15,
+        ),
+        try run_context.computeDstAddr(&.{
+            .off_0 = -10,
+            .off_1 = 2,
+            .off_2 = 3,
+            .dst_reg = .AP,
+            .op_0_reg = .AP,
+            .op_1_addr = .FP,
+            .res_logic = .Add,
+            .pc_update = .Regular,
+            .ap_update = .Regular,
+            .fp_update = .Regular,
+            .opcode = .NOp,
+        }),
+    );
+}
 
-    const instruction =
-        Instruction{
-        .off_0 = 1,
-        .off_1 = 2,
-        .off_2 = 3,
-        .dst_reg = .FP,
-        .op_0_reg = .AP,
-        .op_1_addr = .FP,
-        .res_logic = .Add,
-        .pc_update = .Regular,
-        .ap_update = .Regular,
-        .fp_update = .Regular,
-        .opcode = .NOp,
-    };
+test "RunContext: computeDstAddr should return self.ap + instruction.off_0 if instruction.off_0 is positive" {
+    const run_context = try RunContext.initWithValues(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            25,
+        ),
+        Relocatable.new(
+            0,
+            6,
+        ),
+    );
+    defer run_context.deinit();
+    try expectEqual(
+        Relocatable.new(
+            0,
+            35,
+        ),
+        try run_context.computeDstAddr(&.{
+            .off_0 = 10,
+            .off_1 = 2,
+            .off_2 = 3,
+            .dst_reg = .AP,
+            .op_0_reg = .AP,
+            .op_1_addr = .FP,
+            .res_logic = .Add,
+            .pc_update = .Regular,
+            .ap_update = .Regular,
+            .fp_update = .Regular,
+            .opcode = .NOp,
+        }),
+    );
+}
 
-    const run_context = try RunContext.init_with_values(
-        allocator,
+test "RunContext: computeDstAddr should return self.fp - instruction.off_0 if instruction.off_0 is negative" {
+    const run_context = try RunContext.initWithValues(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            25,
+        ),
+        Relocatable.new(
+            0,
+            40,
+        ),
+    );
+    defer run_context.deinit();
+    try expectEqual(
+        Relocatable.new(
+            0,
+            30,
+        ),
+        try run_context.computeDstAddr(&.{
+            .off_0 = -10,
+            .off_1 = 2,
+            .off_2 = 3,
+            .dst_reg = .FP,
+            .op_0_reg = .AP,
+            .op_1_addr = .FP,
+            .res_logic = .Add,
+            .pc_update = .Regular,
+            .ap_update = .Regular,
+            .fp_update = .Regular,
+            .opcode = .NOp,
+        }),
+    );
+}
+
+test "RunContext: computeDstAddr should return self.fp + instruction.off_0 if instruction.off_0 is positive" {
+    const run_context = try RunContext.initWithValues(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            25,
+        ),
+        Relocatable.new(
+            0,
+            30,
+        ),
+    );
+    defer run_context.deinit();
+    try expectEqual(
+        Relocatable.new(
+            0,
+            40,
+        ),
+        try run_context.computeDstAddr(&.{
+            .off_0 = 10,
+            .off_1 = 2,
+            .off_2 = 3,
+            .dst_reg = .FP,
+            .op_0_reg = .AP,
+            .op_1_addr = .FP,
+            .res_logic = .Add,
+            .pc_update = .Regular,
+            .ap_update = .Regular,
+            .fp_update = .Regular,
+            .opcode = .NOp,
+        }),
+    );
+}
+
+test "RunContext: computeOp0Addr should return self.ap - instruction.off_1 if instruction.off_1 is negative" {
+    const run_context = try RunContext.initWithValues(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            25,
+        ),
+        Relocatable.new(
+            0,
+            6,
+        ),
+    );
+    defer run_context.deinit();
+    try expectEqual(
+        Relocatable.new(
+            0,
+            23,
+        ),
+        try run_context.computeOp0Addr(&.{
+            .off_0 = 10,
+            .off_1 = -2,
+            .off_2 = 3,
+            .dst_reg = .AP,
+            .op_0_reg = .AP,
+            .op_1_addr = .FP,
+            .res_logic = .Add,
+            .pc_update = .Regular,
+            .ap_update = .Regular,
+            .fp_update = .Regular,
+            .opcode = .NOp,
+        }),
+    );
+}
+
+test "RunContext: computeOp0Addr should return self.ap + instruction.off_1 if instruction.off_1 is positive" {
+    const run_context = try RunContext.initWithValues(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            25,
+        ),
+        Relocatable.new(
+            0,
+            6,
+        ),
+    );
+    defer run_context.deinit();
+    try expectEqual(
+        Relocatable.new(
+            0,
+            27,
+        ),
+        try run_context.computeOp0Addr(&.{
+            .off_0 = 10,
+            .off_1 = 2,
+            .off_2 = 3,
+            .dst_reg = .AP,
+            .op_0_reg = .AP,
+            .op_1_addr = .FP,
+            .res_logic = .Add,
+            .pc_update = .Regular,
+            .ap_update = .Regular,
+            .fp_update = .Regular,
+            .opcode = .NOp,
+        }),
+    );
+}
+
+test "RunContext: computeOp0Addr should return self.fp - instruction.off_1 if instruction.off_1 is negative" {
+    const run_context = try RunContext.initWithValues(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            25,
+        ),
+        Relocatable.new(
+            0,
+            40,
+        ),
+    );
+    defer run_context.deinit();
+    try expectEqual(
+        Relocatable.new(
+            0,
+            38,
+        ),
+        try run_context.computeOp0Addr(&.{
+            .off_0 = 10,
+            .off_1 = -2,
+            .off_2 = 3,
+            .dst_reg = .FP,
+            .op_0_reg = .FP,
+            .op_1_addr = .FP,
+            .res_logic = .Add,
+            .pc_update = .Regular,
+            .ap_update = .Regular,
+            .fp_update = .Regular,
+            .opcode = .NOp,
+        }),
+    );
+}
+
+test "RunContext: computeOp0Addr should return self.fp + instruction.off_1 if instruction.off_1 is positive" {
+    const run_context = try RunContext.initWithValues(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            25,
+        ),
+        Relocatable.new(
+            0,
+            30,
+        ),
+    );
+    defer run_context.deinit();
+    try expectEqual(
+        Relocatable.new(
+            0,
+            32,
+        ),
+        try run_context.computeOp0Addr(&.{
+            .off_0 = 10,
+            .off_1 = 2,
+            .off_2 = 3,
+            .dst_reg = .FP,
+            .op_0_reg = .FP,
+            .op_1_addr = .FP,
+            .res_logic = .Add,
+            .pc_update = .Regular,
+            .ap_update = .Regular,
+            .fp_update = .Regular,
+            .opcode = .NOp,
+        }),
+    );
+}
+
+test "RunContext: compute_op1_addr for FP op1 addr and instruction off_2 < 0" {
+    const run_context = try RunContext.initWithValues(
+        std.testing.allocator,
         Relocatable.new(
             0,
             4,
@@ -223,13 +496,354 @@ test "compute_op1_addr for fp op1 addr" {
         ),
     );
     defer run_context.deinit();
-    const relocatable_addr = try run_context.compute_op_1_addr(
-        &instruction,
-        null,
+    try expectEqual(
+        Relocatable.new(
+            0,
+            3,
+        ),
+        try run_context.computeOp1Addr(
+            &.{
+                .off_0 = 1,
+                .off_1 = 2,
+                .off_2 = -3,
+                .dst_reg = .FP,
+                .op_0_reg = .AP,
+                .op_1_addr = .FP,
+                .res_logic = .Add,
+                .pc_update = .Regular,
+                .ap_update = .Regular,
+                .fp_update = .Regular,
+                .opcode = .NOp,
+            },
+            null,
+        ),
     );
+}
 
-    try expect(relocatable_addr.eq(Relocatable.new(
-        0,
-        9,
-    )));
+test "RunContext: compute_op1_addr for FP op1 addr and instruction off_2 > 0" {
+    const run_context = try RunContext.initWithValues(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            5,
+        ),
+        Relocatable.new(
+            0,
+            6,
+        ),
+    );
+    defer run_context.deinit();
+    try expectEqual(
+        Relocatable.new(
+            0,
+            9,
+        ),
+        try run_context.computeOp1Addr(
+            &.{
+                .off_0 = 1,
+                .off_1 = 2,
+                .off_2 = 3,
+                .dst_reg = .FP,
+                .op_0_reg = .AP,
+                .op_1_addr = .FP,
+                .res_logic = .Add,
+                .pc_update = .Regular,
+                .ap_update = .Regular,
+                .fp_update = .Regular,
+                .opcode = .NOp,
+            },
+            null,
+        ),
+    );
+}
+
+test "RunContext: compute_op1_addr for AP op1 addr and instruction off_2 < 0" {
+    const run_context = try RunContext.initWithValues(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            5,
+        ),
+        Relocatable.new(
+            0,
+            6,
+        ),
+    );
+    defer run_context.deinit();
+    try expectEqual(
+        Relocatable.new(
+            0,
+            2,
+        ),
+        try run_context.computeOp1Addr(
+            &.{
+                .off_0 = 1,
+                .off_1 = 2,
+                .off_2 = -3,
+                .dst_reg = .FP,
+                .op_0_reg = .AP,
+                .op_1_addr = .AP,
+                .res_logic = .Add,
+                .pc_update = .Regular,
+                .ap_update = .Regular,
+                .fp_update = .Regular,
+                .opcode = .NOp,
+            },
+            null,
+        ),
+    );
+}
+
+test "RunContext: compute_op1_addr for AP op1 addr and instruction off_2 > 0" {
+    const run_context = try RunContext.initWithValues(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            5,
+        ),
+        Relocatable.new(
+            0,
+            6,
+        ),
+    );
+    defer run_context.deinit();
+    try expectEqual(
+        Relocatable.new(
+            0,
+            8,
+        ),
+        try run_context.computeOp1Addr(
+            &.{
+                .off_0 = 1,
+                .off_1 = 2,
+                .off_2 = 3,
+                .dst_reg = .FP,
+                .op_0_reg = .AP,
+                .op_1_addr = .AP,
+                .res_logic = .Add,
+                .pc_update = .Regular,
+                .ap_update = .Regular,
+                .fp_update = .Regular,
+                .opcode = .NOp,
+            },
+            null,
+        ),
+    );
+}
+
+test "RunContext: compute_op1_addr for IMM op1 addr and instruction off_2 != 1" {
+    const run_context = try RunContext.initWithValues(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            5,
+        ),
+        Relocatable.new(
+            0,
+            6,
+        ),
+    );
+    defer run_context.deinit();
+    try expectError(
+        error.ImmShouldBe1,
+        run_context.computeOp1Addr(
+            &.{
+                .off_0 = 1,
+                .off_1 = 2,
+                .off_2 = -3,
+                .dst_reg = .FP,
+                .op_0_reg = .AP,
+                .op_1_addr = .Imm,
+                .res_logic = .Add,
+                .pc_update = .Regular,
+                .ap_update = .Regular,
+                .fp_update = .Regular,
+                .opcode = .NOp,
+            },
+            null,
+        ),
+    );
+}
+
+test "RunContext: compute_op1_addr for IMM op1 addr and instruction off_2 == 1" {
+    const run_context = try RunContext.initWithValues(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            5,
+        ),
+        Relocatable.new(
+            0,
+            6,
+        ),
+    );
+    defer run_context.deinit();
+    try expectEqual(
+        Relocatable.new(
+            0,
+            5,
+        ),
+        try run_context.computeOp1Addr(
+            &.{
+                .off_0 = 1,
+                .off_1 = 2,
+                .off_2 = 1,
+                .dst_reg = .FP,
+                .op_0_reg = .AP,
+                .op_1_addr = .Imm,
+                .res_logic = .Add,
+                .pc_update = .Regular,
+                .ap_update = .Regular,
+                .fp_update = .Regular,
+                .opcode = .NOp,
+            },
+            null,
+        ),
+    );
+}
+
+test "RunContext: compute_op1_addr for OP0 op1 addr and instruction op_0 is null" {
+    const run_context = try RunContext.initWithValues(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            5,
+        ),
+        Relocatable.new(
+            0,
+            6,
+        ),
+    );
+    defer run_context.deinit();
+    try expectError(
+        error.UnknownOp0,
+        run_context.computeOp1Addr(
+            &.{
+                .off_0 = 1,
+                .off_1 = 2,
+                .off_2 = -3,
+                .dst_reg = .FP,
+                .op_0_reg = .AP,
+                .op_1_addr = .Op0,
+                .res_logic = .Add,
+                .pc_update = .Regular,
+                .ap_update = .Regular,
+                .fp_update = .Regular,
+                .opcode = .NOp,
+            },
+            null,
+        ),
+    );
+}
+
+test "RunContext: compute_op1_addr for OP0 op1 addr and instruction off_2 < 0" {
+    const run_context = try RunContext.initWithValues(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            5,
+        ),
+        Relocatable.new(
+            0,
+            6,
+        ),
+    );
+    defer run_context.deinit();
+    try expectEqual(
+        Relocatable.new(
+            0,
+            28,
+        ),
+        try run_context.computeOp1Addr(
+            &.{
+                .off_0 = 1,
+                .off_1 = 2,
+                .off_2 = -4,
+                .dst_reg = .FP,
+                .op_0_reg = .AP,
+                .op_1_addr = .Op0,
+                .res_logic = .Add,
+                .pc_update = .Regular,
+                .ap_update = .Regular,
+                .fp_update = .Regular,
+                .opcode = .NOp,
+            },
+            .{ .relocatable = Relocatable.new(
+                0,
+                32,
+            ) },
+        ),
+    );
+}
+
+test "RunContext: compute_op1_addr for OP0 op1 addr and instruction off_2 > 0" {
+    const run_context = try RunContext.initWithValues(
+        std.testing.allocator,
+        Relocatable.new(
+            0,
+            4,
+        ),
+        Relocatable.new(
+            0,
+            5,
+        ),
+        Relocatable.new(
+            0,
+            6,
+        ),
+    );
+    defer run_context.deinit();
+    try expectEqual(
+        Relocatable.new(
+            0,
+            36,
+        ),
+        try run_context.computeOp1Addr(
+            &.{
+                .off_0 = 1,
+                .off_1 = 2,
+                .off_2 = 4,
+                .dst_reg = .FP,
+                .op_0_reg = .AP,
+                .op_1_addr = .Op0,
+                .res_logic = .Add,
+                .pc_update = .Regular,
+                .ap_update = .Regular,
+                .fp_update = .Regular,
+                .opcode = .NOp,
+            },
+            .{ .relocatable = Relocatable.new(
+                0,
+                32,
+            ) },
+        ),
+    );
 }
