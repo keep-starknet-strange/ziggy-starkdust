@@ -18,7 +18,7 @@ const build_options = @import("../build_options.zig");
 const BuiltinRunner = @import("./builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const HashBuiltinRunner = @import("./builtins/builtin_runner/hash.zig").HashBuiltinRunner;
-const Instruction = @import("instructions.zig").Instruction;
+const Instruction = instructions.Instruction;
 
 /// Represents the Cairo VM.
 pub const CairoVM = struct {
@@ -283,17 +283,17 @@ pub const CairoVM = struct {
         instruction: *const instructions.Instruction,
     ) !OperandsResult {
         // Compute the destination address and get value from the memory.
-        const dst_addr = try self.run_context.compute_dst_addr(instruction);
+        const dst_addr = try self.run_context.computeDstAddr(instruction);
         const dst = try self.segments.memory.get(dst_addr);
 
         // Compute the OP 0 address and get value from the memory.
-        const op_0_addr = try self.run_context.compute_op_0_addr(instruction);
+        const op_0_addr = try self.run_context.computeOp0Addr(instruction);
         // Here we use `catch null` because we want op_0_op to be optional since it's not always used.
         // TODO: identify if we need to use try or catch here.
         const op_0_op = try self.segments.memory.get(op_0_addr);
 
         // Compute the OP 1 address and get value from the memory.
-        const op_1_addr = try self.run_context.compute_op_1_addr(
+        const op_1_addr = try self.run_context.computeOp1Addr(
             instruction,
             op_0_op,
         );
