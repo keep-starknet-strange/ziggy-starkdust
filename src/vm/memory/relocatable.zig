@@ -697,6 +697,7 @@ test "MaybeRelocatable: lt should work properly if two MaybeRelocatable are of s
     try expect(!maybeRelocatableRelocatable(2, 5).lt(maybeRelocatableRelocatable(2, 4)));
     try expect(!maybeRelocatableRelocatable(3, 3).lt(maybeRelocatableRelocatable(2, 4)));
 }
+
 test "MaybeRelocatable: le should work properly if two MaybeRelocatable are of same type (Relocatable)" {
     // 1 == 2
     try expect(maybeRelocatableRelocatable(2, 4).le(maybeRelocatableRelocatable(2, 4)));
@@ -709,6 +710,7 @@ test "MaybeRelocatable: le should work properly if two MaybeRelocatable are of s
     try expect(!maybeRelocatableRelocatable(2, 5).le(maybeRelocatableRelocatable(2, 4)));
     try expect(!maybeRelocatableRelocatable(3, 3).le(maybeRelocatableRelocatable(2, 4)));
 }
+
 test "MaybeRelocatable: gt should work properly if two MaybeRelocatable are of same type (Relocatable)" {
     // 1 == 2
     try expect(!maybeRelocatableRelocatable(2, 4).gt(maybeRelocatableRelocatable(2, 4)));
@@ -721,6 +723,7 @@ test "MaybeRelocatable: gt should work properly if two MaybeRelocatable are of s
     try expect(maybeRelocatableRelocatable(2, 5).gt(maybeRelocatableRelocatable(2, 4)));
     try expect(maybeRelocatableRelocatable(3, 3).gt(maybeRelocatableRelocatable(2, 4)));
 }
+
 test "MaybeRelocatable: ge should work properly if two MaybeRelocatable are of same type (Relocatable)" {
     // 1 == 2
     try expect(maybeRelocatableRelocatable(2, 4).ge(maybeRelocatableRelocatable(2, 4)));
@@ -755,6 +758,7 @@ test "MaybeRelocatable: le should work properly if two MaybeRelocatable are of s
     // 1 > 2
     try expect(!maybeRelocatableFelt(2).le(maybeRelocatableFelt(1)));
 }
+
 test "MaybeRelocatable: gt should work properly if two MaybeRelocatable are of same type (Felt)" {
     // 1 == 2
     try expect(!maybeRelocatableFelt(1).gt(maybeRelocatableFelt(1)));
