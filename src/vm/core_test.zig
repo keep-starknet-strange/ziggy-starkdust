@@ -39,7 +39,7 @@ test "CairoVM: deduceMemoryCell no builtin" {
     defer vm.deinit();
     try expectEqual(
         @as(?MaybeRelocatable, null),
-        try vm.deduceMemoryCell(Relocatable.new(
+        try vm.deduceMemoryCell(std.testing.allocator, Relocatable.new(
             0,
             0,
         )),
@@ -80,7 +80,7 @@ test "CairoVM: deduceMemoryCell builtin valid" {
     );
     try expectEqual(
         MaybeRelocatable{ .felt = Felt252.fromInteger(8) },
-        (try vm.deduceMemoryCell(Relocatable.new(
+        (try vm.deduceMemoryCell(std.testing.allocator, Relocatable.new(
             0,
             7,
         ))).?,
@@ -1342,6 +1342,7 @@ test "CairoVM: computeOp0Deductions should return op0 from deduceOp0 if deduceMe
     try expectEqual(
         MaybeRelocatable{ .relocatable = Relocatable.new(0, 1) },
         try vm.computeOp0Deductions(
+            std.testing.allocator,
             Relocatable.new(0, 7),
             &instr,
             null,
@@ -1388,6 +1389,7 @@ test "CairoVM: computeOp0Deductions with a valid built in and non null deduceMem
     try expectEqual(
         MaybeRelocatable{ .felt = Felt252.fromInteger(8) },
         try vm.computeOp0Deductions(
+            std.testing.allocator,
             Relocatable.new(0, 7),
             &deduceOpTestInstr,
             &.{ .relocatable = .{} },
@@ -1409,6 +1411,7 @@ test "CairoVM: computeOp0Deductions should return VM error if deduceOp0 and dedu
     try expectError(
         CairoVMError.FailedToComputeOperands,
         vm.computeOp0Deductions(
+            std.testing.allocator,
             Relocatable.new(0, 7),
             &instr,
             &relocatable.fromU64(4),
@@ -1754,6 +1757,7 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceMemoryCell if n
     try expectEqual(
         MaybeRelocatable{ .felt = Felt252.fromInteger(8) },
         try vm.computeOp1Deductions(
+            std.testing.allocator,
             Relocatable.new(0, 7),
             &res,
             &instr,
@@ -1779,6 +1783,7 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceOp1 if deduceMe
     try expectEqual(
         relocatable.fromU64(7),
         try vm.computeOp1Deductions(
+            std.testing.allocator,
             Relocatable.new(0, 7),
             &res,
             &instr,
@@ -1801,6 +1806,7 @@ test "CairoVM: computeOp1Deductions should modify res (if null) using res from d
     var res: ?MaybeRelocatable = null;
 
     _ = try vm.computeOp1Deductions(
+        std.testing.allocator,
         Relocatable.new(0, 7),
         &res,
         &instr,
@@ -1831,6 +1837,7 @@ test "CairoVM: computeOp1Deductions should return CairoVMError error if deduceMe
     try expectError(
         CairoVMError.FailedToComputeOp1,
         vm.computeOp1Deductions(
+            std.testing.allocator,
             Relocatable.new(0, 7),
             &res,
             &instr,

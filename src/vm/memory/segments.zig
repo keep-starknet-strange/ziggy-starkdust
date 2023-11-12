@@ -115,7 +115,6 @@ pub const MemorySegmentManager = struct {
         return relocatable_address;
     }
 
-
     // Adds a temporary memory segment and returns the first address of the new segment.
     pub fn addTempSegment(self: *Self) Relocatable {
         // Increment the number of temporary segments.
@@ -526,26 +525,26 @@ test "MemorySegmentManager: isValidMemoryValue should return true if valid segme
     try expect(memory_segment_manager.isValidMemoryValue(&value));
 }
 
-test "MemorySegmentManager: get_segment_used_size should return null if segments not computed" {
+test "MemorySegmentManager: getSegmentUsedSize should return null if segments not computed" {
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     try expectEqual(
         @as(?u32, null),
-        memory_segment_manager.get_segment_used_size(5),
+        memory_segment_manager.getSegmentUsedSize(5),
     );
 }
 
-test "MemorySegmentManager: get_segment_used_size should return the size of the used segments." {
+test "MemorySegmentManager: getSegmentUsedSize should return the size of the used segments." {
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     try memory_segment_manager.segment_used_sizes.put(5, 4);
     try memory_segment_manager.segment_used_sizes.put(0, 22);
     try expectEqual(
         @as(?u32, 22),
-        memory_segment_manager.get_segment_used_size(0),
+        memory_segment_manager.getSegmentUsedSize(0),
     );
     try expectEqual(
         @as(?u32, 4),
-        memory_segment_manager.get_segment_used_size(5),
+        memory_segment_manager.getSegmentUsedSize(5),
     );
 }

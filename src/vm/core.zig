@@ -330,12 +330,13 @@ pub const CairoVM = struct {
     /// - `MaybeRelocatable`: The deduced Op0 operand or an error if deducing Op0 fails.
     pub fn computeOp0Deductions(
         self: *Self,
+        allocator: Allocator,
         op_0_addr: Relocatable,
         instruction: *const instructions.Instruction,
         dst: ?*const MaybeRelocatable,
         op1: ?*const MaybeRelocatable,
     ) !MaybeRelocatable {
-        const op0_op = try self.deduceMemoryCell(op_0_addr) orelse (try self.deduceOp0(
+        const op0_op = try self.deduceMemoryCell(allocator, op_0_addr) orelse (try self.deduceOp0(
             instruction,
             dst,
             op1,
@@ -360,13 +361,14 @@ pub const CairoVM = struct {
     /// - `MaybeRelocatable`: The deduced Op1 operand or an error if deducing Op1 fails.
     pub fn computeOp1Deductions(
         self: *Self,
+        allocator: Allocator,
         op1_addr: Relocatable,
         res: *?MaybeRelocatable,
         instruction: *const instructions.Instruction,
         dst_op: ?*const MaybeRelocatable,
         op0: ?*const MaybeRelocatable,
     ) !MaybeRelocatable {
-        if (try self.deduceMemoryCell(op1_addr)) |op1| {
+        if (try self.deduceMemoryCell(allocator, op1_addr)) |op1| {
             return op1;
         } else {
             const op1_deductions = try deduceOp1(instruction, dst_op, op0);
@@ -607,6 +609,7 @@ pub const CairoVM = struct {
     /// - `MaybeRelocatable`: The deduced value.
     pub fn deduceMemoryCell(
         self: *Self,
+        allocator: Allocator,
         address: Relocatable,
     ) CairoVMError!?MaybeRelocatable {
         for (self.builtin_runners.items) |builtin_item| {
@@ -615,6 +618,7 @@ pub const CairoVM = struct {
                 @intCast(builtin_item.base()),
             ) == address.segment_index) {
                 return builtin_item.deduceMemoryCell(
+                    allocator,
                     address,
                     self.segments.memory,
                 ) catch {

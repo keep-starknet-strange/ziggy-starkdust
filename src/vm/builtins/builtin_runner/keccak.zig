@@ -127,24 +127,6 @@ pub const KeccakBuiltinRunner = struct {
         return result;
     }
 
-    /// Get the base value of this Keccak runner.
-    ///
-    /// # Returns
-    ///
-    /// The base value as a `usize`.
-    pub fn getBase(self: *const Self) usize {
-        return self.base;
-    }
-
-    /// Get the ratio of this Keccak runner.
-    ///
-    /// # Returns
-    ///
-    /// The ratio as a `u32`, or `null` if not available.
-    pub fn getRatio(self: *const Self) ?u32 {
-        return self.ratio;
-    }
-
     /// Get the number of used cells associated with this Keccak runner.
     ///
     /// # Parameters
@@ -156,7 +138,7 @@ pub const KeccakBuiltinRunner = struct {
     /// The number of used cells as a `u32`, or `MemoryError.MissingSegmentUsedSizes` if
     /// the size is not available.
     pub fn getUsedCells(self: *const Self, segments: *MemorySegmentManager) !u32 {
-        return segments.get_segment_used_size(
+        return segments.getSegmentUsedSize(
             @intCast(self.base),
         ) orelse MemoryError.MissingSegmentUsedSizes;
     }
@@ -213,13 +195,13 @@ pub const KeccakBuiltinRunner = struct {
         allocator: Allocator,
         vm: *CairoVM,
     ) !ArrayList(Relocatable) {
-        const segment_size = try (vm.segments.get_segment_used_size(
+        const segment_size = try (vm.segments.getSegmentUsedSize(
             @intCast(self.base),
         ) orelse MemoryError.MissingSegmentUsedSizes);
         var result = ArrayList(Relocatable).init(allocator);
         for (0..segment_size) |i| {
             try result.append(.{
-                .segment_index = self.base,
+                .segment_index = @intCast(self.base),
                 .offset = i,
             });
         }
@@ -449,7 +431,7 @@ pub const KeccakBuiltinRunner = struct {
                 return RunnerError.BuiltinExpectedInteger;
             };
 
-            if (num.toInteger() >= Felt252.one().wrapping_shl(self.state_rep.items[i]).toInteger()) {
+            if (num.ge(Felt252.one().wrapping_shl(self.state_rep.items[i]))) {
                 return RunnerError.IntegerBiggerThanPowerOfTwo;
             }
 
