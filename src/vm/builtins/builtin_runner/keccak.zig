@@ -32,7 +32,7 @@ pub const KeccakBuiltinRunner = struct {
     /// Cache
     ///
     /// Hashmap between an address in some memory segment and `Felt252` field element
-    cache: AutoHashMap(relocatable.Relocatable, Felt252),
+    cache: AutoHashMap(Relocatable, Felt252),
 
     /// Create a new KeccakBuiltinRunner instance.
     ///
@@ -65,7 +65,7 @@ pub const KeccakBuiltinRunner = struct {
             .included = included,
             .state_rep = instance_def._state_rep,
             .instances_per_component = instance_def._instance_per_component,
-            .cache = AutoHashMap(relocatable.Relocatable, Felt252).init(allocator),
+            .cache = AutoHashMap(Relocatable, Felt252).init(allocator),
         };
     }
 

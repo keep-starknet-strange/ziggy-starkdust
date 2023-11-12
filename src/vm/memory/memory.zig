@@ -267,6 +267,63 @@ pub const Memory = struct {
     }
 };
 
+// Utility function to help set up memory for tests
+//
+// # Arguments
+// - `memory` - memory to be set
+// - `vals` - complile time structure with heterogenous types
+fn memoryInner(memory: *Memory, comptime vals: anytype) !void {
+    inline for (vals) |row| {
+        const firstCol = row[0];
+        const address = Relocatable.new(firstCol[0], firstCol[1]);
+        const nextCol = row[1];
+        // Check number of inputs in row
+        if (row[1].len == 1) {
+            try memory.set(address, .{ .felt = Felt252.fromInteger(nextCol[0]) });
+        } else {
+            const T = @TypeOf(nextCol[0]);
+            switch (@typeInfo(T)) {
+                .Pointer => {
+                    const num = try std.fmt.parseUnsigned(i64, nextCol[0], 10);
+                    try memory.set(address, .{ .relocatable = Relocatable.new(num, nextCol[1]) });
+                },
+                else => {
+                    try memory.set(address, .{ .relocatable = Relocatable.new(nextCol[0], nextCol[1]) });
+                },
+            }
+        }
+    }
+}
+
+test "memory inner for testing test" {
+    var allocator = std.testing.allocator;
+
+    var memory = try Memory.init(allocator);
+    defer memory.deinit();
+
+    try memoryInner(memory, .{
+        .{ .{ 1, 3 }, .{ 4, 5 } },
+        .{ .{ 2, 6 }, .{ 7, 8 } },
+        .{ .{ 9, 10 }, .{23} },
+        .{ .{ 1, 2 }, .{ "234", 10 } },
+    });
+
+    try expectEqual(
+        Felt252.fromInteger(23),
+        try memory.getFelt(Relocatable.new(9, 10)),
+    );
+
+    try expectEqual(
+        Relocatable.new(7, 8),
+        try memory.getRelocatable(Relocatable.new(2, 6)),
+    );
+
+    try expectEqual(
+        Relocatable.new(234, 10),
+        try memory.getRelocatable(Relocatable.new(1, 2)),
+    );
+}
+
 test "memory get without value raises error" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
