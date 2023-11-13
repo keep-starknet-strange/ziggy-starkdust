@@ -465,14 +465,22 @@ pub fn Field(
         /// # Returns
         /// A `std.math.Order` enum indicating the ordering relationship.
         pub fn cmp(self: Self, other: Self) std.math.Order {
-            var a = self.fe;
-            var b = other.fe;
-            _ = std.mem.reverse(u64, a[0..]);
-            _ = std.mem.reverse(u64, b[0..]);
+            var a_non_mont: F.NonMontgomeryDomainFieldElement = undefined;
+            var b_non_mont: F.NonMontgomeryDomainFieldElement = undefined;
+            F.fromMontgomery(
+                &a_non_mont,
+                self.fe,
+            );
+            F.fromMontgomery(
+                &b_non_mont,
+                other.fe,
+            );
+            _ = std.mem.reverse(u64, a_non_mont[0..]);
+            _ = std.mem.reverse(u64, b_non_mont[0..]);
             return std.mem.order(
                 u64,
-                &a,
-                &b,
+                &a_non_mont,
+                &b_non_mont,
             );
         }
 

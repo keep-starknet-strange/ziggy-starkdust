@@ -438,37 +438,23 @@ test "Felt252 legendre" {
 }
 
 test "Felt252 cmp" {
-    try expect(Felt252.fromInteger(10).cmp(
-        Felt252.fromInteger(343535),
-    ) == .gt);
-    try expect(Felt252.fromInteger(433).cmp(
-        Felt252.fromInteger(343535),
-    ) == .gt);
-    try expect(Felt252.fromInteger(543636535).cmp(
-        Felt252.fromInteger(434),
-    ) == .lt);
-    try expect(Felt252.fromInteger(std.math.maxInt(u256)).cmp(
-        Felt252.fromInteger(21313),
-    ) == .lt);
-    try expect(Felt252.fromInteger(10).cmp(
-        Felt252.fromInteger(10),
-    ) == .eq);
-    try expect(Felt252.one().cmp(
-        Felt252.one(),
-    ) == .eq);
-    try expect(Felt252.zero().cmp(
-        Felt252.zero(),
-    ) == .eq);
+    try expect(Felt252.fromInteger(10).cmp(Felt252.fromInteger(343535)) == .lt);
+    try expect(Felt252.fromInteger(433).cmp(Felt252.fromInteger(343535)) == .lt);
+    try expect(Felt252.fromInteger(543636535).cmp(Felt252.fromInteger(434)) == .gt);
+    try expect(Felt252.fromInteger(std.math.maxInt(u256)).cmp(Felt252.fromInteger(21313)) == .gt);
+    try expect(Felt252.fromInteger(10).cmp(Felt252.fromInteger(10)) == .eq);
+    try expect(Felt252.one().cmp(Felt252.one()) == .eq);
+    try expect(Felt252.zero().cmp(Felt252.zero()) == .eq);
     try expect(Felt252.fromInteger(10).cmp(
         Felt252.fromInteger(10 + 0x800000000000011000000000000000000000000000000000000000000000001),
     ) == .eq);
 }
 
 test "Felt252 lt" {
-    try expect(!Felt252.fromInteger(10).lt(Felt252.fromInteger(343535)));
-    try expect(!Felt252.fromInteger(433).lt(Felt252.fromInteger(343535)));
-    try expect(Felt252.fromInteger(543636535).lt(Felt252.fromInteger(434)));
-    try expect(Felt252.fromInteger(std.math.maxInt(u256)).lt(Felt252.fromInteger(21313)));
+    try expect(Felt252.fromInteger(10).lt(Felt252.fromInteger(343535)));
+    try expect(Felt252.fromInteger(433).lt(Felt252.fromInteger(343535)));
+    try expect(!Felt252.fromInteger(543636535).lt(Felt252.fromInteger(434)));
+    try expect(!Felt252.fromInteger(std.math.maxInt(u256)).lt(Felt252.fromInteger(21313)));
     try expect(!Felt252.fromInteger(10).lt(Felt252.fromInteger(10)));
     try expect(!Felt252.one().lt(Felt252.one()));
     try expect(!Felt252.zero().lt(Felt252.zero()));
@@ -478,10 +464,10 @@ test "Felt252 lt" {
 }
 
 test "Felt252 le" {
-    try expect(!Felt252.fromInteger(10).le(Felt252.fromInteger(343535)));
-    try expect(!Felt252.fromInteger(433).le(Felt252.fromInteger(343535)));
-    try expect(Felt252.fromInteger(543636535).le(Felt252.fromInteger(434)));
-    try expect(Felt252.fromInteger(std.math.maxInt(u256)).le(Felt252.fromInteger(21313)));
+    try expect(Felt252.fromInteger(10).le(Felt252.fromInteger(343535)));
+    try expect(Felt252.fromInteger(433).le(Felt252.fromInteger(343535)));
+    try expect(!Felt252.fromInteger(543636535).le(Felt252.fromInteger(434)));
+    try expect(!Felt252.fromInteger(std.math.maxInt(u256)).le(Felt252.fromInteger(21313)));
     try expect(Felt252.fromInteger(10).le(Felt252.fromInteger(10)));
     try expect(Felt252.one().le(Felt252.one()));
     try expect(Felt252.zero().le(Felt252.zero()));
@@ -491,10 +477,10 @@ test "Felt252 le" {
 }
 
 test "Felt252 gt" {
-    try expect(Felt252.fromInteger(10).gt(Felt252.fromInteger(343535)));
-    try expect(Felt252.fromInteger(433).gt(Felt252.fromInteger(343535)));
-    try expect(!Felt252.fromInteger(543636535).gt(Felt252.fromInteger(434)));
-    try expect(!Felt252.fromInteger(std.math.maxInt(u256)).gt(Felt252.fromInteger(21313)));
+    try expect(!Felt252.fromInteger(10).gt(Felt252.fromInteger(343535)));
+    try expect(!Felt252.fromInteger(433).gt(Felt252.fromInteger(343535)));
+    try expect(Felt252.fromInteger(543636535).gt(Felt252.fromInteger(434)));
+    try expect(Felt252.fromInteger(std.math.maxInt(u256)).gt(Felt252.fromInteger(21313)));
     try expect(!Felt252.fromInteger(10).gt(Felt252.fromInteger(10)));
     try expect(!Felt252.one().gt(Felt252.one()));
     try expect(!Felt252.zero().gt(Felt252.zero()));
@@ -504,10 +490,10 @@ test "Felt252 gt" {
 }
 
 test "Felt252 ge" {
-    try expect(Felt252.fromInteger(10).ge(Felt252.fromInteger(343535)));
-    try expect(Felt252.fromInteger(433).ge(Felt252.fromInteger(343535)));
-    try expect(!Felt252.fromInteger(543636535).ge(Felt252.fromInteger(434)));
-    try expect(!Felt252.fromInteger(std.math.maxInt(u256)).ge(Felt252.fromInteger(21313)));
+    try expect(!Felt252.fromInteger(10).ge(Felt252.fromInteger(343535)));
+    try expect(!Felt252.fromInteger(433).ge(Felt252.fromInteger(343535)));
+    try expect(Felt252.fromInteger(543636535).ge(Felt252.fromInteger(434)));
+    try expect(Felt252.fromInteger(std.math.maxInt(u256)).ge(Felt252.fromInteger(21313)));
     try expect(Felt252.fromInteger(10).ge(Felt252.fromInteger(10)));
     try expect(Felt252.one().ge(Felt252.one()));
     try expect(Felt252.zero().ge(Felt252.zero()));

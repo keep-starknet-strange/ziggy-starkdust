@@ -28,7 +28,7 @@ pub const PoseidonBuiltinRunner = struct {
     /// Cache
     ///
     /// Hashmap between an address in some memory segment and `Felt252` field element
-    cache: AutoHashMap(relocatable.Relocatable, Felt252),
+    cache: AutoHashMap(Relocatable, Felt252),
     /// Number of instances per component
     instances_per_component: u32,
 
@@ -58,7 +58,7 @@ pub const PoseidonBuiltinRunner = struct {
             .n_input_cells = poseidon_instance_def.INPUT_CELLS_PER_POSEIDON,
             .stop_ptr = null,
             .included = included,
-            .cache = AutoHashMap(relocatable.Relocatable, Felt252).init(allocator),
+            .cache = AutoHashMap(Relocatable, Felt252).init(allocator),
             .instances_per_component = 1,
         };
     }
