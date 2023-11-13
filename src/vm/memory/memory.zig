@@ -38,17 +38,20 @@ pub const MemoryCell = struct {
             .is_accessed = false,
         };
     }
-    // Determines if this Memory Cell is accessed.
-    // # Returns
-    // `true` if it has, `false` otherwise.
+
+    // Marks Memory Cell as accessed.
     pub fn markAccessed(self: *Self) void {
         self.is_accessed = true;
     }
 
+    // Determines if this Memory Cell is accessed.
+    // # Returns
+    // `true` if it has, `false` otherwise.
     pub fn isAccessed(self: *const Self) bool {
         return self.is_accessed;
     }
 
+    // Get MaybeRelocatable value at MemoryCell.
     pub fn getValue(self: *Self) MaybeRelocatable {
         return self.maybe_relocatable;
     }
@@ -180,7 +183,6 @@ pub const Memory = struct {
         self: *Self,
         address: Relocatable,
     ) error{MemoryOutOfBounds}!MaybeRelocatable {
-        //    ) error{MemoryOutOfBounds}!*MaybeRelocatable {
         if (address.segment_index < 0) {
             if (self.temp_data.get(address) == null) {
                 return CairoVMError.MemoryOutOfBounds;
@@ -251,6 +253,9 @@ pub const Memory = struct {
         self.validation_rules.put(segment_index, rule);
     }
 
+    // Marks a `MemoryCell` as accessed at the specified relocatable address.
+    // # Arguments
+    // - `address` - The relocatable address to mark.
     pub fn markAsAccessed(self: *Self, address: Relocatable) void {
         if (address.segment_index < 0) {
             var tempCell = self.temp_data.getPtr(address).?;
@@ -522,16 +527,29 @@ test "Memory: getRelocatable should return ExpectedRelocatable error if Felt ins
     );
 }
 
+test "Memory: Memory Cell getValue" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    var cell = MemoryCell.new(MaybeRelocatable{ .relocatable = Relocatable.new(1, 0) });
+
+    // Test checks
+    try expectEqual(
+        cell.getValue(),
+        MaybeRelocatable{ .relocatable = Relocatable.new(1, 0) },
+    );
+}
+
 test "Memory: markAsAccessed should mark memory cell" {
     // Test setup
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    var relo = Relocatable.new(10, 30);
-    try memory.data.put(
-        relo,
-        MemoryCell.new(MaybeRelocatable{ .relocatable = Relocatable.new(4, 34) }),
-    );
+    var relo = Relocatable.new(1, 3);
+    try memoryInner(memory, .{
+        .{ .{ 1, 3 }, .{ 4, 5 } },
+    });
 
     memory.markAsAccessed(relo);
     // Test checks
