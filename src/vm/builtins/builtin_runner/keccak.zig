@@ -7,6 +7,7 @@ const Error = @import("../../error.zig");
 const CoreVM = @import("../../../vm/core.zig");
 const KeccakPrimitives = @import("../../../math/crypto/keccak.zig");
 const Memory = @import("../../memory/memory.zig").Memory;
+const MemoryCell = @import("../../memory/memory.zig").MemoryCell;
 
 const ArrayList = std.ArrayList;
 const AutoHashMap = std.AutoHashMap;
@@ -839,7 +840,7 @@ test "KeccakBuiltinRunner: finalStack should return TypeMismatchNotRelocatable e
             2,
             2,
         ).subUint(@intCast(1)),
-        .{ .felt = Felt252.fromInteger(10) },
+        MemoryCell.new(.{ .felt = Felt252.fromInteger(10) }),
     );
     try expectError(
         error.TypeMismatchNotRelocatable,
@@ -866,10 +867,10 @@ test "KeccakBuiltinRunner: finalStack should return InvalidStopPointerIndex erro
             2,
             2,
         ).subUint(@intCast(1)),
-        .{ .relocatable = Relocatable.new(
+        MemoryCell.new(.{ .relocatable = Relocatable.new(
             10,
             2,
-        ) },
+        ) }),
     );
     try expectError(
         RunnerError.InvalidStopPointerIndex,
@@ -896,10 +897,10 @@ test "KeccakBuiltinRunner: finalStack should return InvalidStopPointer error if 
             2,
             2,
         ).subUint(@intCast(1)),
-        .{ .relocatable = Relocatable.new(
+        MemoryCell.new(.{ .relocatable = Relocatable.new(
             22,
             2,
-        ) },
+        ) }),
     );
     try memory_segment_manager.segment_used_sizes.put(22, 345);
     try expectError(
@@ -927,10 +928,10 @@ test "KeccakBuiltinRunner: finalStack should return stop pointer address and upd
             2,
             2,
         ).subUint(@intCast(1)),
-        .{ .relocatable = Relocatable.new(
+        MemoryCell.new(.{ .relocatable = Relocatable.new(
             22,
             22 * 16,
-        ) },
+        ) }),
     );
     try memory_segment_manager.segment_used_sizes.put(22, 345);
     try expectEqual(
