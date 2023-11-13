@@ -253,6 +253,19 @@ pub const Memory = struct {
         self.validation_rules.put(segment_index, rule);
     }
 
+    /// Marks a `MemoryCell` as accessed at the specified relocatable address.
+    /// # Arguments
+    /// - `address` - The relocatable address to mark.
+    pub fn markAsAccessed(self: *Self, address: Relocatable) void {
+        if (address.segment_index < 0) {
+            var tempCell = self.temp_data.getPtr(address).?;
+            tempCell.markAccessed();
+        } else {
+            var cell = self.data.getPtr(address).?;
+            cell.markAccessed();
+        }
+    }
+
     /// Adds a relocation rule to the VM memory, allowing redirection of temporary data to a specified destination.
     ///
     /// # Arguments
@@ -566,6 +579,24 @@ test "Memory: addRelocationRule should return an error if source segment index >
             Relocatable.new(0, 3),
             Relocatable.new(4, 7),
         ),
+    );
+}
+
+test "Memory: markAsAccessed should mark memory cell" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    var relo = Relocatable.new(1, 3);
+    try memoryInner(memory, .{
+        .{ .{ 1, 3 }, .{ 4, 5 } },
+    });
+
+    memory.markAsAccessed(relo);
+    // Test checks
+    try expectEqual(
+        true,
+        memory.data.get(relo).?.is_accessed,
     );
 }
 
