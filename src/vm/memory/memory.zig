@@ -16,9 +16,34 @@ const Felt252 = starknet_felt.Felt252;
 // Test imports.
 const MemorySegmentManager = @import("./segments.zig").MemorySegmentManager;
 const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
-
 // Function that validates a memory address and returns a list of validated adresses
 pub const validation_rule = *const fn (*Memory, Relocatable) std.ArrayList(Relocatable);
+
+pub const MemoryCell = struct {
+    const Self = @This();
+
+    maybe_relocatable: MaybeRelocatable,
+    is_accessed: bool,
+
+    // Creates a new MemoryCell.
+    // # Arguments
+    // - maybe_relocatable - The index of the memory segment.
+    // # Returns
+    // A new MemoryCell.
+    pub fn new(
+        maybe_relocatable: MaybeRelocatable,
+    ) Self {
+        return .{
+            .maybe_relocatable = maybe_relocatable,
+            .is_accessed = false,
+        };
+    }
+
+    // Marks Memory Cell as accessed.
+    pub fn markAccessed(self: *Self) void {
+        self.is_accessed = true;
+    }
+};
 
 // Representation of the VM memory.
 pub const Memory = struct {
@@ -32,14 +57,14 @@ pub const Memory = struct {
     // The data in the memory.
     data: std.ArrayHashMap(
         Relocatable,
-        MaybeRelocatable,
+        MemoryCell,
         std.array_hash_map.AutoContext(Relocatable),
         true,
     ),
     // The temporary data in the memory.
     temp_data: std.ArrayHashMap(
         Relocatable,
-        MaybeRelocatable,
+        MemoryCell,
         std.array_hash_map.AutoContext(Relocatable),
         true,
     ),
@@ -78,9 +103,9 @@ pub const Memory = struct {
             .allocator = allocator,
             .data = std.AutoArrayHashMap(
                 Relocatable,
-                MaybeRelocatable,
+                MemoryCell,
             ).init(allocator),
-            .temp_data = std.AutoArrayHashMap(Relocatable, MaybeRelocatable).init(allocator),
+            .temp_data = std.AutoArrayHashMap(Relocatable, MemoryCell).init(allocator),
             .num_segments = 0,
             .num_temp_segments = 0,
             .validated_addresses = std.AutoHashMap(
@@ -124,20 +149,19 @@ pub const Memory = struct {
 
         // Insert the value into the memory.
         if (address.segment_index < 0) {
-            self.temp_data.put(address, value) catch {
+            self.temp_data.put(address, MemoryCell.new(value)) catch {
                 return CairoVMError.MemoryOutOfBounds;
             };
         } else {
             self.data.put(
                 address,
-                value,
+                MemoryCell.new(value),
             ) catch {
                 return CairoVMError.MemoryOutOfBounds;
             };
         }
         // TODO: Add all relevant checks.
     }
-
     // Get some value from the memory at the given address.
     // # Arguments
     // - `address` - The address to get the value from.
@@ -148,9 +172,18 @@ pub const Memory = struct {
         address: Relocatable,
     ) error{MemoryOutOfBounds}!MaybeRelocatable {
         if (address.segment_index < 0) {
-            return self.temp_data.get(address) orelse CairoVMError.MemoryOutOfBounds;
+            if (self.temp_data.get(address) == null) {
+                return CairoVMError.MemoryOutOfBounds;
+            } else {
+                return self.temp_data.get(address).?.maybe_relocatable;
+            }
+        } else {
+            if (self.data.get(address) == null) {
+                return CairoVMError.MemoryOutOfBounds;
+            } else {
+                return self.data.get(address).?.maybe_relocatable;
+            }
         }
-        return self.data.get(address) orelse CairoVMError.MemoryOutOfBounds;
     }
 
     /// Retrieves a `Felt252` value from the memory at the specified relocatable address.
@@ -205,7 +238,77 @@ pub const Memory = struct {
     pub fn addValidationRule(self: *Self, segment_index: usize, rule: validation_rule) !void {
         self.validation_rules.put(segment_index, rule);
     }
+
+    // Marks a `MemoryCell` as accessed at the specified relocatable address.
+    // # Arguments
+    // - `address` - The relocatable address to mark.
+    pub fn markAsAccessed(self: *Self, address: Relocatable) void {
+        if (address.segment_index < 0) {
+            var tempCell = self.temp_data.getPtr(address).?;
+            tempCell.markAccessed();
+        } else {
+            var cell = self.data.getPtr(address).?;
+            cell.markAccessed();
+        }
+    }
 };
+
+// Utility function to help set up memory for tests
+//
+// # Arguments
+// - `memory` - memory to be set
+// - `vals` - complile time structure with heterogenous types
+fn memoryInner(memory: *Memory, comptime vals: anytype) !void {
+    inline for (vals) |row| {
+        const firstCol = row[0];
+        const address = Relocatable.new(firstCol[0], firstCol[1]);
+        const nextCol = row[1];
+        // Check number of inputs in row
+        if (row[1].len == 1) {
+            try memory.set(address, .{ .felt = Felt252.fromInteger(nextCol[0]) });
+        } else {
+            const T = @TypeOf(nextCol[0]);
+            switch (@typeInfo(T)) {
+                .Pointer => {
+                    const num = try std.fmt.parseUnsigned(i64, nextCol[0], 10);
+                    try memory.set(address, .{ .relocatable = Relocatable.new(num, nextCol[1]) });
+                },
+                else => {
+                    try memory.set(address, .{ .relocatable = Relocatable.new(nextCol[0], nextCol[1]) });
+                },
+            }
+        }
+    }
+}
+
+test "memory inner for testing test" {
+    var allocator = std.testing.allocator;
+
+    var memory = try Memory.init(allocator);
+    defer memory.deinit();
+
+    try memoryInner(memory, .{
+        .{ .{ 1, 3 }, .{ 4, 5 } },
+        .{ .{ 2, 6 }, .{ 7, 8 } },
+        .{ .{ 9, 10 }, .{23} },
+        .{ .{ 1, 2 }, .{ "234", 10 } },
+    });
+
+    try expectEqual(
+        Felt252.fromInteger(23),
+        try memory.getFelt(Relocatable.new(9, 10)),
+    );
+
+    try expectEqual(
+        Relocatable.new(7, 8),
+        try memory.getRelocatable(Relocatable.new(2, 6)),
+    );
+
+    try expectEqual(
+        Relocatable.new(234, 10),
+        try memory.getRelocatable(Relocatable.new(1, 2)),
+    );
+}
 
 test "memory get without value raises error" {
     // ************************************************************
@@ -337,7 +440,7 @@ test "Memory: getFelt should return Felt252 if available at the given address" {
 
     try memory.data.put(
         Relocatable.new(10, 30),
-        .{ .felt = Felt252.fromInteger(23) },
+        MemoryCell.new(.{ .felt = Felt252.fromInteger(23) }),
     );
 
     // Test checks
@@ -354,7 +457,7 @@ test "Memory: getFelt should return ExpectedInteger error if Relocatable instead
 
     try memory.data.put(
         Relocatable.new(10, 30),
-        .{ .relocatable = Relocatable.new(3, 7) },
+        MemoryCell.new(MaybeRelocatable{ .relocatable = Relocatable.new(3, 7) }),
     );
 
     // Test checks
@@ -383,7 +486,7 @@ test "Memory: getRelocatable should return Relocatable if available at the given
 
     try memory.data.put(
         Relocatable.new(10, 30),
-        .{ .relocatable = Relocatable.new(4, 34) },
+        MemoryCell.new(MaybeRelocatable{ .relocatable = Relocatable.new(4, 34) }),
     );
 
     // Test checks
@@ -400,12 +503,30 @@ test "Memory: getRelocatable should return ExpectedRelocatable error if Felt ins
 
     try memory.data.put(
         Relocatable.new(10, 30),
-        .{ .felt = Felt252.fromInteger(3) },
+        MemoryCell.new(.{ .felt = Felt252.fromInteger(3) }),
     );
 
     // Test checks
     try expectError(
         error.ExpectedRelocatable,
         memory.getRelocatable(Relocatable.new(10, 30)),
+    );
+}
+
+test "Memory: markAsAccessed should mark memory cell" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    var relo = Relocatable.new(1, 3);
+    try memoryInner(memory, .{
+        .{ .{ 1, 3 }, .{ 4, 5 } },
+    });
+
+    memory.markAsAccessed(relo);
+    // Test checks
+    try expectEqual(
+        true,
+        memory.data.get(relo).?.is_accessed,
     );
 }
