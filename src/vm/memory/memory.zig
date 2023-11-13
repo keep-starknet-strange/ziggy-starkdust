@@ -43,18 +43,6 @@ pub const MemoryCell = struct {
     pub fn markAccessed(self: *Self) void {
         self.is_accessed = true;
     }
-
-    // Determines if this Memory Cell is accessed.
-    // # Returns
-    // `true` if it has, `false` otherwise.
-    pub fn isAccessed(self: *const Self) bool {
-        return self.is_accessed;
-    }
-
-    // Get MaybeRelocatable value at MemoryCell.
-    pub fn getValue(self: *Self) MaybeRelocatable {
-        return self.maybe_relocatable;
-    }
 };
 
 // Representation of the VM memory.
@@ -187,15 +175,13 @@ pub const Memory = struct {
             if (self.temp_data.get(address) == null) {
                 return CairoVMError.MemoryOutOfBounds;
             } else {
-                var tempCell = self.temp_data.get(address).?;
-                return tempCell.getValue();
+                return self.temp_data.get(address).?.maybe_relocatable;
             }
         } else {
             if (self.data.get(address) == null) {
                 return CairoVMError.MemoryOutOfBounds;
             } else {
-                var cell = self.data.get(address).?;
-                return cell.getValue();
+                return self.data.get(address).?.maybe_relocatable;
             }
         }
     }
@@ -527,20 +513,6 @@ test "Memory: getRelocatable should return ExpectedRelocatable error if Felt ins
     );
 }
 
-test "Memory: Memory Cell getValue" {
-    // Test setup
-    var memory = try Memory.init(std.testing.allocator);
-    defer memory.deinit();
-
-    var cell = MemoryCell.new(MaybeRelocatable{ .relocatable = Relocatable.new(1, 0) });
-
-    // Test checks
-    try expectEqual(
-        cell.getValue(),
-        MaybeRelocatable{ .relocatable = Relocatable.new(1, 0) },
-    );
-}
-
 test "Memory: markAsAccessed should mark memory cell" {
     // Test setup
     var memory = try Memory.init(std.testing.allocator);
@@ -555,6 +527,6 @@ test "Memory: markAsAccessed should mark memory cell" {
     // Test checks
     try expectEqual(
         true,
-        memory.data.get(relo).?.isAccessed(),
+        memory.data.get(relo).?.is_accessed,
     );
 }
