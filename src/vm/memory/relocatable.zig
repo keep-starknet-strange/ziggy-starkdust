@@ -42,6 +42,54 @@ pub const Relocatable = struct {
         return self.segment_index == other.segment_index and self.offset == other.offset;
     }
 
+    // Determines if this Relocatable is less than another.
+    // # Arguments
+    // - other: The other Relocatable to compare to.
+    // # Returns
+    // `true` if self is less than other, `false` otherwise.
+    pub fn lt(
+        self: Self,
+        other: Self,
+    ) bool {
+        return self.segment_index < other.segment_index or (self.segment_index == other.segment_index and self.offset < other.offset);
+    }
+
+    // Determines if this Relocatable is less than or equal to another.
+    // # Arguments
+    // - other: The other Relocatable to compare to.
+    // # Returns
+    // `true` if self is less than or equal to other, `false` otherwise.
+    pub fn le(
+        self: Self,
+        other: Self,
+    ) bool {
+        return self.segment_index < other.segment_index or (self.segment_index == other.segment_index and self.offset <= other.offset);
+    }
+
+    // Determines if this Relocatable is greater than another.
+    // # Arguments
+    // - other: The other Relocatable to compare to.
+    // # Returns
+    // `true` if self is greater than other, `false` otherwise.
+    pub fn gt(
+        self: Self,
+        other: Self,
+    ) bool {
+        return self.segment_index > other.segment_index or (self.segment_index == other.segment_index and self.offset > other.offset);
+    }
+
+    // Determines if this Relocatable is greater than or equal to another.
+    // # Arguments
+    // - other: The other Relocatable to compare to.
+    // # Returns
+    // `true` if self is greater than or equal to other, `false` otherwise.
+    pub fn ge(
+        self: Self,
+        other: Self,
+    ) bool {
+        return self.segment_index > other.segment_index or (self.segment_index == other.segment_index and self.offset >= other.offset);
+    }
+
     /// Attempts to subtract a `Relocatable` from another.
     ///
     /// This method fails if `self` and other` are not from the same segment.
@@ -187,6 +235,130 @@ pub const MaybeRelocatable = union(enum) {
         };
     }
 
+    /// Determines if self is less than other.
+    ///
+    /// ## Arguments:
+    ///   * other: The other `MaybeRelocatable` instance to compare against.
+    ///
+    /// ## Returns:
+    ///   * `true` if self is less than other
+    ///   * `false` otherwise.
+    pub fn lt(
+        self: Self,
+        other: Self,
+    ) bool {
+        // Switch on the type of `self`
+        return switch (self) {
+            // If `self` is of type `relocatable`
+            .relocatable => |self_value| switch (other) {
+                // Compare the `relocatable` values if both `self` and `other` are `relocatable`
+                .relocatable => |other_value| self_value.lt(other_value),
+                // If `self` is `relocatable` and `other` is `felt`, they are not equal
+                .felt => false,
+            },
+            // If `self` is of type `felt`
+            .felt => |self_value| switch (other) {
+                // Compare the `felt` values if both `self` and `other` are `felt`
+                .felt => self_value.lt(other.felt),
+                // If `self` is `felt` and `other` is `relocatable`, they are not equal
+                .relocatable => false,
+            },
+        };
+    }
+
+    /// Determines if self is less than or equal to other.
+    ///
+    /// ## Arguments:
+    ///   * other: The other `MaybeRelocatable` instance to compare against.
+    ///
+    /// ## Returns:
+    ///   * `true` if self is less than or equal to other
+    ///   * `false` otherwise.
+    pub fn le(
+        self: Self,
+        other: Self,
+    ) bool {
+        // Switch on the type of `self`
+        return switch (self) {
+            // If `self` is of type `relocatable`
+            .relocatable => |self_value| switch (other) {
+                // Compare the `relocatable` values if both `self` and `other` are `relocatable`
+                .relocatable => |other_value| self_value.le(other_value),
+                // If `self` is `relocatable` and `other` is `felt`, they are not equal
+                .felt => false,
+            },
+            // If `self` is of type `felt`
+            .felt => |self_value| switch (other) {
+                // Compare the `felt` values if both `self` and `other` are `felt`
+                .felt => self_value.le(other.felt),
+                // If `self` is `felt` and `other` is `relocatable`, they are not equal
+                .relocatable => false,
+            },
+        };
+    }
+
+    /// Determines if self is greater than other.
+    ///
+    /// ## Arguments:
+    ///   * other: The other `MaybeRelocatable` instance to compare against.
+    ///
+    /// ## Returns:
+    ///   * `true` if self is greater than other
+    ///   * `false` otherwise.
+    pub fn gt(
+        self: Self,
+        other: Self,
+    ) bool {
+        // Switch on the type of `self`
+        return switch (self) {
+            // If `self` is of type `relocatable`
+            .relocatable => |self_value| switch (other) {
+                // Compare the `relocatable` values if both `self` and `other` are `relocatable`
+                .relocatable => |other_value| self_value.gt(other_value),
+                // If `self` is `relocatable` and `other` is `felt`, they are not equal
+                .felt => false,
+            },
+            // If `self` is of type `felt`
+            .felt => |self_value| switch (other) {
+                // Compare the `felt` values if both `self` and `other` are `felt`
+                .felt => self_value.gt(other.felt),
+                // If `self` is `felt` and `other` is `relocatable`, they are not equal
+                .relocatable => false,
+            },
+        };
+    }
+
+    /// Determines if self is greater than or equal to other.
+    ///
+    /// ## Arguments:
+    ///   * other: The other `MaybeRelocatable` instance to compare against.
+    ///
+    /// ## Returns:
+    ///   * `true` if self is greater than other
+    ///   * `false` otherwise.
+    pub fn ge(
+        self: Self,
+        other: Self,
+    ) bool {
+        // Switch on the type of `self`
+        return switch (self) {
+            // If `self` is of type `relocatable`
+            .relocatable => |self_value| switch (other) {
+                // Compare the `relocatable` values if both `self` and `other` are `relocatable`
+                .relocatable => |other_value| self_value.ge(other_value),
+                // If `self` is `relocatable` and `other` is `felt`, they are not equal
+                .felt => false,
+            },
+            // If `self` is of type `felt`
+            .felt => |self_value| switch (other) {
+                // Compare the `felt` values if both `self` and `other` are `felt`
+                .felt => self_value.ge(other.felt),
+                // If `self` is `felt` and `other` is `relocatable`, they are not equal
+                .relocatable => false,
+            },
+        };
+    }
+
     /// Return the value of the MaybeRelocatable as a felt or error.
     /// # Returns
     /// The value of the MaybeRelocatable as a Relocatable felt or error.
@@ -281,6 +453,16 @@ pub fn fromU256(value: u256) MaybeRelocatable {
 // A new MaybeRelocatable.
 pub fn fromU64(value: u64) MaybeRelocatable {
     return fromU256(@intCast(value));
+}
+
+// Creates a new MaybeRelocatable from a segment index and an offset.
+// # Arguments
+// - segment_index - The i64 for segment_index
+// - offset - The u64 for offset
+// # Returns
+// A new MaybeRelocatable.
+pub fn fromSegment(segment_index: i64, offset: u64) MaybeRelocatable {
+    return newFromRelocatable(Relocatable.new(segment_index, offset));
 }
 
 // ************************************************************
@@ -438,6 +620,58 @@ test "Relocatable: addMaybeRelocatableInplace should return an error if other is
     );
 }
 
+test "Relocatable: lt should return true if other relocatable is greater than or equal, false otherwise" {
+    // 1 == 2
+    try expect(!Relocatable.new(2, 4).lt(Relocatable.new(2, 4)));
+
+    // 1 < 2
+    try expect(Relocatable.new(-1, 2).lt(Relocatable.new(-1, 3)));
+    try expect(Relocatable.new(1, 5).lt(Relocatable.new(2, 4)));
+
+    // 1 > 2
+    try expect(!Relocatable.new(2, 5).lt(Relocatable.new(2, 4)));
+    try expect(!Relocatable.new(3, 3).lt(Relocatable.new(2, 4)));
+}
+
+test "Relocatable: le should return true if other relocatable is greater, false otherwise" {
+    // 1 == 2
+    try expect(Relocatable.new(2, 4).le(Relocatable.new(2, 4)));
+
+    // 1 < 2
+    try expect(Relocatable.new(-1, 2).le(Relocatable.new(-1, 3)));
+    try expect(Relocatable.new(1, 5).le(Relocatable.new(2, 4)));
+
+    // 1 > 2
+    try expect(!Relocatable.new(2, 5).le(Relocatable.new(2, 4)));
+    try expect(!Relocatable.new(3, 3).le(Relocatable.new(2, 4)));
+}
+
+test "Relocatable: gt should return true if other relocatable is less than or 1 == 2ual, false otherwise" {
+    // 1 == 2
+    try expect(!Relocatable.new(2, 4).gt(Relocatable.new(2, 4)));
+
+    // 1 < 2
+    try expect(!Relocatable.new(-1, 2).gt(Relocatable.new(-1, 3)));
+    try expect(!Relocatable.new(1, 5).gt(Relocatable.new(2, 4)));
+
+    // 1 > 2
+    try expect(Relocatable.new(2, 5).gt(Relocatable.new(2, 4)));
+    try expect(Relocatable.new(3, 3).gt(Relocatable.new(2, 4)));
+}
+
+test "Relocatable: ge should return true if other relocatable is less, false otherwise" {
+    // 1 == 2
+    try expect(Relocatable.new(2, 4).ge(Relocatable.new(2, 4)));
+
+    // 1 < 2
+    try expect(!Relocatable.new(-1, 2).ge(Relocatable.new(-1, 3)));
+    try expect(!Relocatable.new(1, 5).ge(Relocatable.new(2, 4)));
+
+    // 1 > 2
+    try expect(Relocatable.new(2, 5).ge(Relocatable.new(2, 4)));
+    try expect(Relocatable.new(3, 3).ge(Relocatable.new(2, 4)));
+}
+
 test "MaybeRelocatable: eq should return true if two MaybeRelocatable are the same (Relocatable)" {
     var maybeRelocatable1 = MaybeRelocatable{ .relocatable = Relocatable.new(0, 10) };
     var maybeRelocatable2 = MaybeRelocatable{ .relocatable = Relocatable.new(0, 10) };
@@ -459,6 +693,102 @@ test "MaybeRelocatable: eq should return false if two MaybeRelocatable are not t
     try expect(!maybeRelocatable1.eq(maybeRelocatable3));
     try expect(!maybeRelocatable3.eq(maybeRelocatable2));
     try expect(!maybeRelocatable3.eq(maybeRelocatable4));
+}
+
+test "MaybeRelocatable: lt should work properly if two MaybeRelocatable are of same type (Relocatable)" {
+    // 1 == 2
+    try expect(!fromSegment(2, 4).lt(fromSegment(2, 4)));
+
+    // 1 < 2
+    try expect(fromSegment(-1, 2).lt(fromSegment(-1, 3)));
+    try expect(fromSegment(1, 5).lt(fromSegment(2, 4)));
+
+    // 1 > 2
+    try expect(!fromSegment(2, 5).lt(fromSegment(2, 4)));
+    try expect(!fromSegment(3, 3).lt(fromSegment(2, 4)));
+}
+
+test "MaybeRelocatable: le should work properly if two MaybeRelocatable are of same type (Relocatable)" {
+    // 1 == 2
+    try expect(fromSegment(2, 4).le(fromSegment(2, 4)));
+
+    // 1 < 2
+    try expect(fromSegment(-1, 2).le(fromSegment(-1, 3)));
+    try expect(fromSegment(1, 5).le(fromSegment(2, 4)));
+
+    // 1 > 2
+    try expect(!fromSegment(2, 5).le(fromSegment(2, 4)));
+    try expect(!fromSegment(3, 3).le(fromSegment(2, 4)));
+}
+
+test "MaybeRelocatable: gt should work properly if two MaybeRelocatable are of same type (Relocatable)" {
+    // 1 == 2
+    try expect(!fromSegment(2, 4).gt(fromSegment(2, 4)));
+
+    // 1 < 2
+    try expect(!fromSegment(-1, 2).gt(fromSegment(-1, 3)));
+    try expect(!fromSegment(1, 5).gt(fromSegment(2, 4)));
+
+    // 1 > 2
+    try expect(fromSegment(2, 5).gt(fromSegment(2, 4)));
+    try expect(fromSegment(3, 3).gt(fromSegment(2, 4)));
+}
+
+test "MaybeRelocatable: ge should work properly if two MaybeRelocatable are of same type (Relocatable)" {
+    // 1 == 2
+    try expect(fromSegment(2, 4).ge(fromSegment(2, 4)));
+
+    // 1 < 2
+    try expect(!fromSegment(-1, 2).ge(fromSegment(-1, 3)));
+    try expect(!fromSegment(1, 5).ge(fromSegment(2, 4)));
+
+    // 1 > 2
+    try expect(fromSegment(2, 5).ge(fromSegment(2, 4)));
+    try expect(fromSegment(3, 3).ge(fromSegment(2, 4)));
+}
+
+test "MaybeRelocatable: lt should work properly if two MaybeRelocatable are of same type (Felt)" {
+    // 1 == 2
+    try expect(!fromU256(1).lt(fromU256(1)));
+
+    // 1 < 2
+    try expect(fromU256(1).lt(fromU256(2)));
+
+    // 1 > 2
+    try expect(!fromU256(2).lt(fromU256(1)));
+}
+
+test "MaybeRelocatable: le should work properly if two MaybeRelocatable are of same type (Felt)" {
+    // 1 == 2
+    try expect(fromU256(1).le(fromU256(1)));
+
+    // 1 < 2
+    try expect(fromU256(1).le(fromU256(2)));
+
+    // 1 > 2
+    try expect(!fromU256(2).le(fromU256(1)));
+}
+
+test "MaybeRelocatable: gt should work properly if two MaybeRelocatable are of same type (Felt)" {
+    // 1 == 2
+    try expect(!fromU256(1).gt(fromU256(1)));
+
+    // 1 < 2
+    try expect(!fromU256(1).gt(fromU256(2)));
+
+    // 1 > 2
+    try expect(fromU256(2).gt(fromU256(1)));
+}
+
+test "MaybeRelocatable: ge should work properly if two MaybeRelocatable are of same type (Felt)" {
+    // 1 == 2
+    try expect(fromU256(1).ge(fromU256(1)));
+
+    // 1 < 2
+    try expect(!fromU256(1).ge(fromU256(2)));
+
+    // 1 > 2
+    try expect(fromU256(2).ge(fromU256(1)));
 }
 
 test "MaybeRelocatable: tryIntoRelocatable should return Relocatable if MaybeRelocatable is Relocatable" {
@@ -535,6 +865,26 @@ test "MaybeRelocatable: tryIntoU64 should return an error if MaybeRelocatable is
 test "MaybeRelocatable: tryIntoU64 should return an error if MaybeRelocatable Felt cannot be coerced to u64" {
     var maybeRelocatable = MaybeRelocatable{ .felt = Felt252.fromInteger(std.math.maxInt(u64) + 1) };
     try expectError(error.ValueTooLarge, maybeRelocatable.tryIntoU64());
+}
+
+test "MaybeRelocatable: any comparision should return false if other MaybeRelocatable is of different variant 1" {
+    var maybeRelocatable1 = MaybeRelocatable{ .relocatable = Relocatable.new(0, 10) };
+    var maybeRelocatable2 = MaybeRelocatable{ .felt = Felt252.fromInteger(10) };
+
+    try expect(!maybeRelocatable1.lt(maybeRelocatable2));
+    try expect(!maybeRelocatable1.le(maybeRelocatable2));
+    try expect(!maybeRelocatable1.gt(maybeRelocatable2));
+    try expect(!maybeRelocatable1.ge(maybeRelocatable2));
+}
+
+test "MaybeRelocatable: any comparision should return false if other MaybeRelocatable is of different variant 2" {
+    var maybeRelocatable1 = MaybeRelocatable{ .felt = Felt252.fromInteger(10) };
+    var maybeRelocatable2 = MaybeRelocatable{ .relocatable = Relocatable.new(0, 10) };
+
+    try expect(!maybeRelocatable1.lt(maybeRelocatable2));
+    try expect(!maybeRelocatable1.le(maybeRelocatable2));
+    try expect(!maybeRelocatable1.gt(maybeRelocatable2));
+    try expect(!maybeRelocatable1.ge(maybeRelocatable2));
 }
 
 test "newFromRelocatable: should create a MaybeRelocatable from a Relocatable" {
