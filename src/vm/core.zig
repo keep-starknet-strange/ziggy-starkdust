@@ -432,11 +432,11 @@ pub const CairoVM = struct {
     ) !void {
         switch (instruction.pc_update) {
             // PC update regular
-            instructions.PcUpdate.Regular => { // Update the PC.
+            .Regular => { // Update the PC.
                 self.run_context.pc.*.addUintInPlace(instruction.size());
             },
             // PC update jump
-            instructions.PcUpdate.Jump => {
+            .Jump => {
                 // Check that the res is not null.
                 if (operands.res) |val| {
                     // Check that the res is a relocatable.
@@ -447,7 +447,7 @@ pub const CairoVM = struct {
                 }
             },
             // PC update Jump Rel
-            instructions.PcUpdate.JumpRel => {
+            .JumpRel => {
                 // Check that the res is not null.
                 if (operands.res) |val| {
                     // Check that the res is a felt.
@@ -457,7 +457,7 @@ pub const CairoVM = struct {
                 }
             },
             // PC update Jnz
-            instructions.PcUpdate.Jnz => {
+            .Jnz => {
                 if (operands.dst.isZero()) {
                     // Update the PC.
                     self.run_context.pc.*.addUintInPlace(instruction.size());
@@ -497,7 +497,8 @@ pub const CairoVM = struct {
             .Add2 => {
                 self.run_context.ap.*.addUintInPlace(2);
             },
-            else => {},
+            // AP update regular
+            .Regular => {},
         }
     }
 
