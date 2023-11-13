@@ -8,6 +8,7 @@ const expectError = std.testing.expectError;
 
 // Local imports.
 const Memory = @import("memory.zig").Memory;
+const MemoryCell = @import("memory.zig").MemoryCell;
 const relocatable = @import("relocatable.zig");
 const Relocatable = @import("relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("relocatable.zig").MaybeRelocatable;
@@ -359,8 +360,8 @@ test "MemorySegmentManager: getSegmentUsedSize should return null if index not a
 test "MemorySegmentManager: numSegments should return the number of segments in the real memory" {
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    try memory_segment_manager.memory.data.put(Relocatable.new(0, 1), .{ .felt = Felt252.fromInteger(10) });
-    try memory_segment_manager.memory.data.put(Relocatable.new(1, 1), .{ .felt = Felt252.fromInteger(10) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 1), MemoryCell.new(.{ .felt = Felt252.fromInteger(10) }));
+    try memory_segment_manager.memory.data.put(Relocatable.new(1, 1), MemoryCell.new(.{ .felt = Felt252.fromInteger(10) }));
     try expectEqual(
         @as(usize, 2),
         memory_segment_manager.numSegments(),
@@ -370,8 +371,8 @@ test "MemorySegmentManager: numSegments should return the number of segments in 
 test "MemorySegmentManager: numSegments should return the number of segments in the temporary memory" {
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    try memory_segment_manager.memory.temp_data.put(Relocatable.new(-1, 1), .{ .felt = Felt252.fromInteger(10) });
-    try memory_segment_manager.memory.temp_data.put(Relocatable.new(-2, 1), .{ .felt = Felt252.fromInteger(10) });
+    try memory_segment_manager.memory.temp_data.put(Relocatable.new(-1, 1), MemoryCell.new(.{ .felt = Felt252.fromInteger(10) }));
+    try memory_segment_manager.memory.temp_data.put(Relocatable.new(-2, 1), MemoryCell.new(.{ .felt = Felt252.fromInteger(10) }));
     try expectEqual(
         @as(usize, 2),
         memory_segment_manager.numTempSegments(),
@@ -381,9 +382,9 @@ test "MemorySegmentManager: numSegments should return the number of segments in 
 test "MemorySegmentManager: computeEffectiveSize for one segment memory" {
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    try memory_segment_manager.memory.data.put(Relocatable.new(0, 0), .{ .felt = Felt252.fromInteger(1) });
-    try memory_segment_manager.memory.data.put(Relocatable.new(0, 1), .{ .felt = Felt252.fromInteger(1) });
-    try memory_segment_manager.memory.data.put(Relocatable.new(0, 2), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 0), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 1), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 2), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
 
     var actual = try memory_segment_manager.computeEffectiveSize();
 
@@ -395,7 +396,7 @@ test "MemorySegmentManager: computeEffectiveSize for one segment memory with gap
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     _ = memory_segment_manager.addSegment();
-    try memory_segment_manager.memory.data.put(Relocatable.new(0, 6), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 6), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
 
     var actual = try memory_segment_manager.computeEffectiveSize();
 
@@ -406,10 +407,10 @@ test "MemorySegmentManager: computeEffectiveSize for one segment memory with gap
 test "MemorySegmentManager: computeEffectiveSize for one segment memory with gaps" {
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    try memory_segment_manager.memory.data.put(Relocatable.new(0, 3), .{ .felt = Felt252.fromInteger(1) });
-    try memory_segment_manager.memory.data.put(Relocatable.new(0, 4), .{ .felt = Felt252.fromInteger(1) });
-    try memory_segment_manager.memory.data.put(Relocatable.new(0, 7), .{ .felt = Felt252.fromInteger(1) });
-    try memory_segment_manager.memory.data.put(Relocatable.new(0, 9), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 3), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 4), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 7), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 9), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
 
     var actual = try memory_segment_manager.computeEffectiveSize();
 
@@ -420,17 +421,17 @@ test "MemorySegmentManager: computeEffectiveSize for one segment memory with gap
 test "MemorySegmentManager: computeEffectiveSize for three segment memory" {
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    try memory_segment_manager.memory.data.put(Relocatable.new(0, 0), .{ .felt = Felt252.fromInteger(1) });
-    try memory_segment_manager.memory.data.put(Relocatable.new(0, 1), .{ .felt = Felt252.fromInteger(1) });
-    try memory_segment_manager.memory.data.put(Relocatable.new(0, 2), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 0), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 1), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 2), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
 
-    try memory_segment_manager.memory.data.put(Relocatable.new(1, 0), .{ .felt = Felt252.fromInteger(1) });
-    try memory_segment_manager.memory.data.put(Relocatable.new(1, 1), .{ .felt = Felt252.fromInteger(1) });
-    try memory_segment_manager.memory.data.put(Relocatable.new(1, 2), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(1, 0), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
+    try memory_segment_manager.memory.data.put(Relocatable.new(1, 1), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
+    try memory_segment_manager.memory.data.put(Relocatable.new(1, 2), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
 
-    try memory_segment_manager.memory.data.put(Relocatable.new(2, 0), .{ .felt = Felt252.fromInteger(1) });
-    try memory_segment_manager.memory.data.put(Relocatable.new(2, 1), .{ .felt = Felt252.fromInteger(1) });
-    try memory_segment_manager.memory.data.put(Relocatable.new(2, 2), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(2, 0), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
+    try memory_segment_manager.memory.data.put(Relocatable.new(2, 1), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
+    try memory_segment_manager.memory.data.put(Relocatable.new(2, 2), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
 
     var actual = try memory_segment_manager.computeEffectiveSize();
 
@@ -443,15 +444,15 @@ test "MemorySegmentManager: computeEffectiveSize for three segment memory" {
 test "MemorySegmentManager: computeEffectiveSize for three segment memory with gaps" {
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    try memory_segment_manager.memory.data.put(Relocatable.new(0, 2), .{ .felt = Felt252.fromInteger(1) });
-    try memory_segment_manager.memory.data.put(Relocatable.new(0, 5), .{ .felt = Felt252.fromInteger(1) });
-    try memory_segment_manager.memory.data.put(Relocatable.new(0, 7), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 2), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 5), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 7), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
 
-    try memory_segment_manager.memory.data.put(Relocatable.new(1, 1), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(1, 1), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
 
-    try memory_segment_manager.memory.data.put(Relocatable.new(2, 2), .{ .felt = Felt252.fromInteger(1) });
-    try memory_segment_manager.memory.data.put(Relocatable.new(2, 4), .{ .felt = Felt252.fromInteger(1) });
-    try memory_segment_manager.memory.data.put(Relocatable.new(2, 7), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(2, 2), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
+    try memory_segment_manager.memory.data.put(Relocatable.new(2, 4), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
+    try memory_segment_manager.memory.data.put(Relocatable.new(2, 7), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
 
     var actual = try memory_segment_manager.computeEffectiveSize();
 
@@ -464,15 +465,15 @@ test "MemorySegmentManager: computeEffectiveSize for three segment memory with g
 test "MemorySegmentManager: getSegmentUsedSize after computeEffectiveSize" {
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    try memory_segment_manager.memory.data.put(Relocatable.new(0, 2), .{ .felt = Felt252.fromInteger(1) });
-    try memory_segment_manager.memory.data.put(Relocatable.new(0, 5), .{ .felt = Felt252.fromInteger(1) });
-    try memory_segment_manager.memory.data.put(Relocatable.new(0, 7), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 2), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 5), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
+    try memory_segment_manager.memory.data.put(Relocatable.new(0, 7), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
 
-    try memory_segment_manager.memory.data.put(Relocatable.new(1, 1), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(1, 1), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
 
-    try memory_segment_manager.memory.data.put(Relocatable.new(2, 2), .{ .felt = Felt252.fromInteger(1) });
-    try memory_segment_manager.memory.data.put(Relocatable.new(2, 4), .{ .felt = Felt252.fromInteger(1) });
-    try memory_segment_manager.memory.data.put(Relocatable.new(2, 7), .{ .felt = Felt252.fromInteger(1) });
+    try memory_segment_manager.memory.data.put(Relocatable.new(2, 2), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
+    try memory_segment_manager.memory.data.put(Relocatable.new(2, 4), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
+    try memory_segment_manager.memory.data.put(Relocatable.new(2, 7), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
 
     _ = try memory_segment_manager.computeEffectiveSize();
 

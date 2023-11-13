@@ -6,6 +6,8 @@ const starknet_felt = @import("../math/fields/starknet.zig");
 
 // Local imports.
 const segments = @import("memory/segments.zig");
+const memory = @import("memory/memory.zig");
+const MemoryCell = memory.MemoryCell;
 const relocatable = @import("memory/relocatable.zig");
 const MaybeRelocatable = relocatable.MaybeRelocatable;
 const Relocatable = relocatable.Relocatable;
@@ -1425,9 +1427,9 @@ test "CairoVM: computeSegmentsEffectiveSizes should return the computed effectiv
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    try vm.segments.memory.data.put(Relocatable.new(0, 0), .{ .felt = Felt252.fromInteger(1) });
-    try vm.segments.memory.data.put(Relocatable.new(0, 1), .{ .felt = Felt252.fromInteger(1) });
-    try vm.segments.memory.data.put(Relocatable.new(0, 2), .{ .felt = Felt252.fromInteger(1) });
+    try vm.segments.memory.data.put(Relocatable.new(0, 0), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
+    try vm.segments.memory.data.put(Relocatable.new(0, 1), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
+    try vm.segments.memory.data.put(Relocatable.new(0, 2), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
 
     var actual = try vm.computeSegmentsEffectiveSizes();
 
@@ -1589,7 +1591,7 @@ test "CairoVM: getRelocatable with value should return a MaybeRelocatable" {
 
     try vm.segments.memory.data.put(
         Relocatable.new(34, 12),
-        .{ .felt = Felt252.fromInteger(5) },
+        MemoryCell.new(.{ .felt = Felt252.fromInteger(5) }),
     );
 
     // Test check
@@ -1688,7 +1690,7 @@ test "CairoVM: getFelt should return Felt252 if available at the given address" 
 
     try vm.segments.memory.data.put(
         Relocatable.new(10, 30),
-        .{ .felt = Felt252.fromInteger(23) },
+        MemoryCell.new(.{ .felt = Felt252.fromInteger(23) }),
     );
 
     // Test checks
@@ -1708,7 +1710,7 @@ test "CairoVM: getFelt should return ExpectedInteger error if Relocatable instea
 
     try vm.segments.memory.data.put(
         Relocatable.new(10, 30),
-        .{ .relocatable = Relocatable.new(3, 7) },
+        MemoryCell.new(.{ .relocatable = Relocatable.new(3, 7) }),
     );
 
     // Test checks
