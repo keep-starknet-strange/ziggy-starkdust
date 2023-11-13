@@ -519,7 +519,7 @@ test "Memory: markAsAccessed should mark memory cell" {
     defer memory.deinit();
 
     var relo = Relocatable.new(1, 3);
-    try memoryInner(memory, .{
+    try setUpMemory(memory, .{
         .{ .{ 1, 3 }, .{ 4, 5 } },
     });
 
