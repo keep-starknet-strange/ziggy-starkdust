@@ -558,6 +558,24 @@ test "Memory: getRelocatable should return ExpectedRelocatable error if Felt ins
     );
 }
 
+test "Memory: markAsAccessed should mark memory cell" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    var relo = Relocatable.new(1, 3);
+    try memoryInner(memory, .{
+        .{ .{ 1, 3 }, .{ 4, 5 } },
+    });
+
+    memory.markAsAccessed(relo);
+    // Test checks
+    try expectEqual(
+        true,
+        memory.data.get(relo).?.is_accessed,
+    );
+}
+
 test "Memory: addRelocationRule should return an error if source segment index >= 0" {
     // Test setup
     var memory = try Memory.init(std.testing.allocator);
@@ -579,24 +597,6 @@ test "Memory: addRelocationRule should return an error if source segment index >
             Relocatable.new(0, 3),
             Relocatable.new(4, 7),
         ),
-    );
-}
-
-test "Memory: markAsAccessed should mark memory cell" {
-    // Test setup
-    var memory = try Memory.init(std.testing.allocator);
-    defer memory.deinit();
-
-    var relo = Relocatable.new(1, 3);
-    try memoryInner(memory, .{
-        .{ .{ 1, 3 }, .{ 4, 5 } },
-    });
-
-    memory.markAsAccessed(relo);
-    // Test checks
-    try expectEqual(
-        true,
-        memory.data.get(relo).?.is_accessed,
     );
 }
 
