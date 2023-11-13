@@ -17,9 +17,34 @@ const Felt252 = starknet_felt.Felt252;
 // Test imports.
 const MemorySegmentManager = @import("./segments.zig").MemorySegmentManager;
 const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
-
 // Function that validates a memory address and returns a list of validated adresses
 pub const validation_rule = *const fn (*Memory, Relocatable) std.ArrayList(Relocatable);
+
+pub const MemoryCell = struct {
+    const Self = @This();
+
+    maybe_relocatable: MaybeRelocatable,
+    is_accessed: bool,
+
+    // Creates a new MemoryCell.
+    // # Arguments
+    // - maybe_relocatable - The index of the memory segment.
+    // # Returns
+    // A new MemoryCell.
+    pub fn new(
+        maybe_relocatable: MaybeRelocatable,
+    ) Self {
+        return .{
+            .maybe_relocatable = maybe_relocatable,
+            .is_accessed = false,
+        };
+    }
+
+    // Marks Memory Cell as accessed.
+    pub fn markAccessed(self: *Self) void {
+        self.is_accessed = true;
+    }
+};
 
 // Representation of the VM memory.
 pub const Memory = struct {
@@ -30,14 +55,14 @@ pub const Memory = struct {
     /// Hash map storing the main data in the memory, indexed by Relocatable addresses.
     data: std.ArrayHashMap(
         Relocatable,
-        MaybeRelocatable,
+        MemoryCell,
         std.array_hash_map.AutoContext(Relocatable),
         true,
     ),
     /// Hash map storing temporary data in the memory, indexed by Relocatable addresses.
     temp_data: std.ArrayHashMap(
         Relocatable,
-        MaybeRelocatable,
+        MemoryCell,
         std.array_hash_map.AutoContext(Relocatable),
         true,
     ),
@@ -86,9 +111,9 @@ pub const Memory = struct {
             .allocator = allocator,
             .data = std.AutoArrayHashMap(
                 Relocatable,
-                MaybeRelocatable,
+                MemoryCell,
             ).init(allocator),
-            .temp_data = std.AutoArrayHashMap(Relocatable, MaybeRelocatable).init(allocator),
+            .temp_data = std.AutoArrayHashMap(Relocatable, MemoryCell).init(allocator),
             .num_segments = 0,
             .num_temp_segments = 0,
             .validated_addresses = std.AutoHashMap(
@@ -138,20 +163,19 @@ pub const Memory = struct {
 
         // Insert the value into the memory.
         if (address.segment_index < 0) {
-            self.temp_data.put(address, value) catch {
+            self.temp_data.put(address, MemoryCell.new(value)) catch {
                 return CairoVMError.MemoryOutOfBounds;
             };
         } else {
             self.data.put(
                 address,
-                value,
+                MemoryCell.new(value),
             ) catch {
                 return CairoVMError.MemoryOutOfBounds;
             };
         }
         // TODO: Add all relevant checks.
     }
-
     // Get some value from the memory at the given address.
     // # Arguments
     // - `address` - The address to get the value from.
@@ -162,9 +186,18 @@ pub const Memory = struct {
         address: Relocatable,
     ) error{MemoryOutOfBounds}!MaybeRelocatable {
         if (address.segment_index < 0) {
-            return self.temp_data.get(address) orelse CairoVMError.MemoryOutOfBounds;
+            if (self.temp_data.get(address) == null) {
+                return CairoVMError.MemoryOutOfBounds;
+            } else {
+                return self.temp_data.get(address).?.maybe_relocatable;
+            }
+        } else {
+            if (self.data.get(address) == null) {
+                return CairoVMError.MemoryOutOfBounds;
+            } else {
+                return self.data.get(address).?.maybe_relocatable;
+            }
         }
-        return self.data.get(address) orelse CairoVMError.MemoryOutOfBounds;
     }
 
     /// Retrieves a `Felt252` value from the memory at the specified relocatable address.
@@ -439,7 +472,7 @@ test "Memory: getFelt should return Felt252 if available at the given address" {
 
     try memory.data.put(
         Relocatable.new(10, 30),
-        .{ .felt = Felt252.fromInteger(23) },
+        MemoryCell.new(.{ .felt = Felt252.fromInteger(23) }),
     );
 
     // Test checks
@@ -456,7 +489,7 @@ test "Memory: getFelt should return ExpectedInteger error if Relocatable instead
 
     try memory.data.put(
         Relocatable.new(10, 30),
-        .{ .relocatable = Relocatable.new(3, 7) },
+        MemoryCell.new(MaybeRelocatable{ .relocatable = Relocatable.new(3, 7) }),
     );
 
     // Test checks
@@ -485,7 +518,7 @@ test "Memory: getRelocatable should return Relocatable if available at the given
 
     try memory.data.put(
         Relocatable.new(10, 30),
-        .{ .relocatable = Relocatable.new(4, 34) },
+        MemoryCell.new(MaybeRelocatable{ .relocatable = Relocatable.new(4, 34) }),
     );
 
     // Test checks
@@ -502,7 +535,7 @@ test "Memory: getRelocatable should return ExpectedRelocatable error if Felt ins
 
     try memory.data.put(
         Relocatable.new(10, 30),
-        .{ .felt = Felt252.fromInteger(3) },
+        MemoryCell.new(.{ .felt = Felt252.fromInteger(3) }),
     );
 
     // Test checks
