@@ -1455,7 +1455,7 @@ test "CairoVM: deduceDst should return res if AssertEq opcode" {
         .opcode = .AssertEq,
     };
 
-    var res = MaybeRelocatable{ .felt = Felt252.fromInteger(7) };
+    var res = fromU256(7);
 
     // Test check
     try expectEqual(
@@ -1512,7 +1512,7 @@ test "CairoVM: deduceDst should return fp Relocatable if Call opcode" {
 
     // Test check
     try expectEqual(
-        MaybeRelocatable{ .relocatable = Relocatable.new(3, 23) },
+        fromSegment(3, 23),
         try vm.deduceDst(&instruction, null),
     );
 }
@@ -1595,7 +1595,7 @@ test "CairoVM: getRelocatable with value should return a MaybeRelocatable" {
 
     // Test check
     try expectEqual(
-        MaybeRelocatable{ .felt = Felt252.fromInteger(5) },
+        fromU256(5),
         try vm.getRelocatable(Relocatable.new(34, 12)),
     );
 }
@@ -1756,7 +1756,7 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceMemoryCell if n
 
     // Test check
     try expectEqual(
-        MaybeRelocatable{ .felt = Felt252.fromInteger(8) },
+        fromU256(8),
         try vm.computeOp1Deductions(
             Relocatable.new(0, 7),
             &res,
