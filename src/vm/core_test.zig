@@ -1274,21 +1274,21 @@ test "compute operands mul FP" {
     const dst_val = MaybeRelocatable{ .felt = Felt252.fromInteger(6) };
     try vm.segments.memory.data.put(
         dst_addr,
-        dst_val,
+        MemoryCell.new(dst_val),
     );
 
     const op0_addr = Relocatable.new(1, 1);
     const op0_val = MaybeRelocatable{ .felt = Felt252.fromInteger(2) };
     try vm.segments.memory.data.put(
         op0_addr,
-        op0_val,
+        MemoryCell.new(op0_val),
     );
     
     const op1_addr = Relocatable.new(1, 2);
     const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
     try vm.segments.memory.data.put(
         op1_addr,
-        op1_val,
+        MemoryCell.new(op1_val),
     );
 
     var expected_operands = OperandsResult.default();
