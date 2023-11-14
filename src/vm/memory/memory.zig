@@ -258,8 +258,7 @@ pub const Memory = struct {
 // # Arguments
 // - `memory` - memory to be set
 // - `vals` - complile time structure with heterogenous types
-fn setUpMemory(memory: *Memory, comptime vals: anytype) !void {
-
+pub fn setUpMemory(memory: *Memory, comptime vals: anytype) !void {
     inline for (vals) |row| {
         const firstCol = row[0];
         const address = Relocatable.new(firstCol[0], firstCol[1]);

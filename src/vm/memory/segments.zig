@@ -226,7 +226,7 @@ pub const MemorySegmentManager = struct {
 // - `segment_manager` - MemorySegmentManger to be passed in
 // - `vals` - complile time structure with heterogenous types
 pub fn segmentsUtil(segment_manager: *MemorySegmentManager, comptime vals: anytype) !void {
-    try memoryFile.memoryInner(segment_manager.memory, vals);
+    try memoryFile.setUpMemory(segment_manager.memory, vals);
 }
 
 // ************************************************************
@@ -532,7 +532,7 @@ test "MemorySegmentManager: isValidMemoryValue should return true if valid segme
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     try memory_segment_manager.segment_used_sizes.put(0, 10);
-    var value: MaybeRelocatable = .{ .relocatable = Relocatable.new(0, 5) };
+    var value: MaybeRelocatable = relocatable.fromSegment(0, 5);
     try expect(memory_segment_manager.isValidMemoryValue(&value));
 }
 
