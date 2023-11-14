@@ -18,7 +18,7 @@ pub const CairoVMError = error{
     TypeMismatchNotFelt,
     /// Error encountered with a built-in runner.
     RunnerError,
-    /// Occurs when the expected value is not a Relocatable (e.g. not a Felt),
+    /// Occurs when the expected value is not a Relocatable,
     /// or when subtracting two relocatables with different segment indices.
     TypeMismatchNotRelocatable,
     /// Value is too large to be coerced to a u64.
