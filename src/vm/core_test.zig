@@ -27,6 +27,8 @@ const CairoVM = @import("core.zig").CairoVM;
 const computeRes = @import("core.zig").computeRes;
 const OperandsResult = @import("core.zig").OperandsResult;
 const deduceOp1 = @import("core.zig").deduceOp1;
+const fromU256 = @import("./memory/relocatable.zig").fromU256;
+const fromSegment = @import("./memory/relocatable.zig").fromSegment;
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -81,7 +83,7 @@ test "CairoVM: deduceMemoryCell builtin valid" {
         relocatable.fromFelt(Felt252.fromInteger(0)),
     );
     try expectEqual(
-        MaybeRelocatable{ .felt = Felt252.fromInteger(8) },
+        fromU256(8),
         (try vm.deduceMemoryCell(Relocatable.new(
             0,
             7,
@@ -1342,7 +1344,7 @@ test "CairoVM: computeOp0Deductions should return op0 from deduceOp0 if deduceMe
 
     // Test check
     try expectEqual(
-        MaybeRelocatable{ .relocatable = Relocatable.new(0, 1) },
+        fromSegment(0, 1),
         try vm.computeOp0Deductions(
             Relocatable.new(0, 7),
             &instr,
@@ -1388,7 +1390,7 @@ test "CairoVM: computeOp0Deductions with a valid built in and non null deduceMem
 
     // Test check
     try expectEqual(
-        MaybeRelocatable{ .felt = Felt252.fromInteger(8) },
+        fromU256(8),
         try vm.computeOp0Deductions(
             Relocatable.new(0, 7),
             &deduceOpTestInstr,
@@ -1457,7 +1459,7 @@ test "CairoVM: deduceDst should return res if AssertEq opcode" {
 
     // Test check
     try expectEqual(
-        MaybeRelocatable{ .felt = Felt252.fromInteger(7) },
+        fromU256(7),
         try vm.deduceDst(&instruction, &res),
     );
 }
