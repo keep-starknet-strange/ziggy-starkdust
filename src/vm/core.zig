@@ -282,37 +282,63 @@ pub const CairoVM = struct {
         self: *Self,
         instruction: *const instructions.Instruction,
     ) !OperandsResult {
-        // Compute the destination address and get value from the memory.
-        const dst_addr = try self.run_context.computeDstAddr(instruction);
-        const dst = try self.segments.memory.get(dst_addr);
 
-        // Compute the OP 0 address and get value from the memory.
-        const op_0_addr = try self.run_context.computeOp0Addr(instruction);
-        // Here we use `catch null` because we want op_0_op to be optional since it's not always used.
-        // TODO: identify if we need to use try or catch here.
-        const op_0_op = try self.segments.memory.get(op_0_addr);
+        var op_res = OperandsResult.default();
 
-        // Compute the OP 1 address and get value from the memory.
-        const op_1_addr = try self.run_context.computeOp1Addr(
+        op_res.res = null;
+
+        op_res.dst_addr = try self.run_context.computeDstAddr(instruction);
+        op_res.dst = try self.segments.memory.get(op_res.dst_addr);
+        op_res.op_0_addr = try self.run_context.computeOp0Addr(instruction);
+        const op_0_op = self.segments.memory.get(op_res.op_0_addr) catch null;
+
+        op_res.op_1_addr = try self.run_context.computeOp1Addr(
             instruction,
-            op_0_op,
+            op_res.op_0,
         );
-        const op_1_op = try self.segments.memory.get(op_1_addr);
 
-        const res = try computeRes(instruction, op_0_op, op_1_op);
-
+        const op_1_op = self.segments.memory.get(op_res.op_1_addr) catch null;
+        
         // Deduce the operands if they haven't been successfully retrieved from memory.
-        // TODO: Implement this.
 
-        return .{
-            .dst = dst,
-            .res = res,
-            .op_0 = op_0_op,
-            .op_1 = op_1_op,
-            .dst_addr = dst_addr,
-            .op_0_addr = op_0_addr,
-            .op_1_addr = op_1_addr,
-        };
+        const op_1_ptr = &op_1_op.?;
+        const dst_ptr = &try self.segments.memory.get(op_res.dst_addr);
+        const dst_op: ?*const MaybeRelocatable = dst_ptr;
+
+        if (op_0_op == null) {
+            op_res.op_0 = try self.computeOp0Deductions(
+                op_res.op_0_addr,
+                instruction,
+                dst_ptr,
+                op_1_ptr,
+            );
+        } else {
+            op_res.op_0 = op_0_op.?;
+        }
+
+        if (op_1_op == null) {
+            op_res.op_1 = try self.computeOp1Deductions(
+                op_res.op_1_addr,
+                &op_res.res,
+                instruction,
+                dst_op,
+                &op_res.op_0,
+            );
+        } else {
+            op_res.op_1 = op_1_op.?;
+        }
+
+        const res_op: ?MaybeRelocatable = op_res.res;
+
+        if (res_op == null) {
+            op_res.res = try computeRes(instruction, op_res.op_0, op_res.op_1);
+        }
+
+        if (dst_op == null) {
+            op_res.dst = try self.deduceDst(instruction, op_res.res);
+        }
+
+        return op_res;
     }
 
     /// Compute Op0 deductions based on the provided instruction, destination, and Op1.
@@ -432,11 +458,11 @@ pub const CairoVM = struct {
     ) !void {
         switch (instruction.pc_update) {
             // PC update regular
-            instructions.PcUpdate.Regular => { // Update the PC.
+            .Regular => { // Update the PC.
                 self.run_context.pc.*.addUintInPlace(instruction.size());
             },
             // PC update jump
-            instructions.PcUpdate.Jump => {
+            .Jump => {
                 // Check that the res is not null.
                 if (operands.res) |val| {
                     // Check that the res is a relocatable.
@@ -447,7 +473,7 @@ pub const CairoVM = struct {
                 }
             },
             // PC update Jump Rel
-            instructions.PcUpdate.JumpRel => {
+            .JumpRel => {
                 // Check that the res is not null.
                 if (operands.res) |val| {
                     // Check that the res is a felt.
@@ -457,7 +483,7 @@ pub const CairoVM = struct {
                 }
             },
             // PC update Jnz
-            instructions.PcUpdate.Jnz => {
+            .Jnz => {
                 if (operands.dst.isZero()) {
                     // Update the PC.
                     self.run_context.pc.*.addUintInPlace(instruction.size());
@@ -497,7 +523,8 @@ pub const CairoVM = struct {
             .Add2 => {
                 self.run_context.ap.*.addUintInPlace(2);
             },
-            else => {},
+            // AP update regular
+            .Regular => {},
         }
     }
 
@@ -572,13 +599,13 @@ pub const CairoVM = struct {
     /// - Returns the deduced destination register, or an error if no destination is deducible.
     pub fn deduceDst(
         self: *Self,
-        instruction: *Instruction,
-        res: ?*MaybeRelocatable,
+        instruction: *const Instruction,
+        res: ?MaybeRelocatable,
     ) !MaybeRelocatable {
         return switch (instruction.opcode) {
             .AssertEq => {
                 if (res != null) {
-                    return res.?.*;
+                    return res.?;
                 } else {
                     return CairoVMError.NoDst;
                 }

@@ -258,7 +258,8 @@ pub const Memory = struct {
 // # Arguments
 // - `memory` - memory to be set
 // - `vals` - complile time structure with heterogenous types
-pub fn memoryInner(memory: *Memory, comptime vals: anytype) !void {
+fn setUpMemory(memory: *Memory, comptime vals: anytype) !void {
+
     inline for (vals) |row| {
         const firstCol = row[0];
         const address = Relocatable.new(firstCol[0], firstCol[1]);
@@ -287,7 +288,7 @@ test "memory inner for testing test" {
     var memory = try Memory.init(allocator);
     defer memory.deinit();
 
-    try memoryInner(memory, .{
+    try setUpMemory(memory, .{
         .{ .{ 1, 3 }, .{ 4, 5 } },
         .{ .{ 2, 6 }, .{ 7, 8 } },
         .{ .{ 9, 10 }, .{23} },
@@ -519,7 +520,7 @@ test "Memory: markAsAccessed should mark memory cell" {
     defer memory.deinit();
 
     var relo = Relocatable.new(1, 3);
-    try memoryInner(memory, .{
+    try setUpMemory(memory, .{
         .{ .{ 1, 3 }, .{ 4, 5 } },
     });
 

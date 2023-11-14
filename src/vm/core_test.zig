@@ -27,6 +27,8 @@ const CairoVM = @import("core.zig").CairoVM;
 const computeRes = @import("core.zig").computeRes;
 const OperandsResult = @import("core.zig").OperandsResult;
 const deduceOp1 = @import("core.zig").deduceOp1;
+const fromU256 = @import("./memory/relocatable.zig").fromU256;
+const fromSegment = @import("./memory/relocatable.zig").fromSegment;
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -81,7 +83,7 @@ test "CairoVM: deduceMemoryCell builtin valid" {
         relocatable.fromFelt(Felt252.fromInteger(0)),
     );
     try expectEqual(
-        MaybeRelocatable{ .felt = Felt252.fromInteger(8) },
+        fromU256(8),
         (try vm.deduceMemoryCell(Relocatable.new(
             0,
             7,
@@ -1173,6 +1175,144 @@ test "compute res Unconstrained should return null" {
     );
 }
 
+test "compute operands add AP" {
+    // Test setup
+    var allocator = std.testing.allocator;
+    var instruction = Instruction{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
+    };
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    _ = vm.addMemorySegment();
+    _ = vm.addMemorySegment();
+
+    vm.run_context.ap.* = Relocatable.new(1, 0);
+
+    // Test body
+
+    const dst_addr = Relocatable.new(1, 0);
+    const dst_val = MaybeRelocatable{ .felt = Felt252.fromInteger(5) };
+    try vm.segments.memory.set(
+        dst_addr,
+        dst_val,
+    );
+
+    const op0_addr = Relocatable.new(1, 1);
+    const op0_val = MaybeRelocatable{ .felt = Felt252.fromInteger(2) };
+    try vm.segments.memory.set(
+        op0_addr,
+        op0_val,
+    );
+    
+    const op1_addr = Relocatable.new(1, 2);
+    const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
+    try vm.segments.memory.set(
+        op1_addr,
+        op1_val,
+    );
+
+    var expected_operands = OperandsResult.default();
+    expected_operands.dst_addr = dst_addr;
+    expected_operands.op_0_addr = op0_addr;
+    expected_operands.op_1_addr = op1_addr;
+    expected_operands.dst = dst_val;
+    expected_operands.op_0 = op0_val;
+    expected_operands.op_1 = op1_val;
+    expected_operands.res = dst_val;
+
+    const actual_operands = try vm.computeOperands(
+        &instruction,
+    );
+
+    // Test checks
+    try expectEqual(
+        expected_operands,
+        actual_operands,
+    );
+}
+
+test "compute operands mul FP" {
+    // Test setup
+    var allocator = std.testing.allocator;
+    var instruction = Instruction{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = .FP,
+        .op_0_reg = .FP,
+        .op_1_addr = .FP,
+        .res_logic = .Mul,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
+    };
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    _ = vm.addMemorySegment();
+    _ = vm.addMemorySegment();
+
+    vm.run_context.fp.* = Relocatable.new(1, 0);
+
+    // Test body
+
+    const dst_addr = Relocatable.new(1, 0);
+    const dst_val = MaybeRelocatable{ .felt = Felt252.fromInteger(6) };
+    try vm.segments.memory.data.put(
+        dst_addr,
+        MemoryCell.new(dst_val),
+    );
+
+    const op0_addr = Relocatable.new(1, 1);
+    const op0_val = MaybeRelocatable{ .felt = Felt252.fromInteger(2) };
+    try vm.segments.memory.data.put(
+        op0_addr,
+        MemoryCell.new(op0_val),
+    );
+    
+    const op1_addr = Relocatable.new(1, 2);
+    const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
+    try vm.segments.memory.data.put(
+        op1_addr,
+        MemoryCell.new(op1_val),
+    );
+
+    var expected_operands = OperandsResult.default();
+    expected_operands.dst_addr = dst_addr;
+    expected_operands.op_0_addr = op0_addr;
+    expected_operands.op_1_addr = op1_addr;
+    expected_operands.dst = dst_val;
+    expected_operands.op_0 = op0_val;
+    expected_operands.op_1 = op1_val;
+    expected_operands.res = dst_val;
+
+    const actual_operands = try vm.computeOperands(
+        &instruction,
+    );
+
+    // Test checks
+    try expectEqual(
+        expected_operands,
+        actual_operands,
+    );
+}
+
 test "memory is not leaked upon allocation failure during initialization" {
     var i: usize = 0;
     while (i < 20) {
@@ -1342,7 +1482,7 @@ test "CairoVM: computeOp0Deductions should return op0 from deduceOp0 if deduceMe
 
     // Test check
     try expectEqual(
-        MaybeRelocatable{ .relocatable = Relocatable.new(0, 1) },
+        fromSegment(0, 1),
         try vm.computeOp0Deductions(
             Relocatable.new(0, 7),
             &instr,
@@ -1388,7 +1528,7 @@ test "CairoVM: computeOp0Deductions with a valid built in and non null deduceMem
 
     // Test check
     try expectEqual(
-        MaybeRelocatable{ .felt = Felt252.fromInteger(8) },
+        fromU256(8),
         try vm.computeOp0Deductions(
             Relocatable.new(0, 7),
             &deduceOpTestInstr,
@@ -1453,12 +1593,12 @@ test "CairoVM: deduceDst should return res if AssertEq opcode" {
         .opcode = .AssertEq,
     };
 
-    var res = MaybeRelocatable{ .felt = Felt252.fromInteger(7) };
+    var res = fromU256(7);
 
     // Test check
     try expectEqual(
-        MaybeRelocatable{ .felt = Felt252.fromInteger(7) },
-        try vm.deduceDst(&instruction, &res),
+        fromU256(7),
+        try vm.deduceDst(&instruction, res),
     );
 }
 
@@ -1510,7 +1650,7 @@ test "CairoVM: deduceDst should return fp Relocatable if Call opcode" {
 
     // Test check
     try expectEqual(
-        MaybeRelocatable{ .relocatable = Relocatable.new(3, 23) },
+        fromSegment(3, 23),
         try vm.deduceDst(&instruction, null),
     );
 }
@@ -1593,7 +1733,7 @@ test "CairoVM: getRelocatable with value should return a MaybeRelocatable" {
 
     // Test check
     try expectEqual(
-        MaybeRelocatable{ .felt = Felt252.fromInteger(5) },
+        fromU256(5),
         try vm.getRelocatable(Relocatable.new(34, 12)),
     );
 }
@@ -1754,7 +1894,7 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceMemoryCell if n
 
     // Test check
     try expectEqual(
-        MaybeRelocatable{ .felt = Felt252.fromInteger(8) },
+        fromU256(8),
         try vm.computeOp1Deductions(
             Relocatable.new(0, 7),
             &res,
