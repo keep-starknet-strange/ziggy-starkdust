@@ -12,7 +12,7 @@ pub const CairoVMError = error{
     InstructionFetchingFailed,
     /// Error in converting the encoded instruction to a u64.
     InstructionEncodingError,
-    /// TODO, Logic error during parsing of the resolution logic?
+    /// TODO, this error type is never used. ResLogic constants parsing related?
     ParseResLogicError,
     /// Occurs when values of different types are subtracted.
     TypeMismatchNotFelt,
