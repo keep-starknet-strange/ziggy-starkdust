@@ -81,7 +81,7 @@ pub fn deduce(address: Relocatable, memory: *Memory) BitwiseError!MaybeRelocatab
         else => return BitwiseError.InvalidBitwiseIndex,
     };
 
-    return MaybeRelocatable{ .felt = Felt252.fromInteger(res) };
+    return fromU256(res);
 }
 
 // ************************************************************
@@ -168,7 +168,7 @@ test "valid bitwise and" {
     try mem.set(Relocatable.new(0, 7), fromU256(0));
 
     var address = Relocatable.new(0, 7);
-    var expected = MaybeRelocatable{ .felt = Felt252.fromInteger(8) };
+    var expected = fromU256(8);
 
     // then
     var result = try deduce(address, mem);
@@ -191,7 +191,7 @@ test "valid bitwise xor" {
     try mem.set(Relocatable.new(0, 8), fromU256(0));
 
     var address = Relocatable.new(0, 8);
-    var expected = MaybeRelocatable{ .felt = Felt252.fromInteger(6) };
+    var expected = fromU256(6);
 
     // then
     var result = try deduce(address, mem);
@@ -214,7 +214,7 @@ test "valid bitwise or" {
     try mem.set(Relocatable.new(0, 9), fromU256(0));
 
     var address = Relocatable.new(0, 9);
-    var expected = MaybeRelocatable{ .felt = Felt252.fromInteger(14) };
+    var expected = fromU256(14);
 
     // then
     var result = try deduce(address, mem);
