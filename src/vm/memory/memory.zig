@@ -281,29 +281,6 @@ pub fn memoryInner(memory: *Memory, comptime vals: anytype) !void {
     }
 }
 
-//fn segmentsUtil(segment_manager: *MemorySegmentManager, comptime vals: anytype) !void {
-//    try memoryInner(segment_manager.memory, vals);
-//}
-//
-//test "segments utility function for testing test" {
-//    var allocator = std.testing.allocator;
-//
-//    var memory_segment_manager = try MemorySegmentManager.init(allocator);
-//    defer memory_segment_manager.deinit();
-//    //    try memoryInner(memory_segment_manager.memory, .{
-//    try segmentsUtil(memory_segment_manager, .{
-//        .{ .{ 0, 0 }, .{1} },
-//        .{ .{ 0, 1 }, .{1} },
-//        .{ .{ 0, 2 }, .{1} },
-//    });
-//
-//    var actual = try memory_segment_manager.computeEffectiveSize();
-//    std.debug.print("acutal: {d}\n", .{actual.count()});
-//
-//    try expectEqual(@as(usize, 1), actual.count());
-//    try expectEqual(@as(u32, 3), actual.get(0).?);
-//}
-
 test "memory inner for testing test" {
     var allocator = std.testing.allocator;
 

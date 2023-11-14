@@ -1841,3 +1841,21 @@ test "CairoVM: computeOp1Deductions should return CairoVMError error if deduceMe
         ),
     );
 }
+
+test "CairoVM: core utility function for testing test" {
+    var allocator = std.testing.allocator;
+
+    var cairo_vm = try CairoVM.init(allocator, .{});
+    defer cairo_vm.deinit();
+
+    try segments.segmentsUtil(cairo_vm.segments, .{
+        .{ .{ 0, 0 }, .{1} },
+        .{ .{ 0, 1 }, .{1} },
+        .{ .{ 0, 2 }, .{1} },
+    });
+
+    var actual = try cairo_vm.computeSegmentsEffectiveSizes();
+
+    try expectEqual(@as(usize, 1), actual.count());
+    try expectEqual(@as(u32, 3), actual.get(0).?);
+}

@@ -549,7 +549,6 @@ test "MemorySegmentManager: segments utility function for testing test" {
     });
 
     var actual = try memory_segment_manager.computeEffectiveSize();
-    std.debug.print("acutal: {d}\n", .{actual.count()});
 
     try expectEqual(@as(usize, 1), actual.count());
     try expectEqual(@as(u32, 3), actual.get(0).?);
