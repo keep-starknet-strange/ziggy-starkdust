@@ -290,37 +290,43 @@ pub const CairoVM = struct {
         op_res.dst_addr = try self.run_context.computeDstAddr(instruction);
         op_res.dst = try self.segments.memory.get(op_res.dst_addr);
         op_res.op_0_addr = try self.run_context.computeOp0Addr(instruction);
-        op_res.op_0 = try self.segments.memory.get(op_res.op_0_addr);
+        const op_0_op = self.segments.memory.get(op_res.op_0_addr) catch null;
 
         op_res.op_1_addr = try self.run_context.computeOp1Addr(
             instruction,
             op_res.op_0,
         );
 
-        op_res.op_1 = try self.segments.memory.get(op_res.op_1_addr);
+        const op_1_op = self.segments.memory.get(op_res.op_1_addr) catch null;
         
         // Deduce the operands if they haven't been successfully retrieved from memory.
 
-        const op_1_ptr = &try self.segments.memory.get(op_res.op_1_addr);
+        const op_1_ptr = &op_1_op.?;
         const dst_ptr = &try self.segments.memory.get(op_res.dst_addr);
         const dst_op: ?*const MaybeRelocatable = dst_ptr;
 
-        op_res.op_0 = self.segments.memory.get(op_res.op_0_addr) catch
-            try self.computeOp0Deductions(
+        if (op_0_op == null) {
+            op_res.op_0 = try self.computeOp0Deductions(
                 op_res.op_0_addr,
                 instruction,
                 dst_ptr,
                 op_1_ptr,
             );
+        } else {
+            op_res.op_0 = op_0_op.?;
+        }
 
-        op_res.op_1 = self.segments.memory.get(op_res.op_1_addr) catch
-            try self.computeOp1Deductions(
+        if (op_1_op == null) {
+            op_res.op_1 = try self.computeOp1Deductions(
                 op_res.op_1_addr,
                 &op_res.res,
                 instruction,
                 dst_op,
                 &op_res.op_0,
             );
+        } else {
+            op_res.op_1 = op_1_op.?;
+        }
 
         const res_op: ?MaybeRelocatable = op_res.res;
 
