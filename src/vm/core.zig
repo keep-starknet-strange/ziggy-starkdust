@@ -285,6 +285,8 @@ pub const CairoVM = struct {
 
         var op_res = OperandsResult.default();
 
+        op_res.res = null;
+
         op_res.dst_addr = try self.run_context.computeDstAddr(instruction);
         op_res.dst = try self.segments.memory.get(op_res.dst_addr);
         op_res.op_0_addr = try self.run_context.computeOp0Addr(instruction);
@@ -296,10 +298,7 @@ pub const CairoVM = struct {
         );
 
         op_res.op_1 = try self.segments.memory.get(op_res.op_1_addr);
-
-        op_res.res = try computeRes(instruction, op_res.op_0, op_res.op_1);
-        const res_op: ?MaybeRelocatable = op_res.res;
-
+        
         // Deduce the operands if they haven't been successfully retrieved from memory.
 
         const op_1_ptr = &try self.segments.memory.get(op_res.op_1_addr);
@@ -322,6 +321,8 @@ pub const CairoVM = struct {
                 dst_op,
                 &op_res.op_0,
             );
+
+        const res_op: ?MaybeRelocatable = op_res.res;
 
         if (res_op == null) {
             op_res.res = try computeRes(instruction, op_res.op_0, op_res.op_1);
