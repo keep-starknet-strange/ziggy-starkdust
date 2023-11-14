@@ -31,7 +31,7 @@ pub const CairoVMError = error{
     FailedToComputeOp1,
 };
 
-/// Represent different error conditions that are associated with the memory.
+/// Represent different error conditions that are memory-related.
 pub const MemoryError = error{
     /// The amount of used cells associated with the Range Check runner is not available.
     MissingSegmentUsedSizes,
