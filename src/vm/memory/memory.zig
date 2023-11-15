@@ -296,6 +296,22 @@ pub const Memory = struct {
         // Add the relocation rule to the memory.
         try self.relocation_rules.put(segment_index, dst_ptr);
     }
+
+    /// Adds a validated memory cell to the VM memory.
+    ///
+    /// # Arguments
+    /// - `address`: The source Relocatable address of the memory cell to be checked.
+    ///
+    /// # Returns
+    /// This function returns an error if the validation fails due to invalid conditions.
+    pub fn validateMemoryCell(self: *Self, address: Relocatable) !void {
+        if (self.validation_rules.get(@intCast(address.segment_index))) |rule| {
+            //            .validation_rule => |rule| if (!self.validated_addresses.contains(address)) {
+            if (!self.validated_addresses.contains(address)) {
+                self.validated_addresses.addAddresses(rule(self, address));
+            }
+        }
+    }
 };
 
 // Utility function to help set up memory for tests
@@ -324,6 +340,24 @@ fn setUpMemory(memory: *Memory, comptime vals: anytype) !void {
             }
         }
     }
+}
+
+test "Memory: validate memory cell" {
+    var allocator = std.testing.allocator;
+
+    var memory = try Memory.init(allocator);
+    defer memory.deinit();
+
+    try setUpMemory(memory, .{
+        .{ .{ 1, 3 }, .{ 4, 5 } },
+    });
+
+    try memory.validateMemoryCell(Relocatable.new(1, 3));
+
+    try expectEqual(
+        memory.validated_addresses.contains(Relocatable.new(1, 3)),
+        true,
+    );
 }
 
 test "memory inner for testing test" {
