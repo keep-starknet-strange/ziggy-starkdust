@@ -632,7 +632,6 @@ test "Memory: markAsAccessed should mark memory cell" {
     );
 }
 
-
 test "Memory: addRelocationRule should return an error if source segment index >= 0" {
     // Test setup
     var memory = try Memory.init(std.testing.allocator);
@@ -711,4 +710,71 @@ test "Memory: addRelocationRule should add new relocation rule" {
         Relocatable.new(4, 7),
         memory.relocation_rules.get(1).?,
     );
+}
+
+test "AddressSet: contains should return false if segment index is negative" {
+    // Test setup
+    var addressSet = AddressSet.init(std.testing.allocator);
+    defer addressSet.deinit();
+
+    // Test checks
+    try expect(!addressSet.contains(Relocatable.new(-10, 2)));
+}
+
+test "AddressSet: contains should return false if address key does not exist" {
+    // Test setup
+    var addressSet = AddressSet.init(std.testing.allocator);
+    defer addressSet.deinit();
+
+    // Test checks
+    try expect(!addressSet.contains(Relocatable.new(10, 2)));
+}
+
+test "AddressSet: contains should return true if address key is true in address set" {
+    // Test setup
+    var addressSet = AddressSet.init(std.testing.allocator);
+    defer addressSet.deinit();
+    try addressSet.set.put(Relocatable.new(10, 2), true);
+
+    // Test checks
+    try expect(addressSet.contains(Relocatable.new(10, 2)));
+}
+
+test "AddressSet: addAddresses should add new addresses to the address set without negative indexes" {
+    // Test setup
+    var addressSet = AddressSet.init(std.testing.allocator);
+    defer addressSet.deinit();
+
+    const addresses: [4]Relocatable = .{
+        Relocatable.new(0, 10),
+        Relocatable.new(3, 4),
+        Relocatable.new(-2, 2),
+        Relocatable.new(23, 7),
+    };
+
+    _ = try addressSet.addAddresses(&addresses);
+
+    // Test checks
+    try expectEqual(@as(u32, 3), addressSet.set.count());
+    try expect(addressSet.set.get(Relocatable.new(0, 10)).?);
+    try expect(addressSet.set.get(Relocatable.new(3, 4)).?);
+    try expect(addressSet.set.get(Relocatable.new(23, 7)).?);
+}
+
+test "AddressSet: len should return the number of addresses in the address set" {
+    // Test setup
+    var addressSet = AddressSet.init(std.testing.allocator);
+    defer addressSet.deinit();
+
+    const addresses: [4]Relocatable = .{
+        Relocatable.new(0, 10),
+        Relocatable.new(3, 4),
+        Relocatable.new(-2, 2),
+        Relocatable.new(23, 7),
+    };
+
+    _ = try addressSet.addAddresses(&addresses);
+
+    // Test checks
+    try expectEqual(@as(u32, 3), addressSet.len());
 }
