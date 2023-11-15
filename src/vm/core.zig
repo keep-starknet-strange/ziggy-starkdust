@@ -214,7 +214,7 @@ pub const CairoVM = struct {
 
     /// Do a single step of the VM.
     /// Process an instruction cycle using the typical fetch-decode-execute cycle.
-    pub fn step(self: *Self) !void {
+    pub fn step(self: *Self, allocator: Allocator) !void {
         // TODO: Run hints.
 
         std.log.debug(
@@ -247,7 +247,7 @@ pub const CairoVM = struct {
         // ************************************************************
         // *                    EXECUTE                               *
         // ************************************************************
-        return self.runInstruction(&instruction);
+        return self.runInstruction(allocator, &instruction);
     }
 
     /// Run a specific instruction.
