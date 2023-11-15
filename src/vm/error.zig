@@ -29,6 +29,8 @@ pub const CairoVMError = error{
     NoDst,
     /// Occurs when both built-in deductions and fallback deductions fail to deduce Op1.
     FailedToComputeOp1,
+    /// Occurs when both built-in deductions and fallback deductions fail to deduce Op0.
+    FailedToComputeOp0,
 };
 
 /// Represent different error conditions that are memory-related.

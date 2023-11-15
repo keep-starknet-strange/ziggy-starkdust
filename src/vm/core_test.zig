@@ -1216,7 +1216,7 @@ test "compute operands add AP" {
         op0_addr,
         op0_val,
     );
-    
+
     const op1_addr = Relocatable.new(1, 2);
     const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
     try vm.segments.memory.set(
@@ -1285,7 +1285,7 @@ test "compute operands mul FP" {
         op0_addr,
         MemoryCell.new(op0_val),
     );
-    
+
     const op1_addr = Relocatable.new(1, 2);
     const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
     try vm.segments.memory.data.put(
@@ -1549,7 +1549,7 @@ test "CairoVM: computeOp0Deductions should return VM error if deduceOp0 and dedu
 
     // Test check
     try expectError(
-        CairoVMError.FailedToComputeOperands,
+        CairoVMError.FailedToComputeOp0,
         vm.computeOp0Deductions(
             Relocatable.new(0, 7),
             &instr,
