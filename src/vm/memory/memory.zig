@@ -45,6 +45,54 @@ pub const MemoryCell = struct {
     }
 };
 
+// ###############################################
+// ###############################################
+// ###############################################
+
+pub const AddressSet = struct {
+    const Self = @This();
+
+    set: std.HashMap(
+        Relocatable,
+        bool,
+        std.hash_map.AutoContext(Relocatable),
+        std.hash_map.default_max_load_percentage,
+    ),
+
+    pub fn init(allocator: Allocator) Self {
+        return .{ .set = std.AutoHashMap(Relocatable, bool).init(allocator) };
+    }
+
+    pub fn contains(self: *Self, address: Relocatable) bool {
+        if (address.segment_index < 0) {
+            return false;
+        }
+        return self.set.get(address) orelse false;
+    }
+
+    pub fn addAddresses(self: *Self, addresses: []const Relocatable) !void {
+        for (addresses) |address| {
+            if (address.segment_index < 0) {
+                continue;
+            }
+            try self.set.put(address, true);
+        }
+    }
+
+    pub fn len(self: *Self) u32 {
+        return self.set.count();
+    }
+
+    // Safe deallocation of the memory.
+    pub fn deinit(self: *Self) void {
+        self.set.deinit();
+    }
+};
+
+// ###############################################
+// ###############################################
+// ###############################################
+
 // Representation of the VM memory.
 pub const Memory = struct {
     const Self = @This();
@@ -529,4 +577,71 @@ test "Memory: markAsAccessed should mark memory cell" {
         true,
         memory.data.get(relo).?.is_accessed,
     );
+}
+
+test "AddressSet: contains should return false if segment index is negative" {
+    // Test setup
+    var addressSet = AddressSet.init(std.testing.allocator);
+    defer addressSet.deinit();
+
+    // Test checks
+    try expect(!addressSet.contains(Relocatable.new(-10, 2)));
+}
+
+test "AddressSet: contains should return false if address key does not exist" {
+    // Test setup
+    var addressSet = AddressSet.init(std.testing.allocator);
+    defer addressSet.deinit();
+
+    // Test checks
+    try expect(!addressSet.contains(Relocatable.new(10, 2)));
+}
+
+test "AddressSet: contains should return true if address key is true in address set" {
+    // Test setup
+    var addressSet = AddressSet.init(std.testing.allocator);
+    defer addressSet.deinit();
+    try addressSet.set.put(Relocatable.new(10, 2), true);
+
+    // Test checks
+    try expect(addressSet.contains(Relocatable.new(10, 2)));
+}
+
+test "AddressSet: addAddresses should add new addresses to the address set without negative indexes" {
+    // Test setup
+    var addressSet = AddressSet.init(std.testing.allocator);
+    defer addressSet.deinit();
+
+    const addresses: [4]Relocatable = .{
+        Relocatable.new(0, 10),
+        Relocatable.new(3, 4),
+        Relocatable.new(-2, 2),
+        Relocatable.new(23, 7),
+    };
+
+    _ = try addressSet.addAddresses(&addresses);
+
+    // Test checks
+    try expectEqual(@as(u32, 3), addressSet.set.count());
+    try expect(addressSet.set.get(Relocatable.new(0, 10)).?);
+    try expect(addressSet.set.get(Relocatable.new(3, 4)).?);
+    try expect(addressSet.set.get(Relocatable.new(23, 7)).?);
+}
+
+test "AddressSet: len should return the number of addresses in the address set" {
+    // Test setup
+    var addressSet = AddressSet.init(std.testing.allocator);
+    defer addressSet.deinit();
+
+    const addresses: [4]Relocatable = .{
+        Relocatable.new(0, 10),
+        Relocatable.new(3, 4),
+        Relocatable.new(-2, 2),
+        Relocatable.new(23, 7),
+    };
+
+    _ = try addressSet.addAddresses(&addresses);
+
+    // Test checks
+    try expectEqual(@as(u32, 3), addressSet.len());
 }
