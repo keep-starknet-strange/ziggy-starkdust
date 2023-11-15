@@ -35,6 +35,9 @@ pub const CairoVMError = error{
 pub const MemoryError = error{
     /// The amount of used cells associated with the Range Check runner is not available.
     MissingSegmentUsedSizes,
+    AddressNotInTemporarySegment,
+    NonZeroOffset,
+    DuplicatedRelocation,
 };
 
 /// Reepresents different error conditions that occur in the built-in runners.
