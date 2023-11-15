@@ -4,7 +4,6 @@
 
 // Core imports.
 const std = @import("std");
-const Allocator = std.mem.Allocator;
 // Dependencies imports.
 const cli = @import("zig-cli");
 // Local imports.
