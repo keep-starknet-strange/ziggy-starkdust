@@ -105,8 +105,8 @@ pub const CairoVM = struct {
     /// # Returns
     ///
     /// An AutoArrayHashMap representing the computed effective sizes of memory segments.
-    pub fn computeSegmentsEffectiveSizes(self: *Self) !std.AutoArrayHashMap(u32, u32) {
-        return self.segments.computeEffectiveSize();
+    pub fn computeSegmentsEffectiveSizes(self: *Self) !std.AutoArrayHashMap(i64, u32) {
+        return self.segments.computeEffectiveSize(false);
     }
 
     /// Adds a memory segment to the Cairo VM and returns the first address of the new segment.
@@ -282,7 +282,6 @@ pub const CairoVM = struct {
         self: *Self,
         instruction: *const instructions.Instruction,
     ) !OperandsResult {
-
         var op_res = OperandsResult.default();
 
         op_res.res = null;
@@ -298,7 +297,7 @@ pub const CairoVM = struct {
         );
 
         const op_1_op = self.segments.memory.get(op_res.op_1_addr) catch null;
-        
+
         // Deduce the operands if they haven't been successfully retrieved from memory.
 
         const op_1_ptr = &op_1_op.?;

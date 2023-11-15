@@ -27,9 +27,9 @@ pub const MemorySegmentManager = struct {
     allocator: Allocator,
     // The size of the used segments.
     segment_used_sizes: std.ArrayHashMap(
+        i64,
         u32,
-        u32,
-        std.array_hash_map.AutoContext(u32),
+        std.array_hash_map.AutoContext(i64),
         false,
     ),
     // The size of the segments.
@@ -71,7 +71,7 @@ pub const MemorySegmentManager = struct {
         segment_manager.* = .{
             .allocator = allocator,
             .segment_used_sizes = std.AutoArrayHashMap(
-                u32,
+                i64,
                 u32,
             ).init(allocator),
             .segment_sizes = std.AutoHashMap(
@@ -167,7 +167,25 @@ pub const MemorySegmentManager = struct {
     /// # Returns
     ///
     /// An `AutoArrayHashMap` representing the computed effective sizes of memory segments.
-    pub fn computeEffectiveSize(self: *Self) !std.AutoArrayHashMap(u32, u32) {
+    pub fn computeEffectiveSize(self: *Self, allow_tmp_segments: bool) !std.AutoArrayHashMap(i64, u32) {
+        if (self.segment_used_sizes.count() != 0) {
+            return self.segment_used_sizes;
+        }
+
+        // TODO: Check if memory is frozen. At the time of writting this function memory cannot be frozen so we cannot check if it frozen.
+        var first_segment_index: i64 = undefined;
+
+        if (allow_tmp_segments) {
+            first_segment_index = -@as(i64, self.memory.num_temp_segments);
+        } else {
+            first_segment_index = 0;
+        }
+
+        while (first_segment_index < self.memory.num_segments) {
+            try self.segment_used_sizes.put(first_segment_index, 0);
+            first_segment_index += 1;
+        }
+
         for (self.memory.data.keys()) |item| {
             const offset = self.segment_used_sizes.get(@intCast(item.segment_index));
             if (offset == null or offset.? < item.offset + 1) {
@@ -386,7 +404,7 @@ test "MemorySegmentManager: computeEffectiveSize for one segment memory" {
     try memory_segment_manager.memory.data.put(Relocatable.new(0, 1), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
     try memory_segment_manager.memory.data.put(Relocatable.new(0, 2), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
 
-    var actual = try memory_segment_manager.computeEffectiveSize();
+    var actual = try memory_segment_manager.computeEffectiveSize(false);
 
     try expectEqual(@as(usize, 1), actual.count());
     try expectEqual(@as(u32, 3), actual.get(0).?);
@@ -398,7 +416,7 @@ test "MemorySegmentManager: computeEffectiveSize for one segment memory with gap
     _ = memory_segment_manager.addSegment();
     try memory_segment_manager.memory.data.put(Relocatable.new(0, 6), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
 
-    var actual = try memory_segment_manager.computeEffectiveSize();
+    var actual = try memory_segment_manager.computeEffectiveSize(false);
 
     try expectEqual(@as(usize, 1), actual.count());
     try expectEqual(@as(u32, 7), actual.get(0).?);
@@ -412,7 +430,7 @@ test "MemorySegmentManager: computeEffectiveSize for one segment memory with gap
     try memory_segment_manager.memory.data.put(Relocatable.new(0, 7), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
     try memory_segment_manager.memory.data.put(Relocatable.new(0, 9), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
 
-    var actual = try memory_segment_manager.computeEffectiveSize();
+    var actual = try memory_segment_manager.computeEffectiveSize(false);
 
     try expectEqual(@as(usize, 1), actual.count());
     try expectEqual(@as(u32, 10), actual.get(0).?);
@@ -433,7 +451,7 @@ test "MemorySegmentManager: computeEffectiveSize for three segment memory" {
     try memory_segment_manager.memory.data.put(Relocatable.new(2, 1), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
     try memory_segment_manager.memory.data.put(Relocatable.new(2, 2), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
 
-    var actual = try memory_segment_manager.computeEffectiveSize();
+    var actual = try memory_segment_manager.computeEffectiveSize(false);
 
     try expectEqual(@as(usize, 3), actual.count());
     try expectEqual(@as(u32, 3), actual.get(0).?);
@@ -454,7 +472,7 @@ test "MemorySegmentManager: computeEffectiveSize for three segment memory with g
     try memory_segment_manager.memory.data.put(Relocatable.new(2, 4), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
     try memory_segment_manager.memory.data.put(Relocatable.new(2, 7), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
 
-    var actual = try memory_segment_manager.computeEffectiveSize();
+    var actual = try memory_segment_manager.computeEffectiveSize(false);
 
     try expectEqual(@as(usize, 3), actual.count());
     try expectEqual(@as(u32, 8), actual.get(0).?);
@@ -475,7 +493,7 @@ test "MemorySegmentManager: getSegmentUsedSize after computeEffectiveSize" {
     try memory_segment_manager.memory.data.put(Relocatable.new(2, 4), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
     try memory_segment_manager.memory.data.put(Relocatable.new(2, 7), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
 
-    _ = try memory_segment_manager.computeEffectiveSize();
+    _ = try memory_segment_manager.computeEffectiveSize(false);
 
     try expectEqual(@as(usize, 3), memory_segment_manager.segment_used_sizes.count());
     try expectEqual(@as(u32, 8), memory_segment_manager.segment_used_sizes.get(0).?);
