@@ -45,13 +45,11 @@ pub const MemoryCell = struct {
     }
 };
 
-// ###############################################
-// ###############################################
-// ###############################################
-
+/// Represents a set of validated memory addresses in the Cairo VM.
 pub const AddressSet = struct {
     const Self = @This();
 
+    /// Internal hash map storing the validated addresses and their accessibility status.
     set: std.HashMap(
         Relocatable,
         bool,
@@ -59,10 +57,22 @@ pub const AddressSet = struct {
         std.hash_map.default_max_load_percentage,
     ),
 
+    /// Initializes a new AddressSet using the provided allocator.
+    ///
+    /// # Arguments
+    /// - `allocator`: The allocator used for set initialization.
+    /// # Returns
+    /// A new AddressSet instance.
     pub fn init(allocator: Allocator) Self {
         return .{ .set = std.AutoHashMap(Relocatable, bool).init(allocator) };
     }
 
+    /// Checks if the set contains the specified memory address.
+    ///
+    /// # Arguments
+    /// - `address`: The memory address to check.
+    /// # Returns
+    /// `true` if the address is in the set and accessible, otherwise `false`.
     pub fn contains(self: *Self, address: Relocatable) bool {
         if (address.segment_index < 0) {
             return false;
@@ -70,6 +80,12 @@ pub const AddressSet = struct {
         return self.set.get(address) orelse false;
     }
 
+    /// Adds an array of memory addresses to the set, ignoring addresses with negative segment indexes.
+    ///
+    /// # Arguments
+    /// - `addresses`: An array of memory addresses to add to the set.
+    /// # Returns
+    /// An error if the addition fails.
     pub fn addAddresses(self: *Self, addresses: []const Relocatable) !void {
         for (addresses) |address| {
             if (address.segment_index < 0) {
@@ -79,19 +95,19 @@ pub const AddressSet = struct {
         }
     }
 
+    /// Returns the number of validated addresses in the set.
+    ///
+    /// # Returns
+    /// The count of validated addresses in the set.
     pub fn len(self: *Self) u32 {
         return self.set.count();
     }
 
-    // Safe deallocation of the memory.
+    /// Safely deallocates the memory used by the set.
     pub fn deinit(self: *Self) void {
         self.set.deinit();
     }
 };
-
-// ###############################################
-// ###############################################
-// ###############################################
 
 // Representation of the VM memory.
 pub const Memory = struct {
@@ -122,12 +138,7 @@ pub const Memory = struct {
     num_temp_segments: u32,
     // Validated addresses are addresses that have been validated.
     // TODO: Consider merging this with `data` and benchmarking.
-    validated_addresses: std.HashMap(
-        Relocatable,
-        bool,
-        std.hash_map.AutoContext(Relocatable),
-        std.hash_map.default_max_load_percentage,
-    ),
+    validated_addresses: AddressSet,
     validation_rules: std.HashMap(
         u32,
         validation_rule,
@@ -156,10 +167,7 @@ pub const Memory = struct {
             .temp_data = std.AutoArrayHashMap(Relocatable, MemoryCell).init(allocator),
             .num_segments = 0,
             .num_temp_segments = 0,
-            .validated_addresses = std.AutoHashMap(
-                Relocatable,
-                bool,
-            ).init(allocator),
+            .validated_addresses = AddressSet.init(allocator),
             .validation_rules = std.AutoHashMap(
                 u32,
                 validation_rule,
