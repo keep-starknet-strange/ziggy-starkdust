@@ -255,6 +255,7 @@ pub const CairoVM = struct {
     /// - `instruction`: The instruction to run.
     pub fn runInstruction(
         self: *Self,
+        allocator: Allocator,
         instruction: *const instructions.Instruction,
     ) !void {
         if (!build_options.trace_disable) {
@@ -265,7 +266,7 @@ pub const CairoVM = struct {
             });
         }
 
-        const operands_result = try self.computeOperands(instruction);
+        const operands_result = try self.computeOperands(allocator, instruction);
 
         try self.updateRegisters(
             instruction,
@@ -280,9 +281,9 @@ pub const CairoVM = struct {
     /// - `Operands`: The operands for the instruction.
     pub fn computeOperands(
         self: *Self,
+        allocator: Allocator,
         instruction: *const instructions.Instruction,
     ) !OperandsResult {
-
         var op_res = OperandsResult.default();
 
         op_res.res = null;
@@ -298,7 +299,7 @@ pub const CairoVM = struct {
         );
 
         const op_1_op = self.segments.memory.get(op_res.op_1_addr) catch null;
-        
+
         // Deduce the operands if they haven't been successfully retrieved from memory.
 
         const op_1_ptr = &op_1_op.?;
@@ -307,6 +308,7 @@ pub const CairoVM = struct {
 
         if (op_0_op == null) {
             op_res.op_0 = try self.computeOp0Deductions(
+                allocator,
                 op_res.op_0_addr,
                 instruction,
                 dst_ptr,
@@ -318,6 +320,7 @@ pub const CairoVM = struct {
 
         if (op_1_op == null) {
             op_res.op_1 = try self.computeOp1Deductions(
+                allocator,
                 op_res.op_1_addr,
                 &op_res.res,
                 instruction,

@@ -83,8 +83,8 @@ test "CairoVM: deduceMemoryCell builtin valid" {
         relocatable.fromFelt(Felt252.fromInteger(0)),
     );
     try expectEqual(
-        (try vm.deduceMemoryCell(std.testing.allocator, Relocatable.new(
         fromU256(8),
+        (try vm.deduceMemoryCell(std.testing.allocator, Relocatable.new(
             0,
             7,
         ))).?,
@@ -1216,7 +1216,7 @@ test "compute operands add AP" {
         op0_addr,
         op0_val,
     );
-    
+
     const op1_addr = Relocatable.new(1, 2);
     const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
     try vm.segments.memory.set(
@@ -1234,6 +1234,7 @@ test "compute operands add AP" {
     expected_operands.res = dst_val;
 
     const actual_operands = try vm.computeOperands(
+        std.testing.allocator,
         &instruction,
     );
 
@@ -1285,7 +1286,7 @@ test "compute operands mul FP" {
         op0_addr,
         MemoryCell.new(op0_val),
     );
-    
+
     const op1_addr = Relocatable.new(1, 2);
     const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
     try vm.segments.memory.data.put(
@@ -1303,6 +1304,7 @@ test "compute operands mul FP" {
     expected_operands.res = dst_val;
 
     const actual_operands = try vm.computeOperands(
+        std.testing.allocator,
         &instruction,
     );
 
