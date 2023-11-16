@@ -55,3 +55,11 @@ pub const RunnerError = error{
     /// Raised when the conversion into a type of integer (e.g. a Felt) fails.
     BuiltinExpectedInteger,
 };
+
+/// Represents different error conditions that occur during mathematical operations.
+pub const MathError = error{
+    /// Error when attempting to perform addition between Relocatable values.
+    RelocatableAdd,
+    /// Error when attempting to subtract a Relocatable from an integer value.
+    SubRelocatableFromInt,
+};
