@@ -736,7 +736,7 @@ test "MaybeRelocatable: add should add two MaybeRelocatable with different segme
     try expectError(error.TypeMismatchNotRelocatable, maybeRelocatable1.add(maybeRelocatable2));
 }
 
-test "MaybeRelocatable: add should sub two MaybeRelocatable with same segment index" {
+test "MaybeRelocatable: sub should sub two MaybeRelocatable with same segment index" {
     var maybeRelocatable1 = fromSegment(0, 30);
     var maybeRelocatable2 = fromSegment(0, 20);
     var maybeRelocatable3 = fromSegment(0, 10);
@@ -746,14 +746,14 @@ test "MaybeRelocatable: add should sub two MaybeRelocatable with same segment in
     try expect(add.eq(maybeRelocatable3));
 }
 
-test "MaybeRelocatable: add should sub two MaybeRelocatable with different segment index" {
+test "MaybeRelocatable: sub should sub two MaybeRelocatable with different segment index" {
     var maybeRelocatable1 = fromSegment(1, 10);
     var maybeRelocatable2 = fromSegment(0, 10);
 
     try expectError(error.TypeMismatchNotRelocatable, maybeRelocatable1.sub(maybeRelocatable2));
 }
 
-test "MaybeRelocatable: add should sub two MaybeRelocatable with negative offset" {
+test "MaybeRelocatable: sub should sub two MaybeRelocatable with negative offset" {
     var maybeRelocatable1 = fromSegment(0, 10);
     var maybeRelocatable2 = fromSegment(0, 11);
 
