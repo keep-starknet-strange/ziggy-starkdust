@@ -10,6 +10,7 @@ const relocatable = @import("relocatable.zig");
 const MaybeRelocatable = relocatable.MaybeRelocatable;
 const Relocatable = relocatable.Relocatable;
 const CairoVMError = @import("../error.zig").CairoVMError;
+const MemoryError = @import("../error.zig").MemoryError;
 const starknet_felt = @import("../../math/fields/starknet.zig");
 const Felt252 = starknet_felt.Felt252;
 
@@ -45,41 +46,107 @@ pub const MemoryCell = struct {
     }
 };
 
+/// Represents a set of validated memory addresses in the Cairo VM.
+pub const AddressSet = struct {
+    const Self = @This();
+
+    /// Internal hash map storing the validated addresses and their accessibility status.
+    set: std.HashMap(
+        Relocatable,
+        bool,
+        std.hash_map.AutoContext(Relocatable),
+        std.hash_map.default_max_load_percentage,
+    ),
+
+    /// Initializes a new AddressSet using the provided allocator.
+    ///
+    /// # Arguments
+    /// - `allocator`: The allocator used for set initialization.
+    /// # Returns
+    /// A new AddressSet instance.
+    pub fn init(allocator: Allocator) Self {
+        return .{ .set = std.AutoHashMap(Relocatable, bool).init(allocator) };
+    }
+
+    /// Checks if the set contains the specified memory address.
+    ///
+    /// # Arguments
+    /// - `address`: The memory address to check.
+    /// # Returns
+    /// `true` if the address is in the set and accessible, otherwise `false`.
+    pub fn contains(self: *Self, address: Relocatable) bool {
+        if (address.segment_index < 0) {
+            return false;
+        }
+        return self.set.get(address) orelse false;
+    }
+
+    /// Adds an array of memory addresses to the set, ignoring addresses with negative segment indexes.
+    ///
+    /// # Arguments
+    /// - `addresses`: An array of memory addresses to add to the set.
+    /// # Returns
+    /// An error if the addition fails.
+    pub fn addAddresses(self: *Self, addresses: []const Relocatable) !void {
+        for (addresses) |address| {
+            if (address.segment_index < 0) {
+                continue;
+            }
+            try self.set.put(address, true);
+        }
+    }
+
+    /// Returns the number of validated addresses in the set.
+    ///
+    /// # Returns
+    /// The count of validated addresses in the set.
+    pub fn len(self: *Self) u32 {
+        return self.set.count();
+    }
+
+    /// Safely deallocates the memory used by the set.
+    pub fn deinit(self: *Self) void {
+        self.set.deinit();
+    }
+};
+
 // Representation of the VM memory.
 pub const Memory = struct {
     const Self = @This();
 
-    // ************************************************************
-    // *                        FIELDS                            *
-    // ************************************************************
-    /// The allocator used to allocate the memory.
+    /// Allocator responsible for memory allocation within the VM memory.
     allocator: Allocator,
-    // The data in the memory.
+    /// Hash map storing the main data in the memory, indexed by Relocatable addresses.
     data: std.ArrayHashMap(
         Relocatable,
         MemoryCell,
         std.array_hash_map.AutoContext(Relocatable),
         true,
     ),
-    // The temporary data in the memory.
+    /// Hash map storing temporary data in the memory, indexed by Relocatable addresses.
     temp_data: std.ArrayHashMap(
         Relocatable,
         MemoryCell,
         std.array_hash_map.AutoContext(Relocatable),
         true,
     ),
-    // The number of segments in the memory.
+    /// Number of segments currently present in the memory.
     num_segments: u32,
-    // The number of temporary segments in the memory.
+    /// Number of temporary segments in the memory.
     num_temp_segments: u32,
-    // Validated addresses are addresses that have been validated.
-    // TODO: Consider merging this with `data` and benchmarking.
-    validated_addresses: std.HashMap(
+    /// Hash map tracking validated addresses to ensure they have been properly validated.
+    /// Consideration: Possible merge with `data` for optimization; benchmarking recommended.
+    validated_addresses: AddressSet,
+    /// Hash map linking temporary data indices to their corresponding relocation rules.
+    /// Keys are derived from temp_data's indices (segment_index), starting at zero.
+    /// For example, segment_index = -1 maps to key 0, -2 to key 1, and so on.
+    relocation_rules: std.HashMap(
+        u64,
         Relocatable,
-        bool,
-        std.hash_map.AutoContext(Relocatable),
+        std.hash_map.AutoContext(u64),
         std.hash_map.default_max_load_percentage,
     ),
+    /// Hash map associating segment indices with their respective validation rules.
     validation_rules: std.HashMap(
         u32,
         validation_rule,
@@ -108,9 +175,10 @@ pub const Memory = struct {
             .temp_data = std.AutoArrayHashMap(Relocatable, MemoryCell).init(allocator),
             .num_segments = 0,
             .num_temp_segments = 0,
-            .validated_addresses = std.AutoHashMap(
+            .validated_addresses = AddressSet.init(allocator),
+            .relocation_rules = std.AutoHashMap(
+                u64,
                 Relocatable,
-                bool,
             ).init(allocator),
             .validation_rules = std.AutoHashMap(
                 u32,
@@ -126,6 +194,8 @@ pub const Memory = struct {
         self.data.deinit();
         self.temp_data.deinit();
         self.validated_addresses.deinit();
+        self.validation_rules.deinit();
+        self.relocation_rules.deinit();
         // Deallocate self.
         self.allocator.destroy(self);
     }
@@ -239,9 +309,9 @@ pub const Memory = struct {
         self.validation_rules.put(segment_index, rule);
     }
 
-    // Marks a `MemoryCell` as accessed at the specified relocatable address.
-    // # Arguments
-    // - `address` - The relocatable address to mark.
+    /// Marks a `MemoryCell` as accessed at the specified relocatable address.
+    /// # Arguments
+    /// - `address` - The relocatable address to mark.
     pub fn markAsAccessed(self: *Self, address: Relocatable) void {
         if (address.segment_index < 0) {
             var tempCell = self.temp_data.getPtr(address).?;
@@ -251,6 +321,37 @@ pub const Memory = struct {
             cell.markAccessed();
         }
     }
+
+    /// Adds a relocation rule to the VM memory, allowing redirection of temporary data to a specified destination.
+    ///
+    /// # Arguments
+    /// - `src_ptr`: The source Relocatable pointer representing the temporary segment to be relocated.
+    /// - `dst_ptr`: The destination Relocatable pointer where the temporary segment will be redirected.
+    ///
+    /// # Returns
+    /// This function returns an error if the relocation fails due to invalid conditions.
+    pub fn addRelocationRule(
+        self: *Self,
+        src_ptr: Relocatable,
+        dst_ptr: Relocatable,
+    ) !void {
+        // Check if the source pointer is in a temporary segment.
+        if (src_ptr.segment_index >= 0) {
+            return MemoryError.AddressNotInTemporarySegment;
+        }
+        // Check if the source pointer has a non-zero offset.
+        if (src_ptr.offset != 0) {
+            return MemoryError.NonZeroOffset;
+        }
+        // Adjust the segment index to begin at zero.
+        const segment_index: u64 = @intCast(-(src_ptr.segment_index + 1));
+        // Check for duplicated relocation rules.
+        if (self.relocation_rules.contains(segment_index)) {
+            return MemoryError.DuplicatedRelocation;
+        }
+        // Add the relocation rule to the memory.
+        try self.relocation_rules.put(segment_index, dst_ptr);
+    }
 };
 
 // Utility function to help set up memory for tests
@@ -258,7 +359,7 @@ pub const Memory = struct {
 // # Arguments
 // - `memory` - memory to be set
 // - `vals` - complile time structure with heterogenous types
-fn setUpMemory(memory: *Memory, comptime vals: anytype) !void {
+pub fn setUpMemory(memory: *Memory, comptime vals: anytype) !void {
     inline for (vals) |row| {
         const firstCol = row[0];
         const address = Relocatable.new(firstCol[0], firstCol[1]);
@@ -529,4 +630,151 @@ test "Memory: markAsAccessed should mark memory cell" {
         true,
         memory.data.get(relo).?.is_accessed,
     );
+}
+
+test "Memory: addRelocationRule should return an error if source segment index >= 0" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    // Test checks
+    // Check if source pointer segment index is positive
+    try expectError(
+        MemoryError.AddressNotInTemporarySegment,
+        memory.addRelocationRule(
+            Relocatable.new(1, 3),
+            Relocatable.new(4, 7),
+        ),
+    );
+    // Check if source pointer segment index is zero
+    try expectError(
+        MemoryError.AddressNotInTemporarySegment,
+        memory.addRelocationRule(
+            Relocatable.new(0, 3),
+            Relocatable.new(4, 7),
+        ),
+    );
+}
+
+test "Memory: addRelocationRule should return an error if source offset is not zero" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    // Test checks
+    // Check if source offset is not zero
+    try expectError(
+        MemoryError.NonZeroOffset,
+        memory.addRelocationRule(
+            Relocatable.new(-2, 3),
+            Relocatable.new(4, 7),
+        ),
+    );
+}
+
+test "Memory: addRelocationRule should return an error if another relocation present at same index" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try memory.relocation_rules.put(1, Relocatable.new(9, 77));
+
+    // Test checks
+    try expectError(
+        MemoryError.DuplicatedRelocation,
+        memory.addRelocationRule(
+            Relocatable.new(-2, 0),
+            Relocatable.new(4, 7),
+        ),
+    );
+}
+
+test "Memory: addRelocationRule should add new relocation rule" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    _ = try memory.addRelocationRule(
+        Relocatable.new(-2, 0),
+        Relocatable.new(4, 7),
+    );
+
+    // Test checks
+    // Verify that relocation rule content is correct
+    try expectEqual(
+        @as(u32, 1),
+        memory.relocation_rules.count(),
+    );
+    // Verify that new relocation rule was added properly
+    try expectEqual(
+        Relocatable.new(4, 7),
+        memory.relocation_rules.get(1).?,
+    );
+}
+
+test "AddressSet: contains should return false if segment index is negative" {
+    // Test setup
+    var addressSet = AddressSet.init(std.testing.allocator);
+    defer addressSet.deinit();
+
+    // Test checks
+    try expect(!addressSet.contains(Relocatable.new(-10, 2)));
+}
+
+test "AddressSet: contains should return false if address key does not exist" {
+    // Test setup
+    var addressSet = AddressSet.init(std.testing.allocator);
+    defer addressSet.deinit();
+
+    // Test checks
+    try expect(!addressSet.contains(Relocatable.new(10, 2)));
+}
+
+test "AddressSet: contains should return true if address key is true in address set" {
+    // Test setup
+    var addressSet = AddressSet.init(std.testing.allocator);
+    defer addressSet.deinit();
+    try addressSet.set.put(Relocatable.new(10, 2), true);
+
+    // Test checks
+    try expect(addressSet.contains(Relocatable.new(10, 2)));
+}
+
+test "AddressSet: addAddresses should add new addresses to the address set without negative indexes" {
+    // Test setup
+    var addressSet = AddressSet.init(std.testing.allocator);
+    defer addressSet.deinit();
+
+    const addresses: [4]Relocatable = .{
+        Relocatable.new(0, 10),
+        Relocatable.new(3, 4),
+        Relocatable.new(-2, 2),
+        Relocatable.new(23, 7),
+    };
+
+    _ = try addressSet.addAddresses(&addresses);
+
+    // Test checks
+    try expectEqual(@as(u32, 3), addressSet.set.count());
+    try expect(addressSet.set.get(Relocatable.new(0, 10)).?);
+    try expect(addressSet.set.get(Relocatable.new(3, 4)).?);
+    try expect(addressSet.set.get(Relocatable.new(23, 7)).?);
+}
+
+test "AddressSet: len should return the number of addresses in the address set" {
+    // Test setup
+    var addressSet = AddressSet.init(std.testing.allocator);
+    defer addressSet.deinit();
+
+    const addresses: [4]Relocatable = .{
+        Relocatable.new(0, 10),
+        Relocatable.new(3, 4),
+        Relocatable.new(-2, 2),
+        Relocatable.new(23, 7),
+    };
+
+    _ = try addressSet.addAddresses(&addresses);
+
+    // Test checks
+    try expectEqual(@as(u32, 3), addressSet.len());
 }

@@ -282,7 +282,6 @@ pub const CairoVM = struct {
         self: *Self,
         instruction: *const instructions.Instruction,
     ) !OperandsResult {
-
         var op_res = OperandsResult.default();
 
         op_res.res = null;
@@ -298,7 +297,7 @@ pub const CairoVM = struct {
         );
 
         const op_1_op = self.segments.memory.get(op_res.op_1_addr) catch null;
-        
+
         // Deduce the operands if they haven't been successfully retrieved from memory.
 
         const op_1_ptr = &op_1_op.?;
@@ -367,7 +366,7 @@ pub const CairoVM = struct {
             op1,
         )).op_0;
 
-        return op0_op orelse CairoVMError.FailedToComputeOperands;
+        return op0_op orelse CairoVMError.FailedToComputeOp0;
     }
 
     /// Compute Op1 deductions based on the provided instruction, destination, and Op0.
