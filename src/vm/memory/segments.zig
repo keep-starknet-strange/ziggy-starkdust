@@ -8,6 +8,7 @@ const expectError = std.testing.expectError;
 
 // Local imports.
 const Memory = @import("memory.zig").Memory;
+const memoryFile = @import("memory.zig");
 const MemoryCell = @import("memory.zig").MemoryCell;
 const relocatable = @import("relocatable.zig");
 const Relocatable = @import("relocatable.zig").Relocatable;
@@ -218,6 +219,15 @@ pub const MemorySegmentManager = struct {
         };
     }
 };
+
+// Utility function to help set up memory segments
+//
+// # Arguments
+// - `segment_manager` - MemorySegmentManger to be passed in
+// - `vals` - complile time structure with heterogenous types
+pub fn segmentsUtil(segment_manager: *MemorySegmentManager, comptime vals: anytype) !void {
+    try memoryFile.setUpMemory(segment_manager.memory, vals);
+}
 
 // ************************************************************
 // *                         TESTS                            *
@@ -522,7 +532,7 @@ test "MemorySegmentManager: isValidMemoryValue should return true if valid segme
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     try memory_segment_manager.segment_used_sizes.put(0, 10);
-    var value: MaybeRelocatable = .{ .relocatable = Relocatable.new(0, 5) };
+    var value: MaybeRelocatable = relocatable.fromSegment(0, 5);
     try expect(memory_segment_manager.isValidMemoryValue(&value));
 }
 
@@ -548,4 +558,21 @@ test "MemorySegmentManager: getSegmentUsedSize should return the size of the use
         @as(?u32, 4),
         memory_segment_manager.getSegmentUsedSize(5),
     );
+
+test "MemorySegmentManager: segments utility function for testing test" {
+    var allocator = std.testing.allocator;
+
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
+    defer memory_segment_manager.deinit();
+
+    try segmentsUtil(memory_segment_manager, .{
+        .{ .{ 0, 0 }, .{1} },
+        .{ .{ 0, 1 }, .{1} },
+        .{ .{ 0, 2 }, .{1} },
+    });
+
+    var actual = try memory_segment_manager.computeEffectiveSize();
+
+    try expectEqual(@as(usize, 1), actual.count());
+    try expectEqual(@as(u32, 3), actual.get(0).?);
 }
