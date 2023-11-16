@@ -366,7 +366,7 @@ pub const CairoVM = struct {
             op1,
         )).op_0;
 
-        return op0_op orelse CairoVMError.FailedToComputeOperands;
+        return op0_op orelse CairoVMError.FailedToComputeOp0;
     }
 
     /// Compute Op1 deductions based on the provided instruction, destination, and Op0.
