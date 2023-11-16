@@ -566,7 +566,7 @@ test "MemorySegmentManager: segments utility function for testing test" {
         .{ .{ 0, 2 }, .{1} },
     });
 
-    var actual = try memory_segment_manager.computeEffectiveSize();
+    var actual = try memory_segment_manager.computeEffectiveSize(false);
 
     try expectEqual(@as(usize, 1), actual.count());
     try expectEqual(@as(u32, 3), actual.get(0).?);
