@@ -90,6 +90,17 @@ pub const Relocatable = struct {
         return self.segment_index > other.segment_index or (self.segment_index == other.segment_index and self.offset >= other.offset);
     }
 
+    /// Attempts to add a `Relocatable` from another.
+    ///
+    /// This method fails if `self` and other` are not from the same segment.
+    pub fn add(self: Relocatable, other: Relocatable) !Relocatable {
+        if (self.segment_index != other.segment_index) {
+            return error.TypeMismatchNotRelocatable;
+        }
+
+        return try addUint(self, other.offset);
+    }
+
     /// Attempts to subtract a `Relocatable` from another.
     ///
     /// This method fails if `self` and other` are not from the same segment.
@@ -233,6 +244,28 @@ pub const MaybeRelocatable = union(enum) {
                 .relocatable => false,
             },
         };
+    }
+
+    /// Adds two `MaybeRelocatable` instances.
+    ///
+    /// # Arguments
+    ///  * other: The other `MaybeRelocatable` instance to add.
+    ///
+    /// # Returns
+    /// A new `MaybeRelocatable` instance containing the result of the addition or error
+    pub fn add(self: Self, other: Self) !Self {
+        return .{ .relocatable = try self.relocatable.add(other.relocatable) };
+    }
+
+    /// Subtracts two `MaybeRelocatable` instances.
+    ///
+    /// # Arguments
+    /// * other: The other `MaybeRelocatable` instance to subtract.
+    ///
+    /// # Returns
+    /// A new `MaybeRelocatable` instance containing the result of the subtraction or error
+    pub fn sub(self: Self, other: Self) !Self {
+        return .{ .relocatable = try self.relocatable.sub(other.relocatable) };
     }
 
     /// Determines if self is less than other.
@@ -561,6 +594,20 @@ test "Relocatable: subUint should return an error if substraction is impossible"
     );
 }
 
+test "Relocatable: add two Relocatable with same segment index" {
+    try expectEqual(
+        Relocatable.new(2, 10),
+        try Relocatable.new(2, 5).add(Relocatable.new(2, 5)),
+    );
+}
+
+test "Relocatable: add two Relocatable with different segment index" {
+    try expectError(
+        error.TypeMismatchNotRelocatable,
+        Relocatable.new(2, 8).add(Relocatable.new(3, 5)),
+    );
+}
+
 test "Relocatable: sub two Relocatable with same segment index" {
     try expectEqual(
         Relocatable.new(2, 3),
@@ -670,6 +717,47 @@ test "Relocatable: ge should return true if other relocatable is less, false oth
     // 1 > 2
     try expect(Relocatable.new(2, 5).ge(Relocatable.new(2, 4)));
     try expect(Relocatable.new(3, 3).ge(Relocatable.new(2, 4)));
+}
+
+test "MaybeRelocatable: add should add two MaybeRelocatable with same segment index" {
+    var maybeRelocatable1 = fromSegment(0, 10);
+    var maybeRelocatable2 = fromSegment(0, 10);
+    var maybeRelocatable3 = fromSegment(0, 20);
+
+    const add = try maybeRelocatable1.add(maybeRelocatable2);
+
+    try expect(add.eq(maybeRelocatable3));
+}
+
+test "MaybeRelocatable: add should add two MaybeRelocatable with different segment index" {
+    var maybeRelocatable1 = fromSegment(1, 10);
+    var maybeRelocatable2 = fromSegment(0, 10);
+
+    try expectError(error.TypeMismatchNotRelocatable, maybeRelocatable1.add(maybeRelocatable2));
+}
+
+test "MaybeRelocatable: add should sub two MaybeRelocatable with same segment index" {
+    var maybeRelocatable1 = fromSegment(0, 30);
+    var maybeRelocatable2 = fromSegment(0, 20);
+    var maybeRelocatable3 = fromSegment(0, 10);
+
+    const add = try maybeRelocatable1.sub(maybeRelocatable2);
+
+    try expect(add.eq(maybeRelocatable3));
+}
+
+test "MaybeRelocatable: add should sub two MaybeRelocatable with different segment index" {
+    var maybeRelocatable1 = fromSegment(1, 10);
+    var maybeRelocatable2 = fromSegment(0, 10);
+
+    try expectError(error.TypeMismatchNotRelocatable, maybeRelocatable1.sub(maybeRelocatable2));
+}
+
+test "MaybeRelocatable: add should sub two MaybeRelocatable with negative offset" {
+    var maybeRelocatable1 = fromSegment(0, 10);
+    var maybeRelocatable2 = fromSegment(0, 11);
+
+    try expectError(error.RelocatableSubUsizeNegOffset, maybeRelocatable1.sub(maybeRelocatable2));
 }
 
 test "MaybeRelocatable: eq should return true if two MaybeRelocatable are the same (Relocatable)" {
