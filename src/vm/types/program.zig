@@ -7,37 +7,64 @@ const std = @import("std");
 const json = std.json;
 const Allocator = std.mem.Allocator;
 
+const ApTracking = struct {
+    group: usize,
+    offset: usize,
+};
+
+const FlowTrackingData = struct { ap_tracking: ApTracking, reference_ids: ?json.ArrayHashMap(usize) = null };
+
+const Attribute = struct {
+    name: []const u8,
+    start_pc: usize,
+    end_pc: usize,
+    value: []const u8,
+    flow_tracking_data: ?FlowTrackingData,
+};
+
+const HintParams = struct { code: []const u8, accessible_scopes: []const u8, flow_tracking_data: FlowTrackingData };
+
 const Instruction = struct {
-    end_col: u8,
-    end_line: u8,
+    end_line: u32,
+    end_col: u32,
     input_file: struct {
         filename: []const u8,
     },
-    start_col: u8,
-    start_line: u8,
+    parent_location: ?json.Value = null,
+    start_col: u32,
+    start_line: u32,
+};
+
+const HintLocation = struct {
+    location: Instruction,
+    n_prefix_newlines: u32,
+};
+
+const InstructionLocation = struct {
+    accessible_scopes: []const []const u8,
+    flow_tracking_data: FlowTrackingData,
+    inst: Instruction,
+    hints: []const HintLocation,
 };
 
 const Reference = struct {
-    ap_tracking_data: struct {
-        group: u8,
-        offset: u8,
-    },
-    pc: u8,
+    ap_tracking_data: ApTracking,
+    pc: ?usize,
     value: []const u8,
 };
 
 const IdentifierMember = struct {
     cairo_type: ?[]const u8 = null,
-    offset: ?u8 = null,
+    offset: ?usize = null,
     value: ?[]const u8 = null,
 };
 
 const Identifier = struct {
-    pc: ?u8 = null,
-    size: ?u8 = null,
+    pc: ?usize = null,
     type: ?[]const u8 = null,
     decorators: ?[]const u8 = null,
-    value: ?u8 = null,
+    value: ?usize = null,
+    size: ?usize = null,
     full_name: ?[]const u8 = null,
     references: ?[]const Reference = null,
     members: ?json.ArrayHashMap(IdentifierMember) = null,
@@ -45,17 +72,17 @@ const Identifier = struct {
 };
 
 pub const Program = struct {
-    attributes: []const []const u8,
+    attributes: []Attribute,
     builtins: []const []const u8,
     compiler_version: []const u8,
     data: []const []const u8,
 
     debug_info: struct {
         file_contents: json.ArrayHashMap([]const u8),
-        instruction_locations: std.json.Value,
+        instruction_locations: json.ArrayHashMap(InstructionLocation),
     },
 
-    hints: json.ArrayHashMap([]const u8),
+    hints: json.ArrayHashMap([]const HintParams),
     identifiers: json.ArrayHashMap(Identifier),
     main_scope: []const u8,
     prime: []const u8,
