@@ -558,6 +558,7 @@ test "MemorySegmentManager: getSegmentUsedSize should return the size of the use
         @as(?u32, 4),
         memory_segment_manager.getSegmentUsedSize(5),
     );
+}
 
 test "MemorySegmentManager: segments utility function for testing test" {
     var allocator = std.testing.allocator;
