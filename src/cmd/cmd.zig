@@ -12,6 +12,7 @@ const RunContext = @import("../vm/run_context.zig").RunContext;
 const relocatable = @import("../vm/memory/relocatable.zig");
 const Config = @import("../vm/config.zig").Config;
 const build_options = @import("../build_options.zig");
+const Program = @import("../vm/types/program.zig").Program;
 
 // ************************************************************
 // *                 GLOBAL VARIABLES                         *
@@ -32,6 +33,14 @@ var execute_proof_mode_option = cli.Option{
     .short_alias = 'p',
     .value_ref = cli.mkRef(&config.proof_mode),
     .required = false,
+};
+
+var program_option = cli.Option{
+    .long_name = "filename",
+    .help = "The location of the program to be evaluated.",
+    .short_alias = 'f',
+    .value_ref = cli.mkRef(&config.filename),
+    .required = true,
 };
 
 var enable_trace = cli.Option{
@@ -66,6 +75,7 @@ var app = &cli.App{
             .options = &.{
                 &execute_proof_mode_option,
                 &enable_trace,
+                &program_option
             },
         },
     },
@@ -98,6 +108,10 @@ fn execute(_: []const []const u8) !void {
         .{},
     );
 
+    
+    var program = try Program.initFromFile(gpa_allocator, config.filename.?);
+    defer program.deinit();
+    
     if (build_options.trace_disable and config.enable_trace) {
         std.log.err("Tracing is disabled in this build.\n", .{});
         return UsageError.IncompatibleBuildOptions;

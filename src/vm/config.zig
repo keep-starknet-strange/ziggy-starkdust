@@ -8,4 +8,6 @@ pub const Config = struct {
     proof_mode: bool = false,
     /// When enabled trace is generated
     enable_trace: bool = false,
+    /// The location of the program to be evaluated
+    filename: ?[]const u8 = null,
 };
