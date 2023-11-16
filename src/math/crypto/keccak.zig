@@ -96,15 +96,15 @@ pub fn keccak_p(state: *[PLEN]u64, round_count: usize) !void {
         var array = [_]u64{0} ** 5;
 
         // Theta step: XOR each state column with its neighbors.
-        for (0..5) |x| {
-            for (0..5) |y| {
+        inline for (0..5) |x| {
+            inline for (0..5) |y| {
                 array[x] ^= state[5 * y + x];
             }
         }
 
         // Theta step (continued): Calculate and apply column parity.
-        for (0..5) |x| {
-            for (0..5) |y| {
+        inline for (0..5) |x| {
+            inline for (0..5) |y| {
                 state[5 * y + x] ^= array[
                     @mod(
                         x + 4,
@@ -125,21 +125,21 @@ pub fn keccak_p(state: *[PLEN]u64, round_count: usize) !void {
 
         // Rho and Pi steps: Permute the state values.
         var last = state[1];
-        for (0..24) |x| {
+        inline for (0..24) |x| {
             array[0] = state[PI[x]];
             state[PI[x]] = std.math.rotl(u64, last, RHO[x]);
             last = array[0];
         }
 
         // Chi step: Apply a bitwise transformation to each state column.
-        for (0..5) |y_step| {
+        inline for (0..5) |y_step| {
             const y = 5 * y_step;
 
-            for (0..5) |x| {
+            inline for (0..5) |x| {
                 array[x] = state[y + x];
             }
 
-            for (0..5) |x| {
+            inline for (0..5) |x| {
                 state[y + x] = array[x] ^ (~array[
                     @mod(
                         x + 1,
