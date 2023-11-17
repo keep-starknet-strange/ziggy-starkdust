@@ -54,6 +54,7 @@ pub const RunnerError = error{
     InvalidStopPointer,
     /// Raised when the conversion into a type of integer (e.g. a Felt) fails.
     BuiltinExpectedInteger,
+    IntegerBiggerThanPowerOfTwo,
 };
 
 /// Represents different error conditions that occur during mathematical operations.

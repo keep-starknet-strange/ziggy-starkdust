@@ -536,6 +536,30 @@ test "MemorySegmentManager: isValidMemoryValue should return true if valid segme
     try expect(memory_segment_manager.isValidMemoryValue(&value));
 }
 
+test "MemorySegmentManager: getSegmentUsedSize should return null if segments not computed" {
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try expectEqual(
+        @as(?u32, null),
+        memory_segment_manager.getSegmentUsedSize(5),
+    );
+}
+
+test "MemorySegmentManager: getSegmentUsedSize should return the size of the used segments." {
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.segment_used_sizes.put(5, 4);
+    try memory_segment_manager.segment_used_sizes.put(0, 22);
+    try expectEqual(
+        @as(?u32, 22),
+        memory_segment_manager.getSegmentUsedSize(0),
+    );
+    try expectEqual(
+        @as(?u32, 4),
+        memory_segment_manager.getSegmentUsedSize(5),
+    );
+}
+
 test "MemorySegmentManager: segments utility function for testing test" {
     var allocator = std.testing.allocator;
 
