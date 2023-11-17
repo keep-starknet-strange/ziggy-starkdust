@@ -43,7 +43,7 @@ test "CairoVM: deduceMemoryCell no builtin" {
     defer vm.deinit();
     try expectEqual(
         @as(?MaybeRelocatable, null),
-        try vm.deduceMemoryCell(Relocatable.new(
+        try vm.deduceMemoryCell(std.testing.allocator, Relocatable.new(
             0,
             0,
         )),
@@ -84,7 +84,7 @@ test "CairoVM: deduceMemoryCell builtin valid" {
     );
     try expectEqual(
         fromU256(8),
-        (try vm.deduceMemoryCell(Relocatable.new(
+        (try vm.deduceMemoryCell(std.testing.allocator, Relocatable.new(
             0,
             7,
         ))).?,
@@ -1234,6 +1234,7 @@ test "compute operands add AP" {
     expected_operands.res = dst_val;
 
     const actual_operands = try vm.computeOperands(
+        std.testing.allocator,
         &instruction,
     );
 
@@ -1303,6 +1304,7 @@ test "compute operands mul FP" {
     expected_operands.res = dst_val;
 
     const actual_operands = try vm.computeOperands(
+        std.testing.allocator,
         &instruction,
     );
 
@@ -1322,21 +1324,21 @@ test "memory is not leaked upon allocation failure during initialization" {
         var allocator = std.testing.FailingAllocator.init(std.testing.allocator, .{ .fail_index = i });
         i += 1;
 
-        // ************************************************************
-        // *                      TEST BODY                           *
-        // ************************************************************
-        // Nothing.
+        //         // ************************************************************
+        //         // *                      TEST BODY                           *
+        //         // ************************************************************
+        //         // Nothing.
 
-        // ************************************************************
-        // *                      TEST CHECKS                         *
-        // ************************************************************
-        // Error must have occured!
+        //         // ************************************************************
+        //         // *                      TEST CHECKS                         *
+        //         // ************************************************************
+        //         // Error must have occured!
 
-        // It's not given that the final error will be an OutOfMemory. It's likely though.
-        // Plus we're not certain that the error will be thrown at the same place as the
-        // VM is upgraded. For this reason, we should just ensure that no memory has
-        // been leaked.
-        // try expectError(error.OutOfMemory, CairoVM.init(allocator.allocator(), .{}));
+        //         // It's not given that the final error will be an OutOfMemory. It's likely though.
+        //         // Plus we're not certain that the error will be thrown at the same place as the
+        //         // VM is upgraded. For this reason, we should just ensure that no memory has
+        //         // been leaked.
+        //         // try expectError(error.OutOfMemory, CairoVM.init(allocator.allocator(), .{}));
 
         // Note that `.deinit()` is not called in case of failure (obviously).
         // If error handling is done correctly, no memory should be leaked.
@@ -1484,6 +1486,7 @@ test "CairoVM: computeOp0Deductions should return op0 from deduceOp0 if deduceMe
     try expectEqual(
         fromSegment(0, 1),
         try vm.computeOp0Deductions(
+            std.testing.allocator,
             Relocatable.new(0, 7),
             &instr,
             null,
@@ -1530,6 +1533,7 @@ test "CairoVM: computeOp0Deductions with a valid built in and non null deduceMem
     try expectEqual(
         fromU256(8),
         try vm.computeOp0Deductions(
+            std.testing.allocator,
             Relocatable.new(0, 7),
             &deduceOpTestInstr,
             &.{ .relocatable = .{} },
@@ -1551,6 +1555,7 @@ test "CairoVM: computeOp0Deductions should return VM error if deduceOp0 and dedu
     try expectError(
         CairoVMError.FailedToComputeOp0,
         vm.computeOp0Deductions(
+            std.testing.allocator,
             Relocatable.new(0, 7),
             &instr,
             &relocatable.fromU64(4),
@@ -1896,6 +1901,7 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceMemoryCell if n
     try expectEqual(
         fromU256(8),
         try vm.computeOp1Deductions(
+            std.testing.allocator,
             Relocatable.new(0, 7),
             &res,
             &instr,
@@ -1921,6 +1927,7 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceOp1 if deduceMe
     try expectEqual(
         relocatable.fromU64(7),
         try vm.computeOp1Deductions(
+            std.testing.allocator,
             Relocatable.new(0, 7),
             &res,
             &instr,
@@ -1943,6 +1950,7 @@ test "CairoVM: computeOp1Deductions should modify res (if null) using res from d
     var res: ?MaybeRelocatable = null;
 
     _ = try vm.computeOp1Deductions(
+        std.testing.allocator,
         Relocatable.new(0, 7),
         &res,
         &instr,
@@ -1973,6 +1981,7 @@ test "CairoVM: computeOp1Deductions should return CairoVMError error if deduceMe
     try expectError(
         CairoVMError.FailedToComputeOp1,
         vm.computeOp1Deductions(
+            std.testing.allocator,
             Relocatable.new(0, 7),
             &res,
             &instr,
