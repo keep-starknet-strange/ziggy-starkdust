@@ -123,7 +123,7 @@ fn execute(_: []const []const u8) !void {
     );
 
     // Run a step.
-    vm.step() catch |err| {
+    vm.step(gpa_allocator) catch |err| {
         std.debug.print(
             "Error: {}\n",
             .{err},

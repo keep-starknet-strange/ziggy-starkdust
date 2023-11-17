@@ -220,7 +220,7 @@ pub const CairoVM = struct {
 
     /// Do a single step of the VM.
     /// Process an instruction cycle using the typical fetch-decode-execute cycle.
-    pub fn step(self: *Self) !void {
+    pub fn step(self: *Self, allocator: Allocator) !void {
         // TODO: Run hints.
 
         std.log.debug(
@@ -253,7 +253,7 @@ pub const CairoVM = struct {
         // ************************************************************
         // *                    EXECUTE                               *
         // ************************************************************
-        return self.runInstruction(&instruction);
+        return self.runInstruction(allocator, &instruction);
     }
 
     /// Run a specific instruction.
@@ -261,6 +261,7 @@ pub const CairoVM = struct {
     /// - `instruction`: The instruction to run.
     pub fn runInstruction(
         self: *Self,
+        allocator: Allocator,
         instruction: *const instructions.Instruction,
     ) !void {
         if (!build_options.trace_disable) {
@@ -271,7 +272,7 @@ pub const CairoVM = struct {
             });
         }
 
-        const operands_result = try self.computeOperands(instruction);
+        const operands_result = try self.computeOperands(allocator, instruction);
 
         try self.updateRegisters(
             instruction,
@@ -300,6 +301,7 @@ pub const CairoVM = struct {
     /// - `Operands`: The operands for the instruction.
     pub fn computeOperands(
         self: *Self,
+        allocator: Allocator,
         instruction: *const instructions.Instruction,
     ) !OperandsResult {
         var op_res = OperandsResult.default();
@@ -326,6 +328,7 @@ pub const CairoVM = struct {
 
         if (op_0_op == null) {
             op_res.op_0 = try self.computeOp0Deductions(
+                allocator,
                 op_res.op_0_addr,
                 instruction,
                 dst_ptr,
@@ -337,6 +340,7 @@ pub const CairoVM = struct {
 
         if (op_1_op == null) {
             op_res.op_1 = try self.computeOp1Deductions(
+                allocator,
                 op_res.op_1_addr,
                 &op_res.res,
                 instruction,
@@ -375,12 +379,13 @@ pub const CairoVM = struct {
     /// - `MaybeRelocatable`: The deduced Op0 operand or an error if deducing Op0 fails.
     pub fn computeOp0Deductions(
         self: *Self,
+        allocator: Allocator,
         op_0_addr: Relocatable,
         instruction: *const instructions.Instruction,
         dst: ?*const MaybeRelocatable,
         op1: ?*const MaybeRelocatable,
     ) !MaybeRelocatable {
-        const op0_op = try self.deduceMemoryCell(op_0_addr) orelse (try self.deduceOp0(
+        const op0_op = try self.deduceMemoryCell(allocator, op_0_addr) orelse (try self.deduceOp0(
             instruction,
             dst,
             op1,
@@ -405,13 +410,14 @@ pub const CairoVM = struct {
     /// - `MaybeRelocatable`: The deduced Op1 operand or an error if deducing Op1 fails.
     pub fn computeOp1Deductions(
         self: *Self,
+        allocator: Allocator,
         op1_addr: Relocatable,
         res: *?MaybeRelocatable,
         instruction: *const instructions.Instruction,
         dst_op: ?*const MaybeRelocatable,
         op0: ?*const MaybeRelocatable,
     ) !MaybeRelocatable {
-        if (try self.deduceMemoryCell(op1_addr)) |op1| {
+        if (try self.deduceMemoryCell(allocator, op1_addr)) |op1| {
             return op1;
         } else {
             const op1_deductions = try deduceOp1(instruction, dst_op, op0);
@@ -653,6 +659,7 @@ pub const CairoVM = struct {
     /// - `MaybeRelocatable`: The deduced value.
     pub fn deduceMemoryCell(
         self: *Self,
+        allocator: Allocator,
         address: Relocatable,
     ) CairoVMError!?MaybeRelocatable {
         for (self.builtin_runners.items) |builtin_item| {
@@ -661,6 +668,7 @@ pub const CairoVM = struct {
                 @intCast(builtin_item.base()),
             ) == address.segment_index) {
                 return builtin_item.deduceMemoryCell(
+                    allocator,
                     address,
                     self.segments.memory,
                 ) catch {
