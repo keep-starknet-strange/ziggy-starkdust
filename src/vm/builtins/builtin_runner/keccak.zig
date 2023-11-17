@@ -1025,30 +1025,16 @@ test "KeccakBuiltinRunner: deduceMemoryCell non relocatable address should retur
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
 
-    try mem.set(
+    try memoryFile.setUpMemory(
+        mem,
         std.testing.allocator,
-        Relocatable.new(0, 4),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(32) },
-    );
-    try mem.set(
-        std.testing.allocator,
-        Relocatable.new(0, 5),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(72) },
-    );
-    try mem.set(
-        std.testing.allocator,
-        Relocatable.new(0, 6),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        std.testing.allocator,
-        Relocatable.new(0, 7),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(120) },
-    );
-    try mem.set(
-        std.testing.allocator,
-        Relocatable.new(0, 8),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(52) },
+        .{
+            .{ .{ 0, 4 }, .{32} },
+            .{ .{ 0, 5 }, .{72} },
+            .{ .{ 0, 6 }, .{0} },
+            .{ .{ 0, 7 }, .{120} },
+            .{ .{ 0, 8 }, .{52} },
+        },
     );
     defer mem.deinitData(std.testing.allocator);
 
@@ -1074,10 +1060,12 @@ test "KeccakBuiltinRunner: deduceMemoryCell offset less than input cell length s
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
 
-    try mem.set(
+    try memoryFile.setUpMemory(
+        mem,
         std.testing.allocator,
-        Relocatable.new(0, 4),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(32) },
+        .{
+            .{ .{ 0, 4 }, .{32} },
+        },
     );
     defer mem.deinitData(std.testing.allocator);
 
@@ -1106,10 +1094,10 @@ test "KeccakBuiltinRunner: deduceMemoryCell memory cell expected integer" {
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
 
-    try mem.set(
+    try memoryFile.setUpMemory(
+        mem,
         std.testing.allocator,
-        Relocatable.new(0, 0),
-        MaybeRelocatable{ .relocatable = Relocatable.new(1, 2) },
+        .{.{ .{ 0, 0 }, .{ 1, 2 } }},
     );
     defer mem.deinitData(std.testing.allocator);
 
@@ -1170,10 +1158,10 @@ test "KeccakBuiltinRunner: deduceMemoryCell input cell" {
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
 
-    try mem.set(
+    try memoryFile.setUpMemory(
+        mem,
         std.testing.allocator,
-        Relocatable.new(0, 0),
-        MaybeRelocatable{ .relocatable = Relocatable.new(1, 2) },
+        .{.{ .{ 0, 0 }, .{ 1, 2 } }},
     );
     defer mem.deinitData(std.testing.allocator);
 
