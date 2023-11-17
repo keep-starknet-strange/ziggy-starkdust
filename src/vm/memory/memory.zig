@@ -17,20 +17,24 @@ const Felt252 = starknet_felt.Felt252;
 // Test imports.
 const MemorySegmentManager = @import("./segments.zig").MemorySegmentManager;
 const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
+
 // Function that validates a memory address and returns a list of validated adresses
 pub const validation_rule = *const fn (*Memory, Relocatable) std.ArrayList(Relocatable);
 
 pub const MemoryCell = struct {
+    /// Represents a memory cell that holds relocation information and access status.
     const Self = @This();
-
+    /// The index or relocation information of the memory segment.
     maybe_relocatable: MaybeRelocatable,
+    /// Indicates whether the MemoryCell has been accessed.
     is_accessed: bool,
 
-    // Creates a new MemoryCell.
-    // # Arguments
-    // - maybe_relocatable - The index of the memory segment.
-    // # Returns
-    // A new MemoryCell.
+    /// Creates a new MemoryCell.
+    ///
+    /// # Arguments
+    /// - `maybe_relocatable`: The index or relocation information of the memory segment.
+    /// # Returns
+    /// A new MemoryCell.
     pub fn new(
         maybe_relocatable: MaybeRelocatable,
     ) Self {
@@ -40,7 +44,10 @@ pub const MemoryCell = struct {
         };
     }
 
-    // Marks Memory Cell as accessed.
+    /// Marks the MemoryCell as accessed.
+    ///
+    /// # Safety
+    /// This function marks the MemoryCell as accessed, indicating it has been used or read.
     pub fn markAccessed(self: *Self) void {
         self.is_accessed = true;
     }
@@ -116,20 +123,10 @@ pub const Memory = struct {
 
     /// Allocator responsible for memory allocation within the VM memory.
     allocator: Allocator,
-    /// Hash map storing the main data in the memory, indexed by Relocatable addresses.
-    data: std.ArrayHashMap(
-        Relocatable,
-        MemoryCell,
-        std.array_hash_map.AutoContext(Relocatable),
-        true,
-    ),
-    /// Hash map storing temporary data in the memory, indexed by Relocatable addresses.
-    temp_data: std.ArrayHashMap(
-        Relocatable,
-        MemoryCell,
-        std.array_hash_map.AutoContext(Relocatable),
-        true,
-    ),
+    /// ArrayList storing the main data in the memory, indexed by Relocatable addresses.
+    data: std.ArrayList(std.ArrayListUnmanaged(?MemoryCell)),
+    /// ArrayList storing temporary data in the memory, indexed by Relocatable addresses.
+    temp_data: std.ArrayList(std.ArrayListUnmanaged(?MemoryCell)),
     /// Number of segments currently present in the memory.
     num_segments: u32,
     /// Number of temporary segments in the memory.
@@ -168,11 +165,8 @@ pub const Memory = struct {
 
         memory.* = Self{
             .allocator = allocator,
-            .data = std.AutoArrayHashMap(
-                Relocatable,
-                MemoryCell,
-            ).init(allocator),
-            .temp_data = std.AutoArrayHashMap(Relocatable, MemoryCell).init(allocator),
+            .data = std.ArrayList(std.ArrayListUnmanaged(?MemoryCell)).init(allocator),
+            .temp_data = std.ArrayList(std.ArrayListUnmanaged(?MemoryCell)).init(allocator),
             .num_segments = 0,
             .num_temp_segments = 0,
             .validated_addresses = AddressSet.init(allocator),
@@ -188,21 +182,33 @@ pub const Memory = struct {
         return memory;
     }
 
-    // Safe deallocation of the memory.
+    /// Safely deallocates memory, clearing internal data structures and deallocating 'self'.
+    /// # Safety
+    /// This function safely deallocates memory managed by 'self', clearing internal data structures
+    /// and deallocating the memory for the instance.
     pub fn deinit(self: *Self) void {
-        // Clear the hash maps
         self.data.deinit();
         self.temp_data.deinit();
         self.validated_addresses.deinit();
         self.validation_rules.deinit();
         self.relocation_rules.deinit();
-        // Deallocate self.
         self.allocator.destroy(self);
     }
 
-    // ************************************************************
-    // *                        METHODS                           *
-    // ************************************************************
+    /// Safely deallocates memory within 'data' and 'temp_data' using the provided 'allocator'.
+    /// # Arguments
+    /// - `allocator` - The allocator to use for deallocation.
+    /// # Safety
+    /// This function safely deallocates memory within 'data' and 'temp_data'
+    /// using the provided 'allocator'.
+    pub fn deinitData(self: *Self, allocator: Allocator) void {
+        for (self.data.items) |*v| {
+            v.deinit(allocator);
+        }
+        for (self.temp_data.items) |*v| {
+            v.deinit(allocator);
+        }
+    }
 
     // Inserts a value into the memory at the given address.
     // # Arguments
@@ -210,28 +216,33 @@ pub const Memory = struct {
     // - `value` - The value to insert.
     pub fn set(
         self: *Self,
+        allocator: Allocator,
         address: Relocatable,
         value: MaybeRelocatable,
-    ) error{
-        InvalidMemoryAddress,
-        MemoryOutOfBounds,
-    }!void {
+    ) !void {
+        var data = if (address.segment_index < 0) &self.temp_data else &self.data;
+        const segment_index: usize = @intCast(if (address.segment_index < 0) -(address.segment_index + 1) else address.segment_index);
 
-        // Insert the value into the memory.
-        if (address.segment_index < 0) {
-            self.temp_data.put(address, MemoryCell.new(value)) catch {
-                return CairoVMError.MemoryOutOfBounds;
-            };
-        } else {
-            self.data.put(
-                address,
-                MemoryCell.new(value),
-            ) catch {
-                return CairoVMError.MemoryOutOfBounds;
-            };
+        if (data.items.len <= @as(usize, segment_index)) {
+            var segment = std.ArrayListUnmanaged(?MemoryCell){};
+            try data.appendNTimes(
+                segment,
+                @as(usize, segment_index) + 1 - data.items.len,
+            );
         }
-        // TODO: Add all relevant checks.
+
+        var data_segment = &data.items[segment_index];
+
+        if (data_segment.items.len <= @as(usize, @intCast(address.offset))) {
+            try data_segment.appendNTimes(
+                allocator,
+                null,
+                @as(usize, @intCast(address.offset)) + 1 - data_segment.items.len,
+            );
+        }
+        data_segment.items[address.offset] = MemoryCell.new(value);
     }
+
     // Get some value from the memory at the given address.
     // # Arguments
     // - `address` - The address to get the value from.
@@ -241,19 +252,20 @@ pub const Memory = struct {
         self: *Self,
         address: Relocatable,
     ) error{MemoryOutOfBounds}!MaybeRelocatable {
-        if (address.segment_index < 0) {
-            if (self.temp_data.get(address) == null) {
-                return CairoVMError.MemoryOutOfBounds;
-            } else {
-                return self.temp_data.get(address).?.maybe_relocatable;
-            }
-        } else {
-            if (self.data.get(address) == null) {
-                return CairoVMError.MemoryOutOfBounds;
-            } else {
-                return self.data.get(address).?.maybe_relocatable;
-            }
+        const data = if (address.segment_index < 0) &self.temp_data else &self.data;
+        const segment_index: usize = @intCast(if (address.segment_index < 0) -(address.segment_index + 1) else address.segment_index);
+
+        const isSegmentIndexValid = address.segment_index < data.items.len;
+        const isOffsetValid = isSegmentIndexValid and (address.offset < data.items[segment_index].items.len);
+
+        if (!isSegmentIndexValid or !isOffsetValid) {
+            return CairoVMError.MemoryOutOfBounds;
         }
+
+        if (data.items[segment_index].items[@intCast(address.offset)]) |val| {
+            return val.maybe_relocatable;
+        }
+        return CairoVMError.MemoryOutOfBounds;
     }
 
     /// Retrieves a `Felt252` value from the memory at the specified relocatable address.
@@ -313,13 +325,8 @@ pub const Memory = struct {
     /// # Arguments
     /// - `address` - The relocatable address to mark.
     pub fn markAsAccessed(self: *Self, address: Relocatable) void {
-        if (address.segment_index < 0) {
-            var tempCell = self.temp_data.getPtr(address).?;
-            tempCell.markAccessed();
-        } else {
-            var cell = self.data.getPtr(address).?;
-            cell.markAccessed();
-        }
+        const segment_index: usize = @intCast(if (address.segment_index < 0) -(address.segment_index + 1) else address.segment_index);
+        (if (address.segment_index < 0) &self.temp_data else &self.data).items[segment_index].items[address.offset].?.markAccessed();
     }
 
     /// Adds a relocation rule to the VM memory, allowing redirection of temporary data to a specified destination.
@@ -359,23 +366,33 @@ pub const Memory = struct {
 // # Arguments
 // - `memory` - memory to be set
 // - `vals` - complile time structure with heterogenous types
-pub fn setUpMemory(memory: *Memory, comptime vals: anytype) !void {
+pub fn setUpMemory(memory: *Memory, allocator: Allocator, comptime vals: anytype) !void {
     inline for (vals) |row| {
-        const firstCol = row[0];
-        const address = Relocatable.new(firstCol[0], firstCol[1]);
-        const nextCol = row[1];
         // Check number of inputs in row
         if (row[1].len == 1) {
-            try memory.set(address, .{ .felt = Felt252.fromInteger(nextCol[0]) });
+            try memory.set(
+                allocator,
+                Relocatable.new(row[0][0], row[0][1]),
+                .{ .felt = Felt252.fromInteger(row[1][0]) },
+            );
         } else {
-            const T = @TypeOf(nextCol[0]);
-            switch (@typeInfo(T)) {
+            switch (@typeInfo(@TypeOf(row[1][0]))) {
                 .Pointer => {
-                    const num = try std.fmt.parseUnsigned(i64, nextCol[0], 10);
-                    try memory.set(address, .{ .relocatable = Relocatable.new(num, nextCol[1]) });
+                    try memory.set(
+                        allocator,
+                        Relocatable.new(row[0][0], row[0][1]),
+                        .{ .relocatable = Relocatable.new(
+                            try std.fmt.parseUnsigned(i64, row[1][0], 10),
+                            row[1][1],
+                        ) },
+                    );
                 },
                 else => {
-                    try memory.set(address, .{ .relocatable = Relocatable.new(nextCol[0], nextCol[1]) });
+                    try memory.set(
+                        allocator,
+                        Relocatable.new(row[0][0], row[0][1]),
+                        .{ .relocatable = Relocatable.new(row[1][0], row[1][1]) },
+                    );
                 },
             }
         }
@@ -388,12 +405,17 @@ test "memory inner for testing test" {
     var memory = try Memory.init(allocator);
     defer memory.deinit();
 
-    try setUpMemory(memory, .{
-        .{ .{ 1, 3 }, .{ 4, 5 } },
-        .{ .{ 2, 6 }, .{ 7, 8 } },
-        .{ .{ 9, 10 }, .{23} },
-        .{ .{ 1, 2 }, .{ "234", 10 } },
-    });
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 1, 3 }, .{ 4, 5 } },
+            .{ .{ 2, 6 }, .{ 7, 8 } },
+            .{ .{ 9, 10 }, .{23} },
+            .{ .{ 1, 2 }, .{ "234", 10 } },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
 
     try expectEqual(
         Felt252.fromInteger(23),
@@ -460,13 +482,16 @@ test "memory set and get" {
 
     // Set a value into the memory.
     _ = try memory.set(
+        std.testing.allocator,
         address_1,
         value_1,
     );
     _ = try memory.set(
+        std.testing.allocator,
         address_2,
         value_2,
     );
+    defer memory.deinitData(std.testing.allocator);
 
     // Get the value from the memory.
     const maybe_value_1 = try memory.get(address_1);
@@ -508,9 +533,11 @@ test "validate existing memory for range check within bound" {
 
     // Set a value into the memory.
     _ = try memory.set(
+        std.testing.allocator,
         address_1,
         value_1,
     );
+    defer memory.deinitData(std.testing.allocator);
 
     // Get the value from the memory.
     const maybe_value_1 = try memory.get(address_1);
@@ -539,10 +566,12 @@ test "Memory: getFelt should return Felt252 if available at the given address" {
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try memory.data.put(
+    try memory.set(
+        std.testing.allocator,
         Relocatable.new(10, 30),
-        MemoryCell.new(.{ .felt = Felt252.fromInteger(23) }),
+        .{ .felt = Felt252.fromInteger(23) },
     );
+    defer memory.deinitData(std.testing.allocator);
 
     // Test checks
     try expectEqual(
@@ -556,10 +585,12 @@ test "Memory: getFelt should return ExpectedInteger error if Relocatable instead
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try memory.data.put(
+    try memory.set(
+        std.testing.allocator,
         Relocatable.new(10, 30),
-        MemoryCell.new(MaybeRelocatable{ .relocatable = Relocatable.new(3, 7) }),
+        .{ .relocatable = Relocatable.new(3, 7) },
     );
+    defer memory.deinitData(std.testing.allocator);
 
     // Test checks
     try expectError(
@@ -585,10 +616,12 @@ test "Memory: getRelocatable should return Relocatable if available at the given
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try memory.data.put(
+    try memory.set(
+        std.testing.allocator,
         Relocatable.new(10, 30),
-        MemoryCell.new(MaybeRelocatable{ .relocatable = Relocatable.new(4, 34) }),
+        .{ .relocatable = Relocatable.new(4, 34) },
     );
+    defer memory.deinitData(std.testing.allocator);
 
     // Test checks
     try expectEqual(
@@ -602,10 +635,12 @@ test "Memory: getRelocatable should return ExpectedRelocatable error if Felt ins
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try memory.data.put(
+    try memory.set(
+        std.testing.allocator,
         Relocatable.new(10, 30),
-        MemoryCell.new(.{ .felt = Felt252.fromInteger(3) }),
+        .{ .felt = Felt252.fromInteger(3) },
     );
+    defer memory.deinitData(std.testing.allocator);
 
     // Test checks
     try expectError(
@@ -620,15 +655,18 @@ test "Memory: markAsAccessed should mark memory cell" {
     defer memory.deinit();
 
     var relo = Relocatable.new(1, 3);
-    try setUpMemory(memory, .{
-        .{ .{ 1, 3 }, .{ 4, 5 } },
-    });
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{.{ .{ 1, 3 }, .{ 4, 5 } }},
+    );
+    defer memory.deinitData(std.testing.allocator);
 
     memory.markAsAccessed(relo);
     // Test checks
     try expectEqual(
         true,
-        memory.data.get(relo).?.is_accessed,
+        memory.data.items[1].items[3].?.is_accessed,
     );
 }
 
