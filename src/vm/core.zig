@@ -40,6 +40,10 @@ pub const CairoVM = struct {
     is_run_finished: bool,
     /// VM trace
     trace_context: TraceContext,
+    /// Current Step
+    current_step: usize,
+    /// Rc limits
+    rc_limits: ?struct { i16, i16 },
 
     // ************************************************************
     // *             MEMORY ALLOCATION AND DEALLOCATION           *
@@ -77,6 +81,8 @@ pub const CairoVM = struct {
             .segments = memory_segment_manager,
             .is_run_finished = false,
             .trace_context = trace_context,
+            .current_step = 0,
+            .rc_limits = null,
         };
     }
 
@@ -272,6 +278,20 @@ pub const CairoVM = struct {
             instruction,
             operands_result,
         );
+
+        const OFFSET_BITS: u32 = 16;
+        const off_0 = instruction.off_0 + (@as(i16, 1) << (OFFSET_BITS - 1));
+        const off_1 = instruction.off_1 + (@as(i16, 1) << (OFFSET_BITS - 1));
+        const off_2 = instruction.off_2 + (@as(i16, 1) << (OFFSET_BITS - 1));
+
+        const limits = self.rc_limits orelse .{ off_0, off_0 };
+        self.rc_limits = .{ @min(limits[0], off_0, off_1, off_2), @max(limits[1], off_0, off_1, off_2) };
+
+        self.segments.memory.markAsAccessed(operands_result.dst_addr);
+        self.segments.memory.markAsAccessed(operands_result.op_0_addr);
+        self.segments.memory.markAsAccessed(operands_result.op_1_addr);
+
+        self.current_step += 1;
     }
 
     /// Compute the operands for a given instruction.
