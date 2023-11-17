@@ -416,6 +416,7 @@ test "Memory: validate existing memory" {
     builtin.initializeSegments(segments);
     try builtin.addValidationRule(segments.memory);
     var seg = segments.addSegment();
+    _ = seg;
 
     try segments.memory.set(Relocatable.new(0, 1), relocatable.fromFelt(starknet_felt.Felt252.one()));
     try segments.memory.set(Relocatable.new(0, 2), relocatable.fromFelt(starknet_felt.Felt252.one()));
@@ -447,6 +448,7 @@ test "Memory: validate memory cell" {
     builtin.initializeSegments(segments);
     try builtin.addValidationRule(segments.memory);
     var seg = segments.addSegment();
+    _ = seg;
 
     try segments.memory.set(Relocatable.new(0, 1), relocatable.fromFelt(starknet_felt.Felt252.one()));
 
@@ -468,6 +470,7 @@ test "Memory: validate memory cell segment index not in validation rules" {
     builtin.initializeSegments(segments);
 
     var seg = segments.addSegment();
+    _ = seg;
 
     try segments.memory.set(Relocatable.new(0, 1), relocatable.fromFelt(starknet_felt.Felt252.one()));
 
@@ -490,6 +493,7 @@ test "Memory: validate memory cell already exist in validation rules" {
     try builtin.addValidationRule(segments.memory);
 
     var seg = segments.addSegment();
+    _ = seg;
 
     try segments.memory.set(Relocatable.new(0, 1), relocatable.fromFelt(starknet_felt.Felt252.one()));
 
