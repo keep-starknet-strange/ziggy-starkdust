@@ -1,3 +1,6 @@
+const std = @import("std");
+const Allocator = std.mem.Allocator;
+
 const BitwiseBuiltinRunner = @import("./bitwise.zig").BitwiseBuiltinRunner;
 const EcOpBuiltinRunner = @import("./ec_op.zig").EcOpBuiltinRunner;
 const HashBuiltinRunner = @import("./hash.zig").HashBuiltinRunner;
@@ -72,6 +75,7 @@ pub const BuiltinRunner = union(enum) {
     /// A `MaybeRelocatable` representing the deduced memory cell information, or an error if deduction fails.
     pub fn deduceMemoryCell(
         self: *const Self,
+        allocator: Allocator,
         address: Relocatable,
         memory: *Memory,
     ) !?MaybeRelocatable {
@@ -82,7 +86,10 @@ pub const BuiltinRunner = union(enum) {
             .Hash => |hash| hash.deduceMemoryCell(address, memory),
             .Output => |output| output.deduceMemoryCell(address, memory),
             .RangeCheck => |range_check| range_check.deduceMemoryCell(address, memory),
-            .Keccak => |keccak| keccak.deduceMemoryCell(address, memory),
+            .Keccak => |keccak| {
+                var mut_keccak = keccak;
+                return mut_keccak.deduceMemoryCell(allocator, address, memory);
+            },
             .Signature => |signature| signature.deduceMemoryCell(address, memory),
             .Poseidon => |poseidon| poseidon.deduceMemoryCell(address, memory),
             .SegmentArena => |segment_arena| segment_arena.deduceMemoryCell(address, memory),
