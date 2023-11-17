@@ -61,27 +61,17 @@ test "CairoVM: deduceMemoryCell builtin valid" {
         &instance_def,
         true,
     ) });
-    try vm.segments.memory.set(
-        Relocatable.new(
-            0,
-            5,
-        ),
-        relocatable.fromFelt(Felt252.fromInteger(10)),
+
+    try memory.setUpMemory(
+        vm.segments.memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 5 }, .{10} },
+            .{ .{ 0, 6 }, .{12} },
+            .{ .{ 0, 7 }, .{0} },
+        },
     );
-    try vm.segments.memory.set(
-        Relocatable.new(
-            0,
-            6,
-        ),
-        relocatable.fromFelt(Felt252.fromInteger(12)),
-    );
-    try vm.segments.memory.set(
-        Relocatable.new(
-            0,
-            7,
-        ),
-        relocatable.fromFelt(Felt252.fromInteger(0)),
-    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
     try expectEqual(
         fromU256(8),
         (try vm.deduceMemoryCell(std.testing.allocator, Relocatable.new(
@@ -875,7 +865,14 @@ test "set get value in vm memory" {
     const address = Relocatable.new(1, 0);
     const value = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(42));
 
-    _ = try vm.segments.memory.set(address, value);
+    try memory.setUpMemory(
+        vm.segments.memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 1, 0 }, .{42} },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
 
     // Test checks
     // Verify the value is correctly set to 42.
@@ -1205,24 +1202,23 @@ test "compute operands add AP" {
 
     const dst_addr = Relocatable.new(1, 0);
     const dst_val = MaybeRelocatable{ .felt = Felt252.fromInteger(5) };
-    try vm.segments.memory.set(
-        dst_addr,
-        dst_val,
-    );
 
     const op0_addr = Relocatable.new(1, 1);
     const op0_val = MaybeRelocatable{ .felt = Felt252.fromInteger(2) };
-    try vm.segments.memory.set(
-        op0_addr,
-        op0_val,
-    );
 
     const op1_addr = Relocatable.new(1, 2);
     const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
-    try vm.segments.memory.set(
-        op1_addr,
-        op1_val,
+
+    try memory.setUpMemory(
+        vm.segments.memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 1, 0 }, .{5} },
+            .{ .{ 1, 1 }, .{2} },
+            .{ .{ 1, 2 }, .{3} },
+        },
     );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
 
     var expected_operands = OperandsResult.default();
     expected_operands.dst_addr = dst_addr;
@@ -1275,24 +1271,22 @@ test "compute operands mul FP" {
 
     const dst_addr = Relocatable.new(1, 0);
     const dst_val = MaybeRelocatable{ .felt = Felt252.fromInteger(6) };
-    try vm.segments.memory.data.put(
-        dst_addr,
-        MemoryCell.new(dst_val),
-    );
 
     const op0_addr = Relocatable.new(1, 1);
     const op0_val = MaybeRelocatable{ .felt = Felt252.fromInteger(2) };
-    try vm.segments.memory.data.put(
-        op0_addr,
-        MemoryCell.new(op0_val),
-    );
 
     const op1_addr = Relocatable.new(1, 2);
     const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
-    try vm.segments.memory.data.put(
-        op1_addr,
-        MemoryCell.new(op1_val),
+    try memory.setUpMemory(
+        vm.segments.memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 1, 0 }, .{6} },
+            .{ .{ 1, 1 }, .{2} },
+            .{ .{ 1, 2 }, .{3} },
+        },
     );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
 
     var expected_operands = OperandsResult.default();
     expected_operands.dst_addr = dst_addr;
@@ -1507,27 +1501,16 @@ test "CairoVM: computeOp0Deductions with a valid built in and non null deduceMem
         &instance_def,
         true,
     ) });
-    try vm.segments.memory.set(
-        Relocatable.new(
-            0,
-            5,
-        ),
-        relocatable.fromFelt(Felt252.fromInteger(10)),
+    try memory.setUpMemory(
+        vm.segments.memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 5 }, .{10} },
+            .{ .{ 0, 6 }, .{12} },
+            .{ .{ 0, 7 }, .{0} },
+        },
     );
-    try vm.segments.memory.set(
-        Relocatable.new(
-            0,
-            6,
-        ),
-        relocatable.fromFelt(Felt252.fromInteger(12)),
-    );
-    try vm.segments.memory.set(
-        Relocatable.new(
-            0,
-            7,
-        ),
-        relocatable.fromFelt(Felt252.fromInteger(0)),
-    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
 
     // Test check
     try expectEqual(
@@ -1569,9 +1552,16 @@ test "CairoVM: computeSegmentsEffectiveSizes should return the computed effectiv
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    try vm.segments.memory.data.put(Relocatable.new(0, 0), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
-    try vm.segments.memory.data.put(Relocatable.new(0, 1), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
-    try vm.segments.memory.data.put(Relocatable.new(0, 2), MemoryCell.new(.{ .felt = Felt252.fromInteger(1) }));
+    try memory.setUpMemory(
+        vm.segments.memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ 0, 1 }, .{1} },
+            .{ .{ 0, 2 }, .{1} },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
 
     var actual = try vm.computeSegmentsEffectiveSizes();
 
@@ -1731,10 +1721,14 @@ test "CairoVM: getRelocatable with value should return a MaybeRelocatable" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    try vm.segments.memory.data.put(
-        Relocatable.new(34, 12),
-        MemoryCell.new(.{ .felt = Felt252.fromInteger(5) }),
+    try memory.setUpMemory(
+        vm.segments.memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 34, 12 }, .{5} },
+        },
     );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
 
     // Test check
     try expectEqual(
@@ -1830,10 +1824,14 @@ test "CairoVM: getFelt should return Felt252 if available at the given address" 
     );
     defer vm.deinit();
 
-    try vm.segments.memory.data.put(
-        Relocatable.new(10, 30),
-        MemoryCell.new(.{ .felt = Felt252.fromInteger(23) }),
+    try memory.setUpMemory(
+        vm.segments.memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 10, 30 }, .{23} },
+        },
     );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
 
     // Test checks
     try expectEqual(
@@ -1850,10 +1848,14 @@ test "CairoVM: getFelt should return ExpectedInteger error if Relocatable instea
     );
     defer vm.deinit();
 
-    try vm.segments.memory.data.put(
-        Relocatable.new(10, 30),
-        MemoryCell.new(.{ .relocatable = Relocatable.new(3, 7) }),
+    try memory.setUpMemory(
+        vm.segments.memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 10, 30 }, .{ 3, 7 } },
+        },
     );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
 
     // Test checks
     try expectError(
@@ -1872,27 +1874,16 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceMemoryCell if n
         &instance_def,
         true,
     ) });
-    try vm.segments.memory.set(
-        Relocatable.new(
-            0,
-            5,
-        ),
-        relocatable.fromFelt(Felt252.fromInteger(10)),
+    try memory.setUpMemory(
+        vm.segments.memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 5 }, .{10} },
+            .{ .{ 0, 6 }, .{12} },
+            .{ .{ 0, 7 }, .{0} },
+        },
     );
-    try vm.segments.memory.set(
-        Relocatable.new(
-            0,
-            6,
-        ),
-        relocatable.fromFelt(Felt252.fromInteger(12)),
-    );
-    try vm.segments.memory.set(
-        Relocatable.new(
-            0,
-            7,
-        ),
-        relocatable.fromFelt(Felt252.fromInteger(0)),
-    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
 
     var instr = deduceOpTestInstr;
     var res: ?MaybeRelocatable = null;
@@ -1997,11 +1988,16 @@ test "CairoVM: core utility function for testing test" {
     var cairo_vm = try CairoVM.init(allocator, .{});
     defer cairo_vm.deinit();
 
-    try segments.segmentsUtil(cairo_vm.segments, .{
-        .{ .{ 0, 0 }, .{1} },
-        .{ .{ 0, 1 }, .{1} },
-        .{ .{ 0, 2 }, .{1} },
-    });
+    try segments.segmentsUtil(
+        cairo_vm.segments,
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ 0, 1 }, .{1} },
+            .{ .{ 0, 2 }, .{1} },
+        },
+    );
+    defer cairo_vm.segments.memory.deinitData(std.testing.allocator);
 
     var actual = try cairo_vm.computeSegmentsEffectiveSizes();
 
