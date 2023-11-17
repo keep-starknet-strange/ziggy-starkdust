@@ -143,8 +143,6 @@ test "deduce when address points to relocatable variant of MaybeRelocatable " {
 test "deduce when address points to felt greater than BITWISE_TOTAL_N_BITS" {
 
     // given
-    const number = std.math.pow(u256, 2, BITWISE_TOTAL_N_BITS) + 1;
-    _ = number;
     var allocator = std.testing.allocator;
     var mem = try Memory.init(allocator);
     defer mem.deinit();

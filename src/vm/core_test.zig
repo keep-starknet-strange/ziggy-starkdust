@@ -61,27 +61,6 @@ test "CairoVM: deduceMemoryCell builtin valid" {
         &instance_def,
         true,
     ) });
-    // try vm.segments.memory.set(
-    //     Relocatable.new(
-    //         0,
-    //         5,
-    //     ),
-    //     relocatable.fromFelt(Felt252.fromInteger(10)),
-    // );
-    // try vm.segments.memory.set(
-    //     Relocatable.new(
-    //         0,
-    //         6,
-    //     ),
-    //     relocatable.fromFelt(Felt252.fromInteger(12)),
-    // );
-    // try vm.segments.memory.set(
-    //     Relocatable.new(
-    //         0,
-    //         7,
-    //     ),
-    //     relocatable.fromFelt(Felt252.fromInteger(0)),
-    // );
 
     try memory.setUpMemory(
         vm.segments.memory,
