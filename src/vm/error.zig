@@ -37,8 +37,11 @@ pub const CairoVMError = error{
 pub const MemoryError = error{
     /// The amount of used cells associated with the Range Check runner is not available.
     MissingSegmentUsedSizes,
+    /// The address is not in the temporary segment.
     AddressNotInTemporarySegment,
+    /// Non-zero offset when it's not expected.
     NonZeroOffset,
+    /// Duplicated relocation entry found.
     DuplicatedRelocation,
 };
 
@@ -54,6 +57,7 @@ pub const RunnerError = error{
     InvalidStopPointer,
     /// Raised when the conversion into a type of integer (e.g. a Felt) fails.
     BuiltinExpectedInteger,
+    /// Integer value exceeds a power of two.
     IntegerBiggerThanPowerOfTwo,
 };
 
