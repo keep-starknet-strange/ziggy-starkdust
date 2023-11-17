@@ -18,7 +18,8 @@ const Felt252 = starknet_felt.Felt252;
 const MemorySegmentManager = @import("./segments.zig").MemorySegmentManager;
 const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
 // Function that validates a memory address and returns a list of validated adresses
-pub const validation_rule = *const fn (*Memory, Relocatable) std.ArrayList(Relocatable);
+//pub const validation_rule = *const fn (*Memory, Relocatable) std.ArrayList(Relocatable);
+pub const validation_rule = *const fn (*Memory, Relocatable) ?[]const Relocatable;
 
 pub const MemoryCell = struct {
     const Self = @This();
@@ -306,7 +307,7 @@ pub const Memory = struct {
     // - `segment_index` - The index of the segment.
     // - `rule` - The validation rule.
     pub fn addValidationRule(self: *Self, segment_index: usize, rule: validation_rule) !void {
-        self.validation_rules.put(segment_index, rule);
+        try self.validation_rules.put(@intCast(segment_index), rule);
     }
 
     /// Marks a `MemoryCell` as accessed at the specified relocatable address.
@@ -362,10 +363,17 @@ pub const Memory = struct {
     /// This function returns an error if the validation fails due to invalid conditions.
     pub fn validateMemoryCell(self: *Self, address: Relocatable) !void {
         if (self.validation_rules.get(@intCast(address.segment_index))) |rule| {
-            //            .validation_rule => |rule| if (!self.validated_addresses.contains(address)) {
             if (!self.validated_addresses.contains(address)) {
-                self.validated_addresses.addAddresses(rule(self, address));
+                var list = rule(self, address);
+                try self.validated_addresses.addAddresses(list.?);
             }
+        }
+    }
+
+    // Applies validation_rules to every memory address
+    pub fn validateExistingMemory(self: *Self) !void {
+        for (self.data.keys()) |item| {
+            try self.validateMemoryCell(item);
         }
     }
 };
@@ -398,20 +406,106 @@ pub fn setUpMemory(memory: *Memory, comptime vals: anytype) !void {
     }
 }
 
+test "Memory: validate existing memory" {
+    var allocator = std.testing.allocator;
+
+    var segments = try MemorySegmentManager.init(allocator);
+    defer segments.deinit();
+
+    var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
+    builtin.initializeSegments(segments);
+    try builtin.addValidationRule(segments.memory);
+    var seg = segments.addSegment();
+
+    try segments.memory.set(Relocatable.new(0, 1), relocatable.fromFelt(starknet_felt.Felt252.one()));
+    try segments.memory.set(Relocatable.new(0, 2), relocatable.fromFelt(starknet_felt.Felt252.one()));
+    try segments.memory.set(Relocatable.new(0, 3), relocatable.fromFelt(starknet_felt.Felt252.one()));
+
+    try segments.memory.validateExistingMemory();
+
+    try expectEqual(
+        segments.memory.validated_addresses.contains(Relocatable.new(0, 1)),
+        true,
+    );
+    try expectEqual(
+        segments.memory.validated_addresses.contains(Relocatable.new(0, 2)),
+        true,
+    );
+    try expectEqual(
+        segments.memory.validated_addresses.contains(Relocatable.new(0, 2)),
+        true,
+    );
+}
+
 test "Memory: validate memory cell" {
     var allocator = std.testing.allocator;
 
-    var memory = try Memory.init(allocator);
-    defer memory.deinit();
+    var segments = try MemorySegmentManager.init(allocator);
+    defer segments.deinit();
 
-    try setUpMemory(memory, .{
-        .{ .{ 1, 3 }, .{ 4, 5 } },
-    });
+    var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
+    builtin.initializeSegments(segments);
+    try builtin.addValidationRule(segments.memory);
+    var seg = segments.addSegment();
 
-    try memory.validateMemoryCell(Relocatable.new(1, 3));
+    try segments.memory.set(Relocatable.new(0, 1), relocatable.fromFelt(starknet_felt.Felt252.one()));
+
+    try segments.memory.validateMemoryCell(Relocatable.new(0, 1));
 
     try expectEqual(
-        memory.validated_addresses.contains(Relocatable.new(1, 3)),
+        segments.memory.validated_addresses.contains(Relocatable.new(0, 1)),
+        true,
+    );
+}
+
+test "Memory: validate memory cell segment index not in validation rules" {
+    var allocator = std.testing.allocator;
+
+    var segments = try MemorySegmentManager.init(allocator);
+    defer segments.deinit();
+
+    var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
+    builtin.initializeSegments(segments);
+
+    var seg = segments.addSegment();
+
+    try segments.memory.set(Relocatable.new(0, 1), relocatable.fromFelt(starknet_felt.Felt252.one()));
+
+    try segments.memory.validateMemoryCell(Relocatable.new(0, 1));
+
+    try expectEqual(
+        segments.memory.validated_addresses.contains(Relocatable.new(0, 1)),
+        false,
+    );
+}
+
+test "Memory: validate memory cell already exist in validation rules" {
+    var allocator = std.testing.allocator;
+
+    var segments = try MemorySegmentManager.init(allocator);
+    defer segments.deinit();
+
+    var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
+    builtin.initializeSegments(segments);
+    try builtin.addValidationRule(segments.memory);
+
+    var seg = segments.addSegment();
+
+    try segments.memory.set(Relocatable.new(0, 1), relocatable.fromFelt(starknet_felt.Felt252.one()));
+
+    try segments.memory.validateMemoryCell(Relocatable.new(0, 1));
+
+    try expectEqual(
+        segments.memory.validated_addresses.contains(Relocatable.new(0, 1)),
+        true,
+    );
+
+    //attempt to validate memory cell a second time
+    try segments.memory.validateMemoryCell(Relocatable.new(0, 1));
+
+    try expectEqual(
+        segments.memory.validated_addresses.contains(Relocatable.new(0, 1)),
+        // should stay true
         true,
     );
 }
