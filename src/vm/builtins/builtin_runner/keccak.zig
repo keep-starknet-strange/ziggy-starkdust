@@ -6,6 +6,7 @@ const Segments = @import("../../memory/segments.zig");
 const Error = @import("../../error.zig");
 const CoreVM = @import("../../../vm/core.zig");
 const KeccakPrimitives = @import("../../../math/crypto/keccak.zig");
+const memoryFile = @import("../../memory/memory.zig");
 const Memory = @import("../../memory/memory.zig").Memory;
 const MemoryCell = @import("../../memory/memory.zig").MemoryCell;
 
@@ -835,13 +836,17 @@ test "KeccakBuiltinRunner: finalStack should return TypeMismatchNotRelocatable e
     defer keccak_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    try memory_segment_manager.memory.data.put(
+
+    try memory_segment_manager.memory.set(
+        std.testing.allocator,
         try Relocatable.new(
             2,
             2,
         ).subUint(@intCast(1)),
-        MemoryCell.new(.{ .felt = Felt252.fromInteger(10) }),
+        .{ .felt = Felt252.fromInteger(10) },
     );
+    defer memory_segment_manager.memory.deinitData(std.testing.allocator);
+
     try expectError(
         error.TypeMismatchNotRelocatable,
         keccak_builtin.finalStack(
@@ -862,16 +867,20 @@ test "KeccakBuiltinRunner: finalStack should return InvalidStopPointerIndex erro
     keccak_builtin.base = 22;
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    try memory_segment_manager.memory.data.put(
+
+    try memory_segment_manager.memory.set(
+        std.testing.allocator,
         try Relocatable.new(
             2,
             2,
         ).subUint(@intCast(1)),
-        MemoryCell.new(.{ .relocatable = Relocatable.new(
+        .{ .relocatable = Relocatable.new(
             10,
             2,
-        ) }),
+        ) },
     );
+    defer memory_segment_manager.memory.deinitData(std.testing.allocator);
+
     try expectError(
         RunnerError.InvalidStopPointerIndex,
         keccak_builtin.finalStack(
@@ -892,16 +901,19 @@ test "KeccakBuiltinRunner: finalStack should return InvalidStopPointer error if 
     keccak_builtin.base = 22;
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    try memory_segment_manager.memory.data.put(
+    try memory_segment_manager.memory.set(
+        std.testing.allocator,
         try Relocatable.new(
             2,
             2,
         ).subUint(@intCast(1)),
-        MemoryCell.new(.{ .relocatable = Relocatable.new(
+        .{ .relocatable = Relocatable.new(
             22,
             2,
-        ) }),
+        ) },
     );
+    defer memory_segment_manager.memory.deinitData(std.testing.allocator);
+
     try memory_segment_manager.segment_used_sizes.put(22, 345);
     try expectError(
         RunnerError.InvalidStopPointer,
@@ -923,16 +935,20 @@ test "KeccakBuiltinRunner: finalStack should return stop pointer address and upd
     keccak_builtin.base = 22;
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    try memory_segment_manager.memory.data.put(
+
+    try memory_segment_manager.memory.set(
+        std.testing.allocator,
         try Relocatable.new(
             2,
             2,
         ).subUint(@intCast(1)),
-        MemoryCell.new(.{ .relocatable = Relocatable.new(
+        .{ .relocatable = Relocatable.new(
             22,
             22 * 16,
-        ) }),
+        ) },
     );
+    defer memory_segment_manager.memory.deinitData(std.testing.allocator);
+
     try memory_segment_manager.segment_used_sizes.put(22, 345);
     try expectEqual(
         Relocatable.new(2, 1),
@@ -960,85 +976,106 @@ test "KeccakBuiltinRunner: deduceMemoryCell memory valid" {
     defer mem.deinit();
 
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 16),
         MaybeRelocatable{ .felt = Felt252.fromInteger(43) },
     );
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 17),
         MaybeRelocatable{ .felt = Felt252.fromInteger(199) },
     );
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 18),
         MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
     );
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 19),
         MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
     );
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 20),
         MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
     );
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 21),
         MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
     );
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 22),
         MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
     );
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 23),
         MaybeRelocatable{ .felt = Felt252.fromInteger(1) },
     );
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 24),
         MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
     );
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 25),
         MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
     );
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 26),
         MaybeRelocatable{ .felt = Felt252.fromInteger(43) },
     );
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 27),
         MaybeRelocatable{ .felt = Felt252.fromInteger(199) },
     );
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 28),
         MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
     );
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 29),
         MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
     );
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 30),
         MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
     );
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 31),
         MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
     );
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 32),
         MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
     );
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 33),
         MaybeRelocatable{ .felt = Felt252.fromInteger(1) },
     );
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 34),
         MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
     );
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 35),
         MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
     );
+    defer mem.deinitData(std.testing.allocator);
 
     try expectEqual(
         MaybeRelocatable{ .felt = Felt252.fromInteger(1006979841721999878391288827876533441431370448293338267890891) },
@@ -1063,25 +1100,31 @@ test "KeccakBuiltinRunner: deduceMemoryCell non relocatable address should retur
     defer mem.deinit();
 
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 4),
         MaybeRelocatable{ .felt = Felt252.fromInteger(32) },
     );
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 5),
         MaybeRelocatable{ .felt = Felt252.fromInteger(72) },
     );
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 6),
         MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
     );
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 7),
         MaybeRelocatable{ .felt = Felt252.fromInteger(120) },
     );
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 8),
         MaybeRelocatable{ .felt = Felt252.fromInteger(52) },
     );
+    defer mem.deinitData(std.testing.allocator);
 
     try expectEqual(
         @as(?MaybeRelocatable, null),
@@ -1106,9 +1149,11 @@ test "KeccakBuiltinRunner: deduceMemoryCell offset less than input cell length s
     defer mem.deinit();
 
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 4),
         MaybeRelocatable{ .felt = Felt252.fromInteger(32) },
     );
+    defer mem.deinitData(std.testing.allocator);
 
     try expectEqual(
         @as(?MaybeRelocatable, null),
@@ -1136,9 +1181,11 @@ test "KeccakBuiltinRunner: deduceMemoryCell memory cell expected integer" {
     defer mem.deinit();
 
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 0),
         MaybeRelocatable{ .relocatable = Relocatable.new(1, 2) },
     );
+    defer mem.deinitData(std.testing.allocator);
 
     try expectError(
         RunnerError.BuiltinExpectedInteger,
@@ -1165,10 +1212,12 @@ test "KeccakBuiltinRunner: deduceMemoryCell missing input cells" {
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
 
-    try mem.set(
-        Relocatable.new(0, 1),
-        MaybeRelocatable{ .relocatable = Relocatable.new(1, 2) },
+    try memoryFile.setUpMemory(
+        mem,
+        std.testing.allocator,
+        .{.{ .{ 0, 1 }, .{ 1, 2 } }},
     );
+    defer mem.deinitData(std.testing.allocator);
 
     try expectEqual(
         @as(?MaybeRelocatable, null),
@@ -1196,9 +1245,11 @@ test "KeccakBuiltinRunner: deduceMemoryCell input cell" {
     defer mem.deinit();
 
     try mem.set(
+        std.testing.allocator,
         Relocatable.new(0, 0),
         MaybeRelocatable{ .relocatable = Relocatable.new(1, 2) },
     );
+    defer mem.deinitData(std.testing.allocator);
 
     try expectEqual(
         @as(?MaybeRelocatable, null),
@@ -1222,10 +1273,13 @@ test "KeccakBuiltinRunner: deduceMemoryCell get memory error" {
 
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
-    try mem.set(
-        Relocatable.new(0, 35),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
+
+    try memoryFile.setUpMemory(
+        mem,
+        std.testing.allocator,
+        .{.{ .{ 0, 35 }, .{0} }},
     );
+    defer mem.deinitData(std.testing.allocator);
 
     try expectEqual(
         @as(?MaybeRelocatable, null),
@@ -1251,86 +1305,33 @@ test "KeccakBuiltinRunner: deduceMemoryCell memory int larger than bits" {
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
 
-    try mem.set(
-        Relocatable.new(0, 16),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(43) },
+    try memoryFile.setUpMemory(
+        mem,
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 16 }, .{43} },
+            .{ .{ 0, 17 }, .{199} },
+            .{ .{ 0, 18 }, .{0} },
+            .{ .{ 0, 19 }, .{0} },
+            .{ .{ 0, 20 }, .{0} },
+            .{ .{ 0, 21 }, .{0} },
+            .{ .{ 0, 22 }, .{0} },
+            .{ .{ 0, 23 }, .{1} },
+            .{ .{ 0, 24 }, .{0} },
+            .{ .{ 0, 25 }, .{0} },
+            .{ .{ 0, 26 }, .{43} },
+            .{ .{ 0, 27 }, .{199} },
+            .{ .{ 0, 28 }, .{0} },
+            .{ .{ 0, 29 }, .{0} },
+            .{ .{ 0, 30 }, .{0} },
+            .{ .{ 0, 31 }, .{0} },
+            .{ .{ 0, 32 }, .{0} },
+            .{ .{ 0, 33 }, .{1} },
+            .{ .{ 0, 34 }, .{0} },
+            .{ .{ 0, 35 }, .{0} },
+        },
     );
-    try mem.set(
-        Relocatable.new(0, 17),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(199) },
-    );
-    try mem.set(
-        Relocatable.new(0, 18),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        Relocatable.new(0, 19),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        Relocatable.new(0, 20),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        Relocatable.new(0, 21),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        Relocatable.new(0, 22),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        Relocatable.new(0, 23),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(1) },
-    );
-    try mem.set(
-        Relocatable.new(0, 24),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        Relocatable.new(0, 25),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        Relocatable.new(0, 26),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(43) },
-    );
-    try mem.set(
-        Relocatable.new(0, 27),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(199) },
-    );
-    try mem.set(
-        Relocatable.new(0, 28),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        Relocatable.new(0, 29),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        Relocatable.new(0, 30),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        Relocatable.new(0, 31),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        Relocatable.new(0, 32),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        Relocatable.new(0, 33),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(1) },
-    );
-    try mem.set(
-        Relocatable.new(0, 34),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        Relocatable.new(0, 35),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
+    defer mem.deinitData(std.testing.allocator);
 
     try expectError(
         RunnerError.IntegerBiggerThanPowerOfTwo,
