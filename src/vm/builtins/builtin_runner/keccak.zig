@@ -975,105 +975,31 @@ test "KeccakBuiltinRunner: deduceMemoryCell memory valid" {
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
 
-    try mem.set(
+    try memoryFile.setUpMemory(
+        mem,
         std.testing.allocator,
-        Relocatable.new(0, 16),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(43) },
-    );
-    try mem.set(
-        std.testing.allocator,
-        Relocatable.new(0, 17),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(199) },
-    );
-    try mem.set(
-        std.testing.allocator,
-        Relocatable.new(0, 18),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        std.testing.allocator,
-        Relocatable.new(0, 19),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        std.testing.allocator,
-        Relocatable.new(0, 20),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        std.testing.allocator,
-        Relocatable.new(0, 21),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        std.testing.allocator,
-        Relocatable.new(0, 22),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        std.testing.allocator,
-        Relocatable.new(0, 23),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(1) },
-    );
-    try mem.set(
-        std.testing.allocator,
-        Relocatable.new(0, 24),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        std.testing.allocator,
-        Relocatable.new(0, 25),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        std.testing.allocator,
-        Relocatable.new(0, 26),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(43) },
-    );
-    try mem.set(
-        std.testing.allocator,
-        Relocatable.new(0, 27),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(199) },
-    );
-    try mem.set(
-        std.testing.allocator,
-        Relocatable.new(0, 28),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        std.testing.allocator,
-        Relocatable.new(0, 29),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        std.testing.allocator,
-        Relocatable.new(0, 30),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        std.testing.allocator,
-        Relocatable.new(0, 31),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        std.testing.allocator,
-        Relocatable.new(0, 32),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        std.testing.allocator,
-        Relocatable.new(0, 33),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(1) },
-    );
-    try mem.set(
-        std.testing.allocator,
-        Relocatable.new(0, 34),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
-    );
-    try mem.set(
-        std.testing.allocator,
-        Relocatable.new(0, 35),
-        MaybeRelocatable{ .felt = Felt252.fromInteger(0) },
+        .{
+            .{ .{ 0, 16 }, .{43} },
+            .{ .{ 0, 17 }, .{199} },
+            .{ .{ 0, 18 }, .{0} },
+            .{ .{ 0, 19 }, .{0} },
+            .{ .{ 0, 20 }, .{0} },
+            .{ .{ 0, 21 }, .{0} },
+            .{ .{ 0, 22 }, .{0} },
+            .{ .{ 0, 23 }, .{1} },
+            .{ .{ 0, 24 }, .{0} },
+            .{ .{ 0, 25 }, .{0} },
+            .{ .{ 0, 26 }, .{43} },
+            .{ .{ 0, 27 }, .{199} },
+            .{ .{ 0, 28 }, .{0} },
+            .{ .{ 0, 29 }, .{0} },
+            .{ .{ 0, 30 }, .{0} },
+            .{ .{ 0, 31 }, .{0} },
+            .{ .{ 0, 32 }, .{0} },
+            .{ .{ 0, 33 }, .{1} },
+            .{ .{ 0, 34 }, .{0} },
+            .{ .{ 0, 35 }, .{0} },
+        },
     );
     defer mem.deinitData(std.testing.allocator);
 
