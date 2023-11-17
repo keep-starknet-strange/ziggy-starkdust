@@ -1053,6 +1053,13 @@ test "MaybeRelocatable: sub between two Relocatable should return a proper Maybe
     );
 }
 
+test "MaybeRelocatable: sub between two Relocatable with different segment indexes should return an error" {
+    try expectError(
+        error.TypeMismatchNotRelocatable,
+        fromSegment(3, 20).sub(fromSegment(0, 10)),
+    );
+}
+
 test "MaybeRelocatable: sub between a Relocatable and a Felt252 should return a proper MaybeRelocatable" {
     try expectEqual(
         fromSegment(0, 10),
