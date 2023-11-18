@@ -842,7 +842,7 @@ pub const OperandsResult = struct {
     dst_addr: Relocatable,
     op_0_addr: Relocatable,
     op_1_addr: Relocatable,
-    deducedOperands: u8,
+    deduced_operands: u8,
 
     /// Returns a default instance of the OperandsResult struct.
     pub fn default() Self {
@@ -854,30 +854,30 @@ pub const OperandsResult = struct {
             .dst_addr = .{},
             .op_0_addr = .{},
             .op_1_addr = .{},
-            .deducedOperands = 0,
+            .deduced_operands = 0,
         };
     }
 
     pub fn setDst(self: *Self, value: bool) void {
-        self.deducedOperands |= if (value) 1 else 0;
+        self.deduced_operands |= if (value) 1 else 0;
     }
     pub fn setOp0(self: *Self, value: bool) void {
-        self.deducedOperands |= if (value) 1 << 1 else 0 << 1;
+        self.deduced_operands |= if (value) 1 << 1 else 0 << 1;
     }
 
     pub fn setOp1(self: *Self, value: bool) void {
-        self.deducedOperands |= if (value) 1 << 2 else 0 << 2;
+        self.deduced_operands |= if (value) 1 << 2 else 0 << 2;
     }
     pub fn wasDestDeducted(self: *const Self) bool {
-        return self.deducedOperands & 1 != 0;
+        return self.deduced_operands & 1 != 0;
     }
 
     pub fn wasOp0Deducted(self: *const Self) bool {
-        return self.deducedOperands & (1 << 1) != 0;
+        return self.deduced_operands & (1 << 1) != 0;
     }
 
     pub fn wasOp1Deducted(self: *const Self) bool {
-        return self.deducedOperands & (1 << 2) != 0;
+        return self.deduced_operands & (1 << 2) != 0;
     }
 };
 
