@@ -261,13 +261,13 @@ pub const CairoVM = struct {
     /// - `allocator`: allocator where OperandsResult stored.
     /// - `op`: OperandsResult object that stores all operands.
     pub fn insertDeducedOperands(self: *Self, allocator: Allocator, op: OperandsResult) !void {
-        if (OperandsResult.wasOp0Deducted()) {
+        if (op.wasOp0Deducted()) {
             try self.segments.memory.set(allocator, op.op_0_addr, op.op_0);
         }
-        if (OperandsResult.wasOp1Deducted()) {
+        if (op.wasOp1Deducted()) {
             try self.segments.memory.set(allocator, op.op_1_addr, op.op_1);
         }
-        if (OperandsResult.wasDestDeducted()) {
+        if (op.wasDestDeducted()) {
             try self.segments.memory.set(allocator, op.dst_addr, op.dst);
         }
     }
