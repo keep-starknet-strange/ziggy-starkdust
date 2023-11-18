@@ -859,14 +859,14 @@ pub const OperandsResult = struct {
     }
 
     pub fn setDst(self: *Self, value: bool) void {
-        self.deducedOperands |= @as(u8, @intCast(value));
+        self.deducedOperands |= if (value) 1 else 0;
     }
     pub fn setOp0(self: *Self, value: bool) void {
-        self.deducedOperands |= @as(u8, @intCast(value)) << 1;
+        self.deducedOperands |= if (value) 1 << 1 else 0 << 1;
     }
 
     pub fn setOp1(self: *Self, value: bool) void {
-        self.deducedOperands |= @as(u8, @intCast(value)) << 2;
+        self.deducedOperands |= if (value) 1 << 2 else 0 << 2;
     }
     pub fn wasDestDeducted(self: *const Self) bool {
         return self.deducedOperands & 1 != 0;

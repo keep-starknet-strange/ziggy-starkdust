@@ -1365,6 +1365,7 @@ test "updateRegisters all regular" {
         .dst_addr = .{},
         .op_0_addr = .{},
         .op_1_addr = .{},
+        .deducedOperands = 0,
     };
 
     // Create a new VM instance.
@@ -1430,6 +1431,7 @@ test "updateRegisters with mixed types" {
         .dst_addr = .{},
         .op_0_addr = .{},
         .op_1_addr = .{},
+        .deducedOperands = 0,
     };
 
     // Create a new VM instance.
@@ -2003,4 +2005,20 @@ test "CairoVM: core utility function for testing test" {
 
     try expectEqual(@as(usize, 1), actual.count());
     try expectEqual(@as(u32, 3), actual.get(0).?);
+}
+
+test "CairoVM: Operands Result deduced functionality" {
+    // Test setup
+    //var allocator = std.testing.allocator;
+    //var instruction = Instruction.default();
+    //instruction.ap_update = .Add;
+    var operands = OperandsResult.default();
+    operands.setOp1(true);
+    //operands.res = null; // Simulate unconstrained res
+    // Create a new VM instance.
+    //var vm = try CairoVM.init(allocator, .{});
+    //defer vm.deinit();
+
+    // Test body
+    try expect(operands.wasOp1Deducted());
 }
