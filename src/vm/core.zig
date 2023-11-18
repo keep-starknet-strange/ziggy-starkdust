@@ -326,7 +326,6 @@ pub const CairoVM = struct {
         op_res.res = null;
 
         op_res.dst_addr = try self.run_context.computeDstAddr(instruction);
-        op_res.setDst(true);
         op_res.dst = try self.segments.memory.get(op_res.dst_addr);
         op_res.op_0_addr = try self.run_context.computeOp0Addr(instruction);
         const op_0_op = self.segments.memory.get(op_res.op_0_addr) catch null;
@@ -378,6 +377,7 @@ pub const CairoVM = struct {
         }
 
         if (dst_op == null) {
+            op_res.setDst(true);
             op_res.dst = try self.deduceDst(instruction, op_res.res);
         }
 
