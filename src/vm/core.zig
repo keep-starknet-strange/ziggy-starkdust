@@ -279,7 +279,7 @@ pub const CairoVM = struct {
         }
 
         const operands_result = try self.computeOperands(allocator, instruction);
-        try insertDeducedOperands(operands_result);
+        try self.insertDeducedOperands(operands_result);
 
         try self.updateRegisters(
             instruction,
