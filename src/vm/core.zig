@@ -256,10 +256,10 @@ pub const CairoVM = struct {
         return self.runInstruction(allocator, &instruction);
     }
 
-    pub fn insertDeducedOperands(self: *Self, op: OperandsResult) !void {
-        try self.segments.memory.set(op.op_0_addr, op.op_0);
-        try self.segments.memory.set(op.op_1_addr, op.op_1);
-        try self.segments.memory.set(op.dst_addr, op.dst);
+    pub fn insertDeducedOperands(self: *Self, allocator: Allocator, op: OperandsResult) !void {
+        try self.segments.memory.set(allocator, op.op_0_addr, op.op_0);
+        try self.segments.memory.set(allocator, op.op_1_addr, op.op_1);
+        try self.segments.memory.set(allocator, op.dst_addr, op.dst);
     }
 
     /// Run a specific instruction.
@@ -279,7 +279,7 @@ pub const CairoVM = struct {
         }
 
         const operands_result = try self.computeOperands(allocator, instruction);
-        try self.insertDeducedOperands(operands_result);
+        try self.insertDeducedOperands(allocator, operands_result);
 
         try self.updateRegisters(
             instruction,
