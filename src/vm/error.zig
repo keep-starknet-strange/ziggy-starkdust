@@ -60,3 +60,11 @@ pub const RunnerError = error{
     /// Integer value exceeds a power of two.
     IntegerBiggerThanPowerOfTwo,
 };
+
+/// Represents different error conditions that occur during mathematical operations.
+pub const MathError = error{
+    /// Error when attempting to perform addition between Relocatable values.
+    RelocatableAdd,
+    /// Error when attempting to subtract a Relocatable from an integer value.
+    SubRelocatableFromInt,
+};
