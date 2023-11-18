@@ -7,6 +7,10 @@ const std = @import("std");
 const json = std.json;
 const Allocator = std.mem.Allocator;
 
+// Local imports.
+const relocatable = @import("../memory/relocatable.zig");
+const MaybeRelocatable = relocatable.MaybeRelocatable;
+
 const ApTracking = struct {
     group: usize,
     offset: usize,
@@ -72,6 +76,8 @@ const Identifier = struct {
 };
 
 pub const Program = struct {
+    const Self = @This();
+
     attributes: []Attribute,
     builtins: []const []const u8,
     compiler_version: []const u8,
@@ -101,7 +107,7 @@ pub const Program = struct {
     /// # Errors
     /// - If loading the file fails.
     /// - If the file has incompatible json with respect to the `Program` struct.
-    pub fn initFromFile(allocator: Allocator, filename: []const u8) !json.Parsed(Program) {
+    pub fn dataFromFile(allocator: Allocator, filename: []const u8) ![]MaybeRelocatable {
         const file = try std.fs.cwd().openFile(filename, .{});
         const file_size = try file.getEndPos();
         defer file.close();
@@ -110,8 +116,22 @@ pub const Program = struct {
         defer allocator.free(buffer);
 
         const parsed = try json.parseFromSlice(Program, allocator, buffer, .{ .allocate = .alloc_always });
+        const program_data = try getData(allocator, parsed.value.data);
+        // const resultTuple = .{ parsed.value, program_data };
+        return program_data;
+    }
 
-        return parsed;
+    pub fn getData(allocator: Allocator, data: []const []const u8) ![]MaybeRelocatable {
+        var parsedData = try allocator.alloc(MaybeRelocatable, data.len);
+        errdefer allocator.free(parsedData);
+
+        for (data, 0..) |instruction, i| {
+            // std.log.debug("instruction i:{} {s}", .{ i, instruction[0..] });
+            var parsedHex = try std.fmt.parseInt(u256, instruction[2..], 16);
+            // std.log.debug("hex {}", .{parsedHex});
+            parsedData[i] = relocatable.fromU256(parsedHex);
+        }
+        return parsedData;
     }
 };
 

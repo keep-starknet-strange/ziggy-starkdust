@@ -12,6 +12,7 @@ const RunContext = @import("../vm/run_context.zig").RunContext;
 const relocatable = @import("../vm/memory/relocatable.zig");
 const Config = @import("../vm/config.zig").Config;
 const build_options = @import("../build_options.zig");
+const CairoRunner = @import("../vm/runners/cairo_runner.zig").CairoRunner;
 const Program = @import("../vm/types/program.zig").Program;
 
 // ************************************************************
@@ -109,41 +110,16 @@ fn execute(_: []const []const u8) !void {
     );
 
     
-    var program = try Program.initFromFile(gpa_allocator, config.filename.?);
-    defer program.deinit();
-    
+
+
     if (build_options.trace_disable and config.enable_trace) {
         std.log.err("Tracing is disabled in this build.\n", .{});
         return UsageError.IncompatibleBuildOptions;
     }
 
-    // Create a new VM instance.
-    var vm = try vm_core.CairoVM.init(
-        gpa_allocator,
-        config,
-    );
-    defer vm.deinit(); // <-- This ensures that resources are freed when exiting the scope
+    var runner = try CairoRunner.initFromConfig(gpa_allocator, config);
 
-    const address_1 = relocatable.Relocatable.new(
-        0,
-        0,
-    );
-    const encoded_instruction = relocatable.MaybeRelocatable.fromU64(0x14A7800080008000);
-
-    // Write a value to memory.
-    try vm.segments.memory.set(
-        gpa_allocator,
-        address_1,
-        encoded_instruction,
-    );
-    defer vm.segments.memory.deinitData(gpa_allocator);
-
-    // Run a step.
-    vm.step(gpa_allocator) catch |err| {
-        std.debug.print(
-            "Error: {}\n",
-            .{err},
-        );
-        return;
-    };
+    var end = try runner.init();
+    
+    runner.runUntilPC(end);
 }

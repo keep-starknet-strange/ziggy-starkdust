@@ -313,14 +313,13 @@ pub const CairoVM = struct {
     /// # Arguments
     /// - `instruction`: The instruction to compute the operands for.
     /// # Returns
-    /// - `Operands`: The operands for the instruction.
+    /// - `Operands`: The operands for the instruction.a
     pub fn computeOperands(
         self: *Self,
         allocator: Allocator,
         instruction: *const instructions.Instruction,
     ) !OperandsResult {
         var op_res = OperandsResult.default();
-
         op_res.res = null;
 
         op_res.dst_addr = try self.run_context.computeDstAddr(instruction);
@@ -522,7 +521,7 @@ pub const CairoVM = struct {
             },
             // PC update Jnz
             .Jnz => {
-                if (operands.dst.isZero()) {
+                if (operands.dst.?.isZero()) {
                     // Update the PC.
                     self.run_context.pc.*.addUintInPlace(instruction.size());
                 } else {
