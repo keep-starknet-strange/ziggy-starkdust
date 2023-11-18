@@ -251,7 +251,7 @@ pub const Memory = struct {
     pub fn get(
         self: *Self,
         address: Relocatable,
-    ) error{MemoryOutOfBounds}!MaybeRelocatable {
+    ) error{MemoryOutOfBounds}!?MaybeRelocatable {
         const data = if (address.segment_index < 0) &self.temp_data else &self.data;
         const segment_index: usize = @intCast(if (address.segment_index < 0) -(address.segment_index + 1) else address.segment_index);
 
@@ -265,7 +265,7 @@ pub const Memory = struct {
         if (data.items[segment_index].items[@intCast(address.offset)]) |val| {
             return val.maybe_relocatable;
         }
-        return CairoVMError.MemoryOutOfBounds;
+        return null;
     }
 
     /// Retrieves a `Felt252` value from the memory at the specified relocatable address.
@@ -285,10 +285,14 @@ pub const Memory = struct {
         self: *Self,
         address: Relocatable,
     ) error{ MemoryOutOfBounds, ExpectedInteger }!Felt252 {
-        return switch (try self.get(address)) {
-            .felt => |fe| fe,
-            else => error.ExpectedInteger,
-        };
+        if (try self.get(address)) |m| {
+            return switch (m) {
+                .felt => |fe| fe,
+                else => error.ExpectedInteger,
+            };
+        } else {
+            return error.ExpectedInteger;
+        }
     }
 
     /// Retrieves a `Relocatable` value from the memory at the specified relocatable address in the Cairo VM.
@@ -307,10 +311,14 @@ pub const Memory = struct {
         self: *Self,
         address: Relocatable,
     ) error{ MemoryOutOfBounds, ExpectedRelocatable }!Relocatable {
-        return switch (try self.get(address)) {
-            .relocatable => |rel| rel,
-            else => error.ExpectedRelocatable,
-        };
+        if (try self.get(address)) |m| {
+            return switch (m) {
+                .relocatable => |rel| rel,
+                else => error.ExpectedRelocatable,
+            };
+        } else {
+            return error.ExpectedRelocatable;
+        }
     }
 
     // Adds a validation rule for a given segment.
@@ -501,8 +509,36 @@ test "memory set and get" {
     // *                      TEST CHECKS                         *
     // ************************************************************
     // Assert that the value is the expected value.
-    try expect(maybe_value_1.eq(value_1));
-    try expect(maybe_value_2.eq(value_2));
+    try expect(maybe_value_1.?.eq(value_1));
+    try expect(maybe_value_2.?.eq(value_2));
+}
+
+test "Memory: get inside a segment without value but inbout should return null" {
+    // Test setup
+    // Initialize an allocator.
+    var allocator = std.testing.allocator;
+
+    // Initialize a memory instance.
+    var memory = try Memory.init(allocator);
+    defer memory.deinit();
+
+    // Test body
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 1, 0 }, .{5} },
+            .{ .{ 1, 1 }, .{2} },
+            .{ .{ 1, 5 }, .{3} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    // Test check
+    try expectEqual(
+        @as(?MaybeRelocatable, null),
+        try memory.get(Relocatable.new(1, 3)),
+    );
 }
 
 test "validate existing memory for range check within bound" {
@@ -546,7 +582,7 @@ test "validate existing memory for range check within bound" {
     // *                      TEST CHECKS                         *
     // ************************************************************
     // Assert that the value is the expected value.
-    try expect(maybe_value_1.eq(value_1));
+    try expect(maybe_value_1.?.eq(value_1));
 }
 
 test "Memory: getFelt should return MemoryOutOfBounds error if no value at the given address" {

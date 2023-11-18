@@ -582,7 +582,7 @@ test "deduceOp0 when opcode == .Call" {
     var instr = deduceOpTestInstr;
     instr.opcode = .Call;
 
-    const deduceOp0 = try vm.deduceOp0(&instr, null, null);
+    const deduceOp0 = try vm.deduceOp0(&instr, &null, &null);
 
     // Test checks
     const expected_op_0: ?MaybeRelocatable = relocatable.newFromRelocatable(Relocatable.new(0, 1)); // temp var needed for type inference
@@ -601,8 +601,8 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Add, input is felt" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Add;
 
-    const dst = relocatable.fromU64(3);
-    const op1 = relocatable.fromU64(2);
+    const dst: ?MaybeRelocatable = relocatable.fromU64(3);
+    const op1: ?MaybeRelocatable = relocatable.fromU64(2);
 
     const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
@@ -621,7 +621,7 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Add, with no input" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Add;
 
-    const deduceOp0 = try vm.deduceOp0(&instr, null, null);
+    const deduceOp0 = try vm.deduceOp0(&instr, &null, &null);
 
     // Test checks
     const expected_op_0: ?MaybeRelocatable = null; // temp var needed for type inference
@@ -640,8 +640,8 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Mul, input is felt 1" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Mul;
 
-    const dst = relocatable.fromU64(4);
-    const op1 = relocatable.fromU64(2);
+    const dst: ?MaybeRelocatable = relocatable.fromU64(4);
+    const op1: ?MaybeRelocatable = relocatable.fromU64(2);
 
     const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
@@ -662,8 +662,8 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Op1, input is felt" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
-    const dst = relocatable.fromU64(4);
-    const op1 = relocatable.fromU64(0);
+    const dst: ?MaybeRelocatable = relocatable.fromU64(4);
+    const op1: ?MaybeRelocatable = relocatable.fromU64(0);
 
     const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
@@ -684,8 +684,8 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Mul, input is felt 2" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Mul;
 
-    const dst = relocatable.fromU64(4);
-    const op1 = relocatable.fromU64(0);
+    const dst: ?MaybeRelocatable = relocatable.fromU64(4);
+    const op1: ?MaybeRelocatable = relocatable.fromU64(0);
 
     const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
@@ -706,8 +706,8 @@ test "deduceOp0 when opcode == .Ret, res_logic == .Mul, input is felt" {
     instr.opcode = .Ret;
     instr.res_logic = .Mul;
 
-    const dst = relocatable.fromU64(4);
-    const op1 = relocatable.fromU64(0);
+    const dst: ?MaybeRelocatable = relocatable.fromU64(4);
+    const op1: ?MaybeRelocatable = relocatable.fromU64(0);
 
     const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
@@ -726,7 +726,7 @@ test "deduceOp1 when opcode == .Call" {
     var instr = deduceOpTestInstr;
     instr.opcode = .Call;
 
-    const op1Deduction = try deduceOp1(&instr, null, null);
+    const op1Deduction = try deduceOp1(&instr, &null, &null);
 
     // Test checks
     const expected_op_1: ?MaybeRelocatable = null; // temp var needed for type inference
@@ -744,8 +744,8 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Add, input is felt" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Add;
 
-    const dst = relocatable.fromU64(3);
-    const op0 = relocatable.fromU64(2);
+    const dst: ?MaybeRelocatable = relocatable.fromU64(3);
+    const op0: ?MaybeRelocatable = relocatable.fromU64(2);
 
     const op1Deduction = try deduceOp1(&instr, &dst, &op0);
 
@@ -763,8 +763,8 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, non-zero op0" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Mul;
 
-    const dst = relocatable.fromU64(4);
-    const op0 = relocatable.fromU64(2);
+    const dst: ?MaybeRelocatable = relocatable.fromU64(4);
+    const op0: ?MaybeRelocatable = relocatable.fromU64(2);
 
     const op1Deduction = try deduceOp1(&instr, &dst, &op0);
 
@@ -782,8 +782,8 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Mul;
 
-    const dst = relocatable.fromU64(4);
-    const op0 = relocatable.fromU64(0);
+    const dst: ?MaybeRelocatable = relocatable.fromU64(4);
+    const op0: ?MaybeRelocatable = relocatable.fromU64(0);
 
     const op1Deduction = try deduceOp1(&instr, &dst, &op0);
 
@@ -803,7 +803,7 @@ test "deduceOp1 when opcode == .AssertEq, res_logic = .Mul, no input" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Mul;
 
-    const op1Deduction = try deduceOp1(&instr, null, null);
+    const op1Deduction = try deduceOp1(&instr, &null, &null);
 
     // Test checks
     const expected_op_1: ?MaybeRelocatable = null; // temp var needed for type inference
@@ -821,9 +821,9 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
-    const op0 = relocatable.fromU64(0);
+    const op0: ?MaybeRelocatable = relocatable.fromU64(0);
 
-    const op1Deduction = try deduceOp1(&instr, null, &op0);
+    const op1Deduction = try deduceOp1(&instr, &null, &op0);
 
     // Test checks
     const expected_op_1: ?MaybeRelocatable = null; // temp var needed for type inference
@@ -841,9 +841,9 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no op0" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
-    const dst = relocatable.fromU64(7);
+    const dst: ?MaybeRelocatable = relocatable.fromU64(7);
 
-    const op1Deduction = try deduceOp1(&instr, &dst, null);
+    const op1Deduction = try deduceOp1(&instr, &dst, &null);
 
     // Test checks
     try expect(op1Deduction.op_1.?.eq(relocatable.fromU64(7)));
@@ -880,7 +880,7 @@ test "set get value in vm memory" {
     const expected_value = value;
     try expectEqual(
         expected_value,
-        actual_value,
+        actual_value.?,
     );
 }
 
@@ -1220,14 +1220,15 @@ test "compute operands add AP" {
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    var expected_operands = OperandsResult.default();
-    expected_operands.dst_addr = dst_addr;
-    expected_operands.op_0_addr = op0_addr;
-    expected_operands.op_1_addr = op1_addr;
-    expected_operands.dst = dst_val;
-    expected_operands.op_0 = op0_val;
-    expected_operands.op_1 = op1_val;
-    expected_operands.res = dst_val;
+    var expected_operands: OperandsResult = .{
+        .dst_addr = dst_addr,
+        .op_0_addr = op0_addr,
+        .op_1_addr = op1_addr,
+        .dst = dst_val,
+        .op_0 = op0_val,
+        .op_1 = op1_val,
+        .res = dst_val,
+    };
 
     const actual_operands = try vm.computeOperands(
         std.testing.allocator,
@@ -1288,14 +1289,15 @@ test "compute operands mul FP" {
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    var expected_operands = OperandsResult.default();
-    expected_operands.dst_addr = dst_addr;
-    expected_operands.op_0_addr = op0_addr;
-    expected_operands.op_1_addr = op1_addr;
-    expected_operands.dst = dst_val;
-    expected_operands.op_0 = op0_val;
-    expected_operands.op_1 = op1_val;
-    expected_operands.res = dst_val;
+    var expected_operands: OperandsResult = .{
+        .dst_addr = dst_addr,
+        .op_0_addr = op0_addr,
+        .op_1_addr = op1_addr,
+        .dst = dst_val,
+        .op_0 = op0_val,
+        .op_1 = op1_val,
+        .res = dst_val,
+    };
 
     const actual_operands = try vm.computeOperands(
         std.testing.allocator,
@@ -1483,8 +1485,8 @@ test "CairoVM: computeOp0Deductions should return op0 from deduceOp0 if deduceMe
             std.testing.allocator,
             Relocatable.new(0, 7),
             &instr,
-            null,
-            null,
+            &null,
+            &null,
         ),
     );
 }
@@ -1733,7 +1735,7 @@ test "CairoVM: getRelocatable with value should return a MaybeRelocatable" {
     // Test check
     try expectEqual(
         fromU256(5),
-        try vm.getRelocatable(Relocatable.new(34, 12)),
+        (try vm.getRelocatable(Relocatable.new(34, 12))).?,
     );
 }
 
@@ -1896,8 +1898,8 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceMemoryCell if n
             Relocatable.new(0, 7),
             &res,
             &instr,
-            null,
-            null,
+            &null,
+            &null,
         ),
     );
 }
@@ -1911,7 +1913,7 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceOp1 if deduceMe
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
-    const dst = relocatable.fromU64(7);
+    const dst: ?MaybeRelocatable = relocatable.fromU64(7);
     var res: ?MaybeRelocatable = relocatable.fromU64(7);
 
     // Test check
@@ -1923,7 +1925,7 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceOp1 if deduceMe
             &res,
             &instr,
             &dst,
-            null,
+            &null,
         ),
     );
 }
@@ -1937,7 +1939,7 @@ test "CairoVM: computeOp1Deductions should modify res (if null) using res from d
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
-    const dst = relocatable.fromU64(7);
+    const dst: ?MaybeRelocatable = relocatable.fromU64(7);
     var res: ?MaybeRelocatable = null;
 
     _ = try vm.computeOp1Deductions(
@@ -1946,7 +1948,7 @@ test "CairoVM: computeOp1Deductions should modify res (if null) using res from d
         &res,
         &instr,
         &dst,
-        null,
+        &null,
     );
 
     // Test check
@@ -1965,7 +1967,7 @@ test "CairoVM: computeOp1Deductions should return CairoVMError error if deduceMe
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
-    const op0 = relocatable.fromU64(0);
+    const op0: ?MaybeRelocatable = relocatable.fromU64(0);
     var res: ?MaybeRelocatable = null;
 
     // Test check
@@ -1976,7 +1978,7 @@ test "CairoVM: computeOp1Deductions should return CairoVMError error if deduceMe
             Relocatable.new(0, 7),
             &res,
             &instr,
-            null,
+            &null,
             &op0,
         ),
     );

@@ -42,15 +42,19 @@ fn getValue(address: Relocatable, memory: *Memory) BitwiseError!u256 {
         return BitwiseError.InvalidAddressForBitwise;
     };
 
-    var felt = value.tryIntoFelt() catch {
-        return BitwiseError.InvalidAddressForBitwise;
-    };
+    if (value) |v| {
+        var felt = v.tryIntoFelt() catch {
+            return BitwiseError.InvalidAddressForBitwise;
+        };
 
-    if (felt.toInteger() > std.math.pow(u256, 2, BITWISE_TOTAL_N_BITS)) {
-        return BitwiseError.UnsupportedNumberOfBits;
+        if (felt.toInteger() > std.math.pow(u256, 2, BITWISE_TOTAL_N_BITS)) {
+            return BitwiseError.UnsupportedNumberOfBits;
+        }
+
+        return felt.toInteger();
     }
 
-    return felt.toInteger();
+    return BitwiseError.InvalidAddressForBitwise;
 }
 
 /// Compute the auto-deduction rule for Bitwise

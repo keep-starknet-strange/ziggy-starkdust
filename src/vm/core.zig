@@ -142,7 +142,7 @@ pub const CairoVM = struct {
     pub fn getRelocatable(
         self: *Self,
         address: Relocatable,
-    ) error{MemoryOutOfBounds}!MaybeRelocatable {
+    ) error{MemoryOutOfBounds}!?MaybeRelocatable {
         return self.segments.memory.get(address);
     }
 
@@ -309,55 +309,49 @@ pub const CairoVM = struct {
         op_res.res = null;
 
         op_res.dst_addr = try self.run_context.computeDstAddr(instruction);
-        op_res.dst = try self.segments.memory.get(op_res.dst_addr);
+        const dst_op = try self.segments.memory.get(op_res.dst_addr);
+
         op_res.op_0_addr = try self.run_context.computeOp0Addr(instruction);
-        const op_0_op = self.segments.memory.get(op_res.op_0_addr) catch null;
 
         op_res.op_1_addr = try self.run_context.computeOp1Addr(
             instruction,
             op_res.op_0,
         );
-
         const op_1_op = self.segments.memory.get(op_res.op_1_addr) catch null;
 
         // Deduce the operands if they haven't been successfully retrieved from memory.
-
-        const op_1_ptr = &op_1_op.?;
-        const dst_ptr = &try self.segments.memory.get(op_res.dst_addr);
-        const dst_op: ?*const MaybeRelocatable = dst_ptr;
-
-        if (op_0_op == null) {
+        if (self.segments.memory.get(op_res.op_0_addr) catch null) |op_0| {
+            op_res.op_0 = op_0;
+        } else {
             op_res.op_0 = try self.computeOp0Deductions(
                 allocator,
                 op_res.op_0_addr,
                 instruction,
-                dst_ptr,
-                op_1_ptr,
+                &dst_op,
+                &op_1_op,
             );
-        } else {
-            op_res.op_0 = op_0_op.?;
         }
 
-        if (op_1_op == null) {
+        if (op_1_op) |op_1| {
+            op_res.op_1 = op_1;
+        } else {
             op_res.op_1 = try self.computeOp1Deductions(
                 allocator,
                 op_res.op_1_addr,
                 &op_res.res,
                 instruction,
-                dst_op,
-                &op_res.op_0,
+                &dst_op,
+                &@as(?MaybeRelocatable, op_res.op_0),
             );
-        } else {
-            op_res.op_1 = op_1_op.?;
         }
 
-        const res_op: ?MaybeRelocatable = op_res.res;
-
-        if (res_op == null) {
+        if (op_res.res == null) {
             op_res.res = try computeRes(instruction, op_res.op_0, op_res.op_1);
         }
 
-        if (dst_op == null) {
+        if (dst_op) |dst| {
+            op_res.dst = dst;
+        } else {
             op_res.dst = try self.deduceDst(instruction, op_res.res);
         }
 
@@ -382,8 +376,8 @@ pub const CairoVM = struct {
         allocator: Allocator,
         op_0_addr: Relocatable,
         instruction: *const instructions.Instruction,
-        dst: ?*const MaybeRelocatable,
-        op1: ?*const MaybeRelocatable,
+        dst: *const ?MaybeRelocatable,
+        op1: *const ?MaybeRelocatable,
     ) !MaybeRelocatable {
         const op0_op = try self.deduceMemoryCell(allocator, op_0_addr) orelse (try self.deduceOp0(
             instruction,
@@ -414,8 +408,8 @@ pub const CairoVM = struct {
         op1_addr: Relocatable,
         res: *?MaybeRelocatable,
         instruction: *const instructions.Instruction,
-        dst_op: ?*const MaybeRelocatable,
-        op0: ?*const MaybeRelocatable,
+        dst_op: *const ?MaybeRelocatable,
+        op0: *const ?MaybeRelocatable,
     ) !MaybeRelocatable {
         if (try self.deduceMemoryCell(allocator, op1_addr)) |op1| {
             return op1;
@@ -440,8 +434,8 @@ pub const CairoVM = struct {
     pub fn deduceOp0(
         self: *Self,
         inst: *const instructions.Instruction,
-        dst: ?*const MaybeRelocatable,
-        op1: ?*const MaybeRelocatable,
+        dst: *const ?MaybeRelocatable,
+        op1: *const ?MaybeRelocatable,
     ) !Op0Result {
         switch (inst.opcode) {
             .Call => {
@@ -451,17 +445,17 @@ pub const CairoVM = struct {
                 };
             },
             .AssertEq => {
-                const dst_val = dst orelse return .{ .op_0 = null, .res = null };
-                const op1_val = op1 orelse return .{ .op_0 = null, .res = null };
+                const dst_val = dst.* orelse return .{ .op_0 = null, .res = null };
+                const op1_val = op1.* orelse return .{ .op_0 = null, .res = null };
                 if ((inst.res_logic == .Add)) {
                     return .{
-                        .op_0 = try subOperands(dst_val.*, op1_val.*),
-                        .res = dst_val.*,
+                        .op_0 = try subOperands(dst_val, op1_val),
+                        .res = dst_val,
                     };
                 } else if (dst_val.isFelt() and op1_val.isFelt() and !op1_val.felt.isZero()) {
                     return .{
                         .op_0 = relocatable.fromFelt(try dst_val.felt.div(op1_val.felt)),
-                        .res = dst_val.*,
+                        .res = dst_val,
                     };
                 }
             },
@@ -792,25 +786,28 @@ pub fn subOperands(self: MaybeRelocatable, other: MaybeRelocatable) !MaybeReloca
 /// - `Tuple`: A tuple containing the deduced `op1` and `res`.
 pub fn deduceOp1(
     inst: *const instructions.Instruction,
-    dst: ?*const MaybeRelocatable,
-    op0: ?*const MaybeRelocatable,
+    dst: *const ?MaybeRelocatable,
+    op0: *const ?MaybeRelocatable,
 ) !Op1Result {
     if (inst.opcode != .AssertEq) {
         return .{ .op_1 = null, .res = null };
     }
 
     switch (inst.res_logic) {
-        .Op1 => if (dst) |dst_val| {
-            return .{ .op_1 = dst_val.*, .res = dst_val.* };
+        .Op1 => if (dst.*) |dst_val| {
+            return .{ .op_1 = dst_val, .res = dst_val };
         },
-        .Add => if (dst != null and op0 != null) {
-            return .{ .op_1 = try subOperands(dst.?.*, op0.?.*), .res = dst.?.* };
+        .Add => if (dst.* != null and op0.* != null) {
+            return .{
+                .op_1 = try subOperands(dst.*.?, op0.*.?),
+                .res = dst.*.?,
+            };
         },
         .Mul => {
-            if (dst != null and op0 != null and dst.?.isFelt() and op0.?.isFelt() and !op0.?.felt.isZero()) {
+            if (dst.* != null and op0.* != null and dst.*.?.isFelt() and op0.*.?.isFelt() and !op0.*.?.felt.isZero()) {
                 return .{
-                    .op_1 = relocatable.fromFelt(try dst.?.felt.div(op0.?.felt)),
-                    .res = dst.?.*,
+                    .op_1 = relocatable.fromFelt(try dst.*.?.felt.div(op0.*.?.felt)),
+                    .res = dst.*.?,
                 };
             }
         },
