@@ -256,10 +256,20 @@ pub const CairoVM = struct {
         return self.runInstruction(allocator, &instruction);
     }
 
+    /// Insert Operands only after checking if they were deduced.
+    // # Arguments
+    /// - `allocator`: allocator where OperandsResult stored.
+    /// - `op`: OperandsResult object that stores all operands.
     pub fn insertDeducedOperands(self: *Self, allocator: Allocator, op: OperandsResult) !void {
-        try self.segments.memory.set(allocator, op.op_0_addr, op.op_0);
-        try self.segments.memory.set(allocator, op.op_1_addr, op.op_1);
-        try self.segments.memory.set(allocator, op.dst_addr, op.dst);
+        if (OperandsResult.deduced_operands.wasOp0Deducted()) {
+            try self.segments.memory.set(allocator, op.op_0_addr, op.op_0);
+        }
+        if (OperandsResult.deduced_operands.wasOp1Deducted()) {
+            try self.segments.memory.set(allocator, op.op_1_addr, op.op_1);
+        }
+        if (OperandsResult.deduced_operands.wasDestDeducted()) {
+            try self.segments.memory.set(allocator, op.dst_addr, op.dst);
+        }
     }
 
     /// Run a specific instruction.
@@ -316,6 +326,7 @@ pub const CairoVM = struct {
         op_res.res = null;
 
         op_res.dst_addr = try self.run_context.computeDstAddr(instruction);
+        op_res.setDst(true);
         op_res.dst = try self.segments.memory.get(op_res.dst_addr);
         op_res.op_0_addr = try self.run_context.computeOp0Addr(instruction);
         const op_0_op = self.segments.memory.get(op_res.op_0_addr) catch null;
@@ -334,6 +345,7 @@ pub const CairoVM = struct {
         const dst_op: ?*const MaybeRelocatable = dst_ptr;
 
         if (op_0_op == null) {
+            op_res.setOp0(true);
             op_res.op_0 = try self.computeOp0Deductions(
                 allocator,
                 op_res.op_0_addr,
@@ -346,6 +358,7 @@ pub const CairoVM = struct {
         }
 
         if (op_1_op == null) {
+            op_res.setOp1(true);
             op_res.op_1 = try self.computeOp1Deductions(
                 allocator,
                 op_res.op_1_addr,

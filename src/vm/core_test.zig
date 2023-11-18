@@ -1228,6 +1228,7 @@ test "compute operands add AP" {
     expected_operands.op_0 = op0_val;
     expected_operands.op_1 = op1_val;
     expected_operands.res = dst_val;
+    expected_operands.deduced_operands = 1;
 
     const actual_operands = try vm.computeOperands(
         std.testing.allocator,
@@ -1296,6 +1297,7 @@ test "compute operands mul FP" {
     expected_operands.op_0 = op0_val;
     expected_operands.op_1 = op1_val;
     expected_operands.res = dst_val;
+    expected_operands.deduced_operands = 1;
 
     const actual_operands = try vm.computeOperands(
         std.testing.allocator,
@@ -2014,6 +2016,17 @@ test "CairoVM: OperandsResult set " {
 
     // Test body
     try expectEqual(operands.deduced_operands, 1);
+}
+
+test "CairoVM: OperandsResult set Op1" {
+    // Test setup
+    var operands = OperandsResult.default();
+    operands.setOp0(true);
+    operands.setOp1(true);
+    operands.setDst(true);
+
+    // Test body
+    try expectEqual(operands.deduced_operands, 7);
 }
 
 test "CairoVM: OperandsResult deduced set and was functionality" {
