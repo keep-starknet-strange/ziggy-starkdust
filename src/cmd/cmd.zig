@@ -109,17 +109,14 @@ fn execute(_: []const []const u8) !void {
         .{},
     );
 
-    
-
-
     if (build_options.trace_disable and config.enable_trace) {
         std.log.err("Tracing is disabled in this build.\n", .{});
         return UsageError.IncompatibleBuildOptions;
     }
 
     var runner = try CairoRunner.initFromConfig(gpa_allocator, config);
+    defer runner.deinit();
 
     var end = try runner.init();
-    
     runner.runUntilPC(end);
 }

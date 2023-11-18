@@ -313,7 +313,7 @@ pub const CairoVM = struct {
     /// # Arguments
     /// - `instruction`: The instruction to compute the operands for.
     /// # Returns
-    /// - `Operands`: The operands for the instruction.a
+    /// - `Operands`: The operands for the instruction.
     pub fn computeOperands(
         self: *Self,
         allocator: Allocator,
