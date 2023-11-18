@@ -243,7 +243,7 @@ pub const CairoVM = struct {
         // First, we convert the encoded instruction to a u64.
         // If the MaybeRelocatable is not a felt, this operation will fail.
         // If the MaybeRelocatable is a felt but the value does not fit into a u64, this operation will fail.
-        const encoded_instruction_u64 = encoded_instruction.tryIntoU64() catch {
+        const encoded_instruction_u64 = encoded_instruction.?.tryIntoU64() catch {
             return CairoVMError.InstructionEncodingError;
         };
 
