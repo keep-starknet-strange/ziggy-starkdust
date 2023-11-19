@@ -240,6 +240,13 @@ pub const Memory = struct {
                 @as(usize, @intCast(address.offset)) + 1 - data_segment.items.len,
             );
         }
+
+        // check if existing memory
+        if (data_segment.items[@as(usize, @intCast(address.offset))] != null) {
+            if (!data_segment.items[@as(usize, @intCast(address.offset))].?.maybe_relocatable.eq(value)) {
+                return MemoryError.DuplicatedRelocation;
+            }
+        }
         data_segment.items[address.offset] = MemoryCell.new(value);
     }
 
@@ -815,4 +822,24 @@ test "AddressSet: len should return the number of addresses in the address set" 
 
     // Test checks
     try expectEqual(@as(u32, 3), addressSet.len());
+}
+
+test "Memory: set should not rewrite memory" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try memory.set(
+        std.testing.allocator,
+        Relocatable.new(0, 1),
+        .{ .felt = Felt252.fromInteger(23) },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    // Test checks
+    try expectError(MemoryError.DuplicatedRelocation, memory.set(
+        std.testing.allocator,
+        Relocatable.new(0, 1),
+        .{ .felt = Felt252.fromInteger(8) },
+    ));
 }
