@@ -2037,3 +2037,112 @@ test "CairoVM: OperandsResult deduced set and was functionality" {
     // Test body
     try expect(operands.wasOp1Deducted());
 }
+
+test "CairoVM: InserDeducedOperands should insert operands if set as deduced" {
+    // Test setup
+    var allocator = std.testing.allocator;
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    _ = vm.addMemorySegment();
+    _ = vm.addMemorySegment();
+
+    // Test body
+
+    const dst_addr = Relocatable.new(1, 0);
+    const dst_val = MaybeRelocatable{ .felt = Felt252.fromInteger(6) };
+
+    const op0_addr = Relocatable.new(1, 1);
+    const op0_val = MaybeRelocatable{ .felt = Felt252.fromInteger(2) };
+
+    const op1_addr = Relocatable.new(1, 2);
+    const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
+    try memory.setUpMemory(
+        vm.segments.memory,
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    var test_operands = OperandsResult.default();
+    test_operands.dst_addr = dst_addr;
+    test_operands.op_0_addr = op0_addr;
+    test_operands.op_1_addr = op1_addr;
+    test_operands.dst = dst_val;
+    test_operands.op_0 = op0_val;
+    test_operands.op_1 = op1_val;
+    test_operands.res = dst_val;
+    test_operands.deduced_operands = 7;
+
+    try vm.insertDeducedOperands(allocator, test_operands);
+
+    // Test checks
+    try expectEqual(
+        try vm.segments.memory.get(Relocatable.new(1, 0)),
+        dst_val,
+    );
+    try expectEqual(
+        try vm.segments.memory.get(Relocatable.new(1, 1)),
+        op0_val,
+    );
+    try expectEqual(
+        try vm.segments.memory.get(Relocatable.new(1, 2)),
+        op1_val,
+    );
+}
+
+test "CairoVM: InserDeducedOperands insert operands should not be inserted if not set as deduced" {
+    // Test setup
+    var allocator = std.testing.allocator;
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    _ = vm.addMemorySegment();
+    _ = vm.addMemorySegment();
+
+    // Test body
+
+    const dst_addr = Relocatable.new(1, 0);
+    const dst_val = MaybeRelocatable{ .felt = Felt252.fromInteger(6) };
+
+    const op0_addr = Relocatable.new(1, 1);
+    const op0_val = MaybeRelocatable{ .felt = Felt252.fromInteger(2) };
+
+    const op1_addr = Relocatable.new(1, 2);
+    const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
+    try memory.setUpMemory(
+        vm.segments.memory,
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    var test_operands = OperandsResult.default();
+    test_operands.dst_addr = dst_addr;
+    test_operands.op_0_addr = op0_addr;
+    test_operands.op_1_addr = op1_addr;
+    test_operands.dst = dst_val;
+    test_operands.op_0 = op0_val;
+    test_operands.op_1 = op1_val;
+    test_operands.res = dst_val;
+    // 0 means no operands should be inserted
+    test_operands.deduced_operands = 0;
+
+    try vm.insertDeducedOperands(allocator, test_operands);
+
+    // Test checks
+    try expectError(
+        error.MemoryOutOfBounds,
+        vm.segments.memory.get(Relocatable.new(1, 0)),
+    );
+    try expectError(
+        error.MemoryOutOfBounds,
+        vm.segments.memory.get(Relocatable.new(1, 1)),
+    );
+    try expectError(
+        error.MemoryOutOfBounds,
+        vm.segments.memory.get(Relocatable.new(1, 2)),
+    );
+}
