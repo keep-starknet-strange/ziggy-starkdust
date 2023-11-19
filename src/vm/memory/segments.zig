@@ -219,7 +219,7 @@ pub const MemorySegmentManager = struct {
         try relocatable_table.append(first_addr);
         for (self.segment_used_sizes.keys()) |key| {
             const index = self.segment_used_sizes.getIndex(key) orelse return MemoryError.MissingSegmentUsedSizes;
-            const segment_size = self.getSegmentSize(@as(u32, @intCast(index))) orelse return MemoryError.MissingSegmentUsedSizes;
+            const segment_size = self.getSegmentSize(@intCast(index)) orelse return MemoryError.MissingSegmentUsedSizes;
             try relocatable_table.append(relocatable_table.items[index] + segment_size);
         }
         // The last value corresponds to the total amount of elements across all segments, which isnt needed for relocation.

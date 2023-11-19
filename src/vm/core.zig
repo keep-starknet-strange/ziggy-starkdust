@@ -12,6 +12,7 @@ const Relocatable = relocatable.Relocatable;
 const instructions = @import("instructions.zig");
 const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
+const TraceError = @import("error.zig").TraceError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
@@ -40,6 +41,8 @@ pub const CairoVM = struct {
     is_run_finished: bool,
     /// VM trace
     trace_context: TraceContext,
+    /// Whether the trace has been relocated
+    trace_relocated: bool,
 
     // ************************************************************
     // *             MEMORY ALLOCATION AND DEALLOCATION           *
@@ -77,6 +80,7 @@ pub const CairoVM = struct {
             .segments = memory_segment_manager,
             .is_run_finished = false,
             .trace_context = trace_context,
+            .trace_relocated = false,
         };
     }
 
@@ -649,6 +653,35 @@ pub const CairoVM = struct {
             }
         }
         return null;
+    }
+
+    pub fn relocateTrace(self: *Self, relocation_table: *[]u8) !void {
+        if (self.trace_relocated) {
+            return TraceError.AlreadyRelocated;
+        }
+        switch (self.trace_context.state) {
+            .enabled => |trace_enabled| {
+                const segment_1_base = relocation_table[1] orelse return TraceError.NoRelocationFound;
+                for (trace_enabled.entries) |entry| {
+                    entry.pc += 1;
+                    entry.ap = segment_1_base;
+                    entry.fp = segment_1_base;
+                }
+                self.trace_relocated = true;
+            },
+            .disabled => return TraceError.TraceNotEnabled,
+        }
+    }
+
+    pub fn getRelocatedTrace(self: *Self) TraceError {
+        if (self.trace_relocated) {
+            switch (self.trace_context.state) {
+                .enabled => |trace_enabled| return trace_enabled.entries.toOwnedSlice(),
+                .disabled => return TraceError.TraceNotEnabled,
+            }
+        } else {
+            return TraceError.TraceNotRelocated;
+        }
     }
 };
 

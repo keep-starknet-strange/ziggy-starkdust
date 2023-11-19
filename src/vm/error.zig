@@ -42,7 +42,7 @@ pub const MemoryError = error{
     DuplicatedRelocation,
 };
 
-/// Reepresents different error conditions that occur in the built-in runners.
+/// Represents different error conditions that occur in the built-in runners.
 pub const RunnerError = error{
     /// Errors associated with computing the address of a stop pointer of RangeCheckBuiltinRunner
     /// Raised when underflow occurs (i.e., subtracting 1 from 0),
@@ -54,4 +54,16 @@ pub const RunnerError = error{
     InvalidStopPointer,
     /// Raised when the conversion into a type of integer (e.g. a Felt) fails.
     BuiltinExpectedInteger,
+};
+
+/// Represents different error conditions that occur in trace relocation
+pub const TraceError = error{
+    /// Raised when tracing is disabled
+    TraceNotEnabled,
+    /// Raised when trace relocation has already been done.
+    AlreadyRelocated,
+    /// Raised when the relocation table doesn't contain the first two segments
+    NoRelocationFound,
+    /// Raised when trying to get relocated trace when trace hasn't been relocated
+    TraceNotRelocated,
 };
