@@ -118,12 +118,14 @@ fn execute(_: []const []const u8) !void {
 
     // Write a value to memory.
     try vm.segments.memory.set(
+        gpa_allocator,
         address_1,
         encoded_instruction,
     );
+    defer vm.segments.memory.deinitData(gpa_allocator);
 
     // Run a step.
-    vm.step() catch |err| {
+    vm.step(gpa_allocator) catch |err| {
         std.debug.print(
             "Error: {}\n",
             .{err},
