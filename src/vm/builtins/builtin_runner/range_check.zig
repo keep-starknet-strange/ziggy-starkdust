@@ -237,7 +237,7 @@ pub const RangeCheckBuiltinRunner = struct {
             return null;
         };
 
-        if (num.toInteger() <= N_PARTS * INNER_RC_BOUND_SHIFT) {
+        if (@bitSizeOf(u256) - @clz(num.toInteger()) <= N_PARTS * INNER_RC_BOUND_SHIFT) {
             //try result.append(address);
             //return result.toOwnedSlice();
             return &[_]Relocatable{address};
