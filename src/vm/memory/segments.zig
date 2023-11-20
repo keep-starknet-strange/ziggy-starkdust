@@ -325,6 +325,8 @@ test "set get integer value in segment memory" {
 
     const value_2 = relocatable.fromFelt(Felt252.fromInteger(84));
 
+    try memory_segment_manager.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
+    try memory_segment_manager.memory.temp_data.append(std.ArrayListUnmanaged(?MemoryCell){});
     _ = try memory_segment_manager.memory.set(std.testing.allocator, address_1, value_1);
     _ = try memory_segment_manager.memory.set(std.testing.allocator, address_2, value_2);
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
@@ -424,7 +426,6 @@ test "MemorySegmentManager: computeEffectiveSize for one segment memory" {
 test "MemorySegmentManager: computeEffectiveSize for one segment memory with gap" {
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    _ = memory_segment_manager.addSegment();
 
     try memoryFile.setUpMemory(
         memory_segment_manager.memory,

@@ -858,10 +858,6 @@ test "set get value in vm memory" {
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
 
-    // Test body
-    _ = vm.segments.addSegment();
-    _ = vm.segments.addSegment();
-
     const address = Relocatable.new(1, 0);
     const value = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(42));
 
@@ -1123,8 +1119,6 @@ test "compute res mul fails felt and reloc" {
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
-
-    vm.run_context.ap.* = Relocatable.new(1, 0);
     // Test body
 
     const value_op0 = Relocatable.new(1, 0);
@@ -1193,9 +1187,6 @@ test "compute operands add AP" {
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
 
-    _ = vm.addMemorySegment();
-    _ = vm.addMemorySegment();
-
     vm.run_context.ap.* = Relocatable.new(1, 0);
 
     // Test body
@@ -1262,8 +1253,8 @@ test "compute operands mul FP" {
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
 
-    _ = vm.addMemorySegment();
-    _ = vm.addMemorySegment();
+    //    _ = vm.addMemorySegment();
+    //    _ = vm.addMemorySegment();
 
     vm.run_context.fp.* = Relocatable.new(1, 0);
 
