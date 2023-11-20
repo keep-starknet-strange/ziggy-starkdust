@@ -2,6 +2,7 @@ const std = @import("std");
 const Felt252 = @import("../../math/fields/starknet.zig").Felt252;
 const CairoVMError = @import("../error.zig").CairoVMError;
 const MathError = @import("../error.zig").MathError;
+const MemoryError = @import("../error.zig").MemoryError;
 
 // Relocatable in the Cairo VM represents an address
 // in some memory segment. When the VM finishes running,
@@ -222,6 +223,32 @@ pub const Relocatable = struct {
         other: MaybeRelocatable,
     ) !void {
         try self.addFeltInPlace(try other.tryIntoFelt());
+    }
+
+    /// Calculates the relocated address based on the provided relocation_table.
+    ///
+    /// This function determines the relocated memory address corresponding to the `Relocatable`
+    /// instance within a given relocation_table. It performs relocation by fetching the segment_index
+    /// from the relocation_table and adding the offset. It handles temporary segment scenarios and
+    /// relocation errors.
+    ///
+    /// # Arguments
+    /// - self: Pointer to the Relocatable object to relocate.
+    /// - relocation_table: An array representing relocation information.
+    ///
+    /// # Returns
+    /// - `usize` value: The relocated memory address.
+    ///
+    /// # Errors
+    /// - Returns a `MemoryError` in case of relocation failure or encountering a temporary segment.
+    pub fn relocateAddress(self: *const Self, relocation_table: []usize) MemoryError!usize {
+        if (self.segment_index >= 0) {
+            if (relocation_table.len <= self.segment_index) {
+                return MemoryError.Relocation;
+            }
+            return @intCast(relocation_table[@intCast(self.segment_index)] + self.offset);
+        }
+        return MemoryError.TemporarySegmentInRelocation;
     }
 };
 
@@ -511,6 +538,28 @@ pub const MaybeRelocatable = union(enum) {
                 // If `other` is `relocatable`, return an error as subtraction is not supported
                 .relocatable => MathError.SubRelocatableFromInt,
             },
+        };
+    }
+
+    /// Converts a `MaybeRelocatable` instance into a `Felt252` value, considering relocation.
+    ///
+    /// This function handles the conversion of a `MaybeRelocatable` instance, identifying whether
+    /// it contains a `Felt252` value or a `Relocatable`. In the case of a `Relocatable`, it utilizes
+    /// the `relocateAddress` method to obtain the relocated address and converts it into a `Felt252`.
+    ///
+    /// # Arguments
+    /// - `self`: Pointer to the MaybeRelocatable object to convert.
+    /// - `relocation_table`: An array representing relocation information.
+    ///
+    /// # Returns
+    /// - `Felt252`: The converted Felt252 value.
+    ///
+    /// # Errors
+    /// - Returns a `MemoryError` if encountering relocation issues or mismatches in the conversion.
+    pub fn relocateValue(self: *const Self, relocation_table: []usize) MemoryError!Felt252 {
+        return switch (self.*) {
+            .felt => |fe| fe,
+            .relocatable => |r| Felt252.fromInteger(try r.relocateAddress(relocation_table)),
         };
     }
 };
@@ -803,6 +852,38 @@ test "Relocatable: subFelt should return an error if relocatable offset is small
     );
 }
 
+test "Relocatable: relocateAddress should return an error if relocatable segment index is negative (temp segment)" {
+    var relocation_table = [_]usize{ 1, 2, 3, 4 };
+    try expectError(
+        MemoryError.TemporarySegmentInRelocation,
+        Relocatable.new(-2, 7).relocateAddress(&relocation_table),
+    );
+}
+
+test "Relocatable: relocateAddress should return an error relocation table length is less than segment index" {
+    var relocation_table = [_]usize{ 1, 2, 3, 4 };
+    try expectError(
+        MemoryError.Relocation,
+        Relocatable.new(5, 7).relocateAddress(&relocation_table),
+    );
+}
+
+test "Relocatable: relocateAddress should return an error relocation table length is equal to segment index" {
+    var relocation_table = [_]usize{ 1, 2, 3, 4 };
+    try expectError(
+        MemoryError.Relocation,
+        Relocatable.new(4, 7).relocateAddress(&relocation_table),
+    );
+}
+
+test "Relocatable: relocateAddress should return a proper usize to relocate the address" {
+    var relocation_table = [_]usize{ 1, 2, 3, 4 };
+    try expectEqual(
+        @as(usize, 11),
+        try Relocatable.new(3, 7).relocateAddress(&relocation_table),
+    );
+}
+
 test "MaybeRelocatable: eq should return true if two MaybeRelocatable are the same (Relocatable)" {
     var maybeRelocatable1 = fromSegment(0, 10);
     var maybeRelocatable2 = fromSegment(0, 10);
@@ -1078,6 +1159,42 @@ test "MaybeRelocatable: sub between a Felt252 and a Relocatable should return a 
     try expectError(
         MathError.SubRelocatableFromInt,
         fromU256(20).sub(fromSegment(0, 10)),
+    );
+}
+
+test "MaybeRelocatable: relocateValue should return Felt252 if self argument is Felt252" {
+    var relocation_table = [_]usize{ 1, 2, 3, 4 };
+    var mr = fromU256(10);
+    try expectEqual(
+        Felt252.fromInteger(10),
+        try mr.relocateValue(&relocation_table),
+    );
+}
+
+test "MaybeRelocatable: relocateValue with a relocatable value" {
+    var relocation_table = [_]usize{ 1, 2, 5 };
+    var mr = fromSegment(2, 7);
+    try expectEqual(
+        Felt252.fromInteger(12),
+        try mr.relocateValue(&relocation_table),
+    );
+}
+
+test "MaybeRelocatable: relocateValue with a temporary segment value" {
+    var relocation_table = [_]usize{ 1, 2, 5 };
+    var mr = fromSegment(-1, 7);
+    try expectError(
+        MemoryError.TemporarySegmentInRelocation,
+        mr.relocateValue(&relocation_table),
+    );
+}
+
+test "MaybeRelocatable: relocateValue with index out of bounds" {
+    var relocation_table = [_]usize{ 1, 2 };
+    var mr = fromSegment(2, 7);
+    try expectError(
+        MemoryError.Relocation,
+        mr.relocateValue(&relocation_table),
     );
 }
 
