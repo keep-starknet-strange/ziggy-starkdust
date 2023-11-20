@@ -96,7 +96,7 @@ pub const Relocatable = struct {
     /// This method fails if `self` and other` are not from the same segment.
     pub fn sub(self: Self, other: Self) !Self {
         if (self.segment_index != other.segment_index) {
-            return error.TypeMismatchNotRelocatable;
+            return CairoVMError.TypeMismatchNotRelocatable;
         }
 
         return try subUint(self, other.offset);
@@ -126,7 +126,7 @@ pub const Relocatable = struct {
         other: u64,
     ) !Self {
         if (self.offset < other) {
-            return error.RelocatableSubUsizeNegOffset;
+            return MathError.RelocatableSubUsizeNegOffset;
         }
         return .{
             .segment_index = self.segment_index,
@@ -420,7 +420,7 @@ pub const MaybeRelocatable = union(enum) {
     pub fn tryIntoRelocatable(self: Self) !Relocatable {
         return switch (self) {
             .relocatable => |relocatable| relocatable,
-            .felt => error.TypeMismatchNotRelocatable,
+            .felt => CairoVMError.TypeMismatchNotRelocatable,
         };
     }
 
@@ -652,7 +652,7 @@ test "Relocatable: subUint should return an error if substraction is impossible"
     );
     const result = relocatable.subUint(6);
     try expectError(
-        error.RelocatableSubUsizeNegOffset,
+        MathError.RelocatableSubUsizeNegOffset,
         result,
     );
 }
@@ -666,14 +666,14 @@ test "Relocatable: sub two Relocatable with same segment index" {
 
 test "Relocatable: sub two Relocatable with same segment index but impossible subtraction" {
     try expectError(
-        error.RelocatableSubUsizeNegOffset,
+        MathError.RelocatableSubUsizeNegOffset,
         Relocatable.new(2, 2).sub(Relocatable.new(2, 5)),
     );
 }
 
 test "Relocatable: sub two Relocatable with different segment index" {
     try expectError(
-        error.TypeMismatchNotRelocatable,
+        CairoVMError.TypeMismatchNotRelocatable,
         Relocatable.new(2, 8).sub(Relocatable.new(3, 5)),
     );
 }
@@ -777,7 +777,7 @@ test "Relocatable: addFelt should add a relocatable and a Felt252" {
 
 test "Relocatable: addFelt should return an error if number after offset addition is too large" {
     try expectError(
-        error.ValueTooLarge,
+        CairoVMError.ValueTooLarge,
         Relocatable.new(2, 44).addFelt(Felt252.fromInteger(std.math.maxInt(u256))),
     );
 }
@@ -791,14 +791,14 @@ test "Relocatable: subFelt should subtract a Felt252 from a relocatable" {
 
 test "Relocatable: subFelt should return an error if relocatable cannot be coerced to u64" {
     try expectError(
-        error.ValueTooLarge,
+        CairoVMError.ValueTooLarge,
         Relocatable.new(2, 44).subFelt(Felt252.fromInteger(std.math.maxInt(u256))),
     );
 }
 
 test "Relocatable: subFelt should return an error if relocatable offset is smaller than Felt252" {
     try expectError(
-        error.RelocatableSubUsizeNegOffset,
+        MathError.RelocatableSubUsizeNegOffset,
         Relocatable.new(2, 7).subFelt(Felt252.fromInteger(10)),
     );
 }
@@ -933,7 +933,7 @@ test "MaybeRelocatable: tryIntoRelocatable should return Relocatable if MaybeRel
 test "MaybeRelocatable: tryIntoRelocatable should return an error if MaybeRelocatable is Felt" {
     var maybeRelocatable = fromU256(10);
     try expectError(
-        error.TypeMismatchNotRelocatable,
+        CairoVMError.TypeMismatchNotRelocatable,
         maybeRelocatable.tryIntoRelocatable(),
     );
 }
@@ -995,7 +995,7 @@ test "MaybeRelocatable: tryIntoU64 should return an error if MaybeRelocatable is
 
 test "MaybeRelocatable: tryIntoU64 should return an error if MaybeRelocatable Felt cannot be coerced to u64" {
     var maybeRelocatable = fromU256(std.math.maxInt(u64) + 1);
-    try expectError(error.ValueTooLarge, maybeRelocatable.tryIntoU64());
+    try expectError(CairoVMError.ValueTooLarge, maybeRelocatable.tryIntoU64());
 }
 
 test "MaybeRelocatable: any comparision should return false if other MaybeRelocatable is of different variant 1" {
@@ -1055,7 +1055,7 @@ test "MaybeRelocatable: sub between two Relocatable should return a proper Maybe
 
 test "MaybeRelocatable: sub between two Relocatable with different segment indexes should return an error" {
     try expectError(
-        error.TypeMismatchNotRelocatable,
+        CairoVMError.TypeMismatchNotRelocatable,
         fromSegment(3, 20).sub(fromSegment(0, 10)),
     );
 }

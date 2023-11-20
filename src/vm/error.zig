@@ -67,4 +67,6 @@ pub const MathError = error{
     RelocatableAdd,
     /// Error when attempting to subtract a Relocatable from an integer value.
     SubRelocatableFromInt,
+    /// Error when Relocatable offset is smaller than the integer value from which it is subtracted.
+    RelocatableSubUsizeNegOffset,
 };
