@@ -227,19 +227,17 @@ pub const RangeCheckBuiltinRunner = struct {
     ///
     /// An `ArrayList(Relocatable)` containing the rules address
     /// verification fails.
-    pub fn rangeCheckValidationRule(memory: *Memory, address: Relocatable, allocator: Allocator) !std.ArrayList(Relocatable) {
-        var result = ArrayList(Relocatable).init(allocator);
-        errdefer result.deinit();
+    pub fn rangeCheckValidationRule(memory: *Memory, address: Relocatable) ?[]const Relocatable {
         const num = (memory.get(address) catch {
             return null;
         }).tryIntoFelt() catch {
-            return RunnerError.BuiltinExpectedInteger;
+            return null;
         };
 
-        if (num.Mask <= N_PARTS * INNER_RC_BOUND_SHIFT) {
-            return try result.append(address);
+        if (@bitSizeOf(u256) - @clz(num.toInteger()) <= N_PARTS * INNER_RC_BOUND_SHIFT) {
+            return &[_]Relocatable{address};
         } else {
-            return try result.append(Error.MemoryOutOfBounds);
+            return null;
         }
     }
 
@@ -252,8 +250,8 @@ pub const RangeCheckBuiltinRunner = struct {
     /// # Modifies
     ///
     /// - `memory`: Adds validation rule to `memory`.
-    pub fn addValidationRule(self: *const Self, memory: *Memory) void {
-        memory.addValidationRule(self.base.segment_index, rangeCheckValidationRule);
+    pub fn addValidationRule(self: *const Self, memory: *Memory) !void {
+        try memory.addValidationRule(@intCast(self.base), rangeCheckValidationRule);
     }
 
     pub fn deduceMemoryCell(
