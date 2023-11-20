@@ -223,12 +223,8 @@ pub const Memory = struct {
         var data = if (address.segment_index < 0) &self.temp_data else &self.data;
         const segment_index: usize = @intCast(if (address.segment_index < 0) -(address.segment_index + 1) else address.segment_index);
 
-        if (data.items.len <= @as(usize, segment_index)) {
-            var segment = std.ArrayListUnmanaged(?MemoryCell){};
-            try data.appendNTimes(
-                segment,
-                @as(usize, segment_index) + 1 - data.items.len,
-            );
+        if (data.items.len <= segment_index) {
+            return MemoryError.UnallocatedSegment;
         }
 
         var data_segment = &data.items[segment_index];
@@ -241,7 +237,7 @@ pub const Memory = struct {
             );
         }
 
-        // check if existing memory
+        // check if existing memory, cannot overwrite
         if (data_segment.items[@as(usize, @intCast(address.offset))] != null) {
             if (!data_segment.items[@as(usize, @intCast(address.offset))].?.maybe_relocatable.eq(value)) {
                 return MemoryError.DuplicatedRelocation;
@@ -374,18 +370,40 @@ pub const Memory = struct {
 // - `memory` - memory to be set
 // - `vals` - complile time structure with heterogenous types
 pub fn setUpMemory(memory: *Memory, allocator: Allocator, comptime vals: anytype) !void {
+    var segment = std.ArrayListUnmanaged(?MemoryCell){};
+    var si: usize = 0;
     inline for (vals) |row| {
+        if (row[0][0] < 0) {
+            si = -(row[0][0]) + 1;
+            try memory.temp_data.append(segment);
+        } else {
+            si = row[0][0];
+            try memory.data.append(segment);
+            std.debug.print("Appending first segment {s} .\n", .{"set up"});
+        }
         // Check number of inputs in row
         if (row[1].len == 1) {
-            try memory.set(
+            var result = memory.set(
                 allocator,
                 Relocatable.new(row[0][0], row[0][1]),
                 .{ .felt = Felt252.fromInteger(row[1][0]) },
             );
+            while ((@TypeOf(result) == anyerror)) {
+                if (row[0][0] < 0) {
+                    try memory.temp_data.append(segment);
+                } else {
+                    try memory.data.append(segment);
+                }
+                result = memory.set(
+                    allocator,
+                    Relocatable.new(si, row[0][1]),
+                    .{ .felt = Felt252.fromInteger(row[1][0]) },
+                );
+            }
         } else {
             switch (@typeInfo(@TypeOf(row[1][0]))) {
                 .Pointer => {
-                    try memory.set(
+                    var res = memory.set(
                         allocator,
                         Relocatable.new(row[0][0], row[0][1]),
                         .{ .relocatable = Relocatable.new(
@@ -393,13 +411,42 @@ pub fn setUpMemory(memory: *Memory, allocator: Allocator, comptime vals: anytype
                             row[1][1],
                         ) },
                     );
+                    while (@TypeOf(res) == anyerror) {
+                        if (row[0][0] < 0) {
+                            try memory.temp_data.append(segment);
+                        } else {
+                            try memory.data.append(segment);
+                        }
+
+                        res = memory.set(
+                            allocator,
+                            Relocatable.new(row[0][0], row[0][1]),
+                            .{ .relocatable = Relocatable.new(
+                                try std.fmt.parseUnsigned(i64, row[1][0], 10),
+                                row[1][1],
+                            ) },
+                        );
+                    }
                 },
                 else => {
-                    try memory.set(
+                    var elseRes = memory.set(
                         allocator,
                         Relocatable.new(row[0][0], row[0][1]),
                         .{ .relocatable = Relocatable.new(row[1][0], row[1][1]) },
                     );
+                    std.debug.print("result memory set {!}.\n", .{elseRes});
+                    while ((@TypeOf(elseRes) == anyerror)) {
+                        if (row[0][0] < 0) {
+                            try memory.temp_data.append(segment);
+                        } else {
+                            try memory.data.append(segment);
+                        }
+                        elseRes = memory.set(
+                            allocator,
+                            Relocatable.new(row[0][0], row[0][1]),
+                            .{ .relocatable = Relocatable.new(row[1][0], row[1][1]) },
+                        );
+                    }
                 },
             }
         }
@@ -417,9 +464,9 @@ test "memory inner for testing test" {
         std.testing.allocator,
         .{
             .{ .{ 1, 3 }, .{ 4, 5 } },
+            .{ .{ 1, 2 }, .{ "234", 10 } },
             .{ .{ 2, 6 }, .{ 7, 8 } },
             .{ .{ 9, 10 }, .{23} },
-            .{ .{ 1, 2 }, .{ "234", 10 } },
         },
     );
     defer memory.deinitData(std.testing.allocator);
@@ -564,7 +611,7 @@ test "Memory: getFelt should return MemoryOutOfBounds error if no value at the g
     // Test checks
     try expectError(
         error.MemoryOutOfBounds,
-        memory.getFelt(Relocatable.new(10, 30)),
+        memory.getFelt(Relocatable.new(0, 0)),
     );
 }
 
@@ -575,7 +622,7 @@ test "Memory: getFelt should return Felt252 if available at the given address" {
 
     try memory.set(
         std.testing.allocator,
-        Relocatable.new(10, 30),
+        Relocatable.new(0, 0),
         .{ .felt = Felt252.fromInteger(23) },
     );
     defer memory.deinitData(std.testing.allocator);
@@ -583,7 +630,7 @@ test "Memory: getFelt should return Felt252 if available at the given address" {
     // Test checks
     try expectEqual(
         Felt252.fromInteger(23),
-        try memory.getFelt(Relocatable.new(10, 30)),
+        try memory.getFelt(Relocatable.new(0, 0)),
     );
 }
 
@@ -594,7 +641,7 @@ test "Memory: getFelt should return ExpectedInteger error if Relocatable instead
 
     try memory.set(
         std.testing.allocator,
-        Relocatable.new(10, 30),
+        Relocatable.new(0, 0),
         .{ .relocatable = Relocatable.new(3, 7) },
     );
     defer memory.deinitData(std.testing.allocator);
@@ -602,7 +649,7 @@ test "Memory: getFelt should return ExpectedInteger error if Relocatable instead
     // Test checks
     try expectError(
         error.ExpectedInteger,
-        memory.getFelt(Relocatable.new(10, 30)),
+        memory.getFelt(Relocatable.new(0, 0)),
     );
 }
 
@@ -614,7 +661,7 @@ test "Memory: getRelocatable should return MemoryOutOfBounds error if no value a
     // Test checks
     try expectError(
         error.MemoryOutOfBounds,
-        memory.getRelocatable(Relocatable.new(10, 30)),
+        memory.getRelocatable(Relocatable.new(0, 0)),
     );
 }
 
@@ -625,7 +672,7 @@ test "Memory: getRelocatable should return Relocatable if available at the given
 
     try memory.set(
         std.testing.allocator,
-        Relocatable.new(10, 30),
+        Relocatable.new(0, 0),
         .{ .relocatable = Relocatable.new(4, 34) },
     );
     defer memory.deinitData(std.testing.allocator);
@@ -633,7 +680,7 @@ test "Memory: getRelocatable should return Relocatable if available at the given
     // Test checks
     try expectEqual(
         Relocatable.new(4, 34),
-        try memory.getRelocatable(Relocatable.new(10, 30)),
+        try memory.getRelocatable(Relocatable.new(0, 0)),
     );
 }
 
@@ -644,7 +691,7 @@ test "Memory: getRelocatable should return ExpectedRelocatable error if Felt ins
 
     try memory.set(
         std.testing.allocator,
-        Relocatable.new(10, 30),
+        Relocatable.new(0, 0),
         .{ .felt = Felt252.fromInteger(3) },
     );
     defer memory.deinitData(std.testing.allocator);
@@ -652,7 +699,7 @@ test "Memory: getRelocatable should return ExpectedRelocatable error if Felt ins
     // Test checks
     try expectError(
         error.ExpectedRelocatable,
-        memory.getRelocatable(Relocatable.new(10, 30)),
+        memory.getRelocatable(Relocatable.new(0, 0)),
     );
 }
 
@@ -661,11 +708,11 @@ test "Memory: markAsAccessed should mark memory cell" {
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    var relo = Relocatable.new(1, 3);
+    var relo = Relocatable.new(0, 3);
     try setUpMemory(
         memory,
         std.testing.allocator,
-        .{.{ .{ 1, 3 }, .{ 4, 5 } }},
+        .{.{ .{ 0, 3 }, .{ 4, 5 } }},
     );
     defer memory.deinitData(std.testing.allocator);
 
@@ -673,7 +720,7 @@ test "Memory: markAsAccessed should mark memory cell" {
     // Test checks
     try expectEqual(
         true,
-        memory.data.items[1].items[3].?.is_accessed,
+        memory.data.items[0].items[3].?.is_accessed,
     );
 }
 
