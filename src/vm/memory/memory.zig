@@ -223,7 +223,6 @@ pub const Memory = struct {
         var data = if (address.segment_index < 0) &self.temp_data else &self.data;
         const segment_index: usize = @intCast(if (address.segment_index < 0) -(address.segment_index + 1) else address.segment_index);
 
-        //if (data.items.len <= segment_index) {
         if (self.num_segments <= segment_index) {
             return MemoryError.UnallocatedSegment;
         }
