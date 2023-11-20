@@ -521,7 +521,7 @@ pub const CairoVM = struct {
             },
             // PC update Jnz
             .Jnz => {
-                if (operands.dst.?.isZero()) {
+                if (operands.dst.isZero()) {
                     // Update the PC.
                     self.run_context.pc.*.addUintInPlace(instruction.size());
                 } else {

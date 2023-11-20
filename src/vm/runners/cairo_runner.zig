@@ -50,7 +50,7 @@ pub const CairoRunner = struct {
         return .{ .allocator = allocator, .instructions = instructions, .vm = vm, .stack = stack };
     }
 
-    pub fn init(self: *Self) !Relocatable {
+    pub fn setupExecutionState(self: *Self) !Relocatable {
         _ = self.initSegments();
         var end = try self.initMainEntryPoint();
         _ = self.initVM();
@@ -128,6 +128,14 @@ pub const CairoRunner = struct {
     }
 
     pub fn deinit(self: *Self) void {
-        defer self.vm.segments.memory.deinitData(self.allocator);
+        // Deinitialize and deallocate instructions array.
+        self.allocator.free(self.instructions);
+
+        // Deinitialize the stack. This will deallocate the memory used by the stack itself,
+        // but not the memory of the elements within it, if they are pointers.
+        self.stack.deinit();
+
+        // Deinitialize the VM, which should take care of its own resources.
+        self.vm.deinit();
     }
 };
