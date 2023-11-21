@@ -40,6 +40,10 @@ pub const CairoVM = struct {
     is_run_finished: bool,
     /// VM trace
     trace_context: TraceContext,
+    /// Current Step
+    current_step: usize,
+    /// Rc limits
+    rc_limits: ?struct { i16, i16 },
 
     // ************************************************************
     // *             MEMORY ALLOCATION AND DEALLOCATION           *
@@ -77,6 +81,8 @@ pub const CairoVM = struct {
             .segments = memory_segment_manager,
             .is_run_finished = false,
             .trace_context = trace_context,
+            .current_step = 0,
+            .rc_limits = null,
         };
     }
 
@@ -136,7 +142,7 @@ pub const CairoVM = struct {
     pub fn getRelocatable(
         self: *Self,
         address: Relocatable,
-    ) error{MemoryOutOfBounds}!MaybeRelocatable {
+    ) error{MemoryOutOfBounds}!?MaybeRelocatable {
         return self.segments.memory.get(address);
     }
 
@@ -214,7 +220,7 @@ pub const CairoVM = struct {
 
     /// Do a single step of the VM.
     /// Process an instruction cycle using the typical fetch-decode-execute cycle.
-    pub fn step(self: *Self) !void {
+    pub fn step(self: *Self, allocator: Allocator) !void {
         // TODO: Run hints.
 
         std.log.debug(
@@ -237,7 +243,7 @@ pub const CairoVM = struct {
         // First, we convert the encoded instruction to a u64.
         // If the MaybeRelocatable is not a felt, this operation will fail.
         // If the MaybeRelocatable is a felt but the value does not fit into a u64, this operation will fail.
-        const encoded_instruction_u64 = encoded_instruction.tryIntoU64() catch {
+        const encoded_instruction_u64 = encoded_instruction.?.tryIntoU64() catch {
             return CairoVMError.InstructionEncodingError;
         };
 
@@ -247,7 +253,7 @@ pub const CairoVM = struct {
         // ************************************************************
         // *                    EXECUTE                               *
         // ************************************************************
-        return self.runInstruction(&instruction);
+        return self.runInstruction(allocator, &instruction);
     }
 
     /// Run a specific instruction.
@@ -255,6 +261,7 @@ pub const CairoVM = struct {
     /// - `instruction`: The instruction to run.
     pub fn runInstruction(
         self: *Self,
+        allocator: Allocator,
         instruction: *const instructions.Instruction,
     ) !void {
         if (!build_options.trace_disable) {
@@ -265,12 +272,26 @@ pub const CairoVM = struct {
             });
         }
 
-        const operands_result = try self.computeOperands(instruction);
+        const operands_result = try self.computeOperands(allocator, instruction);
 
         try self.updateRegisters(
             instruction,
             operands_result,
         );
+
+        const OFFSET_BITS: u32 = 16;
+        const off_0 = instruction.off_0 + (@as(i16, 1) << (OFFSET_BITS - 1));
+        const off_1 = instruction.off_1 + (@as(i16, 1) << (OFFSET_BITS - 1));
+        const off_2 = instruction.off_2 + (@as(i16, 1) << (OFFSET_BITS - 1));
+
+        const limits = self.rc_limits orelse .{ off_0, off_0 };
+        self.rc_limits = .{ @min(limits[0], off_0, off_1, off_2), @max(limits[1], off_0, off_1, off_2) };
+
+        self.segments.memory.markAsAccessed(operands_result.dst_addr);
+        self.segments.memory.markAsAccessed(operands_result.op_0_addr);
+        self.segments.memory.markAsAccessed(operands_result.op_1_addr);
+
+        self.current_step += 1;
     }
 
     /// Compute the operands for a given instruction.
@@ -280,6 +301,7 @@ pub const CairoVM = struct {
     /// - `Operands`: The operands for the instruction.
     pub fn computeOperands(
         self: *Self,
+        allocator: Allocator,
         instruction: *const instructions.Instruction,
     ) !OperandsResult {
         var op_res = OperandsResult.default();
@@ -287,53 +309,49 @@ pub const CairoVM = struct {
         op_res.res = null;
 
         op_res.dst_addr = try self.run_context.computeDstAddr(instruction);
-        op_res.dst = try self.segments.memory.get(op_res.dst_addr);
+        const dst_op = try self.segments.memory.get(op_res.dst_addr);
+
         op_res.op_0_addr = try self.run_context.computeOp0Addr(instruction);
-        const op_0_op = self.segments.memory.get(op_res.op_0_addr) catch null;
 
         op_res.op_1_addr = try self.run_context.computeOp1Addr(
             instruction,
             op_res.op_0,
         );
-
-        const op_1_op = self.segments.memory.get(op_res.op_1_addr) catch null;
+        const op_1_op = try self.segments.memory.get(op_res.op_1_addr);
 
         // Deduce the operands if they haven't been successfully retrieved from memory.
-
-        const op_1_ptr = &op_1_op.?;
-        const dst_ptr = &try self.segments.memory.get(op_res.dst_addr);
-        const dst_op: ?*const MaybeRelocatable = dst_ptr;
-
-        if (op_0_op == null) {
+        if (self.segments.memory.get(op_res.op_0_addr) catch null) |op_0| {
+            op_res.op_0 = op_0;
+        } else {
             op_res.op_0 = try self.computeOp0Deductions(
+                allocator,
                 op_res.op_0_addr,
                 instruction,
-                dst_ptr,
-                op_1_ptr,
+                &dst_op,
+                &op_1_op,
             );
-        } else {
-            op_res.op_0 = op_0_op.?;
         }
 
-        if (op_1_op == null) {
+        if (op_1_op) |op_1| {
+            op_res.op_1 = op_1;
+        } else {
             op_res.op_1 = try self.computeOp1Deductions(
+                allocator,
                 op_res.op_1_addr,
                 &op_res.res,
                 instruction,
-                dst_op,
-                &op_res.op_0,
+                &dst_op,
+                &@as(?MaybeRelocatable, op_res.op_0),
             );
-        } else {
-            op_res.op_1 = op_1_op.?;
         }
 
-        const res_op: ?MaybeRelocatable = op_res.res;
-
-        if (res_op == null) {
+        if (op_res.res == null) {
             op_res.res = try computeRes(instruction, op_res.op_0, op_res.op_1);
         }
 
-        if (dst_op == null) {
+        if (dst_op) |dst| {
+            op_res.dst = dst;
+        } else {
             op_res.dst = try self.deduceDst(instruction, op_res.res);
         }
 
@@ -355,12 +373,13 @@ pub const CairoVM = struct {
     /// - `MaybeRelocatable`: The deduced Op0 operand or an error if deducing Op0 fails.
     pub fn computeOp0Deductions(
         self: *Self,
+        allocator: Allocator,
         op_0_addr: Relocatable,
         instruction: *const instructions.Instruction,
-        dst: ?*const MaybeRelocatable,
-        op1: ?*const MaybeRelocatable,
+        dst: *const ?MaybeRelocatable,
+        op1: *const ?MaybeRelocatable,
     ) !MaybeRelocatable {
-        const op0_op = try self.deduceMemoryCell(op_0_addr) orelse (try self.deduceOp0(
+        const op0_op = try self.deduceMemoryCell(allocator, op_0_addr) orelse (try self.deduceOp0(
             instruction,
             dst,
             op1,
@@ -385,13 +404,14 @@ pub const CairoVM = struct {
     /// - `MaybeRelocatable`: The deduced Op1 operand or an error if deducing Op1 fails.
     pub fn computeOp1Deductions(
         self: *Self,
+        allocator: Allocator,
         op1_addr: Relocatable,
         res: *?MaybeRelocatable,
         instruction: *const instructions.Instruction,
-        dst_op: ?*const MaybeRelocatable,
-        op0: ?*const MaybeRelocatable,
+        dst_op: *const ?MaybeRelocatable,
+        op0: *const ?MaybeRelocatable,
     ) !MaybeRelocatable {
-        if (try self.deduceMemoryCell(op1_addr)) |op1| {
+        if (try self.deduceMemoryCell(allocator, op1_addr)) |op1| {
             return op1;
         } else {
             const op1_deductions = try deduceOp1(instruction, dst_op, op0);
@@ -414,8 +434,8 @@ pub const CairoVM = struct {
     pub fn deduceOp0(
         self: *Self,
         inst: *const instructions.Instruction,
-        dst: ?*const MaybeRelocatable,
-        op1: ?*const MaybeRelocatable,
+        dst: *const ?MaybeRelocatable,
+        op1: *const ?MaybeRelocatable,
     ) !Op0Result {
         switch (inst.opcode) {
             .Call => {
@@ -425,17 +445,17 @@ pub const CairoVM = struct {
                 };
             },
             .AssertEq => {
-                const dst_val = dst orelse return .{ .op_0 = null, .res = null };
-                const op1_val = op1 orelse return .{ .op_0 = null, .res = null };
+                const dst_val = dst.* orelse return .{ .op_0 = null, .res = null };
+                const op1_val = op1.* orelse return .{ .op_0 = null, .res = null };
                 if ((inst.res_logic == .Add)) {
                     return .{
-                        .op_0 = try subOperands(dst_val.*, op1_val.*),
-                        .res = dst_val.*,
+                        .op_0 = try subOperands(dst_val, op1_val),
+                        .res = dst_val,
                     };
                 } else if (dst_val.isFelt() and op1_val.isFelt() and !op1_val.felt.isZero()) {
                     return .{
                         .op_0 = relocatable.fromFelt(try dst_val.felt.div(op1_val.felt)),
-                        .res = dst_val.*,
+                        .res = dst_val,
                     };
                 }
             },
@@ -633,6 +653,7 @@ pub const CairoVM = struct {
     /// - `MaybeRelocatable`: The deduced value.
     pub fn deduceMemoryCell(
         self: *Self,
+        allocator: Allocator,
         address: Relocatable,
     ) CairoVMError!?MaybeRelocatable {
         for (self.builtin_runners.items) |builtin_item| {
@@ -641,6 +662,7 @@ pub const CairoVM = struct {
                 @intCast(builtin_item.base()),
             ) == address.segment_index) {
                 return builtin_item.deduceMemoryCell(
+                    allocator,
                     address,
                     self.segments.memory,
                 ) catch {
@@ -764,25 +786,28 @@ pub fn subOperands(self: MaybeRelocatable, other: MaybeRelocatable) !MaybeReloca
 /// - `Tuple`: A tuple containing the deduced `op1` and `res`.
 pub fn deduceOp1(
     inst: *const instructions.Instruction,
-    dst: ?*const MaybeRelocatable,
-    op0: ?*const MaybeRelocatable,
+    dst: *const ?MaybeRelocatable,
+    op0: *const ?MaybeRelocatable,
 ) !Op1Result {
     if (inst.opcode != .AssertEq) {
         return .{ .op_1 = null, .res = null };
     }
 
     switch (inst.res_logic) {
-        .Op1 => if (dst) |dst_val| {
-            return .{ .op_1 = dst_val.*, .res = dst_val.* };
+        .Op1 => if (dst.*) |dst_val| {
+            return .{ .op_1 = dst_val, .res = dst_val };
         },
-        .Add => if (dst != null and op0 != null) {
-            return .{ .op_1 = try subOperands(dst.?.*, op0.?.*), .res = dst.?.* };
+        .Add => if (dst.* != null and op0.* != null) {
+            return .{
+                .op_1 = try subOperands(dst.*.?, op0.*.?),
+                .res = dst.*.?,
+            };
         },
         .Mul => {
-            if (dst != null and op0 != null and dst.?.isFelt() and op0.?.isFelt() and !op0.?.felt.isZero()) {
+            if (dst.* != null and op0.* != null and dst.*.?.isFelt() and op0.*.?.isFelt() and !op0.*.?.felt.isZero()) {
                 return .{
-                    .op_1 = relocatable.fromFelt(try dst.?.felt.div(op0.?.felt)),
-                    .res = dst.?.*,
+                    .op_1 = relocatable.fromFelt(try dst.*.?.felt.div(op0.*.?.felt)),
+                    .res = dst.*.?,
                 };
             }
         },

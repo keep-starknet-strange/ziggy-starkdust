@@ -4,6 +4,7 @@ const expect = @import("std").testing.expect;
 const Allocator = std.mem.Allocator;
 
 // Local imports.
+const memoryFile = @import("../../memory/memory.zig");
 const Memory = @import("../../memory/memory.zig").Memory;
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
@@ -37,19 +38,23 @@ const BITWISE_INPUT_CELLS_PER_INSTANCE = 2;
 /// # Returns
 /// The felt as an integer.
 fn getValue(address: Relocatable, memory: *Memory) BitwiseError!u256 {
-    var value = memory.get(address) catch {
+    const value = memory.get(address) catch {
         return BitwiseError.InvalidAddressForBitwise;
     };
 
-    var felt = value.tryIntoFelt() catch {
-        return BitwiseError.InvalidAddressForBitwise;
-    };
+    if (value) |v| {
+        var felt = v.tryIntoFelt() catch {
+            return BitwiseError.InvalidAddressForBitwise;
+        };
 
-    if (felt.toInteger() > std.math.pow(u256, 2, BITWISE_TOTAL_N_BITS)) {
-        return BitwiseError.UnsupportedNumberOfBits;
+        if (felt.toInteger() > std.math.pow(u256, 2, BITWISE_TOTAL_N_BITS)) {
+            return BitwiseError.UnsupportedNumberOfBits;
+        }
+
+        return felt.toInteger();
     }
 
-    return felt.toInteger();
+    return BitwiseError.InvalidAddressForBitwise;
 }
 
 /// Compute the auto-deduction rule for Bitwise
@@ -71,10 +76,10 @@ pub fn deduce(address: Relocatable, memory: *Memory) BitwiseError!MaybeRelocatab
     };
     const y_offset = try x_offset.addUint(1);
 
-    var x = try getValue(x_offset, memory);
-    var y = try getValue(y_offset, memory);
+    const x = try getValue(x_offset, memory);
+    const y = try getValue(y_offset, memory);
 
-    var res = switch (index) {
+    const res = switch (index) {
         2 => x & y, // and
         3 => x ^ y, // xor
         4 => x | y, // or
@@ -93,12 +98,12 @@ const expectError = std.testing.expectError;
 test "deduce when address.offset less than BITWISE_INPUT_CELLS_PER_INSTANCE" {
 
     // given
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var mem = try Memory.init(allocator);
     defer mem.deinit();
 
     // when
-    var address = Relocatable.new(0, 5);
+    const address = Relocatable.new(0, 5);
 
     // then
     try expectError(BitwiseError.InvalidBitwiseIndex, deduce(address, mem));
@@ -107,12 +112,12 @@ test "deduce when address.offset less than BITWISE_INPUT_CELLS_PER_INSTANCE" {
 test "deduce when address points to nothing in memory" {
 
     // given
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var mem = try Memory.init(allocator);
     defer mem.deinit();
 
     // when
-    var address = Relocatable.new(0, 3);
+    const address = Relocatable.new(0, 3);
 
     // then
     try expectError(BitwiseError.InvalidAddressForBitwise, deduce(address, mem));
@@ -121,14 +126,19 @@ test "deduce when address points to nothing in memory" {
 test "deduce when address points to relocatable variant of MaybeRelocatable " {
 
     // given
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var mem = try Memory.init(allocator);
     defer mem.deinit();
 
     // when
-    var address = Relocatable.new(0, 3);
+    const address = Relocatable.new(0, 3);
 
-    try mem.set(Relocatable.new(0, 5), newFromRelocatable(address));
+    try memoryFile.setUpMemory(
+        mem,
+        std.testing.allocator,
+        .{.{ .{ 0, 5 }, .{ 0, 3 } }},
+    );
+    defer mem.deinitData(std.testing.allocator);
 
     // then
     try expectError(BitwiseError.InvalidAddressForBitwise, deduce(address, mem));
@@ -137,18 +147,19 @@ test "deduce when address points to relocatable variant of MaybeRelocatable " {
 test "deduce when address points to felt greater than BITWISE_TOTAL_N_BITS" {
 
     // given
-    const number = std.math.pow(u256, 2, BITWISE_TOTAL_N_BITS) + 1;
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var mem = try Memory.init(allocator);
     defer mem.deinit();
 
     // when
-    var address = Relocatable.new(0, 3);
+    const address = Relocatable.new(0, 3);
 
-    try mem.set(Relocatable.new(
-        0,
-        0,
-    ), fromU256(number));
+    try memoryFile.setUpMemory(
+        mem,
+        std.testing.allocator,
+        .{.{ .{ 0, 0 }, .{std.math.pow(u256, 2, BITWISE_TOTAL_N_BITS) + 1} }},
+    );
+    defer mem.deinitData(std.testing.allocator);
 
     // then
     try expectError(BitwiseError.UnsupportedNumberOfBits, deduce(address, mem));
@@ -158,20 +169,27 @@ test "deduce when address points to felt greater than BITWISE_TOTAL_N_BITS" {
 test "valid bitwise and" {
 
     // given
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var mem = try Memory.init(allocator);
     defer mem.deinit();
 
     // when
-    try mem.set(Relocatable.new(0, 5), fromU256(10));
-    try mem.set(Relocatable.new(0, 6), fromU256(12));
-    try mem.set(Relocatable.new(0, 7), fromU256(0));
+    try memoryFile.setUpMemory(
+        mem,
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 5 }, .{10} },
+            .{ .{ 0, 6 }, .{12} },
+            .{ .{ 0, 7 }, .{0} },
+        },
+    );
+    defer mem.deinitData(std.testing.allocator);
 
-    var address = Relocatable.new(0, 7);
-    var expected = fromU256(8);
+    const address = Relocatable.new(0, 7);
+    const expected = fromU256(8);
 
     // then
-    var result = try deduce(address, mem);
+    const result = try deduce(address, mem);
     try expectEqual(
         expected,
         result,
@@ -181,20 +199,27 @@ test "valid bitwise and" {
 test "valid bitwise xor" {
 
     // given
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var mem = try Memory.init(allocator);
     defer mem.deinit();
 
     // when
-    try mem.set(Relocatable.new(0, 5), fromU256(10));
-    try mem.set(Relocatable.new(0, 6), fromU256(12));
-    try mem.set(Relocatable.new(0, 8), fromU256(0));
+    try memoryFile.setUpMemory(
+        mem,
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 5 }, .{10} },
+            .{ .{ 0, 6 }, .{12} },
+            .{ .{ 0, 8 }, .{0} },
+        },
+    );
+    defer mem.deinitData(std.testing.allocator);
 
-    var address = Relocatable.new(0, 8);
-    var expected = fromU256(6);
+    const address = Relocatable.new(0, 8);
+    const expected = fromU256(6);
 
     // then
-    var result = try deduce(address, mem);
+    const result = try deduce(address, mem);
     try expectEqual(
         expected,
         result,
@@ -204,20 +229,27 @@ test "valid bitwise xor" {
 test "valid bitwise or" {
 
     // given
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var mem = try Memory.init(allocator);
     defer mem.deinit();
 
     // when
-    try mem.set(Relocatable.new(0, 5), fromU256(10));
-    try mem.set(Relocatable.new(0, 6), fromU256(12));
-    try mem.set(Relocatable.new(0, 9), fromU256(0));
+    try memoryFile.setUpMemory(
+        mem,
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 5 }, .{10} },
+            .{ .{ 0, 6 }, .{12} },
+            .{ .{ 0, 9 }, .{0} },
+        },
+    );
+    defer mem.deinitData(std.testing.allocator);
 
-    var address = Relocatable.new(0, 9);
-    var expected = fromU256(14);
+    const address = Relocatable.new(0, 9);
+    const expected = fromU256(14);
 
     // then
-    var result = try deduce(address, mem);
+    const result = try deduce(address, mem);
     try expectEqual(
         expected,
         result,

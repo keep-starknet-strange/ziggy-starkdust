@@ -8,7 +8,6 @@ const relocatable = @import("../../memory/relocatable.zig");
 const Error = @import("../../error.zig");
 const validation_rule = @import("../../memory/memory.zig").validation_rule;
 const Memory = @import("../../memory/memory.zig").Memory;
-const Field = @import("../../../math/fields/starknet.zig").Field;
 const range_check_instance_def = @import("../../types/range_check_instance_def.zig");
 
 const CELLS_PER_RANGE_CHECK = range_check_instance_def.CELLS_PER_RANGE_CHECK;
@@ -227,19 +226,20 @@ pub const RangeCheckBuiltinRunner = struct {
     ///
     /// An `ArrayList(Relocatable)` containing the rules address
     /// verification fails.
-    pub fn rangeCheckValidationRule(memory: *Memory, address: Relocatable, allocator: Allocator) !std.ArrayList(Relocatable) {
-        var result = ArrayList(Relocatable).init(allocator);
-        errdefer result.deinit();
-        const num = (memory.get(address) catch {
+    pub fn rangeCheckValidationRule(memory: *Memory, address: Relocatable) ?[]const Relocatable {
+        const num = ((memory.get(address) catch {
+            return null;
+        }) orelse {
             return null;
         }).tryIntoFelt() catch {
-            return RunnerError.BuiltinExpectedInteger;
+            return null;
         };
 
-        if (num.Mask <= N_PARTS * INNER_RC_BOUND_SHIFT) {
-            return try result.append(address);
+        if (@bitSizeOf(u256) - @clz(num.toInteger()) <= N_PARTS * INNER_RC_BOUND_SHIFT) {
+            // TODO: unit tests
+            return &[_]Relocatable{address};
         } else {
-            return try result.append(Error.MemoryOutOfBounds);
+            return null;
         }
     }
 
@@ -252,8 +252,8 @@ pub const RangeCheckBuiltinRunner = struct {
     /// # Modifies
     ///
     /// - `memory`: Adds validation rule to `memory`.
-    pub fn addValidationRule(self: *const Self, memory: *Memory) void {
-        memory.addValidationRule(self.base.segment_index, rangeCheckValidationRule);
+    pub fn addValidationRule(self: *const Self, memory: *Memory) !void {
+        try memory.addValidationRule(@intCast(self.base), rangeCheckValidationRule);
     }
 
     pub fn deduceMemoryCell(
@@ -271,8 +271,8 @@ pub const RangeCheckBuiltinRunner = struct {
 test "initialize segments for range check" {
 
     // given
-    var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
-    var allocator = std.testing.allocator;
+    const builtin = RangeCheckBuiltinRunner.new(8, 8, true);
+    const allocator = std.testing.allocator;
     var mem = try MemorySegmentManager.init(allocator);
     defer mem.deinit();
 
@@ -284,7 +284,6 @@ test "initialize segments for range check" {
 }
 
 test "used instances" {
-
     // given
     var builtin = RangeCheckBuiltinRunner.new(10, 12, true);
 

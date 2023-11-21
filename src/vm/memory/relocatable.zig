@@ -1,6 +1,8 @@
 const std = @import("std");
 const Felt252 = @import("../../math/fields/starknet.zig").Felt252;
 const CairoVMError = @import("../error.zig").CairoVMError;
+const MathError = @import("../error.zig").MathError;
+const MemoryError = @import("../error.zig").MemoryError;
 
 // Relocatable in the Cairo VM represents an address
 // in some memory segment. When the VM finishes running,
@@ -93,12 +95,26 @@ pub const Relocatable = struct {
     /// Attempts to subtract a `Relocatable` from another.
     ///
     /// This method fails if `self` and other` are not from the same segment.
-    pub fn sub(self: Relocatable, other: Relocatable) !Relocatable {
+    pub fn sub(self: Self, other: Self) !Self {
         if (self.segment_index != other.segment_index) {
             return error.TypeMismatchNotRelocatable;
         }
 
         return try subUint(self, other.offset);
+    }
+
+    /// Attempts to subtract a Felt252 value from this Relocatable.
+    ///
+    /// This method internally converts `other` into a `u64` and performs subtraction.
+    /// # Arguments
+    /// - self: The Relocatable value to subtract from.
+    /// - other: The Felt252 value to subtract from `self.offset`.
+    /// # Returns
+    /// A new Relocatable after the subtraction operation.
+    /// # Errors
+    /// An error is returned if the subtraction results in an underflow (negative value).
+    pub fn subFelt(self: Self, other: Felt252) !Self {
+        return try self.subUint(try other.tryIntoU64());
     }
 
     // Substract a u64 from a Relocatable and return a new Relocatable.
@@ -171,6 +187,23 @@ pub const Relocatable = struct {
         ));
     }
 
+    /// Adds a Felt252 value to this Relocatable.
+    ///
+    /// This method adds `other` to the current `offset` of the Relocatable.
+    /// # Arguments
+    /// - self: The Relocatable value to add to.
+    /// - other: The Felt252 value to add to `self.offset`.
+    /// # Returns
+    /// A new Relocatable after the addition operation.
+    /// # Errors
+    /// An error is returned if the addition results in an overflow (exceeding u64).
+    pub fn addFelt(self: Self, other: Felt252) !Self {
+        return .{
+            .segment_index = self.segment_index,
+            .offset = try Felt252.fromInteger(@intCast(self.offset)).add(other).tryIntoU64(),
+        };
+    }
+
     /// Add a felt to this Relocatable, modifying it in place.
     /// # Arguments
     /// - self: Pointer to the Relocatable object to modify.
@@ -190,6 +223,32 @@ pub const Relocatable = struct {
         other: MaybeRelocatable,
     ) !void {
         try self.addFeltInPlace(try other.tryIntoFelt());
+    }
+
+    /// Calculates the relocated address based on the provided relocation_table.
+    ///
+    /// This function determines the relocated memory address corresponding to the `Relocatable`
+    /// instance within a given relocation_table. It performs relocation by fetching the segment_index
+    /// from the relocation_table and adding the offset. It handles temporary segment scenarios and
+    /// relocation errors.
+    ///
+    /// # Arguments
+    /// - self: Pointer to the Relocatable object to relocate.
+    /// - relocation_table: An array representing relocation information.
+    ///
+    /// # Returns
+    /// - `usize` value: The relocated memory address.
+    ///
+    /// # Errors
+    /// - Returns a `MemoryError` in case of relocation failure or encountering a temporary segment.
+    pub fn relocateAddress(self: *const Self, relocation_table: []usize) MemoryError!usize {
+        if (self.segment_index >= 0) {
+            if (relocation_table.len <= self.segment_index) {
+                return MemoryError.Relocation;
+            }
+            return @intCast(relocation_table[@intCast(self.segment_index)] + self.offset);
+        }
+        return MemoryError.TemporarySegmentInRelocation;
     }
 };
 
@@ -416,6 +475,92 @@ pub const MaybeRelocatable = union(enum) {
     /// `true` if the MaybeRelocatable is a felt, `false` otherwise.
     pub fn isFelt(self: MaybeRelocatable) bool {
         return std.meta.activeTag(self) == .felt;
+    }
+
+    /// Adds two MaybeRelocatable values together.
+    ///
+    /// This method performs addition between two MaybeRelocatable instances, either Relocatable
+    /// or Felt252. It switches based on the type of `self` and `other` to perform the correct addition.
+    ///
+    /// # Arguments:
+    ///   * self: The first MaybeRelocatable value.
+    ///   * other: The second MaybeRelocatable value to add to `self`.
+    ///
+    /// # Returns:
+    ///   * A new MaybeRelocatable value after the addition operation.
+    ///   * An error in case of type mismatch or specific math errors.
+    pub fn add(self: Self, other: Self) !Self {
+        // Switch on the type of `self`
+        return switch (self) {
+            // If `self` is of type `relocatable`
+            .relocatable => |self_value| switch (other) {
+                // If `other` is also `relocatable`, addition is not supported, return an error
+                .relocatable => MathError.RelocatableAdd,
+                // If `other` is `felt`, call `addFelt` method on `self_value`
+                .felt => |fe| .{ .relocatable = try self_value.addFelt(fe) },
+            },
+            // If `self` is of type `felt`
+            .felt => |self_value| switch (other) {
+                // If `other` is also `felt`, perform addition on `self_value`
+                .felt => |fe| .{ .felt = self_value.add(fe) },
+                // If `other` is `relocatable`, call `addFelt` method on `other` with `self_value`
+                .relocatable => |r| .{ .relocatable = try r.addFelt(self_value) },
+            },
+        };
+    }
+
+    /// Subtracts one MaybeRelocatable value from another.
+    ///
+    /// This method performs subtraction between two MaybeRelocatable instances, either Relocatable
+    /// or Felt252. It switches based on the type of `self` and `other` to perform the correct subtraction.
+    ///
+    /// # Arguments:
+    ///   * self: The MaybeRelocatable value to subtract from.
+    ///   * other: The MaybeRelocatable value to subtract from `self`.
+    ///
+    /// # Returns:
+    ///   * A new MaybeRelocatable value after the subtraction operation.
+    ///   * An error in case of type mismatch or specific math errors.
+    pub fn sub(self: Self, other: Self) !Self {
+        // Switch on the type of `self`
+        return switch (self) {
+            // If `self` is of type `relocatable`
+            .relocatable => |self_value| switch (other) {
+                // If `other` is also `relocatable`, call `sub` method on `self_value`
+                .relocatable => |r| .{ .relocatable = try self_value.sub(r) },
+                // If `other` is `felt`, call `subFelt` method on `self_value`
+                .felt => |fe| .{ .relocatable = try self_value.subFelt(fe) },
+            },
+            // If `self` is of type `felt`
+            .felt => |self_value| switch (other) {
+                // If `other` is also `felt`, perform subtraction on `self_value`
+                .felt => |fe| .{ .felt = self_value.sub(fe) },
+                // If `other` is `relocatable`, return an error as subtraction is not supported
+                .relocatable => MathError.SubRelocatableFromInt,
+            },
+        };
+    }
+
+    /// Converts a `MaybeRelocatable` instance into a `Felt252` value, considering relocation.
+    ///
+    /// This function handles the conversion of a `MaybeRelocatable` instance, identifying whether
+    /// it contains a `Felt252` value or a `Relocatable`. In the case of a `Relocatable`, it utilizes
+    /// the `relocateAddress` method to obtain the relocated address and converts it into a `Felt252`.
+    ///
+    /// # Arguments
+    /// - `self`: Pointer to the MaybeRelocatable object to convert.
+    /// - `relocation_table`: An array representing relocation information.
+    ///
+    /// # Returns
+    /// - `Felt252`: The converted Felt252 value.
+    ///
+    /// # Errors
+    /// - Returns a `MemoryError` if encountering relocation issues or mismatches in the conversion.
+    pub fn relocateValue(self: *const Self, relocation_table: []usize) MemoryError!Felt252 {
+        return switch (self.*) {
+            .felt => |fe| fe,
+            .relocatable => |r| Felt252.fromInteger(try r.relocateAddress(relocation_table)),
+        };
     }
 };
 
@@ -672,23 +817,90 @@ test "Relocatable: ge should return true if other relocatable is less, false oth
     try expect(Relocatable.new(3, 3).ge(Relocatable.new(2, 4)));
 }
 
+test "Relocatable: addFelt should add a relocatable and a Felt252" {
+    try expectEqual(
+        Relocatable{ .segment_index = 2, .offset = 54 },
+        try Relocatable.new(2, 44).addFelt(Felt252.fromInteger(10)),
+    );
+}
+
+test "Relocatable: addFelt should return an error if number after offset addition is too large" {
+    try expectError(
+        error.ValueTooLarge,
+        Relocatable.new(2, 44).addFelt(Felt252.fromInteger(std.math.maxInt(u256))),
+    );
+}
+
+test "Relocatable: subFelt should subtract a Felt252 from a relocatable" {
+    try expectEqual(
+        Relocatable{ .segment_index = 2, .offset = 34 },
+        try Relocatable.new(2, 44).subFelt(Felt252.fromInteger(10)),
+    );
+}
+
+test "Relocatable: subFelt should return an error if relocatable cannot be coerced to u64" {
+    try expectError(
+        error.ValueTooLarge,
+        Relocatable.new(2, 44).subFelt(Felt252.fromInteger(std.math.maxInt(u256))),
+    );
+}
+
+test "Relocatable: subFelt should return an error if relocatable offset is smaller than Felt252" {
+    try expectError(
+        error.RelocatableSubUsizeNegOffset,
+        Relocatable.new(2, 7).subFelt(Felt252.fromInteger(10)),
+    );
+}
+
+test "Relocatable: relocateAddress should return an error if relocatable segment index is negative (temp segment)" {
+    var relocation_table = [_]usize{ 1, 2, 3, 4 };
+    try expectError(
+        MemoryError.TemporarySegmentInRelocation,
+        Relocatable.new(-2, 7).relocateAddress(&relocation_table),
+    );
+}
+
+test "Relocatable: relocateAddress should return an error relocation table length is less than segment index" {
+    var relocation_table = [_]usize{ 1, 2, 3, 4 };
+    try expectError(
+        MemoryError.Relocation,
+        Relocatable.new(5, 7).relocateAddress(&relocation_table),
+    );
+}
+
+test "Relocatable: relocateAddress should return an error relocation table length is equal to segment index" {
+    var relocation_table = [_]usize{ 1, 2, 3, 4 };
+    try expectError(
+        MemoryError.Relocation,
+        Relocatable.new(4, 7).relocateAddress(&relocation_table),
+    );
+}
+
+test "Relocatable: relocateAddress should return a proper usize to relocate the address" {
+    var relocation_table = [_]usize{ 1, 2, 3, 4 };
+    try expectEqual(
+        @as(usize, 11),
+        try Relocatable.new(3, 7).relocateAddress(&relocation_table),
+    );
+}
+
 test "MaybeRelocatable: eq should return true if two MaybeRelocatable are the same (Relocatable)" {
-    var maybeRelocatable1 = fromSegment(0, 10);
-    var maybeRelocatable2 = fromSegment(0, 10);
+    const maybeRelocatable1 = fromSegment(0, 10);
+    const maybeRelocatable2 = fromSegment(0, 10);
     try expect(maybeRelocatable1.eq(maybeRelocatable2));
 }
 
 test "MaybeRelocatable: eq should return true if two MaybeRelocatable are the same (Felt)" {
-    var maybeRelocatable1 = fromU256(10);
-    var maybeRelocatable2 = fromU256(10);
+    const maybeRelocatable1 = fromU256(10);
+    const maybeRelocatable2 = fromU256(10);
     try expect(maybeRelocatable1.eq(maybeRelocatable2));
 }
 
 test "MaybeRelocatable: eq should return false if two MaybeRelocatable are not the same " {
-    var maybeRelocatable1 = fromSegment(0, 10);
-    var maybeRelocatable2 = fromSegment(1, 10);
-    var maybeRelocatable3 = fromU256(10);
-    var maybeRelocatable4 = fromU256(100);
+    const maybeRelocatable1 = fromSegment(0, 10);
+    const maybeRelocatable2 = fromSegment(1, 10);
+    const maybeRelocatable3 = fromU256(10);
+    const maybeRelocatable4 = fromU256(100);
     try expect(!maybeRelocatable1.eq(maybeRelocatable2));
     try expect(!maybeRelocatable1.eq(maybeRelocatable3));
     try expect(!maybeRelocatable3.eq(maybeRelocatable2));
@@ -858,18 +1070,18 @@ test "MaybeRelocatable: tryIntoU64 should return a u64 if MaybeRelocatable is Fe
 }
 
 test "MaybeRelocatable: tryIntoU64 should return an error if MaybeRelocatable is Relocatable" {
-    var maybeRelocatable = fromSegment(0, 10);
+    const maybeRelocatable = fromSegment(0, 10);
     try expectError(CairoVMError.TypeMismatchNotFelt, maybeRelocatable.tryIntoU64());
 }
 
 test "MaybeRelocatable: tryIntoU64 should return an error if MaybeRelocatable Felt cannot be coerced to u64" {
-    var maybeRelocatable = fromU256(std.math.maxInt(u64) + 1);
+    const maybeRelocatable = fromU256(std.math.maxInt(u64) + 1);
     try expectError(error.ValueTooLarge, maybeRelocatable.tryIntoU64());
 }
 
 test "MaybeRelocatable: any comparision should return false if other MaybeRelocatable is of different variant 1" {
-    var maybeRelocatable1 = fromSegment(0, 10);
-    var maybeRelocatable2 = fromU256(10);
+    const maybeRelocatable1 = fromSegment(0, 10);
+    const maybeRelocatable2 = fromU256(10);
 
     try expect(!maybeRelocatable1.lt(maybeRelocatable2));
     try expect(!maybeRelocatable1.le(maybeRelocatable2));
@@ -878,13 +1090,112 @@ test "MaybeRelocatable: any comparision should return false if other MaybeReloca
 }
 
 test "MaybeRelocatable: any comparision should return false if other MaybeRelocatable is of different variant 2" {
-    var maybeRelocatable1 = fromU256(10);
-    var maybeRelocatable2 = fromSegment(0, 10);
+    const maybeRelocatable1 = fromU256(10);
+    const maybeRelocatable2 = fromSegment(0, 10);
 
     try expect(!maybeRelocatable1.lt(maybeRelocatable2));
     try expect(!maybeRelocatable1.le(maybeRelocatable2));
     try expect(!maybeRelocatable1.gt(maybeRelocatable2));
     try expect(!maybeRelocatable1.ge(maybeRelocatable2));
+}
+
+test "MaybeRelocatable: add between two relocatable should return a Math error" {
+    try expectError(
+        MathError.RelocatableAdd,
+        fromSegment(0, 10).add(fromSegment(0, 10)),
+    );
+}
+
+test "MaybeRelocatable: add between a Relocatable and a Felt252 should return a proper MaybeRelocatable" {
+    try expectEqual(
+        fromSegment(0, 20),
+        try fromSegment(0, 10).add(fromU256(10)),
+    );
+}
+
+test "MaybeRelocatable: add between two Felt252 should return a proper MaybeRelocatable" {
+    try expectEqual(
+        fromU256(20),
+        try fromU256(10).add(fromU256(10)),
+    );
+}
+
+test "MaybeRelocatable: add between a Felt252 and a Relocatable should return a proper MaybeRelocatable" {
+    try expectEqual(
+        fromSegment(0, 20),
+        try fromU256(10).add(fromSegment(0, 10)),
+    );
+}
+
+test "MaybeRelocatable: sub between two Relocatable should return a proper MaybeRelocatable" {
+    try expectEqual(
+        fromSegment(0, 10),
+        try fromSegment(0, 20).sub(fromSegment(0, 10)),
+    );
+}
+
+test "MaybeRelocatable: sub between two Relocatable with different segment indexes should return an error" {
+    try expectError(
+        error.TypeMismatchNotRelocatable,
+        fromSegment(3, 20).sub(fromSegment(0, 10)),
+    );
+}
+
+test "MaybeRelocatable: sub between a Relocatable and a Felt252 should return a proper MaybeRelocatable" {
+    try expectEqual(
+        fromSegment(0, 10),
+        try fromSegment(0, 20).sub(fromU256(10)),
+    );
+}
+
+test "MaybeRelocatable: sub between two Felt252 should return a proper MaybeRelocatable" {
+    try expectEqual(
+        fromU256(0),
+        try fromU256(20).sub(fromU256(20)),
+    );
+}
+
+test "MaybeRelocatable: sub between a Felt252 and a Relocatable should return a Math Error" {
+    try expectError(
+        MathError.SubRelocatableFromInt,
+        fromU256(20).sub(fromSegment(0, 10)),
+    );
+}
+
+test "MaybeRelocatable: relocateValue should return Felt252 if self argument is Felt252" {
+    var relocation_table = [_]usize{ 1, 2, 3, 4 };
+    var mr = fromU256(10);
+    try expectEqual(
+        Felt252.fromInteger(10),
+        try mr.relocateValue(&relocation_table),
+    );
+}
+
+test "MaybeRelocatable: relocateValue with a relocatable value" {
+    var relocation_table = [_]usize{ 1, 2, 5 };
+    var mr = fromSegment(2, 7);
+    try expectEqual(
+        Felt252.fromInteger(12),
+        try mr.relocateValue(&relocation_table),
+    );
+}
+
+test "MaybeRelocatable: relocateValue with a temporary segment value" {
+    var relocation_table = [_]usize{ 1, 2, 5 };
+    var mr = fromSegment(-1, 7);
+    try expectError(
+        MemoryError.TemporarySegmentInRelocation,
+        mr.relocateValue(&relocation_table),
+    );
+}
+
+test "MaybeRelocatable: relocateValue with index out of bounds" {
+    var relocation_table = [_]usize{ 1, 2 };
+    var mr = fromSegment(2, 7);
+    try expectError(
+        MemoryError.Relocation,
+        mr.relocateValue(&relocation_table),
+    );
 }
 
 test "newFromRelocatable: should create a MaybeRelocatable from a Relocatable" {
