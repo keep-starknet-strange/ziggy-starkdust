@@ -11,7 +11,7 @@
     .dependencies = .{
         .@"zig-cli" = .{
             .url = "https://github.com/sam701/zig-cli/archive/refs/heads/main.tar.gz",
-            .hash = "1220fc45b619eb891f7ebfb77d7591b03a50e341394ffe8ae8330a52b76cd8d608d4",
+            .hash = "1220837b956355c73ccd18f1cce2fc829d7de04a71434e796f9ff913642ac908a1e5",
         },
     },
 }
