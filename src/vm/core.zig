@@ -341,6 +341,7 @@ pub const CairoVM = struct {
         if (self.segments.memory.get(op_res.op_0_addr) catch null) |op_0| {
             op_res.op_0 = op_0;
         } else {
+            op_res.setOp0(true);
             op_res.op_0 = try self.computeOp0Deductions(
                 allocator,
                 op_res.op_0_addr,
@@ -350,10 +351,10 @@ pub const CairoVM = struct {
             );
         }
 
-
         if (op_1_op) |op_1| {
             op_res.op_1 = op_1;
         } else {
+            op_res.setOp1(true);
             op_res.op_1 = try self.computeOp1Deductions(
                 allocator,
                 op_res.op_1_addr,
@@ -371,6 +372,7 @@ pub const CairoVM = struct {
         if (dst_op) |dst| {
             op_res.dst = dst;
         } else {
+            op_res.setDst(true);
             op_res.dst = try self.deduceDst(instruction, op_res.res);
         }
 
