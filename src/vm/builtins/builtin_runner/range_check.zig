@@ -235,7 +235,6 @@ pub const RangeCheckBuiltinRunner = struct {
 
         if (@bitSizeOf(u256) - @clz(num.toInteger()) <= N_PARTS * INNER_RC_BOUND_SHIFT) {
             // TODO: unit tests
-
             return &[_]Relocatable{address};
         } else {
             return null;
