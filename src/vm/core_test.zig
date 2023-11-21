@@ -1228,6 +1228,7 @@ test "compute operands add AP" {
         .op_0 = op0_val,
         .op_1 = op1_val,
         .res = dst_val,
+        .deduced_operands = 0,
     };
 
     const actual_operands = try vm.computeOperands(
@@ -1289,7 +1290,6 @@ test "compute operands mul FP" {
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-
     const expected_operands: OperandsResult = .{
         .dst_addr = dst_addr,
         .op_0_addr = op0_addr,
@@ -1298,6 +1298,7 @@ test "compute operands mul FP" {
         .op_0 = op0_val,
         .op_1 = op1_val,
         .res = dst_val,
+        .deduced_operands = 0,
     };
 
     const actual_operands = try vm.computeOperands(
@@ -2041,7 +2042,7 @@ test "CairoVM: OperandsResult deduced set and was functionality" {
 
 test "CairoVM: InserDeducedOperands should insert operands if set as deduced" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -2095,7 +2096,7 @@ test "CairoVM: InserDeducedOperands should insert operands if set as deduced" {
 
 test "CairoVM: InserDeducedOperands insert operands should not be inserted if not set as deduced" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
