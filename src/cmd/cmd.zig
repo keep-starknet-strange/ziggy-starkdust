@@ -116,6 +116,6 @@ fn execute(_: []const []const u8) !void {
 
     var runner = try CairoRunner.initFromConfig(gpa_allocator, config);
     defer runner.deinit();
-    var end = try runner.setupExecutionState();
+    const end = try runner.setupExecutionState();
     runner.runUntilPC(end);
 }

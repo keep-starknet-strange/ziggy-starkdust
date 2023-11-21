@@ -137,7 +137,7 @@ pub const Program = struct {
         errdefer allocator.free(parsed_data);
 
         for (data, 0..) |instruction, i| {
-            var parsed_hex = try std.fmt.parseInt(u256, instruction[2..], 16);
+            const parsed_hex = try std.fmt.parseInt(u256, instruction[2..], 16);
             parsed_data[i] = relocatable.fromU256(parsed_hex);
         }
         return parsed_data;
@@ -196,7 +196,7 @@ test "Program can be initialized from json file with correct program data" {
         var hex_list = std.ArrayList(u8).init(allocator);
         defer hex_list.deinit();
 
-        var instruction = program[idx].felt.toInteger();
+        const instruction = program[idx].felt.toInteger();
         // Format the integer as hexadecimal and store in buffer
         try std.fmt.format(hex_list.writer(), "0x{x}", .{instruction});
 

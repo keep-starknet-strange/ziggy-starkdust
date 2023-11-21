@@ -38,21 +38,21 @@ pub const CairoRunner = struct {
 
     pub fn initFromConfig(allocator: Allocator, config: Config) !Self {
         // Create a new VM instance.
-        var vm = try vm_core.CairoVM.init(
+        const vm = try vm_core.CairoVM.init(
             allocator,
             config,
         );
 
-        var instructions = try Program.dataFromFile(allocator, config.filename.?);
+        const instructions = try Program.dataFromFile(allocator, config.filename.?);
 
-        var stack = std.ArrayList(MaybeRelocatable).init(allocator);
+        const stack = std.ArrayList(MaybeRelocatable).init(allocator);
 
         return .{ .allocator = allocator, .instructions = instructions, .vm = vm, .stack = stack };
     }
 
     pub fn setupExecutionState(self: *Self) !Relocatable {
         _ = self.initSegments();
-        var end = try self.initMainEntryPoint();
+        const end = try self.initMainEntryPoint();
         _ = self.initVM();
         return end;
     }
@@ -104,7 +104,7 @@ pub const CairoRunner = struct {
         // where 11 is derived from
         // 9 builtin bases + end + return_fp
 
-        var return_fp = self.vm.segments.addSegment();
+        const return_fp = self.vm.segments.addSegment();
         return self.initFunctionEntrypoint(self.main_offset, return_fp);
     }
 
