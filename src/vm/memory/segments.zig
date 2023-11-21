@@ -608,7 +608,7 @@ test "MemorySegmentManager: relocateSegments for one segment" {
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     try memory_segment_manager.segment_used_sizes.put(0, 1);
-    var actual_value = try memory_segment_manager.relocateSegments(std.heap.page_allocator);
+    const actual_value = try memory_segment_manager.relocateSegments(std.heap.page_allocator);
     var expected_value = ArrayList(u32).init(std.testing.allocator);
     defer expected_value.deinit();
     try expected_value.append(1);
@@ -628,7 +628,7 @@ test "MemorySegmentManager: relocateSegments for ten segments" {
     try memory_segment_manager.segment_used_sizes.put(7, 30);
     try memory_segment_manager.segment_used_sizes.put(8, 55);
     try memory_segment_manager.segment_used_sizes.put(9, 60);
-    var actual_value = try memory_segment_manager.relocateSegments(std.heap.page_allocator);
+    const actual_value = try memory_segment_manager.relocateSegments(std.heap.page_allocator);
     var expected_value = ArrayList(u32).init(std.testing.allocator);
     defer expected_value.deinit();
     try expected_value.append(1); // 1
