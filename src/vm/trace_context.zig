@@ -4,6 +4,7 @@ const ArrayList = std.ArrayList;
 
 const build_options = @import("../build_options.zig");
 const Relocatable = @import("./memory/relocatable.zig").Relocatable;
+const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 
 /// The inner state of the `TraceContext`.
 ///
@@ -17,6 +18,8 @@ const State = union {
 
     /// A function that records a new entry in the tracing context.
     const TraceInstructionFn = fn (state: *Self, entry: TraceContext.Entry) Allocator.Error!void;
+    /// A function that records a new relocated trace entry in the tracing context.
+    const AddRelocatedTraceFn = fn (state: *Self, entry: TraceContext.RelocatedTraceEntry) Allocator.Error!void;
     /// A function that frees the resources owned by the tracing context.
     const DeinitFn = fn (state: *Self) void;
 };
@@ -34,6 +37,13 @@ pub const TraceContext = struct {
         fp: *Relocatable,
     };
 
+    /// An entry recorded representing the relocated trace of the VM.
+    pub const RelocatedTraceEntry = struct {
+        pc: *Felt252,
+        ap: *Felt252,
+        fp: *Felt252,
+    };
+
     /// The current state of the tracing context.
     state: State,
 
@@ -46,6 +56,8 @@ pub const TraceContext = struct {
 
     /// A function to call when a new entry is recorded.
     traceInstructionFn: *const State.TraceInstructionFn,
+    /// A function to call when a new relocate trace entry is recorded.
+    addRelocatedTraceFn: *const State.AddRelocatedTraceFn,
     /// A functio to call
     deinitFn: *const State.DeinitFn,
 
@@ -67,6 +79,7 @@ pub const TraceContext = struct {
             return .{
                 .state = .{ .enabled = try TraceEnabled.init(allocator) },
                 .traceInstructionFn = TraceEnabled.traceInstruction,
+                .addRelocatedTraceFn = TraceEnabled.addRelocatedTrace,
                 .deinitFn = TraceEnabled.deinit,
             };
         }
@@ -74,6 +87,7 @@ pub const TraceContext = struct {
         return .{
             .state = .{ .disabled = .{} },
             .traceInstructionFn = TraceDisabled.traceInstruction,
+            .addRelocatedTraceFn = TraceDisabled.addRelocatedTrace,
             .deinitFn = TraceDisabled.deinit,
         };
     }
@@ -101,23 +115,33 @@ const TraceEnabled = struct {
     /// The entries that have been recorded so far.
     entries: ArrayList(TraceContext.Entry),
 
+    /// The relocated trace entries that was relocated.
+    relocated_trace_entries: ArrayList(TraceContext.RelocatedTraceEntry),
+
     fn init(allocator: Allocator) !Self {
         return .{
             .entries = try ArrayList(TraceContext.Entry).initCapacity(
                 allocator,
                 build_options.trace_initial_capacity,
             ),
+            .relocated_trace_entries = try ArrayList(TraceContext.RelocatedTraceEntry).initCapacity(allocator, build_options.trace_initial_capacity),
         };
     }
 
     fn deinit(self: *State) void {
         const this = &self.enabled;
         this.entries.deinit();
+        this.relocated_trace_entries.deinit();
     }
 
     fn traceInstruction(self: *State, entry: TraceContext.Entry) !void {
         const this = &self.enabled;
         try this.entries.append(entry);
+    }
+
+    fn addRelocatedTrace(self: *State, entry: TraceContext.RelocatedTraceEntry) !void {
+        const this = &self.enabled;
+        try this.relocated_trace_entries.append(entry);
     }
 };
 
@@ -132,5 +156,11 @@ const TraceDisabled = struct {
         const this = &self.disabled;
         _ = entry;
         _ = this;
+    }
+
+    fn addRelocatedTrace(self: *State, entry: TraceContext.RelocatedTraceEntry) !void {
+        const this = &self.disabled;
+        _ = this;
+        _ = entry;
     }
 };

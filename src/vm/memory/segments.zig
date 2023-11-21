@@ -210,9 +210,9 @@ pub const MemorySegmentManager = struct {
     /// # Returns
     ///
     /// A `Slice` of the `ArrayList(u32)` representing the relocated segments.
-    pub fn relocateSegments(self: *Self) !ArrayList(u32).Slice {
+    pub fn relocateSegments(self: *Self, allocator: Allocator) !ArrayList(u32).Slice {
         const first_addr = 1;
-        var relocatable_table = std.ArrayList(u32).init(std.heap.page_allocator);
+        var relocatable_table = std.ArrayList(u32).init(allocator);
         try relocatable_table.append(first_addr);
         for (self.segment_used_sizes.keys()) |key| {
             const index = self.segment_used_sizes.getIndex(key) orelse return MemoryError.MissingSegmentUsedSizes;
@@ -602,7 +602,7 @@ test "MemorySegmentManager: relocateSegments for one segment" {
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     try memory_segment_manager.segment_used_sizes.put(0, 1);
-    var actual_value = try memory_segment_manager.relocateSegments();
+    var actual_value = try memory_segment_manager.relocateSegments(std.heap.page_allocator);
     var expected_value = ArrayList(u32).init(std.testing.allocator);
     defer expected_value.deinit();
     try expected_value.append(1);
@@ -622,7 +622,7 @@ test "MemorySegmentManager: relocateSegments for ten segments" {
     try memory_segment_manager.segment_used_sizes.put(7, 30);
     try memory_segment_manager.segment_used_sizes.put(8, 55);
     try memory_segment_manager.segment_used_sizes.put(9, 60);
-    var actual_value = try memory_segment_manager.relocateSegments();
+    var actual_value = try memory_segment_manager.relocateSegments(std.heap.page_allocator);
     var expected_value = ArrayList(u32).init(std.testing.allocator);
     defer expected_value.deinit();
     try expected_value.append(1); // 1

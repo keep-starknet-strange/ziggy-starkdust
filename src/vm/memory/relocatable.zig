@@ -223,6 +223,11 @@ pub const Relocatable = struct {
     ) !void {
         try self.addFeltInPlace(try other.tryIntoFelt());
     }
+
+    // Returns the index in a relocated memory (uint) from a relocatable address
+    fn relocateAddress(self: Self, relocationTable: []u32) u64 {
+        return relocationTable[self.segment_index] + self.offset;
+    }
 };
 
 // MaybeRelocatable is the type of the memory cells in the Cairo

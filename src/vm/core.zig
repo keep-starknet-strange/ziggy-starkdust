@@ -683,17 +683,22 @@ pub const CairoVM = struct {
         return null;
     }
 
+    // Relocates the VM's trace, turning relocatable registers to numbered ones
     pub fn relocateTrace(self: *Self, relocation_table: *[]u8) !void {
         if (self.trace_relocated) {
             return TraceError.AlreadyRelocated;
         }
+        if (relocation_table.len < 2) {
+            return TraceError.NoRelocationFound;
+        }
         switch (self.trace_context.state) {
             .enabled => |trace_enabled| {
-                const segment_1_base = relocation_table[1] orelse return TraceError.NoRelocationFound;
                 for (trace_enabled.entries) |entry| {
-                    entry.pc += 1;
-                    entry.ap = segment_1_base;
-                    entry.fp = segment_1_base;
+                    self.trace_context.addRelocatedTraceFn(.{
+                        .pc = Felt252.fromInteger(entry.pc.relocateAddress(relocation_table)),
+                        .ap = Felt252.fromInteger(entry.pc.relocateAddress(relocation_table)),
+                        .fp = Felt252.fromInteger(entry.pc.relocateAddress(relocation_table)),
+                    });
                 }
                 self.trace_relocated = true;
             },
