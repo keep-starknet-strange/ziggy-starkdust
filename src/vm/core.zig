@@ -317,7 +317,7 @@ pub const CairoVM = struct {
             instruction,
             op_res.op_0,
         );
-        const op_1_op = self.segments.memory.get(op_res.op_1_addr) catch null;
+        const op_1_op = try self.segments.memory.get(op_res.op_1_addr);
 
         // Deduce the operands if they haven't been successfully retrieved from memory.
         if (self.segments.memory.get(op_res.op_0_addr) catch null) |op_0| {
