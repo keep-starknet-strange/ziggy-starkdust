@@ -337,8 +337,8 @@ test "set get integer value in segment memory" {
     const actual_value_2 = try memory_segment_manager.memory.get(address_2);
     const expected_value_2 = value_2;
 
-    try expect(expected_value_1.eq(actual_value_1));
-    try expect(expected_value_2.eq(actual_value_2));
+    try expect(expected_value_1.eq(actual_value_1.?));
+    try expect(expected_value_2.eq(actual_value_2.?));
 }
 
 test "MemorySegmentManager: getSegmentUsedSize should return the size of a memory segment by its index if available" {

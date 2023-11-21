@@ -227,7 +227,9 @@ pub const RangeCheckBuiltinRunner = struct {
     /// An `ArrayList(Relocatable)` containing the rules address
     /// verification fails.
     pub fn rangeCheckValidationRule(memory: *Memory, address: Relocatable) ?[]const Relocatable {
-        const num = (memory.get(address) catch {
+        const num = ((memory.get(address) catch {
+            return null;
+        }) orelse {
             return null;
         }).tryIntoFelt() catch {
             return null;
