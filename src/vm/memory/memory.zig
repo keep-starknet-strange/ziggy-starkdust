@@ -161,7 +161,7 @@ pub const Memory = struct {
     // # Returns
     // The new memory.
     pub fn init(allocator: Allocator) !*Self {
-        var memory = try allocator.create(Self);
+        const memory = try allocator.create(Self);
 
         memory.* = Self{
             .allocator = allocator,
@@ -224,9 +224,8 @@ pub const Memory = struct {
         const segment_index: usize = @intCast(if (address.segment_index < 0) -(address.segment_index + 1) else address.segment_index);
 
         if (data.items.len <= @as(usize, segment_index)) {
-            var segment = std.ArrayListUnmanaged(?MemoryCell){};
             try data.appendNTimes(
-                segment,
+                std.ArrayListUnmanaged(?MemoryCell){},
                 @as(usize, segment_index) + 1 - data.items.len,
             );
         }
@@ -370,9 +369,10 @@ pub const Memory = struct {
     pub fn validateMemoryCell(self: *Self, address: Relocatable) !void {
         if (self.validation_rules.get(@intCast(address.segment_index))) |rule| {
             if (!self.validated_addresses.contains(address)) {
-                var list = rule(self, address);
-                if (list != null) {
-                    try self.validated_addresses.addAddresses(list.?);
+                if (rule(self, address)) |list| {
+                    _ = list;
+                    // TODO: debug rangeCheckValidationRule to be able to push list here again
+                    try self.validated_addresses.addAddresses(&[_]Relocatable{address});
                 }
             }
         }
@@ -432,7 +432,7 @@ pub fn setUpMemory(memory: *Memory, allocator: Allocator, comptime vals: anytype
 }
 
 test "Memory: validate existing memory" {
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
 
     var segments = try MemorySegmentManager.init(allocator);
     defer segments.deinit();
@@ -440,8 +440,7 @@ test "Memory: validate existing memory" {
     var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
     builtin.initializeSegments(segments);
     try builtin.addValidationRule(segments.memory);
-    var seg = segments.addSegment();
-    _ = seg;
+    _ = segments.addSegment();
 
     try setUpMemory(segments.memory, std.testing.allocator, .{
         .{ .{ 0, 2 }, .{1} },
@@ -474,7 +473,7 @@ test "Memory: validate existing memory" {
 }
 
 test "Memory: validate memory cell" {
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
 
     var segments = try MemorySegmentManager.init(allocator);
     defer segments.deinit();
@@ -482,7 +481,7 @@ test "Memory: validate memory cell" {
     var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
     builtin.initializeSegments(segments);
     try builtin.addValidationRule(segments.memory);
-    var seg = segments.addSegment();
+    const seg = segments.addSegment();
     _ = seg;
 
     try setUpMemory(
@@ -507,7 +506,7 @@ test "Memory: validate memory cell" {
 }
 
 test "Memory: validate memory cell segment index not in validation rules" {
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
 
     var segments = try MemorySegmentManager.init(allocator);
     defer segments.deinit();
@@ -515,7 +514,7 @@ test "Memory: validate memory cell segment index not in validation rules" {
     var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
     builtin.initializeSegments(segments);
 
-    var seg = segments.addSegment();
+    const seg = segments.addSegment();
     _ = seg;
 
     try setUpMemory(
@@ -534,7 +533,7 @@ test "Memory: validate memory cell segment index not in validation rules" {
 }
 
 test "Memory: validate memory cell already exist in validation rules" {
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
 
     var segments = try MemorySegmentManager.init(allocator);
     defer segments.deinit();
@@ -543,10 +542,11 @@ test "Memory: validate memory cell already exist in validation rules" {
     builtin.initializeSegments(segments);
     try builtin.addValidationRule(segments.memory);
 
-    var seg = segments.addSegment();
+    const seg = segments.addSegment();
     _ = seg;
 
     try segments.memory.set(std.testing.allocator, Relocatable.new(0, 1), relocatable.fromFelt(starknet_felt.Felt252.one()));
+    defer segments.memory.deinitData(std.testing.allocator);
 
     try segments.memory.validateMemoryCell(Relocatable.new(0, 1));
 
@@ -554,7 +554,6 @@ test "Memory: validate memory cell already exist in validation rules" {
         segments.memory.validated_addresses.contains(Relocatable.new(0, 1)),
         true,
     );
-    defer segments.memory.deinitData(std.testing.allocator);
 
     //attempt to validate memory cell a second time
     try segments.memory.validateMemoryCell(Relocatable.new(0, 1));
@@ -567,7 +566,7 @@ test "Memory: validate memory cell already exist in validation rules" {
 }
 
 test "memory inner for testing test" {
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
 
     var memory = try Memory.init(allocator);
     defer memory.deinit();
@@ -605,7 +604,7 @@ test "memory get without value raises error" {
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
     // Initialize an allocator.
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
 
     // Initialize a memory instance.
     var memory = try Memory.init(allocator);
@@ -626,7 +625,7 @@ test "memory set and get" {
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
     // Initialize an allocator.
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
 
     // Initialize a memory instance.
     var memory = try Memory.init(allocator);
@@ -676,7 +675,7 @@ test "validate existing memory for range check within bound" {
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
     // Initialize an allocator.
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
 
     // Initialize a memory instance.
     var memory = try Memory.init(allocator);
@@ -821,7 +820,7 @@ test "Memory: markAsAccessed should mark memory cell" {
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    var relo = Relocatable.new(1, 3);
+    const relo = Relocatable.new(1, 3);
     try setUpMemory(
         memory,
         std.testing.allocator,
