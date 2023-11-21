@@ -62,7 +62,7 @@ pub const MemorySegmentManager = struct {
     // A new MemorySegmentManager.
     pub fn init(allocator: Allocator) !*Self {
         // Create the pointer to the MemorySegmentManager.
-        var segment_manager = try allocator.create(Self);
+        const segment_manager = try allocator.create(Self);
         errdefer allocator.destroy(segment_manager);
 
         const memory = try Memory.init(allocator);
@@ -232,7 +232,7 @@ pub fn segmentsUtil(segment_manager: *MemorySegmentManager, allocator: Allocator
 
 test "memory segment manager" {
     // Initialize an allocator.
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
 
     // Initialize a memory segment manager.
     var memory_segment_manager = try MemorySegmentManager.init(allocator);
@@ -299,7 +299,7 @@ test "set get integer value in segment memory" {
     // *                 SETUP TEST CONTEXT                       *
     // ************************************************************
     // Initialize an allocator.
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
 
     // Initialize a memory segment manager.
     var memory_segment_manager = try MemorySegmentManager.init(allocator);
@@ -339,8 +339,8 @@ test "set get integer value in segment memory" {
     const actual_value_2 = try memory_segment_manager.memory.get(address_2);
     const expected_value_2 = value_2;
 
-    try expect(expected_value_1.eq(actual_value_1));
-    try expect(expected_value_2.eq(actual_value_2));
+    try expect(expected_value_1.eq(actual_value_1.?));
+    try expect(expected_value_2.eq(actual_value_2.?));
 }
 
 test "MemorySegmentManager: getSegmentUsedSize should return the size of a memory segment by its index if available" {
@@ -617,7 +617,7 @@ test "MemorySegmentManager: getSegmentUsedSize should return the size of the use
 }
 
 test "MemorySegmentManager: segments utility function for testing test" {
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
 
     var memory_segment_manager = try MemorySegmentManager.init(allocator);
     defer memory_segment_manager.deinit();

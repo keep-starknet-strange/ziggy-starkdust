@@ -43,8 +43,12 @@ pub const MemoryError = error{
     NonZeroOffset,
     /// Duplicated relocation entry found.
     DuplicatedRelocation,
-    // Segment not allocated
+    /// Segment not allocated
     UnallocatedSegment,
+    /// Temporary segment found while relocating (flattening) segment
+    TemporarySegmentInRelocation,
+    /// Inconsistent Relocation
+    Relocation,
 };
 
 /// Reepresents different error conditions that occur in the built-in runners.
