@@ -698,16 +698,15 @@ test "memory set and get" {
     memory.num_segments += 1;
 
     // Set a value into the memory.
-    _ = try memory.set(
+    try setUpMemory(
+        memory,
         std.testing.allocator,
-        address_1,
-        value_1,
+        .{
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ -1, 0 }, .{1} },
+        },
     );
-    _ = try memory.set(
-        std.testing.allocator,
-        address_2,
-        value_2,
-    );
+
     defer memory.deinitData(std.testing.allocator);
 
     // Get the value from the memory.
@@ -779,11 +778,12 @@ test "validate existing memory for range check within bound" {
     try memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
     memory.num_segments += 1;
     // Set a value into the memory.
-    _ = try memory.set(
+    try setUpMemory(
+        memory,
         std.testing.allocator,
-        address_1,
-        value_1,
+        .{.{ .{ 0, 0 }, .{1} }},
     );
+
     defer memory.deinitData(std.testing.allocator);
 
     // Get the value from the memory.
@@ -813,12 +813,11 @@ test "Memory: getFelt should return Felt252 if available at the given address" {
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    memory.num_segments += 1;
-    try memory.set(
+
+    try setUpMemory(
+        memory,
         std.testing.allocator,
-        Relocatable.new(0, 0),
-        .{ .felt = Felt252.fromInteger(23) },
+        .{.{ .{ 0, 0 }, .{23} }},
     );
     defer memory.deinitData(std.testing.allocator);
 
@@ -834,12 +833,10 @@ test "Memory: getFelt should return ExpectedInteger error if Relocatable instead
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    memory.num_segments += 1;
-    try memory.set(
+    try setUpMemory(
+        memory,
         std.testing.allocator,
-        Relocatable.new(0, 0),
-        .{ .relocatable = Relocatable.new(3, 7) },
+        .{.{ .{ 10, 30 }, .{ 3, 7 } }},
     );
     defer memory.deinitData(std.testing.allocator);
 
@@ -867,12 +864,11 @@ test "Memory: getRelocatable should return Relocatable if available at the given
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    memory.num_segments += 1;
-    try memory.set(
+
+    try setUpMemory(
+        memory,
         std.testing.allocator,
-        Relocatable.new(0, 0),
-        .{ .relocatable = Relocatable.new(4, 34) },
+        .{.{ .{ 10, 30 }, .{ 4, 34 } }},
     );
     defer memory.deinitData(std.testing.allocator);
 
@@ -888,12 +884,10 @@ test "Memory: getRelocatable should return ExpectedRelocatable error if Felt ins
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    memory.num_segments += 1;
-    try memory.set(
+    try setUpMemory(
+        memory,
         std.testing.allocator,
-        Relocatable.new(0, 0),
-        .{ .felt = Felt252.fromInteger(3) },
+        .{.{ .{ 10, 30 }, .{3} }},
     );
     defer memory.deinitData(std.testing.allocator);
 

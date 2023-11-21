@@ -329,6 +329,15 @@ test "set get integer value in segment memory" {
     try memory_segment_manager.memory.temp_data.append(std.ArrayListUnmanaged(?MemoryCell){});
     _ = try memory_segment_manager.memory.set(std.testing.allocator, address_1, value_1);
     _ = try memory_segment_manager.memory.set(std.testing.allocator, address_2, value_2);
+
+    try memoryFile.setUpMemory(
+        memory_segment_manager.memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{42} },
+            .{ .{ -1, 0 }, .{84} },
+        },
+    );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
     // ************************************************************
