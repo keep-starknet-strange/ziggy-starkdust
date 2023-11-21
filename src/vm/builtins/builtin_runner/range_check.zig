@@ -227,7 +227,9 @@ pub const RangeCheckBuiltinRunner = struct {
     /// An `ArrayList(Relocatable)` containing the rules address
     /// verification fails.
     pub fn rangeCheckValidationRule(memory: *Memory, address: Relocatable) ?[]const Relocatable {
-        const num = (memory.get(address) catch {
+        const num = ((memory.get(address) catch {
+            return null;
+        }) orelse {
             return null;
         }).tryIntoFelt() catch {
             return null;
@@ -235,7 +237,6 @@ pub const RangeCheckBuiltinRunner = struct {
 
         if (@bitSizeOf(u256) - @clz(num.toInteger()) <= N_PARTS * INNER_RC_BOUND_SHIFT) {
             // TODO: unit tests
-
             return &[_]Relocatable{address};
         } else {
             return null;
