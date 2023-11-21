@@ -8,7 +8,6 @@ const relocatable = @import("../../memory/relocatable.zig");
 const Error = @import("../../error.zig");
 const validation_rule = @import("../../memory/memory.zig").validation_rule;
 const Memory = @import("../../memory/memory.zig").Memory;
-const Field = @import("../../../math/fields/starknet.zig").Field;
 const range_check_instance_def = @import("../../types/range_check_instance_def.zig");
 
 const CELLS_PER_RANGE_CHECK = range_check_instance_def.CELLS_PER_RANGE_CHECK;
@@ -235,6 +234,8 @@ pub const RangeCheckBuiltinRunner = struct {
         };
 
         if (@bitSizeOf(u256) - @clz(num.toInteger()) <= N_PARTS * INNER_RC_BOUND_SHIFT) {
+            // TODO: unit tests
+
             return &[_]Relocatable{address};
         } else {
             return null;
@@ -269,8 +270,8 @@ pub const RangeCheckBuiltinRunner = struct {
 test "initialize segments for range check" {
 
     // given
-    var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
-    var allocator = std.testing.allocator;
+    const builtin = RangeCheckBuiltinRunner.new(8, 8, true);
+    const allocator = std.testing.allocator;
     var mem = try MemorySegmentManager.init(allocator);
     defer mem.deinit();
 
@@ -282,7 +283,6 @@ test "initialize segments for range check" {
 }
 
 test "used instances" {
-
     // given
     var builtin = RangeCheckBuiltinRunner.new(10, 12, true);
 

@@ -90,7 +90,7 @@ pub fn keccak_p(state: *[PLEN]u64, round_count: usize) !void {
     // https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.202.pdf#page=25
     // "the rounds of KECCAK-p[b, nr] match the last rounds of KECCAK-f[b]"
     // Select round constants for the specified number of rounds.
-    var round_consts = RC[keccakF_ROUND_COUNT - round_count .. keccakF_ROUND_COUNT];
+    const round_consts = RC[keccakF_ROUND_COUNT - round_count .. keccakF_ROUND_COUNT];
 
     for (round_consts) |*rc| {
         var array = [_]u64{0} ** 5;
@@ -162,7 +162,7 @@ pub fn keccak_p(state: *[PLEN]u64, round_count: usize) !void {
 test "keccak_p" {
     // Test vectors are copied from XKCP (eXtended Keccak Code Package)
     // https://github.com/XKCP/XKCP/blob/master/tests/TestVectors/KeccakF-1600-IntermediateValues.txt
-    var state_first = [_]u64{
+    const state_first = [_]u64{
         0xF1258F7940E1DDE7,
         0x84D5CCF933C0478A,
         0xD598261EA65AA9EE,
@@ -189,7 +189,7 @@ test "keccak_p" {
         0x75F644E97F30A13B,
         0xEAF1FF7B5CECA249,
     };
-    var state_second = [_]u64{
+    const state_second = [_]u64{
         0x2D5C954DF96ECB3C,
         0x6A332CD07057B56D,
         0x093D8D1270D76B6C,

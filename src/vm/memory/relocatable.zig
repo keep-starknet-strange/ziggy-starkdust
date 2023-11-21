@@ -885,22 +885,22 @@ test "Relocatable: relocateAddress should return a proper usize to relocate the 
 }
 
 test "MaybeRelocatable: eq should return true if two MaybeRelocatable are the same (Relocatable)" {
-    var maybeRelocatable1 = fromSegment(0, 10);
-    var maybeRelocatable2 = fromSegment(0, 10);
+    const maybeRelocatable1 = fromSegment(0, 10);
+    const maybeRelocatable2 = fromSegment(0, 10);
     try expect(maybeRelocatable1.eq(maybeRelocatable2));
 }
 
 test "MaybeRelocatable: eq should return true if two MaybeRelocatable are the same (Felt)" {
-    var maybeRelocatable1 = fromU256(10);
-    var maybeRelocatable2 = fromU256(10);
+    const maybeRelocatable1 = fromU256(10);
+    const maybeRelocatable2 = fromU256(10);
     try expect(maybeRelocatable1.eq(maybeRelocatable2));
 }
 
 test "MaybeRelocatable: eq should return false if two MaybeRelocatable are not the same " {
-    var maybeRelocatable1 = fromSegment(0, 10);
-    var maybeRelocatable2 = fromSegment(1, 10);
-    var maybeRelocatable3 = fromU256(10);
-    var maybeRelocatable4 = fromU256(100);
+    const maybeRelocatable1 = fromSegment(0, 10);
+    const maybeRelocatable2 = fromSegment(1, 10);
+    const maybeRelocatable3 = fromU256(10);
+    const maybeRelocatable4 = fromU256(100);
     try expect(!maybeRelocatable1.eq(maybeRelocatable2));
     try expect(!maybeRelocatable1.eq(maybeRelocatable3));
     try expect(!maybeRelocatable3.eq(maybeRelocatable2));
@@ -1070,18 +1070,18 @@ test "MaybeRelocatable: tryIntoU64 should return a u64 if MaybeRelocatable is Fe
 }
 
 test "MaybeRelocatable: tryIntoU64 should return an error if MaybeRelocatable is Relocatable" {
-    var maybeRelocatable = fromSegment(0, 10);
+    const maybeRelocatable = fromSegment(0, 10);
     try expectError(CairoVMError.TypeMismatchNotFelt, maybeRelocatable.tryIntoU64());
 }
 
 test "MaybeRelocatable: tryIntoU64 should return an error if MaybeRelocatable Felt cannot be coerced to u64" {
-    var maybeRelocatable = fromU256(std.math.maxInt(u64) + 1);
+    const maybeRelocatable = fromU256(std.math.maxInt(u64) + 1);
     try expectError(error.ValueTooLarge, maybeRelocatable.tryIntoU64());
 }
 
 test "MaybeRelocatable: any comparision should return false if other MaybeRelocatable is of different variant 1" {
-    var maybeRelocatable1 = fromSegment(0, 10);
-    var maybeRelocatable2 = fromU256(10);
+    const maybeRelocatable1 = fromSegment(0, 10);
+    const maybeRelocatable2 = fromU256(10);
 
     try expect(!maybeRelocatable1.lt(maybeRelocatable2));
     try expect(!maybeRelocatable1.le(maybeRelocatable2));
@@ -1090,8 +1090,8 @@ test "MaybeRelocatable: any comparision should return false if other MaybeReloca
 }
 
 test "MaybeRelocatable: any comparision should return false if other MaybeRelocatable is of different variant 2" {
-    var maybeRelocatable1 = fromU256(10);
-    var maybeRelocatable2 = fromSegment(0, 10);
+    const maybeRelocatable1 = fromU256(10);
+    const maybeRelocatable2 = fromSegment(0, 10);
 
     try expect(!maybeRelocatable1.lt(maybeRelocatable2));
     try expect(!maybeRelocatable1.le(maybeRelocatable2));

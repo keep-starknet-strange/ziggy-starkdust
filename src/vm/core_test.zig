@@ -83,7 +83,7 @@ test "CairoVM: deduceMemoryCell builtin valid" {
 
 test "update pc regular no imm" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction.default();
     instruction.pc_update = .Regular;
     instruction.op_1_addr = .AP;
@@ -111,7 +111,7 @@ test "update pc regular no imm" {
 
 test "update pc regular with imm" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction.default();
     instruction.pc_update = .Regular;
     instruction.op_1_addr = .Imm;
@@ -139,7 +139,7 @@ test "update pc regular with imm" {
 
 test "update pc jump with operands res null" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction.default();
     instruction.pc_update = .Jump;
     var operands = OperandsResult.default();
@@ -157,7 +157,7 @@ test "update pc jump with operands res null" {
 
 test "update pc jump with operands res not relocatable" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction.default();
     instruction.pc_update = .Jump;
     var operands = OperandsResult.default();
@@ -175,7 +175,7 @@ test "update pc jump with operands res not relocatable" {
 
 test "update pc jump with operands res relocatable" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction.default();
     instruction.pc_update = .Jump;
     var operands = OperandsResult.default();
@@ -206,7 +206,7 @@ test "update pc jump with operands res relocatable" {
 
 test "update pc jump rel with operands res null" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction.default();
     instruction.pc_update = .JumpRel;
     var operands = OperandsResult.default();
@@ -224,7 +224,7 @@ test "update pc jump rel with operands res null" {
 
 test "update pc jump rel with operands res not felt" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction.default();
     instruction.pc_update = .JumpRel;
     var operands = OperandsResult.default();
@@ -245,7 +245,7 @@ test "update pc jump rel with operands res not felt" {
 
 test "update pc jump rel with operands res felt" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction.default();
     instruction.pc_update = .JumpRel;
     var operands = OperandsResult.default();
@@ -273,7 +273,7 @@ test "update pc jump rel with operands res felt" {
 
 test "update pc update jnz with operands dst zero" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction.default();
     instruction.pc_update = .Jnz;
     var operands = OperandsResult.default();
@@ -301,7 +301,7 @@ test "update pc update jnz with operands dst zero" {
 
 test "update pc update jnz with operands dst not zero op1 not felt" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction.default();
     instruction.pc_update = .Jnz;
     var operands = OperandsResult.default();
@@ -326,7 +326,7 @@ test "update pc update jnz with operands dst not zero op1 not felt" {
 
 test "update pc update jnz with operands dst not zero op1 felt" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction.default();
     instruction.pc_update = .Jnz;
     var operands = OperandsResult.default();
@@ -355,7 +355,7 @@ test "update pc update jnz with operands dst not zero op1 felt" {
 
 test "update ap add with operands res unconstrained" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction.default();
     instruction.ap_update = .Add;
     var operands = OperandsResult.default();
@@ -373,10 +373,10 @@ test "update ap add with operands res unconstrained" {
 
 test "update ap add1" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction.default();
     instruction.ap_update = .Add1;
-    var operands = OperandsResult.default();
+    const operands = OperandsResult.default();
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -401,10 +401,10 @@ test "update ap add1" {
 
 test "update ap add2" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction.default();
     instruction.ap_update = .Add2;
-    var operands = OperandsResult.default();
+    const operands = OperandsResult.default();
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -429,10 +429,10 @@ test "update ap add2" {
 
 test "update fp appplus2" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction.default();
     instruction.fp_update = .APPlus2;
-    var operands = OperandsResult.default();
+    const operands = OperandsResult.default();
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -457,7 +457,7 @@ test "update fp appplus2" {
 
 test "update fp dst relocatable" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction.default();
     instruction.fp_update = .Dst;
     var operands = OperandsResult.default();
@@ -489,7 +489,7 @@ test "update fp dst relocatable" {
 
 test "update fp dst felt" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction.default();
     instruction.fp_update = .Dst;
     var operands = OperandsResult.default();
@@ -518,10 +518,10 @@ test "update fp dst felt" {
 
 test "trace is enabled" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
 
     // Create a new VM instance.
-    var config = Config{ .proof_mode = false, .enable_trace = true };
+    const config = Config{ .proof_mode = false, .enable_trace = true };
 
     var vm = try CairoVM.init(
         allocator,
@@ -541,7 +541,7 @@ test "trace is enabled" {
 
 test "trace is disabled" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
 
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -852,7 +852,7 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no op0" {
 
 test "set get value in vm memory" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
 
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -886,7 +886,7 @@ test "set get value in vm memory" {
 
 test "compute res op1 works" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction{
         .off_0 = 0,
         .off_1 = 1,
@@ -923,7 +923,7 @@ test "compute res op1 works" {
 
 test "compute res add felts works" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction{
         .off_0 = 0,
         .off_1 = 1,
@@ -960,7 +960,7 @@ test "compute res add felts works" {
 
 test "compute res add felt to offset works" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction{
         .off_0 = 0,
         .off_1 = 1,
@@ -1000,7 +1000,7 @@ test "compute res add felt to offset works" {
 
 test "compute res add fails two relocs" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction{
         .off_0 = 0,
         .off_1 = 1,
@@ -1034,7 +1034,7 @@ test "compute res add fails two relocs" {
 
 test "compute res mul works" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction{
         .off_0 = 0,
         .off_1 = 1,
@@ -1071,7 +1071,7 @@ test "compute res mul works" {
 
 test "compute res mul fails two relocs" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction{
         .off_0 = 0,
         .off_1 = 1,
@@ -1105,7 +1105,7 @@ test "compute res mul fails two relocs" {
 
 test "compute res mul fails felt and reloc" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction{
         .off_0 = 0,
         .off_1 = 1,
@@ -1137,7 +1137,7 @@ test "compute res mul fails felt and reloc" {
 
 test "compute res Unconstrained should return null" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction{
         .off_0 = 0,
         .off_1 = 1,
@@ -1174,7 +1174,7 @@ test "compute res Unconstrained should return null" {
 
 test "compute operands add AP" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction{
         .off_0 = 0,
         .off_1 = 1,
@@ -1243,7 +1243,7 @@ test "compute operands add AP" {
 
 test "compute operands mul FP" {
     // Test setup
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var instruction = Instruction{
         .off_0 = 0,
         .off_1 = 1,
@@ -1357,7 +1357,7 @@ test "updateRegisters all regular" {
         .opcode = .NOp,
     };
 
-    var operands = OperandsResult{
+    const operands = OperandsResult{
         .dst = .{ .felt = Felt252.fromInteger(11) },
         .res = .{ .felt = Felt252.fromInteger(8) },
         .op_0 = .{ .felt = Felt252.fromInteger(9) },
@@ -1419,7 +1419,7 @@ test "updateRegisters with mixed types" {
         .opcode = .NOp,
     };
 
-    var operands = OperandsResult{
+    const operands = OperandsResult{
         .dst = .{ .relocatable = Relocatable.new(
             1,
             11,
@@ -1588,7 +1588,7 @@ test "CairoVM: deduceDst should return res if AssertEq opcode" {
         .opcode = .AssertEq,
     };
 
-    var res = fromU256(7);
+    const res = fromU256(7);
 
     // Test check
     try expectEqual(
@@ -1983,7 +1983,7 @@ test "CairoVM: computeOp1Deductions should return CairoVMError error if deduceMe
 }
 
 test "CairoVM: core utility function for testing test" {
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
 
     var cairo_vm = try CairoVM.init(allocator, .{});
     defer cairo_vm.deinit();
