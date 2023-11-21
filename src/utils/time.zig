@@ -809,7 +809,7 @@ fn wrap(
     val: u16,
     at: u16,
 ) u16 {
-    var tmp = val % at;
+    const tmp = val % at;
     return if (tmp == 0) at else tmp;
 }
 
@@ -823,7 +823,7 @@ pub const Duration = struct {
 const expect = std.testing.expect;
 test "time format" {
     // Initialize an allocator.
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     const utc_format = "YYYY-MM-DDTHH:mm:ss";
     const dt = DateTime.initUnix(1697696484);
     const formatted_dt = try dt.formatAlloc(
