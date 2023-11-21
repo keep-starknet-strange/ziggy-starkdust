@@ -1220,7 +1220,7 @@ test "compute operands add AP" {
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    var expected_operands: OperandsResult = .{
+    const expected_operands: OperandsResult = .{
         .dst_addr = dst_addr,
         .op_0_addr = op0_addr,
         .op_1_addr = op1_addr,
@@ -1289,7 +1289,7 @@ test "compute operands mul FP" {
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    var expected_operands: OperandsResult = .{
+    const expected_operands: OperandsResult = .{
         .dst_addr = dst_addr,
         .op_0_addr = op0_addr,
         .op_1_addr = op1_addr,

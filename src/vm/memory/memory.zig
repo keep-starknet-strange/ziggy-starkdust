@@ -682,7 +682,7 @@ test "memory set and get" {
 test "Memory: get inside a segment without value but inbout should return null" {
     // Test setup
     // Initialize an allocator.
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
 
     // Initialize a memory instance.
     var memory = try Memory.init(allocator);
