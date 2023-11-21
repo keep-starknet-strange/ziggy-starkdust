@@ -225,13 +225,13 @@ pub const Memory = struct {
 
         if (self.num_segments <= segment_index) {
             return MemoryError.UnallocatedSegment;
+        }
 
         if (data.items.len <= @as(usize, segment_index)) {
             try data.appendNTimes(
                 std.ArrayListUnmanaged(?MemoryCell){},
                 @as(usize, segment_index) + 1 - data.items.len,
             );
-
         }
 
         var data_segment = &data.items[segment_index];
@@ -418,7 +418,7 @@ pub const Memory = struct {
 // - `memory` - memory to be set
 // - `vals` - complile time structure with heterogenous types
 pub fn setUpMemory(memory: *Memory, allocator: Allocator, comptime vals: anytype) !void {
-    var segment = std.ArrayListUnmanaged(?MemoryCell){};
+    const segment = std.ArrayListUnmanaged(?MemoryCell){};
     var si: usize = 0;
     inline for (vals) |row| {
         if (row[0][0] < 0) {
@@ -526,7 +526,6 @@ test "Memory: validate memory cell" {
     try segments.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
     const seg = segments.addSegment();
     _ = seg;
-
 
     try setUpMemory(
         segments.memory,
@@ -813,7 +812,6 @@ test "Memory: getFelt should return Felt252 if available at the given address" {
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-
     try setUpMemory(
         memory,
         std.testing.allocator,
@@ -836,7 +834,7 @@ test "Memory: getFelt should return ExpectedInteger error if Relocatable instead
     try setUpMemory(
         memory,
         std.testing.allocator,
-        .{.{ .{ 10, 30 }, .{ 3, 7 } }},
+        .{.{ .{ 0, 0 }, .{ 3, 7 } }},
     );
     defer memory.deinitData(std.testing.allocator);
 
@@ -864,11 +862,10 @@ test "Memory: getRelocatable should return Relocatable if available at the given
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-
     try setUpMemory(
         memory,
         std.testing.allocator,
-        .{.{ .{ 10, 30 }, .{ 4, 34 } }},
+        .{.{ .{ 0, 0 }, .{ 4, 34 } }},
     );
     defer memory.deinitData(std.testing.allocator);
 
@@ -887,7 +884,7 @@ test "Memory: getRelocatable should return ExpectedRelocatable error if Felt ins
     try setUpMemory(
         memory,
         std.testing.allocator,
-        .{.{ .{ 10, 30 }, .{3} }},
+        .{.{ .{ 0, 0 }, .{3} }},
     );
     defer memory.deinitData(std.testing.allocator);
 
@@ -903,10 +900,9 @@ test "Memory: markAsAccessed should mark memory cell" {
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-
     try memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
     memory.num_segments += 1;
-    var relo = Relocatable.new(0, 3);
+    const relo = Relocatable.new(0, 3);
 
     try setUpMemory(
         memory,
