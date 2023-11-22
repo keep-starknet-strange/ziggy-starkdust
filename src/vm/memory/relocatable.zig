@@ -112,7 +112,7 @@ pub const Relocatable = struct {
     /// A new Relocatable after the subtraction operation.
     /// # Errors
     /// An error is returned if the subtraction results in an underflow (negative value).
-    pub fn subFelt(self: Self, other: Felt252) !Self {
+    pub fn subFelt(self: Self, other: Felt252) MathError!Self {
         return try self.subUint(try other.tryIntoU64());
     }
 
@@ -124,7 +124,7 @@ pub const Relocatable = struct {
     pub fn subUint(
         self: Self,
         other: u64,
-    ) !Self {
+    ) MathError!Self {
         if (self.offset < other) {
             return MathError.RelocatableSubUsizeNegOffset;
         }
@@ -196,7 +196,7 @@ pub const Relocatable = struct {
     /// A new Relocatable after the addition operation.
     /// # Errors
     /// An error is returned if the addition results in an overflow (exceeding u64).
-    pub fn addFelt(self: Self, other: Felt252) !Self {
+    pub fn addFelt(self: Self, other: Felt252) MathError!Self {
         return .{
             .segment_index = self.segment_index,
             .offset = try Felt252.fromInteger(@intCast(self.offset)).add(other).tryIntoU64(),
@@ -210,7 +210,7 @@ pub const Relocatable = struct {
     pub fn addFeltInPlace(
         self: *Self,
         other: Felt252,
-    ) !void {
+    ) MathError!void {
         self.offset = try Felt252.fromInteger(@intCast(self.offset)).add(other).tryIntoU64();
     }
 
@@ -394,7 +394,7 @@ pub const MaybeRelocatable = union(enum) {
     /// Return the value of the MaybeRelocatable as a felt or error.
     /// # Returns
     /// The value of the MaybeRelocatable as a Relocatable felt or error.
-    pub fn tryIntoFelt(self: Self) error{TypeMismatchNotFelt}!Felt252 {
+    pub fn tryIntoFelt(self: Self) CairoVMError!Felt252 {
         return switch (self) {
             .relocatable => CairoVMError.TypeMismatchNotFelt,
             .felt => |felt| felt,
@@ -417,7 +417,7 @@ pub const MaybeRelocatable = union(enum) {
     /// Return the value of the MaybeRelocatable as a Relocatable.
     /// # Returns
     /// The value of the MaybeRelocatable as a Relocatable.
-    pub fn tryIntoRelocatable(self: Self) !Relocatable {
+    pub fn tryIntoRelocatable(self: Self) CairoVMError!Relocatable {
         return switch (self) {
             .relocatable => |relocatable| relocatable,
             .felt => CairoVMError.TypeMismatchNotRelocatable,
@@ -462,7 +462,7 @@ pub const MaybeRelocatable = union(enum) {
     /// # Returns:
     ///   * A new MaybeRelocatable value after the addition operation.
     ///   * An error in case of type mismatch or specific math errors.
-    pub fn add(self: Self, other: Self) !Self {
+    pub fn add(self: Self, other: Self) MathError!Self {
         // Switch on the type of `self`
         return switch (self) {
             // If `self` is of type `relocatable`
@@ -777,7 +777,7 @@ test "Relocatable: addFelt should add a relocatable and a Felt252" {
 
 test "Relocatable: addFelt should return an error if number after offset addition is too large" {
     try expectError(
-        CairoVMError.ValueTooLarge,
+        MathError.ValueTooLarge,
         Relocatable.new(2, 44).addFelt(Felt252.fromInteger(std.math.maxInt(u256))),
     );
 }
@@ -791,7 +791,7 @@ test "Relocatable: subFelt should subtract a Felt252 from a relocatable" {
 
 test "Relocatable: subFelt should return an error if relocatable cannot be coerced to u64" {
     try expectError(
-        CairoVMError.ValueTooLarge,
+        MathError.ValueTooLarge,
         Relocatable.new(2, 44).subFelt(Felt252.fromInteger(std.math.maxInt(u256))),
     );
 }
@@ -995,7 +995,7 @@ test "MaybeRelocatable: tryIntoU64 should return an error if MaybeRelocatable is
 
 test "MaybeRelocatable: tryIntoU64 should return an error if MaybeRelocatable Felt cannot be coerced to u64" {
     var maybeRelocatable = fromU256(std.math.maxInt(u64) + 1);
-    try expectError(CairoVMError.ValueTooLarge, maybeRelocatable.tryIntoU64());
+    try expectError(MathError.ValueTooLarge, maybeRelocatable.tryIntoU64());
 }
 
 test "MaybeRelocatable: any comparision should return false if other MaybeRelocatable is of different variant 1" {

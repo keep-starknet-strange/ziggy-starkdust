@@ -21,8 +21,6 @@ pub const CairoVMError = error{
     /// Occurs when the expected value is not a Relocatable,
     /// or when subtracting two relocatables with different segment indices.
     TypeMismatchNotRelocatable,
-    /// Value is too large to be coerced to a u64.
-    ValueTooLarge,
     /// Occurs when both built-in deductions and fallback deductions for the operands fail.
     FailedToComputeOperands,
     /// No destination register can be deduced for the given opcode.
@@ -69,4 +67,6 @@ pub const MathError = error{
     SubRelocatableFromInt,
     /// Error when Relocatable offset is smaller than the integer value from which it is subtracted.
     RelocatableSubUsizeNegOffset,
+    /// Value is too large to be coerced to a u64.
+    ValueTooLarge,
 };
