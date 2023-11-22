@@ -685,7 +685,7 @@ pub fn computeRes(
     instruction: *const Instruction,
     op_0: MaybeRelocatable,
     op_1: MaybeRelocatable,
-) CairoVMError!?MaybeRelocatable {
+) !?MaybeRelocatable {
     return switch (instruction.res_logic) {
         .Op1 => op_1,
         .Add => return try addOperands(op_0, op_1),
@@ -707,7 +707,7 @@ pub fn computeRes(
 pub fn addOperands(
     op_0: MaybeRelocatable,
     op_1: MaybeRelocatable,
-) CairoVMError!MaybeRelocatable {
+) !MaybeRelocatable {
     // Both operands are relocatables, operation forbidden
     if (op_0.isRelocatable() and op_1.isRelocatable()) {
         return error.AddRelocToRelocForbidden;
