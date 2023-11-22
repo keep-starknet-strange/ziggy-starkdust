@@ -122,14 +122,20 @@ pub const MemoryCell = struct {
     ///
     /// Returns a `std.math.Order` representing the order relationship between
     /// the two MemoryCell instances.
-    pub fn cmp(self: Self, other: Self) std.math.Order {
-        return switch (self.maybe_relocatable.cmp(other.maybe_relocatable)) {
-            .eq => switch (self.is_accessed) {
-                true => if (other.is_accessed) .eq else .gt,
-                false => if (other.is_accessed) .lt else .eq,
-            },
-            else => |res| res,
-        };
+    pub fn cmp(self: ?Self, other: ?Self) std.math.Order {
+        if (self) |lhs| {
+            if (other) |rhs| {
+                return switch (lhs.maybe_relocatable.cmp(rhs.maybe_relocatable)) {
+                    .eq => switch (lhs.is_accessed) {
+                        true => if (rhs.is_accessed) .eq else .gt,
+                        false => if (rhs.is_accessed) .lt else .eq,
+                    },
+                    else => |res| res,
+                };
+            }
+            return .gt;
+        }
+        return if (other == null) .eq else .lt;
     }
 
     /// Compares two slices of MemoryCell instances for order relationship.
@@ -553,36 +559,58 @@ pub const Memory = struct {
         };
     }
 
+    /// Compares two memory segments within the VM's memory starting from specified addresses
+    /// for a given length.
+    ///
+    /// This function provides a comparison mechanism for memory segments within the VM's memory.
+    /// It compares the segments starting from the specified `lhs` (left-hand side) and `rhs`
+    /// (right-hand side) addresses for a length defined by `len`.
+    ///
+    /// Special Cases:
+    /// - If `lhs` exists in memory but `rhs` does not: returns `(Order::Greater, 0)`.
+    /// - If `rhs` exists in memory but `lhs` does not: returns `(Order::Less, 0)`.
+    /// - If neither `lhs` nor `rhs` exist in memory: returns `(Order::Equal, 0)`.
+    ///
+    /// The function behavior aligns with the C `memcmp` function for other cases,
+    /// offering an optimized comparison mechanism that hints to avoid unnecessary allocations.
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs`: The starting address of the left-hand memory segment.
+    /// - `rhs`: The starting address of the right-hand memory segment.
+    /// - `len`: The length to compare from each memory segment.
+    ///
+    /// # Returns
+    ///
+    /// Returns a tuple containing the ordering of the segments and the first relative position
+    /// where they differ.
     pub fn memCmp(
         self: *Self,
         lhs: Relocatable,
         rhs: Relocatable,
         len: usize,
     ) std.meta.Tuple(&.{ std.math.Order, usize }) {
-        const l = self.getSegmentAtIndex(lhs.segment_index);
         const r = self.getSegmentAtIndex(rhs.segment_index);
-
-        if (l) |ls| {
-            _ = ls;
-
+        if (self.getSegmentAtIndex(lhs.segment_index)) |ls| {
             if (r) |rs| {
-                _ = rs;
-                const lhs_start = lhs.offset;
-                _ = lhs_start;
-                const rhs_start = rhs.offset;
-                _ = rhs_start;
-
                 for (0..len) |i| {
-                    _ = i;
-
-                    // const
+                    const l_idx: usize = @intCast(lhs.offset + i);
+                    const r_idx: usize = @intCast(rhs.offset + i);
+                    return switch (MemoryCell.cmp(
+                        if (l_idx < ls.len) ls[l_idx] else null,
+                        if (r_idx < rs.len) rs[r_idx] else null,
+                    )) {
+                        .eq => continue,
+                        else => |res| .{ res, i },
+                    };
                 }
+            } else {
+                return .{ .gt, 0 };
             }
-
-            return .{ .gt, 0 };
         } else {
             return .{ if (r == null) .eq else .lt, 0 };
         }
+        return .{ .eq, len };
     }
 
     /// Compares memory segments for equality.
@@ -615,7 +643,10 @@ pub const Memory = struct {
                 const lhs_len = @min(ls.len, len);
                 const rhs_len = @min(rs.len, len);
 
-                return if (lhs_len != rhs_len) false else MemoryCell.eqlSlice(ls[0..lhs_len], rs[0..rhs_len]);
+                return switch (lhs_len == rhs_len) {
+                    true => MemoryCell.eqlSlice(ls[0..lhs_len], rs[0..rhs_len]),
+                    else => false,
+                };
             }
             return false;
         }
@@ -1410,6 +1441,149 @@ test "Memory: memEq should return true if lhs and rhs segment are the same after
     )));
 }
 
+test "Memory: memCmp function" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ -2, 0 }, .{1} },
+            .{ .{ -2, 1 }, .{ 1, 1 } },
+            .{ .{ -2, 3 }, .{0} },
+            .{ .{ -2, 4 }, .{0} },
+            .{ .{ -1, 0 }, .{1} },
+            .{ .{ -1, 1 }, .{ 1, 1 } },
+            .{ .{ -1, 3 }, .{0} },
+            .{ .{ -1, 4 }, .{3} },
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ 0, 1 }, .{ 1, 1 } },
+            .{ .{ 0, 3 }, .{0} },
+            .{ .{ 0, 4 }, .{0} },
+            .{ .{ 1, 0 }, .{1} },
+            .{ .{ 1, 1 }, .{ 1, 1 } },
+            .{ .{ 1, 3 }, .{0} },
+            .{ .{ 1, 4 }, .{3} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .eq, 3 }),
+        memory.memCmp(
+            Relocatable.new(0, 0),
+            Relocatable.new(0, 0),
+            3,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .eq, 3 }),
+        memory.memCmp(
+            Relocatable.new(0, 0),
+            Relocatable.new(1, 0),
+            3,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .lt, 4 }),
+        memory.memCmp(
+            Relocatable.new(0, 0),
+            Relocatable.new(1, 0),
+            5,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .gt, 4 }),
+        memory.memCmp(
+            Relocatable.new(1, 0),
+            Relocatable.new(0, 0),
+            5,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .eq, 0 }),
+        memory.memCmp(
+            Relocatable.new(2, 2),
+            Relocatable.new(2, 5),
+            8,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .gt, 0 }),
+        memory.memCmp(
+            Relocatable.new(0, 0),
+            Relocatable.new(2, 5),
+            8,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .lt, 0 }),
+        memory.memCmp(
+            Relocatable.new(2, 5),
+            Relocatable.new(0, 0),
+            8,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .eq, 3 }),
+        memory.memCmp(
+            Relocatable.new(-2, 0),
+            Relocatable.new(-2, 0),
+            3,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .eq, 3 }),
+        memory.memCmp(
+            Relocatable.new(-2, 0),
+            Relocatable.new(-1, 0),
+            3,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .lt, 4 }),
+        memory.memCmp(
+            Relocatable.new(-2, 0),
+            Relocatable.new(-1, 0),
+            5,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .gt, 4 }),
+        memory.memCmp(
+            Relocatable.new(-1, 0),
+            Relocatable.new(-2, 0),
+            5,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .eq, 0 }),
+        memory.memCmp(
+            Relocatable.new(-3, 2),
+            Relocatable.new(-3, 5),
+            8,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .gt, 0 }),
+        memory.memCmp(
+            Relocatable.new(-2, 0),
+            Relocatable.new(-3, 5),
+            8,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .lt, 0 }),
+        memory.memCmp(
+            Relocatable.new(-3, 5),
+            Relocatable.new(-2, 0),
+            8,
+        ),
+    );
+}
+
 test "AddressSet: contains should return false if segment index is negative" {
     // Test setup
     var addressSet = AddressSet.init(std.testing.allocator);
@@ -1633,6 +1807,16 @@ test "MemoryCell: cmp should return proper order results for Felt252 comparisons
 
     // Should return greater than (gt) when the cell's accessed status differs (reversed order).
     try expectEqual(std.math.Order.gt, memCell.cmp(MemoryCell.new(relocatable.fromU256(10))));
+}
+
+test "MemoryCell: cmp with null values" {
+    const memCell = MemoryCell.new(relocatable.fromSegment(4, 15));
+    const memCell1 = MemoryCell.new(relocatable.fromU256(15));
+
+    try expectEqual(std.math.Order.lt, MemoryCell.cmp(null, memCell));
+    try expectEqual(std.math.Order.gt, MemoryCell.cmp(memCell, null));
+    try expectEqual(std.math.Order.lt, MemoryCell.cmp(null, memCell1));
+    try expectEqual(std.math.Order.gt, MemoryCell.cmp(memCell1, null));
 }
 
 test "MemoryCell: cmpSlice should compare MemoryCell slices (if eq and one longer than the other)" {
