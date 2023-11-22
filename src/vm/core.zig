@@ -700,10 +700,10 @@ pub const CairoVM = struct {
         }
     }
 
-    pub fn getRelocatedTrace(self: *Self) TraceError {
+    pub fn getRelocatedTrace(self: *Self) TraceError![]TraceContext.RelocatedTraceEntry {
         if (self.trace_relocated) {
             switch (self.trace_context.state) {
-                .enabled => |trace_enabled| return trace_enabled.entries.toOwnedSlice(),
+                .enabled => |trace_enabled| return trace_enabled.relocated_trace_entries.items,
                 .disabled => return TraceError.TraceNotEnabled,
             }
         } else {

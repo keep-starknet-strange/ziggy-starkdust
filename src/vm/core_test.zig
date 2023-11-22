@@ -14,6 +14,7 @@ const Relocatable = relocatable.Relocatable;
 const instructions = @import("instructions.zig");
 const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
+const TraceError = @import("error.zig").TraceError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
@@ -555,6 +556,21 @@ test "trace is disabled" {
     if (vm.trace_context.isEnabled()) {
         return error.TraceShouldHaveBeenDisabled;
     }
+}
+
+test "get relocate trace without relocating trace" {
+    // Test setup
+    const allocator = std.testing.allocator;
+
+    // Create a new VM instance.
+    const config = Config{ .proof_mode = false, .enable_trace = true };
+
+    var vm = try CairoVM.init(
+        allocator,
+        config,
+    );
+    defer vm.deinit();
+    try expectError(TraceError.TraceNotRelocated, vm.getRelocatedTrace());
 }
 
 // This instruction is used in the functions that test the `deduceOp1` function. Only the

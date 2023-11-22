@@ -10,7 +10,7 @@ const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 ///
 /// It's either something, or nothing. But no tag is kept around to remember which one it is. This
 /// "memory" comes from dynamic dispatch.
-const State = union {
+const State = union(enum) {
     const Self = @This();
 
     enabled: TraceEnabled,
