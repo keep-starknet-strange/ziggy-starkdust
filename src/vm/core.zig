@@ -260,6 +260,22 @@ pub const CairoVM = struct {
         return self.runInstruction(allocator, &instruction);
     }
 
+    /// Insert Operands only after checking if they were deduced.
+    // # Arguments
+    /// - `allocator`: allocator where OperandsResult stored.
+    /// - `op`: OperandsResult object that stores all operands.
+    pub fn insertDeducedOperands(self: *Self, allocator: Allocator, op: OperandsResult) !void {
+        if (op.wasOp0Deducted()) {
+            try self.segments.memory.set(allocator, op.op_0_addr, op.op_0);
+        }
+        if (op.wasOp1Deducted()) {
+            try self.segments.memory.set(allocator, op.op_1_addr, op.op_1);
+        }
+        if (op.wasDestDeducted()) {
+            try self.segments.memory.set(allocator, op.dst_addr, op.dst);
+        }
+    }
+
     /// Run a specific instruction.
     // # Arguments
     /// - `instruction`: The instruction to run.
@@ -277,6 +293,7 @@ pub const CairoVM = struct {
         }
 
         const operands_result = try self.computeOperands(allocator, instruction);
+        try self.insertDeducedOperands(allocator, operands_result);
 
         try self.updateRegisters(
             instruction,
@@ -324,9 +341,11 @@ pub const CairoVM = struct {
         const op_1_op = try self.segments.memory.get(op_res.op_1_addr);
 
         // Deduce the operands if they haven't been successfully retrieved from memory.
+
         if (self.segments.memory.get(op_res.op_0_addr) catch null) |op_0| {
             op_res.op_0 = op_0;
         } else {
+            op_res.setOp0(true);
             op_res.op_0 = try self.computeOp0Deductions(
                 allocator,
                 op_res.op_0_addr,
@@ -339,6 +358,7 @@ pub const CairoVM = struct {
         if (op_1_op) |op_1| {
             op_res.op_1 = op_1;
         } else {
+            op_res.setOp1(true);
             op_res.op_1 = try self.computeOp1Deductions(
                 allocator,
                 op_res.op_1_addr,
@@ -356,6 +376,7 @@ pub const CairoVM = struct {
         if (dst_op) |dst| {
             op_res.dst = dst;
         } else {
+            op_res.setDst(true);
             op_res.dst = try self.deduceDst(instruction, op_res.res);
         }
 
@@ -723,7 +744,7 @@ pub fn computeRes(
     instruction: *const Instruction,
     op_0: MaybeRelocatable,
     op_1: MaybeRelocatable,
-) CairoVMError!?MaybeRelocatable {
+) !?MaybeRelocatable {
     return switch (instruction.res_logic) {
         .Op1 => op_1,
         .Add => return try addOperands(op_0, op_1),
@@ -745,7 +766,7 @@ pub fn computeRes(
 pub fn addOperands(
     op_0: MaybeRelocatable,
     op_1: MaybeRelocatable,
-) CairoVMError!MaybeRelocatable {
+) !MaybeRelocatable {
     // Both operands are relocatables, operation forbidden
     if (op_0.isRelocatable() and op_1.isRelocatable()) {
         return error.AddRelocToRelocForbidden;
@@ -870,6 +891,7 @@ pub const OperandsResult = struct {
     dst_addr: Relocatable,
     op_0_addr: Relocatable,
     op_1_addr: Relocatable,
+    deduced_operands: u8,
 
     /// Returns a default instance of the OperandsResult struct.
     pub fn default() Self {
@@ -881,7 +903,30 @@ pub const OperandsResult = struct {
             .dst_addr = .{},
             .op_0_addr = .{},
             .op_1_addr = .{},
+            .deduced_operands = 0,
         };
+    }
+
+    pub fn setDst(self: *Self, value: bool) void {
+        self.deduced_operands |= if (value) 1 else 0;
+    }
+    pub fn setOp0(self: *Self, value: bool) void {
+        self.deduced_operands |= if (value) 1 << 1 else 0 << 1;
+    }
+
+    pub fn setOp1(self: *Self, value: bool) void {
+        self.deduced_operands |= if (value) 1 << 2 else 0 << 2;
+    }
+    pub fn wasDestDeducted(self: *const Self) bool {
+        return self.deduced_operands & 1 != 0;
+    }
+
+    pub fn wasOp0Deducted(self: *const Self) bool {
+        return self.deduced_operands & (1 << 1) != 0;
+    }
+
+    pub fn wasOp1Deducted(self: *const Self) bool {
+        return self.deduced_operands & (1 << 2) != 0;
     }
 };
 
