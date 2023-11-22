@@ -573,6 +573,43 @@ test "get relocate trace without relocating trace" {
     try expectError(TraceError.TraceNotRelocated, vm.getRelocatedTrace());
 }
 
+test "get relocate trace after relocating trace" {
+    // Test setup
+    const allocator = std.testing.allocator;
+
+    // Create a new VM instance.
+    const config = Config{ .proof_mode = false, .enable_trace = true };
+
+    var vm = try CairoVM.init(
+        allocator,
+        config,
+    );
+    defer vm.deinit();
+    var pc = Relocatable.new(0, 0);
+    var ap = Relocatable.new(2, 0);
+    var fp = Relocatable.new(2, 0);
+    try vm.trace_context.traceInstruction(.{ .pc = &pc, .ap = &ap, .fp = &fp });
+    for (0..4) |_| {
+        _ = vm.segments.addSegment();
+    }
+    const page_allocator = std.heap.page_allocator;
+    try vm.segments.memory.set(page_allocator, Relocatable.new(0, 0), MaybeRelocatable{ .felt = Felt252.fromInteger(2345108766317314046) });
+    try vm.segments.memory.set(page_allocator, Relocatable.new(1, 0), MaybeRelocatable{ .relocatable = Relocatable.new(2, 0) });
+    try vm.segments.memory.set(page_allocator, Relocatable.new(1, 1), MaybeRelocatable{ .relocatable = Relocatable.new(3, 0) });
+
+    _ = try vm.computeSegmentsEffectiveSizes();
+
+    const relocation_table = try vm.segments.relocateSegments(page_allocator);
+    try vm.relocateTrace(relocation_table);
+
+    const relocated_trace = TraceContext.RelocatedTraceEntry{ .pc = Felt252.fromInteger(1), .ap = Felt252.fromInteger(4), .fp = Felt252.fromInteger(4) };
+    const expected_relocated_trace = [_]TraceContext.RelocatedTraceEntry{relocated_trace};
+    const actual_relocated_trace = try vm.getRelocatedTrace();
+    for (expected_relocated_trace, actual_relocated_trace) |expected_trace, actual_trace| {
+        try expectEqual(expected_trace, actual_trace);
+    }
+}
+
 // This instruction is used in the functions that test the `deduceOp1` function. Only the
 // `opcode` and `res_logic` fields are usually changed.
 const deduceOpTestInstr = Instruction{

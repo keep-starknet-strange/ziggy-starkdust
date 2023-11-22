@@ -39,9 +39,9 @@ pub const TraceContext = struct {
 
     /// An entry recorded representing the relocated trace of the VM.
     pub const RelocatedTraceEntry = struct {
-        pc: *Felt252,
-        ap: *Felt252,
-        fp: *Felt252,
+        pc: Felt252,
+        ap: Felt252,
+        fp: Felt252,
     };
 
     /// The current state of the tracing context.
@@ -100,6 +100,11 @@ pub const TraceContext = struct {
     /// Records a new entry in the tracing context.
     pub fn traceInstruction(self: *Self, entry: Self.Entry) !void {
         try self.traceInstructionFn(&self.state, entry);
+    }
+
+    /// Records a new relocated entry in the tracing context.
+    pub fn addRelocatedTrace(self: *Self, entry: Self.RelocatedTraceEntry) !void {
+        try self.addRelocatedTraceFn(&self.state, entry);
     }
 
     /// Returns whether tracing is enabled.
