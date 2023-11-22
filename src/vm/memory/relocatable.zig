@@ -22,14 +22,8 @@ pub const Relocatable = struct {
     // - offset - The offset in the memory segment.
     // # Returns
     // A new Relocatable.
-    pub fn new(
-        segment_index: i64,
-        offset: u64,
-    ) Self {
-        return .{
-            .segment_index = segment_index,
-            .offset = offset,
-        };
+    pub fn new(segment_index: i64, offset: u64) Self {
+        return .{ .segment_index = segment_index, .offset = offset };
     }
 
     // Determines if this Relocatable is equal to another.
@@ -37,10 +31,7 @@ pub const Relocatable = struct {
     // - other: The other Relocatable to compare to.
     // # Returns
     // `true` if they are equal, `false` otherwise.
-    pub fn eq(
-        self: Self,
-        other: Self,
-    ) bool {
+    pub fn eq(self: Self, other: Self) bool {
         return self.segment_index == other.segment_index and self.offset == other.offset;
     }
 
@@ -49,10 +40,7 @@ pub const Relocatable = struct {
     // - other: The other Relocatable to compare to.
     // # Returns
     // `true` if self is less than other, `false` otherwise.
-    pub fn lt(
-        self: Self,
-        other: Self,
-    ) bool {
+    pub fn lt(self: Self, other: Self) bool {
         return self.segment_index < other.segment_index or (self.segment_index == other.segment_index and self.offset < other.offset);
     }
 
@@ -61,10 +49,7 @@ pub const Relocatable = struct {
     // - other: The other Relocatable to compare to.
     // # Returns
     // `true` if self is less than or equal to other, `false` otherwise.
-    pub fn le(
-        self: Self,
-        other: Self,
-    ) bool {
+    pub fn le(self: Self, other: Self) bool {
         return self.segment_index < other.segment_index or (self.segment_index == other.segment_index and self.offset <= other.offset);
     }
 
@@ -73,10 +58,7 @@ pub const Relocatable = struct {
     // - other: The other Relocatable to compare to.
     // # Returns
     // `true` if self is greater than other, `false` otherwise.
-    pub fn gt(
-        self: Self,
-        other: Self,
-    ) bool {
+    pub fn gt(self: Self, other: Self) bool {
         return self.segment_index > other.segment_index or (self.segment_index == other.segment_index and self.offset > other.offset);
     }
 
@@ -85,11 +67,25 @@ pub const Relocatable = struct {
     // - other: The other Relocatable to compare to.
     // # Returns
     // `true` if self is greater than or equal to other, `false` otherwise.
-    pub fn ge(
-        self: Self,
-        other: Self,
-    ) bool {
+    pub fn ge(self: Self, other: Self) bool {
         return self.segment_index > other.segment_index or (self.segment_index == other.segment_index and self.offset >= other.offset);
+    }
+
+    /// Compares this Relocatable with another.
+    ///
+    /// # Arguments
+    ///
+    /// - `other`: The other Relocatable to compare to.
+    ///
+    /// # Returns
+    ///
+    /// Returns `.lt` if this Relocatable is less than `other`, `.gt` if it's greater,
+    /// and `.eq` if they are equal based on their segment_index and offset.
+    pub fn cmp(self: Self, other: Self) std.math.Order {
+        return switch (std.math.order(self.segment_index, other.segment_index)) {
+            .eq => std.math.order(self.offset, other.offset),
+            else => |res| res,
+        };
     }
 
     /// Attempts to subtract a `Relocatable` from another.
@@ -122,10 +118,7 @@ pub const Relocatable = struct {
     // - other: The u64 to substract.
     // # Returns
     // A new Relocatable.
-    pub fn subUint(
-        self: Self,
-        other: u64,
-    ) !Self {
+    pub fn subUint(self: Self, other: u64) !Self {
         if (self.offset < other) {
             return error.RelocatableSubUsizeNegOffset;
         }
@@ -140,10 +133,7 @@ pub const Relocatable = struct {
     // - other: The u64 to add.
     // # Returns
     // A new Relocatable.
-    pub fn addUint(
-        self: Self,
-        other: u64,
-    ) !Self {
+    pub fn addUint(self: Self, other: u64) !Self {
         return .{
             .segment_index = self.segment_index,
             .offset = self.offset + other,
@@ -154,10 +144,7 @@ pub const Relocatable = struct {
     /// # Arguments
     /// - self: Pointer to the Relocatable object to modify.
     /// - other: The u64 to add to `self.offset`.
-    pub fn addUintInPlace(
-        self: *Self,
-        other: u64,
-    ) void {
+    pub fn addUintInPlace(self: *Self, other: u64) void {
         // Modify the offset of the existing Relocatable object
         self.offset += other;
     }
@@ -167,10 +154,7 @@ pub const Relocatable = struct {
     // - other: The i64 to add.
     // # Returns
     // A new Relocatable.
-    pub fn addInt(
-        self: Self,
-        other: i64,
-    ) !Self {
+    pub fn addInt(self: Self, other: i64) !Self {
         if (other < 0) {
             return self.subUint(@as(
                 u64,
@@ -208,20 +192,14 @@ pub const Relocatable = struct {
     /// # Arguments
     /// - self: Pointer to the Relocatable object to modify.
     /// - other: The felt to add to `self.offset`.
-    pub fn addFeltInPlace(
-        self: *Self,
-        other: Felt252,
-    ) !void {
+    pub fn addFeltInPlace(self: *Self, other: Felt252) !void {
         self.offset = try Felt252.fromInteger(@intCast(self.offset)).add(other).tryIntoU64();
     }
 
     /// Performs additions if other contains a Felt value, fails otherwise.
     /// # Arguments
     /// - other - The other MaybeRelocatable to add.
-    pub fn addMaybeRelocatableInplace(
-        self: *Self,
-        other: MaybeRelocatable,
-    ) !void {
+    pub fn addMaybeRelocatableInplace(self: *Self, other: MaybeRelocatable) !void {
         try self.addFeltInPlace(try other.tryIntoFelt());
     }
 
@@ -271,10 +249,7 @@ pub const MaybeRelocatable = union(enum) {
     /// ## Returns:
     ///   * `true` if the two instances are equal.
     ///   * `false` otherwise.
-    pub fn eq(
-        self: Self,
-        other: Self,
-    ) bool {
+    pub fn eq(self: Self, other: Self) bool {
         // Switch on the type of `self`
         return switch (self) {
             // If `self` is of type `relocatable`
@@ -302,10 +277,7 @@ pub const MaybeRelocatable = union(enum) {
     /// ## Returns:
     ///   * `true` if self is less than other
     ///   * `false` otherwise.
-    pub fn lt(
-        self: Self,
-        other: Self,
-    ) bool {
+    pub fn lt(self: Self, other: Self) bool {
         // Switch on the type of `self`
         return switch (self) {
             // If `self` is of type `relocatable`
@@ -333,10 +305,7 @@ pub const MaybeRelocatable = union(enum) {
     /// ## Returns:
     ///   * `true` if self is less than or equal to other
     ///   * `false` otherwise.
-    pub fn le(
-        self: Self,
-        other: Self,
-    ) bool {
+    pub fn le(self: Self, other: Self) bool {
         // Switch on the type of `self`
         return switch (self) {
             // If `self` is of type `relocatable`
@@ -364,10 +333,7 @@ pub const MaybeRelocatable = union(enum) {
     /// ## Returns:
     ///   * `true` if self is greater than other
     ///   * `false` otherwise.
-    pub fn gt(
-        self: Self,
-        other: Self,
-    ) bool {
+    pub fn gt(self: Self, other: Self) bool {
         // Switch on the type of `self`
         return switch (self) {
             // If `self` is of type `relocatable`
@@ -395,10 +361,7 @@ pub const MaybeRelocatable = union(enum) {
     /// ## Returns:
     ///   * `true` if self is greater than other
     ///   * `false` otherwise.
-    pub fn ge(
-        self: Self,
-        other: Self,
-    ) bool {
+    pub fn ge(self: Self, other: Self) bool {
         // Switch on the type of `self`
         return switch (self) {
             // If `self` is of type `relocatable`
@@ -414,6 +377,41 @@ pub const MaybeRelocatable = union(enum) {
                 .felt => self_value.ge(other.felt),
                 // If `self` is `felt` and `other` is `relocatable`, they are not equal
                 .relocatable => false,
+            },
+        };
+    }
+
+    /// Compares this `MaybeRelocatable` with another `MaybeRelocatable` instance.
+    ///
+    /// This function performs a comparison between two `MaybeRelocatable` instances, taking into account their variant types
+    /// and contained values. If the variant types or values are incompatible for comparison, it returns an error.
+    ///
+    /// # Arguments
+    ///
+    /// - `other`: The other `MaybeRelocatable` instance to compare against.
+    ///
+    /// # Returns
+    ///
+    /// Returns `.lt` if `self` is less than `other`, `.gt` if it's greater,
+    /// and `.eq` if they are equal based on their `segment_index` and `offset` values.
+    ///
+    /// Returns `MathError.IncompatibleComparisonTypes` if the comparison involves incompatible types.
+    pub fn cmp(self: Self, other: Self) std.math.Order {
+        // Compare the `self` variant type against `other`
+        return switch (self) {
+            // If `self` is of type `relocatable`
+            .relocatable => |self_value| switch (other) {
+                // If `other` is also `relocatable`, compare the `relocatable` values
+                .relocatable => |other_value| self_value.cmp(other_value),
+                // If `other` is `felt`, the comparison is invalid, return an error
+                .felt => .lt,
+            },
+            // If `self` is of type `felt`
+            .felt => |self_value| switch (other) {
+                // If `other` is also `felt`, compare the `felt` values
+                .felt => self_value.cmp(other.felt),
+                // If `other` is `relocatable`, the comparison is invalid, return an error
+                .relocatable => .gt,
             },
         };
     }
@@ -817,6 +815,49 @@ test "Relocatable: ge should return true if other relocatable is less, false oth
     try expect(Relocatable.new(3, 3).ge(Relocatable.new(2, 4)));
 }
 
+test "Relocatable: cmpt should return .eq if self and other are the same" {
+    try expectEqual(
+        std.math.Order.eq,
+        Relocatable.new(2, 4).cmp(Relocatable.new(2, 4)),
+    );
+}
+
+test "Relocatable: cmpt should return .lt if self and other segment are the same but self offset < other offset" {
+    try expectEqual(
+        std.math.Order.lt,
+        Relocatable.new(2, 2).cmp(Relocatable.new(2, 4)),
+    );
+}
+
+test "Relocatable: cmpt should return .gt if self and other segment are the same but self offset > other offset" {
+    try expectEqual(
+        std.math.Order.gt,
+        Relocatable.new(2, 14).cmp(Relocatable.new(2, 4)),
+    );
+}
+
+test "Relocatable: cmpt should return .lt if self segment < other segment" {
+    try expectEqual(
+        std.math.Order.lt,
+        Relocatable.new(1, 4).cmp(Relocatable.new(2, 4)),
+    );
+    try expectEqual(
+        std.math.Order.lt,
+        Relocatable.new(1, 44).cmp(Relocatable.new(2, 4)),
+    );
+}
+
+test "Relocatable: cmpt should return .gt if self segment > other segment" {
+    try expectEqual(
+        std.math.Order.gt,
+        Relocatable.new(10, 4).cmp(Relocatable.new(2, 4)),
+    );
+    try expectEqual(
+        std.math.Order.gt,
+        Relocatable.new(10, 4).cmp(Relocatable.new(2, 44)),
+    );
+}
+
 test "Relocatable: addFelt should add a relocatable and a Felt252" {
     try expectEqual(
         Relocatable{ .segment_index = 2, .offset = 54 },
@@ -1001,6 +1042,51 @@ test "MaybeRelocatable: ge should work properly if two MaybeRelocatable are of s
 
     // 1 > 2
     try expect(fromU256(2).ge(fromU256(1)));
+}
+
+test "MaybeRelocatable: cmp should return proper order results for Relocatable comparisons" {
+    try expectEqual(
+        std.math.Order.eq,
+        fromSegment(4, 10).cmp(fromSegment(4, 10)),
+    );
+    try expectEqual(
+        std.math.Order.lt,
+        fromSegment(4, 5).cmp(fromSegment(4, 10)),
+    );
+    try expectEqual(
+        std.math.Order.gt,
+        fromSegment(4, 15).cmp(fromSegment(4, 10)),
+    );
+    try expectEqual(
+        std.math.Order.lt,
+        fromSegment(2, 15).cmp(fromSegment(4, 10)),
+    );
+    try expectEqual(
+        std.math.Order.gt,
+        fromSegment(20, 15).cmp(fromSegment(4, 10)),
+    );
+}
+
+test "MaybeRelocatable: cmp should return Felt252 > Relocatable" {
+    try expectEqual(
+        std.math.Order.lt,
+        fromSegment(4, 10).cmp(fromU256(4)),
+    );
+    try expectEqual(
+        std.math.Order.gt,
+        fromU256(4).cmp(fromSegment(4, 10)),
+    );
+}
+
+test "MaybeRelocatable: cmp should return proper order results for Felt252 comparisons" {
+    try expectEqual(std.math.Order.lt, fromU256(10).cmp(fromU256(343535)));
+    try expectEqual(std.math.Order.lt, fromU256(433).cmp(fromU256(343535)));
+    try expectEqual(std.math.Order.gt, fromU256(543636535).cmp(fromU256(434)));
+    try expectEqual(std.math.Order.gt, fromU256(std.math.maxInt(u256)).cmp(fromU256(21313)));
+    try expectEqual(std.math.Order.eq, fromU256(10).cmp(fromU256(10)));
+    try expectEqual(std.math.Order.eq, fromU256(1).cmp(fromU256(1)));
+    try expectEqual(std.math.Order.eq, fromU256(0).cmp(fromU256(0)));
+    try expectEqual(std.math.Order.eq, fromU256(10).cmp(fromU256(10 + 0x800000000000011000000000000000000000000000000000000000000000001)));
 }
 
 test "MaybeRelocatable: tryIntoRelocatable should return Relocatable if MaybeRelocatable is Relocatable" {

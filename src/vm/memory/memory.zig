@@ -11,6 +11,7 @@ const MaybeRelocatable = relocatable.MaybeRelocatable;
 const Relocatable = relocatable.Relocatable;
 const CairoVMError = @import("../error.zig").CairoVMError;
 const MemoryError = @import("../error.zig").MemoryError;
+const MathError = @import("../error.zig").MathError;
 const starknet_felt = @import("../../math/fields/starknet.zig");
 const Felt252 = starknet_felt.Felt252;
 
@@ -101,6 +102,82 @@ pub const MemoryCell = struct {
             }
         }
         return true;
+    }
+
+    /// Compares two MemoryCell instances based on their relocation information
+    /// and accessed status, returning their order relationship.
+    ///
+    /// This function compares MemoryCell instances by their relocation information first.
+    /// If the relocation information is the same, it considers their accessed status,
+    /// favoring cells that have been accessed (.eq). It returns the order relationship
+    /// between the MemoryCell instances: `.lt` for less than, `.gt` for greater than,
+    /// and `.eq` for equal.
+    ///
+    /// # Arguments
+    ///
+    /// - `self`: The first MemoryCell instance to compare.
+    /// - `other`: The second MemoryCell instance to compare against.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `std.math.Order` representing the order relationship between
+    /// the two MemoryCell instances.
+    pub fn cmp(self: Self, other: Self) std.math.Order {
+        return switch (self.maybe_relocatable.cmp(other.maybe_relocatable)) {
+            .eq => switch (self.is_accessed) {
+                true => if (other.is_accessed) .eq else .gt,
+                false => if (other.is_accessed) .lt else .eq,
+            },
+            else => |res| res,
+        };
+    }
+
+    /// Compares two slices of MemoryCell instances for order relationship.
+    ///
+    /// This function compares two slices of MemoryCell instances based on their
+    /// relocation information and accessed status, returning their order relationship.
+    /// It iterates through the slices, comparing each corresponding pair of cells.
+    /// If a difference in relocation information is found, it returns the order relationship
+    /// between those cells. If one slice ends before the other, it returns `.lt` or `.gt`
+    /// accordingly. If both slices are identical, it returns `.eq`.
+    ///
+    /// # Arguments
+    ///
+    /// - `a`: The first slice of MemoryCell instances to compare.
+    /// - `b`: The second slice of MemoryCell instances to compare.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `std.math.Order` representing the order relationship between
+    /// the two slices of MemoryCell instances.
+    pub fn cmpSlice(a: []const ?Self, b: []const ?Self) std.math.Order {
+        if (a.ptr == b.ptr) return .eq;
+
+        const len = @min(a.len, b.len);
+
+        for (0..len) |i| {
+            if (a[i]) |a_elem| {
+                if (b[i]) |b_elem| {
+                    const comp = a_elem.cmp(b_elem);
+                    if (comp != .eq) return comp;
+                } else {
+                    return .gt;
+                }
+            }
+
+            if (b[i]) |b_elem| {
+                if (a[i]) |a_elem| {
+                    const comp = a_elem.cmp(b_elem);
+                    if (comp != .eq) return comp;
+                } else {
+                    return .lt;
+                }
+            }
+        }
+
+        if (a.len == b.len) return .eq;
+
+        return if (len == a.len) .lt else .gt;
     }
 };
 
@@ -474,6 +551,38 @@ pub const Memory = struct {
             },
             false => if (idx < self.data.items.len) self.data.items[@intCast(idx)].items else null,
         };
+    }
+
+    pub fn memCmp(
+        self: *Self,
+        lhs: Relocatable,
+        rhs: Relocatable,
+        len: usize,
+    ) std.meta.Tuple(&.{ std.math.Order, usize }) {
+        const l = self.getSegmentAtIndex(lhs.segment_index);
+        const r = self.getSegmentAtIndex(rhs.segment_index);
+
+        if (l) |ls| {
+            _ = ls;
+
+            if (r) |rs| {
+                _ = rs;
+                const lhs_start = lhs.offset;
+                _ = lhs_start;
+                const rhs_start = rhs.offset;
+                _ = rhs_start;
+
+                for (0..len) |i| {
+                    _ = i;
+
+                    // const
+                }
+            }
+
+            return .{ .gt, 0 };
+        } else {
+            return .{ if (r == null) .eq else .lt, 0 };
+        }
     }
 
     /// Compares memory segments for equality.
@@ -1436,4 +1545,195 @@ test "MemoryCell: eqlSlice should return true if slice are equal" {
         &[_]?MemoryCell{ null, null, null },
         &[_]?MemoryCell{ null, null, null },
     ));
+}
+
+test "MemoryCell: cmp should compare two Relocatable Memory cell instance" {
+    // Testing if two MemoryCell instances with the same relocatable segment and offset
+    // should return an equal comparison.
+    try expectEqual(
+        std.math.Order.eq,
+        MemoryCell.new(relocatable.fromSegment(4, 10)).cmp(MemoryCell.new(relocatable.fromSegment(4, 10))),
+    );
+
+    // Testing if a MemoryCell instance with is_accessed set to true and another MemoryCell
+    // with the same relocatable segment and offset but is_accessed set to false should result in a less than comparison.
+    var memCell = MemoryCell.new(relocatable.fromSegment(4, 10));
+    memCell.is_accessed = true;
+    try expectEqual(
+        std.math.Order.lt,
+        MemoryCell.new(relocatable.fromSegment(4, 10)).cmp(memCell),
+    );
+
+    // Testing the opposite of the previous case where is_accessed is set to false for the first MemoryCell,
+    // and true for the second MemoryCell with the same relocatable segment and offset. It should result in a greater than comparison.
+    try expectEqual(
+        std.math.Order.gt,
+        memCell.cmp(MemoryCell.new(relocatable.fromSegment(4, 10))),
+    );
+
+    // Testing if a MemoryCell instance with a smaller offset compared to another MemoryCell instance
+    // with the same segment but a larger offset should result in a less than comparison.
+    try expectEqual(
+        std.math.Order.lt,
+        MemoryCell.new(relocatable.fromSegment(4, 5)).cmp(MemoryCell.new(relocatable.fromSegment(4, 10))),
+    );
+
+    // Testing if a MemoryCell instance with a larger offset compared to another MemoryCell instance
+    // with the same segment but a smaller offset should result in a greater than comparison.
+    try expectEqual(
+        std.math.Order.gt,
+        MemoryCell.new(relocatable.fromSegment(4, 15)).cmp(MemoryCell.new(relocatable.fromSegment(4, 10))),
+    );
+
+    // Testing if a MemoryCell instance with a smaller segment index compared to another MemoryCell instance
+    // with a larger segment index but the same offset should result in a less than comparison.
+    try expectEqual(
+        std.math.Order.lt,
+        MemoryCell.new(relocatable.fromSegment(2, 15)).cmp(MemoryCell.new(relocatable.fromSegment(4, 10))),
+    );
+
+    // Testing if a MemoryCell instance with a larger segment index compared to another MemoryCell instance
+    // with a smaller segment index but the same offset should result in a greater than comparison.
+    try expectEqual(
+        std.math.Order.gt,
+        MemoryCell.new(relocatable.fromSegment(20, 15)).cmp(MemoryCell.new(relocatable.fromSegment(4, 10))),
+    );
+}
+
+test "MemoryCell: cmp should return an error if incompatible types for a comparison" {
+    try expectEqual(
+        std.math.Order.lt,
+        MemoryCell.new(relocatable.fromSegment(
+            4,
+            10,
+        )).cmp(MemoryCell.new(relocatable.fromU256(4))),
+    );
+    try expectEqual(
+        std.math.Order.gt,
+        MemoryCell.new(relocatable.fromU256(
+            4,
+        )).cmp(MemoryCell.new(relocatable.fromSegment(4, 10))),
+    );
+}
+
+test "MemoryCell: cmp should return proper order results for Felt252 comparisons" {
+    // Should return less than (lt) when the first Felt252 is smaller than the second Felt252.
+    try expectEqual(std.math.Order.lt, MemoryCell.new(relocatable.fromU256(10)).cmp(MemoryCell.new(relocatable.fromU256(343535))));
+
+    // Should return greater than (gt) when the first Felt252 is larger than the second Felt252.
+    try expectEqual(std.math.Order.gt, MemoryCell.new(relocatable.fromU256(543636535)).cmp(MemoryCell.new(relocatable.fromU256(434))));
+
+    // Should return equal (eq) when both Felt252 values are identical.
+    try expectEqual(std.math.Order.eq, MemoryCell.new(relocatable.fromU256(10)).cmp(MemoryCell.new(relocatable.fromU256(10))));
+
+    // Should return less than (lt) when the cell's accessed status differs.
+    var memCell = MemoryCell.new(relocatable.fromU256(10));
+    memCell.is_accessed = true;
+    try expectEqual(std.math.Order.lt, MemoryCell.new(relocatable.fromU256(10)).cmp(memCell));
+
+    // Should return greater than (gt) when the cell's accessed status differs (reversed order).
+    try expectEqual(std.math.Order.gt, memCell.cmp(MemoryCell.new(relocatable.fromU256(10))));
+}
+
+test "MemoryCell: cmpSlice should compare MemoryCell slices (if eq and one longer than the other)" {
+    const memCell = MemoryCell.new(relocatable.fromSegment(4, 15));
+
+    try expectEqual(
+        std.math.Order.gt,
+        MemoryCell.cmpSlice(
+            &[_]?MemoryCell{ null, null, memCell, memCell },
+            &[_]?MemoryCell{ null, null, memCell },
+        ),
+    );
+
+    try expectEqual(
+        std.math.Order.lt,
+        MemoryCell.cmpSlice(
+            &[_]?MemoryCell{ null, null, memCell },
+            &[_]?MemoryCell{ null, null, memCell, memCell },
+        ),
+    );
+}
+
+test "MemoryCell: cmpSlice should return .eq if both slices are equal" {
+    const memCell = MemoryCell.new(relocatable.fromSegment(4, 15));
+    const memCell1 = MemoryCell.new(relocatable.fromU256(15));
+    const slc = &[_]?MemoryCell{ null, null, memCell };
+
+    try expectEqual(
+        std.math.Order.eq,
+        MemoryCell.cmpSlice(slc, slc),
+    );
+    try expectEqual(
+        std.math.Order.eq,
+        MemoryCell.cmpSlice(
+            &[_]?MemoryCell{ memCell1, null, memCell, null },
+            &[_]?MemoryCell{ memCell1, null, memCell, null },
+        ),
+    );
+    try expectEqual(
+        std.math.Order.eq,
+        MemoryCell.cmpSlice(
+            &[_]?MemoryCell{ memCell1, null, memCell, null },
+            &[_]?MemoryCell{ memCell1, null, memCell, null },
+        ),
+    );
+}
+
+test "MemoryCell: cmpSlice should return .lt if a < b" {
+    const memCell = MemoryCell.new(relocatable.fromSegment(40, 15));
+    const memCell1 = MemoryCell.new(relocatable.fromSegment(3, 15));
+    const memCell2 = MemoryCell.new(relocatable.fromU256(10));
+    const memCell3 = MemoryCell.new(relocatable.fromU256(15));
+
+    try expectEqual(
+        std.math.Order.lt,
+        MemoryCell.cmpSlice(
+            &[_]?MemoryCell{ memCell1, null, memCell1, null },
+            &[_]?MemoryCell{ memCell1, null, memCell, null },
+        ),
+    );
+    try expectEqual(
+        std.math.Order.lt,
+        MemoryCell.cmpSlice(
+            &[_]?MemoryCell{ memCell1, null, memCell2, null },
+            &[_]?MemoryCell{ memCell1, null, memCell3, null },
+        ),
+    );
+    try expectEqual(
+        std.math.Order.lt,
+        MemoryCell.cmpSlice(
+            &[_]?MemoryCell{ memCell1, null, memCell, null },
+            &[_]?MemoryCell{ memCell1, null, memCell3, null },
+        ),
+    );
+}
+
+test "MemoryCell: cmpSlice should return .gt if a > b" {
+    const memCell = MemoryCell.new(relocatable.fromSegment(40, 15));
+    const memCell1 = MemoryCell.new(relocatable.fromSegment(3, 15));
+    const memCell2 = MemoryCell.new(relocatable.fromU256(10));
+    const memCell3 = MemoryCell.new(relocatable.fromU256(15));
+
+    try expectEqual(
+        std.math.Order.gt,
+        MemoryCell.cmpSlice(
+            &[_]?MemoryCell{ memCell1, null, memCell, null },
+            &[_]?MemoryCell{ memCell1, null, memCell1, null },
+        ),
+    );
+    try expectEqual(
+        std.math.Order.gt,
+        MemoryCell.cmpSlice(
+            &[_]?MemoryCell{ memCell1, null, memCell3, null },
+            &[_]?MemoryCell{ memCell1, null, memCell2, null },
+        ),
+    );
+    try expectEqual(
+        std.math.Order.gt,
+        MemoryCell.cmpSlice(
+            &[_]?MemoryCell{ memCell1, null, memCell3, null },
+            &[_]?MemoryCell{ memCell1, null, memCell, null },
+        ),
+    );
 }
