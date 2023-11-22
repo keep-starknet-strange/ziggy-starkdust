@@ -35,6 +35,9 @@ const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
 const expectEqualSlices = std.testing.expectEqualSlices;
 
+// Default Test Instruction to avoid having to initialize it in every test
+const utilTestInstruction = Instruction.default();
+
 test "CairoVM: deduceMemoryCell no builtin" {
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -84,7 +87,7 @@ test "CairoVM: deduceMemoryCell builtin valid" {
 test "update pc regular no imm" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = utilTestInstruction;
     instruction.pc_update = .Regular;
     instruction.op_1_addr = .AP;
     const operands = OperandsResult.default();
@@ -112,7 +115,7 @@ test "update pc regular no imm" {
 test "update pc regular with imm" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = utilTestInstruction;
     instruction.pc_update = .Regular;
     instruction.op_1_addr = .Imm;
     const operands = OperandsResult.default();
@@ -140,7 +143,7 @@ test "update pc regular with imm" {
 test "update pc jump with operands res null" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = utilTestInstruction;
     instruction.pc_update = .Jump;
     var operands = OperandsResult.default();
     operands.res = null;
@@ -158,7 +161,7 @@ test "update pc jump with operands res null" {
 test "update pc jump with operands res not relocatable" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = utilTestInstruction;
     instruction.pc_update = .Jump;
     var operands = OperandsResult.default();
     operands.res = relocatable.fromU64(0);
@@ -176,7 +179,7 @@ test "update pc jump with operands res not relocatable" {
 test "update pc jump with operands res relocatable" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = utilTestInstruction;
     instruction.pc_update = .Jump;
     var operands = OperandsResult.default();
     operands.res = relocatable.newFromRelocatable(Relocatable.new(
@@ -207,7 +210,7 @@ test "update pc jump with operands res relocatable" {
 test "update pc jump rel with operands res null" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = utilTestInstruction;
     instruction.pc_update = .JumpRel;
     var operands = OperandsResult.default();
     operands.res = null;
@@ -225,7 +228,7 @@ test "update pc jump rel with operands res null" {
 test "update pc jump rel with operands res not felt" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = utilTestInstruction;
     instruction.pc_update = .JumpRel;
     var operands = OperandsResult.default();
     operands.res = relocatable.newFromRelocatable(Relocatable.new(
@@ -246,7 +249,7 @@ test "update pc jump rel with operands res not felt" {
 test "update pc jump rel with operands res felt" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = utilTestInstruction;
     instruction.pc_update = .JumpRel;
     var operands = OperandsResult.default();
     operands.res = relocatable.fromU64(42);
@@ -274,7 +277,7 @@ test "update pc jump rel with operands res felt" {
 test "update pc update jnz with operands dst zero" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = utilTestInstruction;
     instruction.pc_update = .Jnz;
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(0);
@@ -302,7 +305,7 @@ test "update pc update jnz with operands dst zero" {
 test "update pc update jnz with operands dst not zero op1 not felt" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = utilTestInstruction;
     instruction.pc_update = .Jnz;
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(1);
@@ -327,7 +330,7 @@ test "update pc update jnz with operands dst not zero op1 not felt" {
 test "update pc update jnz with operands dst not zero op1 felt" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = utilTestInstruction;
     instruction.pc_update = .Jnz;
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(1);
@@ -356,7 +359,7 @@ test "update pc update jnz with operands dst not zero op1 felt" {
 test "update ap add with operands res unconstrained" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = utilTestInstruction;
     instruction.ap_update = .Add;
     var operands = OperandsResult.default();
     operands.res = null; // Simulate unconstrained res
@@ -374,7 +377,7 @@ test "update ap add with operands res unconstrained" {
 test "update ap add1" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = utilTestInstruction;
     instruction.ap_update = .Add1;
     const operands = OperandsResult.default();
     // Create a new VM instance.
@@ -402,7 +405,7 @@ test "update ap add1" {
 test "update ap add2" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = utilTestInstruction;
     instruction.ap_update = .Add2;
     const operands = OperandsResult.default();
     // Create a new VM instance.
@@ -430,7 +433,7 @@ test "update ap add2" {
 test "update fp appplus2" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = utilTestInstruction;
     instruction.fp_update = .APPlus2;
     const operands = OperandsResult.default();
     // Create a new VM instance.
@@ -458,7 +461,7 @@ test "update fp appplus2" {
 test "update fp dst relocatable" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = utilTestInstruction;
     instruction.fp_update = .Dst;
     var operands = OperandsResult.default();
     operands.dst = relocatable.newFromRelocatable(Relocatable.new(
@@ -490,7 +493,7 @@ test "update fp dst relocatable" {
 test "update fp dst felt" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = utilTestInstruction;
     instruction.fp_update = .Dst;
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(42);
