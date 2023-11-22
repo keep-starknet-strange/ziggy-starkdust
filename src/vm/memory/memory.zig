@@ -655,16 +655,15 @@ test "memory set and get" {
     const value_2 = relocatable.fromFelt(starknet_felt.Felt252.one());
 
     // Set a value into the memory.
-    _ = try memory.set(
+    try setUpMemory(
+        memory,
         std.testing.allocator,
-        address_1,
-        value_1,
+        .{
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ -1, 0 }, .{1} },
+        },
     );
-    _ = try memory.set(
-        std.testing.allocator,
-        address_2,
-        value_2,
-    );
+
     defer memory.deinitData(std.testing.allocator);
 
     // Get the value from the memory.
@@ -734,11 +733,12 @@ test "validate existing memory for range check within bound" {
     const value_1 = relocatable.fromFelt(starknet_felt.Felt252.one());
 
     // Set a value into the memory.
-    _ = try memory.set(
+    try setUpMemory(
+        memory,
         std.testing.allocator,
-        address_1,
-        value_1,
+        .{.{ .{ 0, 0 }, .{1} }},
     );
+
     defer memory.deinitData(std.testing.allocator);
 
     // Get the value from the memory.
@@ -768,10 +768,10 @@ test "Memory: getFelt should return Felt252 if available at the given address" {
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try memory.set(
+    try setUpMemory(
+        memory,
         std.testing.allocator,
-        Relocatable.new(10, 30),
-        .{ .felt = Felt252.fromInteger(23) },
+        .{.{ .{ 10, 30 }, .{23} }},
     );
     defer memory.deinitData(std.testing.allocator);
 
@@ -787,10 +787,10 @@ test "Memory: getFelt should return ExpectedInteger error if Relocatable instead
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try memory.set(
+    try setUpMemory(
+        memory,
         std.testing.allocator,
-        Relocatable.new(10, 30),
-        .{ .relocatable = Relocatable.new(3, 7) },
+        .{.{ .{ 10, 30 }, .{ 3, 7 } }},
     );
     defer memory.deinitData(std.testing.allocator);
 
@@ -818,10 +818,10 @@ test "Memory: getRelocatable should return Relocatable if available at the given
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try memory.set(
+    try setUpMemory(
+        memory,
         std.testing.allocator,
-        Relocatable.new(10, 30),
-        .{ .relocatable = Relocatable.new(4, 34) },
+        .{.{ .{ 10, 30 }, .{ 4, 34 } }},
     );
     defer memory.deinitData(std.testing.allocator);
 
@@ -837,10 +837,10 @@ test "Memory: getRelocatable should return ExpectedRelocatable error if Felt ins
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try memory.set(
+    try setUpMemory(
+        memory,
         std.testing.allocator,
-        Relocatable.new(10, 30),
-        .{ .felt = Felt252.fromInteger(3) },
+        .{.{ .{ 10, 30 }, .{3} }},
     );
     defer memory.deinitData(std.testing.allocator);
 
