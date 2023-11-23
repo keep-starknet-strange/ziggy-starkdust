@@ -3,6 +3,7 @@ const std = @import("std");
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
+const expectEqualSlices = std.testing.expectEqualSlices;
 const Allocator = std.mem.Allocator;
 
 // Local imports.
@@ -398,6 +399,42 @@ pub const Memory = struct {
                 }
             }
         }
+    }
+
+    /// Retrieves a continuous range of memory values starting from a specified address.
+    ///
+    /// # Arguments
+    ///
+    /// * `allocator`: The allocator used for the memory allocation of the returned list.
+    /// * `address`: The starting address in the memory from which the continuous range is retrieved.
+    /// * `size`: The size of the continuous range to be retrieved.
+    ///
+    /// # Returns
+    ///
+    /// Returns a list containing memory values retrieved from the continuous range starting at the given address.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if there are any gaps encountered within the continuous memory range.
+    pub fn getContinuousRange(
+        self: *Self,
+        allocator: Allocator,
+        address: Relocatable,
+        size: usize,
+    ) !std.ArrayList(MaybeRelocatable) {
+        var values = try std.ArrayList(MaybeRelocatable).initCapacity(
+            allocator,
+            size,
+        );
+        errdefer values.deinit();
+        for (0..size) |i| {
+            if (try self.get(try address.addUint(@intCast(i)))) |elem| {
+                try values.append(elem);
+            } else {
+                return MemoryError.GetRangeMemoryGap;
+            }
+        }
+        return values;
     }
 };
 
@@ -949,6 +986,71 @@ test "Memory: addRelocationRule should add new relocation rule" {
     try expectEqual(
         Relocatable.new(4, 7),
         memory.relocation_rules.get(1).?,
+    );
+}
+
+test "Memory: getContinuousRange for continuous memory" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 1, 0 }, .{2} },
+            .{ .{ 1, 1 }, .{3} },
+            .{ .{ 1, 2 }, .{4} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    var expected_vec = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    defer expected_vec.deinit();
+
+    try expected_vec.append(relocatable.fromU256(2));
+    try expected_vec.append(relocatable.fromU256(3));
+    try expected_vec.append(relocatable.fromU256(4));
+
+    var actual = try memory.getContinuousRange(
+        std.testing.allocator,
+        Relocatable.new(1, 0),
+        3,
+    );
+    defer actual.deinit();
+
+    // Test checks
+    try expectEqualSlices(
+        MaybeRelocatable,
+        expected_vec.items,
+        actual.items,
+    );
+}
+
+test "Memory: getContinuousRange for non continuous memory" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 1, 0 }, .{2} },
+            .{ .{ 1, 1 }, .{3} },
+            .{ .{ 1, 3 }, .{4} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    // Test checks
+    try expectError(
+        MemoryError.GetRangeMemoryGap,
+        memory.getContinuousRange(
+            std.testing.allocator,
+            Relocatable.new(1, 0),
+            3,
+        ),
     );
 }
 

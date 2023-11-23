@@ -45,6 +45,7 @@ pub const MemoryError = error{
     TemporarySegmentInRelocation,
     /// Inconsistent Relocation
     Relocation,
+    GetRangeMemoryGap,
 };
 
 /// Reepresents different error conditions that occur in the built-in runners.
