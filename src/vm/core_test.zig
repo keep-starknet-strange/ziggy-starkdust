@@ -27,7 +27,6 @@ const CairoVM = @import("core.zig").CairoVM;
 const computeRes = @import("core.zig").computeRes;
 const OperandsResult = @import("core.zig").OperandsResult;
 const deduceOp1 = @import("core.zig").deduceOp1;
-const fromSegment = @import("./memory/relocatable.zig").fromSegment;
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -1373,7 +1372,7 @@ test "CairoVM: computeOp0Deductions should return op0 from deduceOp0 if deduceMe
 
     // Test check
     try expectEqual(
-        fromSegment(0, 1),
+        MaybeRelocatable.fromSegment(0, 1),
         try vm.computeOp0Deductions(
             std.testing.allocator,
             Relocatable.new(0, 7),
@@ -1507,7 +1506,7 @@ test "CairoVM: deduceDst should return fp Relocatable if Call opcode" {
 
     // Test check
     try expectEqual(
-        fromSegment(3, 23),
+        MaybeRelocatable.fromSegment(3, 23),
         try vm.deduceDst(&instruction, null),
     );
 }

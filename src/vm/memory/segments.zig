@@ -593,7 +593,7 @@ test "MemorySegmentManager: isValidMemoryValue should return true if valid segme
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     try memory_segment_manager.segment_used_sizes.put(0, 10);
-    var value: MaybeRelocatable = relocatable.fromSegment(0, 5);
+    var value: MaybeRelocatable = MaybeRelocatable.fromSegment(0, 5);
     try expect(memory_segment_manager.isValidMemoryValue(&value));
 }
 

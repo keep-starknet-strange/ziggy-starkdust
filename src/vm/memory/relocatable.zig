@@ -598,17 +598,17 @@ pub const MaybeRelocatable = union(enum) {
     pub fn fromU64(value: u64) Self {
         return fromU256(@intCast(value));
     }
-};
 
-// Creates a new MaybeRelocatable from a segment index and an offset.
-// # Arguments
-// - segment_index - The i64 for segment_index
-// - offset - The u64 for offset
-// # Returns
-// A new MaybeRelocatable.
-pub fn fromSegment(segment_index: i64, offset: u64) MaybeRelocatable {
-    return MaybeRelocatable.newFromRelocatable(Relocatable.new(segment_index, offset));
-}
+    // Creates a new MaybeRelocatable from a segment index and an offset.
+    // # Arguments
+    // - segment_index - The i64 for segment_index
+    // - offset - The u64 for offset
+    // # Returns
+    // A new MaybeRelocatable.
+    pub fn fromSegment(segment_index: i64, offset: u64) Self {
+        return newFromRelocatable(Relocatable.new(segment_index, offset));
+    }
+};
 
 // ************************************************************
 // *                         TESTS                            *
@@ -885,8 +885,8 @@ test "Relocatable: relocateAddress should return a proper usize to relocate the 
 }
 
 test "MaybeRelocatable: eq should return true if two MaybeRelocatable are the same (Relocatable)" {
-    const maybeRelocatable1 = fromSegment(0, 10);
-    const maybeRelocatable2 = fromSegment(0, 10);
+    const maybeRelocatable1 = MaybeRelocatable.fromSegment(0, 10);
+    const maybeRelocatable2 = MaybeRelocatable.fromSegment(0, 10);
     try expect(maybeRelocatable1.eq(maybeRelocatable2));
 }
 
@@ -897,8 +897,8 @@ test "MaybeRelocatable: eq should return true if two MaybeRelocatable are the sa
 }
 
 test "MaybeRelocatable: eq should return false if two MaybeRelocatable are not the same " {
-    const maybeRelocatable1 = fromSegment(0, 10);
-    const maybeRelocatable2 = fromSegment(1, 10);
+    const maybeRelocatable1 = MaybeRelocatable.fromSegment(0, 10);
+    const maybeRelocatable2 = MaybeRelocatable.fromSegment(1, 10);
     const maybeRelocatable3 = MaybeRelocatable.fromU256(10);
     const maybeRelocatable4 = MaybeRelocatable.fromU256(100);
     try expect(!maybeRelocatable1.eq(maybeRelocatable2));
@@ -909,54 +909,54 @@ test "MaybeRelocatable: eq should return false if two MaybeRelocatable are not t
 
 test "MaybeRelocatable: lt should work properly if two MaybeRelocatable are of same type (Relocatable)" {
     // 1 == 2
-    try expect(!fromSegment(2, 4).lt(fromSegment(2, 4)));
+    try expect(!MaybeRelocatable.fromSegment(2, 4).lt(MaybeRelocatable.fromSegment(2, 4)));
 
     // 1 < 2
-    try expect(fromSegment(-1, 2).lt(fromSegment(-1, 3)));
-    try expect(fromSegment(1, 5).lt(fromSegment(2, 4)));
+    try expect(MaybeRelocatable.fromSegment(-1, 2).lt(MaybeRelocatable.fromSegment(-1, 3)));
+    try expect(MaybeRelocatable.fromSegment(1, 5).lt(MaybeRelocatable.fromSegment(2, 4)));
 
     // 1 > 2
-    try expect(!fromSegment(2, 5).lt(fromSegment(2, 4)));
-    try expect(!fromSegment(3, 3).lt(fromSegment(2, 4)));
+    try expect(!MaybeRelocatable.fromSegment(2, 5).lt(MaybeRelocatable.fromSegment(2, 4)));
+    try expect(!MaybeRelocatable.fromSegment(3, 3).lt(MaybeRelocatable.fromSegment(2, 4)));
 }
 
 test "MaybeRelocatable: le should work properly if two MaybeRelocatable are of same type (Relocatable)" {
     // 1 == 2
-    try expect(fromSegment(2, 4).le(fromSegment(2, 4)));
+    try expect(MaybeRelocatable.fromSegment(2, 4).le(MaybeRelocatable.fromSegment(2, 4)));
 
     // 1 < 2
-    try expect(fromSegment(-1, 2).le(fromSegment(-1, 3)));
-    try expect(fromSegment(1, 5).le(fromSegment(2, 4)));
+    try expect(MaybeRelocatable.fromSegment(-1, 2).le(MaybeRelocatable.fromSegment(-1, 3)));
+    try expect(MaybeRelocatable.fromSegment(1, 5).le(MaybeRelocatable.fromSegment(2, 4)));
 
     // 1 > 2
-    try expect(!fromSegment(2, 5).le(fromSegment(2, 4)));
-    try expect(!fromSegment(3, 3).le(fromSegment(2, 4)));
+    try expect(!MaybeRelocatable.fromSegment(2, 5).le(MaybeRelocatable.fromSegment(2, 4)));
+    try expect(!MaybeRelocatable.fromSegment(3, 3).le(MaybeRelocatable.fromSegment(2, 4)));
 }
 
 test "MaybeRelocatable: gt should work properly if two MaybeRelocatable are of same type (Relocatable)" {
     // 1 == 2
-    try expect(!fromSegment(2, 4).gt(fromSegment(2, 4)));
+    try expect(!MaybeRelocatable.fromSegment(2, 4).gt(MaybeRelocatable.fromSegment(2, 4)));
 
     // 1 < 2
-    try expect(!fromSegment(-1, 2).gt(fromSegment(-1, 3)));
-    try expect(!fromSegment(1, 5).gt(fromSegment(2, 4)));
+    try expect(!MaybeRelocatable.fromSegment(-1, 2).gt(MaybeRelocatable.fromSegment(-1, 3)));
+    try expect(!MaybeRelocatable.fromSegment(1, 5).gt(MaybeRelocatable.fromSegment(2, 4)));
 
     // 1 > 2
-    try expect(fromSegment(2, 5).gt(fromSegment(2, 4)));
-    try expect(fromSegment(3, 3).gt(fromSegment(2, 4)));
+    try expect(MaybeRelocatable.fromSegment(2, 5).gt(MaybeRelocatable.fromSegment(2, 4)));
+    try expect(MaybeRelocatable.fromSegment(3, 3).gt(MaybeRelocatable.fromSegment(2, 4)));
 }
 
 test "MaybeRelocatable: ge should work properly if two MaybeRelocatable are of same type (Relocatable)" {
     // 1 == 2
-    try expect(fromSegment(2, 4).ge(fromSegment(2, 4)));
+    try expect(MaybeRelocatable.fromSegment(2, 4).ge(MaybeRelocatable.fromSegment(2, 4)));
 
     // 1 < 2
-    try expect(!fromSegment(-1, 2).ge(fromSegment(-1, 3)));
-    try expect(!fromSegment(1, 5).ge(fromSegment(2, 4)));
+    try expect(!MaybeRelocatable.fromSegment(-1, 2).ge(MaybeRelocatable.fromSegment(-1, 3)));
+    try expect(!MaybeRelocatable.fromSegment(1, 5).ge(MaybeRelocatable.fromSegment(2, 4)));
 
     // 1 > 2
-    try expect(fromSegment(2, 5).ge(fromSegment(2, 4)));
-    try expect(fromSegment(3, 3).ge(fromSegment(2, 4)));
+    try expect(MaybeRelocatable.fromSegment(2, 5).ge(MaybeRelocatable.fromSegment(2, 4)));
+    try expect(MaybeRelocatable.fromSegment(3, 3).ge(MaybeRelocatable.fromSegment(2, 4)));
 }
 
 test "MaybeRelocatable: lt should work properly if two MaybeRelocatable are of same type (Felt)" {
@@ -1004,7 +1004,7 @@ test "MaybeRelocatable: ge should work properly if two MaybeRelocatable are of s
 }
 
 test "MaybeRelocatable: tryIntoRelocatable should return Relocatable if MaybeRelocatable is Relocatable" {
-    var maybeRelocatable = fromSegment(0, 10);
+    var maybeRelocatable = MaybeRelocatable.fromSegment(0, 10);
     try expectEqual(
         Relocatable.new(0, 10),
         try maybeRelocatable.tryIntoRelocatable(),
@@ -1020,7 +1020,7 @@ test "MaybeRelocatable: tryIntoRelocatable should return an error if MaybeReloca
 }
 
 test "MaybeRelocatable: isZero should return false if MaybeRelocatable is Relocatable" {
-    var maybeRelocatable = fromSegment(0, 10);
+    var maybeRelocatable = MaybeRelocatable.fromSegment(0, 10);
     try expect(!maybeRelocatable.isZero());
 }
 
@@ -1035,7 +1035,7 @@ test "MaybeRelocatable: isZero should return true if MaybeRelocatable is Zero fe
 }
 
 test "MaybeRelocatable: isRelocatable should return true if MaybeRelocatable is Relocatable" {
-    var maybeRelocatable = fromSegment(0, 10);
+    var maybeRelocatable = MaybeRelocatable.fromSegment(0, 10);
     try expect(maybeRelocatable.isRelocatable());
 }
 
@@ -1050,7 +1050,7 @@ test "MaybeRelocatable: isFelt should return true if MaybeRelocatable is Felt" {
 }
 
 test "MaybeRelocatable: isFelt should return false if MaybeRelocatable is Relocatable" {
-    var maybeRelocatable = fromSegment(0, 10);
+    var maybeRelocatable = MaybeRelocatable.fromSegment(0, 10);
     try expect(!maybeRelocatable.isFelt());
 }
 
@@ -1060,7 +1060,7 @@ test "MaybeRelocatable: tryIntoFelt should return Felt if MaybeRelocatable is Fe
 }
 
 test "MaybeRelocatable: tryIntoFelt should return an error if MaybeRelocatable is Relocatable" {
-    var maybeRelocatable = fromSegment(0, 10);
+    var maybeRelocatable = MaybeRelocatable.fromSegment(0, 10);
     try expectError(CairoVMError.TypeMismatchNotFelt, maybeRelocatable.tryIntoFelt());
 }
 
@@ -1070,7 +1070,7 @@ test "MaybeRelocatable: tryIntoU64 should return a u64 if MaybeRelocatable is Fe
 }
 
 test "MaybeRelocatable: tryIntoU64 should return an error if MaybeRelocatable is Relocatable" {
-    const maybeRelocatable = fromSegment(0, 10);
+    const maybeRelocatable = MaybeRelocatable.fromSegment(0, 10);
     try expectError(CairoVMError.TypeMismatchNotFelt, maybeRelocatable.tryIntoU64());
 }
 
@@ -1080,7 +1080,7 @@ test "MaybeRelocatable: tryIntoU64 should return an error if MaybeRelocatable Fe
 }
 
 test "MaybeRelocatable: any comparision should return false if other MaybeRelocatable is of different variant 1" {
-    const maybeRelocatable1 = fromSegment(0, 10);
+    const maybeRelocatable1 = MaybeRelocatable.fromSegment(0, 10);
     const maybeRelocatable2 = MaybeRelocatable.fromU256(10);
 
     try expect(!maybeRelocatable1.lt(maybeRelocatable2));
@@ -1091,7 +1091,7 @@ test "MaybeRelocatable: any comparision should return false if other MaybeReloca
 
 test "MaybeRelocatable: any comparision should return false if other MaybeRelocatable is of different variant 2" {
     const maybeRelocatable1 = MaybeRelocatable.fromU256(10);
-    const maybeRelocatable2 = fromSegment(0, 10);
+    const maybeRelocatable2 = MaybeRelocatable.fromSegment(0, 10);
 
     try expect(!maybeRelocatable1.lt(maybeRelocatable2));
     try expect(!maybeRelocatable1.le(maybeRelocatable2));
@@ -1102,14 +1102,14 @@ test "MaybeRelocatable: any comparision should return false if other MaybeReloca
 test "MaybeRelocatable: add between two relocatable should return a Math error" {
     try expectError(
         MathError.RelocatableAdd,
-        fromSegment(0, 10).add(fromSegment(0, 10)),
+        MaybeRelocatable.fromSegment(0, 10).add(MaybeRelocatable.fromSegment(0, 10)),
     );
 }
 
 test "MaybeRelocatable: add between a Relocatable and a Felt252 should return a proper MaybeRelocatable" {
     try expectEqual(
-        fromSegment(0, 20),
-        try fromSegment(0, 10).add(MaybeRelocatable.fromU256(10)),
+        MaybeRelocatable.fromSegment(0, 20),
+        try MaybeRelocatable.fromSegment(0, 10).add(MaybeRelocatable.fromU256(10)),
     );
 }
 
@@ -1122,29 +1122,29 @@ test "MaybeRelocatable: add between two Felt252 should return a proper MaybeRelo
 
 test "MaybeRelocatable: add between a Felt252 and a Relocatable should return a proper MaybeRelocatable" {
     try expectEqual(
-        fromSegment(0, 20),
-        try MaybeRelocatable.fromU256(10).add(fromSegment(0, 10)),
+        MaybeRelocatable.fromSegment(0, 20),
+        try MaybeRelocatable.fromU256(10).add(MaybeRelocatable.fromSegment(0, 10)),
     );
 }
 
 test "MaybeRelocatable: sub between two Relocatable should return a proper MaybeRelocatable" {
     try expectEqual(
-        fromSegment(0, 10),
-        try fromSegment(0, 20).sub(fromSegment(0, 10)),
+        MaybeRelocatable.fromSegment(0, 10),
+        try MaybeRelocatable.fromSegment(0, 20).sub(MaybeRelocatable.fromSegment(0, 10)),
     );
 }
 
 test "MaybeRelocatable: sub between two Relocatable with different segment indexes should return an error" {
     try expectError(
         CairoVMError.TypeMismatchNotRelocatable,
-        fromSegment(3, 20).sub(fromSegment(0, 10)),
+        MaybeRelocatable.fromSegment(3, 20).sub(MaybeRelocatable.fromSegment(0, 10)),
     );
 }
 
 test "MaybeRelocatable: sub between a Relocatable and a Felt252 should return a proper MaybeRelocatable" {
     try expectEqual(
-        fromSegment(0, 10),
-        try fromSegment(0, 20).sub(MaybeRelocatable.fromU256(10)),
+        MaybeRelocatable.fromSegment(0, 10),
+        try MaybeRelocatable.fromSegment(0, 20).sub(MaybeRelocatable.fromU256(10)),
     );
 }
 
@@ -1158,7 +1158,7 @@ test "MaybeRelocatable: sub between two Felt252 should return a proper MaybeRelo
 test "MaybeRelocatable: sub between a Felt252 and a Relocatable should return a Math Error" {
     try expectError(
         MathError.SubRelocatableFromInt,
-        MaybeRelocatable.fromU256(20).sub(fromSegment(0, 10)),
+        MaybeRelocatable.fromU256(20).sub(MaybeRelocatable.fromSegment(0, 10)),
     );
 }
 
@@ -1173,7 +1173,7 @@ test "MaybeRelocatable: relocateValue should return Felt252 if self argument is 
 
 test "MaybeRelocatable: relocateValue with a relocatable value" {
     var relocation_table = [_]usize{ 1, 2, 5 };
-    var mr = fromSegment(2, 7);
+    var mr = MaybeRelocatable.fromSegment(2, 7);
     try expectEqual(
         Felt252.fromInteger(12),
         try mr.relocateValue(&relocation_table),
@@ -1182,7 +1182,7 @@ test "MaybeRelocatable: relocateValue with a relocatable value" {
 
 test "MaybeRelocatable: relocateValue with a temporary segment value" {
     var relocation_table = [_]usize{ 1, 2, 5 };
-    var mr = fromSegment(-1, 7);
+    var mr = MaybeRelocatable.fromSegment(-1, 7);
     try expectError(
         MemoryError.TemporarySegmentInRelocation,
         mr.relocateValue(&relocation_table),
@@ -1191,7 +1191,7 @@ test "MaybeRelocatable: relocateValue with a temporary segment value" {
 
 test "MaybeRelocatable: relocateValue with index out of bounds" {
     var relocation_table = [_]usize{ 1, 2 };
-    var mr = fromSegment(2, 7);
+    var mr = MaybeRelocatable.fromSegment(2, 7);
     try expectError(
         MemoryError.Relocation,
         mr.relocateValue(&relocation_table),
@@ -1200,7 +1200,7 @@ test "MaybeRelocatable: relocateValue with index out of bounds" {
 
 test "newFromRelocatable: should create a MaybeRelocatable from a Relocatable" {
     try expectEqual(
-        fromSegment(0, 3),
+        MaybeRelocatable.fromSegment(0, 3),
         MaybeRelocatable.newFromRelocatable(Relocatable.new(0, 3)),
     );
 }
