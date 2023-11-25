@@ -846,16 +846,28 @@ pub fn deduceOp1(
 pub const OperandsResult = struct {
     const Self = @This();
 
+    /// The destination operand value.
     dst: MaybeRelocatable,
+    /// The result operand value.
     res: ?MaybeRelocatable,
+    /// The first operand value.
     op_0: MaybeRelocatable,
+    /// The second operand value.
     op_1: MaybeRelocatable,
+    /// The relocatable address of the destination operand.
     dst_addr: Relocatable,
+    /// The relocatable address of the first operand.
     op_0_addr: Relocatable,
+    /// The relocatable address of the second operand.
     op_1_addr: Relocatable,
+    /// Indicator for deduced operands.
     deduced_operands: u8,
 
-    /// Returns a default instance of the OperandsResult struct.
+    /// Returns a default instance of the OperandsResult struct with initial values set to zero.
+    ///
+    /// # Returns
+    ///
+    /// - An instance of OperandsResult with default values.
     pub fn default() Self {
         return .{
             .dst = relocatable.fromU64(0),
@@ -869,24 +881,56 @@ pub const OperandsResult = struct {
         };
     }
 
+    /// Sets the flag indicating the destination operand was deduced.
+    ///
+    /// # Arguments
+    ///
+    /// - `value`: A boolean value indicating whether the destination operand was deduced.
     pub fn setDst(self: *Self, value: bool) void {
-        self.deduced_operands |= if (value) 1 else 0;
-    }
-    pub fn setOp0(self: *Self, value: bool) void {
-        self.deduced_operands |= if (value) 1 << 1 else 0 << 1;
+        self.deduced_operands |= @intFromBool(value);
     }
 
-    pub fn setOp1(self: *Self, value: bool) void {
-        self.deduced_operands |= if (value) 1 << 2 else 0 << 2;
+    /// Sets the flag indicating the first operand was deduced.
+    ///
+    /// # Arguments
+    ///
+    /// - `value`: A boolean value indicating whether the first operand was deduced.
+    pub fn setOp0(self: *Self, value: bool) void {
+        self.deduced_operands |= @as(u8, @intCast(@intFromBool(value))) << 1;
     }
+
+    /// Sets the flag indicating the second operand was deduced.
+    ///
+    /// # Arguments
+    ///
+    /// - `value`: A boolean value indicating whether the second operand was deduced.
+    pub fn setOp1(self: *Self, value: bool) void {
+        self.deduced_operands |= @as(u8, @intCast(@intFromBool(value))) << 2;
+    }
+
+    /// Checks if the destination operand was deduced.
+    ///
+    /// # Returns
+    ///
+    /// - A boolean indicating if the destination operand was deduced.
     pub fn wasDestDeducted(self: *const Self) bool {
         return self.deduced_operands & 1 != 0;
     }
 
+    /// Checks if the first operand was deduced.
+    ///
+    /// # Returns
+    ///
+    /// - A boolean indicating if the first operand was deduced.
     pub fn wasOp0Deducted(self: *const Self) bool {
         return self.deduced_operands & (1 << 1) != 0;
     }
 
+    /// Checks if the second operand was deduced.
+    ///
+    /// # Returns
+    ///
+    /// - A boolean indicating if the second operand was deduced.
     pub fn wasOp1Deducted(self: *const Self) bool {
         return self.deduced_operands & (1 << 2) != 0;
     }
