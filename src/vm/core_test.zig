@@ -1994,3 +1994,50 @@ test "CairoVM: InserDeducedOperands insert operands should not be inserted if no
         vm.segments.memory.get(Relocatable.new(1, 2)),
     );
 }
+
+test "CairoVM: markAddressRangeAsAccessed should mark memory segments as accessed" {
+    // Test setup
+    const allocator = std.testing.allocator;
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    vm.is_run_finished = true;
+    try segments.segmentsUtil(
+        vm.segments,
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{0} },
+            .{ .{ 0, 1 }, .{0} },
+            .{ .{ 0, 2 }, .{1} },
+            .{ .{ 0, 10 }, .{10} },
+            .{ .{ 1, 1 }, .{1} },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    try vm.markAddressRangeAsAccessed(Relocatable.new(0, 0), 3);
+    try vm.markAddressRangeAsAccessed(Relocatable.new(0, 10), 2);
+    try vm.markAddressRangeAsAccessed(Relocatable.new(1, 1), 1);
+
+    try expect(vm.segments.memory.data.items[0].items[0].?.is_accessed);
+    try expect(vm.segments.memory.data.items[0].items[1].?.is_accessed);
+    try expect(vm.segments.memory.data.items[0].items[2].?.is_accessed);
+    try expect(vm.segments.memory.data.items[0].items[10].?.is_accessed);
+    try expect(vm.segments.memory.data.items[1].items[1].?.is_accessed);
+
+    // TODO: add number of accessed addresses for segments 0 and 1 when https://github.com/keep-starknet-strange/cairo-zig/pull/186 is merged
+}
+
+test "CairoVM: markAddressRangeAsAccessed should return an error if the run is not finished" {
+    // Test setup
+    const allocator = std.testing.allocator;
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    try expectError(
+        CairoVMError.RunNotFinished,
+        vm.markAddressRangeAsAccessed(Relocatable.new(0, 0), 3),
+    );
+}
