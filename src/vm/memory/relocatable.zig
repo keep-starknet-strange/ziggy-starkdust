@@ -562,16 +562,16 @@ pub const MaybeRelocatable = union(enum) {
             .relocatable => |r| Felt252.fromInteger(try r.relocateAddress(relocation_table)),
         };
     }
-};
 
-// Creates a new MaybeRelocatable from a Relocatable.
-// # Arguments
-// - relocatable - The Relocatable to create the MaybeRelocatable from.
-// # Returns
-// A new MaybeRelocatable.
-pub fn newFromRelocatable(relocatable: Relocatable) MaybeRelocatable {
-    return .{ .relocatable = relocatable };
-}
+    // Creates a new MaybeRelocatable from a Relocatable.
+    // # Arguments
+    // - relocatable - The Relocatable to create the MaybeRelocatable from.
+    // # Returns
+    // A new MaybeRelocatable.
+    pub fn newFromRelocatable(relocatable: Relocatable) Self {
+        return .{ .relocatable = relocatable };
+    }
+};
 
 // Creates a new MaybeRelocatable from a field element.
 // # Arguments
@@ -607,7 +607,7 @@ pub fn fromU64(value: u64) MaybeRelocatable {
 // # Returns
 // A new MaybeRelocatable.
 pub fn fromSegment(segment_index: i64, offset: u64) MaybeRelocatable {
-    return newFromRelocatable(Relocatable.new(segment_index, offset));
+    return MaybeRelocatable.newFromRelocatable(Relocatable.new(segment_index, offset));
 }
 
 // ************************************************************
@@ -1201,7 +1201,7 @@ test "MaybeRelocatable: relocateValue with index out of bounds" {
 test "newFromRelocatable: should create a MaybeRelocatable from a Relocatable" {
     try expectEqual(
         fromSegment(0, 3),
-        newFromRelocatable(Relocatable.new(0, 3)),
+        MaybeRelocatable.newFromRelocatable(Relocatable.new(0, 3)),
     );
 }
 

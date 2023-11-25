@@ -182,7 +182,7 @@ test "update pc jump with operands res relocatable" {
     var instruction = defaultTestInstruction;
     instruction.pc_update = .Jump;
     var operands = OperandsResult.default();
-    operands.res = relocatable.newFromRelocatable(Relocatable.new(
+    operands.res = MaybeRelocatable.newFromRelocatable(Relocatable.new(
         0,
         42,
     ));
@@ -231,7 +231,7 @@ test "update pc jump rel with operands res not felt" {
     var instruction = defaultTestInstruction;
     instruction.pc_update = .JumpRel;
     var operands = OperandsResult.default();
-    operands.res = relocatable.newFromRelocatable(Relocatable.new(
+    operands.res = MaybeRelocatable.newFromRelocatable(Relocatable.new(
         0,
         42,
     ));
@@ -309,7 +309,7 @@ test "update pc update jnz with operands dst not zero op1 not felt" {
     instruction.pc_update = .Jnz;
     var operands = OperandsResult.default();
     operands.dst = relocatable.fromU64(1);
-    operands.op_1 = relocatable.newFromRelocatable(Relocatable.new(
+    operands.op_1 = MaybeRelocatable.newFromRelocatable(Relocatable.new(
         0,
         42,
     ));
@@ -464,7 +464,7 @@ test "update fp dst relocatable" {
     var instruction = defaultTestInstruction;
     instruction.fp_update = .Dst;
     var operands = OperandsResult.default();
-    operands.dst = relocatable.newFromRelocatable(Relocatable.new(
+    operands.dst = MaybeRelocatable.newFromRelocatable(Relocatable.new(
         0,
         42,
     ));
@@ -602,7 +602,7 @@ test "deduceOp0 when opcode == .Call" {
     const deduceOp0 = try vm.deduceOp0(&instr, &null, &null);
 
     // Test checks
-    const expected_op_0: ?MaybeRelocatable = relocatable.newFromRelocatable(Relocatable.new(0, 1)); // temp var needed for type inference
+    const expected_op_0: ?MaybeRelocatable = MaybeRelocatable.newFromRelocatable(Relocatable.new(0, 1)); // temp var needed for type inference
     const expected_res: ?MaybeRelocatable = null;
     try expectEqual(expected_op_0, deduceOp0.op_0);
     try expectEqual(expected_res, deduceOp0.res);
@@ -967,13 +967,13 @@ test "compute res add felt to offset works" {
     // Test body
 
     const value_op0 = Relocatable.new(1, 1);
-    const op0 = relocatable.newFromRelocatable(value_op0);
+    const op0 = MaybeRelocatable.newFromRelocatable(value_op0);
 
     const op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
 
     const actual_res = try computeRes(&instruction, op0, op1);
     const res = Relocatable.new(1, 4);
-    const expected_res = relocatable.newFromRelocatable(res);
+    const expected_res = MaybeRelocatable.newFromRelocatable(res);
 
     // Test checks
     try expectEqual(
@@ -996,8 +996,8 @@ test "compute res add fails two relocs" {
     const value_op0 = Relocatable.new(1, 0);
     const value_op1 = Relocatable.new(1, 1);
 
-    const op0 = relocatable.newFromRelocatable(value_op0);
-    const op1 = relocatable.newFromRelocatable(value_op1);
+    const op0 = MaybeRelocatable.newFromRelocatable(value_op0);
+    const op1 = MaybeRelocatable.newFromRelocatable(value_op1);
 
     // Test checks
     try expectError(error.AddRelocToRelocForbidden, computeRes(&instruction, op0, op1));
@@ -1045,8 +1045,8 @@ test "compute res mul fails two relocs" {
     const value_op0 = Relocatable.new(1, 0);
     const value_op1 = Relocatable.new(1, 1);
 
-    const op0 = relocatable.newFromRelocatable(value_op0);
-    const op1 = relocatable.newFromRelocatable(value_op1);
+    const op0 = MaybeRelocatable.newFromRelocatable(value_op0);
+    const op1 = MaybeRelocatable.newFromRelocatable(value_op1);
 
     // Test checks
     try expectError(error.MulRelocForbidden, computeRes(&instruction, op0, op1));
@@ -1065,7 +1065,7 @@ test "compute res mul fails felt and reloc" {
     // Test body
 
     const value_op0 = Relocatable.new(1, 0);
-    const op0 = relocatable.newFromRelocatable(value_op0);
+    const op0 = MaybeRelocatable.newFromRelocatable(value_op0);
     const op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
 
     // Test checks

@@ -461,7 +461,7 @@ pub const CairoVM = struct {
         switch (inst.opcode) {
             .Call => {
                 return .{
-                    .op_0 = relocatable.newFromRelocatable(try self.run_context.pc.addUint(inst.size())),
+                    .op_0 = MaybeRelocatable.newFromRelocatable(try self.run_context.pc.addUint(inst.size())),
                     .res = null,
                 };
             },
@@ -650,7 +650,7 @@ pub const CairoVM = struct {
                     return CairoVMError.NoDst;
                 }
             },
-            .Call => relocatable.newFromRelocatable(self.run_context.fp.*),
+            .Call => MaybeRelocatable.newFromRelocatable(self.run_context.fp.*),
             else => CairoVMError.NoDst,
         };
     }
@@ -745,7 +745,7 @@ pub fn addOperands(
         // Add the felt to the relocatable's offset
         try reloc.addFeltInPlace(try felt_op.tryIntoFelt());
 
-        return relocatable.newFromRelocatable(reloc);
+        return MaybeRelocatable.newFromRelocatable(reloc);
     }
 
     // Add the felts and return as a new felt wrapped in a relocatable
@@ -789,7 +789,7 @@ pub fn subOperands(self: MaybeRelocatable, other: MaybeRelocatable) !MaybeReloca
         },
         .relocatable => |self_value| switch (other) {
             .felt => return error.TypeMismatchNotFelt,
-            .relocatable => |other_value| return relocatable.newFromRelocatable(
+            .relocatable => |other_value| return MaybeRelocatable.newFromRelocatable(
                 try self_value.sub(other_value),
             ),
         },
