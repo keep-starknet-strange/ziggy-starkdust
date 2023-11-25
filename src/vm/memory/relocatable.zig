@@ -571,16 +571,16 @@ pub const MaybeRelocatable = union(enum) {
     pub fn newFromRelocatable(relocatable: Relocatable) Self {
         return .{ .relocatable = relocatable };
     }
-};
 
-// Creates a new MaybeRelocatable from a field element.
-// # Arguments
-// - felt - The field element to create the MaybeRelocatable from.
-// # Returns
-// A new MaybeRelocatable.
-pub fn fromFelt(felt: Felt252) MaybeRelocatable {
-    return .{ .felt = felt };
-}
+    // Creates a new MaybeRelocatable from a field element.
+    // # Arguments
+    // - felt - The field element to create the MaybeRelocatable from.
+    // # Returns
+    // A new MaybeRelocatable.
+    pub fn fromFelt(felt: Felt252) Self {
+        return .{ .felt = felt };
+    }
+};
 
 // Creates a new MaybeRelocatable from a u256.
 // # Arguments
@@ -1208,7 +1208,7 @@ test "newFromRelocatable: should create a MaybeRelocatable from a Relocatable" {
 test "fromFelt: should create a MaybeRelocatable from a Felt" {
     try expectEqual(
         fromU256(10),
-        fromFelt(Felt252.fromInteger(10)),
+        MaybeRelocatable.fromFelt(Felt252.fromInteger(10)),
     );
 }
 

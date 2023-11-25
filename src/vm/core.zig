@@ -475,7 +475,7 @@ pub const CairoVM = struct {
                     };
                 } else if (dst_val.isFelt() and op1_val.isFelt() and !op1_val.felt.isZero()) {
                     return .{
-                        .op_0 = relocatable.fromFelt(try dst_val.felt.div(op1_val.felt)),
+                        .op_0 = MaybeRelocatable.fromFelt(try dst_val.felt.div(op1_val.felt)),
                         .res = dst_val,
                     };
                 }
@@ -749,7 +749,7 @@ pub fn addOperands(
     }
 
     // Add the felts and return as a new felt wrapped in a relocatable
-    return relocatable.fromFelt((try op_0.tryIntoFelt()).add(
+    return MaybeRelocatable.fromFelt((try op_0.tryIntoFelt()).add(
         try op_1.tryIntoFelt(),
     ));
 }
@@ -770,7 +770,7 @@ pub fn mulOperands(
     }
 
     // Multiply the felts and return as a new felt wrapped in a relocatable
-    return relocatable.fromFelt(
+    return MaybeRelocatable.fromFelt(
         (try op_0.tryIntoFelt()).mul(try op_1.tryIntoFelt()),
     );
 }
@@ -782,7 +782,7 @@ pub fn mulOperands(
 pub fn subOperands(self: MaybeRelocatable, other: MaybeRelocatable) !MaybeRelocatable {
     switch (self) {
         .felt => |self_value| switch (other) {
-            .felt => |other_value| return relocatable.fromFelt(
+            .felt => |other_value| return MaybeRelocatable.fromFelt(
                 self_value.sub(other_value),
             ),
             .relocatable => return error.TypeMismatchNotFelt,
@@ -827,7 +827,7 @@ pub fn deduceOp1(
         .Mul => {
             if (dst.* != null and op0.* != null and dst.*.?.isFelt() and op0.*.?.isFelt() and !op0.*.?.felt.isZero()) {
                 return .{
-                    .op_1 = relocatable.fromFelt(try dst.*.?.felt.div(op0.*.?.felt)),
+                    .op_1 = MaybeRelocatable.fromFelt(try dst.*.?.felt.div(op0.*.?.felt)),
                     .res = dst.*.?,
                 };
             }

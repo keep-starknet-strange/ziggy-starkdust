@@ -880,7 +880,7 @@ test "set get value in vm memory" {
     _ = vm.segments.addSegment();
 
     const address = Relocatable.new(1, 0);
-    const value = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(42));
+    const value = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(42));
 
     try memory.setUpMemory(
         vm.segments.memory,
@@ -915,8 +915,8 @@ test "compute res op1 works" {
     vm.run_context.ap.* = Relocatable.new(1, 0);
     // Test body
 
-    const value_op0 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
-    const value_op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
 
     const actual_res = try computeRes(&instruction, value_op0, value_op1);
     const expected_res = value_op1;
@@ -940,11 +940,11 @@ test "compute res add felts works" {
     vm.run_context.ap.* = Relocatable.new(1, 0);
     // Test body
 
-    const value_op0 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
-    const value_op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
 
     const actual_res = try computeRes(&instruction, value_op0, value_op1);
-    const expected_res = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(5));
+    const expected_res = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(5));
 
     // Test checks
     try expectEqual(
@@ -969,7 +969,7 @@ test "compute res add felt to offset works" {
     const value_op0 = Relocatable.new(1, 1);
     const op0 = MaybeRelocatable.newFromRelocatable(value_op0);
 
-    const op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
 
     const actual_res = try computeRes(&instruction, op0, op1);
     const res = Relocatable.new(1, 4);
@@ -1017,11 +1017,11 @@ test "compute res mul works" {
     vm.run_context.ap.* = Relocatable.new(1, 0);
     // Test body
 
-    const value_op0 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
-    const value_op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
 
     const actual_res = try computeRes(&instruction, value_op0, value_op1);
-    const expected_res = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(6));
+    const expected_res = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(6));
 
     // Test checks
     try expectEqual(
@@ -1066,7 +1066,7 @@ test "compute res mul fails felt and reloc" {
 
     const value_op0 = Relocatable.new(1, 0);
     const op0 = MaybeRelocatable.newFromRelocatable(value_op0);
-    const op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+    const op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
 
     // Test checks
     try expectError(error.MulRelocForbidden, computeRes(&instruction, op0, op1));
@@ -1085,8 +1085,8 @@ test "compute res Unconstrained should return null" {
     vm.run_context.ap.* = Relocatable.new(1, 0);
     // Test body
 
-    const value_op0 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
-    const value_op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
 
     const actual_res = try computeRes(&instruction, value_op0, value_op1);
     const expected_res: ?MaybeRelocatable = null;

@@ -321,9 +321,9 @@ test "set get integer value in segment memory" {
         -1,
         0,
     );
-    const value_1 = relocatable.fromFelt(Felt252.fromInteger(42));
+    const value_1 = MaybeRelocatable.fromFelt(Felt252.fromInteger(42));
 
-    const value_2 = relocatable.fromFelt(Felt252.fromInteger(84));
+    const value_2 = MaybeRelocatable.fromFelt(Felt252.fromInteger(84));
 
     try memoryFile.setUpMemory(
         memory_segment_manager.memory,
