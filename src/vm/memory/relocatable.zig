@@ -589,16 +589,16 @@ pub const MaybeRelocatable = union(enum) {
     pub fn fromU256(value: u256) Self {
         return .{ .felt = Felt252.fromInteger(value) };
     }
-};
 
-// Creates a new MaybeRelocatable from a u64.
-// # Arguments
-// - value - The u64 to create the MaybeRelocatable from.
-// # Returns
-// A new MaybeRelocatable.
-pub fn fromU64(value: u64) MaybeRelocatable {
-    return MaybeRelocatable.fromU256(@intCast(value));
-}
+    // Creates a new MaybeRelocatable from a u64.
+    // # Arguments
+    // - value - The u64 to create the MaybeRelocatable from.
+    // # Returns
+    // A new MaybeRelocatable.
+    pub fn fromU64(value: u64) Self {
+        return fromU256(@intCast(value));
+    }
+};
 
 // Creates a new MaybeRelocatable from a segment index and an offset.
 // # Arguments
@@ -1219,9 +1219,9 @@ test "MaybeRelocatable.fromU256: should create a MaybeRelocatable from a u256" {
     );
 }
 
-test "fromU64: should create a MaybeRelocatable from a u64" {
+test "MaybeRelocatable.fromU64: should create a MaybeRelocatable from a u64" {
     try expectEqual(
         MaybeRelocatable.fromU256(45),
-        fromU64(@intCast(45)),
+        MaybeRelocatable.fromU64(@intCast(45)),
     );
 }

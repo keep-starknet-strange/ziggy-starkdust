@@ -858,10 +858,10 @@ pub const OperandsResult = struct {
     /// Returns a default instance of the OperandsResult struct.
     pub fn default() Self {
         return .{
-            .dst = relocatable.fromU64(0),
-            .res = relocatable.fromU64(0),
-            .op_0 = relocatable.fromU64(0),
-            .op_1 = relocatable.fromU64(0),
+            .dst = MaybeRelocatable.fromU64(0),
+            .res = MaybeRelocatable.fromU64(0),
+            .op_0 = MaybeRelocatable.fromU64(0),
+            .op_1 = MaybeRelocatable.fromU64(0),
             .dst_addr = .{},
             .op_0_addr = .{},
             .op_1_addr = .{},
