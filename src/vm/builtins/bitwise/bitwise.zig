@@ -8,9 +8,6 @@ const memoryFile = @import("../../memory/memory.zig");
 const Memory = @import("../../memory/memory.zig").Memory;
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
-const fromFelt = @import("../../memory/relocatable.zig").fromFelt;
-const fromU256 = @import("../../memory/relocatable.zig").fromU256;
-const newFromRelocatable = @import("../../memory/relocatable.zig").newFromRelocatable;
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
 
 // *****************************************************************************
@@ -86,7 +83,7 @@ pub fn deduce(address: Relocatable, memory: *Memory) BitwiseError!MaybeRelocatab
         else => return BitwiseError.InvalidBitwiseIndex,
     };
 
-    return fromU256(res);
+    return MaybeRelocatable.fromU256(res);
 }
 
 // ************************************************************
@@ -186,7 +183,7 @@ test "valid bitwise and" {
     defer mem.deinitData(std.testing.allocator);
 
     const address = Relocatable.new(0, 7);
-    const expected = fromU256(8);
+    const expected = MaybeRelocatable.fromU256(8);
 
     // then
     const result = try deduce(address, mem);
@@ -216,7 +213,7 @@ test "valid bitwise xor" {
     defer mem.deinitData(std.testing.allocator);
 
     const address = Relocatable.new(0, 8);
-    const expected = fromU256(6);
+    const expected = MaybeRelocatable.fromU256(6);
 
     // then
     const result = try deduce(address, mem);
@@ -246,7 +243,7 @@ test "valid bitwise or" {
     defer mem.deinitData(std.testing.allocator);
 
     const address = Relocatable.new(0, 9);
-    const expected = fromU256(14);
+    const expected = MaybeRelocatable.fromU256(14);
 
     // then
     const result = try deduce(address, mem);
