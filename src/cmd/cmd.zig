@@ -114,7 +114,7 @@ fn execute(_: []const []const u8) !void {
         0,
         0,
     );
-    const encoded_instruction = relocatable.fromU64(0x14A7800080008000);
+    const encoded_instruction = relocatable.MaybeRelocatable.fromU64(0x14A7800080008000);
 
     // Write a value to memory.
     try vm.segments.memory.set(
