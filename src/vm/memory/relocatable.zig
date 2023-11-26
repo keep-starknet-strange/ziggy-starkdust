@@ -1047,46 +1047,70 @@ test "MaybeRelocatable: ge should work properly if two MaybeRelocatable are of s
 test "MaybeRelocatable: cmp should return proper order results for Relocatable comparisons" {
     try expectEqual(
         std.math.Order.eq,
-        fromSegment(4, 10).cmp(fromSegment(4, 10)),
+        MaybeRelocatable.fromSegment(4, 10).cmp(MaybeRelocatable.fromSegment(4, 10)),
     );
     try expectEqual(
         std.math.Order.lt,
-        fromSegment(4, 5).cmp(fromSegment(4, 10)),
+        MaybeRelocatable.fromSegment(4, 5).cmp(MaybeRelocatable.fromSegment(4, 10)),
     );
     try expectEqual(
         std.math.Order.gt,
-        fromSegment(4, 15).cmp(fromSegment(4, 10)),
+        MaybeRelocatable.fromSegment(4, 15).cmp(MaybeRelocatable.fromSegment(4, 10)),
     );
     try expectEqual(
         std.math.Order.lt,
-        fromSegment(2, 15).cmp(fromSegment(4, 10)),
+        MaybeRelocatable.fromSegment(2, 15).cmp(MaybeRelocatable.fromSegment(4, 10)),
     );
     try expectEqual(
         std.math.Order.gt,
-        fromSegment(20, 15).cmp(fromSegment(4, 10)),
+        MaybeRelocatable.fromSegment(20, 15).cmp(MaybeRelocatable.fromSegment(4, 10)),
     );
 }
 
 test "MaybeRelocatable: cmp should return Felt252 > Relocatable" {
     try expectEqual(
         std.math.Order.lt,
-        fromSegment(4, 10).cmp(fromU256(4)),
+        MaybeRelocatable.fromSegment(4, 10).cmp(MaybeRelocatable.fromU256(4)),
     );
     try expectEqual(
         std.math.Order.gt,
-        fromU256(4).cmp(fromSegment(4, 10)),
+        MaybeRelocatable.fromU256(4).cmp(MaybeRelocatable.fromSegment(4, 10)),
     );
 }
 
 test "MaybeRelocatable: cmp should return proper order results for Felt252 comparisons" {
-    try expectEqual(std.math.Order.lt, fromU256(10).cmp(fromU256(343535)));
-    try expectEqual(std.math.Order.lt, fromU256(433).cmp(fromU256(343535)));
-    try expectEqual(std.math.Order.gt, fromU256(543636535).cmp(fromU256(434)));
-    try expectEqual(std.math.Order.gt, fromU256(std.math.maxInt(u256)).cmp(fromU256(21313)));
-    try expectEqual(std.math.Order.eq, fromU256(10).cmp(fromU256(10)));
-    try expectEqual(std.math.Order.eq, fromU256(1).cmp(fromU256(1)));
-    try expectEqual(std.math.Order.eq, fromU256(0).cmp(fromU256(0)));
-    try expectEqual(std.math.Order.eq, fromU256(10).cmp(fromU256(10 + 0x800000000000011000000000000000000000000000000000000000000000001)));
+    try expectEqual(
+        std.math.Order.lt,
+        MaybeRelocatable.fromU256(10).cmp(MaybeRelocatable.fromU256(343535)),
+    );
+    try expectEqual(
+        std.math.Order.lt,
+        MaybeRelocatable.fromU256(433).cmp(MaybeRelocatable.fromU256(343535)),
+    );
+    try expectEqual(
+        std.math.Order.gt,
+        MaybeRelocatable.fromU256(543636535).cmp(MaybeRelocatable.fromU256(434)),
+    );
+    try expectEqual(
+        std.math.Order.gt,
+        MaybeRelocatable.fromU256(std.math.maxInt(u256)).cmp(MaybeRelocatable.fromU256(21313)),
+    );
+    try expectEqual(
+        std.math.Order.eq,
+        MaybeRelocatable.fromU256(10).cmp(MaybeRelocatable.fromU256(10)),
+    );
+    try expectEqual(
+        std.math.Order.eq,
+        MaybeRelocatable.fromU256(1).cmp(MaybeRelocatable.fromU256(1)),
+    );
+    try expectEqual(
+        std.math.Order.eq,
+        MaybeRelocatable.fromU256(0).cmp(MaybeRelocatable.fromU256(0)),
+    );
+    try expectEqual(
+        std.math.Order.eq,
+        MaybeRelocatable.fromU256(10).cmp(MaybeRelocatable.fromU256(10 + 0x800000000000011000000000000000000000000000000000000000000000001)),
+    );
 }
 
 test "MaybeRelocatable: tryIntoRelocatable should return Relocatable if MaybeRelocatable is Relocatable" {
