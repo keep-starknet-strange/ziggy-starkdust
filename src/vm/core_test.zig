@@ -27,8 +27,6 @@ const CairoVM = @import("core.zig").CairoVM;
 const computeRes = @import("core.zig").computeRes;
 const OperandsResult = @import("core.zig").OperandsResult;
 const deduceOp1 = @import("core.zig").deduceOp1;
-const fromU256 = @import("./memory/relocatable.zig").fromU256;
-const fromSegment = @import("./memory/relocatable.zig").fromSegment;
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -76,7 +74,7 @@ test "CairoVM: deduceMemoryCell builtin valid" {
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
     try expectEqual(
-        fromU256(8),
+        MaybeRelocatable.fromU256(8),
         (try vm.deduceMemoryCell(std.testing.allocator, Relocatable.new(
             0,
             7,
@@ -164,7 +162,7 @@ test "update pc jump with operands res not relocatable" {
     var instruction = defaultTestInstruction;
     instruction.pc_update = .Jump;
     var operands = OperandsResult.default();
-    operands.res = relocatable.fromU64(0);
+    operands.res = MaybeRelocatable.fromU64(0);
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -182,7 +180,7 @@ test "update pc jump with operands res relocatable" {
     var instruction = defaultTestInstruction;
     instruction.pc_update = .Jump;
     var operands = OperandsResult.default();
-    operands.res = relocatable.newFromRelocatable(Relocatable.new(
+    operands.res = MaybeRelocatable.fromRelocatable(Relocatable.new(
         0,
         42,
     ));
@@ -231,7 +229,7 @@ test "update pc jump rel with operands res not felt" {
     var instruction = defaultTestInstruction;
     instruction.pc_update = .JumpRel;
     var operands = OperandsResult.default();
-    operands.res = relocatable.newFromRelocatable(Relocatable.new(
+    operands.res = MaybeRelocatable.fromRelocatable(Relocatable.new(
         0,
         42,
     ));
@@ -252,7 +250,7 @@ test "update pc jump rel with operands res felt" {
     var instruction = defaultTestInstruction;
     instruction.pc_update = .JumpRel;
     var operands = OperandsResult.default();
-    operands.res = relocatable.fromU64(42);
+    operands.res = MaybeRelocatable.fromU64(42);
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -280,7 +278,7 @@ test "update pc update jnz with operands dst zero" {
     var instruction = defaultTestInstruction;
     instruction.pc_update = .Jnz;
     var operands = OperandsResult.default();
-    operands.dst = relocatable.fromU64(0);
+    operands.dst = MaybeRelocatable.fromU64(0);
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -308,8 +306,8 @@ test "update pc update jnz with operands dst not zero op1 not felt" {
     var instruction = defaultTestInstruction;
     instruction.pc_update = .Jnz;
     var operands = OperandsResult.default();
-    operands.dst = relocatable.fromU64(1);
-    operands.op_1 = relocatable.newFromRelocatable(Relocatable.new(
+    operands.dst = MaybeRelocatable.fromU64(1);
+    operands.op_1 = MaybeRelocatable.fromRelocatable(Relocatable.new(
         0,
         42,
     ));
@@ -333,8 +331,8 @@ test "update pc update jnz with operands dst not zero op1 felt" {
     var instruction = defaultTestInstruction;
     instruction.pc_update = .Jnz;
     var operands = OperandsResult.default();
-    operands.dst = relocatable.fromU64(1);
-    operands.op_1 = relocatable.fromU64(42);
+    operands.dst = MaybeRelocatable.fromU64(1);
+    operands.op_1 = MaybeRelocatable.fromU64(42);
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -464,7 +462,7 @@ test "update fp dst relocatable" {
     var instruction = defaultTestInstruction;
     instruction.fp_update = .Dst;
     var operands = OperandsResult.default();
-    operands.dst = relocatable.newFromRelocatable(Relocatable.new(
+    operands.dst = MaybeRelocatable.fromRelocatable(Relocatable.new(
         0,
         42,
     ));
@@ -496,7 +494,7 @@ test "update fp dst felt" {
     var instruction = defaultTestInstruction;
     instruction.fp_update = .Dst;
     var operands = OperandsResult.default();
-    operands.dst = relocatable.fromU64(42);
+    operands.dst = MaybeRelocatable.fromU64(42);
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -602,7 +600,7 @@ test "deduceOp0 when opcode == .Call" {
     const deduceOp0 = try vm.deduceOp0(&instr, &null, &null);
 
     // Test checks
-    const expected_op_0: ?MaybeRelocatable = relocatable.newFromRelocatable(Relocatable.new(0, 1)); // temp var needed for type inference
+    const expected_op_0: ?MaybeRelocatable = MaybeRelocatable.fromRelocatable(Relocatable.new(0, 1)); // temp var needed for type inference
     const expected_res: ?MaybeRelocatable = null;
     try expectEqual(expected_op_0, deduceOp0.op_0);
     try expectEqual(expected_res, deduceOp0.res);
@@ -618,14 +616,14 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Add, input is felt" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Add;
 
-    const dst: ?MaybeRelocatable = relocatable.fromU64(3);
-    const op1: ?MaybeRelocatable = relocatable.fromU64(2);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(3);
+    const op1: ?MaybeRelocatable = MaybeRelocatable.fromU64(2);
 
     const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
     // Test checks
-    try expect(deduceOp0.op_0.?.eq(relocatable.fromU64(1)));
-    try expect(deduceOp0.res.?.eq(relocatable.fromU64(3)));
+    try expect(deduceOp0.op_0.?.eq(MaybeRelocatable.fromU64(1)));
+    try expect(deduceOp0.res.?.eq(MaybeRelocatable.fromU64(3)));
 }
 
 test "deduceOp0 when opcode == .AssertEq, res_logic == .Add, with no input" {
@@ -657,14 +655,14 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Mul, input is felt 1" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Mul;
 
-    const dst: ?MaybeRelocatable = relocatable.fromU64(4);
-    const op1: ?MaybeRelocatable = relocatable.fromU64(2);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(4);
+    const op1: ?MaybeRelocatable = MaybeRelocatable.fromU64(2);
 
     const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
     // Test checks
-    const expected_op_0: ?MaybeRelocatable = relocatable.fromU64(2); // temp var needed for type inference
-    const expected_res: ?MaybeRelocatable = relocatable.fromU64(4);
+    const expected_op_0: ?MaybeRelocatable = MaybeRelocatable.fromU64(2); // temp var needed for type inference
+    const expected_res: ?MaybeRelocatable = MaybeRelocatable.fromU64(4);
     try expectEqual(expected_op_0, deduceOp0.op_0);
     try expectEqual(expected_res, deduceOp0.res);
 }
@@ -679,8 +677,8 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Op1, input is felt" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
-    const dst: ?MaybeRelocatable = relocatable.fromU64(4);
-    const op1: ?MaybeRelocatable = relocatable.fromU64(0);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(4);
+    const op1: ?MaybeRelocatable = MaybeRelocatable.fromU64(0);
 
     const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
@@ -701,8 +699,8 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Mul, input is felt 2" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Mul;
 
-    const dst: ?MaybeRelocatable = relocatable.fromU64(4);
-    const op1: ?MaybeRelocatable = relocatable.fromU64(0);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(4);
+    const op1: ?MaybeRelocatable = MaybeRelocatable.fromU64(0);
 
     const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
@@ -723,8 +721,8 @@ test "deduceOp0 when opcode == .Ret, res_logic == .Mul, input is felt" {
     instr.opcode = .Ret;
     instr.res_logic = .Mul;
 
-    const dst: ?MaybeRelocatable = relocatable.fromU64(4);
-    const op1: ?MaybeRelocatable = relocatable.fromU64(0);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(4);
+    const op1: ?MaybeRelocatable = MaybeRelocatable.fromU64(0);
 
     const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
@@ -761,14 +759,14 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Add, input is felt" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Add;
 
-    const dst: ?MaybeRelocatable = relocatable.fromU64(3);
-    const op0: ?MaybeRelocatable = relocatable.fromU64(2);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(3);
+    const op0: ?MaybeRelocatable = MaybeRelocatable.fromU64(2);
 
     const op1Deduction = try deduceOp1(&instr, &dst, &op0);
 
     // Test checks
-    try expect(op1Deduction.op_1.?.eq(relocatable.fromU64(1)));
-    try expect(op1Deduction.res.?.eq(relocatable.fromU64(3)));
+    try expect(op1Deduction.op_1.?.eq(MaybeRelocatable.fromU64(1)));
+    try expect(op1Deduction.res.?.eq(MaybeRelocatable.fromU64(3)));
 }
 
 test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, non-zero op0" {
@@ -780,14 +778,14 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, non-zero op0" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Mul;
 
-    const dst: ?MaybeRelocatable = relocatable.fromU64(4);
-    const op0: ?MaybeRelocatable = relocatable.fromU64(2);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(4);
+    const op0: ?MaybeRelocatable = MaybeRelocatable.fromU64(2);
 
     const op1Deduction = try deduceOp1(&instr, &dst, &op0);
 
     // Test checks
-    try expect(op1Deduction.op_1.?.eq(relocatable.fromU64(2)));
-    try expect(op1Deduction.res.?.eq(relocatable.fromU64(4)));
+    try expect(op1Deduction.op_1.?.eq(MaybeRelocatable.fromU64(2)));
+    try expect(op1Deduction.res.?.eq(MaybeRelocatable.fromU64(4)));
 }
 
 test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
@@ -799,8 +797,8 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Mul;
 
-    const dst: ?MaybeRelocatable = relocatable.fromU64(4);
-    const op0: ?MaybeRelocatable = relocatable.fromU64(0);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(4);
+    const op0: ?MaybeRelocatable = MaybeRelocatable.fromU64(0);
 
     const op1Deduction = try deduceOp1(&instr, &dst, &op0);
 
@@ -838,7 +836,7 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
-    const op0: ?MaybeRelocatable = relocatable.fromU64(0);
+    const op0: ?MaybeRelocatable = MaybeRelocatable.fromU64(0);
 
     const op1Deduction = try deduceOp1(&instr, &null, &op0);
 
@@ -858,13 +856,13 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no op0" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
-    const dst: ?MaybeRelocatable = relocatable.fromU64(7);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(7);
 
     const op1Deduction = try deduceOp1(&instr, &dst, &null);
 
     // Test checks
-    try expect(op1Deduction.op_1.?.eq(relocatable.fromU64(7)));
-    try expect(op1Deduction.res.?.eq(relocatable.fromU64(7)));
+    try expect(op1Deduction.op_1.?.eq(MaybeRelocatable.fromU64(7)));
+    try expect(op1Deduction.res.?.eq(MaybeRelocatable.fromU64(7)));
 }
 
 test "set get value in vm memory" {
@@ -880,7 +878,7 @@ test "set get value in vm memory" {
     _ = vm.segments.addSegment();
 
     const address = Relocatable.new(1, 0);
-    const value = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(42));
+    const value = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(42));
 
     try memory.setUpMemory(
         vm.segments.memory,
@@ -915,8 +913,8 @@ test "compute res op1 works" {
     vm.run_context.ap.* = Relocatable.new(1, 0);
     // Test body
 
-    const value_op0 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
-    const value_op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
 
     const actual_res = try computeRes(&instruction, value_op0, value_op1);
     const expected_res = value_op1;
@@ -940,11 +938,11 @@ test "compute res add felts works" {
     vm.run_context.ap.* = Relocatable.new(1, 0);
     // Test body
 
-    const value_op0 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
-    const value_op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
 
     const actual_res = try computeRes(&instruction, value_op0, value_op1);
-    const expected_res = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(5));
+    const expected_res = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(5));
 
     // Test checks
     try expectEqual(
@@ -967,13 +965,13 @@ test "compute res add felt to offset works" {
     // Test body
 
     const value_op0 = Relocatable.new(1, 1);
-    const op0 = relocatable.newFromRelocatable(value_op0);
+    const op0 = MaybeRelocatable.fromRelocatable(value_op0);
 
-    const op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
 
     const actual_res = try computeRes(&instruction, op0, op1);
     const res = Relocatable.new(1, 4);
-    const expected_res = relocatable.newFromRelocatable(res);
+    const expected_res = MaybeRelocatable.fromRelocatable(res);
 
     // Test checks
     try expectEqual(
@@ -996,8 +994,8 @@ test "compute res add fails two relocs" {
     const value_op0 = Relocatable.new(1, 0);
     const value_op1 = Relocatable.new(1, 1);
 
-    const op0 = relocatable.newFromRelocatable(value_op0);
-    const op1 = relocatable.newFromRelocatable(value_op1);
+    const op0 = MaybeRelocatable.fromRelocatable(value_op0);
+    const op1 = MaybeRelocatable.fromRelocatable(value_op1);
 
     // Test checks
     try expectError(error.AddRelocToRelocForbidden, computeRes(&instruction, op0, op1));
@@ -1017,11 +1015,11 @@ test "compute res mul works" {
     vm.run_context.ap.* = Relocatable.new(1, 0);
     // Test body
 
-    const value_op0 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
-    const value_op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
 
     const actual_res = try computeRes(&instruction, value_op0, value_op1);
-    const expected_res = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(6));
+    const expected_res = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(6));
 
     // Test checks
     try expectEqual(
@@ -1045,8 +1043,8 @@ test "compute res mul fails two relocs" {
     const value_op0 = Relocatable.new(1, 0);
     const value_op1 = Relocatable.new(1, 1);
 
-    const op0 = relocatable.newFromRelocatable(value_op0);
-    const op1 = relocatable.newFromRelocatable(value_op1);
+    const op0 = MaybeRelocatable.fromRelocatable(value_op0);
+    const op1 = MaybeRelocatable.fromRelocatable(value_op1);
 
     // Test checks
     try expectError(error.MulRelocForbidden, computeRes(&instruction, op0, op1));
@@ -1065,8 +1063,8 @@ test "compute res mul fails felt and reloc" {
     // Test body
 
     const value_op0 = Relocatable.new(1, 0);
-    const op0 = relocatable.newFromRelocatable(value_op0);
-    const op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+    const op0 = MaybeRelocatable.fromRelocatable(value_op0);
+    const op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
 
     // Test checks
     try expectError(error.MulRelocForbidden, computeRes(&instruction, op0, op1));
@@ -1085,8 +1083,8 @@ test "compute res Unconstrained should return null" {
     vm.run_context.ap.* = Relocatable.new(1, 0);
     // Test body
 
-    const value_op0 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
-    const value_op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
 
     const actual_res = try computeRes(&instruction, value_op0, value_op1);
     const expected_res: ?MaybeRelocatable = null;
@@ -1374,7 +1372,7 @@ test "CairoVM: computeOp0Deductions should return op0 from deduceOp0 if deduceMe
 
     // Test check
     try expectEqual(
-        fromSegment(0, 1),
+        MaybeRelocatable.fromSegment(0, 1),
         try vm.computeOp0Deductions(
             std.testing.allocator,
             Relocatable.new(0, 7),
@@ -1410,7 +1408,7 @@ test "CairoVM: computeOp0Deductions with a valid built in and non null deduceMem
 
     // Test check
     try expectEqual(
-        fromU256(8),
+        MaybeRelocatable.fromU256(8),
         try vm.computeOp0Deductions(
             std.testing.allocator,
             Relocatable.new(0, 7),
@@ -1437,8 +1435,8 @@ test "CairoVM: computeOp0Deductions should return VM error if deduceOp0 and dedu
             std.testing.allocator,
             Relocatable.new(0, 7),
             &instr,
-            &relocatable.fromU64(4),
-            &relocatable.fromU64(0),
+            &MaybeRelocatable.fromU64(4),
+            &MaybeRelocatable.fromU64(0),
         ),
     );
 }
@@ -1459,7 +1457,7 @@ test "CairoVM: computeSegmentsEffectiveSizes should return the computed effectiv
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    var actual = try vm.computeSegmentsEffectiveSizes();
+    var actual = try vm.computeSegmentsEffectiveSizes(false);
 
     try expectEqual(@as(usize, 1), actual.count());
     try expectEqual(@as(u32, 3), actual.get(0).?);
@@ -1473,11 +1471,11 @@ test "CairoVM: deduceDst should return res if AssertEq opcode" {
     var instruction = testInstruction;
     instruction.opcode = .AssertEq;
 
-    const res = fromU256(7);
+    const res = MaybeRelocatable.fromU256(7);
 
     // Test check
     try expectEqual(
-        fromU256(7),
+        MaybeRelocatable.fromU256(7),
         try vm.deduceDst(&instruction, res),
     );
 }
@@ -1508,7 +1506,7 @@ test "CairoVM: deduceDst should return fp Relocatable if Call opcode" {
 
     // Test check
     try expectEqual(
-        fromSegment(3, 23),
+        MaybeRelocatable.fromSegment(3, 23),
         try vm.deduceDst(&instruction, null),
     );
 }
@@ -1584,7 +1582,7 @@ test "CairoVM: getRelocatable with value should return a MaybeRelocatable" {
 
     // Test check
     try expectEqual(
-        fromU256(5),
+        MaybeRelocatable.fromU256(5),
         (try vm.getRelocatable(Relocatable.new(34, 12))).?,
     );
 }
@@ -1742,7 +1740,7 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceMemoryCell if n
 
     // Test check
     try expectEqual(
-        fromU256(8),
+        MaybeRelocatable.fromU256(8),
         try vm.computeOp1Deductions(
             std.testing.allocator,
             Relocatable.new(0, 7),
@@ -1763,12 +1761,12 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceOp1 if deduceMe
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
-    const dst: ?MaybeRelocatable = relocatable.fromU64(7);
-    var res: ?MaybeRelocatable = relocatable.fromU64(7);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(7);
+    var res: ?MaybeRelocatable = MaybeRelocatable.fromU64(7);
 
     // Test check
     try expectEqual(
-        relocatable.fromU64(7),
+        MaybeRelocatable.fromU64(7),
         try vm.computeOp1Deductions(
             std.testing.allocator,
             Relocatable.new(0, 7),
@@ -1789,7 +1787,7 @@ test "CairoVM: computeOp1Deductions should modify res (if null) using res from d
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
-    const dst: ?MaybeRelocatable = relocatable.fromU64(7);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(7);
     var res: ?MaybeRelocatable = null;
 
     _ = try vm.computeOp1Deductions(
@@ -1803,7 +1801,7 @@ test "CairoVM: computeOp1Deductions should modify res (if null) using res from d
 
     // Test check
     try expectEqual(
-        relocatable.fromU64(7),
+        MaybeRelocatable.fromU64(7),
         res.?,
     );
 }
@@ -1817,7 +1815,7 @@ test "CairoVM: computeOp1Deductions should return CairoVMError error if deduceMe
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
-    const op0: ?MaybeRelocatable = relocatable.fromU64(0);
+    const op0: ?MaybeRelocatable = MaybeRelocatable.fromU64(0);
     var res: ?MaybeRelocatable = null;
 
     // Test check
@@ -1851,7 +1849,7 @@ test "CairoVM: core utility function for testing test" {
     );
     defer cairo_vm.segments.memory.deinitData(std.testing.allocator);
 
-    var actual = try cairo_vm.computeSegmentsEffectiveSizes();
+    var actual = try cairo_vm.computeSegmentsEffectiveSizes(false);
 
     try expectEqual(@as(usize, 1), actual.count());
     try expectEqual(@as(u32, 3), actual.get(0).?);
