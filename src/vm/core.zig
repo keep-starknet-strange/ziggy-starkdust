@@ -461,7 +461,7 @@ pub const CairoVM = struct {
         switch (inst.opcode) {
             .Call => {
                 return .{
-                    .op_0 = relocatable.newFromRelocatable(try self.run_context.pc.addUint(inst.size())),
+                    .op_0 = MaybeRelocatable.fromRelocatable(try self.run_context.pc.addUint(inst.size())),
                     .res = null,
                 };
             },
@@ -475,7 +475,7 @@ pub const CairoVM = struct {
                     };
                 } else if (dst_val.isFelt() and op1_val.isFelt() and !op1_val.felt.isZero()) {
                     return .{
-                        .op_0 = relocatable.fromFelt(try dst_val.felt.div(op1_val.felt)),
+                        .op_0 = MaybeRelocatable.fromFelt(try dst_val.felt.div(op1_val.felt)),
                         .res = dst_val,
                     };
                 }
@@ -650,7 +650,7 @@ pub const CairoVM = struct {
                     return CairoVMError.NoDst;
                 }
             },
-            .Call => relocatable.newFromRelocatable(self.run_context.fp.*),
+            .Call => MaybeRelocatable.fromRelocatable(self.run_context.fp.*),
             else => CairoVMError.NoDst,
         };
     }
@@ -745,11 +745,11 @@ pub fn addOperands(
         // Add the felt to the relocatable's offset
         try reloc.addFeltInPlace(try felt_op.tryIntoFelt());
 
-        return relocatable.newFromRelocatable(reloc);
+        return MaybeRelocatable.fromRelocatable(reloc);
     }
 
     // Add the felts and return as a new felt wrapped in a relocatable
-    return relocatable.fromFelt((try op_0.tryIntoFelt()).add(
+    return MaybeRelocatable.fromFelt((try op_0.tryIntoFelt()).add(
         try op_1.tryIntoFelt(),
     ));
 }
@@ -770,7 +770,7 @@ pub fn mulOperands(
     }
 
     // Multiply the felts and return as a new felt wrapped in a relocatable
-    return relocatable.fromFelt(
+    return MaybeRelocatable.fromFelt(
         (try op_0.tryIntoFelt()).mul(try op_1.tryIntoFelt()),
     );
 }
@@ -782,14 +782,14 @@ pub fn mulOperands(
 pub fn subOperands(self: MaybeRelocatable, other: MaybeRelocatable) !MaybeRelocatable {
     switch (self) {
         .felt => |self_value| switch (other) {
-            .felt => |other_value| return relocatable.fromFelt(
+            .felt => |other_value| return MaybeRelocatable.fromFelt(
                 self_value.sub(other_value),
             ),
             .relocatable => return error.TypeMismatchNotFelt,
         },
         .relocatable => |self_value| switch (other) {
             .felt => return error.TypeMismatchNotFelt,
-            .relocatable => |other_value| return relocatable.newFromRelocatable(
+            .relocatable => |other_value| return MaybeRelocatable.fromRelocatable(
                 try self_value.sub(other_value),
             ),
         },
@@ -827,7 +827,7 @@ pub fn deduceOp1(
         .Mul => {
             if (dst.* != null and op0.* != null and dst.*.?.isFelt() and op0.*.?.isFelt() and !op0.*.?.felt.isZero()) {
                 return .{
-                    .op_1 = relocatable.fromFelt(try dst.*.?.felt.div(op0.*.?.felt)),
+                    .op_1 = MaybeRelocatable.fromFelt(try dst.*.?.felt.div(op0.*.?.felt)),
                     .res = dst.*.?,
                 };
             }
@@ -858,10 +858,10 @@ pub const OperandsResult = struct {
     /// Returns a default instance of the OperandsResult struct.
     pub fn default() Self {
         return .{
-            .dst = relocatable.fromU64(0),
-            .res = relocatable.fromU64(0),
-            .op_0 = relocatable.fromU64(0),
-            .op_1 = relocatable.fromU64(0),
+            .dst = MaybeRelocatable.fromU64(0),
+            .res = MaybeRelocatable.fromU64(0),
+            .op_0 = MaybeRelocatable.fromU64(0),
+            .op_1 = MaybeRelocatable.fromU64(0),
             .dst_addr = .{},
             .op_0_addr = .{},
             .op_1_addr = .{},
