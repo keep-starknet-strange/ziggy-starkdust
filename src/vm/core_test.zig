@@ -1459,7 +1459,7 @@ test "CairoVM: computeSegmentsEffectiveSizes should return the computed effectiv
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    var actual = try vm.computeSegmentsEffectiveSizes();
+    var actual = try vm.computeSegmentsEffectiveSizes(false);
 
     try expectEqual(@as(usize, 1), actual.count());
     try expectEqual(@as(u32, 3), actual.get(0).?);
@@ -1851,7 +1851,7 @@ test "CairoVM: core utility function for testing test" {
     );
     defer cairo_vm.segments.memory.deinitData(std.testing.allocator);
 
-    var actual = try cairo_vm.computeSegmentsEffectiveSizes();
+    var actual = try cairo_vm.computeSegmentsEffectiveSizes(false);
 
     try expectEqual(@as(usize, 1), actual.count());
     try expectEqual(@as(u32, 3), actual.get(0).?);
