@@ -27,13 +27,14 @@ const CairoVM = @import("core.zig").CairoVM;
 const computeRes = @import("core.zig").computeRes;
 const OperandsResult = @import("core.zig").OperandsResult;
 const deduceOp1 = @import("core.zig").deduceOp1;
-const fromU256 = @import("./memory/relocatable.zig").fromU256;
-const fromSegment = @import("./memory/relocatable.zig").fromSegment;
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
 const expectEqualSlices = std.testing.expectEqualSlices;
+
+// Default Test Instruction to avoid having to initialize it in every test
+const defaultTestInstruction = Instruction.default();
 
 test "CairoVM: deduceMemoryCell no builtin" {
     var vm = try CairoVM.init(
@@ -73,7 +74,7 @@ test "CairoVM: deduceMemoryCell builtin valid" {
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
     try expectEqual(
-        fromU256(8),
+        MaybeRelocatable.fromU256(8),
         (try vm.deduceMemoryCell(std.testing.allocator, Relocatable.new(
             0,
             7,
@@ -84,7 +85,7 @@ test "CairoVM: deduceMemoryCell builtin valid" {
 test "update pc regular no imm" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = defaultTestInstruction;
     instruction.pc_update = .Regular;
     instruction.op_1_addr = .AP;
     const operands = OperandsResult.default();
@@ -112,7 +113,7 @@ test "update pc regular no imm" {
 test "update pc regular with imm" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = defaultTestInstruction;
     instruction.pc_update = .Regular;
     instruction.op_1_addr = .Imm;
     const operands = OperandsResult.default();
@@ -140,7 +141,7 @@ test "update pc regular with imm" {
 test "update pc jump with operands res null" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = defaultTestInstruction;
     instruction.pc_update = .Jump;
     var operands = OperandsResult.default();
     operands.res = null;
@@ -158,10 +159,10 @@ test "update pc jump with operands res null" {
 test "update pc jump with operands res not relocatable" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = defaultTestInstruction;
     instruction.pc_update = .Jump;
     var operands = OperandsResult.default();
-    operands.res = relocatable.fromU64(0);
+    operands.res = MaybeRelocatable.fromU64(0);
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -176,10 +177,10 @@ test "update pc jump with operands res not relocatable" {
 test "update pc jump with operands res relocatable" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = defaultTestInstruction;
     instruction.pc_update = .Jump;
     var operands = OperandsResult.default();
-    operands.res = relocatable.newFromRelocatable(Relocatable.new(
+    operands.res = MaybeRelocatable.fromRelocatable(Relocatable.new(
         0,
         42,
     ));
@@ -207,7 +208,7 @@ test "update pc jump with operands res relocatable" {
 test "update pc jump rel with operands res null" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = defaultTestInstruction;
     instruction.pc_update = .JumpRel;
     var operands = OperandsResult.default();
     operands.res = null;
@@ -225,10 +226,10 @@ test "update pc jump rel with operands res null" {
 test "update pc jump rel with operands res not felt" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = defaultTestInstruction;
     instruction.pc_update = .JumpRel;
     var operands = OperandsResult.default();
-    operands.res = relocatable.newFromRelocatable(Relocatable.new(
+    operands.res = MaybeRelocatable.fromRelocatable(Relocatable.new(
         0,
         42,
     ));
@@ -246,10 +247,10 @@ test "update pc jump rel with operands res not felt" {
 test "update pc jump rel with operands res felt" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = defaultTestInstruction;
     instruction.pc_update = .JumpRel;
     var operands = OperandsResult.default();
-    operands.res = relocatable.fromU64(42);
+    operands.res = MaybeRelocatable.fromU64(42);
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -274,10 +275,10 @@ test "update pc jump rel with operands res felt" {
 test "update pc update jnz with operands dst zero" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = defaultTestInstruction;
     instruction.pc_update = .Jnz;
     var operands = OperandsResult.default();
-    operands.dst = relocatable.fromU64(0);
+    operands.dst = MaybeRelocatable.fromU64(0);
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -302,11 +303,11 @@ test "update pc update jnz with operands dst zero" {
 test "update pc update jnz with operands dst not zero op1 not felt" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = defaultTestInstruction;
     instruction.pc_update = .Jnz;
     var operands = OperandsResult.default();
-    operands.dst = relocatable.fromU64(1);
-    operands.op_1 = relocatable.newFromRelocatable(Relocatable.new(
+    operands.dst = MaybeRelocatable.fromU64(1);
+    operands.op_1 = MaybeRelocatable.fromRelocatable(Relocatable.new(
         0,
         42,
     ));
@@ -327,11 +328,11 @@ test "update pc update jnz with operands dst not zero op1 not felt" {
 test "update pc update jnz with operands dst not zero op1 felt" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = defaultTestInstruction;
     instruction.pc_update = .Jnz;
     var operands = OperandsResult.default();
-    operands.dst = relocatable.fromU64(1);
-    operands.op_1 = relocatable.fromU64(42);
+    operands.dst = MaybeRelocatable.fromU64(1);
+    operands.op_1 = MaybeRelocatable.fromU64(42);
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -356,7 +357,7 @@ test "update pc update jnz with operands dst not zero op1 felt" {
 test "update ap add with operands res unconstrained" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = defaultTestInstruction;
     instruction.ap_update = .Add;
     var operands = OperandsResult.default();
     operands.res = null; // Simulate unconstrained res
@@ -374,7 +375,7 @@ test "update ap add with operands res unconstrained" {
 test "update ap add1" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = defaultTestInstruction;
     instruction.ap_update = .Add1;
     const operands = OperandsResult.default();
     // Create a new VM instance.
@@ -402,7 +403,7 @@ test "update ap add1" {
 test "update ap add2" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = defaultTestInstruction;
     instruction.ap_update = .Add2;
     const operands = OperandsResult.default();
     // Create a new VM instance.
@@ -430,7 +431,7 @@ test "update ap add2" {
 test "update fp appplus2" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = defaultTestInstruction;
     instruction.fp_update = .APPlus2;
     const operands = OperandsResult.default();
     // Create a new VM instance.
@@ -458,10 +459,10 @@ test "update fp appplus2" {
 test "update fp dst relocatable" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = defaultTestInstruction;
     instruction.fp_update = .Dst;
     var operands = OperandsResult.default();
-    operands.dst = relocatable.newFromRelocatable(Relocatable.new(
+    operands.dst = MaybeRelocatable.fromRelocatable(Relocatable.new(
         0,
         42,
     ));
@@ -490,10 +491,10 @@ test "update fp dst relocatable" {
 test "update fp dst felt" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction.default();
+    var instruction = defaultTestInstruction;
     instruction.fp_update = .Dst;
     var operands = OperandsResult.default();
-    operands.dst = relocatable.fromU64(42);
+    operands.dst = MaybeRelocatable.fromU64(42);
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -573,6 +574,20 @@ const deduceOpTestInstr = Instruction{
     .opcode = .Call,
 };
 
+const testInstruction = Instruction{
+    .off_0 = 0,
+    .off_1 = 1,
+    .off_2 = 2,
+    .dst_reg = .AP,
+    .op_0_reg = .AP,
+    .op_1_addr = .AP,
+    .res_logic = .Add,
+    .pc_update = .Regular,
+    .ap_update = .Regular,
+    .fp_update = .Regular,
+    .opcode = .NOp,
+};
+
 test "deduceOp0 when opcode == .Call" {
     // Setup test context
     var vm = try CairoVM.init(std.testing.allocator, .{});
@@ -585,7 +600,7 @@ test "deduceOp0 when opcode == .Call" {
     const deduceOp0 = try vm.deduceOp0(&instr, &null, &null);
 
     // Test checks
-    const expected_op_0: ?MaybeRelocatable = relocatable.newFromRelocatable(Relocatable.new(0, 1)); // temp var needed for type inference
+    const expected_op_0: ?MaybeRelocatable = MaybeRelocatable.fromRelocatable(Relocatable.new(0, 1)); // temp var needed for type inference
     const expected_res: ?MaybeRelocatable = null;
     try expectEqual(expected_op_0, deduceOp0.op_0);
     try expectEqual(expected_res, deduceOp0.res);
@@ -601,14 +616,14 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Add, input is felt" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Add;
 
-    const dst: ?MaybeRelocatable = relocatable.fromU64(3);
-    const op1: ?MaybeRelocatable = relocatable.fromU64(2);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(3);
+    const op1: ?MaybeRelocatable = MaybeRelocatable.fromU64(2);
 
     const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
     // Test checks
-    try expect(deduceOp0.op_0.?.eq(relocatable.fromU64(1)));
-    try expect(deduceOp0.res.?.eq(relocatable.fromU64(3)));
+    try expect(deduceOp0.op_0.?.eq(MaybeRelocatable.fromU64(1)));
+    try expect(deduceOp0.res.?.eq(MaybeRelocatable.fromU64(3)));
 }
 
 test "deduceOp0 when opcode == .AssertEq, res_logic == .Add, with no input" {
@@ -640,14 +655,14 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Mul, input is felt 1" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Mul;
 
-    const dst: ?MaybeRelocatable = relocatable.fromU64(4);
-    const op1: ?MaybeRelocatable = relocatable.fromU64(2);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(4);
+    const op1: ?MaybeRelocatable = MaybeRelocatable.fromU64(2);
 
     const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
     // Test checks
-    const expected_op_0: ?MaybeRelocatable = relocatable.fromU64(2); // temp var needed for type inference
-    const expected_res: ?MaybeRelocatable = relocatable.fromU64(4);
+    const expected_op_0: ?MaybeRelocatable = MaybeRelocatable.fromU64(2); // temp var needed for type inference
+    const expected_res: ?MaybeRelocatable = MaybeRelocatable.fromU64(4);
     try expectEqual(expected_op_0, deduceOp0.op_0);
     try expectEqual(expected_res, deduceOp0.res);
 }
@@ -662,8 +677,8 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Op1, input is felt" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
-    const dst: ?MaybeRelocatable = relocatable.fromU64(4);
-    const op1: ?MaybeRelocatable = relocatable.fromU64(0);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(4);
+    const op1: ?MaybeRelocatable = MaybeRelocatable.fromU64(0);
 
     const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
@@ -684,8 +699,8 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Mul, input is felt 2" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Mul;
 
-    const dst: ?MaybeRelocatable = relocatable.fromU64(4);
-    const op1: ?MaybeRelocatable = relocatable.fromU64(0);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(4);
+    const op1: ?MaybeRelocatable = MaybeRelocatable.fromU64(0);
 
     const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
@@ -706,8 +721,8 @@ test "deduceOp0 when opcode == .Ret, res_logic == .Mul, input is felt" {
     instr.opcode = .Ret;
     instr.res_logic = .Mul;
 
-    const dst: ?MaybeRelocatable = relocatable.fromU64(4);
-    const op1: ?MaybeRelocatable = relocatable.fromU64(0);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(4);
+    const op1: ?MaybeRelocatable = MaybeRelocatable.fromU64(0);
 
     const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
@@ -744,14 +759,14 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Add, input is felt" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Add;
 
-    const dst: ?MaybeRelocatable = relocatable.fromU64(3);
-    const op0: ?MaybeRelocatable = relocatable.fromU64(2);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(3);
+    const op0: ?MaybeRelocatable = MaybeRelocatable.fromU64(2);
 
     const op1Deduction = try deduceOp1(&instr, &dst, &op0);
 
     // Test checks
-    try expect(op1Deduction.op_1.?.eq(relocatable.fromU64(1)));
-    try expect(op1Deduction.res.?.eq(relocatable.fromU64(3)));
+    try expect(op1Deduction.op_1.?.eq(MaybeRelocatable.fromU64(1)));
+    try expect(op1Deduction.res.?.eq(MaybeRelocatable.fromU64(3)));
 }
 
 test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, non-zero op0" {
@@ -763,14 +778,14 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, non-zero op0" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Mul;
 
-    const dst: ?MaybeRelocatable = relocatable.fromU64(4);
-    const op0: ?MaybeRelocatable = relocatable.fromU64(2);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(4);
+    const op0: ?MaybeRelocatable = MaybeRelocatable.fromU64(2);
 
     const op1Deduction = try deduceOp1(&instr, &dst, &op0);
 
     // Test checks
-    try expect(op1Deduction.op_1.?.eq(relocatable.fromU64(2)));
-    try expect(op1Deduction.res.?.eq(relocatable.fromU64(4)));
+    try expect(op1Deduction.op_1.?.eq(MaybeRelocatable.fromU64(2)));
+    try expect(op1Deduction.res.?.eq(MaybeRelocatable.fromU64(4)));
 }
 
 test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
@@ -782,8 +797,8 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Mul;
 
-    const dst: ?MaybeRelocatable = relocatable.fromU64(4);
-    const op0: ?MaybeRelocatable = relocatable.fromU64(0);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(4);
+    const op0: ?MaybeRelocatable = MaybeRelocatable.fromU64(0);
 
     const op1Deduction = try deduceOp1(&instr, &dst, &op0);
 
@@ -821,7 +836,7 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
-    const op0: ?MaybeRelocatable = relocatable.fromU64(0);
+    const op0: ?MaybeRelocatable = MaybeRelocatable.fromU64(0);
 
     const op1Deduction = try deduceOp1(&instr, &null, &op0);
 
@@ -841,13 +856,13 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no op0" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
-    const dst: ?MaybeRelocatable = relocatable.fromU64(7);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(7);
 
     const op1Deduction = try deduceOp1(&instr, &dst, &null);
 
     // Test checks
-    try expect(op1Deduction.op_1.?.eq(relocatable.fromU64(7)));
-    try expect(op1Deduction.res.?.eq(relocatable.fromU64(7)));
+    try expect(op1Deduction.op_1.?.eq(MaybeRelocatable.fromU64(7)));
+    try expect(op1Deduction.res.?.eq(MaybeRelocatable.fromU64(7)));
 }
 
 test "set get value in vm memory" {
@@ -863,7 +878,7 @@ test "set get value in vm memory" {
     _ = vm.segments.addSegment();
 
     const address = Relocatable.new(1, 0);
-    const value = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(42));
+    const value = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(42));
 
     try memory.setUpMemory(
         vm.segments.memory,
@@ -887,19 +902,9 @@ test "set get value in vm memory" {
 test "compute res op1 works" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction{
-        .off_0 = 0,
-        .off_1 = 1,
-        .off_2 = 2,
-        .dst_reg = .AP,
-        .op_0_reg = .AP,
-        .op_1_addr = .AP,
-        .res_logic = .Op1,
-        .pc_update = .Regular,
-        .ap_update = .Regular,
-        .fp_update = .Regular,
-        .opcode = .NOp,
-    };
+    var instruction = testInstruction;
+
+    instruction.res_logic = .Op1;
 
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -908,8 +913,8 @@ test "compute res op1 works" {
     vm.run_context.ap.* = Relocatable.new(1, 0);
     // Test body
 
-    const value_op0 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
-    const value_op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
 
     const actual_res = try computeRes(&instruction, value_op0, value_op1);
     const expected_res = value_op1;
@@ -924,19 +929,7 @@ test "compute res op1 works" {
 test "compute res add felts works" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction{
-        .off_0 = 0,
-        .off_1 = 1,
-        .off_2 = 2,
-        .dst_reg = .AP,
-        .op_0_reg = .AP,
-        .op_1_addr = .AP,
-        .res_logic = .Add,
-        .pc_update = .Regular,
-        .ap_update = .Regular,
-        .fp_update = .Regular,
-        .opcode = .NOp,
-    };
+    var instruction = testInstruction;
 
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -945,11 +938,11 @@ test "compute res add felts works" {
     vm.run_context.ap.* = Relocatable.new(1, 0);
     // Test body
 
-    const value_op0 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
-    const value_op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
 
     const actual_res = try computeRes(&instruction, value_op0, value_op1);
-    const expected_res = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(5));
+    const expected_res = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(5));
 
     // Test checks
     try expectEqual(
@@ -961,19 +954,8 @@ test "compute res add felts works" {
 test "compute res add felt to offset works" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction{
-        .off_0 = 0,
-        .off_1 = 1,
-        .off_2 = 2,
-        .dst_reg = .AP,
-        .op_0_reg = .AP,
-        .op_1_addr = .AP,
-        .res_logic = .Add,
-        .pc_update = .Regular,
-        .ap_update = .Regular,
-        .fp_update = .Regular,
-        .opcode = .NOp,
-    };
+
+    var instruction = testInstruction;
 
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -983,13 +965,13 @@ test "compute res add felt to offset works" {
     // Test body
 
     const value_op0 = Relocatable.new(1, 1);
-    const op0 = relocatable.newFromRelocatable(value_op0);
+    const op0 = MaybeRelocatable.fromRelocatable(value_op0);
 
-    const op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
 
     const actual_res = try computeRes(&instruction, op0, op1);
     const res = Relocatable.new(1, 4);
-    const expected_res = relocatable.newFromRelocatable(res);
+    const expected_res = MaybeRelocatable.fromRelocatable(res);
 
     // Test checks
     try expectEqual(
@@ -1001,20 +983,7 @@ test "compute res add felt to offset works" {
 test "compute res add fails two relocs" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction{
-        .off_0 = 0,
-        .off_1 = 1,
-        .off_2 = 2,
-        .dst_reg = .AP,
-        .op_0_reg = .AP,
-        .op_1_addr = .AP,
-        .res_logic = .Add,
-        .pc_update = .Regular,
-        .ap_update = .Regular,
-        .fp_update = .Regular,
-        .opcode = .NOp,
-    };
-
+    var instruction = testInstruction;
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -1025,8 +994,8 @@ test "compute res add fails two relocs" {
     const value_op0 = Relocatable.new(1, 0);
     const value_op1 = Relocatable.new(1, 1);
 
-    const op0 = relocatable.newFromRelocatable(value_op0);
-    const op1 = relocatable.newFromRelocatable(value_op1);
+    const op0 = MaybeRelocatable.fromRelocatable(value_op0);
+    const op1 = MaybeRelocatable.fromRelocatable(value_op1);
 
     // Test checks
     try expectError(error.AddRelocToRelocForbidden, computeRes(&instruction, op0, op1));
@@ -1035,19 +1004,9 @@ test "compute res add fails two relocs" {
 test "compute res mul works" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction{
-        .off_0 = 0,
-        .off_1 = 1,
-        .off_2 = 2,
-        .dst_reg = .AP,
-        .op_0_reg = .AP,
-        .op_1_addr = .AP,
-        .res_logic = .Mul,
-        .pc_update = .Regular,
-        .ap_update = .Regular,
-        .fp_update = .Regular,
-        .opcode = .NOp,
-    };
+
+    var instruction = testInstruction;
+    instruction.res_logic = .Mul;
 
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -1056,11 +1015,11 @@ test "compute res mul works" {
     vm.run_context.ap.* = Relocatable.new(1, 0);
     // Test body
 
-    const value_op0 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
-    const value_op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
 
     const actual_res = try computeRes(&instruction, value_op0, value_op1);
-    const expected_res = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(6));
+    const expected_res = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(6));
 
     // Test checks
     try expectEqual(
@@ -1072,20 +1031,8 @@ test "compute res mul works" {
 test "compute res mul fails two relocs" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction{
-        .off_0 = 0,
-        .off_1 = 1,
-        .off_2 = 2,
-        .dst_reg = .AP,
-        .op_0_reg = .AP,
-        .op_1_addr = .AP,
-        .res_logic = .Mul,
-        .pc_update = .Regular,
-        .ap_update = .Regular,
-        .fp_update = .Regular,
-        .opcode = .NOp,
-    };
-
+    var instruction = testInstruction;
+    instruction.res_logic = .Mul;
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -1096,8 +1043,8 @@ test "compute res mul fails two relocs" {
     const value_op0 = Relocatable.new(1, 0);
     const value_op1 = Relocatable.new(1, 1);
 
-    const op0 = relocatable.newFromRelocatable(value_op0);
-    const op1 = relocatable.newFromRelocatable(value_op1);
+    const op0 = MaybeRelocatable.fromRelocatable(value_op0);
+    const op1 = MaybeRelocatable.fromRelocatable(value_op1);
 
     // Test checks
     try expectError(error.MulRelocForbidden, computeRes(&instruction, op0, op1));
@@ -1106,20 +1053,8 @@ test "compute res mul fails two relocs" {
 test "compute res mul fails felt and reloc" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction{
-        .off_0 = 0,
-        .off_1 = 1,
-        .off_2 = 2,
-        .dst_reg = .AP,
-        .op_0_reg = .AP,
-        .op_1_addr = .AP,
-        .res_logic = .Mul,
-        .pc_update = .Regular,
-        .ap_update = .Regular,
-        .fp_update = .Regular,
-        .opcode = .NOp,
-    };
-
+    var instruction = testInstruction;
+    instruction.res_logic = .Mul;
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -1128,8 +1063,8 @@ test "compute res mul fails felt and reloc" {
     // Test body
 
     const value_op0 = Relocatable.new(1, 0);
-    const op0 = relocatable.newFromRelocatable(value_op0);
-    const op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+    const op0 = MaybeRelocatable.fromRelocatable(value_op0);
+    const op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
 
     // Test checks
     try expectError(error.MulRelocForbidden, computeRes(&instruction, op0, op1));
@@ -1138,19 +1073,8 @@ test "compute res mul fails felt and reloc" {
 test "compute res Unconstrained should return null" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction{
-        .off_0 = 0,
-        .off_1 = 1,
-        .off_2 = 2,
-        .dst_reg = .AP,
-        .op_0_reg = .AP,
-        .op_1_addr = .AP,
-        .res_logic = .Unconstrained,
-        .pc_update = .Regular,
-        .ap_update = .Regular,
-        .fp_update = .Regular,
-        .opcode = .NOp,
-    };
+    var instruction = testInstruction;
+    instruction.res_logic = .Unconstrained;
 
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -1159,8 +1083,8 @@ test "compute res Unconstrained should return null" {
     vm.run_context.ap.* = Relocatable.new(1, 0);
     // Test body
 
-    const value_op0 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
-    const value_op1 = relocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
 
     const actual_res = try computeRes(&instruction, value_op0, value_op1);
     const expected_res: ?MaybeRelocatable = null;
@@ -1175,19 +1099,7 @@ test "compute res Unconstrained should return null" {
 test "compute operands add AP" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction{
-        .off_0 = 0,
-        .off_1 = 1,
-        .off_2 = 2,
-        .dst_reg = .AP,
-        .op_0_reg = .AP,
-        .op_1_addr = .AP,
-        .res_logic = .Add,
-        .pc_update = .Regular,
-        .ap_update = .Regular,
-        .fp_update = .Regular,
-        .opcode = .NOp,
-    };
+    var instruction = testInstruction;
 
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -1246,19 +1158,11 @@ test "compute operands add AP" {
 test "compute operands mul FP" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = Instruction{
-        .off_0 = 0,
-        .off_1 = 1,
-        .off_2 = 2,
-        .dst_reg = .FP,
-        .op_0_reg = .FP,
-        .op_1_addr = .FP,
-        .res_logic = .Mul,
-        .pc_update = .Regular,
-        .ap_update = .Regular,
-        .fp_update = .Regular,
-        .opcode = .NOp,
-    };
+    var instruction = testInstruction;
+    instruction.op_1_addr = .FP;
+    instruction.op_0_reg = .FP;
+    instruction.dst_reg = .FP;
+    instruction.res_logic = .Mul;
 
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -1347,19 +1251,11 @@ test "memory is not leaked upon allocation failure during initialization" {
 
 test "updateRegisters all regular" {
     // Test setup
-    var instruction = Instruction{
-        .off_0 = 1,
-        .off_1 = 2,
-        .off_2 = 3,
-        .dst_reg = .FP,
-        .op_0_reg = .AP,
-        .op_1_addr = .AP,
-        .res_logic = .Add,
-        .pc_update = .Regular,
-        .ap_update = .Regular,
-        .fp_update = .Regular,
-        .opcode = .NOp,
-    };
+    var instruction = testInstruction;
+    instruction.off_0 = 1;
+    instruction.off_1 = 2;
+    instruction.off_2 = 3;
+    instruction.dst_reg = .FP;
 
     const operands = OperandsResult{
         .dst = .{ .felt = Felt252.fromInteger(11) },
@@ -1410,19 +1306,11 @@ test "updateRegisters all regular" {
 
 test "updateRegisters with mixed types" {
     // Test setup
-    var instruction = Instruction{
-        .off_0 = 1,
-        .off_1 = 2,
-        .off_2 = 3,
-        .dst_reg = .FP,
-        .op_0_reg = .AP,
-        .op_1_addr = .AP,
-        .res_logic = .Add,
-        .pc_update = .JumpRel,
-        .ap_update = .Add2,
-        .fp_update = .Dst,
-        .opcode = .NOp,
-    };
+
+    var instruction = deduceOpTestInstr;
+    instruction.pc_update = .JumpRel;
+    instruction.ap_update = .Add2;
+    instruction.fp_update = .Dst;
 
     const operands = OperandsResult{
         .dst = .{ .relocatable = Relocatable.new(
@@ -1484,7 +1372,7 @@ test "CairoVM: computeOp0Deductions should return op0 from deduceOp0 if deduceMe
 
     // Test check
     try expectEqual(
-        fromSegment(0, 1),
+        MaybeRelocatable.fromSegment(0, 1),
         try vm.computeOp0Deductions(
             std.testing.allocator,
             Relocatable.new(0, 7),
@@ -1520,7 +1408,7 @@ test "CairoVM: computeOp0Deductions with a valid built in and non null deduceMem
 
     // Test check
     try expectEqual(
-        fromU256(8),
+        MaybeRelocatable.fromU256(8),
         try vm.computeOp0Deductions(
             std.testing.allocator,
             Relocatable.new(0, 7),
@@ -1547,8 +1435,8 @@ test "CairoVM: computeOp0Deductions should return VM error if deduceOp0 and dedu
             std.testing.allocator,
             Relocatable.new(0, 7),
             &instr,
-            &relocatable.fromU64(4),
-            &relocatable.fromU64(0),
+            &MaybeRelocatable.fromU64(4),
+            &MaybeRelocatable.fromU64(0),
         ),
     );
 }
@@ -1569,7 +1457,7 @@ test "CairoVM: computeSegmentsEffectiveSizes should return the computed effectiv
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    var actual = try vm.computeSegmentsEffectiveSizes();
+    var actual = try vm.computeSegmentsEffectiveSizes(false);
 
     try expectEqual(@as(usize, 1), actual.count());
     try expectEqual(@as(u32, 3), actual.get(0).?);
@@ -1580,25 +1468,14 @@ test "CairoVM: deduceDst should return res if AssertEq opcode" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    var instruction = Instruction{
-        .off_0 = 0,
-        .off_1 = 1,
-        .off_2 = 2,
-        .dst_reg = .AP,
-        .op_0_reg = .AP,
-        .op_1_addr = .AP,
-        .res_logic = .Add,
-        .pc_update = .Regular,
-        .ap_update = .Regular,
-        .fp_update = .Regular,
-        .opcode = .AssertEq,
-    };
+    var instruction = testInstruction;
+    instruction.opcode = .AssertEq;
 
-    const res = fromU256(7);
+    const res = MaybeRelocatable.fromU256(7);
 
     // Test check
     try expectEqual(
-        fromU256(7),
+        MaybeRelocatable.fromU256(7),
         try vm.deduceDst(&instruction, res),
     );
 }
@@ -1608,19 +1485,8 @@ test "CairoVM: deduceDst should return VM error No dst if AssertEq opcode withou
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    var instruction = Instruction{
-        .off_0 = 0,
-        .off_1 = 1,
-        .off_2 = 2,
-        .dst_reg = .AP,
-        .op_0_reg = .AP,
-        .op_1_addr = .AP,
-        .res_logic = .Add,
-        .pc_update = .Regular,
-        .ap_update = .Regular,
-        .fp_update = .Regular,
-        .opcode = .AssertEq,
-    };
+    var instruction = testInstruction;
+    instruction.opcode = .AssertEq;
 
     // Test check
     try expectError(
@@ -1635,23 +1501,12 @@ test "CairoVM: deduceDst should return fp Relocatable if Call opcode" {
     defer vm.deinit();
     vm.run_context.fp.* = Relocatable.new(3, 23);
 
-    var instruction = Instruction{
-        .off_0 = 0,
-        .off_1 = 1,
-        .off_2 = 2,
-        .dst_reg = .AP,
-        .op_0_reg = .AP,
-        .op_1_addr = .AP,
-        .res_logic = .Add,
-        .pc_update = .Regular,
-        .ap_update = .Regular,
-        .fp_update = .Regular,
-        .opcode = .Call,
-    };
+    var instruction = testInstruction;
+    instruction.opcode = .Call;
 
     // Test check
     try expectEqual(
-        fromSegment(3, 23),
+        MaybeRelocatable.fromSegment(3, 23),
         try vm.deduceDst(&instruction, null),
     );
 }
@@ -1661,19 +1516,8 @@ test "CairoVM: deduceDst should return VM error No dst if not AssertEq or Call o
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    var instruction = Instruction{
-        .off_0 = 0,
-        .off_1 = 1,
-        .off_2 = 2,
-        .dst_reg = .AP,
-        .op_0_reg = .AP,
-        .op_1_addr = .AP,
-        .res_logic = .Add,
-        .pc_update = .Regular,
-        .ap_update = .Regular,
-        .fp_update = .Regular,
-        .opcode = .Ret,
-    };
+    var instruction = testInstruction;
+    instruction.opcode = .Ret;
 
     // Test check
     try expectError(
@@ -1738,7 +1582,7 @@ test "CairoVM: getRelocatable with value should return a MaybeRelocatable" {
 
     // Test check
     try expectEqual(
-        fromU256(5),
+        MaybeRelocatable.fromU256(5),
         (try vm.getRelocatable(Relocatable.new(34, 12))).?,
     );
 }
@@ -1896,7 +1740,7 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceMemoryCell if n
 
     // Test check
     try expectEqual(
-        fromU256(8),
+        MaybeRelocatable.fromU256(8),
         try vm.computeOp1Deductions(
             std.testing.allocator,
             Relocatable.new(0, 7),
@@ -1917,12 +1761,12 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceOp1 if deduceMe
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
-    const dst: ?MaybeRelocatable = relocatable.fromU64(7);
-    var res: ?MaybeRelocatable = relocatable.fromU64(7);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(7);
+    var res: ?MaybeRelocatable = MaybeRelocatable.fromU64(7);
 
     // Test check
     try expectEqual(
-        relocatable.fromU64(7),
+        MaybeRelocatable.fromU64(7),
         try vm.computeOp1Deductions(
             std.testing.allocator,
             Relocatable.new(0, 7),
@@ -1943,7 +1787,7 @@ test "CairoVM: computeOp1Deductions should modify res (if null) using res from d
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
-    const dst: ?MaybeRelocatable = relocatable.fromU64(7);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(7);
     var res: ?MaybeRelocatable = null;
 
     _ = try vm.computeOp1Deductions(
@@ -1957,7 +1801,7 @@ test "CairoVM: computeOp1Deductions should modify res (if null) using res from d
 
     // Test check
     try expectEqual(
-        relocatable.fromU64(7),
+        MaybeRelocatable.fromU64(7),
         res.?,
     );
 }
@@ -1971,7 +1815,7 @@ test "CairoVM: computeOp1Deductions should return CairoVMError error if deduceMe
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
-    const op0: ?MaybeRelocatable = relocatable.fromU64(0);
+    const op0: ?MaybeRelocatable = MaybeRelocatable.fromU64(0);
     var res: ?MaybeRelocatable = null;
 
     // Test check
@@ -2005,7 +1849,7 @@ test "CairoVM: core utility function for testing test" {
     );
     defer cairo_vm.segments.memory.deinitData(std.testing.allocator);
 
-    var actual = try cairo_vm.computeSegmentsEffectiveSizes();
+    var actual = try cairo_vm.computeSegmentsEffectiveSizes(false);
 
     try expectEqual(@as(usize, 1), actual.count());
     try expectEqual(@as(u32, 3), actual.get(0).?);
