@@ -1001,9 +1001,9 @@ test "Memory: getRange for continuous memory" {
     var expected_vec = std.ArrayList(?MaybeRelocatable).init(std.testing.allocator);
     defer expected_vec.deinit();
 
-    try expected_vec.append(relocatable.fromU256(2));
-    try expected_vec.append(relocatable.fromU256(3));
-    try expected_vec.append(relocatable.fromU256(4));
+    try expected_vec.append(MaybeRelocatable.fromU256(2));
+    try expected_vec.append(MaybeRelocatable.fromU256(3));
+    try expected_vec.append(MaybeRelocatable.fromU256(4));
 
     var actual = try memory.getRange(
         std.testing.allocator,
@@ -1039,10 +1039,10 @@ test "Memory: getRange for non continuous memory" {
     var expected_vec = std.ArrayList(?MaybeRelocatable).init(std.testing.allocator);
     defer expected_vec.deinit();
 
-    try expected_vec.append(relocatable.fromU256(2));
-    try expected_vec.append(relocatable.fromU256(3));
+    try expected_vec.append(MaybeRelocatable.fromU256(2));
+    try expected_vec.append(MaybeRelocatable.fromU256(3));
     try expected_vec.append(null);
-    try expected_vec.append(relocatable.fromU256(4));
+    try expected_vec.append(MaybeRelocatable.fromU256(4));
 
     var actual = try memory.getRange(
         std.testing.allocator,
