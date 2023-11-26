@@ -590,7 +590,7 @@ test "Memory: validate memory cell already exist in validation rules" {
     const seg = segments.addSegment();
     _ = seg;
 
-    try segments.memory.set(std.testing.allocator, Relocatable.new(0, 1), relocatable.fromFelt(starknet_felt.Felt252.one()));
+    try segments.memory.set(std.testing.allocator, Relocatable.new(0, 1), MaybeRelocatable.fromFelt(starknet_felt.Felt252.one()));
     defer segments.memory.deinitData(std.testing.allocator);
 
     try segments.memory.validateMemoryCell(Relocatable.new(0, 1));
@@ -683,13 +683,13 @@ test "memory set and get" {
         0,
         0,
     );
-    const value_1 = relocatable.fromFelt(starknet_felt.Felt252.one());
+    const value_1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.one());
 
     const address_2 = Relocatable.new(
         -1,
         0,
     );
-    const value_2 = relocatable.fromFelt(starknet_felt.Felt252.one());
+    const value_2 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.one());
 
     // Set a value into the memory.
     try setUpMemory(
@@ -767,7 +767,7 @@ test "validate existing memory for range check within bound" {
         0,
         0,
     );
-    const value_1 = relocatable.fromFelt(starknet_felt.Felt252.one());
+    const value_1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.one());
 
     // Set a value into the memory.
     try setUpMemory(
