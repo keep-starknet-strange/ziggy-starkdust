@@ -111,8 +111,8 @@ pub const CairoVM = struct {
     /// # Returns
     ///
     /// An AutoArrayHashMap representing the computed effective sizes of memory segments.
-    pub fn computeSegmentsEffectiveSizes(self: *Self) !std.AutoArrayHashMap(u32, u32) {
-        return self.segments.computeEffectiveSize();
+    pub fn computeSegmentsEffectiveSizes(self: *Self, allow_temp_segments: bool) !std.AutoArrayHashMap(i64, u32) {
+        return self.segments.computeEffectiveSize(allow_temp_segments);
     }
 
     /// Adds a memory segment to the Cairo VM and returns the first address of the new segment.
