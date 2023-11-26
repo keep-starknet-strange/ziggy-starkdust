@@ -843,7 +843,7 @@ test "MemorySegmentManager: loadData with one element" {
 
     var data = std.ArrayList(MaybeRelocatable).init(allocator);
     defer data.deinit();
-    try data.append(relocatable.fromU256(4));
+    try data.append(MaybeRelocatable.fromU256(4));
 
     const actual = try memory_segment_manager.loadData(
         allocator,
@@ -854,7 +854,7 @@ test "MemorySegmentManager: loadData with one element" {
 
     try expectEqual(Relocatable.new(0, 1), actual);
     try expectEqual(
-        relocatable.fromU256(4),
+        MaybeRelocatable.fromU256(4),
         (try memory_segment_manager.memory.get(Relocatable.new(0, 0))).?,
     );
 }
@@ -867,9 +867,9 @@ test "MemorySegmentManager: loadData with three elements" {
 
     var data = std.ArrayList(MaybeRelocatable).init(allocator);
     defer data.deinit();
-    try data.append(relocatable.fromU256(4));
-    try data.append(relocatable.fromU256(5));
-    try data.append(relocatable.fromU256(6));
+    try data.append(MaybeRelocatable.fromU256(4));
+    try data.append(MaybeRelocatable.fromU256(5));
+    try data.append(MaybeRelocatable.fromU256(6));
 
     const actual = try memory_segment_manager.loadData(
         allocator,
@@ -880,15 +880,15 @@ test "MemorySegmentManager: loadData with three elements" {
 
     try expectEqual(Relocatable.new(0, 3), actual);
     try expectEqual(
-        relocatable.fromU256(4),
+        MaybeRelocatable.fromU256(4),
         (try memory_segment_manager.memory.get(Relocatable.new(0, 0))).?,
     );
     try expectEqual(
-        relocatable.fromU256(5),
+        MaybeRelocatable.fromU256(5),
         (try memory_segment_manager.memory.get(Relocatable.new(0, 1))).?,
     );
     try expectEqual(
-        relocatable.fromU256(6),
+        MaybeRelocatable.fromU256(6),
         (try memory_segment_manager.memory.get(Relocatable.new(0, 2))).?,
     );
 }
