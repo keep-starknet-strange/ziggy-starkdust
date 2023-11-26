@@ -60,7 +60,7 @@ fn getValue(address: Relocatable, memory: *Memory) BitwiseError!u256 {
 /// - memory: The cairo memory where addresses are looked up
 /// # Returns
 /// The deduced value as a `MaybeRelocatable`
-pub fn deduce(address: Relocatable, memory: *Memory) BitwiseError!MaybeRelocatable {
+pub fn deduce(address: Relocatable, memory: *Memory) !MaybeRelocatable {
     const index = address.offset % CELLS_PER_BITWISE;
 
     if (index < BITWISE_INPUT_CELLS_PER_INSTANCE) {

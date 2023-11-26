@@ -342,9 +342,7 @@ pub const KeccakBuiltinRunner = struct {
         pointer: Relocatable,
     ) !Relocatable {
         if (self.included) {
-            const stop_pointer_addr = pointer.subUint(
-                @intCast(1),
-            ) catch return RunnerError.NoStopPointer;
+            const stop_pointer_addr = pointer.subUint(1) catch return RunnerError.NoStopPointer;
             const stop_pointer = try ((segments.memory.get(
                 stop_pointer_addr,
             ) catch return RunnerError.NoStopPointer) orelse return RunnerError.NoStopPointer).tryIntoRelocatable();
@@ -419,8 +417,8 @@ pub const KeccakBuiltinRunner = struct {
             return .{ .felt = felt.? };
         }
 
-        const first_input_addr = try address.subUint(@intCast(index));
-        const first_output_addr = try first_input_addr.addUint(@intCast(self.n_input_cells));
+        const first_input_addr = try address.subUint(index);
+        const first_output_addr = try first_input_addr.addUint(self.n_input_cells);
 
         var input_felts = ArrayList(Felt252).init(allocator);
         defer input_felts.deinit();
@@ -429,7 +427,7 @@ pub const KeccakBuiltinRunner = struct {
             usize,
             @intCast(self.n_input_cells),
         )) |i| {
-            const num = ((memory.get(try first_input_addr.addUint(@intCast(i))) catch {
+            const num = ((memory.get(try first_input_addr.addUint(i)) catch {
                 return null;
             }) orelse return null).tryIntoFelt() catch {
                 return RunnerError.BuiltinExpectedInteger;
@@ -476,7 +474,7 @@ pub const KeccakBuiltinRunner = struct {
             std.mem.copy(u8, &bytes, keccak_result.items[start_index..end_index]);
 
             try self.cache.put(
-                try first_output_addr.addUint(@intCast(i)),
+                try first_output_addr.addUint(i),
                 Felt252.fromBytes(bytes),
             );
             start_index = end_index;
@@ -844,7 +842,7 @@ test "KeccakBuiltinRunner: finalStack should return TypeMismatchNotRelocatable e
         try Relocatable.new(
             2,
             2,
-        ).subUint(@intCast(1)),
+        ).subUint(1),
         .{ .felt = Felt252.fromInteger(10) },
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
@@ -875,7 +873,7 @@ test "KeccakBuiltinRunner: finalStack should return InvalidStopPointerIndex erro
         try Relocatable.new(
             2,
             2,
-        ).subUint(@intCast(1)),
+        ).subUint(1),
         .{ .relocatable = Relocatable.new(
             10,
             2,
@@ -908,7 +906,7 @@ test "KeccakBuiltinRunner: finalStack should return InvalidStopPointer error if 
         try Relocatable.new(
             2,
             2,
-        ).subUint(@intCast(1)),
+        ).subUint(1),
         .{ .relocatable = Relocatable.new(
             22,
             2,
@@ -943,7 +941,7 @@ test "KeccakBuiltinRunner: finalStack should return stop pointer address and upd
         try Relocatable.new(
             2,
             2,
-        ).subUint(@intCast(1)),
+        ).subUint(1),
         .{ .relocatable = Relocatable.new(
             22,
             22 * 16,

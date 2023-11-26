@@ -73,4 +73,6 @@ pub const MathError = error{
     RelocatableSubUsizeNegOffset,
     /// Value is too large to be coerced to a u64.
     ValueTooLarge,
+    /// Error indicating that the addition operation on the Relocatable offset exceeds the maximum limit.
+    RelocatableAdditionOffsetExceeded,
 };
