@@ -563,50 +563,50 @@ pub const MaybeRelocatable = union(enum) {
         };
     }
 
-    // Creates a new MaybeRelocatable from a Relocatable.
-    // # Arguments
-    // - relocatable - The Relocatable to create the MaybeRelocatable from.
-    // # Returns
-    // A new MaybeRelocatable.
-    pub fn newFromRelocatable(relocatable: Relocatable) Self {
+    /// Creates a new MaybeRelocatable from a Relocatable.
+    /// # Arguments
+    /// - relocatable - The Relocatable to create the MaybeRelocatable from.
+    /// # Returns
+    /// A new MaybeRelocatable.
+    pub fn fromRelocatable(relocatable: Relocatable) Self {
         return .{ .relocatable = relocatable };
     }
 
-    // Creates a new MaybeRelocatable from a field element.
-    // # Arguments
-    // - felt - The field element to create the MaybeRelocatable from.
-    // # Returns
-    // A new MaybeRelocatable.
+    /// Creates a new MaybeRelocatable from a field element.
+    /// # Arguments
+    /// - felt - The field element to create the MaybeRelocatable from.
+    /// # Returns
+    /// A new MaybeRelocatable.
     pub fn fromFelt(felt: Felt252) Self {
         return .{ .felt = felt };
     }
 
-    // Creates a new MaybeRelocatable from a u256.
-    // # Arguments
-    // - value - The u64 to create the MaybeRelocatable from.
-    // # Returns
-    // A new MaybeRelocatable.
+    /// Creates a new MaybeRelocatable from a u256.
+    /// # Arguments
+    /// - value - The u64 to create the MaybeRelocatable from.
+    /// # Returns
+    /// A new MaybeRelocatable.
     pub fn fromU256(value: u256) Self {
         return .{ .felt = Felt252.fromInteger(value) };
     }
 
-    // Creates a new MaybeRelocatable from a u64.
-    // # Arguments
-    // - value - The u64 to create the MaybeRelocatable from.
-    // # Returns
-    // A new MaybeRelocatable.
+    /// Creates a new MaybeRelocatable from a u64.
+    /// # Arguments
+    /// - value - The u64 to create the MaybeRelocatable from.
+    /// # Returns
+    /// A new MaybeRelocatable.
     pub fn fromU64(value: u64) Self {
         return fromU256(@intCast(value));
     }
 
-    // Creates a new MaybeRelocatable from a segment index and an offset.
-    // # Arguments
-    // - segment_index - The i64 for segment_index
-    // - offset - The u64 for offset
-    // # Returns
-    // A new MaybeRelocatable.
+    /// Creates a new MaybeRelocatable from a segment index and an offset.
+    /// # Arguments
+    /// - segment_index - The i64 for segment_index
+    /// - offset - The u64 for offset
+    /// # Returns
+    /// A new MaybeRelocatable.
     pub fn fromSegment(segment_index: i64, offset: u64) Self {
-        return newFromRelocatable(Relocatable.new(segment_index, offset));
+        return fromRelocatable(Relocatable.new(segment_index, offset));
     }
 };
 
@@ -1198,10 +1198,10 @@ test "MaybeRelocatable: relocateValue with index out of bounds" {
     );
 }
 
-test "newFromRelocatable: should create a MaybeRelocatable from a Relocatable" {
+test "fromRelocatable: should create a MaybeRelocatable from a Relocatable" {
     try expectEqual(
         MaybeRelocatable.fromSegment(0, 3),
-        MaybeRelocatable.newFromRelocatable(Relocatable.new(0, 3)),
+        MaybeRelocatable.fromRelocatable(Relocatable.new(0, 3)),
     );
 }
 
