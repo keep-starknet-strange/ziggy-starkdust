@@ -184,7 +184,7 @@ pub const MemorySegmentManager = struct {
 
         if (allow_tmp_segments) {
             for (self.memory.temp_data.items, 0..) |segment, i| {
-                var key: i64 = @intCast(i);
+                const key: i64 = @intCast(i);
 
                 try self.segment_used_sizes.put(
                     -(key + 1),
