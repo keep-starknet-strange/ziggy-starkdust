@@ -338,9 +338,9 @@ test "set get integer value in segment memory" {
         -1,
         0,
     );
-    const value_1 = relocatable.fromFelt(Felt252.fromInteger(42));
+    const value_1 = MaybeRelocatable.fromFelt(Felt252.fromInteger(42));
 
-    const value_2 = relocatable.fromFelt(Felt252.fromInteger(84));
+    const value_2 = MaybeRelocatable.fromFelt(Felt252.fromInteger(84));
 
     try memoryFile.setUpMemory(
         memory_segment_manager.memory,
@@ -730,7 +730,7 @@ test "MemorySegmentManager: isValidMemoryValue should return true if valid segme
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     try memory_segment_manager.segment_used_sizes.put(0, 10);
-    var value: MaybeRelocatable = relocatable.fromSegment(0, 5);
+    var value: MaybeRelocatable = MaybeRelocatable.fromSegment(0, 5);
     try expect(memory_segment_manager.isValidMemoryValue(&value));
 }
 
