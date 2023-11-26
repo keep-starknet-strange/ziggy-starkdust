@@ -174,37 +174,22 @@ pub const MemorySegmentManager = struct {
         }
 
         // TODO: Check if memory is frozen. At the time of writting this function memory cannot be frozen so we cannot check if it frozen.
-        var first_segment_index: i64 = undefined;
 
-        if (allow_tmp_segments) {
-            first_segment_index = -@as(i64, self.memory.num_temp_segments);
-        } else {
-            first_segment_index = 0;
-        }
-
-        var first_index = first_segment_index;
-        while (first_index < self.memory.num_segments) {
-            try self.segment_used_sizes.put(first_segment_index, 0);
-            first_index += 1;
-        }
-
-        var temp1: i64 = 0;
-        for (self.memory.data.items) |segment| {
+        for (self.memory.data.items, 0..) |segment, i| {
             try self.segment_used_sizes.put(
-                @intCast(temp1),
+                @intCast(i),
                 @intCast(segment.items.len),
             );
-            temp1 += 1;
         }
 
         if (allow_tmp_segments) {
-            var temp2: i64 = 0;
-            for (self.memory.temp_data.items) |segment| {
+            for (self.memory.temp_data.items, 0..) |segment, i| {
+                var key: i64 = @intCast(i);
+
                 try self.segment_used_sizes.put(
-                    -@as(i64, temp2 + 1),
+                    -(key + 1),
                     @intCast(segment.items.len),
                 );
-                temp2 += 1;
             }
         }
         return self.segment_used_sizes;
@@ -591,7 +576,7 @@ test "MemorySegmentManager: computeEffectiveSize (with temp segments) for one se
 
     var actual = try memory_segment_manager.computeEffectiveSize(true);
 
-    try expectEqual(@as(usize, 2), actual.count());
+    try expectEqual(@as(usize, 1), actual.count());
     try expectEqual(@as(u32, 7), actual.get(-1).?);
 }
 
