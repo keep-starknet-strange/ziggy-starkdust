@@ -258,6 +258,15 @@ pub const RangeCheckBuiltinRunner = struct {
         try memory.addValidationRule(@intCast(self.base), rangeCheckValidationRule);
     }
 
+    /// Returns the min and max values of range check
+    ///
+    /// # Parameters
+    ///
+    /// - `memory`: A `Memory` pointer.
+    ///
+    /// # Returns
+    ///
+    /// - An `Array`containing the min and max of range check.
     pub fn getRangeCheckUsage(self: *Self, memory: *Memory) ?[2]usize {
         if (memory.data.capacity == 0) {
             return null;
@@ -340,11 +349,61 @@ test "Range Check: get usage for range check" {
     defer seg.memory.deinitData(std.testing.allocator);
     const res = builtin.getRangeCheckUsage(seg.memory);
     const four: usize = 4;
+    const zero: usize = 0;
     // assert
     try std.testing.expectEqual(
         res.?[1],
         four,
     );
+    try std.testing.expectEqual(
+        res.?[0],
+        zero,
+    );
+}
+
+test "Range Check: another successful check of usage for range check" {
+
+    // given
+    var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
+    const allocator = std.testing.allocator;
+    var seg = try MemorySegmentManager.init(allocator);
+    defer seg.deinit();
+
+    try memoryFile.setUpMemory(seg.memory, std.testing.allocator, .{
+        .{ .{ 0, 0 }, .{1465218365} },
+        .{ .{ 0, 1 }, .{2134570341} },
+        .{ .{ 0, 2 }, .{31349610736} },
+        .{ .{ 0, 3 }, .{413468326585859} },
+    });
+    defer seg.memory.deinitData(std.testing.allocator);
+    const res = builtin.getRangeCheckUsage(seg.memory);
+    const num: usize = 62821;
+    const zero: usize = 0;
+    // assert
+    try std.testing.expectEqual(
+        res.?[1],
+        num,
+    );
+    try std.testing.expectEqual(
+        res.?[0],
+        zero,
+    );
+}
+
+test "Range Check: get usage for range check should be null" {
+
+    // given
+    var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
+    const allocator = std.testing.allocator;
+    var seg = try MemorySegmentManager.init(allocator);
+    defer seg.deinit();
+
+    try memoryFile.setUpMemory(seg.memory, std.testing.allocator, .{});
+    defer seg.memory.deinitData(std.testing.allocator);
+
+    const expected: ?[2]usize = null;
+    // assert
+    try std.testing.expectEqual(builtin.getRangeCheckUsage(seg.memory), expected);
 }
 
 test "Range Check: validation rule should be empty" {
