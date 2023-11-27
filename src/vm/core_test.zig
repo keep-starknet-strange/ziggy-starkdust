@@ -1879,8 +1879,8 @@ test "CairoVM: InserDeducedOperands should insert operands if set as deduced" {
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
 
-    _ = vm.addMemorySegment();
-    _ = vm.addMemorySegment();
+    _ = try vm.addMemorySegment();
+    _ = try vm.addMemorySegment();
 
     // Test body
 
@@ -1933,8 +1933,8 @@ test "CairoVM: InserDeducedOperands insert operands should not be inserted if no
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
 
-    _ = vm.addMemorySegment();
-    _ = vm.addMemorySegment();
+    _ = try vm.addMemorySegment();
+    _ = try vm.addMemorySegment();
 
     // Test body
 

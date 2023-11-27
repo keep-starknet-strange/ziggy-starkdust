@@ -570,7 +570,7 @@ test "MemorySegmentManager: computeEffectiveSize (with temp segments) for one se
 test "MemorySegmentManager: computeEffectiveSize (with temp segments) for one segment memory with gap" {
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    _ = memory_segment_manager.addSegment();
+    _ = memory_segment_manager.addTempSegment();
 
     try memoryFile.setUpMemory(
         memory_segment_manager.memory,
