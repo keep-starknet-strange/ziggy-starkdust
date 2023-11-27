@@ -111,8 +111,8 @@ pub const CairoVM = struct {
     /// # Returns
     ///
     /// An AutoArrayHashMap representing the computed effective sizes of memory segments.
-    pub fn computeSegmentsEffectiveSizes(self: *Self) !std.AutoArrayHashMap(u32, u32) {
-        return self.segments.computeEffectiveSize();
+    pub fn computeSegmentsEffectiveSizes(self: *Self, allow_temp_segments: bool) !std.AutoArrayHashMap(i64, u32) {
+        return self.segments.computeEffectiveSize(allow_temp_segments);
     }
 
     /// Adds a memory segment to the Cairo VM and returns the first address of the new segment.
@@ -123,8 +123,8 @@ pub const CairoVM = struct {
     /// # Returns
     ///
     /// The relocatable address representing the first address of the new memory segment.
-    pub fn addMemorySegment(self: *Self) Relocatable {
-        return self.segments.addSegment();
+    pub fn addMemorySegment(self: *Self) !Relocatable {
+        return try self.segments.addSegment();
     }
 
     /// Retrieves a value from the memory at the specified relocatable address.
@@ -256,6 +256,22 @@ pub const CairoVM = struct {
         return self.runInstruction(allocator, &instruction);
     }
 
+    /// Insert Operands only after checking if they were deduced.
+    // # Arguments
+    /// - `allocator`: allocator where OperandsResult stored.
+    /// - `op`: OperandsResult object that stores all operands.
+    pub fn insertDeducedOperands(self: *Self, allocator: Allocator, op: OperandsResult) !void {
+        if (op.wasOp0Deducted()) {
+            try self.segments.memory.set(allocator, op.op_0_addr, op.op_0);
+        }
+        if (op.wasOp1Deducted()) {
+            try self.segments.memory.set(allocator, op.op_1_addr, op.op_1);
+        }
+        if (op.wasDestDeducted()) {
+            try self.segments.memory.set(allocator, op.dst_addr, op.dst);
+        }
+    }
+
     /// Run a specific instruction.
     // # Arguments
     /// - `instruction`: The instruction to run.
@@ -273,6 +289,7 @@ pub const CairoVM = struct {
         }
 
         const operands_result = try self.computeOperands(allocator, instruction);
+        try self.insertDeducedOperands(allocator, operands_result);
 
         try self.updateRegisters(
             instruction,
@@ -320,9 +337,11 @@ pub const CairoVM = struct {
         const op_1_op = try self.segments.memory.get(op_res.op_1_addr);
 
         // Deduce the operands if they haven't been successfully retrieved from memory.
+
         if (self.segments.memory.get(op_res.op_0_addr) catch null) |op_0| {
             op_res.op_0 = op_0;
         } else {
+            op_res.setOp0(true);
             op_res.op_0 = try self.computeOp0Deductions(
                 allocator,
                 op_res.op_0_addr,
@@ -335,6 +354,7 @@ pub const CairoVM = struct {
         if (op_1_op) |op_1| {
             op_res.op_1 = op_1;
         } else {
+            op_res.setOp1(true);
             op_res.op_1 = try self.computeOp1Deductions(
                 allocator,
                 op_res.op_1_addr,
@@ -352,6 +372,7 @@ pub const CairoVM = struct {
         if (dst_op) |dst| {
             op_res.dst = dst;
         } else {
+            op_res.setDst(true);
             op_res.dst = try self.deduceDst(instruction, op_res.res);
         }
 
@@ -440,7 +461,7 @@ pub const CairoVM = struct {
         switch (inst.opcode) {
             .Call => {
                 return .{
-                    .op_0 = relocatable.newFromRelocatable(try self.run_context.pc.addUint(inst.size())),
+                    .op_0 = MaybeRelocatable.fromRelocatable(try self.run_context.pc.addUint(inst.size())),
                     .res = null,
                 };
             },
@@ -454,7 +475,7 @@ pub const CairoVM = struct {
                     };
                 } else if (dst_val.isFelt() and op1_val.isFelt() and !op1_val.felt.isZero()) {
                     return .{
-                        .op_0 = relocatable.fromFelt(try dst_val.felt.div(op1_val.felt)),
+                        .op_0 = MaybeRelocatable.fromFelt(try dst_val.felt.div(op1_val.felt)),
                         .res = dst_val,
                     };
                 }
@@ -629,7 +650,7 @@ pub const CairoVM = struct {
                     return CairoVMError.NoDst;
                 }
             },
-            .Call => relocatable.newFromRelocatable(self.run_context.fp.*),
+            .Call => MaybeRelocatable.fromRelocatable(self.run_context.fp.*),
             else => CairoVMError.NoDst,
         };
     }
@@ -685,7 +706,7 @@ pub fn computeRes(
     instruction: *const Instruction,
     op_0: MaybeRelocatable,
     op_1: MaybeRelocatable,
-) CairoVMError!?MaybeRelocatable {
+) !?MaybeRelocatable {
     return switch (instruction.res_logic) {
         .Op1 => op_1,
         .Add => return try addOperands(op_0, op_1),
@@ -707,7 +728,7 @@ pub fn computeRes(
 pub fn addOperands(
     op_0: MaybeRelocatable,
     op_1: MaybeRelocatable,
-) CairoVMError!MaybeRelocatable {
+) !MaybeRelocatable {
     // Both operands are relocatables, operation forbidden
     if (op_0.isRelocatable() and op_1.isRelocatable()) {
         return error.AddRelocToRelocForbidden;
@@ -724,11 +745,11 @@ pub fn addOperands(
         // Add the felt to the relocatable's offset
         try reloc.addFeltInPlace(try felt_op.tryIntoFelt());
 
-        return relocatable.newFromRelocatable(reloc);
+        return MaybeRelocatable.fromRelocatable(reloc);
     }
 
     // Add the felts and return as a new felt wrapped in a relocatable
-    return relocatable.fromFelt((try op_0.tryIntoFelt()).add(
+    return MaybeRelocatable.fromFelt((try op_0.tryIntoFelt()).add(
         try op_1.tryIntoFelt(),
     ));
 }
@@ -749,7 +770,7 @@ pub fn mulOperands(
     }
 
     // Multiply the felts and return as a new felt wrapped in a relocatable
-    return relocatable.fromFelt(
+    return MaybeRelocatable.fromFelt(
         (try op_0.tryIntoFelt()).mul(try op_1.tryIntoFelt()),
     );
 }
@@ -761,14 +782,14 @@ pub fn mulOperands(
 pub fn subOperands(self: MaybeRelocatable, other: MaybeRelocatable) !MaybeRelocatable {
     switch (self) {
         .felt => |self_value| switch (other) {
-            .felt => |other_value| return relocatable.fromFelt(
+            .felt => |other_value| return MaybeRelocatable.fromFelt(
                 self_value.sub(other_value),
             ),
             .relocatable => return error.TypeMismatchNotFelt,
         },
         .relocatable => |self_value| switch (other) {
             .felt => return error.TypeMismatchNotFelt,
-            .relocatable => |other_value| return relocatable.newFromRelocatable(
+            .relocatable => |other_value| return MaybeRelocatable.fromRelocatable(
                 try self_value.sub(other_value),
             ),
         },
@@ -806,7 +827,7 @@ pub fn deduceOp1(
         .Mul => {
             if (dst.* != null and op0.* != null and dst.*.?.isFelt() and op0.*.?.isFelt() and !op0.*.?.felt.isZero()) {
                 return .{
-                    .op_1 = relocatable.fromFelt(try dst.*.?.felt.div(op0.*.?.felt)),
+                    .op_1 = MaybeRelocatable.fromFelt(try dst.*.?.felt.div(op0.*.?.felt)),
                     .res = dst.*.?,
                 };
             }
@@ -832,18 +853,42 @@ pub const OperandsResult = struct {
     dst_addr: Relocatable,
     op_0_addr: Relocatable,
     op_1_addr: Relocatable,
+    deduced_operands: u8,
 
     /// Returns a default instance of the OperandsResult struct.
     pub fn default() Self {
         return .{
-            .dst = relocatable.fromU64(0),
-            .res = relocatable.fromU64(0),
-            .op_0 = relocatable.fromU64(0),
-            .op_1 = relocatable.fromU64(0),
+            .dst = MaybeRelocatable.fromU64(0),
+            .res = MaybeRelocatable.fromU64(0),
+            .op_0 = MaybeRelocatable.fromU64(0),
+            .op_1 = MaybeRelocatable.fromU64(0),
             .dst_addr = .{},
             .op_0_addr = .{},
             .op_1_addr = .{},
+            .deduced_operands = 0,
         };
+    }
+
+    pub fn setDst(self: *Self, value: bool) void {
+        self.deduced_operands |= if (value) 1 else 0;
+    }
+    pub fn setOp0(self: *Self, value: bool) void {
+        self.deduced_operands |= if (value) 1 << 1 else 0 << 1;
+    }
+
+    pub fn setOp1(self: *Self, value: bool) void {
+        self.deduced_operands |= if (value) 1 << 2 else 0 << 2;
+    }
+    pub fn wasDestDeducted(self: *const Self) bool {
+        return self.deduced_operands & 1 != 0;
+    }
+
+    pub fn wasOp0Deducted(self: *const Self) bool {
+        return self.deduced_operands & (1 << 1) != 0;
+    }
+
+    pub fn wasOp1Deducted(self: *const Self) bool {
+        return self.deduced_operands & (1 << 2) != 0;
     }
 };
 
