@@ -447,7 +447,6 @@ pub fn setUpMemory(memory: *Memory, allocator: Allocator, comptime vals: anytype
             switch (@typeInfo(@TypeOf(row[1][0]))) {
                 .Pointer => {
                     try memory.set(
-                        //var res = memory.set(
                         allocator,
                         Relocatable.new(row[0][0], row[0][1]),
                         .{ .relocatable = Relocatable.new(
