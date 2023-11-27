@@ -236,29 +236,7 @@ pub const RangeCheckBuiltinRunner = struct {
         };
 
         // get index of largest field element
-        var bits: u64 = 0;
-        var index: u64 = 0;
-        const num_nm = num.fromMontgomery();
-        for (0..3) |i| {
-            if (num_nm[i] == 0) {
-                break;
-            } else {
-                index = i;
-            }
-        }
-        // get number of bits needed to represent num
-        //var bits: u64 = 0;
-        //for (0..4) |j| {
-        //    if (num.fe[3 - j] == 0) {
-        //        break;
-        //    } else {
-        //        bits = (4 - j) * @bitSizeOf(u64) - @clz(num.fe[3 - j]);
-        //    }
-        //}
-        bits = (index + 1) * @bitSizeOf(u64) - @clz(num_nm[index]);
-        std.debug.print("num of bits:{}\n", .{bits});
-        if (bits <= N_PARTS * INNER_RC_BOUND_SHIFT) {
-            // TODO: unit tests
+        if (num.numBits() <= N_PARTS * INNER_RC_BOUND_SHIFT) {
             return &[_]Relocatable{address};
         } else {
             return null;
