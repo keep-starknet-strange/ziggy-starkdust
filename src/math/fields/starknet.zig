@@ -13,6 +13,62 @@ pub const Felt252 = fields.Field(
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 
+test "Felt252 testing for range check" {
+    try expectEqual(
+        Felt252{ .fe = .{
+            0xfffffffffffffec1,
+            0xffffffffffffffff,
+            0xffffffffffffffff,
+            0x7ffffffffffead0,
+        } },
+        Felt252.fromInteger(10),
+    );
+
+    std.debug.print("Felt252.Mask: {}\n", .{Felt252.Mask});
+    std.debug.print("Felt252 numBits -------: {}\n", .{Felt252.fromInteger(1).numBits()});
+    std.debug.print("Felt252 numBits 10-------: {}\n", .{Felt252.fromInteger(10).numBits()});
+    std.debug.print("Felt252 numBits -1-------: {}\n", .{Felt252.fromInteger(1).neg().numBits()});
+    std.debug.print("Felt252 numBits 0------: {}\n", .{Felt252.fromInteger(0).numBits()});
+    std.debug.print("Felt252.mask(3): {}\n", .{Felt252.mask(3)});
+
+    const one = Felt252.fromInteger(1);
+    const onebits = @as(u64, 1) * @bitSizeOf(u64) - @clz(one.fe[0]);
+    std.debug.print("bits for one: {}\n", .{onebits});
+
+    const fourFive = Felt252.fromInteger(45);
+    const fourFivebits = @bitSizeOf(u64) - @clz(fourFive.fe[0]);
+    std.debug.print("bits for 45: {}\n", .{fourFivebits});
+
+    var tenM = Felt252.fromInteger(10);
+    const ten = tenM.fromMontgomery();
+    var bits: u64 = 0;
+    for (0..4) |j| {
+        std.debug.print("in reverse now {}:fe: {}\n", .{ 3 - j, ten[3 - j] });
+        if (ten[3 - j] != 0) {
+            bits = (4 - j) * @bitSizeOf(u64) - @clz(ten[3 - j]);
+            std.debug.print("bits: {}\n", .{bits});
+            break;
+        }
+    }
+    const four: u64 = 4;
+
+    var negOne = Felt252.fromInteger(1).neg();
+    const nmNegone = negOne.fromMontgomery();
+    var nbits: u64 = 0;
+    for (0..4) |k| {
+        std.debug.print("in reverse now {}:fe: {}\n", .{ 3 - k, nmNegone[3 - k] });
+        if (nmNegone[3 - k] != 0) {
+            nbits = (4 - k) * @bitSizeOf(u64) - @clz(nmNegone[3 - k]);
+            std.debug.print("bits -1: {}\n", .{nbits});
+            break;
+        }
+    }
+    const twofivetwo: u64 = 252;
+
+    try expectEqual(four, bits);
+    try expectEqual(twofivetwo, nbits);
+}
+
 test "Felt252 fromInteger" {
     try expectEqual(
         Felt252{ .fe = .{

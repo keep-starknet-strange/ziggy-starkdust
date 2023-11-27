@@ -235,7 +235,29 @@ pub const RangeCheckBuiltinRunner = struct {
             return null;
         };
 
-        if (@bitSizeOf(u256) - @clz(num.toInteger()) <= N_PARTS * INNER_RC_BOUND_SHIFT) {
+        // get index of largest field element
+        var bits: u64 = 0;
+        var index: u64 = 0;
+        const num_nm = num.fromMontgomery();
+        for (0..3) |i| {
+            if (num_nm[i] == 0) {
+                break;
+            } else {
+                index = i;
+            }
+        }
+        // get number of bits needed to represent num
+        //var bits: u64 = 0;
+        //for (0..4) |j| {
+        //    if (num.fe[3 - j] == 0) {
+        //        break;
+        //    } else {
+        //        bits = (4 - j) * @bitSizeOf(u64) - @clz(num.fe[3 - j]);
+        //    }
+        //}
+        bits = (index + 1) * @bitSizeOf(u64) - @clz(num_nm[index]);
+        std.debug.print("num of bits:{}\n", .{bits});
+        if (bits <= N_PARTS * INNER_RC_BOUND_SHIFT) {
             // TODO: unit tests
             return &[_]Relocatable{address};
         } else {
@@ -254,6 +276,21 @@ pub const RangeCheckBuiltinRunner = struct {
     /// - `memory`: Adds validation rule to `memory`.
     pub fn addValidationRule(self: *const Self, memory: *Memory) !void {
         try memory.addValidationRule(@intCast(self.base), rangeCheckValidationRule);
+    }
+
+    pub fn getRangeCheckUsage(self: *Self, memory: *Memory) ?[2]usize {
+        if (memory.data.capacity == 0) {
+            return null;
+        }
+        const rc_segment = memory.data.items[self.base];
+        const rc_bounds = if (rc_segment.capacity > 0) [_]usize{ std.math.maxInt(usize), std.math.maxInt(usize) } else return null;
+
+        for (rc_segment.items, 0..) |cell, i| {
+            const cellFe = cell.?.maybe_relocatable.tryIntoFelt() catch null;
+            std.debug.print("cellFe typet: {any} \n", .{@TypeOf(cellFe)});
+            std.debug.print("index {} rc_bounds: {any} \n", .{ i, rc_bounds });
+        }
+        return rc_bounds;
     }
 
     pub fn deduceMemoryCell(
@@ -293,5 +330,36 @@ test "used instances" {
     try std.testing.expectEqual(
         @as(usize, @intCast(1)),
         try builtin.getUsedInstances(memory_segment_manager),
+    );
+}
+
+//test "Range Check: get usage for range check" {
+//
+//    // given
+//    var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
+//    const allocator = std.testing.allocator;
+//    var mem = try MemorySegmentManager.init(allocator);
+//    defer mem.deinit();
+//
+//    _ = builtin.getRangeCheckUsage(mem.memory);
+//    // assert
+//    try std.testing.expectEqual(
+//        builtin.base,
+//        0,
+//    );
+//}
+test "Range Check: validation rule should be empty" {
+
+    // given
+    var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
+    const allocator = std.testing.allocator;
+    var mem = try MemorySegmentManager.init(allocator);
+    defer mem.deinit();
+
+    _ = builtin.getRangeCheckUsage(mem.memory);
+    // assert
+    try std.testing.expectEqual(
+        builtin.base,
+        0,
     );
 }
