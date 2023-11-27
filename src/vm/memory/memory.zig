@@ -478,8 +478,6 @@ test "Memory: validate existing memory" {
     try builtin.initializeSegments(segments);
     try builtin.addValidationRule(segments.memory);
 
-    _ = try segments.addSegment();
-
     try setUpMemory(segments.memory, std.testing.allocator, .{
         .{ .{ 0, 2 }, .{1} },
         .{ .{ 0, 5 }, .{1} },
@@ -520,10 +518,6 @@ test "Memory: validate memory cell" {
     try builtin.initializeSegments(segments);
     try builtin.addValidationRule(segments.memory);
 
-    try segments.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    const seg = segments.addSegment();
-    _ = try seg;
-
     try setUpMemory(
         segments.memory,
         std.testing.allocator,
@@ -553,10 +547,6 @@ test "Memory: validate memory cell segment index not in validation rules" {
 
     var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
     try builtin.initializeSegments(segments);
-
-    try segments.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    const seg = segments.addSegment();
-    _ = try seg;
 
     try setUpMemory(
         segments.memory,
@@ -750,9 +740,6 @@ test "Memory: set where number of segments is less than segment index should ret
 
     var segments = try MemorySegmentManager.init(allocator);
     defer segments.deinit();
-
-    const seg = segments.addSegment();
-    _ = try seg;
 
     try setUpMemory(
         segments.memory,
