@@ -678,11 +678,6 @@ test "memory set and get" {
     );
     const value_2 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.one());
 
-    try memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    memory.num_segments += 1;
-    try memory.temp_data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    memory.num_segments += 1;
-
     // Set a value into the memory.
     try setUpMemory(
         memory,
@@ -777,8 +772,6 @@ test "validate existing memory for range check within bound" {
     );
     const value_1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.one());
 
-    try memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    memory.num_segments += 1;
     // Set a value into the memory.
     try setUpMemory(
         memory,
@@ -903,8 +896,6 @@ test "Memory: markAsAccessed should mark memory cell" {
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    memory.num_segments += 1;
     const relo = Relocatable.new(0, 3);
 
     try setUpMemory(
