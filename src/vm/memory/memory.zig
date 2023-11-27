@@ -745,6 +745,25 @@ test "Memory: get inside a segment without value but inbout should return null" 
     );
 }
 
+test "Memory: set where number of segments is less than segment index should return UnallocatedSegment error" {
+    const allocator = std.testing.allocator;
+
+    var segments = try MemorySegmentManager.init(allocator);
+    defer segments.deinit();
+
+    const seg = segments.addSegment();
+    _ = try seg;
+
+    try setUpMemory(
+        segments.memory,
+        std.testing.allocator,
+        .{.{ .{ 0, 1 }, .{1} }},
+    );
+
+    try expectError(MemoryError.UnallocatedSegment, segments.memory.set(allocator, Relocatable.new(3, 1), .{ .felt = Felt252.fromInteger(3) }));
+    defer segments.memory.deinitData(std.testing.allocator);
+}
+
 test "validate existing memory for range check within bound" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
