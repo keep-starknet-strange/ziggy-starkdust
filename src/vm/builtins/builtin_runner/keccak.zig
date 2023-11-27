@@ -21,6 +21,8 @@ const Relocatable = relocatable.Relocatable;
 const MaybeRelocatable = relocatable.MaybeRelocatable;
 const CairoVM = CoreVM.CairoVM;
 
+const CairoVMError = Error.CairoVMError;
+
 const expectError = std.testing.expectError;
 const expectEqual = std.testing.expectEqual;
 const expect = std.testing.expect;
@@ -852,7 +854,7 @@ test "KeccakBuiltinRunner: finalStack should return TypeMismatchNotRelocatable e
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
     try expectError(
-        error.TypeMismatchNotRelocatable,
+        CairoVMError.TypeMismatchNotRelocatable,
         keccak_builtin.finalStack(
             memory_segment_manager,
             Relocatable.new(2, 2),
