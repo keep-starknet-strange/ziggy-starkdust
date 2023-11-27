@@ -479,8 +479,6 @@ test "Memory: validate existing memory" {
     try builtin.addValidationRule(segments.memory);
 
     _ = try segments.addSegment();
-    _ = try segments.addSegment();
-    _ = try segments.addSegment();
 
     try setUpMemory(segments.memory, std.testing.allocator, .{
         .{ .{ 0, 2 }, .{1} },
@@ -502,14 +500,14 @@ test "Memory: validate existing memory" {
     try expect(
         segments.memory.validated_addresses.contains(Relocatable.new(0, 7)),
     );
-    //    try expectEqual(
-    //        false,
-    //        segments.memory.validated_addresses.contains(Relocatable.new(1, 1)),
-    //    );
-    //    try expectEqual(
-    //        false,
-    //        segments.memory.validated_addresses.contains(Relocatable.new(2, 2)),
-    //    );
+    try expectEqual(
+        false,
+        segments.memory.validated_addresses.contains(Relocatable.new(1, 1)),
+    );
+    try expectEqual(
+        false,
+        segments.memory.validated_addresses.contains(Relocatable.new(2, 2)),
+    );
 }
 
 test "Memory: validate memory cell" {

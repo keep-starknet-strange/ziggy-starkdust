@@ -1254,9 +1254,6 @@ test "compute operands mul FP" {
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
 
-    //    _ = vm.addMemorySegment();
-    //    _ = vm.addMemorySegment();
-
     vm.run_context.fp.* = Relocatable.new(1, 0);
 
     // Test body
