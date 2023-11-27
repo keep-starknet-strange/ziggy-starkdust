@@ -327,10 +327,6 @@ test "set get integer value in segment memory" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    _ = try memory_segment_manager.addSegment();
-    _ = try memory_segment_manager.addSegment();
-    _ = try memory_segment_manager.addTempSegment();
-    _ = try memory_segment_manager.addTempSegment();
 
     const address_1 = Relocatable.new(
         0,
@@ -343,11 +339,6 @@ test "set get integer value in segment memory" {
     const value_1 = MaybeRelocatable.fromFelt(Felt252.fromInteger(42));
 
     const value_2 = MaybeRelocatable.fromFelt(Felt252.fromInteger(84));
-
-    try memory_segment_manager.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    try memory_segment_manager.memory.temp_data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    _ = try memory_segment_manager.memory.set(std.testing.allocator, address_1, value_1);
-    _ = try memory_segment_manager.memory.set(std.testing.allocator, address_2, value_2);
 
     try memoryFile.setUpMemory(
         memory_segment_manager.memory,
@@ -423,7 +414,6 @@ test "MemorySegmentManager: numSegments should return the number of segments in 
         },
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
-    std.debug.print("numTempSegments: {}", .{memory_segment_manager.numTempSegments()});
 
     try expectEqual(
         @as(usize, 2),
