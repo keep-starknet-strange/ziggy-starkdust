@@ -8,6 +8,7 @@ const relocatable = @import("../../memory/relocatable.zig");
 const Error = @import("../../error.zig");
 const validation_rule = @import("../../memory/memory.zig").validation_rule;
 const Memory = @import("../../memory/memory.zig").Memory;
+const memoryFile = @import("../../memory/memory.zig");
 const range_check_instance_def = @import("../../types/range_check_instance_def.zig");
 
 const CELLS_PER_RANGE_CHECK = range_check_instance_def.CELLS_PER_RANGE_CHECK;
@@ -261,12 +262,22 @@ pub const RangeCheckBuiltinRunner = struct {
             return null;
         }
         const rc_segment = memory.data.items[self.base];
-        const rc_bounds = if (rc_segment.capacity > 0) [_]usize{ std.math.maxInt(usize), std.math.maxInt(usize) } else return null;
+        var rc_bounds = if (rc_segment.capacity > 0) [_]usize{ std.math.maxInt(usize), std.math.minInt(usize) } else return null;
 
-        for (rc_segment.items, 0..) |cell, i| {
-            const cellFe = cell.?.maybe_relocatable.tryIntoFelt() catch null;
-            std.debug.print("cellFe typet: {any} \n", .{@TypeOf(cellFe)});
-            std.debug.print("index {} rc_bounds: {any} \n", .{ i, rc_bounds });
+        for (rc_segment.items) |cell| {
+            var cellFelt = cell.?.maybe_relocatable.tryIntoFelt() catch null;
+            const cellBytes = cellFelt.?.toBytes();
+            var j: usize = 0;
+            while (j < 32) : (j += 2) {
+                const tempVal = @as(u16, cellBytes[j + 1]) << 8 | @as(u16, cellBytes[j]);
+
+                if (@as(usize, @intCast(tempVal)) < rc_bounds[0]) {
+                    rc_bounds[0] = @as(usize, @intCast(tempVal));
+                }
+                if (@as(usize, @intCast(tempVal)) > rc_bounds[1]) {
+                    rc_bounds[1] = @as(usize, @intCast(tempVal));
+                }
+            }
         }
         return rc_bounds;
     }
@@ -311,21 +322,30 @@ test "used instances" {
     );
 }
 
-//test "Range Check: get usage for range check" {
-//
-//    // given
-//    var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
-//    const allocator = std.testing.allocator;
-//    var mem = try MemorySegmentManager.init(allocator);
-//    defer mem.deinit();
-//
-//    _ = builtin.getRangeCheckUsage(mem.memory);
-//    // assert
-//    try std.testing.expectEqual(
-//        builtin.base,
-//        0,
-//    );
-//}
+test "Range Check: get usage for range check" {
+
+    // given
+    var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
+    const allocator = std.testing.allocator;
+    var seg = try MemorySegmentManager.init(allocator);
+    defer seg.deinit();
+
+    try memoryFile.setUpMemory(seg.memory, std.testing.allocator, .{
+        .{ .{ 0, 0 }, .{1} },
+        .{ .{ 0, 1 }, .{2} },
+        .{ .{ 0, 2 }, .{3} },
+        .{ .{ 0, 3 }, .{4} },
+    });
+    defer seg.memory.deinitData(std.testing.allocator);
+    const res = builtin.getRangeCheckUsage(seg.memory);
+    const four: usize = 4;
+    // assert
+    try std.testing.expectEqual(
+        res.?[1],
+        four,
+    );
+}
+
 test "Range Check: validation rule should be empty" {
 
     // given
