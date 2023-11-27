@@ -119,7 +119,7 @@ pub const MemorySegmentManager = struct {
     }
 
     // Adds a temporary memory segment and returns the first address of the new segment.
-    pub fn addTempSegment(self: *Self) Relocatable {
+    pub fn addTempSegment(self: *Self) !Relocatable {
         // Increment the number of temporary segments.
         self.memory.num_temp_segments += 1;
 
@@ -128,6 +128,7 @@ pub const MemorySegmentManager = struct {
             .segment_index = -@as(i64, @intCast(self.memory.num_temp_segments)),
             .offset = 0,
         };
+        try self.memory.temp_data.append(std.ArrayListUnmanaged(?MemoryCell){});
 
         return relocatable_address;
     }
@@ -263,7 +264,7 @@ test "memory segment manager" {
     try expect(memory_segment_manager.memory.num_segments == 1);
 
     //Allocate a temporary memory segment.
-    const relocatable_address_2 = memory_segment_manager.addTempSegment();
+    const relocatable_address_2 = try memory_segment_manager.addTempSegment();
 
     try expect(memory_segment_manager.memory.num_temp_segments == 1);
 
@@ -288,7 +289,7 @@ test "memory segment manager" {
     const relocatable_address_3 = try memory_segment_manager.addSegment();
 
     // Allocate another temporary memory segment.
-    const relocatable_address_4 = memory_segment_manager.addTempSegment();
+    const relocatable_address_4 = try memory_segment_manager.addTempSegment();
 
     // Check that the memory segment manager has two segments.
     try expect(memory_segment_manager.memory.num_segments == 2);
@@ -328,8 +329,8 @@ test "set get integer value in segment memory" {
     // ************************************************************
     _ = try memory_segment_manager.addSegment();
     _ = try memory_segment_manager.addSegment();
-    _ = memory_segment_manager.addTempSegment();
-    _ = memory_segment_manager.addTempSegment();
+    _ = try memory_segment_manager.addTempSegment();
+    _ = try memory_segment_manager.addTempSegment();
 
     const address_1 = Relocatable.new(
         0,
@@ -422,6 +423,7 @@ test "MemorySegmentManager: numSegments should return the number of segments in 
         },
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
+    std.debug.print("numTempSegments: {}", .{memory_segment_manager.numTempSegments()});
 
     try expectEqual(
         @as(usize, 2),
@@ -570,7 +572,7 @@ test "MemorySegmentManager: computeEffectiveSize (with temp segments) for one se
 test "MemorySegmentManager: computeEffectiveSize (with temp segments) for one segment memory with gap" {
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    _ = memory_segment_manager.addTempSegment();
+    _ = try memory_segment_manager.addTempSegment();
 
     try memoryFile.setUpMemory(
         memory_segment_manager.memory,

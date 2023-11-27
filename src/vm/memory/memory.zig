@@ -223,7 +223,7 @@ pub const Memory = struct {
         var data = if (address.segment_index < 0) &self.temp_data else &self.data;
         const segment_index: usize = @intCast(if (address.segment_index < 0) -(address.segment_index + 1) else address.segment_index);
 
-        if (self.num_segments <= segment_index) {
+        if (data.items.len <= segment_index) {
             return MemoryError.UnallocatedSegment;
         }
 
@@ -425,9 +425,9 @@ pub fn setUpMemory(memory: *Memory, allocator: Allocator, comptime vals: anytype
     inline for (vals) |row| {
         if (row[0][0] < 0) {
             si = @intCast(-(row[0][0] + 1));
-            while (si >= memory.num_segments) {
+            while (si >= memory.num_temp_segments) {
                 try memory.temp_data.append(segment);
-                memory.num_segments += 1;
+                memory.num_temp_segments += 1;
             }
         } else {
             si = @intCast(row[0][0]);
