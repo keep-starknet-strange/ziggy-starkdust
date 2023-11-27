@@ -97,11 +97,12 @@ pub const KeccakBuiltinRunner = struct {
     ///
     /// # Modifies
     /// - `self`: Updates the `base` value to the new segment's index.
-    pub fn initializeSegments(self: *Self, segments: *MemorySegmentManager) void {
+    pub fn initializeSegments(self: *Self, segments: *MemorySegmentManager) !void {
         // `segments.addSegment()` always returns a positive index
+        const seg = try segments.addSegment();
         self.base = @as(
             usize,
-            @intCast(segments.addSegment().segment_index),
+            @intCast(seg.segment_index),
         );
     }
 
@@ -542,8 +543,8 @@ test "KeccakBuiltinRunner: initializeSegments should modify base field of Keccak
     defer keccak_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    keccak_builtin.initializeSegments(memory_segment_manager);
-    keccak_builtin.initializeSegments(memory_segment_manager);
+    try keccak_builtin.initializeSegments(memory_segment_manager);
+    try keccak_builtin.initializeSegments(memory_segment_manager);
     try expectEqual(
         @as(usize, @intCast(1)),
         keccak_builtin.base,
@@ -837,12 +838,9 @@ test "KeccakBuiltinRunner: finalStack should return TypeMismatchNotRelocatable e
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memory_segment_manager.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    try memory_segment_manager.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    try memory_segment_manager.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    _ = memory_segment_manager.addSegment();
-    _ = memory_segment_manager.addSegment();
-    _ = memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
     try memory_segment_manager.memory.set(
         std.testing.allocator,
         try Relocatable.new(
@@ -874,12 +872,9 @@ test "KeccakBuiltinRunner: finalStack should return InvalidStopPointerIndex erro
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memory_segment_manager.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    try memory_segment_manager.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    try memory_segment_manager.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    _ = memory_segment_manager.addSegment();
-    _ = memory_segment_manager.addSegment();
-    _ = memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
     try memory_segment_manager.memory.set(
         std.testing.allocator,
         try Relocatable.new(
@@ -913,12 +908,9 @@ test "KeccakBuiltinRunner: finalStack should return InvalidStopPointer error if 
     keccak_builtin.base = 22;
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    try memory_segment_manager.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    try memory_segment_manager.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    try memory_segment_manager.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    _ = memory_segment_manager.addSegment();
-    _ = memory_segment_manager.addSegment();
-    _ = memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
     try memory_segment_manager.memory.set(
         std.testing.allocator,
         try Relocatable.new(
@@ -954,12 +946,9 @@ test "KeccakBuiltinRunner: finalStack should return stop pointer address and upd
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memory_segment_manager.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    try memory_segment_manager.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    try memory_segment_manager.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    _ = memory_segment_manager.addSegment();
-    _ = memory_segment_manager.addSegment();
-    _ = memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
     try memory_segment_manager.memory.set(
         std.testing.allocator,
         try Relocatable.new(

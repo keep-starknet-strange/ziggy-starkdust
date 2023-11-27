@@ -246,8 +246,10 @@ pub const Memory = struct {
 
         // check if existing memory, cannot overwrite
         if (data_segment.items[@as(usize, @intCast(address.offset))] != null) {
-            if (!data_segment.items[@as(usize, @intCast(address.offset))].?.maybe_relocatable.eq(value)) {
-                return MemoryError.DuplicatedRelocation;
+            if (data_segment.items[@intCast(address.offset)]) |item| {
+                if (!item.maybe_relocatable.eq(value)) {
+                    return MemoryError.DuplicatedRelocation;
+                }
             }
         }
         data_segment.items[address.offset] = MemoryCell.new(value);
@@ -473,15 +475,12 @@ test "Memory: validate existing memory" {
     defer segments.deinit();
 
     var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
-    builtin.initializeSegments(segments);
+    try builtin.initializeSegments(segments);
     try builtin.addValidationRule(segments.memory);
 
-    try segments.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    try segments.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    try segments.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-    _ = segments.addSegment();
-    _ = segments.addSegment();
-    _ = segments.addSegment();
+    _ = try segments.addSegment();
+    _ = try segments.addSegment();
+    _ = try segments.addSegment();
 
     try setUpMemory(segments.memory, std.testing.allocator, .{
         .{ .{ 0, 2 }, .{1} },
@@ -520,12 +519,12 @@ test "Memory: validate memory cell" {
     defer segments.deinit();
 
     var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
-    builtin.initializeSegments(segments);
+    try builtin.initializeSegments(segments);
     try builtin.addValidationRule(segments.memory);
 
     try segments.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
     const seg = segments.addSegment();
-    _ = seg;
+    _ = try seg;
 
     try setUpMemory(
         segments.memory,
@@ -555,11 +554,11 @@ test "Memory: validate memory cell segment index not in validation rules" {
     defer segments.deinit();
 
     var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
-    builtin.initializeSegments(segments);
+    try builtin.initializeSegments(segments);
 
     try segments.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
     const seg = segments.addSegment();
-    _ = seg;
+    _ = try seg;
 
     try setUpMemory(
         segments.memory,
@@ -583,12 +582,12 @@ test "Memory: validate memory cell already exist in validation rules" {
     defer segments.deinit();
 
     var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
-    builtin.initializeSegments(segments);
+    try builtin.initializeSegments(segments);
     try builtin.addValidationRule(segments.memory);
 
     try segments.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
     const seg = segments.addSegment();
-    _ = seg;
+    _ = try seg;
 
     try segments.memory.set(std.testing.allocator, Relocatable.new(0, 1), relocatable.fromFelt(starknet_felt.Felt252.one()));
     defer segments.memory.deinitData(std.testing.allocator);
@@ -763,7 +762,7 @@ test "validate existing memory for range check within bound" {
     defer segments.deinit();
 
     var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
-    builtin.initializeSegments(segments);
+    try builtin.initializeSegments(segments);
 
     // ************************************************************
     // *                      TEST BODY                           *

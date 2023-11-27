@@ -104,7 +104,7 @@ pub const MemorySegmentManager = struct {
     // ************************************************************
 
     // Adds a memory segment and returns the first address of the new segment.
-    pub fn addSegment(self: *Self) Relocatable {
+    pub fn addSegment(self: *Self) !Relocatable {
         // Create the relocatable address for the new segment.
         const relocatable_address = Relocatable{
             .segment_index = self.memory.num_segments,
@@ -113,6 +113,7 @@ pub const MemorySegmentManager = struct {
 
         // Increment the number of segments.
         self.memory.num_segments += 1;
+        try self.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
 
         return relocatable_address;
     }
@@ -239,7 +240,7 @@ test "memory segment manager" {
     defer memory_segment_manager.deinit();
 
     //Allocate a memory segment.
-    const relocatable_address_1 = memory_segment_manager.addSegment();
+    const relocatable_address_1 = try memory_segment_manager.addSegment();
 
     // Check that the memory segment manager has one segment.
     try expect(memory_segment_manager.memory.num_segments == 1);
@@ -267,7 +268,7 @@ test "memory segment manager" {
     );
 
     // Allocate another memory segment.
-    const relocatable_address_3 = memory_segment_manager.addSegment();
+    const relocatable_address_3 = try memory_segment_manager.addSegment();
 
     // Allocate another temporary memory segment.
     const relocatable_address_4 = memory_segment_manager.addTempSegment();
@@ -308,8 +309,8 @@ test "set get integer value in segment memory" {
     // ************************************************************
     // *                      TEST BODY                           *
     // ************************************************************
-    _ = memory_segment_manager.addSegment();
-    _ = memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
     _ = memory_segment_manager.addTempSegment();
     _ = memory_segment_manager.addTempSegment();
 

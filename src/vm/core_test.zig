@@ -1677,7 +1677,7 @@ test "CairoVM: addMemorySegment should return a proper relocatable address for t
     // Test check
     try expectEqual(
         Relocatable.new(0, 0),
-        vm.addMemorySegment(),
+        try vm.addMemorySegment(),
     );
 }
 
@@ -1686,9 +1686,9 @@ test "CairoVM: addMemorySegment should increase by one the number of segments in
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    _ = vm.addMemorySegment();
-    _ = vm.addMemorySegment();
-    _ = vm.addMemorySegment();
+    _ = try vm.addMemorySegment();
+    _ = try vm.addMemorySegment();
+    _ = try vm.addMemorySegment();
 
     // Test check
     try expectEqual(
