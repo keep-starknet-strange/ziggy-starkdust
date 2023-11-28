@@ -842,6 +842,8 @@ test "MemorySegmentManager: loadData with one element" {
     defer data.deinit();
     try data.append(MaybeRelocatable.fromU256(4));
 
+    _ = try memory_segment_manager.addSegment();
+
     const actual = try memory_segment_manager.loadData(
         allocator,
         Relocatable.new(0, 0),
@@ -867,6 +869,8 @@ test "MemorySegmentManager: loadData with three elements" {
     try data.append(MaybeRelocatable.fromU256(4));
     try data.append(MaybeRelocatable.fromU256(5));
     try data.append(MaybeRelocatable.fromU256(6));
+
+    _ = try memory_segment_manager.addSegment();
 
     const actual = try memory_segment_manager.loadData(
         allocator,
