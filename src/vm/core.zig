@@ -123,8 +123,8 @@ pub const CairoVM = struct {
     /// # Returns
     ///
     /// The relocatable address representing the first address of the new memory segment.
-    pub fn addMemorySegment(self: *Self) Relocatable {
-        return self.segments.addSegment();
+    pub fn addMemorySegment(self: *Self) !Relocatable {
+        return try self.segments.addSegment();
     }
 
     /// Retrieves a value from the memory at the specified relocatable address.
