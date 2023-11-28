@@ -51,28 +51,28 @@ pub const CairoRunner = struct {
     }
 
     pub fn setupExecutionState(self: *Self) !Relocatable {
-        _ = self.initSegments();
+        try self.initSegments();
         const end = try self.initMainEntryPoint();
-        _ = self.initVM();
+        self.initVM();
         return end;
     }
 
-    pub fn initSegments(self: *Self) void {
-        self.program_base = self.vm.segments.addSegment();
-        self.execution_base = self.vm.segments.addSegment();
+    pub fn initSegments(self: *Self) !void {
+        self.program_base = try self.vm.segments.addSegment();
+        self.execution_base = try self.vm.segments.addSegment();
     }
 
     pub fn initState(self: *Self, entrypoint: usize) !void {
         self.initial_pc = self.program_base;
         self.initial_pc.addUintInPlace(entrypoint);
 
-        _ = try self.vm.segments.memory.loadData(
+        try self.vm.segments.memory.loadData(
             self.allocator,
             self.program_base,
             self.instructions,
         );
 
-        _ = try self.vm.segments.memory.loadData(
+        try self.vm.segments.memory.loadData(
             self.allocator,
             self.execution_base,
             self.stack.items,
@@ -81,10 +81,10 @@ pub const CairoRunner = struct {
 
     // initializeFunctionEntrypoint
     pub fn initFunctionEntrypoint(self: *Self, entrypoint: usize, return_fp: Relocatable) !Relocatable {
-        var end = self.vm.segments.addSegment();
+        var end = try self.vm.segments.addSegment();
 
-        try self.stack.append(newFromRelocatable(return_fp));
-        try self.stack.append(newFromRelocatable(end));
+        try self.stack.append(MaybeRelocatable.fromRelocatable(return_fp));
+        try self.stack.append(MaybeRelocatable.fromRelocatable(end));
 
         self.initial_fp = self.execution_base;
         self.initial_fp.addUintInPlace(@as(u64, self.stack.items.len));
@@ -104,8 +104,9 @@ pub const CairoRunner = struct {
         // where 11 is derived from
         // 9 builtin bases + end + return_fp
 
-        const return_fp = self.vm.segments.addSegment();
-        return self.initFunctionEntrypoint(self.main_offset, return_fp);
+        const return_fp = try self.vm.segments.addSegment();
+        const end = try self.initFunctionEntrypoint(self.main_offset, return_fp);
+        return end;
     }
 
     pub fn initVM(self: *Self) void {

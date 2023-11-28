@@ -138,7 +138,7 @@ pub const Program = struct {
 
         for (data, 0..) |instruction, i| {
             const parsed_hex = try std.fmt.parseInt(u256, instruction[2..], 16);
-            parsed_data[i] = relocatable.fromU256(parsed_hex);
+            parsed_data[i] = MaybeRelocatable.fromU256(parsed_hex);
         }
         return parsed_data;
     }

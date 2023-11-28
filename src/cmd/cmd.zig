@@ -73,11 +73,7 @@ var app = &cli.App{
             \\Execute a cairo program with the virtual machine.
             ,
             .action = execute,
-            .options = &.{
-                &execute_proof_mode_option,
-                &enable_trace,
-                &program_option
-            },
+            .options = &.{ &execute_proof_mode_option, &enable_trace, &program_option },
         },
     },
 };
