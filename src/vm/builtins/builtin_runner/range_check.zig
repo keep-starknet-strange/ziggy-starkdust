@@ -87,8 +87,9 @@ pub const RangeCheckBuiltinRunner = struct {
     ///
     /// # Modifies
     /// - `self`: Updates the `base` value to the new segment's index.
-    pub fn initializeSegments(self: *Self, segments: *MemorySegmentManager) void {
-        self.base = @intCast(segments.addSegment().segment_index);
+    pub fn initializeSegments(self: *Self, segments: *MemorySegmentManager) !void {
+        const seg = try segments.addSegment();
+        self.base = @intCast(seg.segment_index);
     }
 
     /// Initializes and returns an `ArrayList` of `MaybeRelocatable` values.
