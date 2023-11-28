@@ -14,6 +14,7 @@ const relocatable = @import("relocatable.zig");
 const Relocatable = @import("relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("relocatable.zig").MaybeRelocatable;
 const Felt252 = @import("../../math/fields/starknet.zig").Felt252;
+const MemoryError = @import("../error.zig").MemoryError;
 
 // MemorySegmentManager manages the list of memory segments.
 // Also holds metadata useful for the relocation process of
@@ -233,6 +234,40 @@ pub const MemorySegmentManager = struct {
                 @intCast(item.segment_index),
             ) < self.segment_used_sizes.count(),
         };
+    }
+
+    // loadData loads data into the memory managed by MemorySegmentManager.
+    //
+    // This function iterates through the provided data in reverse order,
+    // writing it into memory starting from the given `ptr` address.
+    // It uses the allocator to set memory values and handles potential MemoryError.Math exceptions.
+    //
+    // # Parameters
+    // - `allocator` (Allocator): The allocator for memory operations.
+    // - `ptr` (Relocatable): The starting address in memory to write the data.
+    // - `data` (*std.ArrayList(MaybeRelocatable)): The data to be loaded into memory.
+    //
+    // # Returns
+    // A `Relocatable` representing the first address after the loaded data in memory.
+    //
+    // # Errors
+    // - Returns a MemoryError.Math if there's an issue with memory arithmetic during loading.
+    pub fn loadData(
+        self: *Self,
+        allocator: Allocator,
+        ptr: Relocatable,
+        data: *std.ArrayList(MaybeRelocatable),
+    ) !Relocatable {
+        var idx = data.items.len;
+        while (idx > 0) : (idx -= 1) {
+            const i = idx - 1;
+            try self.memory.set(
+                allocator,
+                try ptr.addUint(@intCast(i)),
+                data.items[i],
+            );
+        }
+        return ptr.addUint(data.items.len) catch MemoryError.Math;
     }
 };
 
@@ -776,4 +811,85 @@ test "MemorySegmentManager: segments utility function for testing test" {
 
     try expectEqual(@as(usize, 1), actual.count());
     try expectEqual(@as(u32, 3), actual.get(0).?);
+}
+
+test "MemorySegmentManager: loadData with empty data" {
+    const allocator = std.testing.allocator;
+
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
+    defer memory_segment_manager.deinit();
+
+    var data = std.ArrayList(MaybeRelocatable).init(allocator);
+    defer data.deinit();
+
+    try expectEqual(
+        Relocatable.new(0, 3),
+        try memory_segment_manager.loadData(
+            allocator,
+            Relocatable.new(0, 3),
+            &data,
+        ),
+    );
+}
+
+test "MemorySegmentManager: loadData with one element" {
+    const allocator = std.testing.allocator;
+
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
+    defer memory_segment_manager.deinit();
+
+    var data = std.ArrayList(MaybeRelocatable).init(allocator);
+    defer data.deinit();
+    try data.append(MaybeRelocatable.fromU256(4));
+
+    _ = try memory_segment_manager.addSegment();
+
+    const actual = try memory_segment_manager.loadData(
+        allocator,
+        Relocatable.new(0, 0),
+        &data,
+    );
+    defer memory_segment_manager.memory.deinitData(std.testing.allocator);
+
+    try expectEqual(Relocatable.new(0, 1), actual);
+    try expectEqual(
+        MaybeRelocatable.fromU256(4),
+        (try memory_segment_manager.memory.get(Relocatable.new(0, 0))).?,
+    );
+}
+
+test "MemorySegmentManager: loadData with three elements" {
+    const allocator = std.testing.allocator;
+
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
+    defer memory_segment_manager.deinit();
+
+    var data = std.ArrayList(MaybeRelocatable).init(allocator);
+    defer data.deinit();
+    try data.append(MaybeRelocatable.fromU256(4));
+    try data.append(MaybeRelocatable.fromU256(5));
+    try data.append(MaybeRelocatable.fromU256(6));
+
+    _ = try memory_segment_manager.addSegment();
+
+    const actual = try memory_segment_manager.loadData(
+        allocator,
+        Relocatable.new(0, 0),
+        &data,
+    );
+    defer memory_segment_manager.memory.deinitData(std.testing.allocator);
+
+    try expectEqual(Relocatable.new(0, 3), actual);
+    try expectEqual(
+        MaybeRelocatable.fromU256(4),
+        (try memory_segment_manager.memory.get(Relocatable.new(0, 0))).?,
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU256(5),
+        (try memory_segment_manager.memory.get(Relocatable.new(0, 1))).?,
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU256(6),
+        (try memory_segment_manager.memory.get(Relocatable.new(0, 2))).?,
+    );
 }
