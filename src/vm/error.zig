@@ -48,6 +48,8 @@ pub const MemoryError = error{
     /// Inconsistent Relocation
     Relocation,
     GetRangeMemoryGap,
+    /// Math error
+    Math,
 };
 
 /// Reepresents different error conditions that occur in the built-in runners.
