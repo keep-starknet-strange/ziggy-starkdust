@@ -873,10 +873,6 @@ test "set get value in vm memory" {
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
 
-    // Test body
-    _ = vm.segments.addSegment();
-    _ = vm.segments.addSegment();
-
     const address = Relocatable.new(1, 0);
     const value = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(42));
 
@@ -1058,8 +1054,6 @@ test "compute res mul fails felt and reloc" {
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
-
-    vm.run_context.ap.* = Relocatable.new(1, 0);
     // Test body
 
     const value_op0 = Relocatable.new(1, 0);
@@ -1104,9 +1098,6 @@ test "compute operands add AP" {
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
-
-    _ = vm.addMemorySegment();
-    _ = vm.addMemorySegment();
 
     vm.run_context.ap.* = Relocatable.new(1, 0);
 
@@ -1167,9 +1158,6 @@ test "compute operands mul FP" {
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
-
-    _ = vm.addMemorySegment();
-    _ = vm.addMemorySegment();
 
     vm.run_context.fp.* = Relocatable.new(1, 0);
 
@@ -1534,7 +1522,7 @@ test "CairoVM: addMemorySegment should return a proper relocatable address for t
     // Test check
     try expectEqual(
         Relocatable.new(0, 0),
-        vm.addMemorySegment(),
+        try vm.addMemorySegment(),
     );
 }
 
@@ -1543,9 +1531,9 @@ test "CairoVM: addMemorySegment should increase by one the number of segments in
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    _ = vm.addMemorySegment();
-    _ = vm.addMemorySegment();
-    _ = vm.addMemorySegment();
+    _ = try vm.addMemorySegment();
+    _ = try vm.addMemorySegment();
+    _ = try vm.addMemorySegment();
 
     // Test check
     try expectEqual(
@@ -1891,8 +1879,8 @@ test "CairoVM: InserDeducedOperands should insert operands if set as deduced" {
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
 
-    _ = vm.addMemorySegment();
-    _ = vm.addMemorySegment();
+    _ = try vm.addMemorySegment();
+    _ = try vm.addMemorySegment();
 
     // Test body
 
@@ -1945,8 +1933,8 @@ test "CairoVM: InserDeducedOperands insert operands should not be inserted if no
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
 
-    _ = vm.addMemorySegment();
-    _ = vm.addMemorySegment();
+    _ = try vm.addMemorySegment();
+    _ = try vm.addMemorySegment();
 
     // Test body
 
