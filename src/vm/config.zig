@@ -9,5 +9,5 @@ pub const Config = struct {
     /// When enabled trace is generated
     enable_trace: bool = false,
     /// The location of the program to be evaluated
-    filename: ?[]const u8 = null,
+    filename: []const u8 = undefined,
 };

@@ -4,6 +4,7 @@
 
 // Core imports.
 const std = @import("std");
+const json = std.json;
 const Allocator = std.mem.Allocator;
 // Local imports.
 const Config = @import("../config.zig").Config;
@@ -11,15 +12,14 @@ const vm_core = @import("../core.zig");
 const relocatable = @import("../memory/relocatable.zig");
 const Relocatable = relocatable.Relocatable;
 const MaybeRelocatable = relocatable.MaybeRelocatable;
-const newFromRelocatable = relocatable.newFromRelocatable;
 const Program = @import("../types/program.zig").Program;
+const CairoRunnerError = @import("../error.zig").CairoRunnerError;
 
 pub const CairoRunner = struct {
     const Self = @This();
 
-    // program: Program,
+    program: Program,
     allocator: Allocator,
-    instructions: []MaybeRelocatable,
     vm: vm_core.CairoVM,
     program_base: Relocatable = undefined,
     execution_base: Relocatable = undefined,
@@ -27,67 +27,84 @@ pub const CairoRunner = struct {
     initial_ap: Relocatable = undefined,
     initial_fp: Relocatable = undefined,
     final_pc: *Relocatable = undefined,
-    main_offset: usize = 0,
-    stack: std.ArrayList(MaybeRelocatable),
-    // proofMode: bool,
-    // runEnded: bool,
+    instructions: std.ArrayList(MaybeRelocatable),
+    function_call_stack: std.ArrayList(MaybeRelocatable),
+    entrypoint_name: []const u8 = "main",
+    proof_mode: bool,
+    run_ended: bool = false,
     // layout
     // execScopes
     // executionPublicMemory
     // Segments Finialized
 
-    pub fn initFromConfig(allocator: Allocator, config: Config) !Self {
-        // Create a new VM instance.
-        const vm = try vm_core.CairoVM.init(
-            allocator,
-            config,
-        );
-
-        const instructions = try Program.dataFromFile(allocator, config.filename.?);
-
+    pub fn init(
+        allocator: Allocator,
+        program: Program,
+        instructions: std.ArrayList(MaybeRelocatable),
+        vm: vm_core.CairoVM,
+        proof_mode: bool,
+    ) !Self {
         const stack = std.ArrayList(MaybeRelocatable).init(allocator);
 
-        return .{ .allocator = allocator, .instructions = instructions, .vm = vm, .stack = stack };
+        return .{ .allocator = allocator, .program = program, .instructions = instructions, .vm = vm, .function_call_stack = stack, .proof_mode = proof_mode };
     }
 
     pub fn setupExecutionState(self: *Self) !Relocatable {
         try self.initSegments();
-        const end = try self.initMainEntryPoint();
+        const end = try self.initMainEntrypoint();
         self.initVM();
         return end;
     }
 
+    /// Initializes common segments for the execution of a cairo program.
     pub fn initSegments(self: *Self) !void {
+
+        // Common segments, as defined in pg 41 of the cairo paper
+        // stores the bytecode of the executed Cairo Program
         self.program_base = try self.vm.segments.addSegment();
+        // stores the execution stack
         self.execution_base = try self.vm.segments.addSegment();
+
+        // TODO, add builtin segments when fib milestone is completed
     }
 
+    /// Initializes runner state for execution, as in:
+    /// Sets the proper initial program counter.
+    /// Loads instructions to the initialized program segment.
+    /// Loads the function call stack to the execution segment.
+    /// # Arguments
+    /// - `entrypoint:` The address, relative to the program segment, where execution begins.
     pub fn initState(self: *Self, entrypoint: usize) !void {
         self.initial_pc = self.program_base;
         self.initial_pc.addUintInPlace(entrypoint);
 
-        try self.vm.segments.memory.loadData(
+        _ = try self.vm.segments.loadData(
             self.allocator,
             self.program_base,
-            self.instructions,
+            &self.instructions,
         );
 
-        try self.vm.segments.memory.loadData(
+        _ = try self.vm.segments.loadData(
             self.allocator,
             self.execution_base,
-            self.stack.items,
+            &self.function_call_stack,
         );
     }
 
-    // initializeFunctionEntrypoint
     pub fn initFunctionEntrypoint(self: *Self, entrypoint: usize, return_fp: Relocatable) !Relocatable {
         var end = try self.vm.segments.addSegment();
 
-        try self.stack.append(MaybeRelocatable.fromRelocatable(return_fp));
-        try self.stack.append(MaybeRelocatable.fromRelocatable(end));
+        // per 6.1 of cairo whitepaper
+        // a call stack usually increases a frame when a function is called
+        // and decreases when a function returns,
+        // but to situate the functionality with Cairo's read-only memory,
+        // the frame pointer register is used to point to the current frame in the stack
+        // the runner sets the return fp and establishes the end address that execution treats as the endpoint.
+        try self.function_call_stack.append(MaybeRelocatable.fromRelocatable(return_fp));
+        try self.function_call_stack.append(MaybeRelocatable.fromRelocatable(end));
 
         self.initial_fp = self.execution_base;
-        self.initial_fp.addUintInPlace(@as(u64, self.stack.items.len));
+        self.initial_fp.addUintInPlace(@as(u64, self.function_call_stack.items.len));
         self.initial_ap = self.initial_fp;
 
         self.final_pc = &end;
@@ -95,17 +112,19 @@ pub const CairoRunner = struct {
         return end;
     }
 
-    // initializeMainEntrypoint
-    /// Initializes memory, initial register values and returns the endpointer
-    /// to run from the main entrypoint
-    pub fn initMainEntryPoint(self: *Self) !Relocatable {
-        // when running from the main entrypoint,
-        // only up to 11 values will be written
-        // where 11 is derived from
-        // 9 builtin bases + end + return_fp
-
+    /// Initializes runner state for execution of a program from the `main()` entrypoint.
+    pub fn initMainEntrypoint(self: *Self) !Relocatable {
+        // TODO handle the necessary stack initializing for builtins
+        // and the case where we are running in proof mode
         const return_fp = try self.vm.segments.addSegment();
-        const end = try self.initFunctionEntrypoint(self.main_offset, return_fp);
+        // Buffer for concatenation
+        var buffer: [100]u8 = undefined;
+
+        // Concatenate strings
+        const full_entrypoint_name = try std.fmt.bufPrint(&buffer, "__main__.{s}", .{self.entrypoint_name});
+
+        const main_offset: usize = self.program.identifiers.map.get(full_entrypoint_name).?.pc orelse 0;
+        const end = try self.initFunctionEntrypoint(main_offset, return_fp);
         return end;
     }
 
@@ -128,15 +147,46 @@ pub const CairoRunner = struct {
         }
     }
 
+    pub fn endRun(self: *Self) !void {
+        // TODO relocate memory
+        // TODO call end_run in vm for builtins
+        if (self.run_ended) {
+            return CairoRunnerError.EndRunAlreadyCalled;
+        }
+
+        // Presuming the default case of `allow_tmp_segments` in python version
+        _ = try self.vm.segments.computeEffectiveSize(false);
+
+        // TODO handle proof_mode case
+
+        self.run_ended = true;
+    }
+
     pub fn deinit(self: *Self) void {
-        // Deinitialize and deallocate instructions array.
-        self.allocator.free(self.instructions);
-
-        // Deinitialize the stack. This will deallocate the memory used by the stack itself,
-        // but not the memory of the elements within it, if they are pointers.
-        self.stack.deinit();
-
-        // Deinitialize the VM, which should take care of its own resources.
+        // currently handling the deinit of the json.Parsed(Program) outside of constructor
+        // otherwise the runner would always assume json in its interface
+        // self.program.deinit();
+        self.instructions.deinit();
+        self.function_call_stack.deinit();
         self.vm.deinit();
     }
 };
+
+pub fn runConfig(allocator: Allocator, config: Config) !void {
+    const vm = try vm_core.CairoVM.init(
+        allocator,
+        config,
+    );
+
+    const parsed_program = try Program.parseFromFile(allocator, config.filename);
+    const instructions = try parsed_program.value.readData(allocator);
+    defer parsed_program.deinit();
+
+    var runner = try CairoRunner.init(allocator, parsed_program.value, instructions, vm, config.proof_mode);
+    defer runner.deinit();
+    const end = try runner.setupExecutionState();
+    runner.runUntilPC(end);
+    try runner.endRun();
+    // TODO readReturnValues necessary for builtins
+
+}

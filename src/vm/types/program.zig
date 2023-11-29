@@ -97,17 +97,17 @@ pub const Program = struct {
         references: []const Reference,
     },
 
-    /// Attempts to parse the `data` attribute of a parsed compilation artifact of a cairo v0 program as a list of `MaybeRelocatable`s to be brought into the vm memory
+    /// Attempts to parse the compilation artifact of a cairo v0 program
     ///
     /// # Arguments
     /// - `allocator`: The allocator for reading the json file and parsing it.
     /// - `filename`: The location of the program json file.
     /// # Returns
-    /// - A list of `MaybeRelocatable`'s
+    /// - a parsed Program
     /// # Errors
     /// - If loading the file fails.
     /// - If the file has incompatible json with respect to the `Program` struct.
-    pub fn dataFromFile(allocator: Allocator, filename: []const u8) ![]MaybeRelocatable {
+    pub fn parseFromFile(allocator: Allocator, filename: []const u8) !json.Parsed(Program) {
         const file = try std.fs.cwd().openFile(filename, .{});
         const file_size = try file.getEndPos();
         defer file.close();
@@ -116,12 +116,9 @@ pub const Program = struct {
         defer allocator.free(buffer);
 
         const parsed = try json.parseFromSlice(Program, allocator, buffer, .{ .allocate = .alloc_always });
-        defer parsed.deinit();
+        errdefer parsed.deinit();
 
-        const program_data = try readData(allocator, parsed.value.data);
-        errdefer program_data;
-
-        return program_data;
+        return parsed;
     }
 
     /// Takes the `data` array of a json compilation artifact of a v0 cairo program, which contains an array of hexidecimal strings, and reads them as an array of `MaybeRelocatable`'s to be read into the vm memory.
@@ -129,16 +126,16 @@ pub const Program = struct {
     /// - `allocator`: The allocator for reading the json file and parsing it.
     /// - `filename`: The location of the program json file.
     /// # Returns
-    /// - A list of `MaybeRelocatable`'s
+    /// - An ArrayList of `MaybeRelocatable`'s
     /// # Errors
     /// - If the string in the array is not able to be treated as a hex string to be parsed as an u256
-    pub fn readData(allocator: Allocator, data: []const []const u8) ![]MaybeRelocatable {
-        var parsed_data = try allocator.alloc(MaybeRelocatable, data.len);
-        errdefer allocator.free(parsed_data);
+    pub fn readData(self: Self, allocator: Allocator) !std.ArrayList(MaybeRelocatable) {
+        var parsed_data = std.ArrayList(MaybeRelocatable).init(allocator);
+        errdefer parsed_data.deinit();
 
-        for (data, 0..) |instruction, i| {
+        for (self.data) |instruction| {
             const parsed_hex = try std.fmt.parseInt(u256, instruction[2..], 16);
-            parsed_data[i] = MaybeRelocatable.fromU256(parsed_hex);
+            try parsed_data.append(MaybeRelocatable.fromU256(parsed_hex));
         }
         return parsed_data;
     }
@@ -152,7 +149,7 @@ const expectError = std.testing.expectError;
 const expectEqualStrings = std.testing.expectEqualStrings;
 
 test "Program cannot be initialized from nonexistent json file" {
-    try expectError(error.FileNotFound, Program.dataFromFile(std.testing.allocator, "nonexistent.json"));
+    try expectError(error.FileNotFound, Program.parseFromFile(std.testing.allocator, "nonexistent.json"));
 }
 
 test "Program can be initialized from json file with correct program data" {
@@ -161,8 +158,12 @@ test "Program can be initialized from json file with correct program data" {
     // Get the absolute path of the current working directory.
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
     const path = try std.os.realpath("cairo-programs/fibonacci.json", &buffer);
-    var program = try Program.dataFromFile(allocator, path);
-    defer allocator.free(program);
+    var parsed_program = try Program.parseFromFile(allocator, path);
+    defer parsed_program.deinit();
+
+    const data = try parsed_program.value.readData(allocator);
+    defer data.deinit();
+
     const expected_data: []const []const u8 = &[_][]const u8{
         "0x480680017fff8000",
         "0x1",
@@ -190,13 +191,13 @@ test "Program can be initialized from json file with correct program data" {
         "0x208b7fff7fff7ffe",
     };
 
-    try expectEqual(expected_data.len, program.len);
+    try expectEqual(expected_data.len, data.items.len);
 
     for (0..expected_data.len) |idx| {
         var hex_list = std.ArrayList(u8).init(allocator);
         defer hex_list.deinit();
 
-        const instruction = program[idx].felt.toInteger();
+        const instruction = data.items[idx].felt.toInteger();
         // Format the integer as hexadecimal and store in buffer
         try std.fmt.format(hex_list.writer(), "0x{x}", .{instruction});
 
