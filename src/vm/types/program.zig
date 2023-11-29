@@ -153,7 +153,7 @@ test "Program cannot be initialized from nonexistent json file" {
 }
 
 test "Program can be initialized from json file with correct program data" {
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
 
     // Get the absolute path of the current working directory.
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
