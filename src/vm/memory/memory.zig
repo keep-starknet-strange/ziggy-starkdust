@@ -412,6 +412,29 @@ pub const Memory = struct {
             }
         }
     }
+
+    /// Counts the number of accessed addresses within a specified segment in the VM memory.
+    ///
+    /// # Arguments
+    ///
+    /// * `segment_index`: The index of the segment for which accessed addresses are counted.
+    ///
+    /// # Returns
+    ///
+    /// Returns the count of accessed addresses within the specified segment if it exists within the VM memory.
+    /// Returns `None` if the provided segment index exceeds the available segments in the VM memory.
+    pub fn countAccessedAddressesInSegment(self: *Self, segment_index: usize) ?usize {
+        if (segment_index < self.data.items.len) {
+            var count: usize = 0;
+            for (self.data.items[segment_index].items) |item| {
+                if (item) |i| {
+                    if (i.is_accessed) count += 1;
+                }
+            }
+            return count;
+        }
+        return null;
+    }
 };
 
 // Utility function to help set up memory for tests
@@ -989,6 +1012,72 @@ test "Memory: addRelocationRule should add new relocation rule" {
     try expectEqual(
         Relocatable.new(4, 7),
         memory.relocation_rules.get(1).?,
+    );
+}
+
+test "Memory: countAccessedAddressesInSegment should return null if segment does not exist in data" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    // Test checks
+    try expectEqual(
+        @as(?usize, null),
+        memory.countAccessedAddressesInSegment(8),
+    );
+}
+
+test "Memory: countAccessedAddressesInSegment should return 0 if no accessed addresses" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 10, 1 }, .{3} },
+            .{ .{ 10, 2 }, .{3} },
+            .{ .{ 10, 3 }, .{3} },
+            .{ .{ 10, 4 }, .{3} },
+            .{ .{ 10, 5 }, .{3} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    // Test checks
+    try expectEqual(
+        @as(?usize, 0),
+        memory.countAccessedAddressesInSegment(10),
+    );
+}
+
+test "Memory: countAccessedAddressesInSegment should return number of accessed addresses" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 10, 1 }, .{3} },
+            .{ .{ 10, 2 }, .{3} },
+            .{ .{ 10, 3 }, .{3} },
+            .{ .{ 10, 4 }, .{3} },
+            .{ .{ 10, 5 }, .{3} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    memory.data.items[10].items[3].?.is_accessed = true;
+    memory.data.items[10].items[4].?.is_accessed = true;
+    memory.data.items[10].items[5].?.is_accessed = true;
+
+    // Test checks
+    try expectEqual(
+        @as(?usize, 3),
+        memory.countAccessedAddressesInSegment(10),
     );
 }
 
