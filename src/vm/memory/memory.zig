@@ -441,6 +441,7 @@ pub const Memory = struct {
             try values.append(try self.get(try address.addUint(@intCast(i))));
         }
         return values;
+    }
 
     /// Counts the number of accessed addresses within a specified segment in the VM memory.
     ///
