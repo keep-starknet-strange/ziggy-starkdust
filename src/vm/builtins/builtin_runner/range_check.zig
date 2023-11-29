@@ -217,34 +217,6 @@ pub const RangeCheckBuiltinRunner = struct {
         return pointer;
     }
 
-    /// Creates Validation Rules ArrayList
-    ///
-    /// # Parameters
-    ///
-    /// - `memory`: A `Memory` pointer of validation rules segment index.
-    /// - `address`: A `Relocatable` pointer to the validation rule.
-    ///
-    /// # Returns
-    ///
-    /// An `ArrayList(Relocatable)` containing the rules address
-    /// verification fails.
-    pub fn rangeCheckValidationRule(memory: *Memory, address: Relocatable) ?[]const Relocatable {
-        const num = ((memory.get(address) catch {
-            return null;
-        }) orelse {
-            return null;
-        }).tryIntoFelt() catch {
-            return null;
-        };
-
-        // get index of largest field element
-        if (num.numBits() <= N_PARTS * INNER_RC_BOUND_SHIFT) {
-            return &[_]Relocatable{address};
-        } else {
-            return null;
-        }
-    }
-
     /// Creates Validation Rule in Memory
     ///
     /// # Parameters
@@ -304,6 +276,33 @@ pub const RangeCheckBuiltinRunner = struct {
     }
 };
 
+/// Creates Validation Rules ArrayList
+///
+/// # Parameters
+///
+/// - `memory`: A `Memory` pointer of validation rules segment index.
+/// - `address`: A `Relocatable` pointer to the validation rule.
+///
+/// # Returns
+///
+/// An `ArrayList(Relocatable)` containing the rules address
+/// verification fails.
+pub fn rangeCheckValidationRule(memory: *Memory, address: Relocatable) MemoryError![]const Relocatable {
+    const num = ((memory.get(address) catch {
+        return MemoryError.Relocation;
+    }) orelse {
+        return MemoryError.Relocation;
+    }).tryIntoFelt() catch {
+        return MemoryError.Relocation;
+    };
+
+    // get index of largest field element
+    if (num.numBits() <= N_PARTS * INNER_RC_BOUND_SHIFT) {
+        return &[_]Relocatable{address};
+    } else {
+        return MemoryError.Relocation;
+    }
+}
 test "initialize segments for range check" {
 
     // given
@@ -421,3 +420,32 @@ test "Range Check: validation rule should be empty" {
         0,
     );
 }
+
+//test "Range Check: validation rule should return Relocatable array successfully" {
+//
+//    // given
+//    const allocator = std.testing.allocator;
+//    var mem = try MemorySegmentManager.init(allocator);
+//    defer mem.deinit();
+//
+//    //try mem.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
+//    const seg = mem.addSegment();
+//    _ = try seg;
+//
+//    const relo = Relocatable.new(0, 1);
+//    try mem.memory.set(std.testing.allocator, relo, MaybeRelocatable.fromFelt(Felt252.zero()));
+//    //defer mem.memory.deinitData(std.testing.allocator);
+//
+//    //try memoryFile.setUpMemory(mem.memory, std.testing.allocator, .{
+//    //    .{ .{ 0, 0 }, .{10} },
+//    //    .{ .{ 0, 1 }, .{10} },
+//    //});
+//    //const relo = Relocatable.new(0, 1);
+//    const result = rangeCheckValidationRule(mem.memory, relo);
+//    const mRelo = try mem.memory.getRelocatable(relo);
+//    const expected: MemoryError![]const Relocatable = &[_]Relocatable{mRelo};
+//    // assert
+//    try std.testing.expectEqual(expected, result
+//    //        &[_]Relocatable{relo},
+//    );
+//}
