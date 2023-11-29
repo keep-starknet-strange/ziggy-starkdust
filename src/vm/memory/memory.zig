@@ -223,6 +223,10 @@ pub const Memory = struct {
         var data = if (address.segment_index < 0) &self.temp_data else &self.data;
         const segment_index: usize = @intCast(if (address.segment_index < 0) -(address.segment_index + 1) else address.segment_index);
 
+        if (data.items.len <= segment_index) {
+            return MemoryError.UnallocatedSegment;
+        }
+
         if (data.items.len <= @as(usize, segment_index)) {
             try data.appendNTimes(
                 std.ArrayListUnmanaged(?MemoryCell){},
@@ -238,6 +242,15 @@ pub const Memory = struct {
                 null,
                 @as(usize, @intCast(address.offset)) + 1 - data_segment.items.len,
             );
+        }
+
+        // check if existing memory, cannot overwrite
+        if (data_segment.items[@as(usize, @intCast(address.offset))] != null) {
+            if (data_segment.items[@intCast(address.offset)]) |item| {
+                if (!item.maybe_relocatable.eq(value)) {
+                    return MemoryError.DuplicatedRelocation;
+                }
+            }
         }
         data_segment.items[address.offset] = MemoryCell.new(value);
     }
@@ -399,6 +412,29 @@ pub const Memory = struct {
             }
         }
     }
+
+    /// Counts the number of accessed addresses within a specified segment in the VM memory.
+    ///
+    /// # Arguments
+    ///
+    /// * `segment_index`: The index of the segment for which accessed addresses are counted.
+    ///
+    /// # Returns
+    ///
+    /// Returns the count of accessed addresses within the specified segment if it exists within the VM memory.
+    /// Returns `None` if the provided segment index exceeds the available segments in the VM memory.
+    pub fn countAccessedAddressesInSegment(self: *Self, segment_index: usize) ?usize {
+        if (segment_index < self.data.items.len) {
+            var count: usize = 0;
+            for (self.data.items[segment_index].items) |item| {
+                if (item) |i| {
+                    if (i.is_accessed) count += 1;
+                }
+            }
+            return count;
+        }
+        return null;
+    }
 };
 
 // Utility function to help set up memory for tests
@@ -407,7 +443,22 @@ pub const Memory = struct {
 // - `memory` - memory to be set
 // - `vals` - complile time structure with heterogenous types
 pub fn setUpMemory(memory: *Memory, allocator: Allocator, comptime vals: anytype) !void {
+    const segment = std.ArrayListUnmanaged(?MemoryCell){};
+    var si: usize = 0;
     inline for (vals) |row| {
+        if (row[0][0] < 0) {
+            si = @intCast(-(row[0][0] + 1));
+            while (si >= memory.num_temp_segments) {
+                try memory.temp_data.append(segment);
+                memory.num_temp_segments += 1;
+            }
+        } else {
+            si = @intCast(row[0][0]);
+            while (si >= memory.num_segments) {
+                try memory.data.append(segment);
+                memory.num_segments += 1;
+            }
+        }
         // Check number of inputs in row
         if (row[1].len == 1) {
             try memory.set(
@@ -446,9 +497,8 @@ test "Memory: validate existing memory" {
     defer segments.deinit();
 
     var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
-    builtin.initializeSegments(segments);
+    try builtin.initializeSegments(segments);
     try builtin.addValidationRule(segments.memory);
-    _ = segments.addSegment();
 
     try setUpMemory(segments.memory, std.testing.allocator, .{
         .{ .{ 0, 2 }, .{1} },
@@ -487,10 +537,8 @@ test "Memory: validate memory cell" {
     defer segments.deinit();
 
     var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
-    builtin.initializeSegments(segments);
+    try builtin.initializeSegments(segments);
     try builtin.addValidationRule(segments.memory);
-    const seg = segments.addSegment();
-    _ = seg;
 
     try setUpMemory(
         segments.memory,
@@ -520,10 +568,7 @@ test "Memory: validate memory cell segment index not in validation rules" {
     defer segments.deinit();
 
     var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
-    builtin.initializeSegments(segments);
-
-    const seg = segments.addSegment();
-    _ = seg;
+    try builtin.initializeSegments(segments);
 
     try setUpMemory(
         segments.memory,
@@ -547,13 +592,14 @@ test "Memory: validate memory cell already exist in validation rules" {
     defer segments.deinit();
 
     var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
-    builtin.initializeSegments(segments);
+    try builtin.initializeSegments(segments);
     try builtin.addValidationRule(segments.memory);
 
+    try segments.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
     const seg = segments.addSegment();
-    _ = seg;
+    _ = try seg;
 
-    try segments.memory.set(std.testing.allocator, Relocatable.new(0, 1), relocatable.fromFelt(starknet_felt.Felt252.one()));
+    try segments.memory.set(std.testing.allocator, Relocatable.new(0, 1), MaybeRelocatable.fromFelt(starknet_felt.Felt252.one()));
     defer segments.memory.deinitData(std.testing.allocator);
 
     try segments.memory.validateMemoryCell(Relocatable.new(0, 1));
@@ -584,9 +630,9 @@ test "memory inner for testing test" {
         std.testing.allocator,
         .{
             .{ .{ 1, 3 }, .{ 4, 5 } },
+            .{ .{ 1, 2 }, .{ "234", 10 } },
             .{ .{ 2, 6 }, .{ 7, 8 } },
             .{ .{ 9, 10 }, .{23} },
-            .{ .{ 1, 2 }, .{ "234", 10 } },
         },
     );
     defer memory.deinitData(std.testing.allocator);
@@ -646,13 +692,13 @@ test "memory set and get" {
         0,
         0,
     );
-    const value_1 = relocatable.fromFelt(starknet_felt.Felt252.one());
+    const value_1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.one());
 
     const address_2 = Relocatable.new(
         -1,
         0,
     );
-    const value_2 = relocatable.fromFelt(starknet_felt.Felt252.one());
+    const value_2 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.one());
 
     // Set a value into the memory.
     try setUpMemory(
@@ -706,6 +752,22 @@ test "Memory: get inside a segment without value but inbout should return null" 
     );
 }
 
+test "Memory: set where number of segments is less than segment index should return UnallocatedSegment error" {
+    const allocator = std.testing.allocator;
+
+    var segments = try MemorySegmentManager.init(allocator);
+    defer segments.deinit();
+
+    try setUpMemory(
+        segments.memory,
+        std.testing.allocator,
+        .{.{ .{ 0, 1 }, .{1} }},
+    );
+
+    try expectError(MemoryError.UnallocatedSegment, segments.memory.set(allocator, Relocatable.new(3, 1), .{ .felt = Felt252.fromInteger(3) }));
+    defer segments.memory.deinitData(std.testing.allocator);
+}
+
 test "validate existing memory for range check within bound" {
     // ************************************************************
     // *                 SETUP TEST CONTEXT                       *
@@ -721,7 +783,7 @@ test "validate existing memory for range check within bound" {
     defer segments.deinit();
 
     var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
-    builtin.initializeSegments(segments);
+    try builtin.initializeSegments(segments);
 
     // ************************************************************
     // *                      TEST BODY                           *
@@ -730,7 +792,7 @@ test "validate existing memory for range check within bound" {
         0,
         0,
     );
-    const value_1 = relocatable.fromFelt(starknet_felt.Felt252.one());
+    const value_1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.one());
 
     // Set a value into the memory.
     try setUpMemory(
@@ -759,7 +821,7 @@ test "Memory: getFelt should return MemoryOutOfBounds error if no value at the g
     // Test checks
     try expectError(
         error.MemoryOutOfBounds,
-        memory.getFelt(Relocatable.new(10, 30)),
+        memory.getFelt(Relocatable.new(0, 0)),
     );
 }
 
@@ -771,14 +833,14 @@ test "Memory: getFelt should return Felt252 if available at the given address" {
     try setUpMemory(
         memory,
         std.testing.allocator,
-        .{.{ .{ 10, 30 }, .{23} }},
+        .{.{ .{ 0, 0 }, .{23} }},
     );
     defer memory.deinitData(std.testing.allocator);
 
     // Test checks
     try expectEqual(
         Felt252.fromInteger(23),
-        try memory.getFelt(Relocatable.new(10, 30)),
+        try memory.getFelt(Relocatable.new(0, 0)),
     );
 }
 
@@ -790,14 +852,14 @@ test "Memory: getFelt should return ExpectedInteger error if Relocatable instead
     try setUpMemory(
         memory,
         std.testing.allocator,
-        .{.{ .{ 10, 30 }, .{ 3, 7 } }},
+        .{.{ .{ 0, 0 }, .{ 3, 7 } }},
     );
     defer memory.deinitData(std.testing.allocator);
 
     // Test checks
     try expectError(
         error.ExpectedInteger,
-        memory.getFelt(Relocatable.new(10, 30)),
+        memory.getFelt(Relocatable.new(0, 0)),
     );
 }
 
@@ -809,7 +871,7 @@ test "Memory: getRelocatable should return MemoryOutOfBounds error if no value a
     // Test checks
     try expectError(
         error.MemoryOutOfBounds,
-        memory.getRelocatable(Relocatable.new(10, 30)),
+        memory.getRelocatable(Relocatable.new(0, 0)),
     );
 }
 
@@ -821,14 +883,14 @@ test "Memory: getRelocatable should return Relocatable if available at the given
     try setUpMemory(
         memory,
         std.testing.allocator,
-        .{.{ .{ 10, 30 }, .{ 4, 34 } }},
+        .{.{ .{ 0, 0 }, .{ 4, 34 } }},
     );
     defer memory.deinitData(std.testing.allocator);
 
     // Test checks
     try expectEqual(
         Relocatable.new(4, 34),
-        try memory.getRelocatable(Relocatable.new(10, 30)),
+        try memory.getRelocatable(Relocatable.new(0, 0)),
     );
 }
 
@@ -840,14 +902,14 @@ test "Memory: getRelocatable should return ExpectedRelocatable error if Felt ins
     try setUpMemory(
         memory,
         std.testing.allocator,
-        .{.{ .{ 10, 30 }, .{3} }},
+        .{.{ .{ 0, 0 }, .{3} }},
     );
     defer memory.deinitData(std.testing.allocator);
 
     // Test checks
     try expectError(
         error.ExpectedRelocatable,
-        memory.getRelocatable(Relocatable.new(10, 30)),
+        memory.getRelocatable(Relocatable.new(0, 0)),
     );
 }
 
@@ -856,11 +918,12 @@ test "Memory: markAsAccessed should mark memory cell" {
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    const relo = Relocatable.new(1, 3);
+    const relo = Relocatable.new(0, 3);
+
     try setUpMemory(
         memory,
         std.testing.allocator,
-        .{.{ .{ 1, 3 }, .{ 4, 5 } }},
+        .{.{ .{ 0, 3 }, .{ 4, 5 } }},
     );
     defer memory.deinitData(std.testing.allocator);
 
@@ -868,7 +931,7 @@ test "Memory: markAsAccessed should mark memory cell" {
     // Test checks
     try expectEqual(
         true,
-        memory.data.items[1].items[3].?.is_accessed,
+        memory.data.items[0].items[3].?.is_accessed,
     );
 }
 
@@ -952,6 +1015,72 @@ test "Memory: addRelocationRule should add new relocation rule" {
     );
 }
 
+test "Memory: countAccessedAddressesInSegment should return null if segment does not exist in data" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    // Test checks
+    try expectEqual(
+        @as(?usize, null),
+        memory.countAccessedAddressesInSegment(8),
+    );
+}
+
+test "Memory: countAccessedAddressesInSegment should return 0 if no accessed addresses" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 10, 1 }, .{3} },
+            .{ .{ 10, 2 }, .{3} },
+            .{ .{ 10, 3 }, .{3} },
+            .{ .{ 10, 4 }, .{3} },
+            .{ .{ 10, 5 }, .{3} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    // Test checks
+    try expectEqual(
+        @as(?usize, 0),
+        memory.countAccessedAddressesInSegment(10),
+    );
+}
+
+test "Memory: countAccessedAddressesInSegment should return number of accessed addresses" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 10, 1 }, .{3} },
+            .{ .{ 10, 2 }, .{3} },
+            .{ .{ 10, 3 }, .{3} },
+            .{ .{ 10, 4 }, .{3} },
+            .{ .{ 10, 5 }, .{3} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    memory.data.items[10].items[3].?.is_accessed = true;
+    memory.data.items[10].items[4].?.is_accessed = true;
+    memory.data.items[10].items[5].?.is_accessed = true;
+
+    // Test checks
+    try expectEqual(
+        @as(?usize, 3),
+        memory.countAccessedAddressesInSegment(10),
+    );
+}
+
 test "AddressSet: contains should return false if segment index is negative" {
     // Test setup
     var addressSet = AddressSet.init(std.testing.allocator);
@@ -1017,4 +1146,26 @@ test "AddressSet: len should return the number of addresses in the address set" 
 
     // Test checks
     try expectEqual(@as(u32, 3), addressSet.len());
+}
+
+test "Memory: set should not rewrite memory" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
+    memory.num_segments += 1;
+    try memory.set(
+        std.testing.allocator,
+        Relocatable.new(0, 1),
+        .{ .felt = Felt252.fromInteger(23) },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    // Test checks
+    try expectError(MemoryError.DuplicatedRelocation, memory.set(
+        std.testing.allocator,
+        Relocatable.new(0, 1),
+        .{ .felt = Felt252.fromInteger(8) },
+    ));
 }
