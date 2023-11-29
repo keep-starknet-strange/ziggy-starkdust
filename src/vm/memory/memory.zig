@@ -1677,6 +1677,149 @@ test "Memory: memCmp function" {
     );
 }
 
+test "Memory: getRange for continuous memory" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 1, 0 }, .{2} },
+            .{ .{ 1, 1 }, .{3} },
+            .{ .{ 1, 2 }, .{4} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    var expected_vec = std.ArrayList(?MaybeRelocatable).init(std.testing.allocator);
+    defer expected_vec.deinit();
+
+    try expected_vec.append(MaybeRelocatable.fromU256(2));
+    try expected_vec.append(MaybeRelocatable.fromU256(3));
+    try expected_vec.append(MaybeRelocatable.fromU256(4));
+
+    var actual = try memory.getRange(
+        std.testing.allocator,
+        Relocatable.new(1, 0),
+        3,
+    );
+    defer actual.deinit();
+
+    // Test checks
+    try expectEqualSlices(
+        ?MaybeRelocatable,
+        expected_vec.items,
+        actual.items,
+    );
+}
+
+test "Memory: getRange for non continuous memory" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 1, 0 }, .{2} },
+            .{ .{ 1, 1 }, .{3} },
+            .{ .{ 1, 3 }, .{4} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    var expected_vec = std.ArrayList(?MaybeRelocatable).init(std.testing.allocator);
+    defer expected_vec.deinit();
+
+    try expected_vec.append(MaybeRelocatable.fromU256(2));
+    try expected_vec.append(MaybeRelocatable.fromU256(3));
+    try expected_vec.append(null);
+    try expected_vec.append(MaybeRelocatable.fromU256(4));
+
+    var actual = try memory.getRange(
+        std.testing.allocator,
+        Relocatable.new(1, 0),
+        4,
+    );
+    defer actual.deinit();
+
+    // Test checks
+    try expectEqualSlices(
+        ?MaybeRelocatable,
+        expected_vec.items,
+        actual.items,
+    );
+}
+
+test "Memory: countAccessedAddressesInSegment should return null if segment does not exist in data" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    // Test checks
+    try expectEqual(
+        @as(?usize, null),
+        memory.countAccessedAddressesInSegment(8),
+    );
+}
+
+test "Memory: countAccessedAddressesInSegment should return 0 if no accessed addresses" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 10, 1 }, .{3} },
+            .{ .{ 10, 2 }, .{3} },
+            .{ .{ 10, 3 }, .{3} },
+            .{ .{ 10, 4 }, .{3} },
+            .{ .{ 10, 5 }, .{3} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    // Test checks
+    try expectEqual(
+        @as(?usize, 0),
+        memory.countAccessedAddressesInSegment(10),
+    );
+}
+
+test "Memory: countAccessedAddressesInSegment should return number of accessed addresses" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 10, 1 }, .{3} },
+            .{ .{ 10, 2 }, .{3} },
+            .{ .{ 10, 3 }, .{3} },
+            .{ .{ 10, 4 }, .{3} },
+            .{ .{ 10, 5 }, .{3} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    memory.data.items[10].items[3].?.is_accessed = true;
+    memory.data.items[10].items[4].?.is_accessed = true;
+    memory.data.items[10].items[5].?.is_accessed = true;
+
+    // Test checks
+    try expectEqual(
+        @as(?usize, 3),
+        memory.countAccessedAddressesInSegment(10),
+    );
+}
+
 test "AddressSet: contains should return false if segment index is negative" {
     // Test setup
     var addressSet = AddressSet.init(std.testing.allocator);
