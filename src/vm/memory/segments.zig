@@ -6,6 +6,8 @@ const expectEqual = std.testing.expectEqual;
 const expectEqualSlices = std.testing.expectEqualSlices;
 const expectError = std.testing.expectError;
 
+const Tuple = std.meta.Tuple;
+
 // Local imports.
 const Memory = @import("memory.zig").Memory;
 const memoryFile = @import("memory.zig");
@@ -44,11 +46,12 @@ pub const MemorySegmentManager = struct {
     // The memory.
     memory: *Memory,
     // The public memory offsets.
-    // TODO: Use correct type for this.
+    // A map from segment index to a list of pairs (offset, page_id) that constitute the
+    // public memory. Note that the offset is absolute (not based on the page_id).
     public_memory_offsets: std.HashMap(
-        u32,
-        u32,
-        std.hash_map.AutoContext(u32),
+        usize,
+        std.ArrayList(Tuple(&.{ usize, usize })),
+        std.hash_map.AutoContext(usize),
         std.hash_map.default_max_load_percentage,
     ),
 
@@ -82,7 +85,10 @@ pub const MemorySegmentManager = struct {
             ).init(allocator),
             // Initialize the memory pointer.
             .memory = memory,
-            .public_memory_offsets = std.AutoHashMap(u32, u32).init(allocator),
+            .public_memory_offsets = std.AutoHashMap(
+                usize,
+                std.ArrayList(Tuple(&.{ usize, usize })),
+            ).init(allocator),
         };
         // Return the pointer to the MemorySegmentManager.
         return segment_manager;
@@ -268,6 +274,26 @@ pub const MemorySegmentManager = struct {
             );
         }
         return ptr.addUint(data.items.len) catch MemoryError.Math;
+    }
+
+    /// Returns a list of addresses of memory cells that constitute the public memory.
+    /// segment_offsets is the result of self.relocate_segments()
+    // TODO: implement self.relocate_segments()
+    pub fn getPublicMemoryAddresses(self: *Self, segment_offsets: *std.ArrayList(usize)) !std.ArrayList(Tuple(&.{ usize, usize })) {
+        var public_memory_addresses = std.ArrayList(Tuple(&.{ usize, usize })).init(self.allocator);
+        errdefer public_memory_addresses.deinit();
+        try public_memory_addresses.ensureCapacity(self.numSegments());
+        const empty_offsets = std.ArrayList(Tuple(&.{ usize, usize })).init(self.allocator);
+        defer empty_offsets.deinit();
+        for (0..self.numSegments()) |segment_index| {
+            const offsets = self.public_memory_offsets.get(segment_index) orelse &empty_offsets;
+            const segment_start = segment_offsets.items[segment_index];
+            for (offsets.items) |offset_tuple| {
+                const memory_address = segment_start + offset_tuple[0];
+                try public_memory_addresses.append(.{ memory_address, offset_tuple[1] });
+            }
+        }
+        return public_memory_addresses;
     }
 };
 
