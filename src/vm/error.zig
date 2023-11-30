@@ -49,10 +49,12 @@ pub const MemoryError = error{
     Relocation,
     /// Math error
     Math,
-    /// Number is out of bounds
+    /// Range Check Number is out of bounds
     RangeCheckNumberOutOfBounds,
-    /// RangeCheck found a non int
+    /// Range Check found a non int
     RangecheckNonInt,
+    /// Range Check get error
+    RangeCheckGetError,
 };
 
 /// Reepresents different error conditions that occur in the built-in runners.
