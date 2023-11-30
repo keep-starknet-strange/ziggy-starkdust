@@ -1,7 +1,16 @@
+const std = @import("std");
+
 const bitwise_instance_def = @import("../../types/bitwise_instance_def.zig");
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
 const Memory = @import("../../memory/memory.zig").Memory;
+const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
+
+pub const BitwiseError = error{
+    InvalidBitwiseIndex,
+    UnsupportedNumberOfBits,
+    InvalidAddressForBitwise,
+};
 
 /// Bitwise built-in runner
 pub const BitwiseBuiltinRunner = struct {
@@ -23,6 +32,28 @@ pub const BitwiseBuiltinRunner = struct {
     included: bool,
     /// Number of instance per component
     instances_per_component: u32,
+
+    /// Retrieve the felt in memory that an address denotes as an integer.
+    /// # Arguments
+    /// - address: The address belonging to the Bitwise builtin's segment
+    /// - memory: The cairo memory where addresses are looked up
+    /// # Returns
+    /// The felt as an integer.
+    fn getValue(self: Self, address: Relocatable, memory: *Memory) BitwiseError!u256 {
+        var value = memory.get(address) catch {
+            return BitwiseError.InvalidAddressForBitwise;
+        };
+
+        var felt = value.?.tryIntoFelt() catch {
+            return BitwiseError.InvalidAddressForBitwise;
+        };
+
+        if (felt.toInteger() > std.math.pow(u256, 2, self.bitwise_builtin.total_n_bits)) {
+            return BitwiseError.UnsupportedNumberOfBits;
+        }
+
+        return felt.toInteger();
+    }
 
     /// Create a new BitwiseBuiltinRunner instance.
     ///
@@ -57,10 +88,190 @@ pub const BitwiseBuiltinRunner = struct {
         self: *const Self,
         address: Relocatable,
         memory: *Memory,
-    ) ?MaybeRelocatable {
-        _ = memory;
-        _ = address;
-        _ = self;
-        return null;
+    ) !?MaybeRelocatable {
+        const index = address.offset % self.cells_per_instance;
+
+        if (index < self.cells_per_instance) {
+            return BitwiseError.InvalidBitwiseIndex;
+        }
+
+        // calculate offset
+        const x_offset = address.subUint(index) catch {
+            return BitwiseError.InvalidBitwiseIndex;
+        };
+        const y_offset = try x_offset.addUint(1);
+
+        var x = try self.getValue(x_offset, memory);
+        var y = try self.getValue(y_offset, memory);
+
+        var res = switch (index) {
+            2 => x & y, // and
+            3 => x ^ y, // xor
+            4 => x | y, // or
+            else => return BitwiseError.InvalidBitwiseIndex,
+        };
+
+        return MaybeRelocatable{ .felt = Felt252.fromInteger(res) };
     }
 };
+
+// ************************************************************
+// *                         TESTS                            *
+// ************************************************************
+const expectEqual = std.testing.expectEqual;
+const expectError = std.testing.expectError;
+
+test "deduce when address.offset less than BITWISE_INPUT_CELLS_PER_INSTANCE" {
+
+    // given
+    var instance_def: bitwise_instance_def.BitwiseInstanceDef = .{};
+    var builtin = BitwiseBuiltinRunner.init(&instance_def, true);
+
+    var allocator = std.testing.allocator;
+    var mem = try Memory.init(allocator);
+    defer mem.deinit();
+
+    // when
+    var address = Relocatable.new(0, 5);
+
+    // then
+    try expectError(BitwiseError.InvalidBitwiseIndex, builtin.deduceMemoryCell(address, mem));
+}
+
+test "deduce when address points to nothing in memory" {
+
+    // given
+    var instance_def: bitwise_instance_def.BitwiseInstanceDef = .{};
+    var builtin = BitwiseBuiltinRunner.init(&instance_def, true);
+
+    var allocator = std.testing.allocator;
+    var mem = try Memory.init(allocator);
+    defer mem.deinit();
+
+    // when
+    var address = Relocatable.new(0, 3);
+
+    // then
+    try expectError(BitwiseError.InvalidAddressForBitwise, builtin.deduceMemoryCell(address, mem));
+}
+
+test "deduce when address points to relocatable variant of MaybeRelocatable " {
+
+    // given
+    var instance_def: bitwise_instance_def.BitwiseInstanceDef = .{};
+    var builtin = BitwiseBuiltinRunner.init(&instance_def, true);
+
+    var allocator = std.testing.allocator;
+    var mem = try Memory.init(allocator);
+    defer mem.deinit();
+
+    // when
+    var address = Relocatable.new(0, 3);
+
+    try mem.set(allocator, Relocatable.new(0, 5), MaybeRelocatable.fromRelocatable(address));
+
+    // then
+    try expectError(BitwiseError.InvalidAddressForBitwise, builtin.deduceMemoryCell(address, mem));
+}
+
+test "deduce when address points to felt greater than BITWISE_TOTAL_N_BITS" {
+
+    // given
+    var instance_def: bitwise_instance_def.BitwiseInstanceDef = .{};
+    var builtin = BitwiseBuiltinRunner.init(&instance_def, true);
+
+    const number = std.math.pow(u256, 2, bitwise_instance_def.TOTAL_N_BITS_BITWISE_DEFAULT) + 1;
+    var allocator = std.testing.allocator;
+    var mem = try Memory.init(allocator);
+    defer mem.deinit();
+
+    // when
+    var address = Relocatable.new(0, 3);
+
+    try mem.set(allocator, Relocatable.new(
+        0,
+        0,
+    ), MaybeRelocatable.fromU256(number));
+
+    // then
+    try expectError(BitwiseError.UnsupportedNumberOfBits, builtin.deduceMemoryCell(address, mem));
+}
+
+// happy path tests graciously ported from https://github.com/lambdaclass/cairo-vm_in_go/blob/main/pkg/builtins/bitwise_test.go#L13
+test "valid bitwise and" {
+
+    // given
+    var instance_def: bitwise_instance_def.BitwiseInstanceDef = .{};
+    var builtin = BitwiseBuiltinRunner.init(&instance_def, true);
+
+    var allocator = std.testing.allocator;
+    var mem = try Memory.init(allocator);
+    defer mem.deinit();
+
+    // when
+    try mem.set(allocator, Relocatable.new(0, 5), MaybeRelocatable.fromU256(10));
+    try mem.set(allocator, Relocatable.new(0, 6), MaybeRelocatable.fromU256(12));
+    try mem.set(allocator, Relocatable.new(0, 7), MaybeRelocatable.fromU256(0));
+
+    var address = Relocatable.new(0, 7);
+    var expected = MaybeRelocatable{ .felt = Felt252.fromInteger(8) };
+
+    // then
+    var result = try builtin.deduceMemoryCell(address, mem);
+    try expectEqual(
+        expected,
+        result.?,
+    );
+}
+
+test "valid bitwise xor" {
+
+    // given
+    var instance_def: bitwise_instance_def.BitwiseInstanceDef = .{};
+    var builtin = BitwiseBuiltinRunner.init(&instance_def, true);
+
+    var allocator = std.testing.allocator;
+    var mem = try Memory.init(allocator);
+    defer mem.deinit();
+
+    // when
+    try mem.set(allocator, Relocatable.new(0, 5), MaybeRelocatable.fromU256(10));
+    try mem.set(allocator, Relocatable.new(0, 6), MaybeRelocatable.fromU256(12));
+    try mem.set(allocator, Relocatable.new(0, 8), MaybeRelocatable.fromU256(0));
+
+    var address = Relocatable.new(0, 8);
+    var expected = MaybeRelocatable{ .felt = Felt252.fromInteger(6) };
+
+    // then
+    var result = try builtin.deduceMemoryCell(address, mem);
+    try expectEqual(
+        expected,
+        result.?,
+    );
+}
+
+test "valid bitwise or" {
+
+    // given
+    var instance_def: bitwise_instance_def.BitwiseInstanceDef = .{};
+    var builtin = BitwiseBuiltinRunner.init(&instance_def, true);
+
+    var allocator = std.testing.allocator;
+    var mem = try Memory.init(allocator);
+    defer mem.deinit();
+
+    // when
+    try mem.set(allocator, Relocatable.new(0, 5), MaybeRelocatable.fromU256(10));
+    try mem.set(allocator, Relocatable.new(0, 6), MaybeRelocatable.fromU256(12));
+    try mem.set(allocator, Relocatable.new(0, 9), MaybeRelocatable.fromU256(0));
+
+    var address = Relocatable.new(0, 9);
+    var expected = MaybeRelocatable{ .felt = Felt252.fromInteger(14) };
+
+    // then
+    var result = try builtin.deduceMemoryCell(address, mem);
+    try expectEqual(
+        expected,
+        result.?,
+    );
+}
