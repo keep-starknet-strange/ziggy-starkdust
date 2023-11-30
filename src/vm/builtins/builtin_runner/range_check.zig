@@ -293,14 +293,14 @@ pub fn rangeCheckValidationRule(memory: *Memory, address: Relocatable) MemoryErr
     }) orelse {
         return MemoryError.Relocation;
     }).tryIntoFelt() catch {
-        return MemoryError.Relocation;
+        return MemoryError.RangecheckNonInt;
     };
 
     // get index of largest field element
     if (num.numBits() <= N_PARTS * INNER_RC_BOUND_SHIFT) {
         return &[_]Relocatable{address};
     } else {
-        return MemoryError.Relocation;
+        return MemoryError.RangeCheckNumberOutOfBounds;
     }
 }
 test "initialize segments for range check" {
@@ -421,31 +421,61 @@ test "Range Check: validation rule should be empty" {
     );
 }
 
-//test "Range Check: validation rule should return Relocatable array successfully" {
-//
-//    // given
-//    const allocator = std.testing.allocator;
-//    var mem = try MemorySegmentManager.init(allocator);
-//    defer mem.deinit();
-//
-//    //try mem.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
-//    const seg = mem.addSegment();
-//    _ = try seg;
-//
-//    const relo = Relocatable.new(0, 1);
-//    try mem.memory.set(std.testing.allocator, relo, MaybeRelocatable.fromFelt(Felt252.zero()));
-//    //defer mem.memory.deinitData(std.testing.allocator);
-//
-//    //try memoryFile.setUpMemory(mem.memory, std.testing.allocator, .{
-//    //    .{ .{ 0, 0 }, .{10} },
-//    //    .{ .{ 0, 1 }, .{10} },
-//    //});
-//    //const relo = Relocatable.new(0, 1);
-//    const result = rangeCheckValidationRule(mem.memory, relo);
-//    const mRelo = try mem.memory.getRelocatable(relo);
-//    const expected: MemoryError![]const Relocatable = &[_]Relocatable{mRelo};
-//    // assert
-//    try std.testing.expectEqual(expected, result
-//    //        &[_]Relocatable{relo},
-//    );
-//}
+test "Range Check: validation rule should return Relocatable in array successfully" {
+
+    // given
+    const allocator = std.testing.allocator;
+    var mem = try MemorySegmentManager.init(allocator);
+    defer mem.deinit();
+
+    //try mem.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
+    const seg = mem.addSegment();
+    _ = try seg;
+
+    const relo = Relocatable.new(0, 1);
+    try mem.memory.set(std.testing.allocator, relo, MaybeRelocatable.fromFelt(Felt252.zero()));
+    defer mem.memory.deinitData(std.testing.allocator);
+
+    const result = try rangeCheckValidationRule(mem.memory, relo);
+    // assert
+    try std.testing.expectEqual(relo, result[0]);
+}
+
+test "Range Check: validation rule should return erorr out of bounds" {
+    // given
+    const allocator = std.testing.allocator;
+    var mem = try MemorySegmentManager.init(allocator);
+    defer mem.deinit();
+
+    //try mem.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
+    const seg = mem.addSegment();
+    _ = try seg;
+
+    const relo = Relocatable.new(0, 1);
+    try mem.memory.set(std.testing.allocator, relo, MaybeRelocatable.fromFelt(Felt252.fromInteger(10).neg()));
+    defer mem.memory.deinitData(std.testing.allocator);
+
+    const result = rangeCheckValidationRule(mem.memory, relo);
+    // assert
+    try std.testing.expectError(MemoryError.RangeCheckNumberOutOfBounds, result);
+}
+
+//MemoryError.RangecheckNonInt;
+test "Range Check: validation rule should return erorr non int" {
+    // given
+    const allocator = std.testing.allocator;
+    var mem = try MemorySegmentManager.init(allocator);
+    defer mem.deinit();
+
+    //try mem.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
+    const seg = mem.addSegment();
+    _ = try seg;
+
+    const relo = Relocatable.new(0, 1);
+    try mem.memory.set(std.testing.allocator, relo, MaybeRelocatable.fromSegment(0, 2));
+    defer mem.memory.deinitData(std.testing.allocator);
+
+    const result = rangeCheckValidationRule(mem.memory, relo);
+    // assert
+    try std.testing.expectError(MemoryError.RangecheckNonInt, result);
+}
