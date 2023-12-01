@@ -46,14 +46,6 @@ pub const MemoryCell = struct {
         };
     }
 
-    /// Marks the MemoryCell as accessed.
-    ///
-    /// # Safety
-    /// This function marks the MemoryCell as accessed, indicating it has been used or read.
-    pub fn markAccessed(self: *Self) void {
-        self.is_accessed = true;
-    }
-
     /// Checks equality between two MemoryCell instances.
     ///
     /// Checks whether two MemoryCell instances are equal based on their relocation information
