@@ -136,7 +136,6 @@ pub const CairoRunner = struct {
 
     pub fn runUntilPC(self: *Self, end: Relocatable) void {
         while (!end.eq(self.vm.run_context.pc.*)) {
-            std.log.debug("step {}\npc {}\n", .{ self.vm.current_step, self.vm.run_context.pc });
             self.vm.step(self.allocator) catch |err| {
                 std.debug.print(
                     "Error: {}\n",
@@ -166,8 +165,9 @@ pub const CairoRunner = struct {
         // currently handling the deinit of the json.Parsed(Program) outside of constructor
         // otherwise the runner would always assume json in its interface
         // self.program.deinit();
-        self.instructions.deinit();
         self.function_call_stack.deinit();
+        self.instructions.deinit();
+        self.vm.segments.memory.deinitData(self.allocator);
         self.vm.deinit();
     }
 };
@@ -189,4 +189,36 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
     try runner.endRun();
     // TODO readReturnValues necessary for builtins
 
+}
+
+const expect = std.testing.expect;
+const expectEqual = std.testing.expectEqual;
+const expectError = std.testing.expectError;
+const expectEqualSlices = std.testing.expectEqualSlices;
+
+test "Fibonacci: can evaluate first instruction" {
+
+    // Given
+    const allocator = std.testing.allocator;
+    var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+    const path = try std.os.realpath("cairo-programs/fibonacci.json", &buffer);
+
+    var parsed_program = try Program.parseFromFile(allocator, path);
+    defer parsed_program.deinit();
+
+    const instructions = try parsed_program.value.readData(allocator);
+
+    const vm = try vm_core.CairoVM.init(
+        allocator,
+        .{},
+    );
+
+    // when
+    var runner = try CairoRunner.init(allocator, parsed_program.value, instructions, vm, false);
+    defer runner.deinit();
+    _ = try runner.setupExecutionState();
+    errdefer std.debug.print("failed on step: {}\n", .{runner.vm.current_step});
+
+    // then
+    try runner.vm.step(allocator);
 }

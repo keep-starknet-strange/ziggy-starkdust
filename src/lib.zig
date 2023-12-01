@@ -10,6 +10,7 @@ pub const vm = struct {
     pub usingnamespace @import("vm/memory/memory.zig");
     pub usingnamespace @import("vm/memory/relocatable.zig");
     pub usingnamespace @import("vm/memory/segments.zig");
+    pub usingnamespace @import("vm/runners/cairo_runner.zig");
     pub usingnamespace @import("vm/builtins/bitwise/bitwise.zig");
 };
 
