@@ -49,6 +49,8 @@ pub const MemoryError = error{
     TemporarySegmentInRelocation,
     /// Inconsistent Relocation
     Relocation,
+    /// Gap in memory range
+    GetRangeMemoryGap,
     /// Math error
     Math,
 };
