@@ -46,14 +46,6 @@ pub const MemoryCell = struct {
         };
     }
 
-    /// Marks the MemoryCell as accessed.
-    ///
-    /// # Safety
-    /// This function marks the MemoryCell as accessed, indicating it has been used or read.
-    pub fn markAccessed(self: *Self) void {
-        self.is_accessed = true;
-    }
-
     /// Checks equality between two MemoryCell instances.
     ///
     /// Checks whether two MemoryCell instances are equal based on their relocation information
@@ -476,12 +468,28 @@ pub const Memory = struct {
         try self.validation_rules.put(@intCast(segment_index), rule);
     }
 
-    /// Marks a `MemoryCell` as accessed at the specified relocatable address.
+    /// Marks a `MemoryCell` as accessed at the specified relocatable address within the memory segment.
+    ///
+    /// # Description
+    /// This function marks a memory cell as accessed at the provided relocatable address within the memory segment.
+    /// It enables tracking and management of memory access for effective memory handling within the Cairo VM.
+    ///
     /// # Arguments
-    /// - `address` - The relocatable address to mark.
+    /// - `address` - The relocatable address to mark as accessed within the memory segment.
+    ///
+    /// # Safety
+    /// This function assumes correct usage and does not perform bounds checking. It's the responsibility of the caller
+    /// to ensure that the provided `address` is within the valid bounds of the memory segment.
     pub fn markAsAccessed(self: *Self, address: Relocatable) void {
         const segment_index: usize = @intCast(if (address.segment_index < 0) -(address.segment_index + 1) else address.segment_index);
-        (if (address.segment_index < 0) &self.temp_data else &self.data).items[segment_index].items[address.offset].?.markAccessed();
+        var data = if (address.segment_index < 0) &self.temp_data else &self.data;
+
+        if (segment_index < data.items.len) {
+            if (address.offset < data.items[segment_index].items.len) {
+                if (data.items[segment_index].items[address.offset] != null)
+                    data.items[segment_index].items[address.offset].?.is_accessed = true;
+            }
+        }
     }
 
     /// Adds a relocation rule to the VM memory, allowing redirection of temporary data to a specified destination.
@@ -1252,6 +1260,29 @@ test "Memory: markAsAccessed should mark memory cell" {
         true,
         memory.data.items[0].items[3].?.is_accessed,
     );
+}
+
+test "Memory: markAsAccessed should not panic if non existing segment" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    memory.markAsAccessed(Relocatable.new(10, 0));
+}
+
+test "Memory: markAsAccessed should not panic if non existing offset" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{.{ .{ 1, 3 }, .{ 4, 5 } }},
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    memory.markAsAccessed(Relocatable.new(1, 17));
 }
 
 test "Memory: addRelocationRule should return an error if source segment index >= 0" {
