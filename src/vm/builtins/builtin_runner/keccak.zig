@@ -472,7 +472,7 @@ pub const KeccakBuiltinRunner = struct {
             ) / 8;
 
             var bytes = [_]u8{0} ** Felt252.BytesSize;
-            std.mem.copy(u8, &bytes, keccak_result.items[start_index..end_index]);
+            @memcpy(bytes[0..(end_index - start_index)], keccak_result.items[start_index..end_index]);
 
             try self.cache.put(
                 try first_output_addr.addUint(i),
