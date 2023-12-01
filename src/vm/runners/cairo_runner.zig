@@ -134,15 +134,9 @@ pub const CairoRunner = struct {
         self.vm.run_context.pc.* = self.initial_pc;
     }
 
-    pub fn runUntilPC(self: *Self, end: Relocatable) void {
+    pub fn runUntilPC(self: *Self, end: Relocatable) !void {
         while (!end.eq(self.vm.run_context.pc.*)) {
-            self.vm.step(self.allocator) catch |err| {
-                std.debug.print(
-                    "Error: {}\n",
-                    .{err},
-                );
-                return;
-            };
+            try self.vm.step(self.allocator);
         }
     }
 
@@ -185,7 +179,7 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
     var runner = try CairoRunner.init(allocator, parsed_program.value, instructions, vm, config.proof_mode);
     defer runner.deinit();
     const end = try runner.setupExecutionState();
-    runner.runUntilPC(end);
+    try runner.runUntilPC(end);
     try runner.endRun();
     // TODO readReturnValues necessary for builtins
 
@@ -196,7 +190,7 @@ const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
 const expectEqualSlices = std.testing.expectEqualSlices;
 
-test "Fibonacci: can evaluate first instruction" {
+test "Fibonacci: can evaluate without runtime error" {
 
     // Given
     const allocator = std.testing.allocator;
@@ -216,9 +210,10 @@ test "Fibonacci: can evaluate first instruction" {
     // when
     var runner = try CairoRunner.init(allocator, parsed_program.value, instructions, vm, false);
     defer runner.deinit();
-    _ = try runner.setupExecutionState();
+    const end = try runner.setupExecutionState();
     errdefer std.debug.print("failed on step: {}\n", .{runner.vm.current_step});
 
     // then
-    try runner.vm.step(allocator);
+    try runner.runUntilPC(end);
+    try runner.endRun();
 }

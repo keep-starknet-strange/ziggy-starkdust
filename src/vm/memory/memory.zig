@@ -403,6 +403,27 @@ pub const Memory = struct {
         return null;
     }
 
+    // silly hack to sanity check a get that simply returns null, created a separate method just for dst to use for now, otherwise lots of tests are failing
+    pub fn get2(
+        self: *Self,
+        address: Relocatable,
+    ) error{MemoryOutOfBounds}!?MaybeRelocatable {
+        const data = if (address.segment_index < 0) &self.temp_data else &self.data;
+        const segment_index: usize = @intCast(if (address.segment_index < 0) -(address.segment_index + 1) else address.segment_index);
+
+        const isSegmentIndexValid = address.segment_index < data.items.len;
+        const isOffsetValid = isSegmentIndexValid and (address.offset < data.items[segment_index].items.len);
+
+        if (!isSegmentIndexValid or !isOffsetValid) {
+            return null;
+        }
+
+        if (data.items[segment_index].items[@intCast(address.offset)]) |val| {
+            return val.maybe_relocatable;
+        }
+        return null;
+    }
+
     /// Retrieves a `Felt252` value from the memory at the specified relocatable address.
     ///
     /// This function internally calls `get` on the memory, attempting to retrieve a value at the given address.
