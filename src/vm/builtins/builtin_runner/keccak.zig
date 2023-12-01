@@ -21,6 +21,8 @@ const Relocatable = relocatable.Relocatable;
 const MaybeRelocatable = relocatable.MaybeRelocatable;
 const CairoVM = CoreVM.CairoVM;
 
+const CairoVMError = Error.CairoVMError;
+
 const expectError = std.testing.expectError;
 const expectEqual = std.testing.expectEqual;
 const expect = std.testing.expect;
@@ -97,11 +99,12 @@ pub const KeccakBuiltinRunner = struct {
     ///
     /// # Modifies
     /// - `self`: Updates the `base` value to the new segment's index.
-    pub fn initializeSegments(self: *Self, segments: *MemorySegmentManager) void {
+    pub fn initializeSegments(self: *Self, segments: *MemorySegmentManager) !void {
         // `segments.addSegment()` always returns a positive index
+        const seg = try segments.addSegment();
         self.base = @as(
             usize,
-            @intCast(segments.addSegment().segment_index),
+            @intCast(seg.segment_index),
         );
     }
 
@@ -471,7 +474,7 @@ pub const KeccakBuiltinRunner = struct {
             ) / 8;
 
             var bytes = [_]u8{0} ** Felt252.BytesSize;
-            std.mem.copy(u8, &bytes, keccak_result.items[start_index..end_index]);
+            @memcpy(bytes[0..(end_index - start_index)], keccak_result.items[start_index..end_index]);
 
             try self.cache.put(
                 try first_output_addr.addUint(@intCast(i)),
@@ -542,8 +545,8 @@ test "KeccakBuiltinRunner: initializeSegments should modify base field of Keccak
     defer keccak_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    keccak_builtin.initializeSegments(memory_segment_manager);
-    keccak_builtin.initializeSegments(memory_segment_manager);
+    try keccak_builtin.initializeSegments(memory_segment_manager);
+    try keccak_builtin.initializeSegments(memory_segment_manager);
     try expectEqual(
         @as(usize, @intCast(1)),
         keccak_builtin.base,
@@ -837,6 +840,9 @@ test "KeccakBuiltinRunner: finalStack should return TypeMismatchNotRelocatable e
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
     try memory_segment_manager.memory.set(
         std.testing.allocator,
         try Relocatable.new(
@@ -848,7 +854,7 @@ test "KeccakBuiltinRunner: finalStack should return TypeMismatchNotRelocatable e
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
     try expectError(
-        error.TypeMismatchNotRelocatable,
+        CairoVMError.TypeMismatchNotRelocatable,
         keccak_builtin.finalStack(
             memory_segment_manager,
             Relocatable.new(2, 2),
@@ -868,6 +874,9 @@ test "KeccakBuiltinRunner: finalStack should return InvalidStopPointerIndex erro
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
     try memory_segment_manager.memory.set(
         std.testing.allocator,
         try Relocatable.new(
@@ -901,6 +910,9 @@ test "KeccakBuiltinRunner: finalStack should return InvalidStopPointer error if 
     keccak_builtin.base = 22;
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
     try memory_segment_manager.memory.set(
         std.testing.allocator,
         try Relocatable.new(
@@ -936,6 +948,9 @@ test "KeccakBuiltinRunner: finalStack should return stop pointer address and upd
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
     try memory_segment_manager.memory.set(
         std.testing.allocator,
         try Relocatable.new(

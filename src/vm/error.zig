@@ -21,8 +21,6 @@ pub const CairoVMError = error{
     /// Occurs when the expected value is not a Relocatable,
     /// or when subtracting two relocatables with different segment indices.
     TypeMismatchNotRelocatable,
-    /// Value is too large to be coerced to a u64.
-    ValueTooLarge,
     /// Occurs when both built-in deductions and fallback deductions for the operands fail.
     FailedToComputeOperands,
     /// No destination register can be deduced for the given opcode.
@@ -43,10 +41,16 @@ pub const MemoryError = error{
     NonZeroOffset,
     /// Duplicated relocation entry found.
     DuplicatedRelocation,
+    /// Segment not allocated
+    UnallocatedSegment,
     /// Temporary segment found while relocating (flattening) segment
     TemporarySegmentInRelocation,
     /// Inconsistent Relocation
     Relocation,
+    /// Gap in memory range
+    GetRangeMemoryGap,
+    /// Math error
+    Math,
 };
 
 /// Reepresents different error conditions that occur in the built-in runners.
@@ -71,4 +75,8 @@ pub const MathError = error{
     RelocatableAdd,
     /// Error when attempting to subtract a Relocatable from an integer value.
     SubRelocatableFromInt,
+    /// Error when Relocatable offset is smaller than the integer value from which it is subtracted.
+    RelocatableSubUsizeNegOffset,
+    /// Value is too large to be coerced to a u64.
+    ValueTooLarge,
 };
