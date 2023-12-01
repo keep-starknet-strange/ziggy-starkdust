@@ -896,7 +896,7 @@ pub const OperandsResult = struct {
     ///
     /// - `value`: A boolean value indicating whether the first operand was deduced.
     pub fn setOp0(self: *Self, value: bool) void {
-        self.deduced_operands |= @as(u8, @intCast(@intFromBool(value))) << 1;
+        self.deduced_operands |= if (value) 1 << 1 else 0 << 1;
     }
 
     /// Sets the flag indicating the second operand was deduced.
@@ -905,7 +905,7 @@ pub const OperandsResult = struct {
     ///
     /// - `value`: A boolean value indicating whether the second operand was deduced.
     pub fn setOp1(self: *Self, value: bool) void {
-        self.deduced_operands |= @as(u8, @intCast(@intFromBool(value))) << 2;
+        self.deduced_operands |= if (value) 1 << 2 else 0 << 2;
     }
 
     /// Checks if the destination operand was deduced.
