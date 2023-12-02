@@ -285,12 +285,14 @@ pub const MemorySegmentManager = struct {
         try public_memory_addresses.ensureCapacity(self.numSegments());
         const empty_offsets = std.ArrayList(Tuple(&.{ usize, usize })).init(self.allocator);
         defer empty_offsets.deinit();
+        if (segment_offsets.items.len < self.numSegments()) {
+            return error.MalformedPublicMemory;
+        }
         for (0..self.numSegments()) |segment_index| {
             const offsets = self.public_memory_offsets.get(segment_index) orelse &empty_offsets;
-            const segment_start = segment_offsets.items[segment_index];
+            const segment_start = try segment_offsets.items[segment_index];
             for (offsets.items) |offset_tuple| {
-                const memory_address = segment_start + offset_tuple[0];
-                try public_memory_addresses.append(.{ memory_address, offset_tuple[1] });
+                try public_memory_addresses.append(.{ segment_start + offset_tuple[0], offset_tuple[1] });
             }
         }
         return public_memory_addresses;
