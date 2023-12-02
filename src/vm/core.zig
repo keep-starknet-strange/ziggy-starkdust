@@ -560,13 +560,9 @@ pub const CairoVM = struct {
                 }
             },
             // AP update Add1
-            .Add1 => {
-                self.run_context.ap.*.addUintInPlace(1);
-            },
+            .Add1 => self.run_context.ap.*.addUintInPlace(1),
             // AP update Add2
-            .Add2 => {
-                self.run_context.ap.*.addUintInPlace(2);
-            },
+            .Add2 => self.run_context.ap.*.addUintInPlace(2),
             // AP update regular
             .Regular => {},
         }
@@ -583,12 +579,12 @@ pub const CairoVM = struct {
     ) !void {
         switch (instruction.fp_update) {
             // FP update Add + 2
-            instructions.FpUpdate.APPlus2 => { // Update the FP.
+            .APPlus2 => { // Update the FP.
                 // FP = AP + 2.
                 self.run_context.fp.*.offset = self.run_context.ap.*.offset + 2;
             },
             // FP update Dst
-            instructions.FpUpdate.Dst => {
+            .Dst => {
                 switch (operands.dst) {
                     .relocatable => |rel| {
                         // Update the FP.
@@ -647,27 +643,10 @@ pub const CairoVM = struct {
         res: ?MaybeRelocatable,
     ) !MaybeRelocatable {
         return switch (instruction.opcode) {
-            .AssertEq => {
-                if (res != null) {
-                    return res.?;
-                } else {
-                    return CairoVMError.NoDst;
-                }
-            },
+            .AssertEq => if (res) |r| r else CairoVMError.NoDst,
             .Call => MaybeRelocatable.fromRelocatable(self.run_context.fp.*),
             else => CairoVMError.NoDst,
         };
-    }
-
-    // ************************************************************
-    // *                    ACCESSORS                             *
-    // ************************************************************
-
-    /// Returns whether the run is finished or not.
-    /// # Returns
-    /// - `bool`: Whether the run is finished or not.
-    pub fn isRunFinished(self: *const Self) bool {
-        return self.is_run_finished;
     }
 
     /// Applies the corresponding builtin's deduction rules if addr's segment index corresponds to a builtin segment
@@ -731,6 +710,28 @@ pub const CairoVM = struct {
             return TraceError.TraceNotRelocated;
         }
     }
+
+    /// Marks a range of memory addresses as accessed within the Cairo VM's memory segment.
+    ///
+    /// # Arguments
+    ///
+    /// - `base`: The base relocatable address of the memory range to mark as accessed.
+    /// - `len`: The length of the memory range to mark as accessed.
+    ///
+    /// # Safety
+    ///
+    /// - This function assumes correct usage and does not perform bounds checking. It's the responsibility of the caller
+    ///   to ensure that the provided range defined by `base` and `len` is within the valid bounds of the memory segment.
+    ///
+    /// # Errors
+    ///
+    /// - Returns `CairoVMError.RunNotFinished` if the VM's run is not yet finished.
+    pub fn markAddressRangeAsAccessed(self: *Self, base: Relocatable, len: usize) !void {
+        if (!self.is_run_finished) return CairoVMError.RunNotFinished;
+        for (0..len) |i| {
+            self.segments.memory.markAsAccessed(try base.addUint(@intCast(i)));
+        }
+    }
 };
 
 /// Compute the result operand for a given instruction on op 0 and op 1.
@@ -747,8 +748,8 @@ pub fn computeRes(
 ) !?MaybeRelocatable {
     return switch (instruction.res_logic) {
         .Op1 => op_1,
-        .Add => return try addOperands(op_0, op_1),
-        .Mul => return try mulOperands(op_0, op_1),
+        .Add => try addOperands(op_0, op_1),
+        .Mul => try mulOperands(op_0, op_1),
         .Unconstrained => null,
     };
 }
@@ -818,20 +819,20 @@ pub fn mulOperands(
 /// Only values of the same type may be subtracted. Specifically, attempting to
 /// subtract a `.felt` with a `.relocatable` will result in an error.
 pub fn subOperands(self: MaybeRelocatable, other: MaybeRelocatable) !MaybeRelocatable {
-    switch (self) {
+    return switch (self) {
         .felt => |self_value| switch (other) {
             .felt => |other_value| return MaybeRelocatable.fromFelt(
                 self_value.sub(other_value),
             ),
-            .relocatable => return error.TypeMismatchNotFelt,
+            .relocatable => error.TypeMismatchNotFelt,
         },
         .relocatable => |self_value| switch (other) {
-            .felt => return error.TypeMismatchNotFelt,
+            .felt => error.TypeMismatchNotFelt,
             .relocatable => |other_value| return MaybeRelocatable.fromRelocatable(
                 try self_value.sub(other_value),
             ),
         },
-    }
+    };
 }
 
 /// Attempts to deduce `op1` and `res` for an instruction, given `dst` and `op0`.
@@ -884,16 +885,28 @@ pub fn deduceOp1(
 pub const OperandsResult = struct {
     const Self = @This();
 
+    /// The destination operand value.
     dst: MaybeRelocatable,
+    /// The result operand value.
     res: ?MaybeRelocatable,
+    /// The first operand value.
     op_0: MaybeRelocatable,
+    /// The second operand value.
     op_1: MaybeRelocatable,
+    /// The relocatable address of the destination operand.
     dst_addr: Relocatable,
+    /// The relocatable address of the first operand.
     op_0_addr: Relocatable,
+    /// The relocatable address of the second operand.
     op_1_addr: Relocatable,
+    /// Indicator for deduced operands.
     deduced_operands: u8,
 
-    /// Returns a default instance of the OperandsResult struct.
+    /// Returns a default instance of the OperandsResult struct with initial values set to zero.
+    ///
+    /// # Returns
+    ///
+    /// - An instance of OperandsResult with default values.
     pub fn default() Self {
         return .{
             .dst = MaybeRelocatable.fromU64(0),
@@ -907,24 +920,56 @@ pub const OperandsResult = struct {
         };
     }
 
+    /// Sets the flag indicating the destination operand was deduced.
+    ///
+    /// # Arguments
+    ///
+    /// - `value`: A boolean value indicating whether the destination operand was deduced.
     pub fn setDst(self: *Self, value: bool) void {
-        self.deduced_operands |= if (value) 1 else 0;
+        self.deduced_operands |= @intFromBool(value);
     }
+
+    /// Sets the flag indicating the first operand was deduced.
+    ///
+    /// # Arguments
+    ///
+    /// - `value`: A boolean value indicating whether the first operand was deduced.
     pub fn setOp0(self: *Self, value: bool) void {
         self.deduced_operands |= if (value) 1 << 1 else 0 << 1;
     }
 
+    /// Sets the flag indicating the second operand was deduced.
+    ///
+    /// # Arguments
+    ///
+    /// - `value`: A boolean value indicating whether the second operand was deduced.
     pub fn setOp1(self: *Self, value: bool) void {
         self.deduced_operands |= if (value) 1 << 2 else 0 << 2;
     }
+
+    /// Checks if the destination operand was deduced.
+    ///
+    /// # Returns
+    ///
+    /// - A boolean indicating if the destination operand was deduced.
     pub fn wasDestDeducted(self: *const Self) bool {
         return self.deduced_operands & 1 != 0;
     }
 
+    /// Checks if the first operand was deduced.
+    ///
+    /// # Returns
+    ///
+    /// - A boolean indicating if the first operand was deduced.
     pub fn wasOp0Deducted(self: *const Self) bool {
         return self.deduced_operands & (1 << 1) != 0;
     }
 
+    /// Checks if the second operand was deduced.
+    ///
+    /// # Returns
+    ///
+    /// - A boolean indicating if the second operand was deduced.
     pub fn wasOp1Deducted(self: *const Self) bool {
         return self.deduced_operands & (1 << 2) != 0;
     }
