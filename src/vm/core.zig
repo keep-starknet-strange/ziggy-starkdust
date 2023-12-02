@@ -690,8 +690,8 @@ pub const CairoVM = struct {
                 for (trace_enabled.entries.items) |entry| {
                     try self.trace_context.addRelocatedTrace(.{
                         .pc = Felt252.fromInteger(try entry.pc.relocateAddress(relocation_table)),
-                        .ap = Felt252.fromInteger(try entry.pc.relocateAddress(relocation_table)),
-                        .fp = Felt252.fromInteger(try entry.pc.relocateAddress(relocation_table)),
+                        .ap = Felt252.fromInteger(try entry.ap.relocateAddress(relocation_table)),
+                        .fp = Felt252.fromInteger(try entry.fp.relocateAddress(relocation_table)),
                     });
                 }
                 self.trace_relocated = true;
