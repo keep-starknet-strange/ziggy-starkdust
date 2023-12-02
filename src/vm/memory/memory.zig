@@ -882,7 +882,7 @@ test "Memory: validate memory cell" {
         true,
         segments.memory.validated_addresses.contains(Relocatable.new(0, 1)),
     );
-    //    try expectError(CairoVMError.MemoryOutOfBounds, segments.memory.validateMemoryCell(Relocatable.new(0, 7)));
+    try expectError(MemoryError.RangeCheckGetError, segments.memory.validateMemoryCell(Relocatable.new(0, 7)));
 }
 
 test "Memory: validate memory cell segment index not in validation rules" {
