@@ -191,9 +191,7 @@ pub const RangeCheckBuiltinRunner = struct {
             const stop_pointer_addr = pointer.subUint(
                 @intCast(1),
             ) catch return RunnerError.NoStopPointer;
-            const stop_pointer = try (segments.memory.get(
-                stop_pointer_addr,
-            ) catch return RunnerError.NoStopPointer).tryIntoRelocatable();
+            const stop_pointer = try (segments.memory.get(stop_pointer_addr)).tryIntoRelocatable();
             if (@as(
                 isize,
                 @intCast(self.base),
@@ -228,9 +226,7 @@ pub const RangeCheckBuiltinRunner = struct {
     /// An `ArrayList(Relocatable)` containing the rules address
     /// verification fails.
     pub fn rangeCheckValidationRule(memory: *Memory, address: Relocatable) ?[]const Relocatable {
-        const num = ((memory.get(address) catch {
-            return null;
-        }) orelse {
+        const num = (memory.get(address) orelse {
             return null;
         }).tryIntoFelt() catch {
             return null;

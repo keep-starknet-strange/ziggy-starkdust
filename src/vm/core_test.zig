@@ -887,7 +887,7 @@ test "set get value in vm memory" {
 
     // Test checks
     // Verify the value is correctly set to 42.
-    const actual_value = try vm.segments.memory.get(address);
+    const actual_value = vm.segments.memory.get(address);
     const expected_value = value;
     try expectEqual(
         expected_value,
@@ -1548,8 +1548,8 @@ test "CairoVM: getRelocatable without value raises error" {
     defer vm.deinit();
 
     // Test check
-    try expectError(
-        error.MemoryOutOfBounds,
+    try expectEqual(
+        @as(?MaybeRelocatable, null),
         vm.getRelocatable(Relocatable.new(0, 0)),
     );
 }
@@ -1571,7 +1571,7 @@ test "CairoVM: getRelocatable with value should return a MaybeRelocatable" {
     // Test check
     try expectEqual(
         MaybeRelocatable.fromU256(5),
-        (try vm.getRelocatable(Relocatable.new(34, 12))).?,
+        (vm.getRelocatable(Relocatable.new(34, 12))).?,
     );
 }
 
@@ -1639,7 +1639,7 @@ test "CairoVM: getSegmentSize should return the size of the segment via getSegme
     try expectEqual(@as(u32, 6), vm.getSegmentSize(3).?);
 }
 
-test "CairoVM: getFelt should return MemoryOutOfBounds error if no value at the given address" {
+test "CairoVM: getFelt should return ExpectedInteger error if no value at the given address" {
     // Test setup
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -1649,7 +1649,7 @@ test "CairoVM: getFelt should return MemoryOutOfBounds error if no value at the 
 
     // Test checks
     try expectError(
-        error.MemoryOutOfBounds,
+        error.ExpectedInteger,
         vm.getFelt(Relocatable.new(10, 30)),
     );
 }
@@ -1913,15 +1913,15 @@ test "CairoVM: InserDeducedOperands should insert operands if set as deduced" {
 
     // Test checks
     try expectEqual(
-        try vm.segments.memory.get(Relocatable.new(1, 0)),
+        vm.segments.memory.get(Relocatable.new(1, 0)),
         dst_val,
     );
     try expectEqual(
-        try vm.segments.memory.get(Relocatable.new(1, 1)),
+        vm.segments.memory.get(Relocatable.new(1, 1)),
         op0_val,
     );
     try expectEqual(
-        try vm.segments.memory.get(Relocatable.new(1, 2)),
+        vm.segments.memory.get(Relocatable.new(1, 2)),
         op1_val,
     );
 }
@@ -1967,16 +1967,16 @@ test "CairoVM: InserDeducedOperands insert operands should not be inserted if no
     try vm.insertDeducedOperands(allocator, test_operands);
 
     // Test checks
-    try expectError(
-        error.MemoryOutOfBounds,
+    try expectEqual(
+        @as(?MaybeRelocatable, null),
         vm.segments.memory.get(Relocatable.new(1, 0)),
     );
-    try expectError(
-        error.MemoryOutOfBounds,
+    try expectEqual(
+        @as(?MaybeRelocatable, null),
         vm.segments.memory.get(Relocatable.new(1, 1)),
     );
-    try expectError(
-        error.MemoryOutOfBounds,
+    try expectEqual(
+        @as(?MaybeRelocatable, null),
         vm.segments.memory.get(Relocatable.new(1, 2)),
     );
 }
