@@ -53,6 +53,8 @@ pub const MemoryError = error{
     GetRangeMemoryGap,
     /// Math error
     Math,
+    /// Represents a situation where a segment has more accessed addresses than its size.
+    SegmentHasMoreAccessedAddressesThanSize,
 };
 
 /// Reepresents different error conditions that occur in the built-in runners.
