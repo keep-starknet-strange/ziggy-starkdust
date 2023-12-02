@@ -14,6 +14,7 @@ const Relocatable = relocatable.Relocatable;
 const instructions = @import("instructions.zig");
 const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
+const MemoryError = @import("error.zig").MemoryError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
@@ -2026,4 +2027,55 @@ test "CairoVM: markAddressRangeAsAccessed should return an error if the run is n
         CairoVMError.RunNotFinished,
         vm.markAddressRangeAsAccessed(Relocatable.new(0, 0), 3),
     );
+}
+
+test "CairoVM: getReturnValues should return a continuous range of memory values starting from a specified address." {
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    const ap = Relocatable.new(1, 4);
+    vm.run_context.ap.* = ap;
+    defer vm.deinit();
+
+    try memory.setUpMemory(
+        vm.segments.memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 1, 0 }, .{1} },
+            .{ .{ 1, 1 }, .{2} },
+            .{ .{ 1, 2 }, .{3} },
+            .{ .{ 1, 3 }, .{4} },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    var expected = ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    defer expected.deinit();
+
+    try expected.append(MaybeRelocatable.fromU256(1));
+    try expected.append(MaybeRelocatable.fromU256(2));
+    try expected.append(MaybeRelocatable.fromU256(3));
+    try expected.append(MaybeRelocatable.fromU256(4));
+
+    var actual = try vm.getReturnValues(4);
+    defer actual.deinit();
+
+    try expectEqualSlices(MaybeRelocatable, expected.items, actual.items);
+}
+
+test "CairoVM: getReturnValues should return a memory error when Ap is 0" {
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    try memory.setUpMemory(
+        vm.segments.memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 1, 0 }, .{1} },
+            .{ .{ 1, 1 }, .{2} },
+            .{ .{ 1, 2 }, .{3} },
+            .{ .{ 1, 3 }, .{4} },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    try expectError(MemoryError.FailedToGetReturnValues, vm.getReturnValues(3));
 }

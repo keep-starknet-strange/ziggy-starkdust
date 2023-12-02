@@ -53,6 +53,8 @@ pub const MemoryError = error{
     GetRangeMemoryGap,
     /// Math error
     Math,
+    /// Represents an error when there's a failure to retrieve return values from memory.
+    FailedToGetReturnValues,
 };
 
 /// Reepresents different error conditions that occur in the built-in runners.
