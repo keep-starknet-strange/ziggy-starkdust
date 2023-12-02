@@ -12,6 +12,7 @@ const MaybeRelocatable = relocatable.MaybeRelocatable;
 const Relocatable = relocatable.Relocatable;
 const CairoVMError = @import("../error.zig").CairoVMError;
 const MemoryError = @import("../error.zig").MemoryError;
+const MathError = @import("../error.zig").MathError;
 const starknet_felt = @import("../../math/fields/starknet.zig");
 const Felt252 = starknet_felt.Felt252;
 
@@ -45,12 +46,137 @@ pub const MemoryCell = struct {
         };
     }
 
-    /// Marks the MemoryCell as accessed.
+    /// Checks equality between two MemoryCell instances.
     ///
-    /// # Safety
-    /// This function marks the MemoryCell as accessed, indicating it has been used or read.
-    pub fn markAccessed(self: *Self) void {
-        self.is_accessed = true;
+    /// Checks whether two MemoryCell instances are equal based on their relocation information
+    /// and accessed status.
+    ///
+    /// # Arguments
+    ///
+    /// - `other`: The other MemoryCell to compare against.
+    ///
+    /// # Returns
+    ///
+    /// Returns `true` if both MemoryCell instances are equal, otherwise `false`.
+    pub fn eql(self: Self, other: Self) bool {
+        return self.maybe_relocatable.eq(other.maybe_relocatable) and self.is_accessed == other.is_accessed;
+    }
+
+    /// Checks equality between slices of MemoryCell instances.
+    ///
+    /// Compares two slices of MemoryCell instances for equality based on their relocation information
+    /// and accessed status.
+    ///
+    /// # Arguments
+    ///
+    /// - `a`: The first slice of MemoryCell instances to compare.
+    /// - `b`: The second slice of MemoryCell instances to compare.
+    ///
+    /// # Returns
+    ///
+    /// Returns `true` if both slices of MemoryCell instances are equal, otherwise `false`.
+    pub fn eqlSlice(a: []const ?Self, b: []const ?Self) bool {
+        if (a.len != b.len) return false;
+        if (a.ptr == b.ptr) return true;
+        for (a, b) |a_elem, b_elem| {
+            if (a_elem) |ann| {
+                if (b_elem) |bnn| {
+                    if (!ann.eql(bnn)) return false;
+                } else {
+                    return false;
+                }
+            }
+            if (b_elem) |bnn| {
+                if (a_elem) |ann| {
+                    if (!ann.eql(bnn)) return false;
+                } else {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    /// Compares two MemoryCell instances based on their relocation information
+    /// and accessed status, returning their order relationship.
+    ///
+    /// This function compares MemoryCell instances by their relocation information first.
+    /// If the relocation information is the same, it considers their accessed status,
+    /// favoring cells that have been accessed (.eq). It returns the order relationship
+    /// between the MemoryCell instances: `.lt` for less than, `.gt` for greater than,
+    /// and `.eq` for equal.
+    ///
+    /// # Arguments
+    ///
+    /// - `self`: The first MemoryCell instance to compare.
+    /// - `other`: The second MemoryCell instance to compare against.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `std.math.Order` representing the order relationship between
+    /// the two MemoryCell instances.
+    pub fn cmp(self: ?Self, other: ?Self) std.math.Order {
+        if (self) |lhs| {
+            if (other) |rhs| {
+                return switch (lhs.maybe_relocatable.cmp(rhs.maybe_relocatable)) {
+                    .eq => switch (lhs.is_accessed) {
+                        true => if (rhs.is_accessed) .eq else .gt,
+                        false => if (rhs.is_accessed) .lt else .eq,
+                    },
+                    else => |res| res,
+                };
+            }
+            return .gt;
+        }
+        return if (other == null) .eq else .lt;
+    }
+
+    /// Compares two slices of MemoryCell instances for order relationship.
+    ///
+    /// This function compares two slices of MemoryCell instances based on their
+    /// relocation information and accessed status, returning their order relationship.
+    /// It iterates through the slices, comparing each corresponding pair of cells.
+    /// If a difference in relocation information is found, it returns the order relationship
+    /// between those cells. If one slice ends before the other, it returns `.lt` or `.gt`
+    /// accordingly. If both slices are identical, it returns `.eq`.
+    ///
+    /// # Arguments
+    ///
+    /// - `a`: The first slice of MemoryCell instances to compare.
+    /// - `b`: The second slice of MemoryCell instances to compare.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `std.math.Order` representing the order relationship between
+    /// the two slices of MemoryCell instances.
+    pub fn cmpSlice(a: []const ?Self, b: []const ?Self) std.math.Order {
+        if (a.ptr == b.ptr) return .eq;
+
+        const len = @min(a.len, b.len);
+
+        for (0..len) |i| {
+            if (a[i]) |a_elem| {
+                if (b[i]) |b_elem| {
+                    const comp = a_elem.cmp(b_elem);
+                    if (comp != .eq) return comp;
+                } else {
+                    return .gt;
+                }
+            }
+
+            if (b[i]) |b_elem| {
+                if (a[i]) |a_elem| {
+                    const comp = a_elem.cmp(b_elem);
+                    if (comp != .eq) return comp;
+                } else {
+                    return .lt;
+                }
+            }
+        }
+
+        if (a.len == b.len) return .eq;
+
+        return if (len == a.len) .lt else .gt;
     }
 };
 
@@ -342,12 +468,28 @@ pub const Memory = struct {
         try self.validation_rules.put(@intCast(segment_index), rule);
     }
 
-    /// Marks a `MemoryCell` as accessed at the specified relocatable address.
+    /// Marks a `MemoryCell` as accessed at the specified relocatable address within the memory segment.
+    ///
+    /// # Description
+    /// This function marks a memory cell as accessed at the provided relocatable address within the memory segment.
+    /// It enables tracking and management of memory access for effective memory handling within the Cairo VM.
+    ///
     /// # Arguments
-    /// - `address` - The relocatable address to mark.
+    /// - `address` - The relocatable address to mark as accessed within the memory segment.
+    ///
+    /// # Safety
+    /// This function assumes correct usage and does not perform bounds checking. It's the responsibility of the caller
+    /// to ensure that the provided `address` is within the valid bounds of the memory segment.
     pub fn markAsAccessed(self: *Self, address: Relocatable) void {
         const segment_index: usize = @intCast(if (address.segment_index < 0) -(address.segment_index + 1) else address.segment_index);
-        (if (address.segment_index < 0) &self.temp_data else &self.data).items[segment_index].items[address.offset].?.markAccessed();
+        var data = if (address.segment_index < 0) &self.temp_data else &self.data;
+
+        if (segment_index < data.items.len) {
+            if (address.offset < data.items[segment_index].items.len) {
+                if (data.items[segment_index].items[address.offset] != null)
+                    data.items[segment_index].items[address.offset].?.is_accessed = true;
+            }
+        }
     }
 
     /// Adds a relocation rule to the VM memory, allowing redirection of temporary data to a specified destination.
@@ -414,6 +556,125 @@ pub const Memory = struct {
         }
     }
 
+    /// Retrieves a segment of MemoryCell items at the specified index.
+    ///
+    /// Retrieves the segment of MemoryCell items located at the given index.
+    ///
+    /// # Arguments
+    ///
+    /// - `idx`: The index of the segment to retrieve.
+    ///
+    /// # Returns
+    ///
+    /// Returns the segment of MemoryCell items if it exists, or `null` if not found.
+    fn getSegmentAtIndex(self: *Self, idx: i64) ?[]?MemoryCell {
+        return switch (idx < 0) {
+            true => blk: {
+                const i: usize = @intCast(-(idx + 1));
+                if (i < self.temp_data.items.len) {
+                    break :blk self.temp_data.items[i].items;
+                } else {
+                    break :blk null;
+                }
+            },
+            false => if (idx < self.data.items.len) self.data.items[@intCast(idx)].items else null,
+        };
+    }
+
+    /// Compares two memory segments within the VM's memory starting from specified addresses
+    /// for a given length.
+    ///
+    /// This function provides a comparison mechanism for memory segments within the VM's memory.
+    /// It compares the segments starting from the specified `lhs` (left-hand side) and `rhs`
+    /// (right-hand side) addresses for a length defined by `len`.
+    ///
+    /// Special Cases:
+    /// - If `lhs` exists in memory but `rhs` does not: returns `(Order::Greater, 0)`.
+    /// - If `rhs` exists in memory but `lhs` does not: returns `(Order::Less, 0)`.
+    /// - If neither `lhs` nor `rhs` exist in memory: returns `(Order::Equal, 0)`.
+    ///
+    /// The function behavior aligns with the C `memcmp` function for other cases,
+    /// offering an optimized comparison mechanism that hints to avoid unnecessary allocations.
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs`: The starting address of the left-hand memory segment.
+    /// - `rhs`: The starting address of the right-hand memory segment.
+    /// - `len`: The length to compare from each memory segment.
+    ///
+    /// # Returns
+    ///
+    /// Returns a tuple containing the ordering of the segments and the first relative position
+    /// where they differ.
+    pub fn memCmp(
+        self: *Self,
+        lhs: Relocatable,
+        rhs: Relocatable,
+        len: usize,
+    ) std.meta.Tuple(&.{ std.math.Order, usize }) {
+        const r = self.getSegmentAtIndex(rhs.segment_index);
+        if (self.getSegmentAtIndex(lhs.segment_index)) |ls| {
+            if (r) |rs| {
+                for (0..len) |i| {
+                    const l_idx: usize = @intCast(lhs.offset + i);
+                    const r_idx: usize = @intCast(rhs.offset + i);
+                    return switch (MemoryCell.cmp(
+                        if (l_idx < ls.len) ls[l_idx] else null,
+                        if (r_idx < rs.len) rs[r_idx] else null,
+                    )) {
+                        .eq => continue,
+                        else => |res| .{ res, i },
+                    };
+                }
+            } else {
+                return .{ .gt, 0 };
+            }
+        } else {
+            return .{ if (r == null) .eq else .lt, 0 };
+        }
+        return .{ .eq, len };
+    }
+
+    /// Compares memory segments for equality.
+    ///
+    /// Compares segments of MemoryCell items starting from the specified addresses
+    /// (`lhs` and `rhs`) for a given length.
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs`: The starting address of the left-hand segment.
+    /// - `rhs`: The starting address of the right-hand segment.
+    /// - `len`: The length to compare from each segment.
+    ///
+    /// # Returns
+    ///
+    /// Returns `true` if segments are equal up to the specified length, otherwise `false`.
+    pub fn memEq(self: *Self, lhs: Relocatable, rhs: Relocatable, len: usize) !bool {
+        if (lhs.eq(rhs)) return true;
+
+        const l = if (self.getSegmentAtIndex(lhs.segment_index)) |s| blk: {
+            break :blk if (lhs.offset < s.len) s[lhs.offset..] else null;
+        } else null;
+
+        const r = if (self.getSegmentAtIndex(rhs.segment_index)) |s| blk: {
+            break :blk if (rhs.offset < s.len) s[rhs.offset..] else null;
+        } else null;
+
+        if (l) |ls| {
+            if (r) |rs| {
+                const lhs_len = @min(ls.len, len);
+                const rhs_len = @min(rs.len, len);
+
+                return switch (lhs_len == rhs_len) {
+                    true => MemoryCell.eqlSlice(ls[0..lhs_len], rs[0..rhs_len]),
+                    else => false,
+                };
+            }
+            return false;
+        }
+        return r == null;
+    }
+
     /// Retrieves a range of memory values starting from a specified address.
     ///
     /// # Arguments
@@ -464,6 +725,42 @@ pub const Memory = struct {
             return count;
         }
         return null;
+    }
+
+    /// Retrieves a continuous range of memory values starting from a specified address.
+    ///
+    /// # Arguments
+    ///
+    /// * `allocator`: The allocator used for the memory allocation of the returned list.
+    /// * `address`: The starting address in the memory from which the continuous range is retrieved.
+    /// * `size`: The size of the continuous range to be retrieved.
+    ///
+    /// # Returns
+    ///
+    /// Returns a list containing memory values retrieved from the continuous range starting at the given address.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if there are any gaps encountered within the continuous memory range.
+    pub fn getContinuousRange(
+        self: *Self,
+        allocator: Allocator,
+        address: Relocatable,
+        size: usize,
+    ) !std.ArrayList(MaybeRelocatable) {
+        var values = try std.ArrayList(MaybeRelocatable).initCapacity(
+            allocator,
+            size,
+        );
+        errdefer values.deinit();
+        for (0..size) |i| {
+            if (try self.get(try address.addUint(@intCast(i)))) |elem| {
+                try values.append(elem);
+            } else {
+                return MemoryError.GetRangeMemoryGap;
+            }
+        }
+        return values;
     }
 };
 
@@ -965,6 +1262,29 @@ test "Memory: markAsAccessed should mark memory cell" {
     );
 }
 
+test "Memory: markAsAccessed should not panic if non existing segment" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    memory.markAsAccessed(Relocatable.new(10, 0));
+}
+
+test "Memory: markAsAccessed should not panic if non existing offset" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{.{ .{ 1, 3 }, .{ 4, 5 } }},
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    memory.markAsAccessed(Relocatable.new(1, 17));
+}
+
 test "Memory: addRelocationRule should return an error if source segment index >= 0" {
     // Test setup
     var memory = try Memory.init(std.testing.allocator);
@@ -1042,6 +1362,385 @@ test "Memory: addRelocationRule should add new relocation rule" {
     try expectEqual(
         Relocatable.new(4, 7),
         memory.relocation_rules.get(1).?,
+    );
+}
+
+test "Memory: memEq should return true if lhs and rhs are the same" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try expect(try memory.memEq(
+        Relocatable.new(2, 3),
+        Relocatable.new(2, 3),
+        10,
+    ));
+}
+
+test "Memory: memEq should return true if lhs and rhs segments don't exist in memory" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try expect(try memory.memEq(
+        Relocatable.new(2, 3),
+        Relocatable.new(2, 10),
+        10,
+    ));
+}
+
+test "Memory: memEq should return true if lhs and rhs segments don't exist in memory with negative indexes" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try expect(try memory.memEq(
+        Relocatable.new(-2, 3),
+        Relocatable.new(-2, 10),
+        10,
+    ));
+}
+
+test "Memory: memEq should return true if lhs and rhs offset are out of bounds for the given segments" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 7 }, .{3} },
+            .{ .{ 1, 10 }, .{3} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    try expect(try memory.memEq(
+        Relocatable.new(0, 9),
+        Relocatable.new(1, 11),
+        10,
+    ));
+}
+
+test "Memory: memEq should return true if lhs and rhs offset are out of bounds for the given segments with negative indexes" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ -2, 7 }, .{3} },
+            .{ .{ -4, 10 }, .{3} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    try expect(try memory.memEq(
+        Relocatable.new(-2, 9),
+        Relocatable.new(-4, 11),
+        10,
+    ));
+}
+
+test "Memory: memEq should return false if lhs offset is out of bounds for the given segment but not rhs" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 7 }, .{3} },
+            .{ .{ 1, 10 }, .{3} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    try expect(!(try memory.memEq(
+        Relocatable.new(0, 9),
+        Relocatable.new(1, 5),
+        10,
+    )));
+}
+
+test "Memory: memEq should return false if rhs offset is out of bounds for the given segment but not lhs" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 7 }, .{3} },
+            .{ .{ 1, 10 }, .{3} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    try expect(!(try memory.memEq(
+        Relocatable.new(0, 5),
+        Relocatable.new(1, 20),
+        10,
+    )));
+}
+
+test "Memory: memEq should return false if lhs offset is out of bounds for the given segment but not rhs (negative indexes)" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ -1, 7 }, .{3} },
+            .{ .{ -3, 10 }, .{3} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    try expect(!(try memory.memEq(
+        Relocatable.new(-1, 9),
+        Relocatable.new(-3, 5),
+        10,
+    )));
+}
+
+test "Memory: memEq should return false if rhs offset is out of bounds for the given segment but not lhs (negative indexes)" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ -1, 7 }, .{3} },
+            .{ .{ -3, 10 }, .{3} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    try expect(!(try memory.memEq(
+        Relocatable.new(-1, 5),
+        Relocatable.new(-3, 20),
+        10,
+    )));
+}
+
+test "Memory: memEq should return false if lhs and rhs segment size after offset is not the same " {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 7 }, .{3} },
+            .{ .{ 1, 10 }, .{3} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    try expect(!(try memory.memEq(
+        Relocatable.new(0, 5),
+        Relocatable.new(1, 5),
+        10,
+    )));
+}
+
+test "Memory: memEq should return true if lhs and rhs segment are the same after offset" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 7 }, .{3} },
+            .{ .{ 1, 10 }, .{3} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    try expect(try memory.memEq(
+        Relocatable.new(0, 5),
+        Relocatable.new(1, 8),
+        10,
+    ));
+}
+
+test "Memory: memEq should return true if lhs and rhs segment are the same after cut by len" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 7 }, .{3} },
+            .{ .{ 0, 15 }, .{33} },
+            .{ .{ 1, 7 }, .{3} },
+            .{ .{ 1, 15 }, .{44} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    try expect((try memory.memEq(
+        Relocatable.new(0, 5),
+        Relocatable.new(1, 5),
+        4,
+    )));
+}
+
+test "Memory: memCmp function" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ -2, 0 }, .{1} },
+            .{ .{ -2, 1 }, .{ 1, 1 } },
+            .{ .{ -2, 3 }, .{0} },
+            .{ .{ -2, 4 }, .{0} },
+            .{ .{ -1, 0 }, .{1} },
+            .{ .{ -1, 1 }, .{ 1, 1 } },
+            .{ .{ -1, 3 }, .{0} },
+            .{ .{ -1, 4 }, .{3} },
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ 0, 1 }, .{ 1, 1 } },
+            .{ .{ 0, 3 }, .{0} },
+            .{ .{ 0, 4 }, .{0} },
+            .{ .{ 1, 0 }, .{1} },
+            .{ .{ 1, 1 }, .{ 1, 1 } },
+            .{ .{ 1, 3 }, .{0} },
+            .{ .{ 1, 4 }, .{3} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .eq, 3 }),
+        memory.memCmp(
+            Relocatable.new(0, 0),
+            Relocatable.new(0, 0),
+            3,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .eq, 3 }),
+        memory.memCmp(
+            Relocatable.new(0, 0),
+            Relocatable.new(1, 0),
+            3,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .lt, 4 }),
+        memory.memCmp(
+            Relocatable.new(0, 0),
+            Relocatable.new(1, 0),
+            5,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .gt, 4 }),
+        memory.memCmp(
+            Relocatable.new(1, 0),
+            Relocatable.new(0, 0),
+            5,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .eq, 0 }),
+        memory.memCmp(
+            Relocatable.new(2, 2),
+            Relocatable.new(2, 5),
+            8,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .gt, 0 }),
+        memory.memCmp(
+            Relocatable.new(0, 0),
+            Relocatable.new(2, 5),
+            8,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .lt, 0 }),
+        memory.memCmp(
+            Relocatable.new(2, 5),
+            Relocatable.new(0, 0),
+            8,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .eq, 3 }),
+        memory.memCmp(
+            Relocatable.new(-2, 0),
+            Relocatable.new(-2, 0),
+            3,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .eq, 3 }),
+        memory.memCmp(
+            Relocatable.new(-2, 0),
+            Relocatable.new(-1, 0),
+            3,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .lt, 4 }),
+        memory.memCmp(
+            Relocatable.new(-2, 0),
+            Relocatable.new(-1, 0),
+            5,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .gt, 4 }),
+        memory.memCmp(
+            Relocatable.new(-1, 0),
+            Relocatable.new(-2, 0),
+            5,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .eq, 0 }),
+        memory.memCmp(
+            Relocatable.new(-3, 2),
+            Relocatable.new(-3, 5),
+            8,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .gt, 0 }),
+        memory.memCmp(
+            Relocatable.new(-2, 0),
+            Relocatable.new(-3, 5),
+            8,
+        ),
+    );
+    try expectEqual(
+        @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .lt, 0 }),
+        memory.memCmp(
+            Relocatable.new(-3, 5),
+            Relocatable.new(-2, 0),
+            8,
+        ),
     );
 }
 
@@ -1188,6 +1887,71 @@ test "Memory: countAccessedAddressesInSegment should return number of accessed a
     );
 }
 
+test "Memory: getContinuousRange for continuous memory" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 1, 0 }, .{2} },
+            .{ .{ 1, 1 }, .{3} },
+            .{ .{ 1, 2 }, .{4} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    var expected_vec = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    defer expected_vec.deinit();
+
+    try expected_vec.append(MaybeRelocatable.fromU256(2));
+    try expected_vec.append(MaybeRelocatable.fromU256(3));
+    try expected_vec.append(MaybeRelocatable.fromU256(4));
+
+    var actual = try memory.getContinuousRange(
+        std.testing.allocator,
+        Relocatable.new(1, 0),
+        3,
+    );
+    defer actual.deinit();
+
+    // Test checks
+    try expectEqualSlices(
+        MaybeRelocatable,
+        expected_vec.items,
+        actual.items,
+    );
+}
+
+test "Memory: getContinuousRange for non continuous memory" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 1, 0 }, .{2} },
+            .{ .{ 1, 1 }, .{3} },
+            .{ .{ 1, 3 }, .{4} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    // Test checks
+    try expectError(
+        MemoryError.GetRangeMemoryGap,
+        memory.getContinuousRange(
+            std.testing.allocator,
+            Relocatable.new(1, 0),
+            3,
+        ),
+    );
+}
+
 test "AddressSet: contains should return false if segment index is negative" {
     // Test setup
     var addressSet = AddressSet.init(std.testing.allocator);
@@ -1253,6 +2017,277 @@ test "AddressSet: len should return the number of addresses in the address set" 
 
     // Test checks
     try expectEqual(@as(u32, 3), addressSet.len());
+}
+
+test "MemoryCell: eql function" {
+    // Test setup
+    const memoryCell1 = MemoryCell.new(.{ .felt = Felt252.fromInteger(10) });
+    const memoryCell2 = MemoryCell.new(.{ .felt = Felt252.fromInteger(10) });
+    const memoryCell3 = MemoryCell.new(.{ .felt = Felt252.fromInteger(3) });
+    var memoryCell4 = MemoryCell.new(.{ .felt = Felt252.fromInteger(10) });
+    memoryCell4.is_accessed = true;
+
+    // Test checks
+    try expect(memoryCell1.eql(memoryCell2));
+    try expect(!memoryCell1.eql(memoryCell3));
+    try expect(!memoryCell1.eql(memoryCell4));
+}
+
+test "MemoryCell: eqlSlice should return false if slice len are not the same" {
+    // Test setup
+    const memoryCell1 = MemoryCell.new(.{ .felt = Felt252.fromInteger(10) });
+    const memoryCell2 = MemoryCell.new(.{ .felt = Felt252.fromInteger(10) });
+    const memoryCell3 = MemoryCell.new(.{ .felt = Felt252.fromInteger(3) });
+
+    // Test checks
+    try expect(!MemoryCell.eqlSlice(
+        &[_]?MemoryCell{ memoryCell1, memoryCell2 },
+        &[_]?MemoryCell{ memoryCell1, memoryCell2, memoryCell3 },
+    ));
+}
+
+test "MemoryCell: eqlSlice should return true if same pointer" {
+    // Test setup
+    const memoryCell1 = MemoryCell.new(.{ .felt = Felt252.fromInteger(10) });
+    const memoryCell2 = MemoryCell.new(.{ .felt = Felt252.fromInteger(10) });
+
+    const a = [_]?MemoryCell{ memoryCell1, memoryCell2 };
+
+    // Test checks
+    try expect(MemoryCell.eqlSlice(&a, &a));
+}
+
+test "MemoryCell: eqlSlice should return false if slice are not equal" {
+    // Test setup
+    const memoryCell1 = MemoryCell.new(.{ .felt = Felt252.fromInteger(10) });
+    const memoryCell2 = MemoryCell.new(.{ .felt = Felt252.fromInteger(10) });
+
+    // Test checks
+    try expect(!MemoryCell.eqlSlice(
+        &[_]?MemoryCell{ memoryCell1, memoryCell2 },
+        &[_]?MemoryCell{ null, memoryCell2 },
+    ));
+}
+
+test "MemoryCell: eqlSlice should return true if slice are equal" {
+    // Test setup
+    const memoryCell1 = MemoryCell.new(.{ .felt = Felt252.fromInteger(10) });
+    const memoryCell2 = MemoryCell.new(.{ .felt = Felt252.fromInteger(10) });
+
+    // Test checks
+    try expect(MemoryCell.eqlSlice(
+        &[_]?MemoryCell{ null, memoryCell1, null, memoryCell2, null },
+        &[_]?MemoryCell{ null, memoryCell1, null, memoryCell2, null },
+    ));
+    try expect(MemoryCell.eqlSlice(
+        &[_]?MemoryCell{ memoryCell1, memoryCell2 },
+        &[_]?MemoryCell{ memoryCell1, memoryCell2 },
+    ));
+    try expect(MemoryCell.eqlSlice(
+        &[_]?MemoryCell{ null, null, null },
+        &[_]?MemoryCell{ null, null, null },
+    ));
+}
+
+test "MemoryCell: cmp should compare two Relocatable Memory cell instance" {
+    // Testing if two MemoryCell instances with the same relocatable segment and offset
+    // should return an equal comparison.
+    try expectEqual(
+        std.math.Order.eq,
+        MemoryCell.new(MaybeRelocatable.fromSegment(4, 10)).cmp(MemoryCell.new(MaybeRelocatable.fromSegment(4, 10))),
+    );
+
+    // Testing if a MemoryCell instance with is_accessed set to true and another MemoryCell
+    // with the same relocatable segment and offset but is_accessed set to false should result in a less than comparison.
+    var memCell = MemoryCell.new(MaybeRelocatable.fromSegment(4, 10));
+    memCell.is_accessed = true;
+    try expectEqual(
+        std.math.Order.lt,
+        MemoryCell.new(MaybeRelocatable.fromSegment(4, 10)).cmp(memCell),
+    );
+
+    // Testing the opposite of the previous case where is_accessed is set to false for the first MemoryCell,
+    // and true for the second MemoryCell with the same relocatable segment and offset. It should result in a greater than comparison.
+    try expectEqual(
+        std.math.Order.gt,
+        memCell.cmp(MemoryCell.new(MaybeRelocatable.fromSegment(4, 10))),
+    );
+
+    // Testing if a MemoryCell instance with a smaller offset compared to another MemoryCell instance
+    // with the same segment but a larger offset should result in a less than comparison.
+    try expectEqual(
+        std.math.Order.lt,
+        MemoryCell.new(MaybeRelocatable.fromSegment(4, 5)).cmp(MemoryCell.new(MaybeRelocatable.fromSegment(4, 10))),
+    );
+
+    // Testing if a MemoryCell instance with a larger offset compared to another MemoryCell instance
+    // with the same segment but a smaller offset should result in a greater than comparison.
+    try expectEqual(
+        std.math.Order.gt,
+        MemoryCell.new(MaybeRelocatable.fromSegment(4, 15)).cmp(MemoryCell.new(MaybeRelocatable.fromSegment(4, 10))),
+    );
+
+    // Testing if a MemoryCell instance with a smaller segment index compared to another MemoryCell instance
+    // with a larger segment index but the same offset should result in a less than comparison.
+    try expectEqual(
+        std.math.Order.lt,
+        MemoryCell.new(MaybeRelocatable.fromSegment(2, 15)).cmp(MemoryCell.new(MaybeRelocatable.fromSegment(4, 10))),
+    );
+
+    // Testing if a MemoryCell instance with a larger segment index compared to another MemoryCell instance
+    // with a smaller segment index but the same offset should result in a greater than comparison.
+    try expectEqual(
+        std.math.Order.gt,
+        MemoryCell.new(MaybeRelocatable.fromSegment(20, 15)).cmp(MemoryCell.new(MaybeRelocatable.fromSegment(4, 10))),
+    );
+}
+
+test "MemoryCell: cmp should return an error if incompatible types for a comparison" {
+    try expectEqual(
+        std.math.Order.lt,
+        MemoryCell.new(MaybeRelocatable.fromSegment(
+            4,
+            10,
+        )).cmp(MemoryCell.new(MaybeRelocatable.fromU256(4))),
+    );
+    try expectEqual(
+        std.math.Order.gt,
+        MemoryCell.new(MaybeRelocatable.fromU256(
+            4,
+        )).cmp(MemoryCell.new(MaybeRelocatable.fromSegment(4, 10))),
+    );
+}
+
+test "MemoryCell: cmp should return proper order results for Felt252 comparisons" {
+    // Should return less than (lt) when the first Felt252 is smaller than the second Felt252.
+    try expectEqual(std.math.Order.lt, MemoryCell.new(MaybeRelocatable.fromU256(10)).cmp(MemoryCell.new(MaybeRelocatable.fromU256(343535))));
+
+    // Should return greater than (gt) when the first Felt252 is larger than the second Felt252.
+    try expectEqual(std.math.Order.gt, MemoryCell.new(MaybeRelocatable.fromU256(543636535)).cmp(MemoryCell.new(MaybeRelocatable.fromU256(434))));
+
+    // Should return equal (eq) when both Felt252 values are identical.
+    try expectEqual(std.math.Order.eq, MemoryCell.new(MaybeRelocatable.fromU256(10)).cmp(MemoryCell.new(MaybeRelocatable.fromU256(10))));
+
+    // Should return less than (lt) when the cell's accessed status differs.
+    var memCell = MemoryCell.new(MaybeRelocatable.fromU256(10));
+    memCell.is_accessed = true;
+    try expectEqual(std.math.Order.lt, MemoryCell.new(MaybeRelocatable.fromU256(10)).cmp(memCell));
+
+    // Should return greater than (gt) when the cell's accessed status differs (reversed order).
+    try expectEqual(std.math.Order.gt, memCell.cmp(MemoryCell.new(MaybeRelocatable.fromU256(10))));
+}
+
+test "MemoryCell: cmp with null values" {
+    const memCell = MemoryCell.new(MaybeRelocatable.fromSegment(4, 15));
+    const memCell1 = MemoryCell.new(MaybeRelocatable.fromU256(15));
+
+    try expectEqual(std.math.Order.lt, MemoryCell.cmp(null, memCell));
+    try expectEqual(std.math.Order.gt, MemoryCell.cmp(memCell, null));
+    try expectEqual(std.math.Order.lt, MemoryCell.cmp(null, memCell1));
+    try expectEqual(std.math.Order.gt, MemoryCell.cmp(memCell1, null));
+}
+
+test "MemoryCell: cmpSlice should compare MemoryCell slices (if eq and one longer than the other)" {
+    const memCell = MemoryCell.new(MaybeRelocatable.fromSegment(4, 15));
+
+    try expectEqual(
+        std.math.Order.gt,
+        MemoryCell.cmpSlice(
+            &[_]?MemoryCell{ null, null, memCell, memCell },
+            &[_]?MemoryCell{ null, null, memCell },
+        ),
+    );
+
+    try expectEqual(
+        std.math.Order.lt,
+        MemoryCell.cmpSlice(
+            &[_]?MemoryCell{ null, null, memCell },
+            &[_]?MemoryCell{ null, null, memCell, memCell },
+        ),
+    );
+}
+
+test "MemoryCell: cmpSlice should return .eq if both slices are equal" {
+    const memCell = MemoryCell.new(MaybeRelocatable.fromSegment(4, 15));
+    const memCell1 = MemoryCell.new(MaybeRelocatable.fromU256(15));
+    const slc = &[_]?MemoryCell{ null, null, memCell };
+
+    try expectEqual(
+        std.math.Order.eq,
+        MemoryCell.cmpSlice(slc, slc),
+    );
+    try expectEqual(
+        std.math.Order.eq,
+        MemoryCell.cmpSlice(
+            &[_]?MemoryCell{ memCell1, null, memCell, null },
+            &[_]?MemoryCell{ memCell1, null, memCell, null },
+        ),
+    );
+    try expectEqual(
+        std.math.Order.eq,
+        MemoryCell.cmpSlice(
+            &[_]?MemoryCell{ memCell1, null, memCell, null },
+            &[_]?MemoryCell{ memCell1, null, memCell, null },
+        ),
+    );
+}
+
+test "MemoryCell: cmpSlice should return .lt if a < b" {
+    const memCell = MemoryCell.new(MaybeRelocatable.fromSegment(40, 15));
+    const memCell1 = MemoryCell.new(MaybeRelocatable.fromSegment(3, 15));
+    const memCell2 = MemoryCell.new(MaybeRelocatable.fromU256(10));
+    const memCell3 = MemoryCell.new(MaybeRelocatable.fromU256(15));
+
+    try expectEqual(
+        std.math.Order.lt,
+        MemoryCell.cmpSlice(
+            &[_]?MemoryCell{ memCell1, null, memCell1, null },
+            &[_]?MemoryCell{ memCell1, null, memCell, null },
+        ),
+    );
+    try expectEqual(
+        std.math.Order.lt,
+        MemoryCell.cmpSlice(
+            &[_]?MemoryCell{ memCell1, null, memCell2, null },
+            &[_]?MemoryCell{ memCell1, null, memCell3, null },
+        ),
+    );
+    try expectEqual(
+        std.math.Order.lt,
+        MemoryCell.cmpSlice(
+            &[_]?MemoryCell{ memCell1, null, memCell, null },
+            &[_]?MemoryCell{ memCell1, null, memCell3, null },
+        ),
+    );
+}
+
+test "MemoryCell: cmpSlice should return .gt if a > b" {
+    const memCell = MemoryCell.new(MaybeRelocatable.fromSegment(40, 15));
+    const memCell1 = MemoryCell.new(MaybeRelocatable.fromSegment(3, 15));
+    const memCell2 = MemoryCell.new(MaybeRelocatable.fromU256(10));
+    const memCell3 = MemoryCell.new(MaybeRelocatable.fromU256(15));
+
+    try expectEqual(
+        std.math.Order.gt,
+        MemoryCell.cmpSlice(
+            &[_]?MemoryCell{ memCell1, null, memCell, null },
+            &[_]?MemoryCell{ memCell1, null, memCell1, null },
+        ),
+    );
+    try expectEqual(
+        std.math.Order.gt,
+        MemoryCell.cmpSlice(
+            &[_]?MemoryCell{ memCell1, null, memCell3, null },
+            &[_]?MemoryCell{ memCell1, null, memCell2, null },
+        ),
+    );
+    try expectEqual(
+        std.math.Order.gt,
+        MemoryCell.cmpSlice(
+            &[_]?MemoryCell{ memCell1, null, memCell3, null },
+            &[_]?MemoryCell{ memCell1, null, memCell, null },
+        ),
+    );
 }
 
 test "Memory: set should not rewrite memory" {
