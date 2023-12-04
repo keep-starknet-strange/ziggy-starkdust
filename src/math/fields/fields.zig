@@ -145,6 +145,21 @@ pub fn Field(
             return ret;
         }
 
+        /// Get the min number of bits needed to field element.
+        ///
+        /// Returns number of bits neeeded.
+        pub fn numBits(self: Self) u64 {
+            const nmself = self.fromMontgomery();
+            var num_bits: u64 = 0;
+            for (0..4) |i| {
+                if (nmself[3 - i] != 0) {
+                    num_bits = (4 - i) * @bitSizeOf(u64) - @clz(nmself[3 - i]);
+                    break;
+                }
+            }
+            return num_bits;
+        }
+
         /// Check if the field element is lexicographically largest.
         ///
         /// Determines whether the field element is larger than half of the field's modulus.
