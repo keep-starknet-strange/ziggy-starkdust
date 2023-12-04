@@ -362,17 +362,8 @@ test "Range Check: another successful check of usage for range check" {
     });
     defer seg.memory.deinitData(std.testing.allocator);
     const res = builtin.getRangeCheckUsage(seg.memory);
-    const num: usize = 62821;
-    const zero: usize = 0;
     // assert
-    try std.testing.expectEqual(
-        res.?[1],
-        num,
-    );
-    try std.testing.expectEqual(
-        res.?[0],
-        zero,
-    );
+    try std.testing.expectEqual(@as(std.meta.Tuple(&.{ usize, usize }), .{ 0, 62821 }), res.?);
 }
 
 test "Range Check: get usage for range check should be null" {
