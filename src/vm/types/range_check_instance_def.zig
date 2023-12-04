@@ -23,4 +23,24 @@ pub const RangeCheckInstanceDef = struct {
             .n_parts = 8,
         };
     }
+
+    /// Creates a new instance of `RangeCheckInstanceDef` with the specified ratio and n_parts representation.
+    ///
+    /// This function initializes a new `KeccakInstanceDef` instance with the provided `ratio` and
+    /// `_state_rep` values, and sets the `_instance_per_component` to a default value of 16.
+    ///
+    /// # Parameters
+    ///
+    /// - `ratio`: An optional 32-bit integer representing the ratio for the Keccak instance.
+    /// - `_state_rep`: An `ArrayList` of 32-bit integers specifying the state representation pattern.
+    ///
+    /// # Returns
+    ///
+    /// A new `RangeCheckInstanceDef` instance with the specified parameters.
+    pub fn new(ratio: ?u32, n_parts: u32) Self {
+        return .{
+            .ratio = ratio,
+            .n_parts = n_parts,
+        };
+    }
 };
