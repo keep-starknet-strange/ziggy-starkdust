@@ -29,6 +29,8 @@ pub const CairoVMError = error{
     FailedToComputeOp1,
     /// Occurs when both built-in deductions and fallback deductions fail to deduce Op0.
     FailedToComputeOp0,
+    /// Signifies that the execution run has not finished.
+    RunNotFinished,
 };
 
 /// Represent different error conditions that are memory-related.
@@ -51,6 +53,12 @@ pub const MemoryError = error{
     GetRangeMemoryGap,
     /// Math error
     Math,
+    /// Range Check Number is out of bounds
+    RangeCheckNumberOutOfBounds,
+    /// Range Check found a non int
+    RangecheckNonInt,
+    /// Range Check get error
+    RangeCheckGetError,
 };
 
 /// Reepresents different error conditions that occur in the built-in runners.
