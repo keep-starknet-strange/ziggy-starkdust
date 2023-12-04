@@ -35,9 +35,7 @@ const BITWISE_INPUT_CELLS_PER_INSTANCE = 2;
 /// # Returns
 /// The felt as an integer.
 fn getValue(address: Relocatable, memory: *Memory) BitwiseError!u256 {
-    const value = memory.get(address) catch {
-        return BitwiseError.InvalidAddressForBitwise;
-    };
+    const value = memory.get(address);
 
     if (value) |v| {
         var felt = v.tryIntoFelt() catch {

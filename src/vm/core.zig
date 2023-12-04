@@ -142,7 +142,7 @@ pub const CairoVM = struct {
     pub fn getRelocatable(
         self: *Self,
         address: Relocatable,
-    ) error{MemoryOutOfBounds}!?MaybeRelocatable {
+    ) ?MaybeRelocatable {
         return self.segments.memory.get(address);
     }
 
@@ -232,9 +232,7 @@ pub const CairoVM = struct {
         // *                    FETCH                                 *
         // ************************************************************
 
-        const encoded_instruction = self.segments.memory.get(self.run_context.pc.*) catch {
-            return CairoVMError.InstructionFetchingFailed;
-        };
+        const encoded_instruction = self.segments.memory.get(self.run_context.pc.*);
 
         // ************************************************************
         // *                    DECODE                                *
@@ -326,7 +324,7 @@ pub const CairoVM = struct {
         op_res.res = null;
 
         op_res.dst_addr = try self.run_context.computeDstAddr(instruction);
-        const dst_op = try self.segments.memory.get(op_res.dst_addr);
+        const dst_op = self.segments.memory.get(op_res.dst_addr);
 
         op_res.op_0_addr = try self.run_context.computeOp0Addr(instruction);
 
@@ -334,11 +332,11 @@ pub const CairoVM = struct {
             instruction,
             op_res.op_0,
         );
-        const op_1_op = try self.segments.memory.get(op_res.op_1_addr);
+        const op_1_op = self.segments.memory.get(op_res.op_1_addr);
 
         // Deduce the operands if they haven't been successfully retrieved from memory.
 
-        if (self.segments.memory.get(op_res.op_0_addr) catch null) |op_0| {
+        if (self.segments.memory.get(op_res.op_0_addr)) |op_0| {
             op_res.op_0 = op_0;
         } else {
             op_res.setOp0(true);
