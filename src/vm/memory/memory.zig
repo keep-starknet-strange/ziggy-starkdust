@@ -21,7 +21,7 @@ const MemorySegmentManager = @import("./segments.zig").MemorySegmentManager;
 const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
 
 // Function that validates a memory address and returns a list of validated adresses
-pub const validation_rule = *const fn (*Memory, Relocatable) ?[]const Relocatable;
+pub const validation_rule = *const fn (*Memory, Relocatable) anyerror![]const Relocatable;
 
 pub const MemoryCell = struct {
     /// Represents a memory cell that holds relocation information and access status.
@@ -426,7 +426,7 @@ pub const Memory = struct {
                 else => error.ExpectedInteger,
             };
         } else {
-            return error.ExpectedInteger;
+            return error.MemoryOutOfBounds;
         }
     }
 
@@ -529,11 +529,9 @@ pub const Memory = struct {
     pub fn validateMemoryCell(self: *Self, address: Relocatable) !void {
         if (self.validation_rules.get(@intCast(address.segment_index))) |rule| {
             if (!self.validated_addresses.contains(address)) {
-                if (rule(self, address)) |list| {
-                    _ = list;
-                    // TODO: debug rangeCheckValidationRule to be able to push list here again
-                    try self.validated_addresses.addAddresses(&[_]Relocatable{address});
-                }
+                const list = try rule(self, address);
+                const firstElement = list[0];
+                try self.validated_addresses.addAddresses(&[_]Relocatable{firstElement});
             }
         }
     }
@@ -871,17 +869,13 @@ test "Memory: validate memory cell" {
 
     try segments.memory.validateMemoryCell(Relocatable.new(0, 1));
     // null case
-    try segments.memory.validateMemoryCell(Relocatable.new(0, 7));
     defer segments.memory.deinitData(std.testing.allocator);
 
     try expectEqual(
         true,
         segments.memory.validated_addresses.contains(Relocatable.new(0, 1)),
     );
-    try expectEqual(
-        false,
-        segments.memory.validated_addresses.contains(Relocatable.new(0, 7)),
-    );
+    try expectError(MemoryError.RangeCheckGetError, segments.memory.validateMemoryCell(Relocatable.new(0, 7)));
 }
 
 test "Memory: validate memory cell segment index not in validation rules" {

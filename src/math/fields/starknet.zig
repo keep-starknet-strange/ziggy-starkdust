@@ -13,6 +13,13 @@ pub const Felt252 = fields.Field(
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 
+test "Felt252 testing for field numBits()" {
+    try expectEqual(@as(u64, 1), Felt252.fromInteger(1).numBits());
+    try expectEqual(@as(u64, 4), Felt252.fromInteger(10).numBits());
+    try expectEqual(@as(u64, 252), Felt252.fromInteger(1).neg().numBits());
+    try expectEqual(@as(u64, 0), Felt252.fromInteger(0).numBits());
+}
+
 test "Felt252 fromInteger" {
     try expectEqual(
         Felt252{ .fe = .{
