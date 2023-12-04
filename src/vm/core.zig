@@ -44,6 +44,8 @@ pub const CairoVM = struct {
     current_step: usize,
     /// Rc limits
     rc_limits: ?struct { i16, i16 },
+    /// ArrayList containing instructions. May hold null elements.
+    /// Used as an instruction cache within the CairoVM instance.
     instruction_cache: ArrayList(?Instruction),
 
     // ************************************************************
@@ -74,11 +76,11 @@ pub const CairoVM = struct {
         // Initialize the built-in runners.
         const builtin_runners = ArrayList(BuiltinRunner).init(allocator);
         errdefer builtin_runners.deinit();
-
+        // Initialize the instruction cache.
         const instruction_cache = ArrayList(?Instruction).init(allocator);
         errdefer instruction_cache.deinit();
 
-        return Self{
+        return .{
             .allocator = allocator,
             .run_context = run_context,
             .builtin_runners = builtin_runners,
@@ -91,7 +93,14 @@ pub const CairoVM = struct {
         };
     }
 
-    /// Safe deallocation of the VM resources.
+    /// Safely deallocates resources used by the CairoVM instance.
+    ///
+    /// This function ensures safe deallocation of various components within the CairoVM instance,
+    /// including the memory segment manager, run context, trace context, built-in runners, and the instruction cache.
+    ///
+    /// # Safety
+    /// This function assumes proper initialization of the CairoVM instance and must be called
+    /// to avoid memory leaks and ensure proper cleanup.
     pub fn deinit(self: *Self) void {
         // Deallocate the memory segment manager.
         self.segments.deinit();
