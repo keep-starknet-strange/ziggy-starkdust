@@ -677,7 +677,9 @@ pub const CairoVM = struct {
         return null;
     }
 
-    // Relocates the VM's trace, turning relocatable registers to numbered ones
+    /// Relocates the VM's trace, turning relocatable registers to numbered ones
+    /// # Arguments
+    /// - `relocation_table`: The relocation table .
     pub fn relocateTrace(self: *Self, relocation_table: []usize) !void {
         if (self.trace_relocated) {
             return TraceError.AlreadyRelocated;
@@ -700,6 +702,10 @@ pub const CairoVM = struct {
         }
     }
 
+    /// Gets the relocated trace
+    /// Returns `TraceError.TraceNotRelocated` error the trace has not been relocated
+    /// # Returns
+    /// - `[]RelocatedTraceEntry`: an array of relocated trace.
     pub fn getRelocatedTrace(self: *Self) TraceError![]TraceContext.RelocatedTraceEntry {
         if (self.trace_relocated) {
             switch (self.trace_context.state) {
