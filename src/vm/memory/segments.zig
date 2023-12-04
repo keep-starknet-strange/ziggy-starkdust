@@ -238,6 +238,7 @@ pub const MemorySegmentManager = struct {
     pub fn relocateSegments(self: *Self, allocator: Allocator) !ArrayList(usize).Slice {
         const first_addr = 1;
         var relocatable_table = ArrayList(usize).init(allocator);
+        errdefer relocatable_table.deinit();
         try relocatable_table.append(first_addr);
         for (self.segment_used_sizes.keys()) |key| {
             const index = self.segment_used_sizes.getIndex(key) orelse return MemoryError.MissingSegmentUsedSizes;
