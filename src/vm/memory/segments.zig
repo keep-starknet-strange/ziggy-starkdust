@@ -442,9 +442,9 @@ test "set get integer value in segment memory" {
     // ************************************************************
     // *                      TEST CHECKS                         *
     // ************************************************************
-    const actual_value_1 = try memory_segment_manager.memory.get(address_1);
+    const actual_value_1 = memory_segment_manager.memory.get(address_1);
     const expected_value_1 = value_1;
-    const actual_value_2 = try memory_segment_manager.memory.get(address_2);
+    const actual_value_2 = memory_segment_manager.memory.get(address_2);
     const expected_value_2 = value_2;
 
     try expect(expected_value_1.eq(actual_value_1.?));
@@ -908,7 +908,7 @@ test "MemorySegmentManager: loadData with one element" {
     try expectEqual(Relocatable.new(0, 1), actual);
     try expectEqual(
         MaybeRelocatable.fromU256(4),
-        (try memory_segment_manager.memory.get(Relocatable.new(0, 0))).?,
+        (memory_segment_manager.memory.get(Relocatable.new(0, 0))).?,
     );
 }
 
@@ -936,15 +936,15 @@ test "MemorySegmentManager: loadData with three elements" {
     try expectEqual(Relocatable.new(0, 3), actual);
     try expectEqual(
         MaybeRelocatable.fromU256(4),
-        (try memory_segment_manager.memory.get(Relocatable.new(0, 0))).?,
+        (memory_segment_manager.memory.get(Relocatable.new(0, 0))).?,
     );
     try expectEqual(
         MaybeRelocatable.fromU256(5),
-        (try memory_segment_manager.memory.get(Relocatable.new(0, 1))).?,
+        (memory_segment_manager.memory.get(Relocatable.new(0, 1))).?,
     );
     try expectEqual(
         MaybeRelocatable.fromU256(6),
-        (try memory_segment_manager.memory.get(Relocatable.new(0, 2))).?,
+        (memory_segment_manager.memory.get(Relocatable.new(0, 2))).?,
     );
 }
 
