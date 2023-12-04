@@ -293,6 +293,10 @@ pub const CairoVM = struct {
             instruction,
             operands_result,
         );
+        std.debug.print(
+            "instruction: {any}\n",
+            .{instruction},
+        );
 
         const OFFSET_BITS: u32 = 16;
         const off_0 = if (instruction.off_0 < 0) 0 else instruction.off_0 + (@as(i16, 1) << (OFFSET_BITS - 1));
