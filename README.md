@@ -63,8 +63,10 @@ You can display the help message by running:
 ### Run a cairo program
 
 ```bash
-./zig-out/bin/cairo-zig execute --proof-mode=false
+
+./zig-out/bin/cairo-zig execute --filename cairo-programs/fibonacci.json --proof-mode=false
 ```
+
 
 ### 🧪 Testing
 
