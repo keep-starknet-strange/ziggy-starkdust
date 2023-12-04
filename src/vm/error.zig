@@ -31,6 +31,8 @@ pub const CairoVMError = error{
     FailedToComputeOp0,
     /// Signifies that the execution run has not finished.
     RunNotFinished,
+    /// Represents errors related to memory management and access within the Cairo VM.
+    Memory,
 };
 
 /// Represent different error conditions that are memory-related.
@@ -53,6 +55,10 @@ pub const MemoryError = error{
     GetRangeMemoryGap,
     /// Math error
     Math,
+    /// Represents errors related to unrelocated memory segments and associated operations.
+    UnrelocatedMemory,
+    /// Represents errors related to malformed or inconsistent public memory segments.
+    MalformedPublicMemory,
 };
 
 /// Reepresents different error conditions that occur in the built-in runners.

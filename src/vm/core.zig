@@ -12,6 +12,7 @@ const Relocatable = relocatable.Relocatable;
 const instructions = @import("instructions.zig");
 const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
+const MemoryError = @import("error.zig").MemoryError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
@@ -44,6 +45,7 @@ pub const CairoVM = struct {
     current_step: usize,
     /// Rc limits
     rc_limits: ?struct { i16, i16 },
+    relocation_table: ?std.ArrayList(usize),
 
     // ************************************************************
     // *             MEMORY ALLOCATION AND DEALLOCATION           *
@@ -83,6 +85,7 @@ pub const CairoVM = struct {
             .trace_context = trace_context,
             .current_step = 0,
             .rc_limits = null,
+            .relocation_table = null,
         };
     }
 
@@ -96,6 +99,10 @@ pub const CairoVM = struct {
         self.trace_context.deinit();
         // Deallocate built-in runners
         self.builtin_runners.deinit();
+
+        if (self.relocation_table) |r| {
+            r.deinit();
+        }
     }
 
     // ************************************************************
@@ -693,6 +700,47 @@ pub const CairoVM = struct {
         for (0..len) |i| {
             self.segments.memory.markAsAccessed(try base.addUint(@intCast(i)));
         }
+    }
+
+    /// Adds a relocation rule to the Cairo VM's memory, enabling the redirection of temporary data to a specified destination.
+    ///
+    /// # Arguments
+    ///
+    /// - `src_ptr`: The source Relocatable pointer representing the temporary segment to be relocated.
+    /// - `dst_ptr`: The destination Relocatable pointer where the temporary segment will be redirected.
+    ///
+    /// # Safety
+    ///
+    /// This function assumes correct usage and may result in memory relocations. It's crucial to ensure that both source and destination pointers are valid and within the boundaries of the memory segments.
+    ///
+    /// # Returns
+    ///
+    /// - This function returns an error if the relocation fails due to invalid conditions.
+    pub fn addRelocationRule(
+        self: *Self,
+        src_ptr: Relocatable,
+        dst_ptr: Relocatable,
+    ) !void {
+        try self.segments.memory.addRelocationRule(src_ptr, dst_ptr);
+    }
+
+    /// Retrieves the addresses of memory cells in the public memory based on segment offsets.
+    ///
+    /// Retrieves a list of addresses constituting the public memory. It utilizes the relocation table
+    /// (`self.relocation_table`) and the `self.segments.getPublicMemoryAddresses()` method. This method
+    /// ensures that the public memory addresses are retrieved based on the relocated segments.
+    ///
+    /// Returns a list of memory cell addresses that comprise the public memory. If the relocation table
+    /// is not available, it throws `MemoryError.UnrelocatedMemory`. If an error occurs during the
+    /// retrieval process, it throws `CairoVMError.Memory`.
+    pub fn getPublicMemoryAddresses(self: *Self) !std.ArrayList(std.meta.Tuple(&.{ usize, usize })) {
+        // Check if the relocation table is available
+        if (self.relocation_table) |r| {
+            // Retrieve the public memory addresses using the relocation table
+            return self.segments.getPublicMemoryAddresses(&r) catch CairoVMError.Memory;
+        }
+        // Throw an error if the relocation table is not available
+        return MemoryError.UnrelocatedMemory;
     }
 };
 

@@ -14,6 +14,7 @@ const Relocatable = relocatable.Relocatable;
 const instructions = @import("instructions.zig");
 const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
+const MemoryError = @import("error.zig").MemoryError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
@@ -2025,5 +2026,259 @@ test "CairoVM: markAddressRangeAsAccessed should return an error if the run is n
     try expectError(
         CairoVMError.RunNotFinished,
         vm.markAddressRangeAsAccessed(Relocatable.new(0, 0), 3),
+    );
+}
+
+test "CairoVM: addRelocationRule should add new relocation rule to the VM memory" {
+    // Test setup
+    const allocator = std.testing.allocator;
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    // Test checks
+    try vm.addRelocationRule(
+        Relocatable.new(-1, 0),
+        Relocatable.new(1, 2),
+    );
+    try vm.addRelocationRule(
+        Relocatable.new(-2, 0),
+        Relocatable.new(-1, 1),
+    );
+
+    try expectError(
+        MemoryError.AddressNotInTemporarySegment,
+        vm.addRelocationRule(
+            Relocatable.new(5, 0),
+            Relocatable.new(0, 0),
+        ),
+    );
+    try expectError(
+        MemoryError.NonZeroOffset,
+        vm.addRelocationRule(
+            Relocatable.new(-3, 6),
+            Relocatable.new(0, 0),
+        ),
+    );
+    try expectError(
+        MemoryError.DuplicatedRelocation,
+        vm.addRelocationRule(
+            Relocatable.new(-1, 0),
+            Relocatable.new(0, 0),
+        ),
+    );
+}
+
+test "CairoVM: getPublicMemoryAddresses should return UnrelocatedMemory error if no relocation table in CairoVM" {
+    // Test setup
+    const allocator = std.testing.allocator;
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    try expectError(
+        MemoryError.UnrelocatedMemory,
+        vm.getPublicMemoryAddresses(),
+    );
+}
+
+test "CairoVM: getPublicMemoryAddresses should return Cairo VM Memory error if segment method returns an error" {
+    // Test setup
+    // Initialize the allocator for testing purposes.
+    const allocator = std.testing.allocator;
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    // Initialize the relocation table in the VM instance.
+    vm.relocation_table = std.ArrayList(usize).init(allocator);
+    // Ensure proper deallocation of resources.
+    defer vm.deinit();
+
+    // Add five segments to the memory segment manager.
+    for (0..5) |_| {
+        _ = try vm.segments.addSegment();
+    }
+
+    // Initialize lists to hold public memory offsets.
+    var public_memory_offsets = std.ArrayList(?std.ArrayList(std.meta.Tuple(&.{ usize, usize }))).init(allocator);
+    // Ensure proper deallocation of resources.
+    defer public_memory_offsets.deinit();
+
+    // Initialize inner lists to store specific offsets for segments.
+    var inner_list_1 = std.ArrayList(std.meta.Tuple(&.{ usize, usize })).init(allocator);
+    // Ensure proper deallocation of resources.
+    defer inner_list_1.deinit();
+    try inner_list_1.append(.{ 0, 0 });
+    try inner_list_1.append(.{ 1, 1 });
+
+    var inner_list_2 = std.ArrayList(std.meta.Tuple(&.{ usize, usize })).init(allocator);
+    // Ensure proper deallocation of resources.
+    defer inner_list_2.deinit();
+    // Inline to append specific offsets to the list.
+    inline for (0..8) |i| {
+        try inner_list_2.append(.{ i, 0 });
+    }
+
+    var inner_list_5 = std.ArrayList(std.meta.Tuple(&.{ usize, usize })).init(allocator);
+    // Ensure proper deallocation of resources.
+    defer inner_list_5.deinit();
+    try inner_list_5.append(.{ 1, 2 });
+
+    // Append inner lists containing offsets to public_memory_offsets.
+    try public_memory_offsets.append(inner_list_1);
+    try public_memory_offsets.append(inner_list_2);
+    try public_memory_offsets.append(null);
+    try public_memory_offsets.append(null);
+    try public_memory_offsets.append(inner_list_5);
+
+    // Perform assertions and memory operations.
+    // Add additional segments to the VM's segment manager.
+    try expectEqual(
+        vm.segments.addSegment(),
+        Relocatable.new(5, 0),
+    );
+    try expectEqual(
+        vm.segments.addSegment(),
+        Relocatable.new(6, 0),
+    );
+    // Set memory within segments.
+    try vm.segments.memory.set(
+        allocator,
+        Relocatable.new(5, 4),
+        MaybeRelocatable.fromU256(0),
+    );
+    // Ensure proper deallocation of memory data.
+    defer vm.segments.memory.deinitData(allocator);
+
+    // Finalize segments with sizes and offsets.
+    // Iterate through segment sizes and finalize segments.
+    for ([_]u8{ 3, 8, 0, 1, 2 }, 0..) |size, i| {
+        try vm.segments.finalize(
+            i,
+            size,
+            public_memory_offsets.items[i],
+        );
+    }
+
+    // Segment offsets less than the number of segments.
+    // Append specific segment offsets to the relocation table.
+    for ([_]usize{ 1, 4, 12, 13 }) |offset| {
+        try vm.relocation_table.?.append(offset);
+    }
+
+    // Validate if the function throws the expected CairoVMError.Memory.
+    try expectError(
+        CairoVMError.Memory,
+        vm.getPublicMemoryAddresses(),
+    );
+}
+
+test "CairoVM: getPublicMemoryAddresses should return a proper ArrayList if success" {
+    // Test setup
+    // Initialize the allocator for testing purposes.
+    const allocator = std.testing.allocator;
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    // Initialize the relocation table in the VM instance.
+    vm.relocation_table = std.ArrayList(usize).init(allocator);
+    // Ensure proper deallocation of resources.
+    defer vm.deinit();
+
+    // Add five segments to the memory segment manager.
+    for (0..5) |_| {
+        _ = try vm.segments.addSegment();
+    }
+
+    // Initialize lists to hold public memory offsets.
+    var public_memory_offsets = std.ArrayList(?std.ArrayList(std.meta.Tuple(&.{ usize, usize }))).init(allocator);
+    // Ensure proper deallocation of resources.
+    defer public_memory_offsets.deinit();
+
+    // Initialize inner lists to store specific offsets for segments.
+    var inner_list_1 = std.ArrayList(std.meta.Tuple(&.{ usize, usize })).init(allocator);
+    // Ensure proper deallocation of resources.
+    defer inner_list_1.deinit();
+    try inner_list_1.append(.{ 0, 0 });
+    try inner_list_1.append(.{ 1, 1 });
+
+    var inner_list_2 = std.ArrayList(std.meta.Tuple(&.{ usize, usize })).init(allocator);
+    // Ensure proper deallocation of resources.
+    defer inner_list_2.deinit();
+    // Inline to append specific offsets to the list.
+    inline for (0..8) |i| {
+        try inner_list_2.append(.{ i, 0 });
+    }
+
+    var inner_list_5 = std.ArrayList(std.meta.Tuple(&.{ usize, usize })).init(allocator);
+    // Ensure proper deallocation of resources.
+    defer inner_list_5.deinit();
+    try inner_list_5.append(.{ 1, 2 });
+
+    // Append inner lists containing offsets to public_memory_offsets.
+    try public_memory_offsets.append(inner_list_1);
+    try public_memory_offsets.append(inner_list_2);
+    try public_memory_offsets.append(null);
+    try public_memory_offsets.append(null);
+    try public_memory_offsets.append(inner_list_5);
+
+    // Perform assertions and memory operations.
+    // Add additional segments to the VM's segment manager.
+    try expectEqual(
+        vm.segments.addSegment(),
+        Relocatable.new(5, 0),
+    );
+    try expectEqual(
+        vm.segments.addSegment(),
+        Relocatable.new(6, 0),
+    );
+    // Set memory within segments.
+    try vm.segments.memory.set(
+        allocator,
+        Relocatable.new(5, 4),
+        MaybeRelocatable.fromU256(0),
+    );
+    // Ensure proper deallocation of memory data.
+    defer vm.segments.memory.deinitData(allocator);
+
+    // Finalize segments with sizes and offsets.
+    // Iterate through segment sizes and finalize segments.
+    for ([_]u8{ 3, 8, 0, 1, 2 }, 0..) |size, i| {
+        try vm.segments.finalize(
+            i,
+            size,
+            public_memory_offsets.items[i],
+        );
+    }
+
+    // Generate specific segment offsets for the relocation table.
+    for ([_]usize{ 1, 4, 12, 12, 13, 15, 20 }) |offset| {
+        try vm.relocation_table.?.append(offset);
+    }
+
+    // Get public memory addresses based on segment offsets.
+    const public_memory_addresses = try vm.getPublicMemoryAddresses();
+    // Ensure proper deallocation of retrieved addresses.
+    defer public_memory_addresses.deinit();
+
+    // Define the expected list of public memory addresses.
+    const expected = [_]std.meta.Tuple(&.{ usize, usize }){
+        .{ 1, 0 },
+        .{ 2, 1 },
+        .{ 4, 0 },
+        .{ 5, 0 },
+        .{ 6, 0 },
+        .{ 7, 0 },
+        .{ 8, 0 },
+        .{ 9, 0 },
+        .{ 10, 0 },
+        .{ 11, 0 },
+        .{ 14, 2 },
+    };
+
+    // Assert equality of expected and retrieved public memory addresses.
+    try expectEqualSlices(
+        std.meta.Tuple(&.{ usize, usize }),
+        &expected,
+        public_memory_addresses.items,
     );
 }
