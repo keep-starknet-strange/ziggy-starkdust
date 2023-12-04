@@ -192,9 +192,7 @@ pub const RangeCheckBuiltinRunner = struct {
             const stop_pointer_addr = pointer.subUint(
                 @intCast(1),
             ) catch return RunnerError.NoStopPointer;
-            const stop_pointer = try (segments.memory.get(
-                stop_pointer_addr,
-            ) catch return RunnerError.NoStopPointer).tryIntoRelocatable();
+            const stop_pointer = try (segments.memory.get(stop_pointer_addr)).tryIntoRelocatable();
             if (@as(
                 isize,
                 @intCast(self.base),
