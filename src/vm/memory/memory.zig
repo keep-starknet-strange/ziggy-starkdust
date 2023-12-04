@@ -430,7 +430,7 @@ pub const Memory = struct {
                 else => error.ExpectedInteger,
             };
         } else {
-            return error.ExpectedInteger;
+            return error.MemoryOutOfBounds;
         }
     }
 
@@ -535,10 +535,7 @@ pub const Memory = struct {
             if (!self.validated_addresses.contains(address)) {
                 const list = try rule(self, address);
                 const firstElement = list[0];
-                // std.debug.print("list: {any}\n", .{list});
-                // Todo: this should works but not really neccessary
                 try self.validated_addresses.addAddresses(&[_]Relocatable{firstElement});
-                //try self.validated_addresses.addAddresses(&[_]Relocatable{address});
             }
         }
     }

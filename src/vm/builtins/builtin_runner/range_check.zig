@@ -288,12 +288,9 @@ pub const RangeCheckBuiltinRunner = struct {
 /// An `ArrayList(Relocatable)` containing the rules address
 /// verification fails.
 pub fn rangeCheckValidationRule(memory: *Memory, address: Relocatable) MemoryError![]const Relocatable {
-    const num = ((memory.get(address) catch {
-        return MemoryError.RangeCheckGetError;
-    }) orelse {
-        return MemoryError.Relocation;
-    }).tryIntoFelt() catch {
-        return MemoryError.RangecheckNonInt;
+    const num = memory.getFelt(address) catch |err| switch (err) {
+        error.MemoryOutOfBounds => return MemoryError.RangeCheckGetError,
+        error.ExpectedInteger => return MemoryError.RangecheckNonInt,
     };
 
     if (num.numBits() <= N_PARTS * INNER_RC_BOUND_SHIFT) {
@@ -415,8 +412,8 @@ test "Range Check: validation rule should be empty" {
     _ = builtin.getRangeCheckUsage(mem.memory);
     // assert
     try std.testing.expectEqual(
+        @as(usize, 0),
         builtin.base,
-        0,
     );
 }
 
