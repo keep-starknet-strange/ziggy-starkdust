@@ -594,9 +594,9 @@ test "get relocate trace after relocating trace" {
         _ = try vm.segments.addSegment();
     }
     const page_allocator = std.heap.page_allocator;
-    try vm.segments.memory.set(page_allocator, Relocatable.new(0, 0), MaybeRelocatable{ .felt = Felt252.fromInteger(2345108766317314046) });
-    try vm.segments.memory.set(page_allocator, Relocatable.new(1, 0), MaybeRelocatable{ .relocatable = Relocatable.new(2, 0) });
-    try vm.segments.memory.set(page_allocator, Relocatable.new(1, 1), MaybeRelocatable{ .relocatable = Relocatable.new(3, 0) });
+    try vm.segments.memory.set(page_allocator, Relocatable.new(0, 0), MaybeRelocatable.fromU256(2345108766317314046));
+    try vm.segments.memory.set(page_allocator, Relocatable.new(1, 0), MaybeRelocatable.fromSegment(2, 0));
+    try vm.segments.memory.set(page_allocator, Relocatable.new(1, 1), MaybeRelocatable.fromSegment(3, 0));
 
     _ = try vm.computeSegmentsEffectiveSizes(false);
 
