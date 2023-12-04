@@ -35,7 +35,7 @@ pub const CairoVMError = error{
     Memory,
 };
 
-/// Represent different error conditions that are memory-related.
+/// Represents different error conditions that are memory-related.
 pub const MemoryError = error{
     /// The amount of used cells associated with the Range Check runner is not available.
     MissingSegmentUsedSizes,
@@ -67,7 +67,13 @@ pub const MemoryError = error{
     RangeCheckGetError,
 };
 
-/// Reepresents different error conditions that occur in the built-in runners.
+/// Represents the error conditions that are related to the `CairoRunner`.
+pub const CairoRunnerError = error{
+    // Raised when `end_run` hook of a runner is called more than once.
+    EndRunAlreadyCalled,
+};
+
+/// Represents different error conditions that occur in the built-in runners.
 pub const RunnerError = error{
     /// Errors associated with computing the address of a stop pointer of RangeCheckBuiltinRunner
     /// Raised when underflow occurs (i.e., subtracting 1 from 0),
