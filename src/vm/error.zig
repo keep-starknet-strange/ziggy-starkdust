@@ -59,6 +59,12 @@ pub const MemoryError = error{
     UnrelocatedMemory,
     /// Represents errors related to malformed or inconsistent public memory segments.
     MalformedPublicMemory,
+    /// Range Check Number is out of bounds
+    RangeCheckNumberOutOfBounds,
+    /// Range Check found a non int
+    RangecheckNonInt,
+    /// Range Check get error
+    RangeCheckGetError,
 };
 
 /// Reepresents different error conditions that occur in the built-in runners.
