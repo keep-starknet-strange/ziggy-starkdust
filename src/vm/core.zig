@@ -300,8 +300,8 @@ pub const CairoVM = struct {
 
         const OFFSET_BITS: u32 = 16;
         const off_0 = if (instruction.off_0 < 0) 0 else instruction.off_0 + (@as(i16, 1) << (OFFSET_BITS - 1));
-        const off_1 = if (instruction.off_0 < 0) 0 else instruction.off_1 + (@as(i16, 1) << (OFFSET_BITS - 1));
-        const off_2 = if (instruction.off_0 < 0) 0 else instruction.off_2 + (@as(i16, 1) << (OFFSET_BITS - 1));
+        const off_1 = if (instruction.off_1 < 0) 0 else instruction.off_1 + (@as(i16, 1) << (OFFSET_BITS - 1));
+        const off_2 = if (instruction.off_2 < 0) 0 else instruction.off_2 + (@as(i16, 1) << (OFFSET_BITS - 1));
 
         const limits = self.rc_limits orelse .{ off_0, off_0 };
         self.rc_limits = .{ @min(limits[0], off_0, off_1, off_2), @max(limits[1], off_0, off_1, off_2) };
