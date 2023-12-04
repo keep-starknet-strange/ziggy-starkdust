@@ -2027,3 +2027,108 @@ test "CairoVM: markAddressRangeAsAccessed should return an error if the run is n
         vm.markAddressRangeAsAccessed(Relocatable.new(0, 0), 3),
     );
 }
+
+test "CairoVM: loadData should give the correct segment size" {
+    // Test setup
+    const allocator = std.testing.allocator;
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+    const segment = try vm.segments.addSegment();
+
+    // Prepare data to load into memory
+    var data = std.ArrayList(MaybeRelocatable).init(allocator);
+    defer data.deinit();
+    try data.append(MaybeRelocatable.fromU256(1));
+    try data.append(MaybeRelocatable.fromU256(2));
+    try data.append(MaybeRelocatable.fromU256(3));
+    try data.append(MaybeRelocatable.fromU256(4));
+
+    // Load data into memory segment
+    const actual = try vm.loadData(segment, &data);
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Perform assertions
+    try expectEqual(
+        @as(
+            Relocatable,
+            Relocatable.new(0, 4),
+        ),
+        actual,
+    );
+
+    // Check the segment size
+    var segment_size = try vm.segments.computeEffectiveSize(false);
+
+    // Assert segment size count and the value at index 0
+    try expectEqual(@as(usize, 1), segment_size.count());
+    try expectEqual(@as(u32, 4), segment_size.get(0).?);
+}
+
+test "CairoVM: loadData should resize the instruction cache with null elements if ptr segment index is zero" {
+    // Test setup
+    const allocator = std.testing.allocator;
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+    const segment = try vm.segments.addSegment();
+
+    // Prepare data to load into memory
+    var data = std.ArrayList(MaybeRelocatable).init(allocator);
+    defer data.deinit();
+    try data.append(MaybeRelocatable.fromU256(1));
+    try data.append(MaybeRelocatable.fromU256(2));
+    try data.append(MaybeRelocatable.fromU256(3));
+    try data.append(MaybeRelocatable.fromU256(4));
+
+    // Load data into memory segment
+    const actual = try vm.loadData(segment, &data);
+    _ = actual;
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Prepare an expected instruction cache with null elements
+    var expected_instruction_cache = ArrayList(?Instruction).init(allocator);
+    defer expected_instruction_cache.deinit();
+    try expected_instruction_cache.appendNTimes(null, 4);
+
+    // Assert the instruction cache after loading data
+    try expectEqualSlices(
+        ?Instruction,
+        expected_instruction_cache.items,
+        vm.instruction_cache.items,
+    );
+}
+
+test "CairoVM: loadData should not resize the instruction cache if ptr segment index is not zero" {
+    // Test setup
+    const allocator = std.testing.allocator;
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+    _ = try vm.segments.addSegment();
+    const segment = try vm.segments.addSegment();
+
+    // Prepare data to load into memory
+    var data = std.ArrayList(MaybeRelocatable).init(allocator);
+    defer data.deinit();
+    try data.append(MaybeRelocatable.fromU256(1));
+    try data.append(MaybeRelocatable.fromU256(2));
+    try data.append(MaybeRelocatable.fromU256(3));
+    try data.append(MaybeRelocatable.fromU256(4));
+
+    // Load data into memory segment
+    const actual = try vm.loadData(segment, &data);
+    _ = actual;
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Prepare an empty expected instruction cache
+    var expected_instruction_cache = ArrayList(?Instruction).init(allocator);
+    defer expected_instruction_cache.deinit();
+
+    // Assert the instruction cache after loading data
+    try expectEqualSlices(
+        ?Instruction,
+        expected_instruction_cache.items,
+        vm.instruction_cache.items,
+    );
+}
