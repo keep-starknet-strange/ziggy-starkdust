@@ -327,7 +327,7 @@ pub const CairoVM = struct {
         op_res.res = null;
 
         op_res.dst_addr = try self.run_context.computeDstAddr(instruction);
-        const dst_op = try self.segments.memory.get2(op_res.dst_addr);
+        const dst_op = self.segments.memory.get(op_res.dst_addr);
 
         op_res.op_0_addr = try self.run_context.computeOp0Addr(instruction);
 
