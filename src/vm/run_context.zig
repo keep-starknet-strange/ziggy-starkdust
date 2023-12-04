@@ -108,7 +108,6 @@ pub const RunContext = struct {
             .AP => self.ap.*,
             .FP => self.fp.*,
         };
-
         if (instruction.off_0 < 0) {
             // Convert i16 to u64 safely and then negate
             return try base_addr.subUint(@intCast(-instruction.off_0));
