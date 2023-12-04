@@ -756,6 +756,46 @@ pub const Memory = struct {
         }
         return values;
     }
+
+    /// Retrieves a continuous range of `Felt252` values starting from a specified address.
+    ///
+    /// # Arguments
+    ///
+    /// * `address`: The starting address in the memory from which the continuous range of `Felt252` is retrieved.
+    /// * `size`: The size of the continuous range of `Felt252` to be retrieved.
+    ///
+    /// # Returns
+    ///
+    /// Returns a list containing `Felt252` values retrieved from the continuous range starting at the given address.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if there are any gaps encountered within the continuous memory range.
+    /// Returns an error if value inside the range is not a `Felt252`
+    pub fn getFeltRange(
+        self: *Self,
+        address: Relocatable,
+        size: usize,
+    ) !std.ArrayList(Felt252) {
+        var values = try std.ArrayList(Felt252).initCapacity(
+            self.allocator,
+            size,
+        );
+        errdefer values.deinit();
+        for (0..size) |i| {
+            const elem = self.getFelt(try address.addUint(@intCast(i))) catch |err| {
+                // getFelt return ExpectedInteger
+                if (err == error.ExpectedInteger) {
+                    if (null == try (self.get(try address.addUint(@intCast(i))))) {
+                        return MemoryError.GetRangeMemoryGap;
+                    }
+                }
+                return err;
+            };
+            try values.append(elem);
+        }
+        return values;
+    }
 };
 
 // Utility function to help set up memory for tests
@@ -1941,6 +1981,119 @@ test "Memory: getContinuousRange for non continuous memory" {
         MemoryError.GetRangeMemoryGap,
         memory.getContinuousRange(
             std.testing.allocator,
+            Relocatable.new(1, 0),
+            3,
+        ),
+    );
+}
+
+test "Memory: getFeltRange for continuous memory" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 1, 0 }, .{2} },
+            .{ .{ 1, 1 }, .{3} },
+            .{ .{ 1, 2 }, .{4} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    var expected_vec = std.ArrayList(Felt252).init(std.testing.allocator);
+    defer expected_vec.deinit();
+
+    try expected_vec.append(Felt252.fromInteger(2));
+    try expected_vec.append(Felt252.fromInteger(3));
+    try expected_vec.append(Felt252.fromInteger(4));
+
+    var actual = try memory.getFeltRange(
+        Relocatable.new(1, 0),
+        3,
+    );
+    defer actual.deinit();
+
+    // Test checks
+    try expectEqualSlices(
+        Felt252,
+        expected_vec.items,
+        actual.items,
+    );
+}
+
+test "Memory: getFeltRange for Relocatable instead of Felt" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 1, 0 }, .{2} },
+            .{ .{ 1, 1 }, .{ 3, 4 } },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    // Test checks
+    try expectError(
+        error.ExpectedInteger,
+        memory.getFeltRange(
+            Relocatable.new(1, 0),
+            2,
+        ),
+    );
+}
+
+test "Memory: getFeltRange for out of bounds memory" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 1, 0 }, .{2} },
+            .{ .{ 1, 1 }, .{3} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    // Test checks
+    try expectError(
+        error.MemoryOutOfBounds,
+        memory.getFeltRange(
+            Relocatable.new(1, 0),
+            4,
+        ),
+    );
+}
+
+test "Memory: getFeltRange for non continuous memory" {
+    // Test setup
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 1, 0 }, .{2} },
+            .{ .{ 1, 1 }, .{3} },
+            .{ .{ 1, 3 }, .{4} },
+        },
+    );
+    defer memory.deinitData(std.testing.allocator);
+
+    // Test checks
+    try expectError(
+        MemoryError.GetRangeMemoryGap,
+        memory.getFeltRange(
             Relocatable.new(1, 0),
             3,
         ),
