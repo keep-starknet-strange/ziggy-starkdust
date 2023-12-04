@@ -1639,7 +1639,7 @@ test "CairoVM: getSegmentSize should return the size of the segment via getSegme
     try expectEqual(@as(u32, 6), vm.getSegmentSize(3).?);
 }
 
-test "CairoVM: getFelt should return ExpectedInteger error if no value at the given address" {
+test "CairoVM: getFelt should return MemoryOutOfBounds error if no value at the given address" {
     // Test setup
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -1649,7 +1649,7 @@ test "CairoVM: getFelt should return ExpectedInteger error if no value at the gi
 
     // Test checks
     try expectError(
-        error.ExpectedInteger,
+        error.MemoryOutOfBounds,
         vm.getFelt(Relocatable.new(10, 30)),
     );
 }

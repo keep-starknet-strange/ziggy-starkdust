@@ -419,7 +419,7 @@ pub const Memory = struct {
     pub fn getFelt(
         self: *Self,
         address: Relocatable,
-    ) error{ExpectedInteger}!Felt252 {
+    ) error{ ExpectedInteger, MemoryOutOfBounds }!Felt252 {
         if (self.get(address)) |m| {
             return switch (m) {
                 .felt => |fe| fe,
@@ -1135,14 +1135,14 @@ test "validate existing memory for range check within bound" {
     try expect(maybe_value_1.?.eq(value_1));
 }
 
-test "Memory: getFelt should return ExpectedInteger error if no value at the given address" {
+test "Memory: getFelt should return MemoryOutOfBounds error if no value at the given address" {
     // Test setup
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
     // Test checks
     try expectError(
-        error.ExpectedInteger,
+        error.MemoryOutOfBounds,
         memory.getFelt(Relocatable.new(0, 0)),
     );
 }
