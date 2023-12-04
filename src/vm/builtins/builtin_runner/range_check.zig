@@ -239,7 +239,7 @@ pub const RangeCheckBuiltinRunner = struct {
     /// # Returns
     ///
     /// - An `Array`containing the min and max of range check.
-    pub fn getRangeCheckUsage(self: *Self, memory: *Memory) ?[2]usize {
+    pub fn getRangeCheckUsage(self: *Self, memory: *Memory) ?std.meta.Tuple(&.{ usize, usize }) {
         if (memory.data.capacity == 0) {
             return null;
         }
@@ -261,7 +261,7 @@ pub const RangeCheckBuiltinRunner = struct {
                 }
             }
         }
-        return rc_bounds;
+        return .{ rc_bounds[0], rc_bounds[1] };
     }
 
     pub fn deduceMemoryCell(
@@ -396,9 +396,10 @@ test "Range Check: get usage for range check should be null" {
     try memoryFile.setUpMemory(seg.memory, std.testing.allocator, .{});
     defer seg.memory.deinitData(std.testing.allocator);
 
-    const expected: ?[2]usize = null;
+    //const expected: ?[2]usize = null;
+    const expected: ?std.meta.Tuple(&.{ usize, usize }) = null;
     // assert
-    try std.testing.expectEqual(builtin.getRangeCheckUsage(seg.memory), expected);
+    try std.testing.expectEqual(expected, builtin.getRangeCheckUsage(seg.memory));
 }
 
 test "Range Check: validation rule should be empty" {
