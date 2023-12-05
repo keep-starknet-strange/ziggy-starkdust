@@ -594,9 +594,21 @@ test "get relocate trace after relocating trace" {
         _ = try vm.segments.addSegment();
     }
     const page_allocator = std.heap.page_allocator;
-    try vm.segments.memory.set(page_allocator, Relocatable.new(0, 0), MaybeRelocatable.fromU256(2345108766317314046));
-    try vm.segments.memory.set(page_allocator, Relocatable.new(1, 0), MaybeRelocatable.fromSegment(2, 0));
-    try vm.segments.memory.set(page_allocator, Relocatable.new(1, 1), MaybeRelocatable.fromSegment(3, 0));
+    try vm.segments.memory.set(
+        page_allocator,
+        Relocatable.new(0, 0),
+        MaybeRelocatable.fromU256(2345108766317314046),
+    );
+    try vm.segments.memory.set(
+        page_allocator,
+        Relocatable.new(1, 0),
+        MaybeRelocatable.fromSegment(2, 0),
+    );
+    try vm.segments.memory.set(
+        page_allocator,
+        Relocatable.new(1, 1),
+        MaybeRelocatable.fromSegment(3, 0),
+    );
 
     _ = try vm.computeSegmentsEffectiveSizes(false);
 
@@ -604,7 +616,11 @@ test "get relocate trace after relocating trace" {
     defer allocator.free(relocation_table);
     try vm.relocateTrace(relocation_table);
 
-    const relocated_trace = TraceContext.RelocatedTraceEntry{ .pc = Felt252.fromInteger(1), .ap = Felt252.fromInteger(4), .fp = Felt252.fromInteger(4) };
+    const relocated_trace = TraceContext.RelocatedTraceEntry{
+        .pc = Felt252.fromInteger(1),
+        .ap = Felt252.fromInteger(4),
+        .fp = Felt252.fromInteger(4),
+    };
     const expected_relocated_trace = [_]TraceContext.RelocatedTraceEntry{relocated_trace};
     const actual_relocated_trace = try vm.getRelocatedTrace();
     for (expected_relocated_trace, actual_relocated_trace) |expected_trace, actual_trace| {
