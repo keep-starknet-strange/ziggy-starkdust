@@ -12,6 +12,9 @@ const RunContext = @import("../vm/run_context.zig").RunContext;
 const relocatable = @import("../vm/memory/relocatable.zig");
 const Config = @import("../vm/config.zig").Config;
 const build_options = @import("../build_options.zig");
+const cairo_runner = @import("../vm/runners/cairo_runner.zig");
+const CairoRunner = cairo_runner.CairoRunner;
+const Program = @import("../vm/types/program.zig").Program;
 
 // ************************************************************
 // *                 GLOBAL VARIABLES                         *
@@ -32,6 +35,14 @@ var execute_proof_mode_option = cli.Option{
     .short_alias = 'p',
     .value_ref = cli.mkRef(&config.proof_mode),
     .required = false,
+};
+
+var program_option = cli.Option{
+    .long_name = "filename",
+    .help = "The location of the program to be evaluated.",
+    .short_alias = 'f',
+    .value_ref = cli.mkRef(&config.filename),
+    .required = true,
 };
 
 var enable_trace = cli.Option{
@@ -63,10 +74,7 @@ var app = &cli.App{
             \\Execute a cairo program with the virtual machine.
             ,
             .action = execute,
-            .options = &.{
-                &execute_proof_mode_option,
-                &enable_trace,
-            },
+            .options = &.{ &execute_proof_mode_option, &enable_trace, &program_option },
         },
     },
 };
@@ -103,33 +111,5 @@ fn execute(_: []const []const u8) !void {
         return UsageError.IncompatibleBuildOptions;
     }
 
-    // Create a new VM instance.
-    var vm = try vm_core.CairoVM.init(
-        gpa_allocator,
-        config,
-    );
-    defer vm.deinit(); // <-- This ensures that resources are freed when exiting the scope
-
-    const address_1 = relocatable.Relocatable.new(
-        0,
-        0,
-    );
-    const encoded_instruction = relocatable.MaybeRelocatable.fromU64(0x14A7800080008000);
-
-    // Write a value to memory.
-    try vm.segments.memory.set(
-        gpa_allocator,
-        address_1,
-        encoded_instruction,
-    );
-    defer vm.segments.memory.deinitData(gpa_allocator);
-
-    // Run a step.
-    vm.step(gpa_allocator) catch |err| {
-        std.debug.print(
-            "Error: {}\n",
-            .{err},
-        );
-        return;
-    };
+    try cairo_runner.runConfig(gpa_allocator, config);
 }
