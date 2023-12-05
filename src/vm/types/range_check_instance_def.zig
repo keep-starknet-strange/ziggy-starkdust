@@ -17,10 +17,17 @@ pub const RangeCheckInstanceDef = struct {
         return self.n_parts;
     }
 
-    pub fn default() Self {
+    pub fn init() Self {
         return .{
             .ratio = 8,
             .n_parts = 8,
+        };
+    }
+
+    pub fn from(ratio: ?u32, n_parts: u32) Self {
+        return .{
+            .ratio = ratio,
+            .n_parts = n_parts,
         };
     }
 };

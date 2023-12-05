@@ -12,6 +12,7 @@ pub const vm = struct {
     pub usingnamespace @import("vm/memory/segments.zig");
     pub usingnamespace @import("vm/runners/cairo_runner.zig");
     pub usingnamespace @import("vm/builtins/bitwise/bitwise.zig");
+    pub usingnamespace @import("vm/types/builtins_instance_def.zig");
 };
 
 pub const math = struct {
