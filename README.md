@@ -1,21 +1,21 @@
 <!-- markdownlint-disable MD033 -->
 <!-- markdownlint-disable MD041 -->
 <p align="center">
-  <img src="https://github.com/keep-starknet-strange/cairo-zig/blob/main/docs/kit/logo/starknet-zig-logo.png?raw=true" alt="Logo"/>
-  <h1 align="center">cairo-zig</h1>
+  <img src="https://github.com/keep-starknet-strange/ziggy-starkdust/blob/main/docs/kit/logo/starknet-zig-logo.png?raw=true" alt="Logo"/>
+  <h1 align="center">ziggy-starkdust</h1>
 </p>
 
 <div align="center">
 <br />
 
-<a href="https://github.com/keep-starknet-strange/cairo-zig/actions/workflows/test.yml"><img alt="GitHub Workflow Status (with event)" src="https://img.shields.io/github/actions/workflow/status/keep-starknet-strange/cairo-zig/test.yml?style=for-the-badge" height=30></a>
-<a href="https://securityscorecards.dev/viewer/?uri=github.com/keep-starknet-strange/cairo-zig"><img alt="OpenSSF Scorecard Report" src="https://img.shields.io/ossf-scorecard/github.com/keep-starknet-strange/cairo-zig?label=openssf%20scorecard&style=for-the-badge" height=30></a>
-<a href="https://github.com/keep-starknet-strange/cairo-zig/blob/main/LICENSE"><img src="https://img.shields.io/github/license/keep-starknet-strange/cairo-zig.svg?style=for-the-badge" alt="Project license" height="30"></a>
+<a href="https://github.com/keep-starknet-strange/ziggy-starkdust/actions/workflows/test.yml"><img alt="GitHub Workflow Status (with event)" src="https://img.shields.io/github/actions/workflow/status/keep-starknet-strange/ziggy-starkdust/test.yml?style=for-the-badge" height=30></a>
+<a href="https://securityscorecards.dev/viewer/?uri=github.com/keep-starknet-strange/ziggy-starkdust"><img alt="OpenSSF Scorecard Report" src="https://img.shields.io/ossf-scorecard/github.com/keep-starknet-strange/ziggy-starkdust?label=openssf%20scorecard&style=for-the-badge" height=30></a>
+<a href="https://github.com/keep-starknet-strange/ziggy-starkdust/blob/main/LICENSE"><img src="https://img.shields.io/github/license/keep-starknet-strange/ziggy-starkdust.svg?style=for-the-badge" alt="Project license" height="30"></a>
 <a href="https://twitter.com/StarknetZig"><img src="https://img.shields.io/twitter/follow/StarknetZig?style=for-the-badge&logo=twitter" alt="Follow StarknetZig on Twitter" height="30"></a>
 
 </div>
 
-> _Note that `cairo-zig` is still experimental. Breaking changes will be made before the first stable release. The library is also NOT audited or reviewed for security at the moment. Use at your own risk._
+> _Note that `ziggy-starkdust` is still experimental. Breaking changes will be made before the first stable release. The library is also NOT audited or reviewed for security at the moment. Use at your own risk._
 
 ## 📦 Installation
 
@@ -57,14 +57,16 @@ zig build
 You can display the help message by running:
 
 ```bash
-./zig-out/bin/cairo-zig --help
+./zig-out/bin/ziggy-starkdust --help
 ```
 
 ### Run a cairo program
 
 ```bash
-./zig-out/bin/cairo-zig execute --proof-mode=false
+
+./zig-out/bin/ziggy-starkdust execute --filename cairo-programs/fibonacci.json --proof-mode=false
 ```
+
 
 ### 🧪 Testing
 
@@ -102,7 +104,7 @@ We are using the [OpenSSF Scorecard](https://securityscorecards.dev/) to track t
 
 Scorecard assesses open source projects for security risks through a series of automated checks.
 
-You can see the current scorecard for this project [here](https://securityscorecards.dev/viewer/?uri=github.com/keep-starknet-strange/cairo-zig).
+You can see the current scorecard for this project [here](https://securityscorecards.dev/viewer/?uri=github.com/keep-starknet-strange/ziggy-starkdust).
 
 ## 🙏 Acknowledgments
 
@@ -169,16 +171,16 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
 <table>
   <tbody>
     <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/abdelhamidbakhta"><img src="https://avatars.githubusercontent.com/u/45264458?v=4?s=100" width="100px;" alt="Abdel @ StarkWare "/><br /><sub><b>Abdel @ StarkWare </b></sub></a><br /><a href="https://github.com/keep-starknet-strange/cairo-zig/commits?author=abdelhamidbakhta" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://bingcicle.github.io/"><img src="https://avatars.githubusercontent.com/u/25565268?v=4?s=100" width="100px;" alt="bing"/><br /><sub><b>bing</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/cairo-zig/commits?author=bingcicle" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://ceccon.me/"><img src="https://avatars.githubusercontent.com/u/282580?v=4?s=100" width="100px;" alt="Francesco Ceccon"/><br /><sub><b>Francesco Ceccon</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/cairo-zig/commits?author=fracek" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/tcoratger"><img src="https://avatars.githubusercontent.com/u/60488569?v=4?s=100" width="100px;" alt="Thomas Coratger"/><br /><sub><b>Thomas Coratger</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/cairo-zig/commits?author=tcoratger" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/lambda-0x"><img src="https://avatars.githubusercontent.com/u/87354252?v=4?s=100" width="100px;" alt="lambda-0x"/><br /><sub><b>lambda-0x</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/cairo-zig/commits?author=lambda-0x" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://nils-mathieu.fr/"><img src="https://avatars.githubusercontent.com/u/80390054?v=4?s=100" width="100px;" alt="Nils"/><br /><sub><b>Nils</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/cairo-zig/commits?author=nils-mathieu" title="Code">💻</a></td>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/jobez"><img src="https://avatars.githubusercontent.com/u/615197?v=4?s=100" width="100px;" alt="johann bestowrous"/><br /><sub><b>johann bestowrous</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/cairo-zig/commits?author=jobez" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/abdelhamidbakhta"><img src="https://avatars.githubusercontent.com/u/45264458?v=4?s=100" width="100px;" alt="Abdel @ StarkWare "/><br /><sub><b>Abdel @ StarkWare </b></sub></a><br /><a href="https://github.com/keep-starknet-strange/ziggy-starkdust/commits?author=abdelhamidbakhta" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://bingcicle.github.io/"><img src="https://avatars.githubusercontent.com/u/25565268?v=4?s=100" width="100px;" alt="bing"/><br /><sub><b>bing</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/ziggy-starkdust/commits?author=bingcicle" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://ceccon.me/"><img src="https://avatars.githubusercontent.com/u/282580?v=4?s=100" width="100px;" alt="Francesco Ceccon"/><br /><sub><b>Francesco Ceccon</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/ziggy-starkdust/commits?author=fracek" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/tcoratger"><img src="https://avatars.githubusercontent.com/u/60488569?v=4?s=100" width="100px;" alt="Thomas Coratger"/><br /><sub><b>Thomas Coratger</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/ziggy-starkdust/commits?author=tcoratger" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/lambda-0x"><img src="https://avatars.githubusercontent.com/u/87354252?v=4?s=100" width="100px;" alt="lambda-0x"/><br /><sub><b>lambda-0x</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/ziggy-starkdust/commits?author=lambda-0x" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://nils-mathieu.fr/"><img src="https://avatars.githubusercontent.com/u/80390054?v=4?s=100" width="100px;" alt="Nils"/><br /><sub><b>Nils</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/ziggy-starkdust/commits?author=nils-mathieu" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/jobez"><img src="https://avatars.githubusercontent.com/u/615197?v=4?s=100" width="100px;" alt="johann bestowrous"/><br /><sub><b>johann bestowrous</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/ziggy-starkdust/commits?author=jobez" title="Code">💻</a></td>
     </tr>
     <tr>
-      <td align="center" valign="top" width="14.28%"><a href="https://github.com/lana-shanghai"><img src="https://avatars.githubusercontent.com/u/31368580?v=4?s=100" width="100px;" alt="lanaivina"/><br /><sub><b>lanaivina</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/cairo-zig/commits?author=lana-shanghai" title="Code">💻</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/lana-shanghai"><img src="https://avatars.githubusercontent.com/u/31368580?v=4?s=100" width="100px;" alt="lanaivina"/><br /><sub><b>lanaivina</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/ziggy-starkdust/commits?author=lana-shanghai" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>

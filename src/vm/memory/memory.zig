@@ -21,7 +21,7 @@ const MemorySegmentManager = @import("./segments.zig").MemorySegmentManager;
 const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
 
 // Function that validates a memory address and returns a list of validated adresses
-pub const validation_rule = *const fn (*Memory, Relocatable) ?[]const Relocatable;
+pub const validation_rule = *const fn (*Memory, Relocatable) anyerror![]const Relocatable;
 
 pub const MemoryCell = struct {
     /// Represents a memory cell that holds relocation information and access status.
@@ -382,24 +382,20 @@ pub const Memory = struct {
         data_segment.items[address.offset] = MemoryCell.new(value);
     }
 
-    // Get some value from the memory at the given address.
-    // # Arguments
-    // - `address` - The address to get the value from.
-    // # Returns
-    // The value at the given address.
-    pub fn get(
-        self: *Self,
-        address: Relocatable,
-    ) error{MemoryOutOfBounds}!?MaybeRelocatable {
+    /// Retrieves data at a specified address within a relocatable data structure.
+    ///
+    /// - `self`: The instance of the data structure.
+    /// - `address`: The target address to retrieve data from.
+    /// Returns:
+    /// A `MaybeRelocatable` value if the address is valid; otherwise, returns `null`.
+    pub fn get(self: *Self, address: Relocatable) ?MaybeRelocatable {
         const data = if (address.segment_index < 0) &self.temp_data else &self.data;
         const segment_index: usize = @intCast(if (address.segment_index < 0) -(address.segment_index + 1) else address.segment_index);
 
         const isSegmentIndexValid = address.segment_index < data.items.len;
         const isOffsetValid = isSegmentIndexValid and (address.offset < data.items[segment_index].items.len);
 
-        if (!isSegmentIndexValid or !isOffsetValid) {
-            return CairoVMError.MemoryOutOfBounds;
-        }
+        if (!isSegmentIndexValid or !isOffsetValid) return null;
 
         if (data.items[segment_index].items[@intCast(address.offset)]) |val| {
             return val.maybe_relocatable;
@@ -423,14 +419,14 @@ pub const Memory = struct {
     pub fn getFelt(
         self: *Self,
         address: Relocatable,
-    ) error{ MemoryOutOfBounds, ExpectedInteger }!Felt252 {
-        if (try self.get(address)) |m| {
+    ) error{ ExpectedInteger, MemoryOutOfBounds }!Felt252 {
+        if (self.get(address)) |m| {
             return switch (m) {
                 .felt => |fe| fe,
                 else => error.ExpectedInteger,
             };
         } else {
-            return error.ExpectedInteger;
+            return error.MemoryOutOfBounds;
         }
     }
 
@@ -449,8 +445,8 @@ pub const Memory = struct {
     pub fn getRelocatable(
         self: *Self,
         address: Relocatable,
-    ) error{ MemoryOutOfBounds, ExpectedRelocatable }!Relocatable {
-        if (try self.get(address)) |m| {
+    ) error{ExpectedRelocatable}!Relocatable {
+        if (self.get(address)) |m| {
             return switch (m) {
                 .relocatable => |rel| rel,
                 else => error.ExpectedRelocatable,
@@ -533,11 +529,9 @@ pub const Memory = struct {
     pub fn validateMemoryCell(self: *Self, address: Relocatable) !void {
         if (self.validation_rules.get(@intCast(address.segment_index))) |rule| {
             if (!self.validated_addresses.contains(address)) {
-                if (rule(self, address)) |list| {
-                    _ = list;
-                    // TODO: debug rangeCheckValidationRule to be able to push list here again
-                    try self.validated_addresses.addAddresses(&[_]Relocatable{address});
-                }
+                const list = try rule(self, address);
+                const firstElement = list[0];
+                try self.validated_addresses.addAddresses(&[_]Relocatable{firstElement});
             }
         }
     }
@@ -699,7 +693,7 @@ pub const Memory = struct {
     ) !std.ArrayList(?MaybeRelocatable) {
         var values = std.ArrayList(?MaybeRelocatable).init(allocator);
         for (0..size) |i| {
-            try values.append(try self.get(try address.addUint(@intCast(i))));
+            try values.append(self.get(try address.addUint(@intCast(i))));
         }
         return values;
     }
@@ -754,7 +748,7 @@ pub const Memory = struct {
         );
         errdefer values.deinit();
         for (0..size) |i| {
-            if (try self.get(try address.addUint(@intCast(i)))) |elem| {
+            if (self.get(try address.addUint(@intCast(i)))) |elem| {
                 try values.append(elem);
             } else {
                 return MemoryError.GetRangeMemoryGap;
@@ -875,17 +869,13 @@ test "Memory: validate memory cell" {
 
     try segments.memory.validateMemoryCell(Relocatable.new(0, 1));
     // null case
-    try segments.memory.validateMemoryCell(Relocatable.new(0, 7));
     defer segments.memory.deinitData(std.testing.allocator);
 
     try expectEqual(
         true,
         segments.memory.validated_addresses.contains(Relocatable.new(0, 1)),
     );
-    try expectEqual(
-        false,
-        segments.memory.validated_addresses.contains(Relocatable.new(0, 7)),
-    );
+    try expectError(MemoryError.RangeCheckGetError, segments.memory.validateMemoryCell(Relocatable.new(0, 7)));
 }
 
 test "Memory: validate memory cell segment index not in validation rules" {
@@ -980,10 +970,8 @@ test "memory inner for testing test" {
     );
 }
 
-test "memory get without value raises error" {
-    // ************************************************************
-    // *                 SETUP TEST CONTEXT                       *
-    // ************************************************************
+test "Memory: get method without segment should return null" {
+    // Test setup
     // Initialize an allocator.
     const allocator = std.testing.allocator;
 
@@ -991,20 +979,16 @@ test "memory get without value raises error" {
     var memory = try Memory.init(allocator);
     defer memory.deinit();
 
-    // ************************************************************
-    // *                      TEST CHECKS                         *
-    // ************************************************************
+    // Test checks
     // Get a value from the memory at an address that doesn't exist.
-    try expectError(
-        error.MemoryOutOfBounds,
+    try expectEqual(
+        @as(?MaybeRelocatable, null),
         memory.get(Relocatable.new(0, 0)),
     );
 }
 
-test "memory set and get" {
-    // ************************************************************
-    // *                 SETUP TEST CONTEXT                       *
-    // ************************************************************
+test "Memory: get method wit segment but non allocated memory should return null" {
+    // Test setup
     // Initialize an allocator.
     const allocator = std.testing.allocator;
 
@@ -1012,20 +996,33 @@ test "memory set and get" {
     var memory = try Memory.init(allocator);
     defer memory.deinit();
 
-    // ************************************************************
-    // *                      TEST BODY                           *
-    // ************************************************************
-    const address_1 = Relocatable.new(
-        0,
-        0,
+    // Set a value into the memory.
+    try setUpMemory(
+        memory,
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ 0, 10 }, .{1} },
+        },
     );
-    const value_1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.one());
+    defer memory.deinitData(std.testing.allocator);
 
-    const address_2 = Relocatable.new(
-        -1,
-        0,
+    // Test checks
+    // Get a value from the memory at an address that doesn't exist.
+    try expectEqual(
+        @as(?MaybeRelocatable, null),
+        memory.get(Relocatable.new(0, 15)),
     );
-    const value_2 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.one());
+}
+
+test "Memory: set and get for both segments and temporary segments should return proper MaybeRelocatable values" {
+    // Test setup
+    // Initialize an allocator.
+    const allocator = std.testing.allocator;
+
+    // Initialize a memory instance.
+    var memory = try Memory.init(allocator);
+    defer memory.deinit();
 
     // Set a value into the memory.
     try setUpMemory(
@@ -1036,19 +1033,17 @@ test "memory set and get" {
             .{ .{ -1, 0 }, .{1} },
         },
     );
-
     defer memory.deinitData(std.testing.allocator);
 
-    // Get the value from the memory.
-    const maybe_value_1 = try memory.get(address_1);
-    const maybe_value_2 = try memory.get(address_2);
-
-    // ************************************************************
-    // *                      TEST CHECKS                         *
-    // ************************************************************
-    // Assert that the value is the expected value.
-    try expect(maybe_value_1.?.eq(value_1));
-    try expect(maybe_value_2.?.eq(value_2));
+    // Test checks
+    try expectEqual(
+        @as(?MaybeRelocatable, MaybeRelocatable.fromU256(1)),
+        memory.get(Relocatable.new(0, 0)),
+    );
+    try expectEqual(
+        @as(?MaybeRelocatable, MaybeRelocatable.fromU256(1)),
+        memory.get(Relocatable.new(-1, 0)),
+    );
 }
 
 test "Memory: get inside a segment without value but inbout should return null" {
@@ -1075,7 +1070,7 @@ test "Memory: get inside a segment without value but inbout should return null" 
     // Test check
     try expectEqual(
         @as(?MaybeRelocatable, null),
-        try memory.get(Relocatable.new(1, 3)),
+        memory.get(Relocatable.new(1, 3)),
     );
 }
 
@@ -1131,7 +1126,7 @@ test "validate existing memory for range check within bound" {
     defer memory.deinitData(std.testing.allocator);
 
     // Get the value from the memory.
-    const maybe_value_1 = try memory.get(address_1);
+    const maybe_value_1 = memory.get(address_1);
 
     // ************************************************************
     // *                      TEST CHECKS                         *
@@ -1190,14 +1185,14 @@ test "Memory: getFelt should return ExpectedInteger error if Relocatable instead
     );
 }
 
-test "Memory: getRelocatable should return MemoryOutOfBounds error if no value at the given address" {
+test "Memory: getRelocatable should return ExpectedRelocatable error if no value at the given address" {
     // Test setup
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
     // Test checks
     try expectError(
-        error.MemoryOutOfBounds,
+        error.ExpectedRelocatable,
         memory.getRelocatable(Relocatable.new(0, 0)),
     );
 }

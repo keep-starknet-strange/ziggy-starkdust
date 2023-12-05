@@ -346,9 +346,7 @@ pub const KeccakBuiltinRunner = struct {
             const stop_pointer_addr = pointer.subUint(
                 @intCast(1),
             ) catch return RunnerError.NoStopPointer;
-            const stop_pointer = try ((segments.memory.get(
-                stop_pointer_addr,
-            ) catch return RunnerError.NoStopPointer) orelse return RunnerError.NoStopPointer).tryIntoRelocatable();
+            const stop_pointer = try (segments.memory.get(stop_pointer_addr) orelse return RunnerError.NoStopPointer).tryIntoRelocatable();
             if (@as(
                 isize,
                 @intCast(self.base),
@@ -430,9 +428,7 @@ pub const KeccakBuiltinRunner = struct {
             usize,
             @intCast(self.n_input_cells),
         )) |i| {
-            const num = ((memory.get(try first_input_addr.addUint(@intCast(i))) catch {
-                return null;
-            }) orelse return null).tryIntoFelt() catch {
+            const num = (memory.get(try first_input_addr.addUint(@intCast(i))) orelse return null).tryIntoFelt() catch {
                 return RunnerError.BuiltinExpectedInteger;
             };
 
