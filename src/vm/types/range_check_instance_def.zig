@@ -14,7 +14,7 @@ pub const RangeCheckInstanceDef = struct {
     /// For example, n_parts=8 defines the range [0, 2^128).
     n_parts: u32,
 
-    pub fn default() Self {
+    pub fn init() Self {
         return .{
             .ratio = 8,
             .n_parts = 8,
@@ -31,7 +31,7 @@ pub const RangeCheckInstanceDef = struct {
     /// # Returns
     ///
     /// A new `RangeCheckInstanceDef` instance with the specified parameters.
-    pub fn init(ratio: ?u32, n_parts: u32) Self {
+    pub fn from(ratio: ?u32, n_parts: u32) Self {
         return .{
             .ratio = ratio,
             .n_parts = n_parts,
@@ -39,11 +39,11 @@ pub const RangeCheckInstanceDef = struct {
     }
 };
 
-test "RangeCheckInstanceDef: test init" {
-    const result = RangeCheckInstanceDef.init(3, 3);
+test "RangeCheckInstanceDef: test form" {
+    const result = RangeCheckInstanceDef.from(3, 3);
     try std.testing.expectEqual(RangeCheckInstanceDef{ .ratio = 3, .n_parts = 3 }, result);
 }
 
-test "RangeCheckInstanceDef: test default" {
-    try std.testing.expectEqual(RangeCheckInstanceDef{ .ratio = 8, .n_parts = 8 }, RangeCheckInstanceDef.default());
+test "RangeCheckInstanceDef: test init" {
+    try std.testing.expectEqual(RangeCheckInstanceDef{ .ratio = 8, .n_parts = 8 }, RangeCheckInstanceDef.init());
 }
