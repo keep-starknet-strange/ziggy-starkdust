@@ -3,7 +3,8 @@ const std = @import("std");
 const bitwise_instance_def = @import("../../types/bitwise_instance_def.zig");
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
-const Memory = @import("../../memory/memory.zig").Memory;
+const memoryFile = @import("../../memory/memory.zig");
+const Memory = memoryFile.Memory;
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
 
 pub const BitwiseError = error{
@@ -39,20 +40,14 @@ pub const BitwiseBuiltinRunner = struct {
     /// - memory: The cairo memory where addresses are looked up
     /// # Returns
     /// The felt as an integer.
-    fn getValue(self: Self, address: Relocatable, memory: *Memory) BitwiseError!u256 {
-        var value = memory.get(address) catch {
-            return BitwiseError.InvalidAddressForBitwise;
-        };
+    fn getFeltInRange(self: Self, address: Relocatable, memory: *Memory) BitwiseError!u256 {
+        const value = (memory.getFelt(address) catch return BitwiseError.InvalidAddressForBitwise).toInteger();
 
-        var felt = value.?.tryIntoFelt() catch {
-            return BitwiseError.InvalidAddressForBitwise;
-        };
-
-        if (felt.toInteger() > std.math.pow(u256, 2, self.bitwise_builtin.total_n_bits)) {
+        if (value > std.math.pow(u256, 2, self.bitwise_builtin.total_n_bits)) {
             return BitwiseError.UnsupportedNumberOfBits;
         }
 
-        return felt.toInteger();
+        return value;
     }
 
     /// Create a new BitwiseBuiltinRunner instance.
@@ -91,7 +86,7 @@ pub const BitwiseBuiltinRunner = struct {
     ) !?MaybeRelocatable {
         const index = address.offset % self.cells_per_instance;
 
-        if (index < self.cells_per_instance) {
+        if (index < self.n_input_cells) {
             return BitwiseError.InvalidBitwiseIndex;
         }
 
@@ -101,8 +96,8 @@ pub const BitwiseBuiltinRunner = struct {
         };
         const y_offset = try x_offset.addUint(1);
 
-        var x = try self.getValue(x_offset, memory);
-        var y = try self.getValue(y_offset, memory);
+        var x = try self.getFeltInRange(x_offset, memory);
+        var y = try self.getFeltInRange(y_offset, memory);
 
         var res = switch (index) {
             2 => x & y, // and
@@ -164,11 +159,17 @@ test "deduce when address points to relocatable variant of MaybeRelocatable " {
     var allocator = std.testing.allocator;
     var mem = try Memory.init(allocator);
     defer mem.deinit();
-
+    defer mem.deinitData(allocator);
     // when
     var address = Relocatable.new(0, 3);
 
-    try mem.set(allocator, Relocatable.new(0, 5), MaybeRelocatable.fromRelocatable(address));
+    try memoryFile.setUpMemory(
+        mem,
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 3 }, .{ 0, 3 } },
+        },
+    );
 
     // then
     try expectError(BitwiseError.InvalidAddressForBitwise, builtin.deduceMemoryCell(address, mem));
@@ -180,18 +181,18 @@ test "deduce when address points to felt greater than BITWISE_TOTAL_N_BITS" {
     var instance_def: bitwise_instance_def.BitwiseInstanceDef = .{};
     var builtin = BitwiseBuiltinRunner.init(&instance_def, true);
 
-    const number = std.math.pow(u256, 2, bitwise_instance_def.TOTAL_N_BITS_BITWISE_DEFAULT) + 1;
     var allocator = std.testing.allocator;
     var mem = try Memory.init(allocator);
     defer mem.deinit();
-
+    defer mem.deinitData(allocator);
     // when
-    var address = Relocatable.new(0, 3);
+    var address = Relocatable.new(0, 7);
 
-    try mem.set(allocator, Relocatable.new(
-        0,
-        0,
-    ), MaybeRelocatable.fromU256(number));
+    try memoryFile.setUpMemory(
+        mem,
+        std.testing.allocator,
+        .{ .{ .{ 0, 5 }, .{std.math.pow(u256, 2, 251) + 1} }, .{ .{ 0, 6 }, .{12} }, .{ .{ 0, 8 }, .{0} } },
+    );
 
     // then
     try expectError(BitwiseError.UnsupportedNumberOfBits, builtin.deduceMemoryCell(address, mem));
@@ -207,11 +208,14 @@ test "valid bitwise and" {
     var allocator = std.testing.allocator;
     var mem = try Memory.init(allocator);
     defer mem.deinit();
+    defer mem.deinitData(allocator);
 
     // when
-    try mem.set(allocator, Relocatable.new(0, 5), MaybeRelocatable.fromU256(10));
-    try mem.set(allocator, Relocatable.new(0, 6), MaybeRelocatable.fromU256(12));
-    try mem.set(allocator, Relocatable.new(0, 7), MaybeRelocatable.fromU256(0));
+    try memoryFile.setUpMemory(
+        mem,
+        std.testing.allocator,
+        .{ .{ .{ 0, 5 }, .{10} }, .{ .{ 0, 6 }, .{12} }, .{ .{ 0, 8 }, .{0} } },
+    );
 
     var address = Relocatable.new(0, 7);
     var expected = MaybeRelocatable{ .felt = Felt252.fromInteger(8) };
@@ -233,11 +237,14 @@ test "valid bitwise xor" {
     var allocator = std.testing.allocator;
     var mem = try Memory.init(allocator);
     defer mem.deinit();
+    defer mem.deinitData(allocator);
 
     // when
-    try mem.set(allocator, Relocatable.new(0, 5), MaybeRelocatable.fromU256(10));
-    try mem.set(allocator, Relocatable.new(0, 6), MaybeRelocatable.fromU256(12));
-    try mem.set(allocator, Relocatable.new(0, 8), MaybeRelocatable.fromU256(0));
+    try memoryFile.setUpMemory(
+        mem,
+        std.testing.allocator,
+        .{ .{ .{ 0, 5 }, .{10} }, .{ .{ 0, 6 }, .{12} }, .{ .{ 0, 8 }, .{0} } },
+    );
 
     var address = Relocatable.new(0, 8);
     var expected = MaybeRelocatable{ .felt = Felt252.fromInteger(6) };
@@ -259,11 +266,14 @@ test "valid bitwise or" {
     var allocator = std.testing.allocator;
     var mem = try Memory.init(allocator);
     defer mem.deinit();
+    defer mem.deinitData(allocator);
 
     // when
-    try mem.set(allocator, Relocatable.new(0, 5), MaybeRelocatable.fromU256(10));
-    try mem.set(allocator, Relocatable.new(0, 6), MaybeRelocatable.fromU256(12));
-    try mem.set(allocator, Relocatable.new(0, 9), MaybeRelocatable.fromU256(0));
+    try memoryFile.setUpMemory(
+        mem,
+        std.testing.allocator,
+        .{ .{ .{ 0, 5 }, .{10} }, .{ .{ 0, 6 }, .{12} }, .{ .{ 0, 8 }, .{0} } },
+    );
 
     var address = Relocatable.new(0, 9);
     var expected = MaybeRelocatable{ .felt = Felt252.fromInteger(14) };
