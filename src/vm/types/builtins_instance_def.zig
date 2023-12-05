@@ -248,7 +248,7 @@ test "BuiltinsInstanceDef: builtins small" {
     try expectEqual(
         BuiltinsInstanceDef{
             .output = true,
-            .pedersen = PedersenInstanceDef{
+            .pedersen = .{
                 .ratio = 8,
                 .repetitions = 4,
                 .element_height = 256,
@@ -256,11 +256,11 @@ test "BuiltinsInstanceDef: builtins small" {
                 .n_inputs = 2,
                 .hash_limit = 3618502788666131213697322783095070105623107215331596699973092056135872020481,
             },
-            .range_check = RangeCheckInstanceDef{
+            .range_check = .{
                 .ratio = 8,
                 .n_parts = 8,
             },
-            .ecdsa = EcdsaInstanceDef{
+            .ecdsa = .{
                 .ratio = 512,
                 .repetitions = 1,
                 .height = 256,
@@ -279,7 +279,7 @@ test "BuiltinsInstanceDef: builtins dex" {
     try expectEqual(
         BuiltinsInstanceDef{
             .output = true,
-            .pedersen = PedersenInstanceDef{
+            .pedersen = .{
                 .ratio = 8,
                 .repetitions = 4,
                 .element_height = 256,
@@ -287,11 +287,11 @@ test "BuiltinsInstanceDef: builtins dex" {
                 .n_inputs = 2,
                 .hash_limit = 3618502788666131213697322783095070105623107215331596699973092056135872020481,
             },
-            .range_check = RangeCheckInstanceDef{
+            .range_check = .{
                 .ratio = 8,
                 .n_parts = 8,
             },
-            .ecdsa = EcdsaInstanceDef{
+            .ecdsa = .{
                 .ratio = 512,
                 .repetitions = 1,
                 .height = 256,
@@ -310,7 +310,7 @@ test "BuiltinsInstanceDef: builtins recursive" {
     try expectEqual(
         BuiltinsInstanceDef{
             .output = true,
-            .pedersen = PedersenInstanceDef{
+            .pedersen = .{
                 .ratio = 128,
                 .repetitions = 1,
                 .element_height = 256,
@@ -318,12 +318,12 @@ test "BuiltinsInstanceDef: builtins recursive" {
                 .n_inputs = 2,
                 .hash_limit = 3618502788666131213697322783095070105623107215331596699973092056135872020481,
             },
-            .range_check = RangeCheckInstanceDef{
+            .range_check = .{
                 .ratio = 8,
                 .n_parts = 8,
             },
             .ecdsa = null,
-            .bitwise = BitwiseInstanceDef{
+            .bitwise = .{
                 .ratio = 8,
                 .total_n_bits = 251,
             },
@@ -339,7 +339,7 @@ test "BuiltinsInstanceDef: builtins starknet" {
     try expectEqual(
         BuiltinsInstanceDef{
             .output = true,
-            .pedersen = PedersenInstanceDef{
+            .pedersen = .{
                 .ratio = 32,
                 .repetitions = 1,
                 .element_height = 256,
@@ -347,27 +347,27 @@ test "BuiltinsInstanceDef: builtins starknet" {
                 .n_inputs = 2,
                 .hash_limit = 3618502788666131213697322783095070105623107215331596699973092056135872020481,
             },
-            .range_check = RangeCheckInstanceDef{
+            .range_check = .{
                 .ratio = 16,
                 .n_parts = 8,
             },
-            .ecdsa = EcdsaInstanceDef{
+            .ecdsa = .{
                 .ratio = 2048,
                 .repetitions = 1,
                 .height = 256,
                 .n_hash_bits = 251,
             },
-            .bitwise = BitwiseInstanceDef{
+            .bitwise = .{
                 .ratio = 64,
                 .total_n_bits = 251,
             },
-            .ec_op = EcOpInstanceDef{
+            .ec_op = .{
                 .ratio = 1024,
                 .scalar_height = 256,
                 .scalar_bits = 252,
             },
             .keccak = null,
-            .poseidon = PoseidonInstanceDef{ .ratio = 32 },
+            .poseidon = .{ .ratio = 32 },
         },
         BuiltinsInstanceDef.starknet(),
     );
@@ -385,7 +385,7 @@ test "BuiltinsInstanceDef: builtins starknet with keccak" {
     try expectEqual(
         @as(
             ?PedersenInstanceDef,
-            PedersenInstanceDef{
+            .{
                 .ratio = 32,
                 .repetitions = 1,
                 .element_height = 256,
@@ -399,7 +399,7 @@ test "BuiltinsInstanceDef: builtins starknet with keccak" {
     try expectEqual(
         @as(
             ?RangeCheckInstanceDef,
-            RangeCheckInstanceDef{
+            .{
                 .ratio = 16,
                 .n_parts = 8,
             },
@@ -409,7 +409,7 @@ test "BuiltinsInstanceDef: builtins starknet with keccak" {
     try expectEqual(
         @as(
             ?EcdsaInstanceDef,
-            EcdsaInstanceDef{
+            .{
                 .ratio = 2048,
                 .repetitions = 1,
                 .height = 256,
@@ -421,7 +421,7 @@ test "BuiltinsInstanceDef: builtins starknet with keccak" {
     try expectEqual(
         @as(
             ?BitwiseInstanceDef,
-            BitwiseInstanceDef{
+            .{
                 .ratio = 64,
                 .total_n_bits = 251,
             },
@@ -431,7 +431,7 @@ test "BuiltinsInstanceDef: builtins starknet with keccak" {
     try expectEqual(
         @as(
             ?EcOpInstanceDef,
-            EcOpInstanceDef{
+            .{
                 .ratio = 1024,
                 .scalar_height = 256,
                 .scalar_bits = 252,
@@ -456,7 +456,7 @@ test "BuiltinsInstanceDef: builtins starknet with keccak" {
     try expectEqual(
         @as(
             ?PoseidonInstanceDef,
-            PoseidonInstanceDef{ .ratio = 32 },
+            .{ .ratio = 32 },
         ),
         actual.poseidon,
     );
@@ -466,7 +466,7 @@ test "BuiltinsInstanceDef: builtins recursive large output" {
     try expectEqual(
         BuiltinsInstanceDef{
             .output = true,
-            .pedersen = PedersenInstanceDef{
+            .pedersen = .{
                 .ratio = 32,
                 .repetitions = 1,
                 .element_height = 256,
@@ -474,12 +474,12 @@ test "BuiltinsInstanceDef: builtins recursive large output" {
                 .n_inputs = 2,
                 .hash_limit = 3618502788666131213697322783095070105623107215331596699973092056135872020481,
             },
-            .range_check = RangeCheckInstanceDef{
+            .range_check = .{
                 .ratio = 8,
                 .n_parts = 8,
             },
             .ecdsa = null,
-            .bitwise = BitwiseInstanceDef{
+            .bitwise = .{
                 .ratio = 8,
                 .total_n_bits = 251,
             },
@@ -503,7 +503,7 @@ test "BuiltinsInstanceDef: builtins all Cairo" {
     try expectEqual(
         @as(
             ?PedersenInstanceDef,
-            PedersenInstanceDef{
+            .{
                 .ratio = 256,
                 .repetitions = 1,
                 .element_height = 256,
@@ -517,7 +517,7 @@ test "BuiltinsInstanceDef: builtins all Cairo" {
     try expectEqual(
         @as(
             ?RangeCheckInstanceDef,
-            RangeCheckInstanceDef{
+            .{
                 .ratio = 8,
                 .n_parts = 8,
             },
@@ -527,7 +527,7 @@ test "BuiltinsInstanceDef: builtins all Cairo" {
     try expectEqual(
         @as(
             ?EcdsaInstanceDef,
-            EcdsaInstanceDef{
+            .{
                 .ratio = 2048,
                 .repetitions = 1,
                 .height = 256,
@@ -539,7 +539,7 @@ test "BuiltinsInstanceDef: builtins all Cairo" {
     try expectEqual(
         @as(
             ?BitwiseInstanceDef,
-            BitwiseInstanceDef{
+            .{
                 .ratio = 16,
                 .total_n_bits = 251,
             },
@@ -549,7 +549,7 @@ test "BuiltinsInstanceDef: builtins all Cairo" {
     try expectEqual(
         @as(
             ?EcOpInstanceDef,
-            EcOpInstanceDef{
+            .{
                 .ratio = 1024,
                 .scalar_height = 256,
                 .scalar_bits = 252,
@@ -574,7 +574,7 @@ test "BuiltinsInstanceDef: builtins all Cairo" {
     try expectEqual(
         @as(
             ?PoseidonInstanceDef,
-            PoseidonInstanceDef{ .ratio = 256 },
+            .{ .ratio = 256 },
         ),
         actual.poseidon,
     );
@@ -584,7 +584,7 @@ test "BuiltinsInstanceDef: builtins all Solidity" {
     try expectEqual(
         BuiltinsInstanceDef{
             .output = true,
-            .pedersen = PedersenInstanceDef{
+            .pedersen = .{
                 .ratio = 8,
                 .repetitions = 4,
                 .element_height = 256,
@@ -592,21 +592,21 @@ test "BuiltinsInstanceDef: builtins all Solidity" {
                 .n_inputs = 2,
                 .hash_limit = 3618502788666131213697322783095070105623107215331596699973092056135872020481,
             },
-            .range_check = RangeCheckInstanceDef{
+            .range_check = .{
                 .ratio = 8,
                 .n_parts = 8,
             },
-            .ecdsa = EcdsaInstanceDef{
+            .ecdsa = .{
                 .ratio = 512,
                 .repetitions = 1,
                 .height = 256,
                 .n_hash_bits = 251,
             },
-            .bitwise = BitwiseInstanceDef{
+            .bitwise = .{
                 .ratio = 256,
                 .total_n_bits = 251,
             },
-            .ec_op = EcOpInstanceDef{
+            .ec_op = .{
                 .ratio = 256,
                 .scalar_height = 256,
                 .scalar_bits = 252,
@@ -622,7 +622,7 @@ test "BuiltinsInstanceDef: builtins dynamic" {
     try expectEqual(
         BuiltinsInstanceDef{
             .output = true,
-            .pedersen = PedersenInstanceDef{
+            .pedersen = .{
                 .ratio = null,
                 .repetitions = 4,
                 .element_height = 256,
@@ -630,21 +630,21 @@ test "BuiltinsInstanceDef: builtins dynamic" {
                 .n_inputs = 2,
                 .hash_limit = 3618502788666131213697322783095070105623107215331596699973092056135872020481,
             },
-            .range_check = RangeCheckInstanceDef{
+            .range_check = .{
                 .ratio = null,
                 .n_parts = 8,
             },
-            .ecdsa = EcdsaInstanceDef{
+            .ecdsa = .{
                 .ratio = null,
                 .repetitions = 1,
                 .height = 256,
                 .n_hash_bits = 251,
             },
-            .bitwise = BitwiseInstanceDef{
+            .bitwise = .{
                 .ratio = null,
                 .total_n_bits = 251,
             },
-            .ec_op = EcOpInstanceDef{
+            .ec_op = .{
                 .ratio = null,
                 .scalar_height = 256,
                 .scalar_bits = 252,

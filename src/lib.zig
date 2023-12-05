@@ -13,6 +13,9 @@ pub const vm = struct {
     pub usingnamespace @import("vm/runners/cairo_runner.zig");
     pub usingnamespace @import("vm/builtins/bitwise/bitwise.zig");
     pub usingnamespace @import("vm/types/builtins_instance_def.zig");
+    pub usingnamespace @import("vm/types/diluted_pool_instance_def.zig");
+    pub usingnamespace @import("vm/types/cpu_instance_def.zig");
+    pub usingnamespace @import("vm/types/layout.zig");
 };
 
 pub const math = struct {
