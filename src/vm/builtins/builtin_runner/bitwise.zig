@@ -96,10 +96,10 @@ pub const BitwiseBuiltinRunner = struct {
         };
         const y_offset = try x_offset.addUint(1);
 
-        var x = try self.getFeltInRange(x_offset, memory);
-        var y = try self.getFeltInRange(y_offset, memory);
+        const x = try self.getFeltInRange(x_offset, memory);
+        const y = try self.getFeltInRange(y_offset, memory);
 
-        var res = switch (index) {
+        const res = switch (index) {
             2 => x & y, // and
             3 => x ^ y, // xor
             4 => x | y, // or
@@ -122,12 +122,12 @@ test "deduce when address.offset less than BITWISE_INPUT_CELLS_PER_INSTANCE" {
     var instance_def: bitwise_instance_def.BitwiseInstanceDef = .{};
     var builtin = BitwiseBuiltinRunner.init(&instance_def, true);
 
-    var allocator = std.testing.allocator;
-    var mem = try Memory.init(allocator);
+    const allocator = std.testing.allocator;
+    const mem = try Memory.init(allocator);
     defer mem.deinit();
 
     // when
-    var address = Relocatable.new(0, 5);
+    const address = Relocatable.new(0, 5);
 
     // then
     try expectError(BitwiseError.InvalidBitwiseIndex, builtin.deduceMemoryCell(address, mem));
@@ -139,12 +139,12 @@ test "deduce when address points to nothing in memory" {
     var instance_def: bitwise_instance_def.BitwiseInstanceDef = .{};
     var builtin = BitwiseBuiltinRunner.init(&instance_def, true);
 
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var mem = try Memory.init(allocator);
     defer mem.deinit();
 
     // when
-    var address = Relocatable.new(0, 3);
+    const address = Relocatable.new(0, 3);
 
     // then
     try expectError(BitwiseError.InvalidAddressForBitwise, builtin.deduceMemoryCell(address, mem));
@@ -156,12 +156,12 @@ test "deduce when address points to relocatable variant of MaybeRelocatable " {
     var instance_def: bitwise_instance_def.BitwiseInstanceDef = .{};
     var builtin = BitwiseBuiltinRunner.init(&instance_def, true);
 
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var mem = try Memory.init(allocator);
     defer mem.deinit();
     defer mem.deinitData(allocator);
     // when
-    var address = Relocatable.new(0, 3);
+    const address = Relocatable.new(0, 3);
 
     try memoryFile.setUpMemory(
         mem,
@@ -181,12 +181,12 @@ test "deduce when address points to felt greater than BITWISE_TOTAL_N_BITS" {
     var instance_def: bitwise_instance_def.BitwiseInstanceDef = .{};
     var builtin = BitwiseBuiltinRunner.init(&instance_def, true);
 
-    var allocator = std.testing.allocator;
+    const allocator = std.testing.allocator;
     var mem = try Memory.init(allocator);
     defer mem.deinit();
     defer mem.deinitData(allocator);
     // when
-    var address = Relocatable.new(0, 7);
+    const address = Relocatable.new(0, 7);
 
     try memoryFile.setUpMemory(
         mem,
@@ -205,8 +205,8 @@ test "valid bitwise and" {
     var instance_def: bitwise_instance_def.BitwiseInstanceDef = .{};
     var builtin = BitwiseBuiltinRunner.init(&instance_def, true);
 
-    var allocator = std.testing.allocator;
-    var mem = try Memory.init(allocator);
+    const allocator = std.testing.allocator;
+    const mem = try Memory.init(allocator);
     defer mem.deinit();
     defer mem.deinitData(allocator);
 
@@ -217,11 +217,11 @@ test "valid bitwise and" {
         .{ .{ .{ 0, 5 }, .{10} }, .{ .{ 0, 6 }, .{12} }, .{ .{ 0, 8 }, .{0} } },
     );
 
-    var address = Relocatable.new(0, 7);
-    var expected = MaybeRelocatable{ .felt = Felt252.fromInteger(8) };
+    const address = Relocatable.new(0, 7);
+    const expected = MaybeRelocatable{ .felt = Felt252.fromInteger(8) };
 
     // then
-    var result = try builtin.deduceMemoryCell(address, mem);
+    const result = try builtin.deduceMemoryCell(address, mem);
     try expectEqual(
         expected,
         result.?,
@@ -234,8 +234,8 @@ test "valid bitwise xor" {
     var instance_def: bitwise_instance_def.BitwiseInstanceDef = .{};
     var builtin = BitwiseBuiltinRunner.init(&instance_def, true);
 
-    var allocator = std.testing.allocator;
-    var mem = try Memory.init(allocator);
+    const allocator = std.testing.allocator;
+    const mem = try Memory.init(allocator);
     defer mem.deinit();
     defer mem.deinitData(allocator);
 
@@ -246,11 +246,11 @@ test "valid bitwise xor" {
         .{ .{ .{ 0, 5 }, .{10} }, .{ .{ 0, 6 }, .{12} }, .{ .{ 0, 8 }, .{0} } },
     );
 
-    var address = Relocatable.new(0, 8);
-    var expected = MaybeRelocatable{ .felt = Felt252.fromInteger(6) };
+    const address = Relocatable.new(0, 8);
+    const expected = MaybeRelocatable{ .felt = Felt252.fromInteger(6) };
 
     // then
-    var result = try builtin.deduceMemoryCell(address, mem);
+    const result = try builtin.deduceMemoryCell(address, mem);
     try expectEqual(
         expected,
         result.?,
@@ -263,8 +263,8 @@ test "valid bitwise or" {
     var instance_def: bitwise_instance_def.BitwiseInstanceDef = .{};
     var builtin = BitwiseBuiltinRunner.init(&instance_def, true);
 
-    var allocator = std.testing.allocator;
-    var mem = try Memory.init(allocator);
+    const allocator = std.testing.allocator;
+    const mem = try Memory.init(allocator);
     defer mem.deinit();
     defer mem.deinitData(allocator);
 
@@ -275,11 +275,11 @@ test "valid bitwise or" {
         .{ .{ .{ 0, 5 }, .{10} }, .{ .{ 0, 6 }, .{12} }, .{ .{ 0, 8 }, .{0} } },
     );
 
-    var address = Relocatable.new(0, 9);
-    var expected = MaybeRelocatable{ .felt = Felt252.fromInteger(14) };
+    const address = Relocatable.new(0, 9);
+    const expected = MaybeRelocatable{ .felt = Felt252.fromInteger(14) };
 
     // then
-    var result = try builtin.deduceMemoryCell(address, mem);
+    const result = try builtin.deduceMemoryCell(address, mem);
     try expectEqual(
         expected,
         result.?,
