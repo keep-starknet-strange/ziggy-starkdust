@@ -600,7 +600,8 @@ test "get relocate trace after relocating trace" {
 
     _ = try vm.computeSegmentsEffectiveSizes(false);
 
-    const relocation_table = try vm.segments.relocateSegments(page_allocator);
+    const relocation_table = try vm.segments.relocateSegments(allocator);
+    defer allocator.free(relocation_table);
     try vm.relocateTrace(relocation_table);
 
     const relocated_trace = TraceContext.RelocatedTraceEntry{ .pc = Felt252.fromInteger(1), .ap = Felt252.fromInteger(4), .fp = Felt252.fromInteger(4) };
