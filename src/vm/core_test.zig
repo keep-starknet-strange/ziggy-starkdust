@@ -2011,8 +2011,14 @@ test "CairoVM: markAddressRangeAsAccessed should mark memory segments as accesse
     try expect(vm.segments.memory.data.items[0].items[2].?.is_accessed);
     try expect(vm.segments.memory.data.items[0].items[10].?.is_accessed);
     try expect(vm.segments.memory.data.items[1].items[1].?.is_accessed);
-
-    // TODO: add number of accessed addresses for segments 0 and 1 when https://github.com/keep-starknet-strange/cairo-zig/pull/186 is merged
+    try expectEqual(
+        @as(?usize, 4),
+        vm.segments.memory.countAccessedAddressesInSegment(0),
+    );
+    try expectEqual(
+        @as(?usize, 1),
+        vm.segments.memory.countAccessedAddressesInSegment(1),
+    );
 }
 
 test "CairoVM: markAddressRangeAsAccessed should return an error if the run is not finished" {
