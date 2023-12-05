@@ -1,3 +1,5 @@
+const std = @import("std");
+
 /// Number of cells per range check
 pub const CELLS_PER_RANGE_CHECK: u32 = 1;
 
@@ -12,11 +14,6 @@ pub const RangeCheckInstanceDef = struct {
     /// For example, n_parts=8 defines the range [0, 2^128).
     n_parts: u32,
 
-    /// Number of units per builtin
-    pub fn rangeCheckUnitsPerBuiltin(self: *Self) u32 {
-        return self.n_parts;
-    }
-
     pub fn default() Self {
         return .{
             .ratio = 8,
@@ -29,7 +26,7 @@ pub const RangeCheckInstanceDef = struct {
     /// # Parameters
     ///
     /// - `ratio`: An optional 32-bit integer representing the ratio for the Range check instance.
-    /// - `n_pars`: An 32-bit integer representing number of parts.
+    /// - `n_parts`: An 32-bit integer representing number of parts.
     ///
     /// # Returns
     ///
@@ -41,3 +38,12 @@ pub const RangeCheckInstanceDef = struct {
         };
     }
 };
+
+test "RangeCheckInstanceDef: test init" {
+    const result = RangeCheckInstanceDef.init(3, 3);
+    try std.testing.expectEqual(RangeCheckInstanceDef{ .ratio = 3, .n_parts = 3 }, result);
+}
+
+test "RangeCheckInstanceDef: test default" {
+    try std.testing.expectEqual(RangeCheckInstanceDef{ .ratio = 8, .n_parts = 8 }, RangeCheckInstanceDef.default());
+}
