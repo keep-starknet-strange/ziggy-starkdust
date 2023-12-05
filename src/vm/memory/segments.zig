@@ -828,18 +828,21 @@ test "MemorySegmentManager: getSegmentSize should return null if missing segment
 }
 
 test "MemorySegmentManager: relocateSegments for one segment" {
-    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    const allocator = std.testing.allocator;
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
     defer memory_segment_manager.deinit();
     try memory_segment_manager.segment_used_sizes.put(0, 1);
-    const actual_value = try memory_segment_manager.relocateSegments(std.heap.page_allocator);
-    var expected_value = ArrayList(usize).init(std.testing.allocator);
+    const actual_value = try memory_segment_manager.relocateSegments(allocator);
+    var expected_value = ArrayList(usize).init(allocator);
     defer expected_value.deinit();
+    defer allocator.free(actual_value);
     try expected_value.append(1);
     try expectEqualSlices(usize, expected_value.items, actual_value);
 }
 
 test "MemorySegmentManager: relocateSegments for ten segments" {
-    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    const allocator = std.testing.allocator;
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
     defer memory_segment_manager.deinit();
     try memory_segment_manager.segment_used_sizes.put(0, 3);
     try memory_segment_manager.segment_used_sizes.put(1, 7);
@@ -851,9 +854,10 @@ test "MemorySegmentManager: relocateSegments for ten segments" {
     try memory_segment_manager.segment_used_sizes.put(7, 30);
     try memory_segment_manager.segment_used_sizes.put(8, 55);
     try memory_segment_manager.segment_used_sizes.put(9, 60);
-    const actual_value = try memory_segment_manager.relocateSegments(std.heap.page_allocator);
+    const actual_value = try memory_segment_manager.relocateSegments(allocator);
     var expected_value = ArrayList(usize).init(std.testing.allocator);
     defer expected_value.deinit();
+    defer allocator.free(actual_value);
     try expected_value.append(1); // 1
     try expected_value.append(4); // 3 + 1 = 4
     try expected_value.append(11); // 7 + 4 = 11
