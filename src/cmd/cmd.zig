@@ -59,7 +59,7 @@ var enable_trace = cli.Option{
 
 // Define the CLI app.
 var app = &cli.App{
-    .name = "cairo-zig",
+    .name = "ziggy-starkdust",
     .description =
     \\Cairo Virtual Machine written in Zig.
     \\Highly experimental, use at your own risk.

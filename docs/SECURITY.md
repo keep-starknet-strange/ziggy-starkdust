@@ -2,7 +2,7 @@
 
 ## Introduction
 
-Security is a top priority in the development of Cairo-Zig. This document outlines some security best practices that contributors should follow, as well as procedures for reporting security vulnerabilities.
+Security is a top priority in the development of Ziggy STARKdust. This document outlines some security best practices that contributors should follow, as well as procedures for reporting security vulnerabilities.
 
 ---
 
@@ -51,13 +51,13 @@ Critical vulnerabilities include but are not limited to:
 
 ### Non-Critical Vulnerabilities
 
-For non-critical vulnerabilities, such as issues that are relevant but do not pose an immediate threat to the integrity of the system, you may open a GitHub issue in the [cairo-zig repository](https://github.com/keep-starknet-strange/cairo-zig/issues).
+For non-critical vulnerabilities, such as issues that are relevant but do not pose an immediate threat to the integrity of the system, you may open a GitHub issue in the [ziggy-starkdust repository](https://github.com/keep-starknet-strange/ziggy-starkdust/issues).
 
 ---
 
 ## Conclusion
 
-Adhering to these guidelines is essential for ensuring that Cairo-Zig remains a secure and reliable codebase. Your cooperation is greatly appreciated.
+Adhering to these guidelines is essential for ensuring that Ziggy STARKdust remains a secure and reliable codebase. Your cooperation is greatly appreciated.
 
 ---
 
