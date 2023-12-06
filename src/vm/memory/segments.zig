@@ -1150,7 +1150,7 @@ test "MemorySegmentManager: getMemoryHoles with missing segment used sizes" {
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
-    memory_segment_manager.memory.markAsAccessed(Relocatable.new(0, 0));
+    memory_segment_manager.memory.markAsAccessed(Relocatable.init(0, 0));
 
     try expectError(
         MemoryError.MissingSegmentUsedSizes,
@@ -1177,7 +1177,7 @@ test "MemorySegmentManager: getMemoryHoles with out of address offset that is bi
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
     for (0..3) |i| {
-        memory_segment_manager.memory.markAsAccessed(Relocatable.new(0, i));
+        memory_segment_manager.memory.markAsAccessed(Relocatable.init(0, i));
     }
 
     try expectError(
@@ -1229,7 +1229,7 @@ test "MemorySegmentManager: getMemoryHoles with two memory holes" {
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
     for ([_]usize{ 0, 1, 2, 3, 6, 7, 8, 9 }) |i| {
-        memory_segment_manager.memory.markAsAccessed(Relocatable.new(0, i));
+        memory_segment_manager.memory.markAsAccessed(Relocatable.init(0, i));
     }
 
     try expectEqual(
@@ -1265,7 +1265,7 @@ test "MemorySegmentManager: getMemoryHoles with seven memory holes" {
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
     for ([_]usize{ 0, 1, 2, 3, 6, 7, 8, 9 }) |i| {
-        memory_segment_manager.memory.markAsAccessed(Relocatable.new(0, i));
+        memory_segment_manager.memory.markAsAccessed(Relocatable.init(0, i));
     }
 
     try expectEqual(
