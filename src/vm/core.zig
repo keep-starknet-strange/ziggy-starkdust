@@ -19,6 +19,7 @@ const BuiltinRunner = @import("./builtins/builtin_runner/builtin_runner.zig").Bu
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const HashBuiltinRunner = @import("./builtins/builtin_runner/hash.zig").HashBuiltinRunner;
 const Instruction = instructions.Instruction;
+const Opcode = instructions.Opcode;
 
 /// Represents the Cairo VM.
 pub const CairoVM = struct {
@@ -689,6 +690,44 @@ pub const CairoVM = struct {
         if (!self.is_run_finished) return CairoVMError.RunNotFinished;
         for (0..len) |i| {
             self.segments.memory.markAsAccessed(try base.addUint(@intCast(i)));
+        }
+    }
+
+    /// Performs opcode-specific assertions on the operands of an instruction.
+    /// # Arguments
+    /// - `instruction`: A pointer to the instruction being asserted.
+    /// - `operands`: The result of the operands computation.
+    /// # Errors
+    /// - Returns an error if an assertion fails.
+    pub fn opcodeAssertions(self: *Self, instruction: *const Instruction, operands: OperandsResult) CairoVMError!void {
+        // Switch on the opcode to perform the appropriate assertion.
+        switch (instruction.opcode) {
+            // Assert that the result and destination operands are equal for AssertEq opcode.
+            Opcode.AssertEq => {
+                if (operands.res) |res| {
+                    if (res != operands.dst) {
+                        return CairoVMError.DiffAssertValues;
+                    }
+                } else {
+                    return CairoVMError.UnconstrainedResAssertEq;
+                }
+            },
+            // Perform assertions specific to the Call opcode.
+            Opcode.Call => {
+                // Calculate the return program counter (PC) value.
+                const return_pc = MaybeRelocatable.fromRelocatable(try self.run_context.pc.addUint(instruction.size()));
+                // Assert that the operand 0 is the return PC.
+                if (operands.op_0 != return_pc) {
+                    return CairoVMError.CantWriteReturnPc;
+                }
+
+                // Assert that the destination operand is the frame pointer (FP).
+                if (MaybeRelocatable.fromRelocatable(self.run_context.getFP()) != operands.dst) {
+                    return CairoVMError.CantWriteReturnFp;
+                }
+            },
+            // No assertions for other opcodes.
+            else => {},
         }
     }
 };
