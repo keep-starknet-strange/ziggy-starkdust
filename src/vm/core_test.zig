@@ -2163,33 +2163,33 @@ test "CairoVM: addRelocationRule should add new relocation rule to the VM memory
 
     // Test checks
     try vm.addRelocationRule(
-        Relocatable.new(-1, 0),
-        Relocatable.new(1, 2),
+        Relocatable.init(-1, 0),
+        Relocatable.init(1, 2),
     );
     try vm.addRelocationRule(
-        Relocatable.new(-2, 0),
-        Relocatable.new(-1, 1),
+        Relocatable.init(-2, 0),
+        Relocatable.init(-1, 1),
     );
 
     try expectError(
         MemoryError.AddressNotInTemporarySegment,
         vm.addRelocationRule(
-            Relocatable.new(5, 0),
-            Relocatable.new(0, 0),
+            Relocatable.init(5, 0),
+            Relocatable.init(0, 0),
         ),
     );
     try expectError(
         MemoryError.NonZeroOffset,
         vm.addRelocationRule(
-            Relocatable.new(-3, 6),
-            Relocatable.new(0, 0),
+            Relocatable.init(-3, 6),
+            Relocatable.init(0, 0),
         ),
     );
     try expectError(
         MemoryError.DuplicatedRelocation,
         vm.addRelocationRule(
-            Relocatable.new(-1, 0),
-            Relocatable.new(0, 0),
+            Relocatable.init(-1, 0),
+            Relocatable.init(0, 0),
         ),
     );
 }
@@ -2260,16 +2260,16 @@ test "CairoVM: getPublicMemoryAddresses should return Cairo VM Memory error if s
     // Add additional segments to the VM's segment manager.
     try expectEqual(
         vm.segments.addSegment(),
-        Relocatable.new(5, 0),
+        Relocatable.init(5, 0),
     );
     try expectEqual(
         vm.segments.addSegment(),
-        Relocatable.new(6, 0),
+        Relocatable.init(6, 0),
     );
     // Set memory within segments.
     try vm.segments.memory.set(
         allocator,
-        Relocatable.new(5, 4),
+        Relocatable.init(5, 4),
         MaybeRelocatable.fromU256(0),
     );
     // Ensure proper deallocation of memory data.
@@ -2350,16 +2350,16 @@ test "CairoVM: getPublicMemoryAddresses should return a proper ArrayList if succ
     // Add additional segments to the VM's segment manager.
     try expectEqual(
         vm.segments.addSegment(),
-        Relocatable.new(5, 0),
+        Relocatable.init(5, 0),
     );
     try expectEqual(
         vm.segments.addSegment(),
-        Relocatable.new(6, 0),
+        Relocatable.init(6, 0),
     );
     // Set memory within segments.
     try vm.segments.memory.set(
         allocator,
-        Relocatable.new(5, 4),
+        Relocatable.init(5, 4),
         MaybeRelocatable.fromU256(0),
     );
     // Ensure proper deallocation of memory data.
