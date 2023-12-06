@@ -2056,7 +2056,7 @@ test "CairoVM: getFeltRange for continuous memory" {
     try expected_vec.append(Felt252.fromInteger(4));
 
     var actual = try vm.getFeltRange(
-        Relocatable.new(1, 0),
+        Relocatable.init(1, 0),
         3,
     );
     defer actual.deinit();
@@ -2091,7 +2091,7 @@ test "CairoVM: getFeltRange for Relocatable instead of Felt" {
     try expectError(
         MemoryError.ExpectedInteger,
         vm.getFeltRange(
-            Relocatable.new(0, 0),
+            Relocatable.init(0, 0),
             3,
         ),
     );
@@ -2119,7 +2119,7 @@ test "CairoVM: getFeltRange for out of bounds memory" {
     try expectError(
         MemoryError.UnknownMemoryCell,
         vm.getFeltRange(
-            Relocatable.new(1, 0),
+            Relocatable.init(1, 0),
             4,
         ),
     );
@@ -2148,7 +2148,7 @@ test "CairoVM: getFeltRange for non continuous memory" {
     try expectError(
         MemoryError.UnknownMemoryCell,
         vm.getFeltRange(
-            Relocatable.new(1, 0),
+            Relocatable.init(1, 0),
             4,
         ),
     );
