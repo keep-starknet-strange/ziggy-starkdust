@@ -1639,7 +1639,7 @@ test "CairoVM: getSegmentSize should return the size of the segment via getSegme
     try expectEqual(@as(u32, 6), vm.getSegmentSize(3).?);
 }
 
-test "CairoVM: getFelt should return MemoryOutOfBounds error if no value at the given address" {
+test "CairoVM: getFelt should return UnknownMemoryCell error if no value at the given address" {
     // Test setup
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -1649,7 +1649,7 @@ test "CairoVM: getFelt should return MemoryOutOfBounds error if no value at the 
 
     // Test checks
     try expectError(
-        error.MemoryOutOfBounds,
+        error.UnknownMemoryCell,
         vm.getFelt(Relocatable.new(10, 30)),
     );
 }
@@ -2012,7 +2012,7 @@ test "CairoVM: markAddressRangeAsAccessed should mark memory segments as accesse
     try expect(vm.segments.memory.data.items[0].items[10].?.is_accessed);
     try expect(vm.segments.memory.data.items[1].items[1].?.is_accessed);
 
-    // TODO: add number of accessed addresses for segments 0 and 1 when https://github.com/keep-starknet-strange/cairo-zig/pull/186 is merged
+    // TODO: add number of accessed addresses for segments 0 and 1 when https://github.com/keep-starknet-strange/ziggy-starkdust/pull/186 is merged
 }
 
 test "CairoVM: markAddressRangeAsAccessed should return an error if the run is not finished" {

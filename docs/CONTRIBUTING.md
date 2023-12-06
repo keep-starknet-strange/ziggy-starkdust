@@ -15,9 +15,9 @@ To set up a development environment, please follow these steps:
 1. Clone the repo
 
    ```sh
-   git clone https://github.com/keep-starknet-strange/cairo-zig
-   cd cairo-zig
-   cargo test
+   git clone https://github.com/keep-starknet-strange/ziggy-starkdust
+   cd ziggy-starkdust
+   zig build
    ```
 
 2. TODO
@@ -26,9 +26,9 @@ To set up a development environment, please follow these steps:
 
 You've found a bug in the source code, a mistake in the documentation or maybe
 you'd like a new feature?Take a look at
-[GitHub Discussions](https://github.com/keep-starknet-strange/cairo-zig/discussions)
+[GitHub Discussions](https://github.com/keep-starknet-strange/ziggy-starkdust/discussions)
 to see if it's already being discussed. You can help us by
-[submitting an issue on GitHub](https://github.com/keep-starknet-strange/cairo-zig/issues).
+[submitting an issue on GitHub](https://github.com/keep-starknet-strange/ziggy-starkdust/issues).
 Before you create an issue, make sure to search the issue archive -- your issue
 may have already been addressed!
 
@@ -45,10 +45,10 @@ Please try to create bug reports that are:
 ### How to submit a Pull Request
 
 1. Search our repository for open or closed
-   [Pull Requests](https://github.com/keep-starknet-strange/cairo-zig/pulls) that
+   [Pull Requests](https://github.com/keep-starknet-strange/ziggy-starkdust/pulls) that
    relate to your submission. You don't want to duplicate effort.
 2. Fork the project
 3. Create your feature branch (`git checkout -b feat/amazing_feature`)
 4. Commit your changes (`git commit -m 'feat: add amazing_feature'`)
 5. Push to the branch (`git push origin feat/amazing_feature`)
-6. [Open a Pull Request](https://github.com/keep-starknet-strange/cairo-zig/compare?expand=1)
+6. [Open a Pull Request](https://github.com/keep-starknet-strange/ziggy-starkdust/compare?expand=1)
