@@ -65,6 +65,10 @@ pub const MemoryError = error{
     RangecheckNonInt,
     /// Range Check get error
     RangeCheckGetError,
+    /// Unknown memory cell
+    UnknownMemoryCell,
+    /// This memory cell doesn't contain an integer
+    ExpectedInteger,
 };
 
 /// Represents the error conditions that are related to the `CairoRunner`.

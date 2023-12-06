@@ -98,7 +98,7 @@ test "deduce when address.offset less than BITWISE_INPUT_CELLS_PER_INSTANCE" {
     defer mem.deinit();
 
     // when
-    const address = Relocatable.new(0, 5);
+    const address = Relocatable.init(0, 5);
 
     // then
     try expectError(BitwiseError.InvalidBitwiseIndex, deduce(address, mem));
@@ -112,7 +112,7 @@ test "deduce when address points to nothing in memory" {
     defer mem.deinit();
 
     // when
-    const address = Relocatable.new(0, 3);
+    const address = Relocatable.init(0, 3);
 
     // then
     try expectError(BitwiseError.InvalidAddressForBitwise, deduce(address, mem));
@@ -126,7 +126,7 @@ test "deduce when address points to relocatable variant of MaybeRelocatable " {
     defer mem.deinit();
 
     // when
-    const address = Relocatable.new(0, 3);
+    const address = Relocatable.init(0, 3);
 
     try memoryFile.setUpMemory(
         mem,
@@ -147,7 +147,7 @@ test "deduce when address points to felt greater than BITWISE_TOTAL_N_BITS" {
     defer mem.deinit();
 
     // when
-    const address = Relocatable.new(0, 3);
+    const address = Relocatable.init(0, 3);
 
     try memoryFile.setUpMemory(
         mem,
@@ -180,7 +180,7 @@ test "valid bitwise and" {
     );
     defer mem.deinitData(std.testing.allocator);
 
-    const address = Relocatable.new(0, 7);
+    const address = Relocatable.init(0, 7);
     const expected = MaybeRelocatable.fromU256(8);
 
     // then
@@ -210,7 +210,7 @@ test "valid bitwise xor" {
     );
     defer mem.deinitData(std.testing.allocator);
 
-    const address = Relocatable.new(0, 8);
+    const address = Relocatable.init(0, 8);
     const expected = MaybeRelocatable.fromU256(6);
 
     // then
@@ -240,7 +240,7 @@ test "valid bitwise or" {
     );
     defer mem.deinitData(std.testing.allocator);
 
-    const address = Relocatable.new(0, 9);
+    const address = Relocatable.init(0, 9);
     const expected = MaybeRelocatable.fromU256(14);
 
     // then

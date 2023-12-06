@@ -739,6 +739,28 @@ pub const CairoVM = struct {
         // Throw an error if the relocation table is not available
         return MemoryError.UnrelocatedMemory;
     }
+    
+    /// Retrieves a continuous range of `Felt252` values starting from the memoryy at the specific relocatable address in the Cairo VM.
+    ///
+    /// This function internally calls `getFeltRange` on the memory segments manager, attempting
+    /// to retrieve a range of `Felt252` values at the given address.
+    ///
+    /// # Arguments
+    ///
+    /// * `address`: The starting address in the memory from which the continuous range of `Felt252` is retrieved.
+    /// * `size`: The size of the continuous range of `Felt252` to be retrieved.
+    ///
+    /// # Returns
+    ///
+    /// Returns a list containing `Felt252` values retrieved from the continuous range starting at the relocatable address.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if there are any unknown memory cell encountered within the continuous memory range.
+    /// Returns an error if value inside the range is not a `Felt252`
+    pub fn getFeltRange(self: *Self, address: Relocatable, size: usize) !std.ArrayList(Felt252) {
+        return self.segments.memory.getFeltRange(address, size);
+    }
 };
 
 /// Compute the result operand for a given instruction on op 0 and op 1.
