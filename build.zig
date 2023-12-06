@@ -1,6 +1,6 @@
 const std = @import("std");
 const build_helpers = @import("build_helpers.zig");
-const package_name = "cairo-zig";
+const package_name = "ziggy-starkdust";
 const package_path = "src/lib.zig";
 
 // List of external dependencies that this package requires.
@@ -42,19 +42,19 @@ pub fn build(b: *std.Build) void {
     ) catch unreachable;
 
     // **************************************************************
-    // *               CAIRO-ZIG AS A MODULE                        *
+    // *               ZIGGY STARKDUST AS A MODULE                        *
     // **************************************************************
-    // expose cairo-zig as a module
+    // expose ziggy-starkdust as a module
     _ = b.addModule(package_name, .{
         .source_file = .{ .path = package_path },
         .dependencies = deps,
     });
 
     // **************************************************************
-    // *              CAIRO-ZIG AS A LIBRARY                        *
+    // *              ZIGGY STARKDUST AS A LIBRARY                        *
     // **************************************************************
     const lib = b.addStaticLibrary(.{
-        .name = "cairo-zig",
+        .name = "ziggy-starkdust",
         // In this case the main source file is merely a path, however, in more
         // complicated build scripts, this could be a generated file.
         .root_source_file = .{ .path = "src/lib.zig" },
@@ -72,10 +72,10 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(lib);
 
     // **************************************************************
-    // *              CAIRO-ZIG AS AN EXECUTABLE                    *
+    // *              ZIGGY STARKDUST AS AN EXECUTABLE                    *
     // **************************************************************
     const exe = b.addExecutable(.{
-        .name = "cairo-zig",
+        .name = "ziggy-starkdust",
         // In this case the main source file is merely a path, however, in more
         // complicated build scripts, this could be a generated file.
         .root_source_file = .{ .path = "src/main.zig" },
