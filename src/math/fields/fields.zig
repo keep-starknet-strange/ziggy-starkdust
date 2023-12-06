@@ -147,7 +147,7 @@ pub fn Field(
 
         /// Get the min number of bits needed to field element.
         ///
-        /// Returns number of bits neeeded.
+        /// Returns number of bits needed.
         pub fn numBits(self: Self) u64 {
             const nmself = self.fromMontgomery();
             var num_bits: u64 = 0;
