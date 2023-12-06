@@ -2178,7 +2178,7 @@ test "CairoVM: loadData should give the correct segment size" {
     try expectEqual(
         @as(
             Relocatable,
-            Relocatable.new(0, 4),
+            Relocatable.init(0, 4),
         ),
         actual,
     );
