@@ -63,6 +63,8 @@ pub const MemoryError = error{
     UnknownMemoryCell,
     /// This memory cell doesn't contain an integer
     ExpectedInteger,
+    /// Error encountered during the WriteArg operation.
+    WriteArg,
 };
 
 /// Represents the error conditions that are related to the `CairoRunner`.
