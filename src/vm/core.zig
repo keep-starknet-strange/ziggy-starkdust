@@ -705,7 +705,7 @@ pub const CairoVM = struct {
             // Assert that the result and destination operands are equal for AssertEq opcode.
             Opcode.AssertEq => {
                 if (operands.res) |res| {
-                    if (res != operands.dst) {
+                    if (!res.eq(operands.dst)) {
                         return CairoVMError.DiffAssertValues;
                     }
                 } else {
@@ -717,12 +717,12 @@ pub const CairoVM = struct {
                 // Calculate the return program counter (PC) value.
                 const return_pc = MaybeRelocatable.fromRelocatable(try self.run_context.pc.addUint(instruction.size()));
                 // Assert that the operand 0 is the return PC.
-                if (operands.op_0 != return_pc) {
+                if (!operands.op_0.eq(return_pc)) {
                     return CairoVMError.CantWriteReturnPc;
                 }
 
                 // Assert that the destination operand is the frame pointer (FP).
-                if (MaybeRelocatable.fromRelocatable(self.run_context.getFP()) != operands.dst) {
+                if (!MaybeRelocatable.fromRelocatable(self.run_context.getFP()).eq(operands.dst)) {
                     return CairoVMError.CantWriteReturnFp;
                 }
             },

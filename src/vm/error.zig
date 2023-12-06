@@ -32,7 +32,7 @@ pub const CairoVMError = error{
     /// Signifies that the execution run has not finished.
     RunNotFinished,
     /// Res.UNCONSTRAINED cannot be used with Opcode.ASSERT_EQ
-    UnconstrainedAssertEq,
+    UnconstrainedResAssertEq,
     /// Different result and destination operands values for Opcode.ASSERT_EQ
     DiffAssertValues,
     /// Cannot return Program Counter

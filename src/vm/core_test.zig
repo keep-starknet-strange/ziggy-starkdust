@@ -2027,3 +2027,127 @@ test "CairoVM: markAddressRangeAsAccessed should return an error if the run is n
         vm.markAddressRangeAsAccessed(Relocatable.init(0, 0), 3),
     );
 }
+
+test "CairoVM: opcodeAssertions should throw UnconstrainedAssertEq error" {
+    var instruction = testInstruction;
+    instruction.opcode = .AssertEq;
+
+    const operands = OperandsResult{
+        .dst = .{ .felt = Felt252.fromInteger(8) },
+        .res = null,
+        .op_0 = .{ .felt = Felt252.fromInteger(9) },
+        .op_1 = .{ .felt = Felt252.fromInteger(10) },
+        .dst_addr = .{},
+        .op_0_addr = .{},
+        .op_1_addr = .{},
+        .deduced_operands = 0,
+    };
+
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    try expectError(
+        CairoVMError.UnconstrainedResAssertEq,
+        vm.opcodeAssertions(&instruction, operands),
+    );
+}
+
+test "CairoVM: opcodeAssertions instructions failed - should throw DiffAssertValues error" {
+    var instruction = testInstruction;
+    instruction.opcode = .AssertEq;
+
+    const operands = OperandsResult{
+        .dst = .{ .felt = Felt252.fromInteger(9) },
+        .res = .{ .felt = Felt252.fromInteger(8) },
+        .op_0 = .{ .felt = Felt252.fromInteger(9) },
+        .op_1 = .{ .felt = Felt252.fromInteger(10) },
+        .dst_addr = .{},
+        .op_0_addr = .{},
+        .op_1_addr = .{},
+        .deduced_operands = 0,
+    };
+
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    try expectError(
+        CairoVMError.DiffAssertValues,
+        vm.opcodeAssertions(&instruction, operands),
+    );
+}
+
+test "CairoVM: opcodeAssertions instructions failed relocatables - should throw DiffAssertValues error" {
+    var instruction = testInstruction;
+    instruction.opcode = .AssertEq;
+
+    const operands = OperandsResult{
+        .dst = MaybeRelocatable.fromSegment(1, 1),
+        .res = MaybeRelocatable.fromSegment(1, 2),
+        .op_0 = MaybeRelocatable.fromU64(9),
+        .op_1 = MaybeRelocatable.fromU64(10),
+        .dst_addr = .{},
+        .op_0_addr = .{},
+        .op_1_addr = .{},
+        .deduced_operands = 0,
+    };
+
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    try expectError(
+        CairoVMError.DiffAssertValues,
+        vm.opcodeAssertions(&instruction, operands),
+    );
+}
+
+test "CairoVM: opcodeAssertions inconsistent op0 - should throw CantWriteReturnPC error" {
+    var instruction = testInstruction;
+    instruction.opcode = .Call;
+
+    const operands = OperandsResult{
+        .dst = MaybeRelocatable.fromSegment(0, 1),
+        .res = MaybeRelocatable.fromU64(8),
+        .op_0 = MaybeRelocatable.fromU64(9),
+        .op_1 = MaybeRelocatable.fromU64(10),
+        .dst_addr = .{},
+        .op_0_addr = .{},
+        .op_1_addr = .{},
+        .deduced_operands = 0,
+    };
+
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    vm.run_context.pc.* = Relocatable.init(0, 4);
+
+    try expectError(
+        CairoVMError.CantWriteReturnPc,
+        vm.opcodeAssertions(&instruction, operands),
+    );
+}
+
+test "CairoVM: opcodeAssertions inconsistent dst - should throw CantWriteReturnFp error" {
+    var instruction = testInstruction;
+    instruction.opcode = .Call;
+
+    const operands = OperandsResult{
+        .dst = MaybeRelocatable.fromU64(8),
+        .res = MaybeRelocatable.fromU64(8),
+        .op_0 = MaybeRelocatable.fromSegment(0, 1),
+        .op_1 = MaybeRelocatable.fromU64(10),
+        .dst_addr = .{},
+        .op_0_addr = .{},
+        .op_1_addr = .{},
+        .deduced_operands = 0,
+    };
+
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    vm.run_context.fp.* = Relocatable.init(0, 6);
+
+    try expectError(
+        CairoVMError.CantWriteReturnFp,
+        vm.opcodeAssertions(&instruction, operands),
+    );
+}
