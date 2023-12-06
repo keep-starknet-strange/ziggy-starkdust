@@ -24,7 +24,7 @@ pub const OutputBuiltinRunner = struct {
     /// # Returns
     ///
     /// A new `OutputBuiltinRunner` instance.
-    pub fn new(included: bool) Self {
+    pub fn init(included: bool) Self {
         return .{
             .base = 0,
             .stop_ptr = null,

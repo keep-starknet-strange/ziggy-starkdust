@@ -41,7 +41,7 @@ pub const HashBuiltinRunner = struct {
     /// # Returns
     ///
     /// A new `HashBuiltinRunner` instance.
-    pub fn new(
+    pub fn init(
         allocator: Allocator,
         ratio: ?u32,
         included: bool,
