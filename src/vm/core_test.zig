@@ -2156,7 +2156,7 @@ test "CairoVM: getFeltRange for non continuous memory" {
 
 test "CairoVM: getReturnValues should return a continuous range of memory values starting from a specified address." {
     var vm = try CairoVM.init(std.testing.allocator, .{});
-    const ap = Relocatable.new(1, 4);
+    const ap = Relocatable.init(1, 4);
     vm.run_context.ap.* = ap;
     defer vm.deinit();
 
