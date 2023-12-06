@@ -14,6 +14,7 @@ const Relocatable = relocatable.Relocatable;
 const instructions = @import("instructions.zig");
 const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
+const MemoryError = @import("error.zig").MemoryError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
@@ -2025,5 +2026,130 @@ test "CairoVM: markAddressRangeAsAccessed should return an error if the run is n
     try expectError(
         CairoVMError.RunNotFinished,
         vm.markAddressRangeAsAccessed(Relocatable.init(0, 0), 3),
+    );
+}
+
+test "CairoVM: getFeltRange for continuous memory" {
+    // Test setup
+    const allocator = std.testing.allocator;
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    vm.is_run_finished = true;
+    try segments.segmentsUtil(
+        vm.segments,
+        std.testing.allocator,
+        .{
+            .{ .{ 1, 0 }, .{2} },
+            .{ .{ 1, 1 }, .{3} },
+            .{ .{ 1, 2 }, .{4} },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    var expected_vec = std.ArrayList(Felt252).init(std.testing.allocator);
+    defer expected_vec.deinit();
+
+    try expected_vec.append(Felt252.fromInteger(2));
+    try expected_vec.append(Felt252.fromInteger(3));
+    try expected_vec.append(Felt252.fromInteger(4));
+
+    var actual = try vm.getFeltRange(
+        Relocatable.init(1, 0),
+        3,
+    );
+    defer actual.deinit();
+
+    // Test checks
+    try expectEqualSlices(
+        Felt252,
+        expected_vec.items,
+        actual.items,
+    );
+}
+
+test "CairoVM: getFeltRange for Relocatable instead of Felt" {
+    // Test setup
+    const allocator = std.testing.allocator;
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    vm.is_run_finished = true;
+    try segments.segmentsUtil(
+        vm.segments,
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{0} },
+            .{ .{ 0, 1 }, .{0} },
+            .{ .{ 0, 2 }, .{ 1, 4 } },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    try expectError(
+        MemoryError.ExpectedInteger,
+        vm.getFeltRange(
+            Relocatable.init(0, 0),
+            3,
+        ),
+    );
+}
+
+test "CairoVM: getFeltRange for out of bounds memory" {
+    // Test setup
+    const allocator = std.testing.allocator;
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    vm.is_run_finished = true;
+    try segments.segmentsUtil(
+        vm.segments,
+        std.testing.allocator,
+        .{
+            .{ .{ 1, 0 }, .{4} },
+            .{ .{ 1, 1 }, .{5} },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Test checks
+    try expectError(
+        MemoryError.UnknownMemoryCell,
+        vm.getFeltRange(
+            Relocatable.init(1, 0),
+            4,
+        ),
+    );
+}
+
+test "CairoVM: getFeltRange for non continuous memory" {
+    // Test setup
+    const allocator = std.testing.allocator;
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    vm.is_run_finished = true;
+    try segments.segmentsUtil(
+        vm.segments,
+        std.testing.allocator,
+        .{
+            .{ .{ 1, 0 }, .{4} },
+            .{ .{ 1, 1 }, .{5} },
+            .{ .{ 1, 3 }, .{6} },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Test checks
+    try expectError(
+        MemoryError.UnknownMemoryCell,
+        vm.getFeltRange(
+            Relocatable.init(1, 0),
+            4,
+        ),
     );
 }
