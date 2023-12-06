@@ -46,7 +46,7 @@ pub const EcOpBuiltinRunner = struct {
     /// # Returns
     ///
     /// A new `EcOpBuiltinRunner` instance.
-    pub fn new(
+    pub fn init(
         allocator: Allocator,
         instance_def: *ec_op_instance_def.EcOpInstanceDef,
         included: bool,
