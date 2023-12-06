@@ -37,7 +37,7 @@ pub const BitwiseBuiltinRunner = struct {
     /// # Returns
     ///
     /// A new `BitwiseBuiltinRunner` instance.
-    pub fn new(
+    pub fn init(
         instance_def: *bitwise_instance_def.BitwiseInstanceDef,
         included: bool,
     ) Self {

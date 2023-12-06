@@ -57,7 +57,7 @@ pub const RangeCheckBuiltinRunner = struct {
     /// # Returns
     ///
     /// A new `RangeCheckBuiltinRunner` instance.
-    pub fn new(
+    pub fn init(
         ratio: ?u32,
         n_parts: u32,
         included: bool,
@@ -107,7 +107,7 @@ pub const RangeCheckBuiltinRunner = struct {
         var result = ArrayList(MaybeRelocatable).init(allocator);
         if (self.included) {
             try result.append(.{
-                .relocatable = Relocatable.new(
+                .relocatable = Relocatable.init(
                     @intCast(self.base),
                     0,
                 ),
@@ -298,7 +298,7 @@ pub fn rangeCheckValidationRule(memory: *Memory, address: Relocatable) MemoryErr
 test "initialize segments for range check" {
 
     // given
-    const builtin = RangeCheckBuiltinRunner.new(8, 8, true);
+    const builtin = RangeCheckBuiltinRunner.init(8, 8, true);
     const allocator = std.testing.allocator;
     var mem = try MemorySegmentManager.init(allocator);
     defer mem.deinit();
@@ -312,7 +312,7 @@ test "initialize segments for range check" {
 
 test "used instances" {
     // given
-    var builtin = RangeCheckBuiltinRunner.new(10, 12, true);
+    var builtin = RangeCheckBuiltinRunner.init(10, 12, true);
 
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
@@ -326,7 +326,7 @@ test "used instances" {
 test "Range Check: get usage for range check" {
 
     // given
-    var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
+    var builtin = RangeCheckBuiltinRunner.init(8, 8, true);
     const allocator = std.testing.allocator;
     var seg = try MemorySegmentManager.init(allocator);
     defer seg.deinit();
@@ -345,7 +345,7 @@ test "Range Check: get usage for range check" {
 test "Range Check: another successful check of usage for range check" {
 
     // given
-    var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
+    var builtin = RangeCheckBuiltinRunner.init(8, 8, true);
     const allocator = std.testing.allocator;
     var seg = try MemorySegmentManager.init(allocator);
     defer seg.deinit();
@@ -365,7 +365,7 @@ test "Range Check: another successful check of usage for range check" {
 test "Range Check: get usage for range check should be null" {
 
     // given
-    var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
+    var builtin = RangeCheckBuiltinRunner.init(8, 8, true);
     const allocator = std.testing.allocator;
     var seg = try MemorySegmentManager.init(allocator);
     defer seg.deinit();
@@ -382,7 +382,7 @@ test "Range Check: get usage for range check should be null" {
 test "Range Check: validation rule should be empty" {
 
     // given
-    var builtin = RangeCheckBuiltinRunner.new(8, 8, true);
+    var builtin = RangeCheckBuiltinRunner.init(8, 8, true);
     const allocator = std.testing.allocator;
     var mem = try MemorySegmentManager.init(allocator);
     defer mem.deinit();
@@ -405,7 +405,7 @@ test "Range Check: validation rule should return Relocatable in array successful
     const seg = mem.addSegment();
     _ = try seg;
 
-    const relo = Relocatable.new(0, 1);
+    const relo = Relocatable.init(0, 1);
     try mem.memory.set(std.testing.allocator, relo, MaybeRelocatable.fromFelt(Felt252.zero()));
     defer mem.memory.deinitData(std.testing.allocator);
 
@@ -423,7 +423,7 @@ test "Range Check: validation rule should return erorr out of bounds" {
     const seg = mem.addSegment();
     _ = try seg;
 
-    const relo = Relocatable.new(0, 1);
+    const relo = Relocatable.init(0, 1);
     try mem.memory.set(std.testing.allocator, relo, MaybeRelocatable.fromFelt(Felt252.fromInteger(10).neg()));
     defer mem.memory.deinitData(std.testing.allocator);
 
@@ -441,7 +441,7 @@ test "Range Check: validation rule should return erorr non int" {
     const seg = mem.addSegment();
     _ = try seg;
 
-    const relo = Relocatable.new(0, 1);
+    const relo = Relocatable.init(0, 1);
     try mem.memory.set(std.testing.allocator, relo, MaybeRelocatable.fromSegment(0, 2));
     defer mem.memory.deinitData(std.testing.allocator);
 
@@ -459,11 +459,11 @@ test "Range Check: validation rule should return erorr address not in memory" {
     const seg = mem.addSegment();
     _ = try seg;
 
-    const relo = Relocatable.new(0, 1);
+    const relo = Relocatable.init(0, 1);
     try mem.memory.set(std.testing.allocator, relo, MaybeRelocatable.fromFelt(Felt252.zero()));
     defer mem.memory.deinitData(std.testing.allocator);
 
-    const result = rangeCheckValidationRule(mem.memory, Relocatable.new(0, 2));
+    const result = rangeCheckValidationRule(mem.memory, Relocatable.init(0, 2));
     // assert
     try std.testing.expectError(MemoryError.RangeCheckGetError, result);
 }
