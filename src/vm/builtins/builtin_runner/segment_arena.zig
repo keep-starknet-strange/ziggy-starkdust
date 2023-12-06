@@ -36,7 +36,7 @@ pub const SegmentArenaBuiltinRunner = struct {
     /// # Returns
     ///
     /// A new `SegmentArenaBuiltinRunner` instance.
-    pub fn new(included: bool) Self {
+    pub fn init(included: bool) Self {
         return .{
             .base = Relocatable.default(),
             .included = included,
