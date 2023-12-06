@@ -40,7 +40,7 @@ pub const KeccakInstanceDef = struct {
     /// # Returns
     ///
     /// A new `KeccakInstanceDef` instance with the specified parameters.
-    pub fn new(ratio: ?u32, _state_rep: ArrayList(u32)) Self {
+    pub fn init(ratio: ?u32, _state_rep: ArrayList(u32)) Self {
         return .{
             .ratio = ratio,
             ._state_rep = _state_rep,

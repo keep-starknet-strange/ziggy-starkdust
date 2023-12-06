@@ -460,11 +460,11 @@ test "set get integer value in segment memory" {
     // *                      TEST BODY                           *
     // ************************************************************
 
-    const address_1 = Relocatable.new(
+    const address_1 = Relocatable.init(
         0,
         0,
     );
-    const address_2 = Relocatable.new(
+    const address_2 = Relocatable.init(
         -1,
         0,
     );
@@ -851,7 +851,7 @@ test "MemorySegmentManager: isValidMemoryValue should return false if invalid se
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     try memory_segment_manager.segment_used_sizes.put(0, 10);
-    var value: MaybeRelocatable = .{ .relocatable = Relocatable.new(1, 1) };
+    var value: MaybeRelocatable = .{ .relocatable = Relocatable.init(1, 1) };
     try expect(!memory_segment_manager.isValidMemoryValue(&value));
 }
 
@@ -920,10 +920,10 @@ test "MemorySegmentManager: loadData with empty data" {
     defer data.deinit();
 
     try expectEqual(
-        Relocatable.new(0, 3),
+        Relocatable.init(0, 3),
         try memory_segment_manager.loadData(
             allocator,
-            Relocatable.new(0, 3),
+            Relocatable.init(0, 3),
             &data,
         ),
     );
@@ -943,15 +943,15 @@ test "MemorySegmentManager: loadData with one element" {
 
     const actual = try memory_segment_manager.loadData(
         allocator,
-        Relocatable.new(0, 0),
+        Relocatable.init(0, 0),
         &data,
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
-    try expectEqual(Relocatable.new(0, 1), actual);
+    try expectEqual(Relocatable.init(0, 1), actual);
     try expectEqual(
         MaybeRelocatable.fromU256(4),
-        (memory_segment_manager.memory.get(Relocatable.new(0, 0))).?,
+        (memory_segment_manager.memory.get(Relocatable.init(0, 0))).?,
     );
 }
 
@@ -971,23 +971,23 @@ test "MemorySegmentManager: loadData with three elements" {
 
     const actual = try memory_segment_manager.loadData(
         allocator,
-        Relocatable.new(0, 0),
+        Relocatable.init(0, 0),
         &data,
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
-    try expectEqual(Relocatable.new(0, 3), actual);
+    try expectEqual(Relocatable.init(0, 3), actual);
     try expectEqual(
         MaybeRelocatable.fromU256(4),
-        (memory_segment_manager.memory.get(Relocatable.new(0, 0))).?,
+        (memory_segment_manager.memory.get(Relocatable.init(0, 0))).?,
     );
     try expectEqual(
         MaybeRelocatable.fromU256(5),
-        (memory_segment_manager.memory.get(Relocatable.new(0, 1))).?,
+        (memory_segment_manager.memory.get(Relocatable.init(0, 1))).?,
     );
     try expectEqual(
         MaybeRelocatable.fromU256(6),
-        (memory_segment_manager.memory.get(Relocatable.new(0, 2))).?,
+        (memory_segment_manager.memory.get(Relocatable.init(0, 2))).?,
     );
 }
 
@@ -1033,9 +1033,9 @@ test "MemorySegmentManager: getPublicMemoryAddresses with correct segment offset
     try public_memory_offsets.append(inner_list_4);
     try public_memory_offsets.append(inner_list_5);
 
-    try expectEqual(memory_segment_manager.addSegment(), Relocatable.new(5, 0));
-    try expectEqual(memory_segment_manager.addSegment(), Relocatable.new(6, 0));
-    try memory_segment_manager.memory.set(allocator, Relocatable.new(5, 4), .{ .felt = Felt252.fromInteger(0) });
+    try expectEqual(memory_segment_manager.addSegment(), Relocatable.init(5, 0));
+    try expectEqual(memory_segment_manager.addSegment(), Relocatable.init(6, 0));
+    try memory_segment_manager.memory.set(allocator, Relocatable.init(5, 4), .{ .felt = Felt252.fromInteger(0) });
     defer memory_segment_manager.memory.deinitData(allocator);
 
     // memory_segment_manager.memory.freeze();
@@ -1108,9 +1108,9 @@ test "MemorySegmentManager: getPublicMemoryAddresses with incorrect segment offs
     try public_memory_offsets.append(inner_list_4);
     try public_memory_offsets.append(inner_list_5);
 
-    try expectEqual(memory_segment_manager.addSegment(), Relocatable.new(5, 0));
-    try expectEqual(memory_segment_manager.addSegment(), Relocatable.new(6, 0));
-    try memory_segment_manager.memory.set(allocator, Relocatable.new(5, 4), .{ .felt = Felt252.fromInteger(0) });
+    try expectEqual(memory_segment_manager.addSegment(), Relocatable.init(5, 0));
+    try expectEqual(memory_segment_manager.addSegment(), Relocatable.init(6, 0));
+    try memory_segment_manager.memory.set(allocator, Relocatable.init(5, 4), .{ .felt = Felt252.fromInteger(0) });
     defer memory_segment_manager.memory.deinitData(allocator);
 
     // memory_segment_manager.memory.freeze();
