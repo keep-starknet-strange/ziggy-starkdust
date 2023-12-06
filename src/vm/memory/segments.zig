@@ -1169,7 +1169,7 @@ test "MemorySegmentManager: writeArg with apply modulo" {
     // Perform the writeArg operation
     const exec = try memory_segment_manager.writeArg(
         std.ArrayList(MaybeRelocatable),
-        Relocatable.new(1, 0),
+        Relocatable.init(1, 0),
         &data,
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
@@ -1178,9 +1178,9 @@ test "MemorySegmentManager: writeArg with apply modulo" {
     var expected_data = std.ArrayList(?MemoryCell).init(std.testing.allocator);
     defer expected_data.deinit();
 
-    try expected_data.append(MemoryCell.new(MaybeRelocatable.fromU256(11)));
-    try expected_data.append(MemoryCell.new(MaybeRelocatable.fromU256(12)));
-    try expected_data.append(MemoryCell.new(MaybeRelocatable.fromU256(1)));
+    try expected_data.append(MemoryCell.init(MaybeRelocatable.fromU256(11)));
+    try expected_data.append(MemoryCell.init(MaybeRelocatable.fromU256(12)));
+    try expected_data.append(MemoryCell.init(MaybeRelocatable.fromU256(1)));
 
     // Perform assertions
     try expectEqual(
@@ -1209,9 +1209,9 @@ test "MemorySegmentManager: writeArg with Relocatable" {
     defer data.deinit();
 
     // Add Relocatable values to data array
-    try data.append(Relocatable.new(0, 1));
-    try data.append(Relocatable.new(0, 2));
-    try data.append(Relocatable.new(0, 3));
+    try data.append(Relocatable.init(0, 1));
+    try data.append(Relocatable.init(0, 2));
+    try data.append(Relocatable.init(0, 3));
 
     // Add segments to the memory segment manager
     for (0..2) |_| {
@@ -1221,7 +1221,7 @@ test "MemorySegmentManager: writeArg with Relocatable" {
     // Perform the writeArg operation
     const exec = try memory_segment_manager.writeArg(
         std.ArrayList(Relocatable),
-        Relocatable.new(1, 0),
+        Relocatable.init(1, 0),
         &data,
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
@@ -1230,9 +1230,9 @@ test "MemorySegmentManager: writeArg with Relocatable" {
     var expected_data = std.ArrayList(?MemoryCell).init(std.testing.allocator);
     defer expected_data.deinit();
 
-    try expected_data.append(MemoryCell.new(MaybeRelocatable.fromSegment(0, 1)));
-    try expected_data.append(MemoryCell.new(MaybeRelocatable.fromSegment(0, 2)));
-    try expected_data.append(MemoryCell.new(MaybeRelocatable.fromSegment(0, 3)));
+    try expected_data.append(MemoryCell.init(MaybeRelocatable.fromSegment(0, 1)));
+    try expected_data.append(MemoryCell.init(MaybeRelocatable.fromSegment(0, 2)));
+    try expected_data.append(MemoryCell.init(MaybeRelocatable.fromSegment(0, 3)));
 
     // Perform assertions
     try expectEqual(
@@ -1264,7 +1264,7 @@ test "MemorySegmentManager: writeArg should return memory error if type is not v
         MemoryError.WriteArg,
         memory_segment_manager.writeArg(
             u64,
-            Relocatable.new(1, 0),
+            Relocatable.init(1, 0),
             &arg,
         ),
     );
