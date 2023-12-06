@@ -287,7 +287,7 @@ pub const RangeCheckBuiltinRunner = struct {
 /// verification fails.
 pub fn rangeCheckValidationRule(memory: *Memory, address: Relocatable) MemoryError![]const Relocatable {
     const num = memory.getFelt(address) catch |err| switch (err) {
-        error.MemoryOutOfBounds => return MemoryError.RangeCheckGetError,
+        error.UnknownMemoryCell => return MemoryError.RangeCheckGetError,
         error.ExpectedInteger => return MemoryError.RangecheckNonInt,
     };
 
