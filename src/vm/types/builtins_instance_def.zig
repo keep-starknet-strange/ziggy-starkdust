@@ -144,7 +144,7 @@ pub const BuiltinsInstanceDef = struct {
             .ecdsa = EcdsaInstanceDef.from(2048),
             .bitwise = BitwiseInstanceDef.from(64),
             .ec_op = EcOpInstanceDef.from(1024),
-            .keccak = KeccakInstanceDef.new(2048, state_rep_keccak),
+            .keccak = KeccakInstanceDef.init(2048, state_rep_keccak),
             .poseidon = PoseidonInstanceDef.init(),
         };
     }
@@ -178,7 +178,7 @@ pub const BuiltinsInstanceDef = struct {
             .ecdsa = EcdsaInstanceDef.from(2048),
             .bitwise = BitwiseInstanceDef.from(16),
             .ec_op = EcOpInstanceDef.from(1024),
-            .keccak = KeccakInstanceDef.new(2048, state_rep_keccak),
+            .keccak = KeccakInstanceDef.init(2048, state_rep_keccak),
             .poseidon = PoseidonInstanceDef.from(256),
         };
     }
