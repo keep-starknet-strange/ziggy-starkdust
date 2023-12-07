@@ -587,9 +587,9 @@ test "get relocate trace after relocating trace" {
         config,
     );
     defer vm.deinit();
-    var pc = Relocatable.new(0, 0);
-    var ap = Relocatable.new(2, 0);
-    var fp = Relocatable.new(2, 0);
+    var pc = Relocatable.init(0, 0);
+    var ap = Relocatable.init(2, 0);
+    var fp = Relocatable.init(2, 0);
     try vm.trace_context.traceInstruction(.{ .pc = &pc, .ap = &ap, .fp = &fp });
     for (0..4) |_| {
         _ = try vm.segments.addSegment();
@@ -597,17 +597,17 @@ test "get relocate trace after relocating trace" {
     const page_allocator = std.heap.page_allocator;
     try vm.segments.memory.set(
         page_allocator,
-        Relocatable.new(0, 0),
+        Relocatable.init(0, 0),
         MaybeRelocatable.fromU256(2345108766317314046),
     );
     try vm.segments.memory.set(
         page_allocator,
-        Relocatable.new(1, 0),
+        Relocatable.init(1, 0),
         MaybeRelocatable.fromSegment(2, 0),
     );
     try vm.segments.memory.set(
         page_allocator,
-        Relocatable.new(1, 1),
+        Relocatable.init(1, 1),
         MaybeRelocatable.fromSegment(3, 0),
     );
 
