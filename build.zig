@@ -92,6 +92,8 @@ pub fn build(b: *std.Build) void {
     // step when running `zig build`).
     b.installArtifact(exe);
 
+    exe.addIncludePath(.{ .path = "./src/math/crypto/starknet_crypto/" });
+    exe.addObjectFile(std.build.LazyPath{ .path = "./src/math/crypto/starknet_crypto/libstarknet_crypto.a" });
     // This *creates* a Run step in the build graph, to be executed when another
     // step is evaluated that depends on it. The next line below will establish
     // such a dependency.
@@ -130,6 +132,9 @@ pub fn build(b: *std.Build) void {
         mod.name,
         mod.module,
     );
+
+    unit_tests.addIncludePath(.{ .path = "./src/math/crypto/starknet_crypto/" });
+    unit_tests.addObjectFile(std.build.LazyPath{ .path = "./src/math/crypto/starknet_crypto/libstarknet_crypto.a" });
 
     const run_unit_tests = b.addRunArtifact(unit_tests);
 
