@@ -2057,10 +2057,10 @@ test "CairoVM: opcodeAssertions instructions failed - should throw DiffAssertVal
     instruction.opcode = .AssertEq;
 
     const operands = OperandsResult{
-        .dst = .{ .felt = Felt252.fromInteger(9) },
-        .res = .{ .felt = Felt252.fromInteger(8) },
-        .op_0 = .{ .felt = Felt252.fromInteger(9) },
-        .op_1 = .{ .felt = Felt252.fromInteger(10) },
+        .dst = MaybeRelocatable.fromU64(9),
+        .res = MaybeRelocatable.fromU64(8),
+        .op_0 = MaybeRelocatable.fromU64(9),
+        .op_1 = MaybeRelocatable.fromU64(10),
         .dst_addr = .{},
         .op_0_addr = .{},
         .op_1_addr = .{},

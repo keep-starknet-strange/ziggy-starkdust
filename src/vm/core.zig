@@ -703,7 +703,7 @@ pub const CairoVM = struct {
         // Switch on the opcode to perform the appropriate assertion.
         switch (instruction.opcode) {
             // Assert that the result and destination operands are equal for AssertEq opcode.
-            Opcode.AssertEq => {
+            .AssertEq => {
                 if (operands.res) |res| {
                     if (!res.eq(operands.dst)) {
                         return CairoVMError.DiffAssertValues;
@@ -713,7 +713,7 @@ pub const CairoVM = struct {
                 }
             },
             // Perform assertions specific to the Call opcode.
-            Opcode.Call => {
+            .Call => {
                 // Calculate the return program counter (PC) value.
                 const return_pc = MaybeRelocatable.fromRelocatable(try self.run_context.pc.addUint(instruction.size()));
                 // Assert that the operand 0 is the return PC.
