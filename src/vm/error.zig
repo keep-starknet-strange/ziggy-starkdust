@@ -31,6 +31,14 @@ pub const CairoVMError = error{
     FailedToComputeOp0,
     /// Signifies that the execution run has not finished.
     RunNotFinished,
+    /// Res.UNCONSTRAINED cannot be used with Opcode.ASSERT_EQ
+    UnconstrainedResAssertEq,
+    /// Different result and destination operands values for Opcode.ASSERT_EQ
+    DiffAssertValues,
+    /// Cannot return Program Counter
+    CantWriteReturnPc,
+    /// Cannot return Frame Pointer
+    CantWriteReturnFp,
 };
 
 /// Represents different error conditions that are memory-related.
@@ -59,6 +67,10 @@ pub const MemoryError = error{
     RangecheckNonInt,
     /// Range Check get error
     RangeCheckGetError,
+    /// Unknown memory cell
+    UnknownMemoryCell,
+    /// This memory cell doesn't contain an integer
+    ExpectedInteger,
 };
 
 /// Represents the error conditions that are related to the `CairoRunner`.

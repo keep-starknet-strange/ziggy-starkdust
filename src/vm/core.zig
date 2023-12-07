@@ -20,6 +20,7 @@ const BuiltinRunner = @import("./builtins/builtin_runner/builtin_runner.zig").Bu
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const HashBuiltinRunner = @import("./builtins/builtin_runner/hash.zig").HashBuiltinRunner;
 const Instruction = instructions.Instruction;
+const Opcode = instructions.Opcode;
 
 /// Represents the Cairo VM.
 pub const CairoVM = struct {
@@ -734,6 +735,66 @@ pub const CairoVM = struct {
         for (0..len) |i| {
             self.segments.memory.markAsAccessed(try base.addUint(@intCast(i)));
         }
+    }
+
+    /// Performs opcode-specific assertions on the operands of an instruction.
+    /// # Arguments
+    /// - `instruction`: A pointer to the instruction being asserted.
+    /// - `operands`: The result of the operands computation.
+    /// # Errors
+    /// - Returns an error if an assertion fails.
+    pub fn opcodeAssertions(self: *Self, instruction: *const Instruction, operands: OperandsResult) CairoVMError!void {
+        // Switch on the opcode to perform the appropriate assertion.
+        switch (instruction.opcode) {
+            // Assert that the result and destination operands are equal for AssertEq opcode.
+            .AssertEq => {
+                if (operands.res) |res| {
+                    if (!res.eq(operands.dst)) {
+                        return CairoVMError.DiffAssertValues;
+                    }
+                } else {
+                    return CairoVMError.UnconstrainedResAssertEq;
+                }
+            },
+            // Perform assertions specific to the Call opcode.
+            .Call => {
+                // Calculate the return program counter (PC) value.
+                const return_pc = MaybeRelocatable.fromRelocatable(try self.run_context.pc.addUint(instruction.size()));
+                // Assert that the operand 0 is the return PC.
+                if (!operands.op_0.eq(return_pc)) {
+                    return CairoVMError.CantWriteReturnPc;
+                }
+
+                // Assert that the destination operand is the frame pointer (FP).
+                if (!MaybeRelocatable.fromRelocatable(self.run_context.getFP()).eq(operands.dst)) {
+                    return CairoVMError.CantWriteReturnFp;
+                }
+            },
+            // No assertions for other opcodes.
+            else => {},
+        }
+    }
+
+    /// Retrieves a continuous range of `Felt252` values starting from the memoryy at the specific relocatable address in the Cairo VM.
+    ///
+    /// This function internally calls `getFeltRange` on the memory segments manager, attempting
+    /// to retrieve a range of `Felt252` values at the given address.
+    ///
+    /// # Arguments
+    ///
+    /// * `address`: The starting address in the memory from which the continuous range of `Felt252` is retrieved.
+    /// * `size`: The size of the continuous range of `Felt252` to be retrieved.
+    ///
+    /// # Returns
+    ///
+    /// Returns a list containing `Felt252` values retrieved from the continuous range starting at the relocatable address.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if there are any unknown memory cell encountered within the continuous memory range.
+    /// Returns an error if value inside the range is not a `Felt252`
+    pub fn getFeltRange(self: *Self, address: Relocatable, size: usize) !std.ArrayList(Felt252) {
+        return self.segments.memory.getFeltRange(address, size);
     }
 };
 
