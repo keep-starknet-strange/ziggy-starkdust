@@ -14,6 +14,10 @@ const Relocatable = relocatable.Relocatable;
 const MaybeRelocatable = relocatable.MaybeRelocatable;
 const Program = @import("../types/program.zig").Program;
 const CairoRunnerError = @import("../error.zig").CairoRunnerError;
+const trace_context = @import("../trace_context.zig");
+const RelocatedTraceEntry = trace_context.TraceContext.RelocatedTraceEntry;
+const starknet_felt = @import("../../math/fields/starknet.zig");
+const Felt252 = starknet_felt.Felt252;
 
 pub const CairoRunner = struct {
     const Self = @This();
@@ -32,6 +36,8 @@ pub const CairoRunner = struct {
     entrypoint_name: []const u8 = "main",
     proof_mode: bool,
     run_ended: bool = false,
+    relocated_memory: [] ?Felt252 = undefined,
+    relocated_trace: [] RelocatedTraceEntry = undefined,
     // layout
     // execScopes
     // executionPublicMemory
@@ -166,8 +172,18 @@ pub const CairoRunner = struct {
     }
 };
 
+pub fn writeEncodedTrace(relocated_trace: []const RelocatedTraceEntry, dest: *std.fs.File.Writer) !void {
+    var i: usize = 0;
+    while (i < relocated_trace.len) : (i += 1) {
+        const entry = relocated_trace[i];
+        _ = try dest.write(&std.mem.toBytes(entry.ap.tryIntoU64()));
+        _ = try dest.write(&std.mem.toBytes(entry.fp.tryIntoU64()));
+        _ = try dest.write(&std.mem.toBytes(entry.pc.tryIntoU64()));
+    }
+}
+
 pub fn runConfig(allocator: Allocator, config: Config) !void {
-    const vm = try vm_core.CairoVM.init(
+    var vm = try vm_core.CairoVM.init(
         allocator,
         config,
     );
@@ -183,6 +199,25 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
     try runner.endRun();
     // TODO readReturnValues necessary for builtins
 
+ 
+    if (config.output_trace) |trace_path| {
+        const relocation_table = try vm.segments.relocateSegments(allocator);
+        defer allocator.free(relocation_table);
+        try vm.relocateTrace(relocation_table);
+
+        const relocated_trace = runner.relocated_trace;
+
+        const trace_file = try std.fs.cwd().createFile(trace_path, .{});
+        defer trace_file.close();
+        var trace_writer = trace_file.writer();
+
+        std.log.debug("Relocation trace...\n", .{});
+        for (relocated_trace) |entry| {
+            std.debug.print("{}, {}, {}\n", .{entry.ap, entry.fp, entry.pc});
+        }
+
+        try writeEncodedTrace(relocated_trace, &trace_writer);
+    }
 }
 
 const expect = std.testing.expect;
