@@ -14,6 +14,7 @@ const Relocatable = relocatable.Relocatable;
 const instructions = @import("instructions.zig");
 const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
+const TraceError = @import("error.zig").TraceError;
 const MemoryError = @import("error.zig").MemoryError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
@@ -556,6 +557,75 @@ test "trace is disabled" {
     // Check that trace was initialized
     if (vm.trace_context.isEnabled()) {
         return error.TraceShouldHaveBeenDisabled;
+    }
+}
+
+test "get relocate trace without relocating trace" {
+    // Test setup
+    const allocator = std.testing.allocator;
+
+    // Create a new VM instance.
+    const config = Config{ .proof_mode = false, .enable_trace = true };
+
+    var vm = try CairoVM.init(
+        allocator,
+        config,
+    );
+    defer vm.deinit();
+    try expectError(TraceError.TraceNotRelocated, vm.getRelocatedTrace());
+}
+
+test "get relocate trace after relocating trace" {
+    // Test setup
+    const allocator = std.testing.allocator;
+
+    // Create a new VM instance.
+    const config = Config{ .proof_mode = false, .enable_trace = true };
+
+    var vm = try CairoVM.init(
+        allocator,
+        config,
+    );
+    defer vm.deinit();
+    var pc = Relocatable.init(0, 0);
+    var ap = Relocatable.init(2, 0);
+    var fp = Relocatable.init(2, 0);
+    try vm.trace_context.traceInstruction(.{ .pc = &pc, .ap = &ap, .fp = &fp });
+    for (0..4) |_| {
+        _ = try vm.segments.addSegment();
+    }
+    const page_allocator = std.heap.page_allocator;
+    try vm.segments.memory.set(
+        page_allocator,
+        Relocatable.init(0, 0),
+        MaybeRelocatable.fromU256(2345108766317314046),
+    );
+    try vm.segments.memory.set(
+        page_allocator,
+        Relocatable.init(1, 0),
+        MaybeRelocatable.fromSegment(2, 0),
+    );
+    try vm.segments.memory.set(
+        page_allocator,
+        Relocatable.init(1, 1),
+        MaybeRelocatable.fromSegment(3, 0),
+    );
+
+    _ = try vm.computeSegmentsEffectiveSizes(false);
+
+    const relocation_table = try vm.segments.relocateSegments(allocator);
+    defer allocator.free(relocation_table);
+    try vm.relocateTrace(relocation_table);
+
+    const relocated_trace = TraceContext.RelocatedTraceEntry{
+        .pc = Felt252.fromInteger(1),
+        .ap = Felt252.fromInteger(4),
+        .fp = Felt252.fromInteger(4),
+    };
+    const expected_relocated_trace = [_]TraceContext.RelocatedTraceEntry{relocated_trace};
+    const actual_relocated_trace = try vm.getRelocatedTrace();
+    for (expected_relocated_trace, actual_relocated_trace) |expected_trace, actual_trace| {
+        try expectEqual(expected_trace, actual_trace);
     }
 }
 
