@@ -12,6 +12,7 @@ const Relocatable = relocatable.Relocatable;
 const instructions = @import("instructions.zig");
 const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
+const TraceError = @import("error.zig").TraceError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
@@ -41,6 +42,8 @@ pub const CairoVM = struct {
     is_run_finished: bool,
     /// VM trace
     trace_context: TraceContext,
+    /// Whether the trace has been relocated
+    trace_relocated: bool,
     /// Current Step
     current_step: usize,
     /// Rc limits
@@ -82,6 +85,7 @@ pub const CairoVM = struct {
             .segments = memory_segment_manager,
             .is_run_finished = false,
             .trace_context = trace_context,
+            .trace_relocated = false,
             .current_step = 0,
             .rc_limits = null,
         };
@@ -669,6 +673,46 @@ pub const CairoVM = struct {
             }
         }
         return null;
+    }
+
+    /// Relocates the VM's trace, turning relocatable registers to numbered ones
+    /// # Arguments
+    /// - `relocation_table`: The relocation table .
+    pub fn relocateTrace(self: *Self, relocation_table: []usize) !void {
+        if (self.trace_relocated) {
+            return TraceError.AlreadyRelocated;
+        }
+        if (relocation_table.len < 2) {
+            return TraceError.NoRelocationFound;
+        }
+        switch (self.trace_context.state) {
+            .enabled => |trace_enabled| {
+                for (trace_enabled.entries.items) |entry| {
+                    try self.trace_context.addRelocatedTrace(.{
+                        .pc = Felt252.fromInteger(try entry.pc.relocateAddress(relocation_table)),
+                        .ap = Felt252.fromInteger(try entry.ap.relocateAddress(relocation_table)),
+                        .fp = Felt252.fromInteger(try entry.fp.relocateAddress(relocation_table)),
+                    });
+                }
+                self.trace_relocated = true;
+            },
+            .disabled => return TraceError.TraceNotEnabled,
+        }
+    }
+
+    /// Gets the relocated trace
+    /// Returns `TraceError.TraceNotRelocated` error the trace has not been relocated
+    /// # Returns
+    /// - `[]RelocatedTraceEntry`: an array of relocated trace.
+    pub fn getRelocatedTrace(self: *Self) TraceError![]TraceContext.RelocatedTraceEntry {
+        if (self.trace_relocated) {
+            return switch (self.trace_context.state) {
+                .enabled => |trace_enabled| trace_enabled.relocated_trace_entries.items,
+                .disabled => TraceError.TraceNotEnabled,
+            };
+        } else {
+            return TraceError.TraceNotRelocated;
+        }
     }
 
     /// Marks a range of memory addresses as accessed within the Cairo VM's memory segment.

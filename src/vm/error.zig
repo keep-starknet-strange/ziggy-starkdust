@@ -106,3 +106,15 @@ pub const MathError = error{
     /// Value is too large to be coerced to a u64.
     ValueTooLarge,
 };
+
+/// Represents different error conditions that occur in trace relocation
+pub const TraceError = error{
+    /// Raised when tracing is disabled
+    TraceNotEnabled,
+    /// Raised when trace relocation has already been done.
+    AlreadyRelocated,
+    /// Raised when the relocation table doesn't contain the first two segments
+    NoRelocationFound,
+    /// Raised when trying to get relocated trace when trace hasn't been relocated
+    TraceNotRelocated,
+};

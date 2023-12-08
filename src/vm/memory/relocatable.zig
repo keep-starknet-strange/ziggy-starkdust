@@ -229,7 +229,6 @@ pub const Relocatable = struct {
         return MemoryError.TemporarySegmentInRelocation;
     }
 };
-
 // MaybeRelocatable is the type of the memory cells in the Cairo
 // VM. It can either be a Relocatable or a field element.
 pub const MaybeRelocatable = union(enum) {
