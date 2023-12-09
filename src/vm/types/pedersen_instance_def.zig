@@ -42,7 +42,15 @@ pub const PedersenInstanceDef = struct {
         limbs[6] = 17;
         limbs[7] = 134217728;
 
-        return .{ .allocator = allocator, .ratio = 8, ._repetitions = 4, ._element_height = 256, ._element_bits = 252, ._n_inputs = 2, ._hash_limit = .{ .allocator = allocator, .limbs = limbs, .metadata = 1 } };
+        return .{
+            .allocator = allocator,
+            .ratio = 8,
+            ._repetitions = 4,
+            ._element_height = 256,
+            ._element_bits = 252,
+            ._n_inputs = 2,
+            ._hash_limit = .{ .allocator = allocator, .limbs = limbs, .metadata = 1 },
+        };
     }
 
     pub fn init(allocator: Allocator, ratio: ?u32, _repetitions: u32) !Self {
@@ -56,8 +64,15 @@ pub const PedersenInstanceDef = struct {
         limbs[6] = 17;
         limbs[7] = 134217728;
 
-        const hash_limits = ManagedBigInt{ .allocator = allocator, .limbs = limbs, .metadata = 1 };
-        return .{ .ratio = ratio, ._repetitions = _repetitions, ._element_height = 256, ._element_bits = 252, ._n_inputs = 2, ._hash_limit = hash_limits, .allocator = allocator };
+        return .{
+            .ratio = ratio,
+            ._repetitions = _repetitions,
+            ._element_height = 256,
+            ._element_bits = 252,
+            ._n_inputs = 2,
+            ._hash_limit = .{ .allocator = allocator, .limbs = limbs, .metadata = 1 },
+            .allocator = allocator,
+        };
     }
 
     pub fn deinit(self: *Self) void {
@@ -75,18 +90,16 @@ pub const PedersenInstanceDef = struct {
 
 test "PedersenInstanceDef: default implementation" {
     const allocator = std.testing.allocator;
-    var limbs = [_]Limb{
-        1,
-        0,
-        0,
-        0,
-        0,
-        0,
-        17,
-        134217728,
+    var limbs = [_]Limb{ 1, 0, 0, 0, 0, 0, 17, 134217728 };
+    const builtin_instance = PedersenInstanceDef{
+        .ratio = 8,
+        ._repetitions = 4,
+        ._element_height = 256,
+        ._element_bits = 252,
+        ._n_inputs = 2,
+        ._hash_limit = .{ .allocator = allocator, .limbs = &limbs, .metadata = 1 },
+        .allocator = allocator,
     };
-    const hash_limit = ManagedBigInt{ .allocator = allocator, .limbs = &limbs, .metadata = 1 };
-    const builtin_instance = PedersenInstanceDef{ .ratio = 8, ._repetitions = 4, ._element_height = 256, ._element_bits = 252, ._n_inputs = 2, ._hash_limit = hash_limit, .allocator = allocator };
     var default = try PedersenInstanceDef.default(allocator);
 
     defer default.deinit();
@@ -103,18 +116,16 @@ test "PedersenInstanceDef: default implementation" {
 
 test "PedersenInstanceDef: init implementation" {
     const allocator = std.testing.allocator;
-    var limbs = [_]Limb{
-        1,
-        0,
-        0,
-        0,
-        0,
-        0,
-        17,
-        134217728,
+    var limbs = [_]Limb{ 1, 0, 0, 0, 0, 0, 17, 134217728 };
+    const builtin_instance = PedersenInstanceDef{
+        .ratio = 10,
+        ._repetitions = 2,
+        ._element_height = 256,
+        ._element_bits = 252,
+        ._n_inputs = 2,
+        ._hash_limit = .{ .allocator = allocator, .limbs = &limbs, .metadata = 1 },
+        .allocator = allocator,
     };
-    const hash_limits = ManagedBigInt{ .allocator = allocator, .limbs = &limbs, .metadata = 1 };
-    const builtin_instance = PedersenInstanceDef{ .ratio = 10, ._repetitions = 2, ._element_height = 256, ._element_bits = 252, ._n_inputs = 2, ._hash_limit = hash_limits, .allocator = allocator };
     var pederesen_init = try PedersenInstanceDef.init(allocator, 10, 2);
     pederesen_init.deinit();
 
@@ -123,7 +134,7 @@ test "PedersenInstanceDef: init implementation" {
     try expectEqual(builtin_instance._element_height, pederesen_init._element_height);
     try expectEqual(builtin_instance._element_bits, pederesen_init._element_bits);
     try expectEqual(builtin_instance._n_inputs, pederesen_init._n_inputs);
-    try expect(ManagedBigInt.eql(hash_limits, builtin_instance._hash_limit));
+    try expect(ManagedBigInt.eql(builtin_instance._hash_limit, pederesen_init._hash_limit));
 }
 
 test "PedersenInstanceDef: cellsPerBuiltin implementation" {
