@@ -31,6 +31,14 @@ pub const CairoVMError = error{
     FailedToComputeOp0,
     /// Signifies that the execution run has not finished.
     RunNotFinished,
+    /// Res.UNCONSTRAINED cannot be used with Opcode.ASSERT_EQ
+    UnconstrainedResAssertEq,
+    /// Different result and destination operands values for Opcode.ASSERT_EQ
+    DiffAssertValues,
+    /// Cannot return Program Counter
+    CantWriteReturnPc,
+    /// Cannot return Frame Pointer
+    CantWriteReturnFp,
 };
 
 /// Represents different error conditions that are memory-related.
@@ -97,4 +105,16 @@ pub const MathError = error{
     RelocatableSubUsizeNegOffset,
     /// Value is too large to be coerced to a u64.
     ValueTooLarge,
+};
+
+/// Represents different error conditions that occur in trace relocation
+pub const TraceError = error{
+    /// Raised when tracing is disabled
+    TraceNotEnabled,
+    /// Raised when trace relocation has already been done.
+    AlreadyRelocated,
+    /// Raised when the relocation table doesn't contain the first two segments
+    NoRelocationFound,
+    /// Raised when trying to get relocated trace when trace hasn't been relocated
+    TraceNotRelocated,
 };
