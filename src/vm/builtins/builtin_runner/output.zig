@@ -106,6 +106,24 @@ pub const OutputBuiltinRunner = struct {
         ) orelse MemoryError.MissingSegmentUsedSizes;
     }
 
+    /// Retrieves the count of used instances for the OutputBuiltinRunner instance.
+    ///
+    /// This function acts as an alias for `getUsedCells`, obtaining the number of used instances
+    /// based on the OutputBuiltinRunner's base address through the MemorySegmentManager.
+    ///
+    /// # Arguments
+    ///
+    /// - `self`: A pointer to the OutputBuiltinRunner instance.
+    /// - `segments`: A pointer to the MemorySegmentManager managing memory segments.
+    ///
+    /// # Returns
+    ///
+    /// The count of used instances associated with the OutputBuiltinRunner's base address.
+    /// If the information is unavailable, it returns MemoryError.MissingSegmentUsedSizes.
+    pub fn getUsedInstances(self: *Self, segments: *MemorySegmentManager) !u32 {
+        return try self.getUsedCells(segments);
+    }
+
     pub fn deduceMemoryCell(
         self: *const Self,
         address: Relocatable,
@@ -200,5 +218,26 @@ test "OutputBuiltinRunner: getUsedCells should return the number of used cells" 
             @intCast(10),
         ),
         try output_builtin.getUsedCells(memory_segment_manager),
+    );
+}
+
+test "OutputBuiltinRunner: getUsedInstances should return memory error if segment used size is null" {
+    var output_builtin = OutputBuiltinRunner.init(true);
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try expectError(
+        MemoryError.MissingSegmentUsedSizes,
+        output_builtin.getUsedInstances(memory_segment_manager),
+    );
+}
+
+test "OutputBuiltinRunner: getUsedInstances should return the number of used instances" {
+    var output_builtin = OutputBuiltinRunner.init(true);
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.segment_used_sizes.put(0, 345);
+    try expectEqual(
+        @as(u32, @intCast(345)),
+        try output_builtin.getUsedInstances(memory_segment_manager),
     );
 }
