@@ -171,6 +171,22 @@ pub const OutputBuiltinRunner = struct {
         return pointer;
     }
 
+    /// Retrieves the memory segment addresses associated with the OutputBuiltinRunner instance.
+    ///
+    /// This function returns a Tuple containing the base and stop pointer addresses
+    /// related to the OutputBuiltinRunner's memory segments configuration.
+    ///
+    /// # Arguments
+    ///
+    /// - `self`: A pointer to the OutputBuiltinRunner instance.
+    ///
+    /// # Returns
+    ///
+    /// A Tuple containing the base and stop pointer addresses, indicating the memory segment configuration.
+    pub fn getMemorySegmentAddresses(self: *Self) std.meta.Tuple(&.{ usize, ?usize }) {
+        return .{ self.base, self.stop_ptr };
+    }
+
     pub fn deduceMemoryCell(
         self: *const Self,
         address: Relocatable,
@@ -454,5 +470,17 @@ test "OutputBuiltinRunner: finalStack should return stop pointer address and upd
     try expectEqual(
         @as(?usize, @intCast(345)),
         output_builtin.stop_ptr.?,
+    );
+}
+
+test "OutputBuiltinRunner: getMemorySegmentAddresses should return base and stop pointer" {
+    var output_builtin = OutputBuiltinRunner.init(true);
+    output_builtin.base = 22;
+    try expectEqual(
+        @as(
+            std.meta.Tuple(&.{ usize, ?usize }),
+            .{ 22, null },
+        ),
+        output_builtin.getMemorySegmentAddresses(),
     );
 }
