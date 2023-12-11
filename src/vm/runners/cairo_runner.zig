@@ -161,6 +161,15 @@ pub const CairoRunner = struct {
         self.run_ended = true;
     }
 
+    pub fn consolidateTrace(self: *Self) ![]RelocatedTraceEntry {
+        const relocation_table = try self.vm.segments.relocateSegments(self.allocator);
+        std.debug.print("Before relocate trace {any}\n", .{ self.vm.trace_context.state.enabled.entries.items.len });
+        try self.vm.relocateTrace(relocation_table);
+
+        const relocated_trace = self.vm.trace_context.state.enabled.relocated_trace_entries.items;
+        return relocated_trace;
+    }
+
     pub fn deinit(self: *Self) void {
         // currently handling the deinit of the json.Parsed(Program) outside of constructor
         // otherwise the runner would always assume json in its interface
@@ -183,7 +192,7 @@ pub fn writeEncodedTrace(relocated_trace: []const RelocatedTraceEntry, dest: *st
 }
 
 pub fn runConfig(allocator: Allocator, config: Config) !void {
-    var vm = try vm_core.CairoVM.init(
+    const vm = try vm_core.CairoVM.init(
         allocator,
         config,
     );
@@ -201,21 +210,12 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
 
  
     if (config.output_trace) |trace_path| {
-        const relocation_table = try vm.segments.relocateSegments(allocator);
-        defer allocator.free(relocation_table);
-        try vm.relocateTrace(relocation_table);
-
-        const relocated_trace = runner.relocated_trace;
+        const relocated_trace = try runner.consolidateTrace();
 
         const trace_file = try std.fs.cwd().createFile(trace_path, .{});
         defer trace_file.close();
+        
         var trace_writer = trace_file.writer();
-
-        std.log.debug("Relocation trace...\n", .{});
-        for (relocated_trace) |entry| {
-            std.debug.print("{}, {}, {}\n", .{entry.ap, entry.fp, entry.pc});
-        }
-
         try writeEncodedTrace(relocated_trace, &trace_writer);
     }
 }

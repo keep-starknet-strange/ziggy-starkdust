@@ -37,7 +37,8 @@ pub const TraceContext = struct {
         fp: *Relocatable,
     };
 
-    /// An entry recorded representing the relocated trace of the VM.
+    /// A trace entry for every instruction that was executed.
+    /// Holds the register values before the instruction was executed, after going through the relocation process.
     pub const RelocatedTraceEntry = struct {
         pc: Felt252,
         ap: Felt252,
