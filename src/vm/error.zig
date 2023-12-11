@@ -106,6 +106,7 @@ pub const MathError = error{
     RelocatableSubUsizeNegOffset,
     /// Value is too large to be coerced to a u64.
     ValueTooLarge,
+    SubWithOverflow,
 };
 
 /// Represents different error conditions that occur in trace relocation

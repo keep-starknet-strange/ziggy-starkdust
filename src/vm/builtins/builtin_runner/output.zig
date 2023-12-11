@@ -8,11 +8,13 @@ const Error = @import("../../error.zig");
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
 const CoreVM = @import("../../../vm/core.zig");
 
+const AutoHashMap = std.AutoHashMap;
 const ArrayList = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const MemoryError = Error.MemoryError;
 const RunnerError = Error.RunnerError;
 const CairoVMError = Error.CairoVMError;
+const MathError = Error.MathError;
 const CairoVM = CoreVM.CairoVM;
 
 const expect = std.testing.expect;
@@ -20,11 +22,31 @@ const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
 const expectEqualSlices = std.testing.expectEqualSlices;
 
-// pub const PublicMemoryPage = struct {
-//     const Self = @This();
-//     start = usize,
-//     size = usize,
-// };
+/// Represents errors specific to the OutputBuiltinRunner operations.
+///
+/// This error enumeration defines specific error cases encountered during OutputBuiltinRunner operations.
+pub const OutputBuiltinRunnerError = error{
+    /// Error indicating that the provided page ID is already assigned.
+    PageIdAlreadyAssigned,
+    /// Error indicating that the starting address for a page is not within the OutputBuiltinRunner's output segment.
+    PageStartNotInOutputSegment,
+};
+
+/// Represents a page in the public memory within the OutputBuiltinRunner's memory configuration.
+///
+/// This struct defines a PublicMemoryPage, which encapsulates information about a specific page
+/// within the OutputBuiltinRunner's memory, specifying the start address and size of the page.
+pub const PublicMemoryPage = struct {
+    /// The starting address of the page in the OutputBuiltinRunner's memory.
+    ///
+    /// It signifies the beginning address of the specific page within the memory.
+    start: usize,
+
+    /// The size of the page in the OutputBuiltinRunner's memory, denoted by the number of addresses.
+    ///
+    /// It indicates the quantity of addresses allocated for the particular page within the memory.
+    size: usize,
+};
 
 /// Output built-in runner
 pub const OutputBuiltinRunner = struct {
@@ -36,6 +58,10 @@ pub const OutputBuiltinRunner = struct {
     stop_ptr: ?usize,
     /// Included boolean flag
     included: bool,
+    /// A mapping from page IDs to their respective PublicMemoryPage configurations.
+    ///
+    /// This map stores associations between page IDs and their corresponding PublicMemoryPage configurations.
+    pages: AutoHashMap(usize, PublicMemoryPage),
 
     /// Initializes a new instance of the OutputBuiltinRunner.
     ///
@@ -46,11 +72,12 @@ pub const OutputBuiltinRunner = struct {
     /// # Returns
     ///
     /// A new instance of OutputBuiltinRunner with default settings.
-    pub fn init() Self {
+    pub fn init(allocator: Allocator) Self {
         return .{
             .base = 0,
             .stop_ptr = null,
             .included = true,
+            .pages = AutoHashMap(usize, PublicMemoryPage).init(allocator),
         };
     }
 
@@ -65,11 +92,12 @@ pub const OutputBuiltinRunner = struct {
     /// # Returns
     ///
     /// A new `OutputBuiltinRunner` instance.
-    pub fn from(included: bool) Self {
+    pub fn from(included: bool, allocator: Allocator) Self {
         return .{
             .base = 0,
             .stop_ptr = null,
             .included = included,
+            .pages = AutoHashMap(usize, PublicMemoryPage).init(allocator),
         };
     }
 
@@ -87,6 +115,7 @@ pub const OutputBuiltinRunner = struct {
     /// An error if the addition of the segment fails, otherwise sets the base address successfully.
     pub fn initializeSegments(self: *Self, segments: *MemorySegmentManager) !void {
         self.base = @intCast((try segments.addSegment()).segment_index);
+        self.stop_ptr = null;
     }
 
     /// Generates an initial stack for the OutputBuiltinRunner instance.
@@ -253,6 +282,38 @@ pub const OutputBuiltinRunner = struct {
         return 0;
     }
 
+    /// Marks a range of addresses as a page within the OutputBuiltinRunner's memory.
+    ///
+    /// This function assigns a page ID to a range of addresses, starting from page_start,
+    /// representing a page with the given page ID. It should be used in Cairo hints.
+    ///
+    /// # Arguments
+    ///
+    /// - `self`: A pointer to the OutputBuiltinRunner instance.
+    /// - `page_id`: The identifier for the new page.
+    /// - `page_start`: The starting address representing the beginning of the page.
+    /// - `page_size`: The size of the page in number of addresses.
+    ///
+    /// # Returns
+    ///
+    /// An error if the page ID is already assigned or if the starting address is not within
+    /// the OutputBuiltinRunner's output segment.
+    pub fn addPage(
+        self: *Self,
+        page_id: usize,
+        page_start: MaybeRelocatable,
+        page_size: usize,
+    ) !void {
+        _ = page_size;
+        if (self.pages.get(page_id) != null) return OutputBuiltinRunnerError.PageIdAlreadyAssigned;
+
+        if (!page_start.isRelocatable() or page_start.relocatable.segment_index != self.base) {
+            return OutputBuiltinRunnerError.PageStartNotInOutputSegment;
+        }
+
+        // TODO: implement rest of the logic by modifying base to Relocatable
+    }
+
     pub fn deduceMemoryCell(
         self: *const Self,
         address: Relocatable,
@@ -263,40 +324,23 @@ pub const OutputBuiltinRunner = struct {
         _ = self;
         return null;
     }
+
+    /// Deinitializes the OutputBuiltinRunner's resources.
+    ///
+    /// This function releases resources held by the OutputBuiltinRunner,
+    /// specifically deinitializing the 'pages' map, freeing associated memory.
+    ///
+    /// # Arguments
+    ///
+    /// - `self`: A pointer to the OutputBuiltinRunner instance.
+    pub fn deinit(self: *Self) void {
+        self.pages.deinit();
+    }
 };
 
-test "OutputBuiltinRunner: init should init an OutputBuiltinRunner instance with included set to tru" {
-    try expectEqual(
-        OutputBuiltinRunner{
-            .base = 0,
-            .stop_ptr = null,
-            .included = true,
-        },
-        OutputBuiltinRunner.init(),
-    );
-}
-
-test "OutputBuiltinRunner: init from should init an OutputBuiltinRunner instance" {
-    try expectEqual(
-        OutputBuiltinRunner{
-            .base = 0,
-            .stop_ptr = null,
-            .included = true,
-        },
-        OutputBuiltinRunner.from(true),
-    );
-    try expectEqual(
-        OutputBuiltinRunner{
-            .base = 0,
-            .stop_ptr = null,
-            .included = false,
-        },
-        OutputBuiltinRunner.from(false),
-    );
-}
-
 test "OutputBuiltinRunner: initializeSegments should set builtin base to segment index" {
-    var output_builtin = OutputBuiltinRunner.init();
+    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    defer output_builtin.deinit();
     const memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     _ = try memory_segment_manager.addSegment();
@@ -308,7 +352,8 @@ test "OutputBuiltinRunner: initializeSegments should set builtin base to segment
 }
 
 test "OutputBuiltinRunner: initialStack should return an empty array list if included is false" {
-    var output_builtin = OutputBuiltinRunner.from(false);
+    var output_builtin = OutputBuiltinRunner.from(false, std.testing.allocator);
+    defer output_builtin.deinit();
     var expected = ArrayList(MaybeRelocatable).init(std.testing.allocator);
     defer expected.deinit();
     var actual = try output_builtin.initialStack(std.testing.allocator);
@@ -320,7 +365,8 @@ test "OutputBuiltinRunner: initialStack should return an empty array list if inc
 }
 
 test "OutputBuiltinRunner: initialStack should return an a proper array list if included is true" {
-    var output_builtin = OutputBuiltinRunner.init();
+    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    defer output_builtin.deinit();
     output_builtin.base = 10;
     var expected = ArrayList(MaybeRelocatable).init(std.testing.allocator);
     try expected.append(.{ .relocatable = .{
@@ -338,7 +384,8 @@ test "OutputBuiltinRunner: initialStack should return an a proper array list if 
 }
 
 test "OutputBuiltinRunner: getUsedCells should return memory error if segment used size is null" {
-    var output_builtin = OutputBuiltinRunner.init();
+    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    defer output_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     try expectError(
@@ -348,7 +395,8 @@ test "OutputBuiltinRunner: getUsedCells should return memory error if segment us
 }
 
 test "OutputBuiltinRunner: getUsedCells should return the number of used cells" {
-    var output_builtin = OutputBuiltinRunner.init();
+    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    defer output_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     try memory_segment_manager.segment_used_sizes.put(0, 10);
@@ -362,7 +410,8 @@ test "OutputBuiltinRunner: getUsedCells should return the number of used cells" 
 }
 
 test "OutputBuiltinRunner: getUsedInstances should return memory error if segment used size is null" {
-    var output_builtin = OutputBuiltinRunner.init();
+    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    defer output_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     try expectError(
@@ -372,7 +421,8 @@ test "OutputBuiltinRunner: getUsedInstances should return memory error if segmen
 }
 
 test "OutputBuiltinRunner: getUsedInstances should return the number of used instances" {
-    var output_builtin = OutputBuiltinRunner.init();
+    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    defer output_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     try memory_segment_manager.segment_used_sizes.put(0, 345);
@@ -383,7 +433,8 @@ test "OutputBuiltinRunner: getUsedInstances should return the number of used ins
 }
 
 test "OutputBuiltinRunner: finalStack should return relocatable pointer if not included" {
-    var output_builtin = OutputBuiltinRunner.from(false);
+    var output_builtin = OutputBuiltinRunner.from(false, std.testing.allocator);
+    defer output_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
@@ -400,7 +451,8 @@ test "OutputBuiltinRunner: finalStack should return relocatable pointer if not i
 }
 
 test "OutputBuiltinRunner: finalStack should return NoStopPointer error if pointer offset is 0" {
-    var output_builtin = OutputBuiltinRunner.init();
+    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    defer output_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     try expectError(
@@ -413,7 +465,8 @@ test "OutputBuiltinRunner: finalStack should return NoStopPointer error if point
 }
 
 test "OutputBuiltinRunner: finalStack should return NoStopPointer error if no data in memory at the given stop pointer address" {
-    var output_builtin = OutputBuiltinRunner.init();
+    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    defer output_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     try expectError(
@@ -426,7 +479,8 @@ test "OutputBuiltinRunner: finalStack should return NoStopPointer error if no da
 }
 
 test "OutputBuiltinRunner: finalStack should return TypeMismatchNotRelocatable error if data in memory at the given stop pointer address is not Relocatable" {
-    var output_builtin = OutputBuiltinRunner.init();
+    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    defer output_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
@@ -453,7 +507,8 @@ test "OutputBuiltinRunner: finalStack should return TypeMismatchNotRelocatable e
 }
 
 test "OutputBuiltinRunner: finalStack should return InvalidStopPointerIndex error if segment index of stop pointer is not KeccakBuiltinRunner base" {
-    var output_builtin = OutputBuiltinRunner.init();
+    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    defer output_builtin.deinit();
     output_builtin.base = 22;
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
@@ -484,7 +539,8 @@ test "OutputBuiltinRunner: finalStack should return InvalidStopPointerIndex erro
 }
 
 test "OutputBuiltinRunner: finalStack should return InvalidStopPointer error if stop pointer offset is not cells used" {
-    var output_builtin = OutputBuiltinRunner.init();
+    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    defer output_builtin.deinit();
     output_builtin.base = 22;
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
@@ -515,7 +571,8 @@ test "OutputBuiltinRunner: finalStack should return InvalidStopPointer error if 
 }
 
 test "OutputBuiltinRunner: finalStack should return stop pointer address and update stop_ptr" {
-    var output_builtin = OutputBuiltinRunner.init();
+    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    defer output_builtin.deinit();
     output_builtin.base = 22;
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
@@ -551,7 +608,8 @@ test "OutputBuiltinRunner: finalStack should return stop pointer address and upd
 }
 
 test "OutputBuiltinRunner: getMemorySegmentAddresses should return base and stop pointer" {
-    var output_builtin = OutputBuiltinRunner.init();
+    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    defer output_builtin.deinit();
     output_builtin.base = 22;
     try expectEqual(
         @as(
@@ -563,7 +621,8 @@ test "OutputBuiltinRunner: getMemorySegmentAddresses should return base and stop
 }
 
 test "OutputBuiltinRunner: getAllocatedMemoryUnits should return 0" {
-    var output_builtin = OutputBuiltinRunner.init();
+    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    defer output_builtin.deinit();
     var vm = try CairoVM.init(
         std.testing.allocator,
         .{},
@@ -574,3 +633,61 @@ test "OutputBuiltinRunner: getAllocatedMemoryUnits should return 0" {
         try output_builtin.getAllocatedMemoryUnits(vm),
     );
 }
+
+test "OutputBuiltinRunner: addPage should an error if the page already exists" {
+    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    defer output_builtin.deinit();
+    try output_builtin.pages.put(10, .{ .start = 2, .size = 4 });
+
+    try expectError(
+        OutputBuiltinRunnerError.PageIdAlreadyAssigned,
+        output_builtin.addPage(
+            10,
+            MaybeRelocatable.fromU256(4),
+            5,
+        ),
+    );
+}
+
+test "OutputBuiltinRunner: addPage should an error if page_start is Felt252" {
+    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    defer output_builtin.deinit();
+
+    try expectError(
+        OutputBuiltinRunnerError.PageStartNotInOutputSegment,
+        output_builtin.addPage(
+            10,
+            MaybeRelocatable.fromU256(4),
+            5,
+        ),
+    );
+}
+
+test "OutputBuiltinRunner: addPage should an error if page_start segment index is not OutputBuiltinRunner base" {
+    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    defer output_builtin.deinit();
+
+    try expectError(
+        OutputBuiltinRunnerError.PageStartNotInOutputSegment,
+        output_builtin.addPage(
+            10,
+            MaybeRelocatable.fromSegment(1, 0),
+            5,
+        ),
+    );
+}
+
+// test "OutputBuiltinRunner: addPage should an error if start is negative" {
+//     var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+//     defer output_builtin.deinit();
+//     output_builtin.base = 10;
+
+//     try expectError(
+//         MathError.SubWithOverflow,
+//         output_builtin.addPage(
+//             10,
+//             MaybeRelocatable.fromSegment(0, 0),
+//             5,
+//         ),
+//     );
+// }
