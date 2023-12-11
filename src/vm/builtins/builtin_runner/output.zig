@@ -1,11 +1,14 @@
 const std = @import("std");
-const ArrayList = std.ArrayList;
-const Allocator = std.mem.Allocator;
 
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
 const Memory = @import("../../memory/memory.zig").Memory;
 const MemorySegmentManager = @import("../../memory/segments.zig").MemorySegmentManager;
+const Error = @import("../../error.zig");
+
+const ArrayList = std.ArrayList;
+const Allocator = std.mem.Allocator;
+const MemoryError = Error.MemoryError;
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -83,6 +86,26 @@ pub const OutputBuiltinRunner = struct {
         return result;
     }
 
+    /// Retrieves the number of used memory cells for the OutputBuiltinRunner instance.
+    ///
+    /// This function queries the MemorySegmentManager to obtain the count of used cells
+    /// based on the base address of the OutputBuiltinRunner.
+    ///
+    /// # Arguments
+    ///
+    /// - `self`: A pointer to the OutputBuiltinRunner instance.
+    /// - `segments`: A pointer to the MemorySegmentManager managing memory segments.
+    ///
+    /// # Returns
+    ///
+    /// The count of used memory cells associated with the OutputBuiltinRunner's base address.
+    /// If the information is unavailable, it returns MemoryError.MissingSegmentUsedSizes.
+    pub fn getUsedCells(self: *Self, segments: *MemorySegmentManager) !u32 {
+        return segments.getSegmentUsedSize(
+            @intCast(self.base),
+        ) orelse MemoryError.MissingSegmentUsedSizes;
+    }
+
     pub fn deduceMemoryCell(
         self: *const Self,
         address: Relocatable,
@@ -153,5 +176,29 @@ test "OutputBuiltinRunner: initialStack should return an a proper array list if 
         MaybeRelocatable,
         expected.items,
         actual.items,
+    );
+}
+
+test "OutputBuiltinRunner: getUsedCells should return memory error if segment used size is null" {
+    var output_builtin = OutputBuiltinRunner.init(true);
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try expectError(
+        MemoryError.MissingSegmentUsedSizes,
+        output_builtin.getUsedCells(memory_segment_manager),
+    );
+}
+
+test "OutputBuiltinRunner: getUsedCells should return the number of used cells" {
+    var output_builtin = OutputBuiltinRunner.init(true);
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.segment_used_sizes.put(0, 10);
+    try expectEqual(
+        @as(
+            u32,
+            @intCast(10),
+        ),
+        try output_builtin.getUsedCells(memory_segment_manager),
     );
 }
