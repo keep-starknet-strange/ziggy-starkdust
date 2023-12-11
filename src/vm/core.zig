@@ -229,8 +229,16 @@ pub const CairoVM = struct {
         // TODO: Run hints.
 
         std.log.debug(
-            "Running instruction at pc: {}",
+            "Running instruction at pc: {}\n",
             .{self.run_context.pc.*},
+        );
+        std.log.debug(
+            "Running instruction, ap: {}\n",
+            .{self.run_context.ap.*},
+        );
+        std.log.debug(
+            "Running instruction, fp: {}\n",
+            .{self.run_context.fp.*},
         );
 
         // ************************************************************
@@ -693,6 +701,9 @@ pub const CairoVM = struct {
                         .ap = Felt252.fromInteger(try entry.ap.relocateAddress(relocation_table)),
                         .fp = Felt252.fromInteger(try entry.fp.relocateAddress(relocation_table)),
                     });
+                    std.debug.print("RELOCATED PC: {any}\n", .{entry.pc});
+                    std.debug.print("RELOCATED AP: {any}\n", .{entry.ap});
+                    std.debug.print("RELOCATED FP: {any}\n", .{entry.fp});
                 }
                 self.trace_relocated = true;
             },

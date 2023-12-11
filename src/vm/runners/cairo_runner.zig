@@ -182,9 +182,11 @@ pub const CairoRunner = struct {
 };
 
 pub fn writeEncodedTrace(relocated_trace: []const RelocatedTraceEntry, dest: *std.fs.File.Writer) !void {
-    var i: usize = 0;
-    while (i < relocated_trace.len) : (i += 1) {
-        const entry = relocated_trace[i];
+    std.debug.print("LENGTH OF TRACE: {any}\n", .{relocated_trace.len});    
+    for (relocated_trace) |entry| {
+        std.debug.print("ENTRY AP: {any}\n", .{entry.ap.tryIntoU64()});
+        std.debug.print("ENTRY FP: {any}\n", .{entry.fp.tryIntoU64()});
+        std.debug.print("ENTRY PC: {any}\n", .{entry.pc.tryIntoU64()});
         _ = try dest.write(&std.mem.toBytes(entry.ap.tryIntoU64()));
         _ = try dest.write(&std.mem.toBytes(entry.fp.tryIntoU64()));
         _ = try dest.write(&std.mem.toBytes(entry.pc.tryIntoU64()));
