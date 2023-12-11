@@ -6,12 +6,14 @@ const Memory = @import("../../memory/memory.zig").Memory;
 const MemorySegmentManager = @import("../../memory/segments.zig").MemorySegmentManager;
 const Error = @import("../../error.zig");
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
+const CoreVM = @import("../../../vm/core.zig");
 
 const ArrayList = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const MemoryError = Error.MemoryError;
 const RunnerError = Error.RunnerError;
 const CairoVMError = Error.CairoVMError;
+const CairoVM = CoreVM.CairoVM;
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -185,6 +187,24 @@ pub const OutputBuiltinRunner = struct {
     /// A Tuple containing the base and stop pointer addresses, indicating the memory segment configuration.
     pub fn getMemorySegmentAddresses(self: *Self) std.meta.Tuple(&.{ usize, ?usize }) {
         return .{ self.base, self.stop_ptr };
+    }
+
+    /// Retrieves the count of allocated memory units for the OutputBuiltinRunner instance within the CairoVM.
+    ///
+    /// This function currently returns 0.
+    ///
+    /// # Arguments
+    ///
+    /// - `self`: A pointer to the OutputBuiltinRunner instance.
+    /// - `vm`: The CairoVM instance associated with the runner.
+    ///
+    /// # Returns
+    ///
+    /// The count of allocated memory units, which is currently 0.
+    pub fn getAllocatedMemoryUnits(self: *Self, vm: CairoVM) !usize {
+        _ = self;
+        _ = vm;
+        return 0;
     }
 
     pub fn deduceMemoryCell(
@@ -482,5 +502,18 @@ test "OutputBuiltinRunner: getMemorySegmentAddresses should return base and stop
             .{ 22, null },
         ),
         output_builtin.getMemorySegmentAddresses(),
+    );
+}
+
+test "OutputBuiltinRunner: getAllocatedMemoryUnits should return 0" {
+    var output_builtin = OutputBuiltinRunner.init(true);
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+    try expectEqual(
+        @as(usize, 0),
+        try output_builtin.getAllocatedMemoryUnits(vm),
     );
 }
