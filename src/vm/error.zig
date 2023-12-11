@@ -93,6 +93,7 @@ pub const RunnerError = error{
     BuiltinExpectedInteger,
     /// Integer value exceeds a power of two.
     IntegerBiggerThanPowerOfTwo,
+    Memory,
 };
 
 /// Represents different error conditions that occur during mathematical operations.

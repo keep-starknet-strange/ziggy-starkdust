@@ -5,10 +5,13 @@ const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatabl
 const Memory = @import("../../memory/memory.zig").Memory;
 const MemorySegmentManager = @import("../../memory/segments.zig").MemorySegmentManager;
 const Error = @import("../../error.zig");
+const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
 
 const ArrayList = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const MemoryError = Error.MemoryError;
+const RunnerError = Error.RunnerError;
+const CairoVMError = Error.CairoVMError;
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -122,6 +125,50 @@ pub const OutputBuiltinRunner = struct {
     /// If the information is unavailable, it returns MemoryError.MissingSegmentUsedSizes.
     pub fn getUsedInstances(self: *Self, segments: *MemorySegmentManager) !u32 {
         return try self.getUsedCells(segments);
+    }
+
+    /// Finalizes the stack configuration for the OutputBuiltinRunner instance.
+    ///
+    /// This function determines the final stop pointer for the stack and sets the stop pointer value
+    /// for the OutputBuiltinRunner, handling conditions based on inclusion status and pointer validity.
+    ///
+    /// # Arguments
+    ///
+    /// - `self`: A pointer to the OutputBuiltinRunner instance.
+    /// - `segments`: A pointer to the MemorySegmentManager managing memory segments.
+    /// - `pointer`: The Relocatable pointer indicating the stack configuration.
+    ///
+    /// # Returns
+    ///
+    /// The finalized stop pointer address or the updated pointer based on the inclusion status.
+    /// It returns specific RunnerError types if invalid or missing pointers are encountered.
+    pub fn finalStack(
+        self: *Self,
+        segments: *MemorySegmentManager,
+        pointer: Relocatable,
+    ) !Relocatable {
+        if (self.included) {
+            const stop_pointer_addr = pointer.subUint(
+                @intCast(1),
+            ) catch return RunnerError.NoStopPointer;
+            const stop_pointer = try (segments.memory.get(stop_pointer_addr) orelse return RunnerError.NoStopPointer).tryIntoRelocatable();
+            if (@as(
+                isize,
+                @intCast(self.base),
+            ) != stop_pointer.segment_index) {
+                return RunnerError.InvalidStopPointerIndex;
+            }
+            const stop_ptr = stop_pointer.offset;
+
+            if (stop_ptr != self.getUsedCells(segments) catch return RunnerError.Memory) {
+                return RunnerError.InvalidStopPointer;
+            }
+            self.stop_ptr = stop_ptr;
+            return stop_pointer_addr;
+        }
+
+        self.stop_ptr = 0;
+        return pointer;
     }
 
     pub fn deduceMemoryCell(
@@ -239,5 +286,173 @@ test "OutputBuiltinRunner: getUsedInstances should return the number of used ins
     try expectEqual(
         @as(u32, @intCast(345)),
         try output_builtin.getUsedInstances(memory_segment_manager),
+    );
+}
+
+test "OutputBuiltinRunner: finalStack should return relocatable pointer if not included" {
+    var output_builtin = OutputBuiltinRunner.init(false);
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+
+    try expectEqual(
+        Relocatable.init(
+            2,
+            2,
+        ),
+        try output_builtin.finalStack(
+            memory_segment_manager,
+            Relocatable.init(2, 2),
+        ),
+    );
+}
+
+test "OutputBuiltinRunner: finalStack should return NoStopPointer error if pointer offset is 0" {
+    var output_builtin = OutputBuiltinRunner.init(true);
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try expectError(
+        RunnerError.NoStopPointer,
+        output_builtin.finalStack(
+            memory_segment_manager,
+            Relocatable.init(2, 0),
+        ),
+    );
+}
+
+test "OutputBuiltinRunner: finalStack should return NoStopPointer error if no data in memory at the given stop pointer address" {
+    var output_builtin = OutputBuiltinRunner.init(true);
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    try expectError(
+        RunnerError.NoStopPointer,
+        output_builtin.finalStack(
+            memory_segment_manager,
+            Relocatable.init(2, 2),
+        ),
+    );
+}
+
+test "OutputBuiltinRunner: finalStack should return TypeMismatchNotRelocatable error if data in memory at the given stop pointer address is not Relocatable" {
+    var output_builtin = OutputBuiltinRunner.init(true);
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
+    try memory_segment_manager.memory.set(
+        std.testing.allocator,
+        try Relocatable.init(
+            2,
+            2,
+        ).subUint(@intCast(1)),
+        .{ .felt = Felt252.fromInteger(10) },
+    );
+    defer memory_segment_manager.memory.deinitData(std.testing.allocator);
+
+    try expectError(
+        CairoVMError.TypeMismatchNotRelocatable,
+        output_builtin.finalStack(
+            memory_segment_manager,
+            Relocatable.init(2, 2),
+        ),
+    );
+}
+
+test "OutputBuiltinRunner: finalStack should return InvalidStopPointerIndex error if segment index of stop pointer is not KeccakBuiltinRunner base" {
+    var output_builtin = OutputBuiltinRunner.init(true);
+    output_builtin.base = 22;
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
+    try memory_segment_manager.memory.set(
+        std.testing.allocator,
+        try Relocatable.init(
+            2,
+            2,
+        ).subUint(@intCast(1)),
+        .{ .relocatable = Relocatable.init(
+            10,
+            2,
+        ) },
+    );
+    defer memory_segment_manager.memory.deinitData(std.testing.allocator);
+
+    try expectError(
+        RunnerError.InvalidStopPointerIndex,
+        output_builtin.finalStack(
+            memory_segment_manager,
+            Relocatable.init(2, 2),
+        ),
+    );
+}
+
+test "OutputBuiltinRunner: finalStack should return InvalidStopPointer error if stop pointer offset is not cells used" {
+    var output_builtin = OutputBuiltinRunner.init(true);
+    output_builtin.base = 22;
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
+    try memory_segment_manager.memory.set(
+        std.testing.allocator,
+        try Relocatable.init(
+            2,
+            2,
+        ).subUint(@intCast(1)),
+        .{ .relocatable = Relocatable.init(
+            22,
+            2,
+        ) },
+    );
+    defer memory_segment_manager.memory.deinitData(std.testing.allocator);
+
+    try memory_segment_manager.segment_used_sizes.put(22, 345);
+    try expectError(
+        RunnerError.InvalidStopPointer,
+        output_builtin.finalStack(
+            memory_segment_manager,
+            Relocatable.init(2, 2),
+        ),
+    );
+}
+
+test "OutputBuiltinRunner: finalStack should return stop pointer address and update stop_ptr" {
+    var output_builtin = OutputBuiltinRunner.init(true);
+    output_builtin.base = 22;
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
+    _ = try memory_segment_manager.addSegment();
+    try memory_segment_manager.memory.set(
+        std.testing.allocator,
+        try Relocatable.init(
+            2,
+            2,
+        ).subUint(@intCast(1)),
+        .{ .relocatable = Relocatable.init(
+            22,
+            345,
+        ) },
+    );
+    defer memory_segment_manager.memory.deinitData(std.testing.allocator);
+
+    try memory_segment_manager.segment_used_sizes.put(22, 345);
+    try expectEqual(
+        Relocatable.init(2, 1),
+        try output_builtin.finalStack(
+            memory_segment_manager,
+            Relocatable.init(2, 2),
+        ),
+    );
+    try expectEqual(
+        @as(?usize, @intCast(345)),
+        output_builtin.stop_ptr.?,
     );
 }
