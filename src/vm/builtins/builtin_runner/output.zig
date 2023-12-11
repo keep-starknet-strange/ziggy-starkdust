@@ -1,4 +1,7 @@
 const std = @import("std");
+const ArrayList = std.ArrayList;
+const Allocator = std.mem.Allocator;
+
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
 const Memory = @import("../../memory/memory.zig").Memory;
@@ -55,6 +58,31 @@ pub const OutputBuiltinRunner = struct {
         self.base = @intCast((try segments.addSegment()).segment_index);
     }
 
+    /// Generates an initial stack for the OutputBuiltinRunner instance.
+    ///
+    /// This function initializes an ArrayList of MaybeRelocatable elements representing the initial stack.
+    ///
+    /// # Arguments
+    ///
+    /// - `self`: A pointer to the OutputBuiltinRunner instance.
+    /// - `allocator`: The allocator to initialize the ArrayList.
+    ///
+    /// # Returns
+    ///
+    /// An ArrayList of MaybeRelocatable elements representing the initial stack.
+    /// If the instance is marked as included, a single element initialized with the base address is returned.
+    pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
+        var result = ArrayList(MaybeRelocatable).init(allocator);
+        if (self.included) {
+            try result.append(MaybeRelocatable.fromSegment(
+                @intCast(self.base),
+                0,
+            ));
+            return result;
+        }
+        return result;
+    }
+
     pub fn deduceMemoryCell(
         self: *const Self,
         address: Relocatable,
@@ -95,5 +123,35 @@ test "OutputBuiltinRunner: initializeSegments should set builtin base to segment
     try expectEqual(
         @as(usize, 1),
         output_builtin.base,
+    );
+}
+
+test "OutputBuiltinRunner: initialStack should return an empty array list if included is false" {
+    var output_builtin = OutputBuiltinRunner.init(false);
+    var expected = ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    defer expected.deinit();
+    var actual = try output_builtin.initialStack(std.testing.allocator);
+    defer actual.deinit();
+    try expectEqual(
+        expected,
+        actual,
+    );
+}
+
+test "OutputBuiltinRunner: initialStack should return an a proper array list if included is true" {
+    var output_builtin = OutputBuiltinRunner.init(true);
+    output_builtin.base = 10;
+    var expected = ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try expected.append(.{ .relocatable = .{
+        .segment_index = 10,
+        .offset = 0,
+    } });
+    defer expected.deinit();
+    var actual = try output_builtin.initialStack(std.testing.allocator);
+    defer actual.deinit();
+    try expectEqualSlices(
+        MaybeRelocatable,
+        expected.items,
+        actual.items,
     );
 }
