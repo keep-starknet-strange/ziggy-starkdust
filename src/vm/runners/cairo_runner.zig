@@ -161,9 +161,9 @@ pub const CairoRunner = struct {
         self.run_ended = true;
     }
 
+    /// Ensures that the trace is relocated and is retrievable from the VM and returns it.
     pub fn consolidateTrace(self: *Self) ![]RelocatedTraceEntry {
         const relocation_table = try self.vm.segments.relocateSegments(self.allocator);
-        std.debug.print("Before relocate trace {any}\n", .{ self.vm.trace_context.state.enabled.entries.items.len });
         try self.vm.relocateTrace(relocation_table);
 
         const relocated_trace = self.vm.trace_context.state.enabled.relocated_trace_entries.items;
