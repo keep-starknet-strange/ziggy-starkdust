@@ -101,11 +101,7 @@ pub const KeccakBuiltinRunner = struct {
     /// - `self`: Updates the `base` value to the new segment's index.
     pub fn initializeSegments(self: *Self, segments: *MemorySegmentManager) !void {
         // `segments.addSegment()` always returns a positive index
-        const seg = try segments.addSegment();
-        self.base = @as(
-            usize,
-            @intCast(seg.segment_index),
-        );
+        self.base = @intCast((try segments.addSegment()).segment_index);
     }
 
     /// Initializes and returns an `ArrayList` of `MaybeRelocatable` values.
