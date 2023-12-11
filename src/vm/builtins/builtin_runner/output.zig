@@ -20,6 +20,12 @@ const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
 const expectEqualSlices = std.testing.expectEqualSlices;
 
+// pub const PublicMemoryPage = struct {
+//     const Self = @This();
+//     start = usize,
+//     size = usize,
+// };
+
 /// Output built-in runner
 pub const OutputBuiltinRunner = struct {
     const Self = @This();
@@ -133,6 +139,8 @@ pub const OutputBuiltinRunner = struct {
     /// This function acts as an alias for `getUsedCells`, obtaining the number of used instances
     /// based on the OutputBuiltinRunner's base address through the MemorySegmentManager.
     ///
+    /// Output builtin has one cell per instance.
+    ///
     /// # Arguments
     ///
     /// - `self`: A pointer to the OutputBuiltinRunner instance.
@@ -144,6 +152,27 @@ pub const OutputBuiltinRunner = struct {
     /// If the information is unavailable, it returns MemoryError.MissingSegmentUsedSizes.
     pub fn getUsedInstances(self: *Self, segments: *MemorySegmentManager) !u32 {
         return try self.getUsedCells(segments);
+    }
+
+    /// Retrieves the count of used cells and their allocated size for the OutputBuiltinRunner.
+    ///
+    /// This function obtains the count of used cells from the MemorySegmentManager
+    /// and returns a Tuple containing the size of used cells and their allocated size (both identical).
+    ///
+    /// # Arguments
+    ///
+    /// - `self`: A pointer to the OutputBuiltinRunner instance.
+    /// - `segments`: A pointer to the MemorySegmentManager managing memory segments.
+    ///
+    /// # Returns
+    ///
+    /// A Tuple containing the count of used cells and their allocated size, both with the same value.
+    pub fn getUsedCellsAndAllocatedSize(
+        self: *Self,
+        segments: *MemorySegmentManager,
+    ) !std.meta.Tuple(&.{ u32, u32 }) {
+        const size = try self.getUsedCells(segments);
+        return .{ size, size };
     }
 
     /// Finalizes the stack configuration for the OutputBuiltinRunner instance.
@@ -208,7 +237,7 @@ pub const OutputBuiltinRunner = struct {
 
     /// Retrieves the count of allocated memory units for the OutputBuiltinRunner instance within the CairoVM.
     ///
-    /// This function currently returns 0.
+    /// This function currently returns 0 because the output builtin uses only public memory units.
     ///
     /// # Arguments
     ///
