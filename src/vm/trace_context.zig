@@ -32,9 +32,9 @@ pub const TraceContext = struct {
 
     /// An entry recorded representing the state of the VM at a given point in time.
     pub const Entry = struct {
-        pc: *Relocatable,
-        ap: *Relocatable,
-        fp: *Relocatable,
+        pc: Relocatable,
+        ap: Relocatable,
+        fp: Relocatable,
     };
 
     /// A trace entry for every instruction that was executed.

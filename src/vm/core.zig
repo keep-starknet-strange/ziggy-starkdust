@@ -293,9 +293,9 @@ pub const CairoVM = struct {
     ) !void {
         if (!build_options.trace_disable) {
             try self.trace_context.traceInstruction(.{
-                .pc = self.run_context.pc,
-                .ap = self.run_context.ap,
-                .fp = self.run_context.fp,
+                .pc = self.run_context.pc.*,
+                .ap = self.run_context.ap.*,
+                .fp = self.run_context.fp.*,
             });
         }
 
@@ -715,9 +715,6 @@ pub const CairoVM = struct {
                         .ap = Felt252.fromInteger(try entry.ap.relocateAddress(relocation_table)),
                         .fp = Felt252.fromInteger(try entry.fp.relocateAddress(relocation_table)),
                     });
-                    std.debug.print("RELOCATED PC: {any}\n", .{entry.pc});
-                    std.debug.print("RELOCATED AP: {any}\n", .{entry.ap});
-                    std.debug.print("RELOCATED FP: {any}\n", .{entry.fp});
                 }
                 self.trace_relocated = true;
             },
