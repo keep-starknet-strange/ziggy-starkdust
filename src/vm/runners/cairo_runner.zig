@@ -1,17 +1,11 @@
-// ************************************************************
-// *                       IMPORTS                            *
-// ************************************************************
-
-// Core imports.
 const std = @import("std");
 const json = std.json;
 const Allocator = std.mem.Allocator;
-// Local imports.
+
 const Config = @import("../config.zig").Config;
-const vm_core = @import("../core.zig");
-const relocatable = @import("../memory/relocatable.zig");
-const Relocatable = relocatable.Relocatable;
-const MaybeRelocatable = relocatable.MaybeRelocatable;
+const CairoVM = @import("../core.zig").CairoVM;
+const Relocatable = @import("../memory/relocatable.zig").Relocatable;
+const MaybeRelocatable = @import("../memory/relocatable.zig").MaybeRelocatable;
 const Program = @import("../types/program.zig").Program;
 const CairoRunnerError = @import("../error.zig").CairoRunnerError;
 const trace_context = @import("../trace_context.zig");
@@ -19,12 +13,17 @@ const RelocatedTraceEntry = trace_context.TraceContext.RelocatedTraceEntry;
 const starknet_felt = @import("../../math/fields/starknet.zig");
 const Felt252 = starknet_felt.Felt252;
 
+const expect = std.testing.expect;
+const expectEqual = std.testing.expectEqual;
+const expectError = std.testing.expectError;
+const expectEqualSlices = std.testing.expectEqualSlices;
+
 pub const CairoRunner = struct {
     const Self = @This();
 
     program: Program,
     allocator: Allocator,
-    vm: vm_core.CairoVM,
+    vm: CairoVM,
     program_base: Relocatable = undefined,
     execution_base: Relocatable = undefined,
     initial_pc: Relocatable = undefined,
@@ -37,21 +36,27 @@ pub const CairoRunner = struct {
     proof_mode: bool,
     run_ended: bool = false,
     relocated_trace: [] RelocatedTraceEntry = undefined,
-    // layout
-    // execScopes
-    // executionPublicMemory
-    // Segments Finialized
 
     pub fn init(
         allocator: Allocator,
         program: Program,
         instructions: std.ArrayList(MaybeRelocatable),
-        vm: vm_core.CairoVM,
+        vm: CairoVM,
         proof_mode: bool,
     ) !Self {
-        const stack = std.ArrayList(MaybeRelocatable).init(allocator);
+        return .{
+            .allocator = allocator,
+            .program = program,
+            .instructions = instructions,
+            .vm = vm,
+            .function_call_stack = std.ArrayList(MaybeRelocatable).init(allocator),
+            .proof_mode = proof_mode,
+        };
+    }
 
-        return .{ .allocator = allocator, .program = program, .instructions = instructions, .vm = vm, .function_call_stack = stack, .proof_mode = proof_mode };
+    pub fn initBuiltins(self: *Self, vm: *CairoVM) !void {
+        _ = self;
+        _ = vm;
     }
 
     pub fn setupExecutionState(self: *Self) !Relocatable {
@@ -190,7 +195,7 @@ pub fn writeEncodedTrace(relocated_trace: []const RelocatedTraceEntry, dest: *st
 }
 
 pub fn runConfig(allocator: Allocator, config: Config) !void {
-    const vm = try vm_core.CairoVM.init(
+    const vm = try CairoVM.init(
         allocator,
         config,
     );
@@ -218,11 +223,6 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
     }
 }
 
-const expect = std.testing.expect;
-const expectEqual = std.testing.expectEqual;
-const expectError = std.testing.expectError;
-const expectEqualSlices = std.testing.expectEqualSlices;
-
 test "Fibonacci: can evaluate without runtime error" {
 
     // Given
@@ -235,13 +235,19 @@ test "Fibonacci: can evaluate without runtime error" {
 
     const instructions = try parsed_program.value.readData(allocator);
 
-    const vm = try vm_core.CairoVM.init(
+    const vm = try CairoVM.init(
         allocator,
         .{},
     );
 
     // when
-    var runner = try CairoRunner.init(allocator, parsed_program.value, instructions, vm, false);
+    var runner = try CairoRunner.init(
+        allocator,
+        parsed_program.value,
+        instructions,
+        vm,
+        false,
+    );
     defer runner.deinit();
     const end = try runner.setupExecutionState();
     errdefer std.debug.print("failed on step: {}\n", .{runner.vm.current_step});
