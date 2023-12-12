@@ -675,16 +675,30 @@ pub const CairoVM = struct {
         return null;
     }
 
-    /// Relocates the VM's trace, turning relocatable registers to numbered ones
+    /// Relocates the trace within the Cairo VM, updating relocatable registers to numbered ones.
+    ///
+    /// This function is responsible for relocating the trace within the Cairo VM, converting relocatable registers
+    /// to their corresponding numbered ones based on the provided relocation table.
+    ///
     /// # Arguments
-    /// - `relocation_table`: The relocation table .
+    ///
+    /// - `relocation_table`: A table containing the relocation indices for converting relocatable addresses to numbered ones.
+    ///                       It maps indices representing relocatable addresses to their respective numbered ones.
+    ///
+    /// # Errors
+    ///
+    /// - Returns `TraceError.AlreadyRelocated` if the trace has already been relocated.
+    /// - Returns `TraceError.NoRelocationFound` if the relocation table has insufficient entries (less than 2) to perform relocations.
+    /// - Returns `TraceError.TraceNotEnabled` if the trace is not in an enabled state for relocation.
+    ///
+    /// # Safety
+    ///
+    /// This function assumes that the relocation table indices correspond correctly to the addresses
+    /// needing relocation within the Cairo VM's trace.
     pub fn relocateTrace(self: *Self, relocation_table: []usize) !void {
-        if (self.trace_relocated) {
-            return TraceError.AlreadyRelocated;
-        }
-        if (relocation_table.len < 2) {
-            return TraceError.NoRelocationFound;
-        }
+        if (self.trace_relocated) return TraceError.AlreadyRelocated;
+        if (relocation_table.len < 2) return TraceError.NoRelocationFound;
+
         switch (self.trace_context.state) {
             .enabled => |trace_enabled| {
                 for (trace_enabled.entries.items) |entry| {
