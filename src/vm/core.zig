@@ -891,7 +891,7 @@ pub const CairoVM = struct {
     /// - `operands`: The result of the operands computation.
     /// # Errors
     /// - Returns an error if an assertion fails.
-    pub fn opcodeAssertions(self: *Self, instruction: *const Instruction, operands: OperandsResult) CairoVMError!void {
+    pub fn opcodeAssertions(self: *Self, instruction: *const Instruction, operands: OperandsResult) !void {
         // Switch on the opcode to perform the appropriate assertion.
         switch (instruction.opcode) {
             // Assert that the result and destination operands are equal for AssertEq opcode.
