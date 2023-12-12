@@ -675,8 +675,7 @@ test "CairoVM: relocateTrace and trace comparison (simple use case)" {
         _ = try vm.segments.addSegment();
     }
 
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 0 }, .{2345108766317314046} },
