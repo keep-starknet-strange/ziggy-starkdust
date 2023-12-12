@@ -165,6 +165,33 @@ pub const RunContext = struct {
             return try base_addr.addUint(@intCast(instruction.off_2));
         }
     }
+
+    /// Returns the current frame pointer (FP) of the run context.
+    /// This is the base address for local variables in the current frame.
+    ///
+    /// # Returns
+    /// - The `Relocatable` value of the frame pointer.
+    pub fn getFP(self: *Self) Relocatable {
+        return self.fp.*;
+    }
+
+    /// Returns the current allocation pointer (AP) of the run context.
+    /// This is the pointer used for allocating new memory in the current frame.
+    ///
+    /// # Returns
+    /// - The `Relocatable` value of the allocation pointer.
+    pub fn getAP(self: *Self) Relocatable {
+        return self.ap.*;
+    }
+
+    /// Returns the current program counter (PC) of the run context.
+    /// This is the address of the next instruction to be executed.
+    ///
+    /// # Returns
+    /// - The `Relocatable` value of the program counter.
+    pub fn getPC(self: *Self) Relocatable {
+        return self.pc.*;
+    }
 };
 
 // ************************************************************

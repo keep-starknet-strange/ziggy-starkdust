@@ -12,6 +12,7 @@ const Relocatable = relocatable.Relocatable;
 const instructions = @import("instructions.zig");
 const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
+const TraceError = @import("error.zig").TraceError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
@@ -19,6 +20,7 @@ const BuiltinRunner = @import("./builtins/builtin_runner/builtin_runner.zig").Bu
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const HashBuiltinRunner = @import("./builtins/builtin_runner/hash.zig").HashBuiltinRunner;
 const Instruction = instructions.Instruction;
+const Opcode = instructions.Opcode;
 
 /// Represents the Cairo VM.
 pub const CairoVM = struct {
@@ -40,6 +42,8 @@ pub const CairoVM = struct {
     is_run_finished: bool,
     /// VM trace
     trace_context: TraceContext,
+    /// Whether the trace has been relocated
+    trace_relocated: bool,
     /// Current Step
     current_step: usize,
     /// Rc limits
@@ -81,6 +85,7 @@ pub const CairoVM = struct {
             .segments = memory_segment_manager,
             .is_run_finished = false,
             .trace_context = trace_context,
+            .trace_relocated = false,
             .current_step = 0,
             .rc_limits = null,
         };
@@ -670,6 +675,60 @@ pub const CairoVM = struct {
         return null;
     }
 
+    /// Relocates the trace within the Cairo VM, updating relocatable registers to numbered ones.
+    ///
+    /// This function is responsible for relocating the trace within the Cairo VM, converting relocatable registers
+    /// to their corresponding numbered ones based on the provided relocation table.
+    ///
+    /// # Arguments
+    ///
+    /// - `relocation_table`: A table containing the relocation indices for converting relocatable addresses to numbered ones.
+    ///                       It maps indices representing relocatable addresses to their respective numbered ones.
+    ///
+    /// # Errors
+    ///
+    /// - Returns `TraceError.AlreadyRelocated` if the trace has already been relocated.
+    /// - Returns `TraceError.NoRelocationFound` if the relocation table has insufficient entries (less than 2) to perform relocations.
+    /// - Returns `TraceError.TraceNotEnabled` if the trace is not in an enabled state for relocation.
+    ///
+    /// # Safety
+    ///
+    /// This function assumes that the relocation table indices correspond correctly to the addresses
+    /// needing relocation within the Cairo VM's trace.
+    pub fn relocateTrace(self: *Self, relocation_table: []usize) !void {
+        if (self.trace_relocated) return TraceError.AlreadyRelocated;
+        if (relocation_table.len < 2) return TraceError.NoRelocationFound;
+
+        switch (self.trace_context.state) {
+            .enabled => |trace_enabled| {
+                for (trace_enabled.entries.items) |entry| {
+                    try self.trace_context.addRelocatedTrace(.{
+                        .pc = Felt252.fromInteger(try entry.pc.relocateAddress(relocation_table)),
+                        .ap = Felt252.fromInteger(try entry.ap.relocateAddress(relocation_table)),
+                        .fp = Felt252.fromInteger(try entry.fp.relocateAddress(relocation_table)),
+                    });
+                }
+                self.trace_relocated = true;
+            },
+            .disabled => return TraceError.TraceNotEnabled,
+        }
+    }
+
+    /// Gets the relocated trace
+    /// Returns `TraceError.TraceNotRelocated` error the trace has not been relocated
+    /// # Returns
+    /// - `[]RelocatedTraceEntry`: an array of relocated trace.
+    pub fn getRelocatedTrace(self: *Self) TraceError![]TraceContext.RelocatedTraceEntry {
+        if (self.trace_relocated) {
+            return switch (self.trace_context.state) {
+                .enabled => |trace_enabled| trace_enabled.relocated_trace_entries.items,
+                .disabled => TraceError.TraceNotEnabled,
+            };
+        } else {
+            return TraceError.TraceNotRelocated;
+        }
+    }
+
     /// Marks a range of memory addresses as accessed within the Cairo VM's memory segment.
     ///
     /// # Arguments
@@ -690,6 +749,66 @@ pub const CairoVM = struct {
         for (0..len) |i| {
             self.segments.memory.markAsAccessed(try base.addUint(@intCast(i)));
         }
+    }
+
+    /// Performs opcode-specific assertions on the operands of an instruction.
+    /// # Arguments
+    /// - `instruction`: A pointer to the instruction being asserted.
+    /// - `operands`: The result of the operands computation.
+    /// # Errors
+    /// - Returns an error if an assertion fails.
+    pub fn opcodeAssertions(self: *Self, instruction: *const Instruction, operands: OperandsResult) CairoVMError!void {
+        // Switch on the opcode to perform the appropriate assertion.
+        switch (instruction.opcode) {
+            // Assert that the result and destination operands are equal for AssertEq opcode.
+            .AssertEq => {
+                if (operands.res) |res| {
+                    if (!res.eq(operands.dst)) {
+                        return CairoVMError.DiffAssertValues;
+                    }
+                } else {
+                    return CairoVMError.UnconstrainedResAssertEq;
+                }
+            },
+            // Perform assertions specific to the Call opcode.
+            .Call => {
+                // Calculate the return program counter (PC) value.
+                const return_pc = MaybeRelocatable.fromRelocatable(try self.run_context.pc.addUint(instruction.size()));
+                // Assert that the operand 0 is the return PC.
+                if (!operands.op_0.eq(return_pc)) {
+                    return CairoVMError.CantWriteReturnPc;
+                }
+
+                // Assert that the destination operand is the frame pointer (FP).
+                if (!MaybeRelocatable.fromRelocatable(self.run_context.getFP()).eq(operands.dst)) {
+                    return CairoVMError.CantWriteReturnFp;
+                }
+            },
+            // No assertions for other opcodes.
+            else => {},
+        }
+    }
+
+    /// Retrieves a continuous range of `Felt252` values starting from the memoryy at the specific relocatable address in the Cairo VM.
+    ///
+    /// This function internally calls `getFeltRange` on the memory segments manager, attempting
+    /// to retrieve a range of `Felt252` values at the given address.
+    ///
+    /// # Arguments
+    ///
+    /// * `address`: The starting address in the memory from which the continuous range of `Felt252` is retrieved.
+    /// * `size`: The size of the continuous range of `Felt252` to be retrieved.
+    ///
+    /// # Returns
+    ///
+    /// Returns a list containing `Felt252` values retrieved from the continuous range starting at the relocatable address.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if there are any unknown memory cell encountered within the continuous memory range.
+    /// Returns an error if value inside the range is not a `Felt252`
+    pub fn getFeltRange(self: *Self, address: Relocatable, size: usize) !std.ArrayList(Felt252) {
+        return self.segments.memory.getFeltRange(address, size);
     }
 };
 
