@@ -1203,8 +1203,7 @@ test "MemorySegmentManager: getMemoryHoles with missing segment used sizes" {
     var memory_segment_manager = try MemorySegmentManager.init(allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{.{ .{ 0, 0 }, .{0} }},
     );
@@ -1225,8 +1224,7 @@ test "MemorySegmentManager: getMemoryHoles with out of address offset that is bi
     defer memory_segment_manager.deinit();
     try memory_segment_manager.segment_used_sizes.put(0, 2);
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 0 }, .{0} },
@@ -1272,8 +1270,7 @@ test "MemorySegmentManager: getMemoryHoles with two memory holes" {
     defer memory_segment_manager.deinit();
     try memory_segment_manager.segment_used_sizes.put(0, 10);
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 0 }, .{0} },
@@ -1306,8 +1303,7 @@ test "MemorySegmentManager: getMemoryHoles with seven memory holes" {
     try memory_segment_manager.segment_sizes.put(0, 15);
     try memory_segment_manager.segment_used_sizes.put(0, 10);
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 0 }, .{0} },
