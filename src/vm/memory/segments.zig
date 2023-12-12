@@ -361,7 +361,7 @@ pub const MemorySegmentManager = struct {
 // - `segment_manager` - MemorySegmentManger to be passed in
 // - `vals` - complile time structure with heterogenous types
 pub fn segmentsUtil(segment_manager: *MemorySegmentManager, allocator: Allocator, comptime vals: anytype) !void {
-    try memoryFile.setUpMemory(segment_manager.memory, allocator, vals);
+    try segment_manager.memory.setUpMemory(allocator, vals);
 }
 
 // ************************************************************
@@ -459,8 +459,7 @@ test "set get integer value in segment memory" {
 
     const value_2 = MaybeRelocatable.fromFelt(Felt252.fromInteger(84));
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 0 }, .{42} },
@@ -504,8 +503,7 @@ test "MemorySegmentManager: numSegments should return the number of segments in 
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 1 }, .{10} },
@@ -524,8 +522,7 @@ test "MemorySegmentManager: numSegments should return the number of segments in 
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ -1, 1 }, .{10} },
@@ -544,8 +541,7 @@ test "MemorySegmentManager: computeEffectiveSize for one segment memory" {
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 0 }, .{1} },
@@ -565,8 +561,7 @@ test "MemorySegmentManager: computeEffectiveSize for one segment memory with gap
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{.{ .{ 0, 6 }, .{1} }},
     );
@@ -582,8 +577,7 @@ test "MemorySegmentManager: computeEffectiveSize for one segment memory with gap
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 3 }, .{1} },
@@ -604,8 +598,7 @@ test "MemorySegmentManager: computeEffectiveSize for three segment memory" {
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 0 }, .{1} },
@@ -633,8 +626,7 @@ test "MemorySegmentManager: computeEffectiveSize for three segment memory with g
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 2 }, .{1} },
@@ -662,8 +654,7 @@ test "MemorySegmentManager: computeEffectiveSize (with temp segments) for one se
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ -1, 0 }, .{1} },
@@ -683,8 +674,7 @@ test "MemorySegmentManager: computeEffectiveSize (with temp segments) for one se
     defer memory_segment_manager.deinit();
     _ = try memory_segment_manager.addTempSegment();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{.{ .{ -1, 6 }, .{1} }},
     );
@@ -700,8 +690,7 @@ test "MemorySegmentManager: computeEffectiveSize (with temp segments) for one se
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ -1, 3 }, .{1} },
@@ -722,8 +711,7 @@ test "MemorySegmentManager: computeEffectiveSize (with temp segments) for three 
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ -3, 0 }, .{1} },
@@ -753,8 +741,7 @@ test "MemorySegmentManager: computeEffectiveSize (with temp segments) for three 
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ -3, 2 }, .{1} },
@@ -782,8 +769,7 @@ test "MemorySegmentManager: getSegmentUsedSize after computeEffectiveSize" {
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 2 }, .{1} },

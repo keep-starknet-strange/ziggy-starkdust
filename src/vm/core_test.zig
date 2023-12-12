@@ -65,8 +65,7 @@ test "CairoVM: deduceMemoryCell builtin valid" {
         true,
     ) });
 
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 5 }, .{10} },
@@ -1210,8 +1209,7 @@ test "set get value in vm memory" {
     const address = Relocatable.init(1, 0);
     const value = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(42));
 
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 1, 0 }, .{42} },
@@ -1446,8 +1444,7 @@ test "compute operands add AP" {
     const op1_addr = Relocatable.init(1, 2);
     const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
 
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 1, 0 }, .{5} },
@@ -1505,8 +1502,7 @@ test "compute operands mul FP" {
 
     const op1_addr = Relocatable.init(1, 2);
     const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 1, 0 }, .{6} },
@@ -1717,8 +1713,7 @@ test "CairoVM: computeOp0Deductions with a valid built in and non null deduceMem
         &instance_def,
         true,
     ) });
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 5 }, .{10} },
@@ -1768,8 +1763,7 @@ test "CairoVM: computeSegmentsEffectiveSizes should return the computed effectiv
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 0 }, .{1} },
@@ -1893,8 +1887,7 @@ test "CairoVM: getRelocatable with value should return a MaybeRelocatable" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 34, 12 }, .{5} },
@@ -1996,8 +1989,7 @@ test "CairoVM: getFelt should return Felt252 if available at the given address" 
     );
     defer vm.deinit();
 
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 10, 30 }, .{23} },
@@ -2020,8 +2012,7 @@ test "CairoVM: getFelt should return ExpectedInteger error if Relocatable instea
     );
     defer vm.deinit();
 
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 10, 30 }, .{ 3, 7 } },
@@ -2046,8 +2037,7 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceMemoryCell if n
         &instance_def,
         true,
     ) });
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 5 }, .{10} },
@@ -2226,8 +2216,7 @@ test "CairoVM: InserDeducedOperands should insert operands if set as deduced" {
 
     const op1_addr = Relocatable.init(1, 2);
     const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{},
     );
@@ -2280,8 +2269,7 @@ test "CairoVM: InserDeducedOperands insert operands should not be inserted if no
 
     const op1_addr = Relocatable.init(1, 2);
     const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{},
     );
