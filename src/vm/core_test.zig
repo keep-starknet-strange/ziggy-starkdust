@@ -2611,8 +2611,7 @@ test "CairoVM: getReturnValues should return a continuous range of memory values
     vm.run_context.ap.* = ap;
     defer vm.deinit();
 
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 1, 0 }, .{1} },
@@ -2641,8 +2640,7 @@ test "CairoVM: getReturnValues should return a memory error when Ap is 0" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 1, 0 }, .{1} },
