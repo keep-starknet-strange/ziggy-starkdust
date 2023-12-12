@@ -986,8 +986,7 @@ test "KeccakBuiltinRunner: deduceMemoryCell memory valid" {
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
 
-    try memoryFile.setUpMemory(
-        mem,
+    try mem.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 16 }, .{43} },
@@ -1036,8 +1035,7 @@ test "KeccakBuiltinRunner: deduceMemoryCell non relocatable address should retur
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
 
-    try memoryFile.setUpMemory(
-        mem,
+    try mem.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 4 }, .{32} },
@@ -1071,8 +1069,7 @@ test "KeccakBuiltinRunner: deduceMemoryCell offset less than input cell length s
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
 
-    try memoryFile.setUpMemory(
-        mem,
+    try mem.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 4 }, .{32} },
@@ -1105,8 +1102,7 @@ test "KeccakBuiltinRunner: deduceMemoryCell memory cell expected integer" {
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
 
-    try memoryFile.setUpMemory(
-        mem,
+    try mem.setUpMemory(
         std.testing.allocator,
         .{.{ .{ 0, 0 }, .{ 1, 2 } }},
     );
@@ -1137,8 +1133,7 @@ test "KeccakBuiltinRunner: deduceMemoryCell missing input cells" {
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
 
-    try memoryFile.setUpMemory(
-        mem,
+    try mem.setUpMemory(
         std.testing.allocator,
         .{.{ .{ 0, 1 }, .{ 1, 2 } }},
     );
@@ -1169,8 +1164,7 @@ test "KeccakBuiltinRunner: deduceMemoryCell input cell" {
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
 
-    try memoryFile.setUpMemory(
-        mem,
+    try mem.setUpMemory(
         std.testing.allocator,
         .{.{ .{ 0, 0 }, .{ 1, 2 } }},
     );
@@ -1199,8 +1193,7 @@ test "KeccakBuiltinRunner: deduceMemoryCell get memory error" {
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
 
-    try memoryFile.setUpMemory(
-        mem,
+    try mem.setUpMemory(
         std.testing.allocator,
         .{.{ .{ 0, 35 }, .{0} }},
     );
@@ -1230,8 +1223,7 @@ test "KeccakBuiltinRunner: deduceMemoryCell memory int larger than bits" {
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
 
-    try memoryFile.setUpMemory(
-        mem,
+    try mem.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 16 }, .{43} },
