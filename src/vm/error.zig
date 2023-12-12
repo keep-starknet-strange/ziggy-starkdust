@@ -61,6 +61,8 @@ pub const MemoryError = error{
     GetRangeMemoryGap,
     /// Math error
     Math,
+    /// Represents an error when there's a failure to retrieve return values from memory.
+    FailedToGetReturnValues,
     /// Range Check Number is out of bounds
     RangeCheckNumberOutOfBounds,
     /// Range Check found a non int
