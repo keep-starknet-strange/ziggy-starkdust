@@ -1,11 +1,31 @@
 /// Represents a ECDSA Instance Definition.
 pub const EcdsaInstanceDef = struct {
+    const Self = @This();
+
     /// Ratio
     ratio: ?u32,
     /// Split to this many different components - for optimization.
-    _repetitions: u32,
+    repetitions: u32,
     /// Size of hash.
-    _height: u32,
+    height: u32,
     /// Number of hash bits
-    _n_hash_bits: u32,
+    n_hash_bits: u32,
+
+    pub fn init() Self {
+        return .{
+            .ratio = 512,
+            .repetitions = 1,
+            .height = 256,
+            .n_hash_bits = 251,
+        };
+    }
+
+    pub fn from(ratio: ?u32) Self {
+        return .{
+            .ratio = ratio,
+            .repetitions = 1,
+            .height = 256,
+            .n_hash_bits = 251,
+        };
+    }
 };
