@@ -1,6 +1,7 @@
 // Core imports.
 const std = @import("std");
 const Allocator = std.mem.Allocator;
+const ArrayList = std.ArrayList;
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 const expectEqualSlices = std.testing.expectEqualSlices;
@@ -152,6 +153,22 @@ pub const MemorySegmentManager = struct {
         return self.segment_used_sizes.get(index) orelse null;
     }
 
+    /// Retrieves the size of a memory segment by its index if available, else computes it.
+    ///
+    /// This function attempts to retrieve the size of a memory segment by its index. If the size
+    /// is not available in the segment sizes map, it calculates the effective size and returns it.
+    ///
+    /// # Parameters
+    ///
+    /// - `index` (u32): The index of the memory segment.
+    ///
+    /// # Returns
+    ///
+    /// A `u32` representing the size of the segment or a computed effective size if not available.
+    pub fn getSegmentSize(self: *Self, index: u32) ?u32 {
+        return self.segment_sizes.get(index) orelse self.getSegmentUsedSize(index);
+    }
+
     /// Retrieves the number of memory segments.
     ///
     /// # Returns
@@ -205,20 +222,33 @@ pub const MemorySegmentManager = struct {
         return self.segment_used_sizes;
     }
 
-    /// Retrieves the size of a memory segment by its index if available, else computes it.
+    /// Computes the first relocated address of each memory segment
     ///
-    /// This function attempts to retrieve the size of a memory segment by its index. If the size
-    /// is not available in the segment sizes map, it calculates the effective size and returns it.
-    ///
-    /// # Parameters
-    ///
-    /// - `index` (u32): The index of the memory segment.
-    ///
+    ///  Relocation Logic:
+    ///     Step 1: Get segment sizes:
+    ///              0 --(has size)--> 3
+    ///              1 --(has size)--> 5
+    ///              2 --(has size)--> 1
+    ///     Step 2: Step 2: Assign a base to each segment:
+    ///              0 --(has base value)--> 1
+    ///              1 --(has base value)--> 4 (that is: 1 + 3)
+    ///              2 --(has base value)--> 9 (that is: 4 + 5)
     /// # Returns
     ///
-    /// A `u32` representing the size of the segment or a computed effective size if not available.
-    pub fn getSegmentSize(self: *Self, index: u32) ?u32 {
-        return self.segment_sizes.get(index) orelse self.getSegmentUsedSize(index);
+    /// A `Slice` of the `ArrayList(u32)` representing the relocated segments.
+    pub fn relocateSegments(self: *Self, allocator: Allocator) !ArrayList(usize).Slice {
+        const first_addr = 1;
+        var relocatable_table = ArrayList(usize).init(allocator);
+        errdefer relocatable_table.deinit();
+        try relocatable_table.append(first_addr);
+        for (self.segment_used_sizes.keys()) |key| {
+            const index = self.segment_used_sizes.getIndex(key) orelse return MemoryError.MissingSegmentUsedSizes;
+            const segment_size = self.getSegmentSize(@intCast(index)) orelse return MemoryError.MissingSegmentUsedSizes;
+            try relocatable_table.append(relocatable_table.items[index] + segment_size);
+        }
+        // The last value corresponds to the total amount of elements across all segments, which isnt needed for relocation.
+        _ = relocatable_table.pop();
+        return relocatable_table.toOwnedSlice();
     }
 
     /// Checks if a memory value is valid within the MemorySegmentManager.
@@ -360,7 +390,7 @@ pub const MemorySegmentManager = struct {
 // - `segment_manager` - MemorySegmentManger to be passed in
 // - `vals` - complile time structure with heterogenous types
 pub fn segmentsUtil(segment_manager: *MemorySegmentManager, allocator: Allocator, comptime vals: anytype) !void {
-    try memoryFile.setUpMemory(segment_manager.memory, allocator, vals);
+    try segment_manager.memory.setUpMemory(allocator, vals);
 }
 
 // ************************************************************
@@ -458,8 +488,7 @@ test "set get integer value in segment memory" {
 
     const value_2 = MaybeRelocatable.fromFelt(Felt252.fromInteger(84));
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 0 }, .{42} },
@@ -503,8 +532,7 @@ test "MemorySegmentManager: numSegments should return the number of segments in 
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 1 }, .{10} },
@@ -523,8 +551,7 @@ test "MemorySegmentManager: numSegments should return the number of segments in 
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ -1, 1 }, .{10} },
@@ -543,8 +570,7 @@ test "MemorySegmentManager: computeEffectiveSize for one segment memory" {
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 0 }, .{1} },
@@ -564,8 +590,7 @@ test "MemorySegmentManager: computeEffectiveSize for one segment memory with gap
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{.{ .{ 0, 6 }, .{1} }},
     );
@@ -581,8 +606,7 @@ test "MemorySegmentManager: computeEffectiveSize for one segment memory with gap
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 3 }, .{1} },
@@ -603,8 +627,7 @@ test "MemorySegmentManager: computeEffectiveSize for three segment memory" {
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 0 }, .{1} },
@@ -632,8 +655,7 @@ test "MemorySegmentManager: computeEffectiveSize for three segment memory with g
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 2 }, .{1} },
@@ -661,8 +683,7 @@ test "MemorySegmentManager: computeEffectiveSize (with temp segments) for one se
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ -1, 0 }, .{1} },
@@ -682,8 +703,7 @@ test "MemorySegmentManager: computeEffectiveSize (with temp segments) for one se
     defer memory_segment_manager.deinit();
     _ = try memory_segment_manager.addTempSegment();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{.{ .{ -1, 6 }, .{1} }},
     );
@@ -699,8 +719,7 @@ test "MemorySegmentManager: computeEffectiveSize (with temp segments) for one se
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ -1, 3 }, .{1} },
@@ -721,8 +740,7 @@ test "MemorySegmentManager: computeEffectiveSize (with temp segments) for three 
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ -3, 0 }, .{1} },
@@ -752,8 +770,7 @@ test "MemorySegmentManager: computeEffectiveSize (with temp segments) for three 
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ -3, 2 }, .{1} },
@@ -779,8 +796,7 @@ test "MemorySegmentManager: getSegmentUsedSize after computeEffectiveSize" {
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memoryFile.setUpMemory(
-        memory_segment_manager.memory,
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 2 }, .{1} },
@@ -822,6 +838,50 @@ test "MemorySegmentManager: getSegmentSize should return null if missing segment
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     try expectEqual(@as(?u32, null), memory_segment_manager.getSegmentSize(3));
+}
+
+test "MemorySegmentManager: relocateSegments for one segment" {
+    const allocator = std.testing.allocator;
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.segment_used_sizes.put(0, 1);
+    const actual_value = try memory_segment_manager.relocateSegments(allocator);
+    var expected_value = ArrayList(usize).init(allocator);
+    defer expected_value.deinit();
+    defer allocator.free(actual_value);
+    try expected_value.append(1);
+    try expectEqualSlices(usize, expected_value.items, actual_value);
+}
+
+test "MemorySegmentManager: relocateSegments for ten segments" {
+    const allocator = std.testing.allocator;
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.segment_used_sizes.put(0, 3);
+    try memory_segment_manager.segment_used_sizes.put(1, 7);
+    try memory_segment_manager.segment_used_sizes.put(2, 12);
+    try memory_segment_manager.segment_used_sizes.put(3, 15);
+    try memory_segment_manager.segment_used_sizes.put(4, 10);
+    try memory_segment_manager.segment_used_sizes.put(5, 17);
+    try memory_segment_manager.segment_used_sizes.put(6, 3);
+    try memory_segment_manager.segment_used_sizes.put(7, 30);
+    try memory_segment_manager.segment_used_sizes.put(8, 55);
+    try memory_segment_manager.segment_used_sizes.put(9, 60);
+    const actual_value = try memory_segment_manager.relocateSegments(allocator);
+    var expected_value = ArrayList(usize).init(std.testing.allocator);
+    defer expected_value.deinit();
+    defer allocator.free(actual_value);
+    try expected_value.append(1); // 1
+    try expected_value.append(4); // 3 + 1 = 4
+    try expected_value.append(11); // 7 + 4 = 11
+    try expected_value.append(23); // 12 + 11 = 23
+    try expected_value.append(38); // 15 + 23 = 38
+    try expected_value.append(48); // 10 + 38 = 48
+    try expected_value.append(65); // 17 + 48 = 65
+    try expected_value.append(68); // 3 + 65 = 68
+    try expected_value.append(98); // 30 + 68 = 98
+    try expected_value.append(153); // 55 + 98 = 153
+    try expectEqualSlices(usize, expected_value.items, actual_value);
 }
 
 test "MemorySegmentManager: isValidMemoryValue should return true if Felt" {

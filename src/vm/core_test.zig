@@ -14,6 +14,7 @@ const Relocatable = relocatable.Relocatable;
 const instructions = @import("instructions.zig");
 const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
+const TraceError = @import("error.zig").TraceError;
 const MemoryError = @import("error.zig").MemoryError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
@@ -64,8 +65,7 @@ test "CairoVM: deduceMemoryCell builtin valid" {
         true,
     ) });
 
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 5 }, .{10} },
@@ -559,6 +559,338 @@ test "trace is disabled" {
     }
 }
 
+test "get relocate trace without relocating trace" {
+    // Test setup
+    const allocator = std.testing.allocator;
+
+    // Create a new VM instance.
+    const config = Config{ .proof_mode = false, .enable_trace = true };
+
+    var vm = try CairoVM.init(
+        allocator,
+        config,
+    );
+    defer vm.deinit();
+    try expectError(TraceError.TraceNotRelocated, vm.getRelocatedTrace());
+}
+
+test "CairoVM: relocateTrace should return Trace Error if trace_relocated already set to true" {
+    // Test setup
+    const allocator = std.testing.allocator;
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(
+        allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    // Set trace_relocated to true
+    // Simulate the trace_relocated flag being already set to true.
+    vm.trace_relocated = true;
+
+    // Create a relocation table
+    // Initialize an empty relocation table.
+    var relocation_table = ArrayList(usize).init(std.testing.allocator);
+    defer relocation_table.deinit();
+
+    // Expect TraceError.AlreadyRelocated error
+    // Assert that calling relocateTrace with trace_relocated already true results in an error.
+    try expectError(
+        TraceError.AlreadyRelocated,
+        vm.relocateTrace(relocation_table.items),
+    );
+}
+
+test "CairoVM: relocateTrace should return Trace Error if relocation_table len is less than 2" {
+    // Test setup
+    const allocator = std.testing.allocator;
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(
+        allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    // Create a relocation table
+    // Initialize an empty relocation table.
+    var relocation_table = ArrayList(usize).init(std.testing.allocator);
+    defer relocation_table.deinit();
+
+    // Expect TraceError.NoRelocationFound error
+    // Assert that calling relocateTrace with a relocation_table length less than 2 results in an error.
+    try expectError(
+        TraceError.NoRelocationFound,
+        vm.relocateTrace(relocation_table.items),
+    );
+}
+
+test "CairoVM: relocateTrace should return Trace Error if trace context state is disabled" {
+    // Test setup
+    const allocator = std.testing.allocator;
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(
+        allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    // Create a relocation table
+    // Initialize an empty relocation table and add specific values to it.
+    var relocation_table = ArrayList(usize).init(std.testing.allocator);
+    defer relocation_table.deinit();
+    try relocation_table.append(1);
+    try relocation_table.append(15);
+    try relocation_table.append(27);
+    try relocation_table.append(29);
+    try relocation_table.append(29);
+
+    // Expect TraceError.TraceNotEnabled error
+    // Assert that calling relocateTrace when the trace context state is disabled results in an error.
+    try expectError(
+        TraceError.TraceNotEnabled,
+        vm.relocateTrace(relocation_table.items),
+    );
+}
+
+test "CairoVM: relocateTrace and trace comparison (simple use case)" {
+    // Test setup
+    const allocator = std.testing.allocator;
+
+    // Create a new VM instance.
+    const config = Config{ .proof_mode = false, .enable_trace = true };
+
+    var vm = try CairoVM.init(
+        allocator,
+        config,
+    );
+    defer vm.deinit();
+    var pc = Relocatable.init(0, 0);
+    var ap = Relocatable.init(2, 0);
+    var fp = Relocatable.init(2, 0);
+    try vm.trace_context.traceInstruction(.{ .pc = &pc, .ap = &ap, .fp = &fp });
+    for (0..4) |_| {
+        _ = try vm.segments.addSegment();
+    }
+    const page_allocator = std.heap.page_allocator;
+    try vm.segments.memory.set(
+        page_allocator,
+        Relocatable.init(0, 0),
+        MaybeRelocatable.fromU256(2345108766317314046),
+    );
+    try vm.segments.memory.set(
+        page_allocator,
+        Relocatable.init(1, 0),
+        MaybeRelocatable.fromSegment(2, 0),
+    );
+    try vm.segments.memory.set(
+        page_allocator,
+        Relocatable.init(1, 1),
+        MaybeRelocatable.fromSegment(3, 0),
+    );
+
+    _ = try vm.computeSegmentsEffectiveSizes(false);
+
+    const relocation_table = try vm.segments.relocateSegments(allocator);
+    defer allocator.free(relocation_table);
+    try vm.relocateTrace(relocation_table);
+
+    const relocated_trace = TraceContext.RelocatedTraceEntry{
+        .pc = Felt252.fromInteger(1),
+        .ap = Felt252.fromInteger(4),
+        .fp = Felt252.fromInteger(4),
+    };
+    const expected_relocated_trace = [_]TraceContext.RelocatedTraceEntry{relocated_trace};
+    const actual_relocated_trace = try vm.getRelocatedTrace();
+    for (expected_relocated_trace, actual_relocated_trace) |expected_trace, actual_trace| {
+        try expectEqual(expected_trace, actual_trace);
+    }
+}
+
+test "CairoVM: relocateTrace and trace comparison (more complex use case)" {
+    // Program used:
+    // %builtins output
+
+    // from starkware.cairo.common.serialize import serialize_word
+
+    // func main{output_ptr: felt*}():
+    //    let a = 1
+    //    serialize_word(a)
+    //    let b = 17 * a
+    //    serialize_word(b)
+    //    return()
+    // end
+
+    // Relocated Trace:
+    // [TraceEntry(pc=5, ap=18, fp=18),
+    // TraceEntry(pc=6, ap=19, fp=18),
+    // TraceEntry(pc=8, ap=20, fp=18),
+    // TraceEntry(pc=1, ap=22, fp=22),
+    // TraceEntry(pc=2, ap=22, fp=22),
+    // TraceEntry(pc=4, ap=23, fp=22),
+    // TraceEntry(pc=10, ap=23, fp=18),
+
+    // Test setup
+    const allocator = std.testing.allocator;
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(
+        allocator,
+        .{ .proof_mode = false, .enable_trace = true },
+    );
+    defer vm.deinit();
+
+    // Initial Trace Entries
+    // Define and append initial trace entries to the VM trace context.
+    // pc, ap, and fp values are initialized and appended in pairs.
+    var pc = Relocatable.init(0, 4);
+    var ap = Relocatable.init(1, 3);
+    var fp = Relocatable.init(1, 3);
+    try vm.trace_context.state.enabled.entries.append(.{ .pc = &pc, .ap = &ap, .fp = &fp });
+    var pc1 = Relocatable.init(0, 5);
+    var ap1 = Relocatable.init(1, 4);
+    var fp1 = Relocatable.init(1, 3);
+    try vm.trace_context.state.enabled.entries.append(.{ .pc = &pc1, .ap = &ap1, .fp = &fp1 });
+    var pc2 = Relocatable.init(0, 7);
+    var ap2 = Relocatable.init(1, 5);
+    var fp2 = Relocatable.init(1, 3);
+    try vm.trace_context.state.enabled.entries.append(.{ .pc = &pc2, .ap = &ap2, .fp = &fp2 });
+    var pc3 = Relocatable.init(0, 0);
+    var ap3 = Relocatable.init(1, 7);
+    var fp3 = Relocatable.init(1, 7);
+    try vm.trace_context.state.enabled.entries.append(.{ .pc = &pc3, .ap = &ap3, .fp = &fp3 });
+    var pc4 = Relocatable.init(0, 1);
+    var ap4 = Relocatable.init(1, 7);
+    var fp4 = Relocatable.init(1, 7);
+    try vm.trace_context.state.enabled.entries.append(.{ .pc = &pc4, .ap = &ap4, .fp = &fp4 });
+    var pc5 = Relocatable.init(0, 3);
+    var ap5 = Relocatable.init(1, 8);
+    var fp5 = Relocatable.init(1, 7);
+    try vm.trace_context.state.enabled.entries.append(.{ .pc = &pc5, .ap = &ap5, .fp = &fp5 });
+    var pc6 = Relocatable.init(0, 9);
+    var ap6 = Relocatable.init(1, 8);
+    var fp6 = Relocatable.init(1, 3);
+    try vm.trace_context.state.enabled.entries.append(.{ .pc = &pc6, .ap = &ap6, .fp = &fp6 });
+    var pc7 = Relocatable.init(0, 11);
+    var ap7 = Relocatable.init(1, 9);
+    var fp7 = Relocatable.init(1, 3);
+    try vm.trace_context.state.enabled.entries.append(.{ .pc = &pc7, .ap = &ap7, .fp = &fp7 });
+    var pc8 = Relocatable.init(0, 0);
+    var ap8 = Relocatable.init(1, 11);
+    var fp8 = Relocatable.init(1, 11);
+    try vm.trace_context.state.enabled.entries.append(.{ .pc = &pc8, .ap = &ap8, .fp = &fp8 });
+    var pc9 = Relocatable.init(0, 1);
+    var ap9 = Relocatable.init(1, 11);
+    var fp9 = Relocatable.init(1, 11);
+    try vm.trace_context.state.enabled.entries.append(.{ .pc = &pc9, .ap = &ap9, .fp = &fp9 });
+    var pc10 = Relocatable.init(0, 3);
+    var ap10 = Relocatable.init(1, 12);
+    var fp10 = Relocatable.init(1, 11);
+    try vm.trace_context.state.enabled.entries.append(.{ .pc = &pc10, .ap = &ap10, .fp = &fp10 });
+    var pc11 = Relocatable.init(0, 13);
+    var ap11 = Relocatable.init(1, 12);
+    var fp11 = Relocatable.init(1, 3);
+    try vm.trace_context.state.enabled.entries.append(.{ .pc = &pc11, .ap = &ap11, .fp = &fp11 });
+
+    // Create a relocation table
+    // Create a relocation table and append specific values to it.
+    var relocation_table = ArrayList(usize).init(std.testing.allocator);
+    defer relocation_table.deinit();
+
+    try relocation_table.append(1);
+    try relocation_table.append(15);
+    try relocation_table.append(27);
+    try relocation_table.append(29);
+    try relocation_table.append(29);
+
+    // Assert trace relocation status
+    // Ensure the trace relocation status flag is set as expected (false).
+    try expect(!vm.trace_relocated);
+
+    try vm.relocateTrace(relocation_table.items);
+
+    // Expected Relocated Entries
+    // Define the expected relocated entries after the trace relocation process.
+    var expected_relocated_entries = ArrayList(TraceContext.RelocatedTraceEntry).init(std.testing.allocator);
+    defer expected_relocated_entries.deinit();
+
+    // Append expected relocated entries using Felt252 values.
+    // pc, ap, and fp values are appended in pairs similar to the initial entries.
+    try expected_relocated_entries.append(.{
+        .pc = Felt252.fromInteger(5),
+        .ap = Felt252.fromInteger(18),
+        .fp = Felt252.fromInteger(18),
+    });
+    try expected_relocated_entries.append(.{
+        .pc = Felt252.fromInteger(6),
+        .ap = Felt252.fromInteger(19),
+        .fp = Felt252.fromInteger(18),
+    });
+    try expected_relocated_entries.append(.{
+        .pc = Felt252.fromInteger(8),
+        .ap = Felt252.fromInteger(20),
+        .fp = Felt252.fromInteger(18),
+    });
+    try expected_relocated_entries.append(.{
+        .pc = Felt252.fromInteger(1),
+        .ap = Felt252.fromInteger(22),
+        .fp = Felt252.fromInteger(22),
+    });
+    try expected_relocated_entries.append(.{
+        .pc = Felt252.fromInteger(2),
+        .ap = Felt252.fromInteger(22),
+        .fp = Felt252.fromInteger(22),
+    });
+    try expected_relocated_entries.append(.{
+        .pc = Felt252.fromInteger(4),
+        .ap = Felt252.fromInteger(23),
+        .fp = Felt252.fromInteger(22),
+    });
+    try expected_relocated_entries.append(.{
+        .pc = Felt252.fromInteger(10),
+        .ap = Felt252.fromInteger(23),
+        .fp = Felt252.fromInteger(18),
+    });
+    try expected_relocated_entries.append(.{
+        .pc = Felt252.fromInteger(12),
+        .ap = Felt252.fromInteger(24),
+        .fp = Felt252.fromInteger(18),
+    });
+    try expected_relocated_entries.append(.{
+        .pc = Felt252.fromInteger(1),
+        .ap = Felt252.fromInteger(26),
+        .fp = Felt252.fromInteger(26),
+    });
+    try expected_relocated_entries.append(.{
+        .pc = Felt252.fromInteger(2),
+        .ap = Felt252.fromInteger(26),
+        .fp = Felt252.fromInteger(26),
+    });
+    try expected_relocated_entries.append(.{
+        .pc = Felt252.fromInteger(4),
+        .ap = Felt252.fromInteger(27),
+        .fp = Felt252.fromInteger(26),
+    });
+    try expected_relocated_entries.append(.{
+        .pc = Felt252.fromInteger(14),
+        .ap = Felt252.fromInteger(27),
+        .fp = Felt252.fromInteger(18),
+    });
+
+    // Assert relocated entries match the expected entries
+    // Ensure the relocated trace entries in the VM match the expected relocated entries.
+    try expectEqualSlices(
+        TraceContext.RelocatedTraceEntry,
+        expected_relocated_entries.items,
+        vm.trace_context.state.enabled.relocated_trace_entries.items,
+    );
+    // Assert trace relocation status
+    // Ensure the trace relocation status flag is set as expected (true).
+    try expect(vm.trace_relocated);
+}
+
 // This instruction is used in the functions that test the `deduceOp1` function. Only the
 // `opcode` and `res_logic` fields are usually changed.
 const deduceOpTestInstr = Instruction{
@@ -877,8 +1209,7 @@ test "set get value in vm memory" {
     const address = Relocatable.init(1, 0);
     const value = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(42));
 
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 1, 0 }, .{42} },
@@ -1113,8 +1444,7 @@ test "compute operands add AP" {
     const op1_addr = Relocatable.init(1, 2);
     const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
 
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 1, 0 }, .{5} },
@@ -1172,8 +1502,7 @@ test "compute operands mul FP" {
 
     const op1_addr = Relocatable.init(1, 2);
     const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 1, 0 }, .{6} },
@@ -1384,8 +1713,7 @@ test "CairoVM: computeOp0Deductions with a valid built in and non null deduceMem
         &instance_def,
         true,
     ) });
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 5 }, .{10} },
@@ -1435,8 +1763,7 @@ test "CairoVM: computeSegmentsEffectiveSizes should return the computed effectiv
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 0 }, .{1} },
@@ -1560,8 +1887,7 @@ test "CairoVM: getRelocatable with value should return a MaybeRelocatable" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 34, 12 }, .{5} },
@@ -1663,8 +1989,7 @@ test "CairoVM: getFelt should return Felt252 if available at the given address" 
     );
     defer vm.deinit();
 
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 10, 30 }, .{23} },
@@ -1687,8 +2012,7 @@ test "CairoVM: getFelt should return ExpectedInteger error if Relocatable instea
     );
     defer vm.deinit();
 
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 10, 30 }, .{ 3, 7 } },
@@ -1713,8 +2037,7 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceMemoryCell if n
         &instance_def,
         true,
     ) });
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 5 }, .{10} },
@@ -1893,8 +2216,7 @@ test "CairoVM: InserDeducedOperands should insert operands if set as deduced" {
 
     const op1_addr = Relocatable.init(1, 2);
     const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{},
     );
@@ -1947,8 +2269,7 @@ test "CairoVM: InserDeducedOperands insert operands should not be inserted if no
 
     const op1_addr = Relocatable.init(1, 2);
     const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
-    try memory.setUpMemory(
-        vm.segments.memory,
+    try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{},
     );
@@ -2012,8 +2333,14 @@ test "CairoVM: markAddressRangeAsAccessed should mark memory segments as accesse
     try expect(vm.segments.memory.data.items[0].items[2].?.is_accessed);
     try expect(vm.segments.memory.data.items[0].items[10].?.is_accessed);
     try expect(vm.segments.memory.data.items[1].items[1].?.is_accessed);
-
-    // TODO: add number of accessed addresses for segments 0 and 1 when https://github.com/keep-starknet-strange/ziggy-starkdust/pull/186 is merged
+    try expectEqual(
+        @as(?usize, 4),
+        vm.segments.memory.countAccessedAddressesInSegment(0),
+    );
+    try expectEqual(
+        @as(?usize, 1),
+        vm.segments.memory.countAccessedAddressesInSegment(1),
+    );
 }
 
 test "CairoVM: markAddressRangeAsAccessed should return an error if the run is not finished" {
@@ -2026,6 +2353,130 @@ test "CairoVM: markAddressRangeAsAccessed should return an error if the run is n
     try expectError(
         CairoVMError.RunNotFinished,
         vm.markAddressRangeAsAccessed(Relocatable.init(0, 0), 3),
+    );
+}
+
+test "CairoVM: opcodeAssertions should throw UnconstrainedAssertEq error" {
+    var instruction = testInstruction;
+    instruction.opcode = .AssertEq;
+
+    const operands = OperandsResult{
+        .dst = .{ .felt = Felt252.fromInteger(8) },
+        .res = null,
+        .op_0 = .{ .felt = Felt252.fromInteger(9) },
+        .op_1 = .{ .felt = Felt252.fromInteger(10) },
+        .dst_addr = .{},
+        .op_0_addr = .{},
+        .op_1_addr = .{},
+        .deduced_operands = 0,
+    };
+
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    try expectError(
+        CairoVMError.UnconstrainedResAssertEq,
+        vm.opcodeAssertions(&instruction, operands),
+    );
+}
+
+test "CairoVM: opcodeAssertions instructions failed - should throw DiffAssertValues error" {
+    var instruction = testInstruction;
+    instruction.opcode = .AssertEq;
+
+    const operands = OperandsResult{
+        .dst = MaybeRelocatable.fromU64(9),
+        .res = MaybeRelocatable.fromU64(8),
+        .op_0 = MaybeRelocatable.fromU64(9),
+        .op_1 = MaybeRelocatable.fromU64(10),
+        .dst_addr = .{},
+        .op_0_addr = .{},
+        .op_1_addr = .{},
+        .deduced_operands = 0,
+    };
+
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    try expectError(
+        CairoVMError.DiffAssertValues,
+        vm.opcodeAssertions(&instruction, operands),
+    );
+}
+
+test "CairoVM: opcodeAssertions instructions failed relocatables - should throw DiffAssertValues error" {
+    var instruction = testInstruction;
+    instruction.opcode = .AssertEq;
+
+    const operands = OperandsResult{
+        .dst = MaybeRelocatable.fromSegment(1, 1),
+        .res = MaybeRelocatable.fromSegment(1, 2),
+        .op_0 = MaybeRelocatable.fromU64(9),
+        .op_1 = MaybeRelocatable.fromU64(10),
+        .dst_addr = .{},
+        .op_0_addr = .{},
+        .op_1_addr = .{},
+        .deduced_operands = 0,
+    };
+
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    try expectError(
+        CairoVMError.DiffAssertValues,
+        vm.opcodeAssertions(&instruction, operands),
+    );
+}
+
+test "CairoVM: opcodeAssertions inconsistent op0 - should throw CantWriteReturnPC error" {
+    var instruction = testInstruction;
+    instruction.opcode = .Call;
+
+    const operands = OperandsResult{
+        .dst = MaybeRelocatable.fromSegment(0, 1),
+        .res = MaybeRelocatable.fromU64(8),
+        .op_0 = MaybeRelocatable.fromU64(9),
+        .op_1 = MaybeRelocatable.fromU64(10),
+        .dst_addr = .{},
+        .op_0_addr = .{},
+        .op_1_addr = .{},
+        .deduced_operands = 0,
+    };
+
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    vm.run_context.pc.* = Relocatable.init(0, 4);
+
+    try expectError(
+        CairoVMError.CantWriteReturnPc,
+        vm.opcodeAssertions(&instruction, operands),
+    );
+}
+
+test "CairoVM: opcodeAssertions inconsistent dst - should throw CantWriteReturnFp error" {
+    var instruction = testInstruction;
+    instruction.opcode = .Call;
+
+    const operands = OperandsResult{
+        .dst = MaybeRelocatable.fromU64(8),
+        .res = MaybeRelocatable.fromU64(8),
+        .op_0 = MaybeRelocatable.fromSegment(0, 1),
+        .op_1 = MaybeRelocatable.fromU64(10),
+        .dst_addr = .{},
+        .op_0_addr = .{},
+        .op_1_addr = .{},
+        .deduced_operands = 0,
+    };
+
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    vm.run_context.fp.* = Relocatable.init(0, 6);
+
+    try expectError(
+        CairoVMError.CantWriteReturnFp,
+        vm.opcodeAssertions(&instruction, operands),
     );
 }
 
