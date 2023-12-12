@@ -711,6 +711,28 @@ test "CairoVM: relocateTrace and trace comparison (simple use case)" {
 }
 
 test "CairoVM: relocateTrace and trace comparison (more complex use case)" {
+    // Program used:
+    // %builtins output
+
+    // from starkware.cairo.common.serialize import serialize_word
+
+    // func main{output_ptr: felt*}():
+    //    let a = 1
+    //    serialize_word(a)
+    //    let b = 17 * a
+    //    serialize_word(b)
+    //    return()
+    // end
+
+    // Relocated Trace:
+    // [TraceEntry(pc=5, ap=18, fp=18),
+    // TraceEntry(pc=6, ap=19, fp=18),
+    // TraceEntry(pc=8, ap=20, fp=18),
+    // TraceEntry(pc=1, ap=22, fp=22),
+    // TraceEntry(pc=2, ap=22, fp=22),
+    // TraceEntry(pc=4, ap=23, fp=22),
+    // TraceEntry(pc=10, ap=23, fp=18),
+
     // Test setup
     const allocator = std.testing.allocator;
 
