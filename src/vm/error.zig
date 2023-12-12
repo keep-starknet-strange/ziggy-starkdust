@@ -67,6 +67,8 @@ pub const MemoryError = error{
     UnrelocatedMemory,
     /// Represents errors related to malformed or inconsistent public memory segments.
     MalformedPublicMemory,
+    /// Represents an error when there's a failure to retrieve return values from memory.
+    FailedToGetReturnValues,
     /// Range Check Number is out of bounds
     RangeCheckNumberOutOfBounds,
     /// Range Check found a non int
@@ -111,6 +113,8 @@ pub const MathError = error{
     RelocatableSubUsizeNegOffset,
     /// Value is too large to be coerced to a u64.
     ValueTooLarge,
+    /// Error indicating that the addition operation on the Relocatable offset exceeds the maximum limit.
+    RelocatableAdditionOffsetExceeded,
 };
 
 /// Represents different error conditions that occur in trace relocation

@@ -798,6 +798,139 @@ pub const CairoVM = struct {
         // Throw an error if the relocation table is not available
         return MemoryError.UnrelocatedMemory;
     }
+
+    /// Compares two memory segments within the Cairo VM's memory starting from specified addresses for a given length.
+    ///
+    /// This function provides a comparison mechanism for memory segments within the Cairo VM's memory.
+    /// It compares the segments starting from the specified `lhs` (left-hand side) and `rhs`
+    /// (right-hand side) addresses for a length defined by `len`.
+    ///
+    /// Special Cases:
+    /// - If `lhs` exists in memory but `rhs` does not: returns `(Order::Greater, 0)`.
+    /// - If `rhs` exists in memory but `lhs` does not: returns `(Order::Less, 0)`.
+    /// - If neither `lhs` nor `rhs` exist in memory: returns `(Order::Equal, 0)`.
+    ///
+    /// The function behavior aligns with the C `memcmp` function for other cases,
+    /// offering an optimized comparison mechanism that hints to avoid unnecessary allocations.
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs`: The starting address of the left-hand memory segment.
+    /// - `rhs`: The starting address of the right-hand memory segment.
+    /// - `len`: The length to compare from each memory segment.
+    ///
+    /// # Returns
+    ///
+    /// Returns a tuple containing the ordering of the segments and the first relative position
+    /// where they differ.
+    pub fn memCmp(
+        self: *Self,
+        lhs: Relocatable,
+        rhs: Relocatable,
+        len: usize,
+    ) std.meta.Tuple(&.{ std.math.Order, usize }) {
+        return self.segments.memory.memCmp(lhs, rhs, len);
+    }
+
+    /// Compares memory segments for equality.
+    ///
+    /// Compares segments of MemoryCell items starting from the specified addresses
+    /// (`lhs` and `rhs`) for a given length.
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs`: The starting address of the left-hand segment.
+    /// - `rhs`: The starting address of the right-hand segment.
+    /// - `len`: The length to compare from each segment.
+    ///
+    /// # Returns
+    ///
+    /// Returns `true` if segments are equal up to the specified length, otherwise `false`.
+    pub fn memEq(
+        self: *Self,
+        lhs: Relocatable,
+        rhs: Relocatable,
+        len: usize,
+    ) std.meta.Tuple(&.{ std.math.Order, usize }) {
+        return self.segments.memory.memEq(lhs, rhs, len);
+    }
+
+    /// Retrieves return values from the VM's memory as a continuous range of memory values.
+    ///
+    /// # Arguments
+    ///
+    /// - `n_ret`: The number of return values to retrieve from the memory.
+    ///
+    /// # Returns
+    ///
+    /// Returns a list containing memory values retrieved as return values from the VM's memory.
+    ///
+    /// # Errors
+    ///
+    /// - Returns `MemoryError.FailedToGetReturnValues` if there's an issue retrieving the return values
+    ///   from the specified memory addresses.
+    pub fn getReturnValues(self: *Self, n_ret: usize) !std.ArrayList(MaybeRelocatable) {
+        return self.segments.memory.getContinuousRange(
+            self.allocator,
+            self.run_context.ap.subUint(@intCast(n_ret)) catch {
+                return MemoryError.FailedToGetReturnValues;
+            },
+            n_ret,
+        );
+    }
+
+    /// Retrieves a range of memory values starting from a specified address within the Cairo VM's memory segment.
+    ///
+    /// # Arguments
+    ///
+    /// - `address`: The starting address in the memory from which the range is retrieved.
+    /// - `size`: The size of the range to be retrieved.
+    ///
+    /// # Returns
+    ///
+    /// Returns a list containing memory values retrieved from the specified range starting at the given address.
+    /// The list may contain `null` elements for inaccessible memory positions.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if there are any issues encountered during the retrieval of the memory range.
+    pub fn getRange(
+        self: *Self,
+        address: Relocatable,
+        size: usize,
+    ) !std.ArrayList(?MaybeRelocatable) {
+        return try self.segments.memory.getRange(
+            self.allocator,
+            address,
+            size,
+        );
+    }
+
+    /// Retrieves a continuous range of memory values starting from a specified address within the Cairo VM's memory segment.
+    ///
+    /// # Arguments
+    ///
+    /// - `address`: The starting address in the memory from which the continuous range is retrieved.
+    /// - `size`: The size of the continuous range to be retrieved.
+    ///
+    /// # Returns
+    ///
+    /// Returns a list containing memory values retrieved from the continuous range starting at the given address.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if there are any gaps encountered within the continuous memory range.
+    pub fn getContinuousRange(
+        self: *Self,
+        address: Relocatable,
+        size: usize,
+    ) !std.ArrayList(MaybeRelocatable) {
+        return try self.segments.memory.getContinuousRange(
+            self.allocator,
+            address,
+            size,
+        );
+    }
     
     /// Performs opcode-specific assertions on the operands of an instruction.
     /// # Arguments
@@ -805,7 +938,7 @@ pub const CairoVM = struct {
     /// - `operands`: The result of the operands computation.
     /// # Errors
     /// - Returns an error if an assertion fails.
-    pub fn opcodeAssertions(self: *Self, instruction: *const Instruction, operands: OperandsResult) CairoVMError!void {
+    pub fn opcodeAssertions(self: *Self, instruction: *const Instruction, operands: OperandsResult) !void {
         // Switch on the opcode to perform the appropriate assertion.
         switch (instruction.opcode) {
             // Assert that the result and destination operands are equal for AssertEq opcode.
