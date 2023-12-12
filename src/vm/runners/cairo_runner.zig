@@ -36,7 +36,6 @@ pub const CairoRunner = struct {
     entrypoint_name: []const u8 = "main",
     proof_mode: bool,
     run_ended: bool = false,
-    relocated_memory: [] ?Felt252 = undefined,
     relocated_trace: [] RelocatedTraceEntry = undefined,
     // layout
     // execScopes
@@ -166,7 +165,7 @@ pub const CairoRunner = struct {
         const relocation_table = try self.vm.segments.relocateSegments(self.allocator);
         try self.vm.relocateTrace(relocation_table);
 
-        const relocated_trace = self.vm.trace_context.state.enabled.relocated_trace_entries.items;
+        const relocated_trace = self.vm.getRelocatedTrace();
         return relocated_trace;
     }
 
