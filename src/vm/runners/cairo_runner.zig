@@ -170,8 +170,7 @@ pub const CairoRunner = struct {
         const relocation_table = try self.vm.segments.relocateSegments(self.allocator);
         try self.vm.relocateTrace(relocation_table);
 
-        const relocated_trace = self.vm.getRelocatedTrace();
-        return relocated_trace;
+        return self.vm.getRelocatedTrace();
     }
 
     pub fn deinit(self: *Self) void {
@@ -186,14 +185,10 @@ pub const CairoRunner = struct {
 };
 
 pub fn writeEncodedTrace(relocated_trace: []const RelocatedTraceEntry, dest: *std.fs.File.Writer) !void {
-    std.debug.print("LENGTH OF TRACE: {any}\n", .{relocated_trace.len});    
     for (relocated_trace) |entry| {
-        const ap = try entry.ap.tryIntoU64();
-        const fp = try entry.fp.tryIntoU64();
-        const pc = try entry.pc.tryIntoU64();
-        _ = try dest.writeInt(u64, ap, .little);
-        _ = try dest.writeInt(u64, fp, .little);
-        _ = try dest.writeInt(u64, pc, .little);
+        try dest.writeInt(u64, try entry.ap.tryIntoU64(), .little);
+        try dest.writeInt(u64, try entry.fp.tryIntoU64(), .little);
+        try dest.writeInt(u64, try entry.pc.tryIntoU64(), .little);
     }
 }
 
