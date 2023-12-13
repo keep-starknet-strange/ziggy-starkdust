@@ -53,6 +53,14 @@ var enable_trace = cli.Option{
     .required = false,
 };
 
+var output_trace = cli.Option{
+    .long_name = "output-trace",
+    .help = "Enable trace mode",
+    .short_alias = 'o',
+    .value_ref = cli.mkRef(&config.output_trace),
+    .required = false,
+};
+
 // ************************************************************
 // *                    CLI APP                               *
 // ************************************************************
@@ -74,7 +82,7 @@ var app = &cli.App{
             \\Execute a cairo program with the virtual machine.
             ,
             .action = execute,
-            .options = &.{ &execute_proof_mode_option, &enable_trace, &program_option },
+            .options = &.{ &execute_proof_mode_option, &enable_trace, &program_option, &output_trace },
         },
     },
 };
