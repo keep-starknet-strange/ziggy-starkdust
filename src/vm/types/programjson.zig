@@ -7,6 +7,8 @@ const ProgramError = @import("../error.zig").ProgramError;
 const Felt252 = @import("../../math/fields/starknet.zig").Felt252;
 const Register = @import("../instructions.zig").Register;
 const Program = @import("./program.zig").Program;
+const HintsCollection = @import("./program.zig").HintsCollection;
+const SharedProgramData = @import("./program.zig").SharedProgramData;
 const PRIME_STR = @import("../../math/fields/starknet.zig").PRIME_STR;
 
 /// Enum representing built-in functions within the Cairo VM.
@@ -273,12 +275,7 @@ pub const ProgramJson = struct {
     hints: json.ArrayHashMap([]const HintParams),
     /// Identifiers within the program.
     identifiers: json.ArrayHashMap(Identifier),
-    // identifiers: std.HashMap(
-    //     []const u8,
-    //     Identifier,
-    //     std.hash_map.AutoContext([]const u8),
-    //     std.hash_map.default_max_load_percentage,
-    // ),
+    // identifiers: std.StringHashMap(Identifier),
     /// Main scope details.
     main_scope: []const u8,
     /// Prime data.
@@ -320,14 +317,64 @@ pub const ProgramJson = struct {
         return parsed;
     }
 
-    // pub fn parseProgramJson(self: *Self, entrypoint: ?*[]const u8) !Program {
-    //     _ = self;
-    //     _ = entrypoint;
+    pub fn parseProgramJson(self: *Self, allocator: Allocator, entrypoint: ?*[]const u8) !Program {
+        if (PRIME_STR != self.prime) return ProgramError.PrimeDiffers;
 
-    //     if (PRIME_STR != self.prime) return ProgramError.PrimeDiffers;
+        const entrypoint_pc = if (entrypoint) |e| blk: {
+            if (self.identifiers.map.get("__main__." ++ e.*)) |entrypoint_identifier| {
+                break :blk entrypoint_identifier.pc;
+            } else {
+                return ProgramError.EntrypointNotFound;
+            }
+        } else null;
 
-    //     const entrypoint_pc = if (entrypoint) |e| {}
-    // }
+        const start = if (self.identifiers.map.get("__main__.__start__")) |identifier| identifier.pc else null;
+        const end = if (self.identifiers.map.get("__main__.__end__")) |identifier| identifier.pc else null;
+
+        var constants = std.StringHashMap(Felt252).init(allocator);
+
+        for (self.identifiers.map.keys(), self.identifiers.map.values()) |key, value| {
+            if (value.type) |_| {
+                constants.put(
+                    key,
+                    if (value.value) |v| v else return ProgramError.ConstWithoutValue,
+                );
+            }
+        }
+
+        var error_message_attributes = std.ArrayList(Attribute).init(allocator);
+        for (0..self.attributes.len) |i| {
+            const name = self.attributes[i].name;
+            if (std.mem.eql(u8, name, "error_message")) {
+                try error_message_attributes.append(name);
+            }
+        }
+
+        var instruction_locations = std.StringHashMap(InstructionLocation).init(allocator);
+        for (self.debug_info.instruction_locations.map.keys(), self.debug_info.instruction_locations.map.values()) |key, value| {
+            try instruction_locations.put(key, value);
+        }
+
+        var identifiers = std.StringHashMap(InstructionLocation).init(allocator);
+        for (self.identifiers.map.keys(), self.identifiers.map.values()) |key, value| {
+            try identifiers.put(key, value);
+        }
+
+        return .{
+            .shared_program_data = .{
+                .data = self.data,
+                .hints_collection = HintsCollection.init(allocator),
+                .main = entrypoint_pc,
+                .start = start,
+                .end = end,
+                .error_message_attributes = error_message_attributes,
+                .instruction_locations = instruction_locations,
+                .identifiers = identifiers,
+            },
+            .constants = constants,
+            .builtins = self.builtins,
+        };
+    }
 
     pub fn parseToProgram(allocator: Allocator, filename: []const u8) !Program {
         const program_json = Self.parseFromFile(allocator, filename);
@@ -368,7 +415,13 @@ const expectError = std.testing.expectError;
 const expectEqualStrings = std.testing.expectEqualStrings;
 
 test "ProgramJson cannot be initialized from nonexistent json file" {
-    try expectError(error.FileNotFound, ProgramJson.parseFromFile(std.testing.allocator, "nonexistent.json"));
+    try expectError(
+        error.FileNotFound,
+        ProgramJson.parseFromFile(
+            std.testing.allocator,
+            "nonexistent.json",
+        ),
+    );
 }
 
 test "ProgramJson can be initialized from json file with correct program data" {

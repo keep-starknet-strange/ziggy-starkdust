@@ -62,7 +62,7 @@ pub const HintsCollection = struct {
 pub const SharedProgramData = struct {
     const Self = @This();
     /// List of `MaybeRelocatable` items.
-    data: std.ArrayList(MaybeRelocatable),
+    data: []const []const u8,
     /// Collection of hints.
     hints_collection: HintsCollection,
     /// Program's main entry point (optional, defaults to `null`).
@@ -74,19 +74,9 @@ pub const SharedProgramData = struct {
     /// List of error message attributes.
     error_message_attributes: std.ArrayList(Attribute),
     /// Map of `usize` to `InstructionLocation`.
-    instruction_locations: ?std.HashMap(
-        usize,
-        InstructionLocation,
-        std.hash_map.AutoContext(usize),
-        std.hash_map.default_max_load_percentage,
-    ),
+    instruction_locations: ?std.StringHashMap(InstructionLocation),
     /// Map of `[]u8` to `Identifier`.
-    identifiers: std.HashMap(
-        []u8,
-        Identifier,
-        std.hash_map.AutoContext([]u8),
-        std.hash_map.default_max_load_percentage,
-    ),
+    identifiers: std.StringHashMap(Identifier),
     /// List of `HintReference` items.
     reference_manager: std.ArrayList(HintReference),
 
@@ -130,60 +120,52 @@ pub const SharedProgramData = struct {
 pub const Program = struct {
     const Self = @This();
     shared_program_data: SharedProgramData,
-    constants: std.HashMap(
-        []u8,
-        Felt252,
-        std.hash_map.AutoContext([]u8),
-        std.hash_map.default_max_load_percentage,
-    ),
+    constants: std.StringHashMap(Felt252),
     builtins: std.ArrayList(BuiltinName),
 
     pub fn init(allocator: Allocator) Self {
         return .{
             .shared_program_data = SharedProgramData.init(allocator),
-            .constants = std.AutoHashMap(
-                []u8,
-                Felt252,
-            ).init(allocator),
+            .constants = std.StringHashMap(Felt252).init(allocator),
             .builtins = std.ArrayList(BuiltinName).init(allocator),
         };
     }
 
-    pub fn from(
-        builtins: std.ArrayList(BuiltinName),
-        data: std.ArrayList(MaybeRelocatable),
-        main: ?usize,
-        hints: std.HashMap(
-            usize,
-            std.ArrayList(HintParams),
-            std.hash_map.AutoContext(usize),
-            std.hash_map.default_max_load_percentage,
-        ),
-        reference_manager: ReferenceManager,
-        identifiers: std.HashMap(
-            []u8,
-            Identifier,
-            std.hash_map.AutoContext([]u8),
-            std.hash_map.default_max_load_percentage,
-        ),
-        error_message_attributes: std.ArrayList(Attribute),
-        instruction_locations: ?std.HashMap(
-            usize,
-            InstructionLocation,
-            std.hash_map.AutoContext(usize),
-            std.hash_map.default_max_load_percentage,
-        ),
-    ) Self {
-        _ = error_message_attributes;
-        _ = instruction_locations;
-        _ = reference_manager;
-        _ = identifiers;
-        _ = main;
-        _ = hints;
+    // pub fn from(
+    //     builtins: std.ArrayList(BuiltinName),
+    //     data: std.ArrayList(MaybeRelocatable),
+    //     main: ?usize,
+    //     hints: std.HashMap(
+    //         usize,
+    //         std.ArrayList(HintParams),
+    //         std.hash_map.AutoContext(usize),
+    //         std.hash_map.default_max_load_percentage,
+    //     ),
+    //     reference_manager: ReferenceManager,
+    //     identifiers: std.HashMap(
+    //         []u8,
+    //         Identifier,
+    //         std.hash_map.AutoContext([]u8),
+    //         std.hash_map.default_max_load_percentage,
+    //     ),
+    //     error_message_attributes: std.ArrayList(Attribute),
+    //     instruction_locations: ?std.HashMap(
+    //         usize,
+    //         InstructionLocation,
+    //         std.hash_map.AutoContext(usize),
+    //         std.hash_map.default_max_load_percentage,
+    //     ),
+    // ) Self {
+    //     _ = error_message_attributes;
+    //     _ = instruction_locations;
+    //     _ = reference_manager;
+    //     _ = identifiers;
+    //     _ = main;
+    //     _ = hints;
 
-        _ = builtins;
-        _ = data;
-    }
+    //     _ = builtins;
+    //     _ = data;
+    // }
 
     pub fn deinit(self: Self) void {
         self.shared_program_data.deinit();
