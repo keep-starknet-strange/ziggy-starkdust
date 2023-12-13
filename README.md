@@ -83,7 +83,7 @@ zig build test --summary all
 Run a single test, for example, the "Felt252 zero" test: 
 
 ```console
-$ zig test --test-filter "Felt252 zero" src/tests.zig
+$ zig build test -Dtest-filter="Felt252 zero" src/tests.zig
 All 2 tests passed.
 ```
 
