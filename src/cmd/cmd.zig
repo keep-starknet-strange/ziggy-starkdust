@@ -14,7 +14,7 @@ const Config = @import("../vm/config.zig").Config;
 const build_options = @import("../build_options.zig");
 const cairo_runner = @import("../vm/runners/cairo_runner.zig");
 const CairoRunner = cairo_runner.CairoRunner;
-const Program = @import("../vm/types/program.zig").Program;
+const ProgramJson = @import("../vm/types/programjson.zig").ProgramJson;
 
 // ************************************************************
 // *                 GLOBAL VARIABLES                         *

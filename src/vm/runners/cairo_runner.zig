@@ -6,7 +6,7 @@ const Config = @import("../config.zig").Config;
 const CairoVM = @import("../core.zig").CairoVM;
 const Relocatable = @import("../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../memory/relocatable.zig").MaybeRelocatable;
-const Program = @import("../types/program.zig").Program;
+const ProgramJson = @import("../types/programjson.zig").ProgramJson;
 const CairoRunnerError = @import("../error.zig").CairoRunnerError;
 
 const expect = std.testing.expect;
@@ -17,7 +17,7 @@ const expectEqualSlices = std.testing.expectEqualSlices;
 pub const CairoRunner = struct {
     const Self = @This();
 
-    program: Program,
+    program: ProgramJson,
     allocator: Allocator,
     vm: CairoVM,
     program_base: Relocatable = undefined,
@@ -34,7 +34,7 @@ pub const CairoRunner = struct {
 
     pub fn init(
         allocator: Allocator,
-        program: Program,
+        program: ProgramJson,
         instructions: std.ArrayList(MaybeRelocatable),
         vm: CairoVM,
         proof_mode: bool,
@@ -65,7 +65,7 @@ pub const CairoRunner = struct {
     pub fn initSegments(self: *Self) !void {
 
         // Common segments, as defined in pg 41 of the cairo paper
-        // stores the bytecode of the executed Cairo Program
+        // stores the bytecode of the executed Cairo ProgramJson
         self.program_base = try self.vm.segments.addSegment();
         // stores the execution stack
         self.execution_base = try self.vm.segments.addSegment();
@@ -161,7 +161,7 @@ pub const CairoRunner = struct {
     }
 
     pub fn deinit(self: *Self) void {
-        // currently handling the deinit of the json.Parsed(Program) outside of constructor
+        // currently handling the deinit of the json.Parsed(ProgramJson) outside of constructor
         // otherwise the runner would always assume json in its interface
         // self.program.deinit();
         self.function_call_stack.deinit();
@@ -177,7 +177,7 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
         config,
     );
 
-    const parsed_program = try Program.parseFromFile(allocator, config.filename);
+    const parsed_program = try ProgramJson.parseFromFile(allocator, config.filename);
     const instructions = try parsed_program.value.readData(allocator);
     defer parsed_program.deinit();
 
@@ -197,7 +197,7 @@ test "Fibonacci: can evaluate without runtime error" {
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
     const path = try std.os.realpath("cairo-programs/fibonacci.json", &buffer);
 
-    var parsed_program = try Program.parseFromFile(allocator, path);
+    var parsed_program = try ProgramJson.parseFromFile(allocator, path);
     defer parsed_program.deinit();
 
     const instructions = try parsed_program.value.readData(allocator);

@@ -10,6 +10,8 @@ pub const Felt252 = fields.Field(
     0x800000000000011000000000000000000000000000000000000000000000001,
 );
 
+pub const PRIME_STR = "0x800000000000011000000000000000000000000000000000000000000000001";
+
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 
