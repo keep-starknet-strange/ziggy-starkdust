@@ -188,9 +188,12 @@ pub const CairoRunner = struct {
 pub fn writeEncodedTrace(relocated_trace: []const RelocatedTraceEntry, dest: *std.fs.File.Writer) !void {
     std.debug.print("LENGTH OF TRACE: {any}\n", .{relocated_trace.len});    
     for (relocated_trace) |entry| {
-        _ = try dest.write(&std.mem.toBytes(entry.ap.tryIntoU64()));
-        _ = try dest.write(&std.mem.toBytes(entry.fp.tryIntoU64()));
-        _ = try dest.write(&std.mem.toBytes(entry.pc.tryIntoU64()));
+        const ap = try entry.ap.tryIntoU64();
+        const fp = try entry.fp.tryIntoU64();
+        const pc = try entry.pc.tryIntoU64();
+        _ = try dest.writeInt(u64, ap, .little);
+        _ = try dest.writeInt(u64, fp, .little);
+        _ = try dest.writeInt(u64, pc, .little);
     }
 }
 
