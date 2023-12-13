@@ -304,14 +304,42 @@ pub const OutputBuiltinRunner = struct {
         page_start: MaybeRelocatable,
         page_size: usize,
     ) !void {
-        _ = page_size;
         if (self.pages.get(page_id) != null) return OutputBuiltinRunnerError.PageIdAlreadyAssigned;
-
         if (!page_start.isRelocatable() or page_start.relocatable.segment_index != self.base) {
             return OutputBuiltinRunnerError.PageStartNotInOutputSegment;
         }
+        // Builtin base offset is always 0, hence no need to do `page_start - self.base`
+        try self.pages.put(
+            page_id,
+            .{ .start = page_start.relocatable.offset, .size = page_size },
+        );
+    }
 
-        // TODO: implement rest of the logic by modifying base to Relocatable
+    /// Sets the base address and updates the pages in the OutputBuiltinRunner instance.
+    ///
+    /// This function updates the base address of the OutputBuiltinRunner and refreshes its associated pages
+    /// with the provided hashmap containing page configurations.
+    ///
+    /// # Arguments
+    ///
+    /// - `self`: A pointer to the OutputBuiltinRunner instance.
+    /// - `base`: The new base address to be set.
+    /// - `pages`: A hashmap containing page configurations (usize keys to PublicMemoryPage values).
+    ///
+    /// # Returns
+    ///
+    /// An error if encountered during page updates or setting the base address.
+    pub fn setState(
+        self: *Self,
+        base: usize,
+        pages: AutoHashMap(usize, PublicMemoryPage),
+    ) !void {
+        self.base = base;
+        self.pages.clearAndFree();
+        var it = pages.iterator();
+        while (it.next()) |entry| {
+            try self.pages.put(entry.key_ptr.*, entry.value_ptr.*);
+        }
     }
 
     pub fn deduceMemoryCell(
@@ -677,17 +705,78 @@ test "OutputBuiltinRunner: addPage should an error if page_start segment index i
     );
 }
 
-// test "OutputBuiltinRunner: addPage should an error if start is negative" {
-//     var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
-//     defer output_builtin.deinit();
-//     output_builtin.base = 10;
+test "OutputBuiltinRunner: addPage should add a page" {
+    // Creates a new OutputBuiltinRunner instance and initializes it with a base address of 10.
+    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    // Deinitializes the runner when the function scope ends.
+    defer output_builtin.deinit();
+    // Sets the base address to 10.
+    output_builtin.base = 10;
 
-//     try expectError(
-//         MathError.SubWithOverflow,
-//         output_builtin.addPage(
-//             10,
-//             MaybeRelocatable.fromSegment(0, 0),
-//             5,
-//         ),
-//     );
-// }
+    // Sets up the initial pages in the runner's hashmap with various IDs and configurations.
+    try output_builtin.pages.put(
+        8,
+        .{ .start = 23, .size = 2 },
+    );
+    try output_builtin.pages.put(
+        8,
+        .{ .start = 22, .size = 12 },
+    );
+    try output_builtin.pages.put(
+        2,
+        .{ .start = 10, .size = 2 },
+    );
+
+    // Prepares a new set of pages to update the runner's state.
+    // Defines a new base address.
+    const new_base: usize = 36;
+    // Initializes a new hashmap.
+    var new_pages = AutoHashMap(usize, PublicMemoryPage).init(std.testing.allocator);
+    // Deinitializes the new hashmap when the function scope ends.
+    defer new_pages.deinit();
+
+    // Populates the new hashmap with pages having different IDs and configurations.
+    try new_pages.put(
+        83,
+        .{ .start = 3, .size = 122 },
+    );
+    try new_pages.put(
+        9,
+        .{ .start = 1, .size = 242 },
+    );
+    try new_pages.put(
+        99,
+        .{ .start = 12, .size = 22 },
+    );
+    try new_pages.put(
+        2434,
+        .{ .start = 126365, .size = 34354 },
+    );
+
+    // Updates the state of the output_builtin runner with the new base address and pages.
+    try output_builtin.setState(new_base, new_pages);
+
+    // Tests if the base address is updated to the new_base (36).
+    try expectEqual(@as(usize, 36), output_builtin.base);
+
+    // Tests if the number of pages in the runner's hashmap is equal to 4 after the state update.
+    try expectEqual(@as(usize, 4), output_builtin.pages.count());
+
+    // Tests if each page in the hashmap has the expected configurations after the state update.
+    try expectEqual(
+        PublicMemoryPage{ .start = 3, .size = 122 },
+        output_builtin.pages.get(83).?,
+    );
+    try expectEqual(
+        PublicMemoryPage{ .start = 1, .size = 242 },
+        output_builtin.pages.get(9).?,
+    );
+    try expectEqual(
+        PublicMemoryPage{ .start = 12, .size = 22 },
+        output_builtin.pages.get(99).?,
+    );
+    try expectEqual(
+        PublicMemoryPage{ .start = 126365, .size = 34354 },
+        output_builtin.pages.get(2434).?,
+    );
+}
