@@ -4,21 +4,47 @@ const std = @import("std");
 pub const CELLS_PER_HASH: u32 = 3;
 /// Number of input cells per hash.
 pub const INPUT_CELLS_PER_HASH: u32 = 2;
+/// Hash limit
+pub const PRIME: u256 = std.math.pow(u256, 2, 251) + 17 * std.math.pow(u256, 2, 192) + 1;
 
 /// Represents a Pedersen Instance Definition.
 pub const PedersenInstanceDef = struct {
+    const Self = @This();
+
     /// Ratio
     ratio: ?u32,
     /// Split to this many different components - for optimization.
-    _repetitions: u32,
+    repetitions: u32,
     /// Size of hash.
-    _element_height: u32,
+    element_height: u32,
     /// Size of hash in bits.
-    _element_bits: u32,
+    element_bits: u32,
     /// Number of inputs for hash.
-    _n_inputs: u32,
+    n_inputs: u32,
     /// The upper bound on the hash inputs.
     ///
     /// If None, the upper bound is 2^element_bits.
-    _hash_limit: std.math.big.int.Managed,
+    hash_limit: u256,
+
+    pub fn init() Self {
+        return .{
+            .ratio = 8,
+            .repetitions = 4,
+            .element_height = 256,
+            .element_bits = 252,
+            .n_inputs = 2,
+            .hash_limit = PRIME,
+        };
+    }
+
+    pub fn from(ratio: ?u32, repetitions: u32) Self {
+        return .{
+            .ratio = ratio,
+            .repetitions = repetitions,
+            .element_height = 256,
+            .element_bits = 252,
+            .n_inputs = 2,
+            .hash_limit = PRIME,
+        };
+    }
 };

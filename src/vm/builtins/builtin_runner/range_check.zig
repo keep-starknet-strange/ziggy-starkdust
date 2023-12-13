@@ -189,9 +189,7 @@ pub const RangeCheckBuiltinRunner = struct {
         pointer: Relocatable,
     ) !Relocatable {
         if (self.included) {
-            const stop_pointer_addr = pointer.subUint(
-                @intCast(1),
-            ) catch return RunnerError.NoStopPointer;
+            const stop_pointer_addr = pointer.subUint(1) catch return RunnerError.NoStopPointer;
             const stop_pointer = try (segments.memory.get(stop_pointer_addr)).tryIntoRelocatable();
             if (@as(
                 isize,
@@ -333,7 +331,7 @@ test "Range Check: get usage for range check" {
     var seg = try MemorySegmentManager.init(allocator);
     defer seg.deinit();
 
-    try memoryFile.setUpMemory(seg.memory, std.testing.allocator, .{
+    try seg.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 0, 0 }, .{1} },
         .{ .{ 0, 1 }, .{2} },
         .{ .{ 0, 2 }, .{3} },
@@ -352,7 +350,7 @@ test "Range Check: another successful check of usage for range check" {
     var seg = try MemorySegmentManager.init(allocator);
     defer seg.deinit();
 
-    try memoryFile.setUpMemory(seg.memory, std.testing.allocator, .{
+    try seg.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 0, 0 }, .{1465218365} },
         .{ .{ 0, 1 }, .{2134570341} },
         .{ .{ 0, 2 }, .{31349610736} },
@@ -372,7 +370,7 @@ test "Range Check: get usage for range check should be null" {
     var seg = try MemorySegmentManager.init(allocator);
     defer seg.deinit();
 
-    try memoryFile.setUpMemory(seg.memory, std.testing.allocator, .{});
+    try seg.memory.setUpMemory(std.testing.allocator, .{});
     defer seg.memory.deinitData(std.testing.allocator);
 
     //const expected: ?[2]usize = null;
