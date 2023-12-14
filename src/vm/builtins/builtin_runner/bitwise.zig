@@ -93,9 +93,9 @@ pub const BitwiseBuiltinRunner = struct {
         };
     }
 
-    pub fn initDefault(included: bool) Self {
+    pub fn initDefault() Self {
         var default: bitwise_instance_def.BitwiseInstanceDef = .{};
-        return Self.init(&default, included);
+        return Self.init(&default, true);
     }
 
     /// Initializes segments for the BitwiseBuiltinRunner instance using the provided MemorySegmentManager.
@@ -112,7 +112,6 @@ pub const BitwiseBuiltinRunner = struct {
     /// An error if the addition of the segment fails, otherwise sets the base address successfully.
     pub fn initSegments(self: *Self, segments: *MemorySegmentManager) !void {
         self.base = @intCast((try segments.addSegment()).segment_index);
-        self.stop_ptr = null;
     }
 
     /// Generates an initial stack for the BitwiseBuiltinRunner instance.
@@ -130,6 +129,7 @@ pub const BitwiseBuiltinRunner = struct {
     /// If the instance is marked as included, a single element initialized with the base address is returned.
     pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
         var result = ArrayList(MaybeRelocatable).init(allocator);
+        errdefer result.deinit();
         if (self.included) {
             try result.append(MaybeRelocatable.fromSegment(
                 @intCast(self.base),
@@ -160,6 +160,7 @@ pub const BitwiseBuiltinRunner = struct {
             @intCast(self.base),
         ) orelse MemoryError.MissingSegmentUsedSizes);
         var result = ArrayList(Relocatable).init(allocator);
+        errdefer result.deinit();
         for (0..segment_size) |i| {
             try result.append(.{
                 .segment_index = @intCast(self.base),
@@ -377,10 +378,10 @@ pub const BitwiseBuiltinRunner = struct {
 const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
 
-test "BitwiseBuiltinRunner getUsedInstances should return the number of used instances" {
+test "BitwiseBuiltinRunner: getUsedInstances should return the number of used instances" {
 
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault(true);
+    var builtin = BitwiseBuiltinRunner.initDefault();
 
     const allocator = std.testing.allocator;
 
@@ -394,11 +395,10 @@ test "BitwiseBuiltinRunner getUsedInstances should return the number of used ins
     );
 }
 
-// happy path tests graciously ported from https://github.com/lambdaclass/cairo-vm_in_go/blob/main/pkg/builtins/bitwise_test.go#L13
-test "BitwiseBuiltinRunner deduceMemoryCell and" {
+test "BitwiseBuiltinRunner: deduceMemoryCell and" {
 
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault(true);
+    var builtin = BitwiseBuiltinRunner.initDefault();
 
     const allocator = std.testing.allocator;
     const mem = try Memory.init(allocator);
@@ -424,10 +424,10 @@ test "BitwiseBuiltinRunner deduceMemoryCell and" {
     );
 }
 
-test "BitwiseBuiltinRunner deduceMemoryCell xor" {
+test "BitwiseBuiltinRunner: deduceMemoryCell xor" {
 
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault(true);
+    var builtin = BitwiseBuiltinRunner.initDefault();
 
     const allocator = std.testing.allocator;
     const mem = try Memory.init(allocator);
@@ -452,10 +452,10 @@ test "BitwiseBuiltinRunner deduceMemoryCell xor" {
     );
 }
 
-test "BitwiseBuiltinRunner deduceMemoryCell or" {
+test "BitwiseBuiltinRunner: deduceMemoryCell or" {
 
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault(true);
+    var builtin = BitwiseBuiltinRunner.initDefault();
 
     const allocator = std.testing.allocator;
     const mem = try Memory.init(allocator);
@@ -480,10 +480,10 @@ test "BitwiseBuiltinRunner deduceMemoryCell or" {
     );
 }
 
-test "BitwiseBuiltinRunner deduceMemoryCell when address.offset is incorrect returns null" {
+test "BitwiseBuiltinRunner: deduceMemoryCell when address.offset is incorrect returns null" {
 
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault(true);
+    var builtin = BitwiseBuiltinRunner.initDefault();
 
     const allocator = std.testing.allocator;
     const mem = try Memory.init(allocator);
@@ -503,10 +503,10 @@ test "BitwiseBuiltinRunner deduceMemoryCell when address.offset is incorrect ret
     try expectEqual(@as(?MaybeRelocatable, null), try builtin.deduceMemoryCell(address, mem));
 }
 
-test "BitwiseBuiltinRunner deduceMemoryCell when address points to nothing in memory" {
+test "BitwiseBuiltinRunner: deduceMemoryCell when address points to nothing in memory" {
 
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault(true);
+    var builtin = BitwiseBuiltinRunner.initDefault();
 
     const allocator = std.testing.allocator;
     var mem = try Memory.init(allocator);
@@ -519,10 +519,10 @@ test "BitwiseBuiltinRunner deduceMemoryCell when address points to nothing in me
     try expectError(BitwiseError.InvalidAddressForBitwise, builtin.deduceMemoryCell(address, mem));
 }
 
-test "BitwiseBuiltinRunner deduceMemoryCell should return InvalidAddressForBitwise when address points to relocatable variant of MaybeRelocatable " {
+test "BitwiseBuiltinRunner: deduceMemoryCell should return InvalidAddressForBitwise when address points to relocatable variant of MaybeRelocatable " {
 
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault(true);
+    var builtin = BitwiseBuiltinRunner.initDefault();
 
     const allocator = std.testing.allocator;
     var mem = try Memory.init(allocator);
@@ -539,10 +539,10 @@ test "BitwiseBuiltinRunner deduceMemoryCell should return InvalidAddressForBitwi
     try expectError(BitwiseError.InvalidAddressForBitwise, builtin.deduceMemoryCell(address, mem));
 }
 
-test "BitwiseBuiltinRunner deduceMemoryCell should return UnsupportedNumberOfBits error when address points to felt greater than BITWISE_TOTAL_N_BITS" {
+test "BitwiseBuiltinRunner: deduceMemoryCell should return UnsupportedNumberOfBits error when address points to felt greater than BITWISE_TOTAL_N_BITS" {
 
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault(true);
+    var builtin = BitwiseBuiltinRunner.initDefault();
 
     const allocator = std.testing.allocator;
     var mem = try Memory.init(allocator);
@@ -561,7 +561,7 @@ test "BitwiseBuiltinRunner deduceMemoryCell should return UnsupportedNumberOfBit
     try expectError(BitwiseError.UnsupportedNumberOfBits, builtin.deduceMemoryCell(address, mem));
 }
 
-test "BitwiseBuiltinRunner getUsedDilutedCheckUnits should pass test cases" {
+test "BitwiseBuiltinRunner: getUsedDilutedCheckUnits should pass test cases" {
     // cases gratefully taken from cairo_vm_in_{go/rust} tests
     const cases: [3]struct {
         when: struct {
@@ -593,10 +593,10 @@ test "BitwiseBuiltinRunner getUsedDilutedCheckUnits should pass test cases" {
         },
     };
 
-    for (cases) |case| {
+    inline for (cases) |case| {
 
         // given
-        var builtin = BitwiseBuiltinRunner.initDefault(true);
+        var builtin = BitwiseBuiltinRunner.initDefault();
         const allocator = std.testing.allocator;
 
         // when
