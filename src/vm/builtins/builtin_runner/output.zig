@@ -115,7 +115,6 @@ pub const OutputBuiltinRunner = struct {
     /// An error if the addition of the segment fails, otherwise sets the base address successfully.
     pub fn initSegments(self: *Self, segments: *MemorySegmentManager) !void {
         self.base = @intCast((try segments.addSegment()).segment_index);
-        self.stop_ptr = null;
     }
 
     /// Generates an initial stack for the OutputBuiltinRunner instance.
