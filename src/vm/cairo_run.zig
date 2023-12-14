@@ -95,3 +95,37 @@ test "Fibonacci: can evaluate without runtime error" {
     try runner.runUntilPC(end);
     try runner.endRun();
 }
+
+test "Factorial: can evaluate without runtime error" {
+
+    // Given
+    const allocator = std.testing.allocator;
+    var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+    const path = try std.os.realpath("cairo-programs/factorial.json", &buffer);
+
+    var parsed_program = try Program.parseFromFile(allocator, path);
+    defer parsed_program.deinit();
+
+    const instructions = try parsed_program.value.readData(allocator);
+
+    const vm = try CairoVM.init(
+        allocator,
+        .{},
+    );
+
+    // when
+    var runner = try CairoRunner.init(
+        allocator,
+        parsed_program.value,
+        instructions,
+        vm,
+        false,
+    );
+    defer runner.deinit();
+    const end = try runner.setupExecutionState();
+    errdefer std.debug.print("failed on step: {}\n", .{runner.vm.current_step});
+
+    // then
+    try runner.runUntilPC(end);
+    try runner.endRun();
+}
