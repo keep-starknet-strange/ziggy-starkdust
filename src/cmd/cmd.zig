@@ -12,9 +12,7 @@ const RunContext = @import("../vm/run_context.zig").RunContext;
 const relocatable = @import("../vm/memory/relocatable.zig");
 const Config = @import("../vm/config.zig").Config;
 const build_options = @import("../build_options.zig");
-const cairo_runner = @import("../vm/runners/cairo_runner.zig");
-const CairoRunner = cairo_runner.CairoRunner;
-const Program = @import("../vm/types/program.zig").Program;
+const cairo_run = @import("../vm/cairo_run.zig");
 
 // ************************************************************
 // *                 GLOBAL VARIABLES                         *
@@ -119,5 +117,5 @@ fn execute(_: []const []const u8) !void {
         return UsageError.IncompatibleBuildOptions;
     }
 
-    try cairo_runner.runConfig(gpa_allocator, config);
+    try cairo_run.runConfig(gpa_allocator, config);
 }
