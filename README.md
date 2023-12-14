@@ -49,7 +49,7 @@ Alternatively, if you have [nix](https://nixos.org/) installed, you can get the 
 ## 🔧 Build
 
 ```bash
-zig build
+make build
 ```
 
 ## 🤖 Usage
@@ -68,22 +68,16 @@ You can display the help message by running:
 
 ### 🧪 Testing
 
-Run all tests:
-
-```bash
-zig build test
-```
-
 Run all tests with test summary:
 
 ```bash
-zig build test --summary all
+make test
 ```
 
 Run a single test, for example, the "Felt252 zero" test: 
 
 ```console
-$ zig build test -Dtest-filter="Felt252 zero" src/tests.zig
+$ make test-filter FILTER="Felt252 zero"
 All 2 tests passed.
 ```
 
