@@ -22,6 +22,7 @@ pub const math = struct {
     pub usingnamespace @import("math/fields/fields.zig");
     pub usingnamespace @import("math/fields/stark_felt_252_gen_fp.zig");
     pub usingnamespace @import("math/fields/starknet.zig");
+    pub usingnamespace @import("math/fields/elliptic_curve.zig");
 };
 
 pub const utils = struct {
