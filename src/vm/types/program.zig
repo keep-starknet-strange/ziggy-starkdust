@@ -10,6 +10,8 @@ const InstructionLocation = @import("./programjson.zig").InstructionLocation;
 const Identifier = @import("./programjson.zig").Identifier;
 const BuiltinName = @import("./programjson.zig").BuiltinName;
 const ReferenceManager = @import("./programjson.zig").ReferenceManager;
+const OffsetValue = @import("./programjson.zig").OffsetValue;
+const Reference = @import("./programjson.zig").Reference;
 const HintReference = @import("../../hint_processor/hint_processor_def.zig").HintReference;
 
 /// Represents a range of hints corresponding to a PC.
@@ -105,8 +107,7 @@ pub const SharedProgramData = struct {
     }
 
     /// Deinitializes the `SharedProgramData`, freeing allocated memory.
-    pub fn deinit(self: Self) void {
-        self.data.deinit();
+    pub fn deinit(self: *Self) void {
         self.hints_collection.deinit();
         self.error_message_attributes.deinit();
         if (self.instruction_locations != null) {
@@ -167,7 +168,24 @@ pub const Program = struct {
     //     _ = data;
     // }
 
-    pub fn deinit(self: Self) void {
+    pub fn getReferenceList(allocator: Allocator, reference_manager: *[]const Reference) !std.ArrayList(HintReference) {
+        var res = std.ArrayList(HintReference).init(allocator);
+
+        for (0..reference_manager.len) |i| {
+            const ref = reference_manager.*[i];
+            try res.append(.{
+                .offset1 = .{ .value = @intCast(ref.ap_tracking_data.offset) },
+                .offset2 = null,
+                .dereference = false,
+                .ap_tracking_data = ref.ap_tracking_data,
+                .cairo_type = "felt",
+            });
+        }
+
+        return res;
+    }
+
+    pub fn deinit(self: *Self) void {
         self.shared_program_data.deinit();
         self.constants.deinit();
         self.builtins.deinit();

@@ -182,13 +182,31 @@ pub const InstructionLocation = struct {
 ///
 /// This instruction translates to '[ap] = [ap - 1] * 2, ap++',
 /// setting 'ap' to the calculated value of 10.
-const Reference = struct {
+pub const Reference = struct {
     /// Tracking data for the register associated with the reference.
     ap_tracking_data: ApTracking,
     /// Program counter (pc) tied to the reference (optional, defaults to null).
     pc: ?usize,
     /// Value of the reference.
     value: []const u8,
+};
+
+const ValueAddress = struct {
+    const Self = @This();
+
+    offset1: OffsetValue,
+    offset2: OffsetValue,
+    dereference: bool,
+    value_type: []const u8,
+
+    pub fn initDefault() Self {
+        return .{
+            .offset1 = .{ .value = 99 },
+            .offset2 = .{ .value = 99 },
+            .dereference = false,
+            .value_type = "felt",
+        };
+    }
 };
 
 /// Represents a manager for references to memory addresses defined for specific program locations (pcs).
@@ -259,7 +277,8 @@ pub const ProgramJson = struct {
     /// List of attributes.
     attributes: []Attribute,
     /// List of builtins.
-    builtins: []const []const u8,
+    // builtins: []const []const u8,
+    builtins: []BuiltinName,
     /// Compiler version information.
     compiler_version: []const u8,
     /// Program data.
@@ -318,10 +337,18 @@ pub const ProgramJson = struct {
     }
 
     pub fn parseProgramJson(self: *Self, allocator: Allocator, entrypoint: ?*[]const u8) !Program {
-        if (PRIME_STR != self.prime) return ProgramError.PrimeDiffers;
+        if (!std.mem.eql(u8, PRIME_STR, self.prime))
+            return ProgramError.PrimeDiffers;
 
         const entrypoint_pc = if (entrypoint) |e| blk: {
-            if (self.identifiers.map.get("__main__." ++ e.*)) |entrypoint_identifier| {
+            const key = try std.mem.concat(
+                allocator,
+                u8,
+                &[_][]const u8{ "__main__.", e.* },
+            );
+            defer allocator.free(key);
+
+            if (self.identifiers.map.get(key)) |entrypoint_identifier| {
                 break :blk entrypoint_identifier.pc;
             } else {
                 return ProgramError.EntrypointNotFound;
@@ -335,9 +362,9 @@ pub const ProgramJson = struct {
 
         for (self.identifiers.map.keys(), self.identifiers.map.values()) |key, value| {
             if (value.type) |_| {
-                constants.put(
+                try constants.put(
                     key,
-                    if (value.value) |v| v else return ProgramError.ConstWithoutValue,
+                    if (value.value) |v| Felt252.fromInteger(v) else return ProgramError.ConstWithoutValue,
                 );
             }
         }
@@ -346,8 +373,13 @@ pub const ProgramJson = struct {
         for (0..self.attributes.len) |i| {
             const name = self.attributes[i].name;
             if (std.mem.eql(u8, name, "error_message")) {
-                try error_message_attributes.append(name);
+                try error_message_attributes.append(self.attributes[i]);
             }
+        }
+
+        var builtins = std.ArrayList(BuiltinName).init(allocator);
+        for (0..self.attributes.len) |i| {
+            try builtins.append(self.builtins[i]);
         }
 
         var instruction_locations = std.StringHashMap(InstructionLocation).init(allocator);
@@ -355,7 +387,7 @@ pub const ProgramJson = struct {
             try instruction_locations.put(key, value);
         }
 
-        var identifiers = std.StringHashMap(InstructionLocation).init(allocator);
+        var identifiers = std.StringHashMap(Identifier).init(allocator);
         for (self.identifiers.map.keys(), self.identifiers.map.values()) |key, value| {
             try identifiers.put(key, value);
         }
@@ -370,9 +402,13 @@ pub const ProgramJson = struct {
                 .error_message_attributes = error_message_attributes,
                 .instruction_locations = instruction_locations,
                 .identifiers = identifiers,
+                .reference_manager = try Program.getReferenceList(
+                    allocator,
+                    &self.reference_manager.references,
+                ),
             },
             .constants = constants,
-            .builtins = self.builtins,
+            .builtins = builtins,
         };
     }
 
@@ -475,4 +511,17 @@ test "ProgramJson can be initialized from json file with correct program data" {
 
         try expectEqualStrings(expected_data[idx], hex_list.items);
     }
+}
+
+test "ProgramJson: parseProgramJson" {
+    const allocator = std.testing.allocator;
+
+    // Get the absolute path of the current working directory.
+    var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+    const path = try std.os.realpath("cairo-programs/fibonacci.json", &buffer);
+    var parsed_program = try ProgramJson.parseFromFile(allocator, path);
+    defer parsed_program.deinit();
+
+    var program = try parsed_program.value.parseProgramJson(std.testing.allocator, null);
+    defer program.deinit();
 }

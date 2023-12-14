@@ -15,13 +15,13 @@ pub const HintReference = struct {
     /// First offset value within the hint reference.
     offset1: OffsetValue,
     /// Second offset value within the hint reference.
-    offset2: OffsetValue,
+    offset2: ?OffsetValue,
     /// Flag indicating dereference within the hint reference.
     dereference: bool,
     /// Ap tracking data associated with the hint reference (optional, defaults to null).
     ap_tracking_data: ?ApTracking,
     /// Cairo type information related to the hint reference (optional, defaults to null).
-    cairo_type: ?[]u8,
+    cairo_type: ?[]const u8,
 
     /// Initializes a hint reference with specified offsets and dereference flags.
     ///
