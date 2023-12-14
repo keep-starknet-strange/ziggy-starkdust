@@ -127,6 +127,7 @@ pub fn ecOpImpl(const_partial_sum: ECPoint, const_doubled_point: ECPoint, m: Fel
 // ************************************************************
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
+const expectError = std.testing.expectError;
 
 test "compute double slope for valid point A" {
     const x = Felt252.fromInteger(3143372541908290873737380228370996772020829254218248561772745122290262847573);
@@ -269,6 +270,40 @@ test "compute_ec_op_impl_valid_a" {
     try expectEqual(actual_ec_point, expected_ec_point);
 }
 
-test "compute_ec_op_impl_valid_b" {}
+test "compute_ec_op_impl_valid_b" {
+    const partial_sum = ECPoint{
+        .x = Felt252.fromInteger(2962412995502985605007699495352191122971573493113767820301112397466445942584),
+        .y = Felt252.fromInteger(214950771763870898744428659242275426967582168179217139798831865603966154129),
+    };
+    const doubled_point = ECPoint{
+        .x = Felt252.fromInteger(874739451078007766457464989774322083649278607533249481151382481072868806602),
+        .y = Felt252.fromInteger(152666792071518830868575557812948353041420400780739481342941381225525861407),
+    };
+    const m = Felt252.fromInteger(34);
+    const alpha = Felt252.one();
+    const height = 256;
+    const actual_ec_point = try ecOpImpl(partial_sum, doubled_point, m, alpha, height);
+    const expected_ec_point = ECPoint{
+        .x = Felt252.fromInteger(2778063437308421278851140253538604815869848682781135193774472480292420096757),
+        .y = Felt252.fromInteger(3598390311618116577316045819420613574162151407434885460365915347732568210029),
+    };
 
-test "compute_ec_op_invalid_same_x_coordinate" {}
+    try expectEqual(actual_ec_point, expected_ec_point);
+}
+
+test "compute_ec_op_invalid_same_x_coordinate" {
+    const partial_sum = ECPoint{
+        .x = Felt252.one(),
+        .y = Felt252.fromInteger(9),
+    };
+    const doubled_point = ECPoint{
+        .x = Felt252.one(),
+        .y = Felt252.fromInteger(12),
+    };
+    const m = Felt252.fromInteger(34);
+    const alpha = Felt252.one();
+    const height = 256;
+    const actual_ec_point = ecOpImpl(partial_sum, doubled_point, m, alpha, height);
+
+    try expectError(actual_ec_point, ECError.XCoordinatesAreEqual);
+}
