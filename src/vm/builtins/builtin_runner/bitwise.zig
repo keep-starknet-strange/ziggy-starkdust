@@ -2,10 +2,20 @@ const std = @import("std");
 
 const bitwise_instance_def = @import("../../types/bitwise_instance_def.zig");
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
-const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
-const memoryFile = @import("../../memory/memory.zig");
-const Memory = memoryFile.Memory;
+const Segments = @import("../../memory/segments.zig");
+const Error = @import("../../error.zig");
+const CoreVM = @import("../../../vm/core.zig");
+
+const ArrayList = std.ArrayList;
+const Allocator = std.mem.Allocator;
+const CairoVM = CoreVM.CairoVM;
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
+const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
+const Memory = @import("../../memory/memory.zig").Memory;
+const MemoryError = Error.MemoryError;
+const MemorySegmentManager = Segments.MemorySegmentManager;
+const RunnerError = Error.RunnerError;
+const Tuple = std.meta.Tuple;
 
 pub const BitwiseError = error{
     InvalidBitwiseIndex,
@@ -42,13 +52,16 @@ pub const BitwiseBuiltinRunner = struct {
     /// # Returns
     /// The felt as an integer.
     fn getIntWithinBits(self: Self, address: Relocatable, memory: *Memory) BitwiseError!u256 {
-        const value = (memory.getFelt(address) catch return BitwiseError.InvalidAddressForBitwise).toInteger();
+        // Attempt to retrieve the felt from memory
+        const num = memory.getFelt(address) catch return BitwiseError.InvalidAddressForBitwise;
 
-        if (value > std.math.pow(u256, 2, self.bitwise_builtin.total_n_bits)) {
+        // Check the number of bits in the felt
+        if (num.numBits() > self.bitwise_builtin.total_n_bits) {
             return BitwiseError.UnsupportedNumberOfBits;
         }
 
-        return value;
+        // If the felt fits within the expected amount of bits, return its integer representation
+        return num.toInteger();
     }
 
     /// Create a new BitwiseBuiltinRunner instance.
@@ -85,6 +98,92 @@ pub const BitwiseBuiltinRunner = struct {
         return Self.init(&default, included);
     }
 
+    /// Initializes segments for the BitwiseBuiltinRunner instance using the provided MemorySegmentManager.
+    ///
+    /// This function sets the base address for the BitwiseBuiltinRunner instance by adding a segment through the MemorySegmentManager.
+    ///
+    /// # Arguments
+    ///
+    /// - `self`: A pointer to the BitwiseBuiltinRunner instance.
+    /// - `segments`: A pointer to the MemorySegmentManager managing memory segments.
+    ///
+    /// # Returns
+    ///
+    /// An error if the addition of the segment fails, otherwise sets the base address successfully.
+    pub fn initSegments(self: *Self, segments: *MemorySegmentManager) !void {
+        self.base = @intCast((try segments.addSegment()).segment_index);
+        self.stop_ptr = null;
+    }
+
+    /// Generates an initial stack for the BitwiseBuiltinRunner instance.
+    ///
+    /// This function initializes an ArrayList of MaybeRelocatable elements representing the initial stack.
+    ///
+    /// # Arguments
+    ///
+    /// - `self`: A pointer to the OutputBuiltinRunner instance.
+    /// - `allocator`: The allocator to initialize the ArrayList.
+    ///
+    /// # Returns
+    ///
+    /// An ArrayList of MaybeRelocatable elements representing the initial stack.
+    /// If the instance is marked as included, a single element initialized with the base address is returned.
+    pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
+        var result = ArrayList(MaybeRelocatable).init(allocator);
+        if (self.included) {
+            try result.append(MaybeRelocatable.fromSegment(
+                @intCast(self.base),
+                0,
+            ));
+            return result;
+        }
+        return result;
+    }
+
+    /// Retrieves memory access `Relocatable` for the Bitwise runner.
+    ///
+    /// This function returns an `ArrayList` of `Relocatable` elements, each representing
+    /// a memory access within the segment associated with the Keccak runner's base.
+    ///
+    /// # Parameters
+    /// - `allocator`: An allocator for initializing the `ArrayList`.
+    /// - `vm`: A pointer to the `CairoVM` containing segment information.
+    ///
+    /// # Returns
+    /// An `ArrayList` of `Relocatable` elements.
+    pub fn getMemoryAccesses(
+        self: *Self,
+        allocator: Allocator,
+        vm: *CairoVM,
+    ) !ArrayList(Relocatable) {
+        const segment_size = try (vm.segments.getSegmentUsedSize(
+            @intCast(self.base),
+        ) orelse MemoryError.MissingSegmentUsedSizes);
+        var result = ArrayList(Relocatable).init(allocator);
+        for (0..segment_size) |i| {
+            try result.append(.{
+                .segment_index = @intCast(self.base),
+                .offset = i,
+            });
+        }
+        return result;
+    }
+
+    /// Creates Validation Rule in Memory
+    ///
+    /// # Parameters
+    ///
+    /// - `memory`: A `Memory` pointer of validation rules segment index.
+    ///
+    /// # Modifies
+    ///
+    /// - `memory`: Adds validation rule to `memory`.
+    pub fn addValidationRule(self: *const Self, memory: *Memory) !void {
+        _ = self;
+        _ = memory;
+    }
+
+    // TODO: docstring
     pub fn deduceMemoryCell(
         self: *const Self,
         address: Relocatable,
@@ -114,6 +213,132 @@ pub const BitwiseBuiltinRunner = struct {
 
         return MaybeRelocatable{ .felt = Felt252.fromInteger(res) };
     }
+
+    /// Retrieves memory segment addresses as a tuple.
+    ///
+    /// Returns a tuple containing the `base` and `stop_ptr` addresses associated
+    /// with the Range Check runner's memory segments. The `stop_ptr` may be `null`.
+    ///
+    /// # Returns
+    /// A tuple of `usize` and `?usize` addresses.
+    pub fn getMemorySegmentAddresses(self: *Self) Tuple(&.{
+        usize,
+        ?usize,
+    }) {
+        return .{
+            self.base,
+            self.stop_ptr,
+        };
+    }
+
+    /// Get the number of used cells associated with this Bitwise runner.
+    ///
+    /// # Parameters
+    ///
+    /// - `segments`: A pointer to a `MemorySegmentManager` for segment size information.
+    ///
+    /// # Returns
+    ///
+    /// The number of used cells as a `u32`, or `MemoryError.MissingSegmentUsedSizes` if
+    /// the size is not available.
+    pub fn getUsedCells(self: *const Self, segments: *MemorySegmentManager) !u32 {
+        return segments.getSegmentUsedSize(
+            @intCast(self.base),
+        ) orelse MemoryError.MissingSegmentUsedSizes;
+    }
+
+    // TODO: write docstring
+    pub fn getUsedDilutedCheckUnits(self: Self, allocator: Allocator, diluted_spacing: u32, diluted_n_bits: u32) !usize {
+        const total_n_bits = self.bitwise_builtin.total_n_bits;
+
+        var partition = std.ArrayList(usize).init(allocator);
+        defer partition.deinit();
+
+        var i: usize = 0;
+
+        while (i < total_n_bits) : (i += diluted_spacing * diluted_n_bits) {
+            for (0..diluted_spacing) |j| {
+                if (i + j < total_n_bits) {
+                    try partition.append(i + j);
+                }
+            }
+        }
+
+        const partition_length = @as(usize, partition.items.len);
+        var num_trimmed: usize = 0;
+
+        for (partition.items) |element| {
+            if ((element + diluted_spacing * (diluted_n_bits - 1) + 1) > total_n_bits) {
+                num_trimmed += 1;
+            }
+        }
+        return 4 * partition_length + num_trimmed;
+    }
+
+    /// Calculate the final stack.
+    ///
+    /// This function calculates the final stack pointer for the Bitwise runner, based on the provided `segments`, `pointer`, and `self` settings. If the runner is included,
+    /// it verifies the stop pointer for consistency and sets it. Otherwise, it sets the stop pointer to zero.
+    ///
+    /// # Parameters
+    ///
+    /// - `segments`: A pointer to the `MemorySegmentManager` for segment management.
+    /// - `pointer`: A `Relocatable` pointer to the current stack pointer.
+    ///
+    /// # Returns
+    ///
+    /// A `Relocatable` pointer to the final stack pointer, or an error code if the
+    /// verification fails.
+    pub fn finalStack(
+        self: *Self,
+        segments: *MemorySegmentManager,
+        pointer: Relocatable,
+    ) !Relocatable {
+        if (self.included) {
+            const stop_pointer_addr = pointer.subUint(
+                @intCast(1),
+            ) catch return RunnerError.NoStopPointer;
+            const stop_pointer = try (segments.memory.get(stop_pointer_addr)).tryIntoRelocatable();
+            if (@as(
+                isize,
+                @intCast(self.base),
+            ) != stop_pointer.segment_index) {
+                return RunnerError.InvalidStopPointerIndex;
+            }
+            const stop_ptr = stop_pointer.offset;
+
+            if (stop_ptr != try self.getUsedInstances(segments) * @as(
+                usize,
+                @intCast(self.cells_per_instance),
+            )) {
+                return RunnerError.InvalidStopPointer;
+            }
+            self.stop_ptr = stop_ptr;
+            return stop_pointer_addr;
+        }
+
+        self.stop_ptr = 0;
+        return pointer;
+    }
+
+    /// Calculates the number of used instances for the Bitwise runner.
+    ///
+    /// This function computes the number of used instances based on the available
+    /// used cells and the number of cells per instance. It performs a ceiling division
+    /// to ensure that any remaining cells are counted as an additional instance.
+    ///
+    /// # Parameters
+    /// - `segments`: A pointer to the `MemorySegmentManager` for segment information.
+    ///
+    /// # Returns
+    /// The number of used instances as a `usize`.
+    pub fn getUsedInstances(self: *Self, segments: *MemorySegmentManager) !usize {
+        return std.math.divCeil(
+            usize,
+            try self.getUsedCells(segments),
+            @intCast(self.cells_per_instance),
+        );
+    }
 };
 
 // ************************************************************
@@ -122,8 +347,25 @@ pub const BitwiseBuiltinRunner = struct {
 const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
 
+test "BitwiseBuiltinRunner getUsedInstances should return the number of used instances" {
+
+    // given
+    var builtin = BitwiseBuiltinRunner.initDefault(true);
+
+    const allocator = std.testing.allocator;
+
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
+    defer memory_segment_manager.deinit();
+
+    try memory_segment_manager.segment_used_sizes.put(0, 1);
+    try expectEqual(
+        @as(usize, @intCast(1)),
+        try builtin.getUsedInstances(memory_segment_manager),
+    );
+}
+
 // happy path tests graciously ported from https://github.com/lambdaclass/cairo-vm_in_go/blob/main/pkg/builtins/bitwise_test.go#L13
-test "valid bitwise and" {
+test "BitwiseBuiltinRunner deduceMemoryCell and" {
 
     // given
     var builtin = BitwiseBuiltinRunner.initDefault(true);
@@ -134,7 +376,7 @@ test "valid bitwise and" {
     defer mem.deinitData(allocator);
 
     // when
-    try memoryFile.setUpMemory(mem, std.testing.allocator, .{
+    try Memory.setUpMemory(mem, std.testing.allocator, .{
         .{ .{ 0, 5 }, .{10} },
         .{ .{ 0, 6 }, .{12} },
         .{ .{ 0, 8 }, .{0} },
@@ -152,7 +394,7 @@ test "valid bitwise and" {
     );
 }
 
-test "valid bitwise xor" {
+test "BitwiseBuiltinRunner deduceMemoryCell xor" {
 
     // given
     var builtin = BitwiseBuiltinRunner.initDefault(true);
@@ -163,7 +405,7 @@ test "valid bitwise xor" {
     defer mem.deinitData(allocator);
 
     // when
-    try memoryFile.setUpMemory(mem, std.testing.allocator, .{
+    try Memory.setUpMemory(mem, std.testing.allocator, .{
         .{ .{ 0, 5 }, .{10} },
         .{ .{ 0, 6 }, .{12} },
         .{ .{ 0, 8 }, .{0} },
@@ -180,7 +422,7 @@ test "valid bitwise xor" {
     );
 }
 
-test "valid bitwise or" {
+test "BitwiseBuiltinRunner deduceMemoryCell or" {
 
     // given
     var builtin = BitwiseBuiltinRunner.initDefault(true);
@@ -191,7 +433,7 @@ test "valid bitwise or" {
     defer mem.deinitData(allocator);
 
     // when
-    try memoryFile.setUpMemory(mem, std.testing.allocator, .{
+    try Memory.setUpMemory(mem, std.testing.allocator, .{
         .{ .{ 0, 5 }, .{10} },
         .{ .{ 0, 6 }, .{12} },
         .{ .{ 0, 8 }, .{0} },
@@ -208,7 +450,7 @@ test "valid bitwise or" {
     );
 }
 
-test "deduce when address.offset is incorrect" {
+test "BitwiseBuiltinRunner deduceMemoryCell when address.offset is incorrect returns null" {
 
     // given
     var builtin = BitwiseBuiltinRunner.initDefault(true);
@@ -219,7 +461,7 @@ test "deduce when address.offset is incorrect" {
     defer mem.deinitData(allocator);
 
     // when
-    try memoryFile.setUpMemory(mem, std.testing.allocator, .{
+    try Memory.setUpMemory(mem, std.testing.allocator, .{
         .{ .{ 0, 3 }, .{10} },
         .{ .{ 0, 4 }, .{12} },
         .{ .{ 0, 5 }, .{0} },
@@ -231,7 +473,7 @@ test "deduce when address.offset is incorrect" {
     try expectEqual(@as(?MaybeRelocatable, null), try builtin.deduceMemoryCell(address, mem));
 }
 
-test "deduce when address points to nothing in memory" {
+test "BitwiseBuiltinRunner deduceMemoryCell when address points to nothing in memory" {
 
     // given
     var builtin = BitwiseBuiltinRunner.initDefault(true);
@@ -247,7 +489,7 @@ test "deduce when address points to nothing in memory" {
     try expectError(BitwiseError.InvalidAddressForBitwise, builtin.deduceMemoryCell(address, mem));
 }
 
-test "deduce when address points to relocatable variant of MaybeRelocatable " {
+test "BitwiseBuiltinRunner deduceMemoryCell should return InvalidAddressForBitwise when address points to relocatable variant of MaybeRelocatable " {
 
     // given
     var builtin = BitwiseBuiltinRunner.initDefault(true);
@@ -259,7 +501,7 @@ test "deduce when address points to relocatable variant of MaybeRelocatable " {
     // when
     const address = Relocatable.init(0, 3);
 
-    try memoryFile.setUpMemory(mem, std.testing.allocator, .{
+    try Memory.setUpMemory(mem, std.testing.allocator, .{
         .{ .{ 0, 3 }, .{ 0, 3 } },
     });
 
@@ -267,7 +509,7 @@ test "deduce when address points to relocatable variant of MaybeRelocatable " {
     try expectError(BitwiseError.InvalidAddressForBitwise, builtin.deduceMemoryCell(address, mem));
 }
 
-test "deduce when address points to felt greater than BITWISE_TOTAL_N_BITS" {
+test "BitwiseBuiltinRunner deduceMemoryCell should return UnsupportedNumberOfBits error when address points to felt greater than BITWISE_TOTAL_N_BITS" {
 
     // given
     var builtin = BitwiseBuiltinRunner.initDefault(true);
@@ -279,7 +521,7 @@ test "deduce when address points to felt greater than BITWISE_TOTAL_N_BITS" {
     // when
     const address = Relocatable.init(0, 7);
 
-    try memoryFile.setUpMemory(mem, std.testing.allocator, .{
+    try Memory.setUpMemory(mem, std.testing.allocator, .{
         .{ .{ 0, 5 }, .{std.math.pow(u256, 2, bitwise_instance_def.TOTAL_N_BITS_BITWISE_DEFAULT) + 1} },
         .{ .{ 0, 6 }, .{12} },
         .{ .{ 0, 8 }, .{0} },
@@ -287,4 +529,50 @@ test "deduce when address points to felt greater than BITWISE_TOTAL_N_BITS" {
 
     // then
     try expectError(BitwiseError.UnsupportedNumberOfBits, builtin.deduceMemoryCell(address, mem));
+}
+
+test "BitwiseBuiltinRunner getUsedDilutedCheckUnits should pass test cases" {
+    // cases gratefully taken from cairo_vm_in_{go/rust} tests
+    const cases: [3]struct {
+        when: struct {
+            diluted_spacing: u32,
+            diluted_n_bits: u32,
+        },
+        then: usize,
+    } = .{
+        .{
+            .when = .{
+                .diluted_spacing = 12,
+                .diluted_n_bits = 2,
+            },
+            .then = 535,
+        },
+        .{
+            .when = .{
+                .diluted_spacing = 30,
+                .diluted_n_bits = 56,
+            },
+            .then = 150,
+        },
+        .{
+            .when = .{
+                .diluted_spacing = 50,
+                .diluted_n_bits = 25,
+            },
+            .then = 250,
+        },
+    };
+
+    for (cases) |case| {
+
+        // given
+        var builtin = BitwiseBuiltinRunner.initDefault(true);
+        const allocator = std.testing.allocator;
+
+        // when
+        const result = try builtin.getUsedDilutedCheckUnits(allocator, case.when.diluted_spacing, case.when.diluted_n_bits);
+
+        // then
+        try expectEqual(@as(usize, case.then), result);
+    }
 }
