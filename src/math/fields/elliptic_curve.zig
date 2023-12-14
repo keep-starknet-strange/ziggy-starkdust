@@ -305,5 +305,5 @@ test "compute_ec_op_invalid_same_x_coordinate" {
     const height = 256;
     const actual_ec_point = ecOpImpl(partial_sum, doubled_point, m, alpha, height);
 
-    try expectError(actual_ec_point, ECError.XCoordinatesAreEqual);
+    try expectError(ECError.XCoordinatesAreEqual, actual_ec_point);
 }
