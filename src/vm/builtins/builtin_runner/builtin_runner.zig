@@ -11,8 +11,6 @@ const RangeCheckBuiltinRunner = @import("./range_check.zig").RangeCheckBuiltinRu
 const SegmentArenaBuiltinRunner = @import("./segment_arena.zig").SegmentArenaBuiltinRunner;
 const SignatureBuiltinRunner = @import("./signature.zig").SignatureBuiltinRunner;
 
-// const BitwiseBuiltinRunnerTmp = @import("../bitwise/bitwise.zig");
-
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
 const Memory = @import("../../memory/memory.zig").Memory;

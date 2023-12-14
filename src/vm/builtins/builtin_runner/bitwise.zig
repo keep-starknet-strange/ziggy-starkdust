@@ -140,7 +140,7 @@ pub const BitwiseBuiltinRunner = struct {
         return result;
     }
 
-    /// Retrieves memory access `Relocatable` for the Bitwise runner.
+    /// Retrieves memory access `Relocatable` for the BitwiseBuiltinRunner.
     ///
     /// This function returns an `ArrayList` of `Relocatable` elements, each representing
     /// a memory access within the segment associated with the Keccak runner's base.
