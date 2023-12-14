@@ -58,7 +58,7 @@ pub const OutputBuiltinRunner = struct {
     stop_ptr: ?usize,
     /// Included boolean flag
     included: bool,
-    /// A mapping from page IDs to their respective PublicMemoryPage configurations.
+    /// A mapping init page IDs to their respective PublicMemoryPage configurations.
     ///
     /// This map stores associations between page IDs and their corresponding PublicMemoryPage configurations.
     pages: AutoHashMap(usize, PublicMemoryPage),
@@ -92,7 +92,7 @@ pub const OutputBuiltinRunner = struct {
     /// # Returns
     ///
     /// A new `OutputBuiltinRunner` instance.
-    pub fn from(included: bool, allocator: Allocator) Self {
+    pub fn init(included: bool, allocator: Allocator) Self {
         return .{
             .base = 0,
             .stop_ptr = null,
@@ -185,7 +185,7 @@ pub const OutputBuiltinRunner = struct {
 
     /// Retrieves the count of used cells and their allocated size for the OutputBuiltinRunner.
     ///
-    /// This function obtains the count of used cells from the MemorySegmentManager
+    /// This function obtains the count of used cells init the MemorySegmentManager
     /// and returns a Tuple containing the size of used cells and their allocated size (both identical).
     ///
     /// # Arguments
@@ -284,7 +284,7 @@ pub const OutputBuiltinRunner = struct {
 
     /// Marks a range of addresses as a page within the OutputBuiltinRunner's memory.
     ///
-    /// This function assigns a page ID to a range of addresses, starting from page_start,
+    /// This function assigns a page ID to a range of addresses, starting init page_start,
     /// representing a page with the given page ID. It should be used in Cairo hints.
     ///
     /// # Arguments
@@ -395,7 +395,7 @@ test "OutputBuiltinRunner: initSegments should set builtin base to segment index
 }
 
 test "OutputBuiltinRunner: initialStack should return an empty array list if included is false" {
-    var output_builtin = OutputBuiltinRunner.from(false, std.testing.allocator);
+    var output_builtin = OutputBuiltinRunner.init(false, std.testing.allocator);
     defer output_builtin.deinit();
     var expected = ArrayList(MaybeRelocatable).init(std.testing.allocator);
     defer expected.deinit();
@@ -476,7 +476,7 @@ test "OutputBuiltinRunner: getUsedInstances should return the number of used ins
 }
 
 test "OutputBuiltinRunner: finalStack should return relocatable pointer if not included" {
-    var output_builtin = OutputBuiltinRunner.from(false, std.testing.allocator);
+    var output_builtin = OutputBuiltinRunner.init(false, std.testing.allocator);
     defer output_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
@@ -727,7 +727,7 @@ test "OutputBuiltinRunner: addPage should add a page" {
     // Sets the base address to 10.
     output_builtin.base = 10;
 
-    // Tries to add a new page with ID 10, starting from address 112, and with a size of 5.
+    // Tries to add a new page with ID 10, starting init address 112, and with a size of 5.
     try output_builtin.addPage(
         10,
         MaybeRelocatable.fromSegment(10, 112),
