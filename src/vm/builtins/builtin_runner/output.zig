@@ -113,7 +113,7 @@ pub const OutputBuiltinRunner = struct {
     /// # Returns
     ///
     /// An error if the addition of the segment fails, otherwise sets the base address successfully.
-    pub fn initializeSegments(self: *Self, segments: *MemorySegmentManager) !void {
+    pub fn initSegments(self: *Self, segments: *MemorySegmentManager) !void {
         self.base = @intCast((try segments.addSegment()).segment_index);
         self.stop_ptr = null;
     }
@@ -381,13 +381,13 @@ pub const OutputBuiltinRunner = struct {
     }
 };
 
-test "OutputBuiltinRunner: initializeSegments should set builtin base to segment index" {
+test "OutputBuiltinRunner: initSegments should set builtin base to segment index" {
     var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
     defer output_builtin.deinit();
     const memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     _ = try memory_segment_manager.addSegment();
-    try output_builtin.initializeSegments(memory_segment_manager);
+    try output_builtin.initSegments(memory_segment_manager);
     try expectEqual(
         @as(usize, 1),
         output_builtin.base,
