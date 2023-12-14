@@ -133,6 +133,7 @@ pub const OutputBuiltinRunner = struct {
     /// If the instance is marked as included, a single element initialized with the base address is returned.
     pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
         var result = ArrayList(MaybeRelocatable).init(allocator);
+        errdefer result.deinit();
         if (self.included) {
             try result.append(MaybeRelocatable.fromSegment(
                 @intCast(self.base),
