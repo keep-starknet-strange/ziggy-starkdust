@@ -1,5 +1,6 @@
 pub const vm = struct {
     pub usingnamespace @import("vm/core.zig");
+    pub usingnamespace @import("vm/cairo_run.zig");
     pub usingnamespace @import("vm/core_test.zig");
     pub usingnamespace @import("vm/config.zig");
     pub usingnamespace @import("vm/error.zig");
