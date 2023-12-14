@@ -99,13 +99,9 @@ pub const KeccakBuiltinRunner = struct {
     ///
     /// # Modifies
     /// - `self`: Updates the `base` value to the new segment's index.
-    pub fn initializeSegments(self: *Self, segments: *MemorySegmentManager) !void {
+    pub fn initSegments(self: *Self, segments: *MemorySegmentManager) !void {
         // `segments.addSegment()` always returns a positive index
-        const seg = try segments.addSegment();
-        self.base = @as(
-            usize,
-            @intCast(seg.segment_index),
-        );
+        self.base = @intCast((try segments.addSegment()).segment_index);
     }
 
     /// Initializes and returns an `ArrayList` of `MaybeRelocatable` values.
@@ -121,12 +117,10 @@ pub const KeccakBuiltinRunner = struct {
     pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
         var result = ArrayList(MaybeRelocatable).init(allocator);
         if (self.included) {
-            try result.append(.{
-                .relocatable = Relocatable.init(
-                    @intCast(self.base),
-                    0,
-                ),
-            });
+            try result.append(MaybeRelocatable.fromSegment(
+                @intCast(self.base),
+                0,
+            ));
             return result;
         }
         return result;
@@ -529,7 +523,7 @@ test "KeccakBuiltinRunner: initialStack should return an a proper array list if 
     );
 }
 
-test "KeccakBuiltinRunner: initializeSegments should modify base field of Keccak built in" {
+test "KeccakBuiltinRunner: initSegments should modify base field of Keccak built in" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
     var keccak_builtin = KeccakBuiltinRunner.init(
         std.testing.allocator,
@@ -539,8 +533,8 @@ test "KeccakBuiltinRunner: initializeSegments should modify base field of Keccak
     defer keccak_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    try keccak_builtin.initializeSegments(memory_segment_manager);
-    try keccak_builtin.initializeSegments(memory_segment_manager);
+    try keccak_builtin.initSegments(memory_segment_manager);
+    try keccak_builtin.initSegments(memory_segment_manager);
     try expectEqual(
         @as(usize, @intCast(1)),
         keccak_builtin.base,
