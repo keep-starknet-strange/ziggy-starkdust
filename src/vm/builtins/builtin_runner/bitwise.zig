@@ -183,7 +183,27 @@ pub const BitwiseBuiltinRunner = struct {
         _ = memory;
     }
 
-    // TODO: docstring
+    /// Deduces the `MemoryCell` for a given address within the Bitwise runner's memory.
+    ///
+    /// This function takes an allocator, address, and a reference to the memory and returns
+    /// a `MaybeRelocatable` value representing the `MemoryCell` associated with the given
+    /// address. It first calculates the index of the cell within the Bitwise runner's memory
+    /// segment, checks if the address corresponds to an input cell, and attempts to construct
+    /// an x and y offset the address. These offsets are used to look up two `Felt252`s in memory,
+    /// with a check if value is within the parameterized `total_n_bits` limit.
+    /// If so, it is returned as a u256 integer and the two x and y values are computed in
+    /// a given bitwise operation, determined by the index.
+    ///
+    /// # Parameters
+    ///
+    /// - `allocator`: An allocator for temporary memory allocations.
+    /// - `address`: The target address for deducing the `MemoryCell`.
+    /// - `memory`: A pointer to the `Memory` containing the memory segments.
+    ///
+    /// # Returns
+    ///
+    /// A `MaybeRelocatable` containing the deduced `MemoryCell`, or `null` if the address
+    /// corresponds to an input cell, or an error code if any issues occur during the process.
     pub fn deduceMemoryCell(
         self: *const Self,
         address: Relocatable,
@@ -211,7 +231,7 @@ pub const BitwiseBuiltinRunner = struct {
             else => return BitwiseError.InvalidBitwiseIndex,
         };
 
-        return MaybeRelocatable{ .felt = Felt252.fromInteger(res) };
+        return .{ .felt = Felt252.fromInteger(res) };
     }
 
     /// Retrieves memory segment addresses as a tuple.
@@ -247,7 +267,17 @@ pub const BitwiseBuiltinRunner = struct {
         ) orelse MemoryError.MissingSegmentUsedSizes;
     }
 
-    // TODO: write docstring
+    /// Calculates the number of used diluted check units for Keccak hashing.
+    ///
+    /// This function determines the number of used diluted check units based on the
+    /// provided `diluted_n_bits`. It takes into account the allocated virtual columns
+    /// and embedded real cells, providing a count of used check units.
+    ///
+    /// # Parameters
+    /// - `diluted_n_bits`: The number of bits for the diluted check.
+    ///
+    /// # Returns
+    /// The number of used diluted check units as a `usize`.
     pub fn getUsedDilutedCheckUnits(self: Self, allocator: Allocator, diluted_spacing: u32, diluted_n_bits: u32) !usize {
         const total_n_bits = self.bitwise_builtin.total_n_bits;
 
