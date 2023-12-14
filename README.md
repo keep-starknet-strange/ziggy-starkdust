@@ -92,6 +92,10 @@ All 2 tests passed.
 Notice that 2 tests passed despite running only 1 test, because
 our tests are wrapped in another test call within `src/tests.zig`.
 
+In order to compare two memory files or trace files, use the following command: 
+
+`vbindiff cairo-programs/expected_fibonacci.trace cairo-programs/fibonacci.trace`
+
 ### 🔒 Security
 
 #### Security guidelines

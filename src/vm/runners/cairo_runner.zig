@@ -8,6 +8,10 @@ const Relocatable = @import("../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../memory/relocatable.zig").MaybeRelocatable;
 const Program = @import("../types/program.zig").Program;
 const CairoRunnerError = @import("../error.zig").CairoRunnerError;
+const trace_context = @import("../trace_context.zig");
+const RelocatedTraceEntry = trace_context.TraceContext.RelocatedTraceEntry;
+const starknet_felt = @import("../../math/fields/starknet.zig");
+const Felt252 = starknet_felt.Felt252;
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -31,6 +35,7 @@ pub const CairoRunner = struct {
     entrypoint_name: []const u8 = "main",
     proof_mode: bool,
     run_ended: bool = false,
+    relocated_trace: [] RelocatedTraceEntry = undefined,
 
     pub fn init(
         allocator: Allocator,
@@ -160,6 +165,14 @@ pub const CairoRunner = struct {
         self.run_ended = true;
     }
 
+    /// Ensures that the trace is relocated and is retrievable from the VM and returns it.
+    pub fn consolidateTrace(self: *Self) ![]RelocatedTraceEntry {
+        const relocation_table = try self.vm.segments.relocateSegments(self.allocator);
+        try self.vm.relocateTrace(relocation_table);
+
+        return self.vm.getRelocatedTrace();
+    }
+
     pub fn deinit(self: *Self) void {
         // currently handling the deinit of the json.Parsed(Program) outside of constructor
         // otherwise the runner would always assume json in its interface
@@ -170,6 +183,14 @@ pub const CairoRunner = struct {
         self.vm.deinit();
     }
 };
+
+pub fn writeEncodedTrace(relocated_trace: []const RelocatedTraceEntry, dest: *std.fs.File.Writer) !void {
+    for (relocated_trace) |entry| {
+        try dest.writeInt(u64, try entry.ap.tryIntoU64(), .little);
+        try dest.writeInt(u64, try entry.fp.tryIntoU64(), .little);
+        try dest.writeInt(u64, try entry.pc.tryIntoU64(), .little);
+    }
+}
 
 pub fn runConfig(allocator: Allocator, config: Config) !void {
     const vm = try CairoVM.init(
@@ -188,6 +209,16 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
     try runner.endRun();
     // TODO readReturnValues necessary for builtins
 
+ 
+    if (config.output_trace) |trace_path| {
+        const relocated_trace = try runner.consolidateTrace();
+
+        const trace_file = try std.fs.cwd().createFile(trace_path, .{});
+        defer trace_file.close();
+        
+        var trace_writer = trace_file.writer();
+        try writeEncodedTrace(relocated_trace, &trace_writer);
+    }
 }
 
 test "Fibonacci: can evaluate without runtime error" {
