@@ -72,7 +72,7 @@ pub const OutputBuiltinRunner = struct {
     /// # Returns
     ///
     /// A new instance of OutputBuiltinRunner with default settings.
-    pub fn init(allocator: Allocator) Self {
+    pub fn initDefault(allocator: Allocator) Self {
         return .{
             .base = 0,
             .stop_ptr = null,
@@ -382,7 +382,7 @@ pub const OutputBuiltinRunner = struct {
 };
 
 test "OutputBuiltinRunner: initSegments should set builtin base to segment index" {
-    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
     defer output_builtin.deinit();
     const memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
@@ -408,7 +408,7 @@ test "OutputBuiltinRunner: initialStack should return an empty array list if inc
 }
 
 test "OutputBuiltinRunner: initialStack should return an a proper array list if included is true" {
-    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
     defer output_builtin.deinit();
     output_builtin.base = 10;
     var expected = ArrayList(MaybeRelocatable).init(std.testing.allocator);
@@ -427,7 +427,7 @@ test "OutputBuiltinRunner: initialStack should return an a proper array list if 
 }
 
 test "OutputBuiltinRunner: getUsedCells should return memory error if segment used size is null" {
-    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
     defer output_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
@@ -438,7 +438,7 @@ test "OutputBuiltinRunner: getUsedCells should return memory error if segment us
 }
 
 test "OutputBuiltinRunner: getUsedCells should return the number of used cells" {
-    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
     defer output_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
@@ -453,7 +453,7 @@ test "OutputBuiltinRunner: getUsedCells should return the number of used cells" 
 }
 
 test "OutputBuiltinRunner: getUsedInstances should return memory error if segment used size is null" {
-    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
     defer output_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
@@ -464,7 +464,7 @@ test "OutputBuiltinRunner: getUsedInstances should return memory error if segmen
 }
 
 test "OutputBuiltinRunner: getUsedInstances should return the number of used instances" {
-    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
     defer output_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
@@ -494,7 +494,7 @@ test "OutputBuiltinRunner: finalStack should return relocatable pointer if not i
 }
 
 test "OutputBuiltinRunner: finalStack should return NoStopPointer error if pointer offset is 0" {
-    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
     defer output_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
@@ -508,7 +508,7 @@ test "OutputBuiltinRunner: finalStack should return NoStopPointer error if point
 }
 
 test "OutputBuiltinRunner: finalStack should return NoStopPointer error if no data in memory at the given stop pointer address" {
-    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
     defer output_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
@@ -522,7 +522,7 @@ test "OutputBuiltinRunner: finalStack should return NoStopPointer error if no da
 }
 
 test "OutputBuiltinRunner: finalStack should return TypeMismatchNotRelocatable error if data in memory at the given stop pointer address is not Relocatable" {
-    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
     defer output_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
@@ -550,7 +550,7 @@ test "OutputBuiltinRunner: finalStack should return TypeMismatchNotRelocatable e
 }
 
 test "OutputBuiltinRunner: finalStack should return InvalidStopPointerIndex error if segment index of stop pointer is not KeccakBuiltinRunner base" {
-    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
     defer output_builtin.deinit();
     output_builtin.base = 22;
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
@@ -582,7 +582,7 @@ test "OutputBuiltinRunner: finalStack should return InvalidStopPointerIndex erro
 }
 
 test "OutputBuiltinRunner: finalStack should return InvalidStopPointer error if stop pointer offset is not cells used" {
-    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
     defer output_builtin.deinit();
     output_builtin.base = 22;
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
@@ -614,7 +614,7 @@ test "OutputBuiltinRunner: finalStack should return InvalidStopPointer error if 
 }
 
 test "OutputBuiltinRunner: finalStack should return stop pointer address and update stop_ptr" {
-    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
     defer output_builtin.deinit();
     output_builtin.base = 22;
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
@@ -651,7 +651,7 @@ test "OutputBuiltinRunner: finalStack should return stop pointer address and upd
 }
 
 test "OutputBuiltinRunner: getMemorySegmentAddresses should return base and stop pointer" {
-    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
     defer output_builtin.deinit();
     output_builtin.base = 22;
     try expectEqual(
@@ -664,7 +664,7 @@ test "OutputBuiltinRunner: getMemorySegmentAddresses should return base and stop
 }
 
 test "OutputBuiltinRunner: getAllocatedMemoryUnits should return 0" {
-    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
     defer output_builtin.deinit();
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -678,7 +678,7 @@ test "OutputBuiltinRunner: getAllocatedMemoryUnits should return 0" {
 }
 
 test "OutputBuiltinRunner: addPage should an error if the page already exists" {
-    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
     defer output_builtin.deinit();
     try output_builtin.pages.put(10, .{ .start = 2, .size = 4 });
 
@@ -693,7 +693,7 @@ test "OutputBuiltinRunner: addPage should an error if the page already exists" {
 }
 
 test "OutputBuiltinRunner: addPage should an error if page_start is Felt252" {
-    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
     defer output_builtin.deinit();
 
     try expectError(
@@ -707,7 +707,7 @@ test "OutputBuiltinRunner: addPage should an error if page_start is Felt252" {
 }
 
 test "OutputBuiltinRunner: addPage should an error if page_start segment index is not OutputBuiltinRunner base" {
-    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
     defer output_builtin.deinit();
 
     try expectError(
@@ -722,7 +722,7 @@ test "OutputBuiltinRunner: addPage should an error if page_start segment index i
 
 test "OutputBuiltinRunner: addPage should add a page" {
     // Creates a new OutputBuiltinRunner instance and initializes it with a base address of 10.
-    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
     defer output_builtin.deinit();
     // Sets the base address to 10.
     output_builtin.base = 10;
@@ -745,7 +745,7 @@ test "OutputBuiltinRunner: addPage should add a page" {
 
 test "OutputBuiltinRunner: setState should set a new base and page hash map" {
     // Creates a new OutputBuiltinRunner instance and initializes it with a base address of 10.
-    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
     // Deinitializes the runner when the function scope ends.
     defer output_builtin.deinit();
     // Sets the base address to 10.
@@ -821,7 +821,7 @@ test "OutputBuiltinRunner: setState should set a new base and page hash map" {
 
 test "OutputBuiltinRunner: clearStateWithBase should set a new base and clear pages" {
     // Creates a new OutputBuiltinRunner instance and initializes it with a base address of 10.
-    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator);
+    var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
     // Deinitializes the runner when the function scope ends.
     defer output_builtin.deinit();
     // Sets the base address to 10.
