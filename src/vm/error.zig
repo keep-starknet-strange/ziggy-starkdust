@@ -97,6 +97,7 @@ pub const RunnerError = error{
     BuiltinExpectedInteger,
     /// Integer value exceeds a power of two.
     IntegerBiggerThanPowerOfTwo,
+    Memory,
 };
 
 /// Represents different error conditions that occur during mathematical operations.
@@ -109,6 +110,7 @@ pub const MathError = error{
     RelocatableSubUsizeNegOffset,
     /// Value is too large to be coerced to a u64.
     ValueTooLarge,
+    SubWithOverflow,
     /// Error indicating that the addition operation on the Relocatable offset exceeds the maximum limit.
     RelocatableAdditionOffsetExceeded,
 };
