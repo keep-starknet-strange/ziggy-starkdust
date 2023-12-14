@@ -23,6 +23,12 @@ pub fn writeEncodedTrace(relocated_trace: []const RelocatedTraceEntry, dest: *st
     }
 }
 
+/// Instruments the `CairoRunner` to initialize an execution of a cairo program based on Config params.
+///
+/// # Arguments
+///
+/// - `allocator`:  The allocator to initialize the CairoRunner and parsing of the program json.
+/// - `config`: The config struct that defines the params that the CairoRunner uses to instantiate the vm state for running.
 pub fn runConfig(allocator: Allocator, config: Config) !void {
     const vm = try CairoVM.init(
         allocator,
