@@ -230,8 +230,16 @@ pub const CairoVM = struct {
         // TODO: Run hints.
 
         std.log.debug(
-            "Running instruction at pc: {}",
+            "Running instruction at pc: {}\n",
             .{self.run_context.pc.*},
+        );
+        std.log.debug(
+            "Running instruction, ap: {}\n",
+            .{self.run_context.ap.*},
+        );
+        std.log.debug(
+            "Running instruction, fp: {}\n",
+            .{self.run_context.fp.*},
         );
 
         // ************************************************************
@@ -286,9 +294,9 @@ pub const CairoVM = struct {
     ) !void {
         if (!build_options.trace_disable) {
             try self.trace_context.traceInstruction(.{
-                .pc = self.run_context.pc,
-                .ap = self.run_context.ap,
-                .fp = self.run_context.fp,
+                .pc = self.run_context.pc.*,
+                .ap = self.run_context.ap.*,
+                .fp = self.run_context.fp.*,
             });
         }
 
