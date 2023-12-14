@@ -103,19 +103,21 @@ pub fn divMod(m: Felt252, n: Felt252) ECError!Felt252 {
 }
 
 pub fn ecOpImpl(partial_sum: ECPoint, doubled_point: ECPoint, m: Felt252, alpha: Felt252, height: u32) ECError!ECPoint {
-    const slope = m.toInteger();
+    var slope = m.toInteger();
+    var updated_partial_sum = partial_sum;
+    var updated_doubled_point = doubled_point;
     for (0..height) |_| {
         if (doubled_point.x.sub(partial_sum.x).equal(Felt252.zero())) {
             return ECError.XCoordinatesAreEqual;
         }
         if (slope & 1 == 0) {
-            partial_sum = try partial_sum.ecAdd(doubled_point);
+            updated_partial_sum = try updated_partial_sum.ecAdd(doubled_point);
         }
-        doubled_point = try doubled_point.ecDouble(alpha);
-        slope >> 1;
+        updated_doubled_point = try updated_doubled_point.ecDouble(alpha);
+        slope = slope >> 1;
     }
 
-    return try partial_sum;
+    return partial_sum;
 }
 
 
