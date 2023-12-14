@@ -95,6 +95,7 @@ test "Fibonacci: can evaluate without runtime error" {
     try runner.runUntilPC(end);
     try runner.endRun();
 }
+<<<<<<< variant A
 
 test "Factorial: can evaluate without runtime error" {
 
@@ -129,3 +130,5 @@ test "Factorial: can evaluate without runtime error" {
     try runner.runUntilPC(end);
     try runner.endRun();
 }
+>>>>>>> variant B
+======= end
