@@ -679,8 +679,8 @@ test "CairoVM: relocateTrace and trace comparison (simple use case)" {
         std.testing.allocator,
         .{
             .{ .{ 0, 0 }, .{2345108766317314046} },
-            .{ .{ 1, 0 }, .{2, 0} },
-            .{ .{ 1, 1 }, .{3, 0} },
+            .{ .{ 1, 0 }, .{ 2, 0 } },
+            .{ .{ 1, 1 }, .{ 3, 0 } },
         },
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
@@ -2621,10 +2621,7 @@ test "CairoVM: loadData should give the correct segment size" {
 
     // Perform assertions
     try expectEqual(
-        @as(
-            Relocatable,
-            Relocatable.init(0, 4),
-        ),
+        Relocatable.init(0, 4),
         actual,
     );
 
