@@ -162,8 +162,6 @@ pub const CairoRunner = struct {
     pub fn relocate(self: *Self) !void {
         _ = try self.vm.segments.computeEffectiveSize(false);
 
-        if (!self.config.output_memory and !self.config.enable_trace) return;
-
         const relocation_table = try self.vm.segments.relocateSegments(self.allocator);
         try self.vm.relocateTrace(relocation_table);
         // relocate_memory here
