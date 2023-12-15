@@ -65,7 +65,7 @@ var output_memory = cli.Option{
     .short_alias = 'o',
     .value_ref = cli.mkRef(&config.output_memory),
     .required = false,
-}
+};
 
 // ************************************************************
 // *                    CLI APP                               *
