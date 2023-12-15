@@ -11,63 +11,94 @@ const MemoryError = @import("../error.zig").MemoryError;
 pub const Relocatable = struct {
     const Self = @This();
 
-    // The index of the memory segment.
+    /// The index of the memory segment.
     segment_index: i64 = 0,
-    // The offset in the memory segment.
+    /// The offset in the memory segment.
     offset: u64 = 0,
 
+    /// Creates a new Relocatable.
+    /// # Arguments
+    /// - segment_index - The index of the memory segment.
+    /// - offset - The offset in the memory segment.
+    /// # Returns
+    /// A new Relocatable.
+    pub fn new(
+        segment_index: i64,
+        offset: u64,
+    ) Self {
+        return .{
+            .segment_index = segment_index,
+            .offset = offset,
+        };
+    }
+    
     // Creates a new Relocatable.
     // # Arguments
     // - segment_index - The index of the memory segment.
     // - offset - The offset in the memory segment.
     // # Returns
     // A new Relocatable.
-    pub fn new(segment_index: i64, offset: u64) Self {
+    pub fn init(segment_index: i64, offset: u64) Self {
         return .{ .segment_index = segment_index, .offset = offset };
     }
 
-    // Determines if this Relocatable is equal to another.
-    // # Arguments
-    // - other: The other Relocatable to compare to.
-    // # Returns
-    // `true` if they are equal, `false` otherwise.
-    pub fn eq(self: Self, other: Self) bool {
+    /// Determines if this Relocatable is equal to another.
+    /// # Arguments
+    /// - other: The other Relocatable to compare to.
+    /// # Returns
+    /// `true` if they are equal, `false` otherwise.
+    pub fn eq(
+        self: Self,
+        other: Self,
+    ) bool {
         return self.segment_index == other.segment_index and self.offset == other.offset;
     }
 
-    // Determines if this Relocatable is less than another.
-    // # Arguments
-    // - other: The other Relocatable to compare to.
-    // # Returns
-    // `true` if self is less than other, `false` otherwise.
-    pub fn lt(self: Self, other: Self) bool {
+    /// Determines if this Relocatable is less than another.
+    /// # Arguments
+    /// - other: The other Relocatable to compare to.
+    /// # Returns
+    /// `true` if self is less than other, `false` otherwise.
+    pub fn lt(
+        self: Self,
+        other: Self,
+    ) bool {
         return self.segment_index < other.segment_index or (self.segment_index == other.segment_index and self.offset < other.offset);
     }
 
-    // Determines if this Relocatable is less than or equal to another.
-    // # Arguments
-    // - other: The other Relocatable to compare to.
-    // # Returns
-    // `true` if self is less than or equal to other, `false` otherwise.
-    pub fn le(self: Self, other: Self) bool {
+    /// Determines if this Relocatable is less than or equal to another.
+    /// # Arguments
+    /// - other: The other Relocatable to compare to.
+    /// # Returns
+    /// `true` if self is less than or equal to other, `false` otherwise.
+    pub fn le(
+        self: Self,
+        other: Self,
+    ) bool {
         return self.segment_index < other.segment_index or (self.segment_index == other.segment_index and self.offset <= other.offset);
     }
 
-    // Determines if this Relocatable is greater than another.
-    // # Arguments
-    // - other: The other Relocatable to compare to.
-    // # Returns
-    // `true` if self is greater than other, `false` otherwise.
-    pub fn gt(self: Self, other: Self) bool {
+    /// Determines if this Relocatable is greater than another.
+    /// # Arguments
+    /// - other: The other Relocatable to compare to.
+    /// # Returns
+    /// `true` if self is greater than other, `false` otherwise.
+    pub fn gt(
+        self: Self,
+        other: Self,
+    ) bool {
         return self.segment_index > other.segment_index or (self.segment_index == other.segment_index and self.offset > other.offset);
     }
 
-    // Determines if this Relocatable is greater than or equal to another.
-    // # Arguments
-    // - other: The other Relocatable to compare to.
-    // # Returns
-    // `true` if self is greater than or equal to other, `false` otherwise.
-    pub fn ge(self: Self, other: Self) bool {
+    /// Determines if this Relocatable is greater than or equal to another.
+    /// # Arguments
+    /// - other: The other Relocatable to compare to.
+    /// # Returns
+    /// `true` if self is greater than or equal to other, `false` otherwise.
+    pub fn ge(
+        self: Self,
+        other: Self,
+    ) bool {
         return self.segment_index > other.segment_index or (self.segment_index == other.segment_index and self.offset >= other.offset);
     }
 
@@ -113,30 +144,37 @@ pub const Relocatable = struct {
         return try self.subUint(try other.tryIntoU64());
     }
 
-    // Substract a u64 from a Relocatable and return a new Relocatable.
-    // # Arguments
-    // - other: The u64 to substract.
-    // # Returns
-    // A new Relocatable.
-    pub fn subUint(self: Self, other: u64) !Self {
-        if (self.offset < other) {
-            return MathError.RelocatableSubUsizeNegOffset;
-        }
+    /// Substract a u64 from a Relocatable and return a new Relocatable.
+    /// # Arguments
+    /// - other: The u64 to substract.
+    /// # Returns
+    /// A new Relocatable.
+    pub fn subUint(
+        self: Self,
+        other: u64,
+    ) MathError!Self {
+        if (self.offset < other) return MathError.RelocatableSubUsizeNegOffset;
+
         return .{
             .segment_index = self.segment_index,
             .offset = self.offset - other,
         };
     }
 
-    // Add a u64 to a Relocatable and return a new Relocatable.
-    // # Arguments
-    // - other: The u64 to add.
-    // # Returns
-    // A new Relocatable.
-    pub fn addUint(self: Self, other: u64) !Self {
+    /// Add a u64 to a Relocatable and return a new Relocatable.
+    /// # Arguments
+    /// - other: The u64 to add.
+    /// # Returns
+    /// A new Relocatable.
+    pub fn addUint(
+        self: Self,
+        other: u64,
+    ) !Self {
+        const offset = @addWithOverflow(self.offset, other);
+        if (offset[1] != 0) return MathError.RelocatableAdditionOffsetExceeded;
         return .{
             .segment_index = self.segment_index,
-            .offset = self.offset + other,
+            .offset = offset[0],
         };
     }
 
@@ -149,26 +187,16 @@ pub const Relocatable = struct {
         self.offset += other;
     }
 
-    // Add a i64 to a Relocatable and return a new Relocatable.
-    // # Arguments
-    // - other: The i64 to add.
-    // # Returns
-    // A new Relocatable.
-    pub fn addInt(self: Self, other: i64) !Self {
-        if (other < 0) {
-            return self.subUint(@as(
-                u64,
-                @intCast(
-                    -other,
-                ),
-            ));
-        }
-        return self.addUint(@as(
-            u64,
-            @intCast(
-                other,
-            ),
-        ));
+    /// Add a i64 to a Relocatable and return a new Relocatable.
+    /// # Arguments
+    /// - other: The i64 to add.
+    /// # Returns
+    /// A new Relocatable.
+    pub fn addInt(
+        self: Self,
+        other: i64,
+    ) !Self {
+        return if (other < 0) self.subUint(@intCast(-other)) else self.addUint(@intCast(other));
     }
 
     /// Adds a Felt252 value to this Relocatable.
@@ -229,7 +257,6 @@ pub const Relocatable = struct {
         return MemoryError.TemporarySegmentInRelocation;
     }
 };
-
 // MaybeRelocatable is the type of the memory cells in the Cairo
 // VM. It can either be a Relocatable or a field element.
 pub const MaybeRelocatable = union(enum) {
@@ -604,7 +631,7 @@ pub const MaybeRelocatable = union(enum) {
     /// # Returns
     /// A new MaybeRelocatable.
     pub fn fromSegment(segment_index: i64, offset: u64) Self {
-        return fromRelocatable(Relocatable.new(segment_index, offset));
+        return fromRelocatable(Relocatable.init(segment_index, offset));
     }
 };
 
@@ -616,25 +643,25 @@ const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
 
 test "Relocatable: eq should return true if two Relocatable are the same." {
-    try expect(Relocatable.new(-1, 4).eq(Relocatable.new(-1, 4)));
-    try expect(Relocatable.new(2, 4).eq(Relocatable.new(2, 4)));
+    try expect(Relocatable.init(-1, 4).eq(Relocatable.init(-1, 4)));
+    try expect(Relocatable.init(2, 4).eq(Relocatable.init(2, 4)));
 }
 
 test "Relocatable: eq should return false if two Relocatable are not the same." {
-    const relocatable1 = Relocatable.new(2, 4);
-    const relocatable2 = Relocatable.new(2, 5);
-    const relocatable3 = Relocatable.new(-1, 4);
+    const relocatable1 = Relocatable.init(2, 4);
+    const relocatable2 = Relocatable.init(2, 5);
+    const relocatable3 = Relocatable.init(-1, 4);
     try expect(!relocatable1.eq(relocatable2));
     try expect(!relocatable1.eq(relocatable3));
 }
 
 test "Relocatable: addUint should add a u64 to a Relocatable and return a new Relocatable." {
-    const relocatable = Relocatable.new(
+    const relocatable = Relocatable.init(
         2,
         4,
     );
     const result = try relocatable.addUint(24);
-    const expected = Relocatable.new(
+    const expected = Relocatable.init(
         2,
         28,
     );
@@ -644,13 +671,25 @@ test "Relocatable: addUint should add a u64 to a Relocatable and return a new Re
     );
 }
 
-test "Relocatable: addInt should add a positive i64 to a Relocatable and return a new Relocatable" {
+test "Relocatable: addUint should return a math error if overflow occurs." {
     const relocatable = Relocatable.new(
         2,
         4,
     );
+
+    try expectError(
+        MathError.RelocatableAdditionOffsetExceeded,
+        relocatable.addUint(std.math.maxInt(u64)),
+    );
+}
+
+test "Relocatable: addInt should add a positive i64 to a Relocatable and return a new Relocatable" {
+    const relocatable = Relocatable.init(
+        2,
+        4,
+    );
     const result = try relocatable.addInt(24);
-    const expected = Relocatable.new(
+    const expected = Relocatable.init(
         2,
         28,
     );
@@ -661,12 +700,12 @@ test "Relocatable: addInt should add a positive i64 to a Relocatable and return 
 }
 
 test "Relocatable: addInt should add a negative i64 to a Relocatable and return a new Relocatable" {
-    const relocatable = Relocatable.new(
+    const relocatable = Relocatable.init(
         2,
         4,
     );
     const result = try relocatable.addInt(-4);
-    const expected = Relocatable.new(
+    const expected = Relocatable.init(
         2,
         0,
     );
@@ -677,12 +716,12 @@ test "Relocatable: addInt should add a negative i64 to a Relocatable and return 
 }
 
 test "Relocatable: subUint should substract a u64 from a Relocatable" {
-    const relocatable = Relocatable.new(
+    const relocatable = Relocatable.init(
         2,
         4,
     );
     const result = try relocatable.subUint(2);
-    const expected = Relocatable.new(
+    const expected = Relocatable.init(
         2,
         2,
     );
@@ -693,7 +732,7 @@ test "Relocatable: subUint should substract a u64 from a Relocatable" {
 }
 
 test "Relocatable: subUint should return an error if substraction is impossible" {
-    const relocatable = Relocatable.new(
+    const relocatable = Relocatable.init(
         2,
         4,
     );
@@ -706,57 +745,57 @@ test "Relocatable: subUint should return an error if substraction is impossible"
 
 test "Relocatable: sub two Relocatable with same segment index" {
     try expectEqual(
-        Relocatable.new(2, 3),
-        try Relocatable.new(2, 8).sub(Relocatable.new(2, 5)),
+        Relocatable.init(2, 3),
+        try Relocatable.init(2, 8).sub(Relocatable.init(2, 5)),
     );
 }
 
 test "Relocatable: sub two Relocatable with same segment index but impossible subtraction" {
     try expectError(
         MathError.RelocatableSubUsizeNegOffset,
-        Relocatable.new(2, 2).sub(Relocatable.new(2, 5)),
+        Relocatable.init(2, 2).sub(Relocatable.init(2, 5)),
     );
 }
 
 test "Relocatable: sub two Relocatable with different segment index" {
     try expectError(
         CairoVMError.TypeMismatchNotRelocatable,
-        Relocatable.new(2, 8).sub(Relocatable.new(3, 5)),
+        Relocatable.init(2, 8).sub(Relocatable.init(3, 5)),
     );
 }
 
 test "Relocatable: addUintInPlace should increase offset" {
-    var relocatable = Relocatable.new(2, 8);
+    var relocatable = Relocatable.init(2, 8);
     relocatable.addUintInPlace(10);
     try expectEqual(
-        Relocatable.new(2, 18),
+        Relocatable.init(2, 18),
         relocatable,
     );
 }
 
 test "Relocatable: addFeltInPlace should increase offset" {
-    var relocatable = Relocatable.new(2, 8);
+    var relocatable = Relocatable.init(2, 8);
     try relocatable.addFeltInPlace(Felt252.fromInteger(1000000000000000));
     try expectEqual(
-        Relocatable.new(2, 1000000000000008),
+        Relocatable.init(2, 1000000000000008),
         relocatable,
     );
 }
 
 test "Relocatable: addMaybeRelocatableInplace should increase offset if other is Felt" {
-    var relocatable = Relocatable.new(2, 8);
+    var relocatable = Relocatable.init(2, 8);
     try relocatable.addMaybeRelocatableInplace(MaybeRelocatable{ .felt = Felt252.fromInteger(1000000000000000) });
     try expectEqual(
-        Relocatable.new(2, 1000000000000008),
+        Relocatable.init(2, 1000000000000008),
         relocatable,
     );
 }
 
 test "Relocatable: addMaybeRelocatableInplace should return an error if other is Relocatable" {
-    var relocatable = Relocatable.new(2, 8);
+    var relocatable = Relocatable.init(2, 8);
     try expectError(
         CairoVMError.TypeMismatchNotFelt,
-        relocatable.addMaybeRelocatableInplace(MaybeRelocatable{ .relocatable = Relocatable.new(
+        relocatable.addMaybeRelocatableInplace(MaybeRelocatable{ .relocatable = Relocatable.init(
             0,
             10,
         ) }),
@@ -765,131 +804,131 @@ test "Relocatable: addMaybeRelocatableInplace should return an error if other is
 
 test "Relocatable: lt should return true if other relocatable is greater than or equal, false otherwise" {
     // 1 == 2
-    try expect(!Relocatable.new(2, 4).lt(Relocatable.new(2, 4)));
+    try expect(!Relocatable.init(2, 4).lt(Relocatable.init(2, 4)));
 
     // 1 < 2
-    try expect(Relocatable.new(-1, 2).lt(Relocatable.new(-1, 3)));
-    try expect(Relocatable.new(1, 5).lt(Relocatable.new(2, 4)));
+    try expect(Relocatable.init(-1, 2).lt(Relocatable.init(-1, 3)));
+    try expect(Relocatable.init(1, 5).lt(Relocatable.init(2, 4)));
 
     // 1 > 2
-    try expect(!Relocatable.new(2, 5).lt(Relocatable.new(2, 4)));
-    try expect(!Relocatable.new(3, 3).lt(Relocatable.new(2, 4)));
+    try expect(!Relocatable.init(2, 5).lt(Relocatable.init(2, 4)));
+    try expect(!Relocatable.init(3, 3).lt(Relocatable.init(2, 4)));
 }
 
 test "Relocatable: le should return true if other relocatable is greater, false otherwise" {
     // 1 == 2
-    try expect(Relocatable.new(2, 4).le(Relocatable.new(2, 4)));
+    try expect(Relocatable.init(2, 4).le(Relocatable.init(2, 4)));
 
     // 1 < 2
-    try expect(Relocatable.new(-1, 2).le(Relocatable.new(-1, 3)));
-    try expect(Relocatable.new(1, 5).le(Relocatable.new(2, 4)));
+    try expect(Relocatable.init(-1, 2).le(Relocatable.init(-1, 3)));
+    try expect(Relocatable.init(1, 5).le(Relocatable.init(2, 4)));
 
     // 1 > 2
-    try expect(!Relocatable.new(2, 5).le(Relocatable.new(2, 4)));
-    try expect(!Relocatable.new(3, 3).le(Relocatable.new(2, 4)));
+    try expect(!Relocatable.init(2, 5).le(Relocatable.init(2, 4)));
+    try expect(!Relocatable.init(3, 3).le(Relocatable.init(2, 4)));
 }
 
 test "Relocatable: gt should return true if other relocatable is less than or 1 == 2ual, false otherwise" {
     // 1 == 2
-    try expect(!Relocatable.new(2, 4).gt(Relocatable.new(2, 4)));
+    try expect(!Relocatable.init(2, 4).gt(Relocatable.init(2, 4)));
 
     // 1 < 2
-    try expect(!Relocatable.new(-1, 2).gt(Relocatable.new(-1, 3)));
-    try expect(!Relocatable.new(1, 5).gt(Relocatable.new(2, 4)));
+    try expect(!Relocatable.init(-1, 2).gt(Relocatable.init(-1, 3)));
+    try expect(!Relocatable.init(1, 5).gt(Relocatable.init(2, 4)));
 
     // 1 > 2
-    try expect(Relocatable.new(2, 5).gt(Relocatable.new(2, 4)));
-    try expect(Relocatable.new(3, 3).gt(Relocatable.new(2, 4)));
+    try expect(Relocatable.init(2, 5).gt(Relocatable.init(2, 4)));
+    try expect(Relocatable.init(3, 3).gt(Relocatable.init(2, 4)));
 }
 
 test "Relocatable: ge should return true if other relocatable is less, false otherwise" {
     // 1 == 2
-    try expect(Relocatable.new(2, 4).ge(Relocatable.new(2, 4)));
+    try expect(Relocatable.init(2, 4).ge(Relocatable.init(2, 4)));
 
     // 1 < 2
-    try expect(!Relocatable.new(-1, 2).ge(Relocatable.new(-1, 3)));
-    try expect(!Relocatable.new(1, 5).ge(Relocatable.new(2, 4)));
+    try expect(!Relocatable.init(-1, 2).ge(Relocatable.init(-1, 3)));
+    try expect(!Relocatable.init(1, 5).ge(Relocatable.init(2, 4)));
 
     // 1 > 2
-    try expect(Relocatable.new(2, 5).ge(Relocatable.new(2, 4)));
-    try expect(Relocatable.new(3, 3).ge(Relocatable.new(2, 4)));
+    try expect(Relocatable.init(2, 5).ge(Relocatable.init(2, 4)));
+    try expect(Relocatable.init(3, 3).ge(Relocatable.init(2, 4)));
 }
 
 test "Relocatable: cmpt should return .eq if self and other are the same" {
     try expectEqual(
         std.math.Order.eq,
-        Relocatable.new(2, 4).cmp(Relocatable.new(2, 4)),
+        Relocatable.init(2, 4).cmp(Relocatable.init(2, 4)),
     );
 }
 
 test "Relocatable: cmpt should return .lt if self and other segment are the same but self offset < other offset" {
     try expectEqual(
         std.math.Order.lt,
-        Relocatable.new(2, 2).cmp(Relocatable.new(2, 4)),
+        Relocatable.init(2, 2).cmp(Relocatable.init(2, 4)),
     );
 }
 
 test "Relocatable: cmpt should return .gt if self and other segment are the same but self offset > other offset" {
     try expectEqual(
         std.math.Order.gt,
-        Relocatable.new(2, 14).cmp(Relocatable.new(2, 4)),
+        Relocatable.init(2, 14).cmp(Relocatable.init(2, 4)),
     );
 }
 
 test "Relocatable: cmpt should return .lt if self segment < other segment" {
     try expectEqual(
         std.math.Order.lt,
-        Relocatable.new(1, 4).cmp(Relocatable.new(2, 4)),
+        Relocatable.init(1, 4).cmp(Relocatable.init(2, 4)),
     );
     try expectEqual(
         std.math.Order.lt,
-        Relocatable.new(1, 44).cmp(Relocatable.new(2, 4)),
+        Relocatable.init(1, 44).cmp(Relocatable.init(2, 4)),
     );
 }
 
 test "Relocatable: cmpt should return .gt if self segment > other segment" {
     try expectEqual(
         std.math.Order.gt,
-        Relocatable.new(10, 4).cmp(Relocatable.new(2, 4)),
+        Relocatable.init(10, 4).cmp(Relocatable.init(2, 4)),
     );
     try expectEqual(
         std.math.Order.gt,
-        Relocatable.new(10, 4).cmp(Relocatable.new(2, 44)),
+        Relocatable.init(10, 4).cmp(Relocatable.init(2, 44)),
     );
 }
 
 test "Relocatable: addFelt should add a relocatable and a Felt252" {
     try expectEqual(
         Relocatable{ .segment_index = 2, .offset = 54 },
-        try Relocatable.new(2, 44).addFelt(Felt252.fromInteger(10)),
+        try Relocatable.init(2, 44).addFelt(Felt252.fromInteger(10)),
     );
 }
 
 test "Relocatable: addFelt should return an error if number after offset addition is too large" {
     try expectError(
         MathError.ValueTooLarge,
-        Relocatable.new(2, 44).addFelt(Felt252.fromInteger(std.math.maxInt(u256))),
+        Relocatable.init(2, 44).addFelt(Felt252.fromInteger(std.math.maxInt(u256))),
     );
 }
 
 test "Relocatable: subFelt should subtract a Felt252 from a relocatable" {
     try expectEqual(
         Relocatable{ .segment_index = 2, .offset = 34 },
-        try Relocatable.new(2, 44).subFelt(Felt252.fromInteger(10)),
+        try Relocatable.init(2, 44).subFelt(Felt252.fromInteger(10)),
     );
 }
 
 test "Relocatable: subFelt should return an error if relocatable cannot be coerced to u64" {
     try expectError(
         MathError.ValueTooLarge,
-        Relocatable.new(2, 44).subFelt(Felt252.fromInteger(std.math.maxInt(u256))),
+        Relocatable.init(2, 44).subFelt(Felt252.fromInteger(std.math.maxInt(u256))),
     );
 }
 
 test "Relocatable: subFelt should return an error if relocatable offset is smaller than Felt252" {
     try expectError(
         MathError.RelocatableSubUsizeNegOffset,
-        Relocatable.new(2, 7).subFelt(Felt252.fromInteger(10)),
+        Relocatable.init(2, 7).subFelt(Felt252.fromInteger(10)),
     );
 }
 
@@ -897,7 +936,7 @@ test "Relocatable: relocateAddress should return an error if relocatable segment
     var relocation_table = [_]usize{ 1, 2, 3, 4 };
     try expectError(
         MemoryError.TemporarySegmentInRelocation,
-        Relocatable.new(-2, 7).relocateAddress(&relocation_table),
+        Relocatable.init(-2, 7).relocateAddress(&relocation_table),
     );
 }
 
@@ -905,7 +944,7 @@ test "Relocatable: relocateAddress should return an error relocation table lengt
     var relocation_table = [_]usize{ 1, 2, 3, 4 };
     try expectError(
         MemoryError.Relocation,
-        Relocatable.new(5, 7).relocateAddress(&relocation_table),
+        Relocatable.init(5, 7).relocateAddress(&relocation_table),
     );
 }
 
@@ -913,7 +952,7 @@ test "Relocatable: relocateAddress should return an error relocation table lengt
     var relocation_table = [_]usize{ 1, 2, 3, 4 };
     try expectError(
         MemoryError.Relocation,
-        Relocatable.new(4, 7).relocateAddress(&relocation_table),
+        Relocatable.init(4, 7).relocateAddress(&relocation_table),
     );
 }
 
@@ -921,7 +960,7 @@ test "Relocatable: relocateAddress should return a proper usize to relocate the 
     var relocation_table = [_]usize{ 1, 2, 3, 4 };
     try expectEqual(
         @as(usize, 11),
-        try Relocatable.new(3, 7).relocateAddress(&relocation_table),
+        try Relocatable.init(3, 7).relocateAddress(&relocation_table),
     );
 }
 
@@ -1116,7 +1155,7 @@ test "MaybeRelocatable: cmp should return proper order results for Felt252 compa
 test "MaybeRelocatable: tryIntoRelocatable should return Relocatable if MaybeRelocatable is Relocatable" {
     var maybeRelocatable = MaybeRelocatable.fromSegment(0, 10);
     try expectEqual(
-        Relocatable.new(0, 10),
+        Relocatable.init(0, 10),
         try maybeRelocatable.tryIntoRelocatable(),
     );
 }
@@ -1311,7 +1350,7 @@ test "MaybeRelocatable: relocateValue with index out of bounds" {
 test "fromRelocatable: should create a MaybeRelocatable from a Relocatable" {
     try expectEqual(
         MaybeRelocatable.fromSegment(0, 3),
-        MaybeRelocatable.fromRelocatable(Relocatable.new(0, 3)),
+        MaybeRelocatable.fromRelocatable(Relocatable.init(0, 3)),
     );
 }
 

@@ -108,7 +108,6 @@ pub const RunContext = struct {
             .AP => self.ap.*,
             .FP => self.fp.*,
         };
-
         if (instruction.off_0 < 0) {
             // Convert i16 to u64 safely and then negate
             return try base_addr.subUint(@intCast(-instruction.off_0));
@@ -166,6 +165,33 @@ pub const RunContext = struct {
             return try base_addr.addUint(@intCast(instruction.off_2));
         }
     }
+
+    /// Returns the current frame pointer (FP) of the run context.
+    /// This is the base address for local variables in the current frame.
+    ///
+    /// # Returns
+    /// - The `Relocatable` value of the frame pointer.
+    pub fn getFP(self: *Self) Relocatable {
+        return self.fp.*;
+    }
+
+    /// Returns the current allocation pointer (AP) of the run context.
+    /// This is the pointer used for allocating new memory in the current frame.
+    ///
+    /// # Returns
+    /// - The `Relocatable` value of the allocation pointer.
+    pub fn getAP(self: *Self) Relocatable {
+        return self.ap.*;
+    }
+
+    /// Returns the current program counter (PC) of the run context.
+    /// This is the address of the next instruction to be executed.
+    ///
+    /// # Returns
+    /// - The `Relocatable` value of the program counter.
+    pub fn getPC(self: *Self) Relocatable {
+        return self.pc.*;
+    }
 };
 
 // ************************************************************
@@ -178,22 +204,22 @@ const expectError = std.testing.expectError;
 test "RunContext: computeDstAddr should return self.ap - instruction.off_0 if instruction.off_0 is negative" {
     const run_context = try RunContext.initWithValues(
         std.testing.allocator,
-        Relocatable.new(
+        Relocatable.init(
             0,
             4,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             25,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             6,
         ),
     );
     defer run_context.deinit();
     try expectEqual(
-        Relocatable.new(
+        Relocatable.init(
             0,
             15,
         ),
@@ -216,22 +242,22 @@ test "RunContext: computeDstAddr should return self.ap - instruction.off_0 if in
 test "RunContext: computeDstAddr should return self.ap + instruction.off_0 if instruction.off_0 is positive" {
     const run_context = try RunContext.initWithValues(
         std.testing.allocator,
-        Relocatable.new(
+        Relocatable.init(
             0,
             4,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             25,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             6,
         ),
     );
     defer run_context.deinit();
     try expectEqual(
-        Relocatable.new(
+        Relocatable.init(
             0,
             35,
         ),
@@ -254,22 +280,22 @@ test "RunContext: computeDstAddr should return self.ap + instruction.off_0 if in
 test "RunContext: computeDstAddr should return self.fp - instruction.off_0 if instruction.off_0 is negative" {
     const run_context = try RunContext.initWithValues(
         std.testing.allocator,
-        Relocatable.new(
+        Relocatable.init(
             0,
             4,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             25,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             40,
         ),
     );
     defer run_context.deinit();
     try expectEqual(
-        Relocatable.new(
+        Relocatable.init(
             0,
             30,
         ),
@@ -292,22 +318,22 @@ test "RunContext: computeDstAddr should return self.fp - instruction.off_0 if in
 test "RunContext: computeDstAddr should return self.fp + instruction.off_0 if instruction.off_0 is positive" {
     const run_context = try RunContext.initWithValues(
         std.testing.allocator,
-        Relocatable.new(
+        Relocatable.init(
             0,
             4,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             25,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             30,
         ),
     );
     defer run_context.deinit();
     try expectEqual(
-        Relocatable.new(
+        Relocatable.init(
             0,
             40,
         ),
@@ -330,22 +356,22 @@ test "RunContext: computeDstAddr should return self.fp + instruction.off_0 if in
 test "RunContext: computeOp0Addr should return self.ap - instruction.off_1 if instruction.off_1 is negative" {
     const run_context = try RunContext.initWithValues(
         std.testing.allocator,
-        Relocatable.new(
+        Relocatable.init(
             0,
             4,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             25,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             6,
         ),
     );
     defer run_context.deinit();
     try expectEqual(
-        Relocatable.new(
+        Relocatable.init(
             0,
             23,
         ),
@@ -368,22 +394,22 @@ test "RunContext: computeOp0Addr should return self.ap - instruction.off_1 if in
 test "RunContext: computeOp0Addr should return self.ap + instruction.off_1 if instruction.off_1 is positive" {
     const run_context = try RunContext.initWithValues(
         std.testing.allocator,
-        Relocatable.new(
+        Relocatable.init(
             0,
             4,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             25,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             6,
         ),
     );
     defer run_context.deinit();
     try expectEqual(
-        Relocatable.new(
+        Relocatable.init(
             0,
             27,
         ),
@@ -406,22 +432,22 @@ test "RunContext: computeOp0Addr should return self.ap + instruction.off_1 if in
 test "RunContext: computeOp0Addr should return self.fp - instruction.off_1 if instruction.off_1 is negative" {
     const run_context = try RunContext.initWithValues(
         std.testing.allocator,
-        Relocatable.new(
+        Relocatable.init(
             0,
             4,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             25,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             40,
         ),
     );
     defer run_context.deinit();
     try expectEqual(
-        Relocatable.new(
+        Relocatable.init(
             0,
             38,
         ),
@@ -444,22 +470,22 @@ test "RunContext: computeOp0Addr should return self.fp - instruction.off_1 if in
 test "RunContext: computeOp0Addr should return self.fp + instruction.off_1 if instruction.off_1 is positive" {
     const run_context = try RunContext.initWithValues(
         std.testing.allocator,
-        Relocatable.new(
+        Relocatable.init(
             0,
             4,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             25,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             30,
         ),
     );
     defer run_context.deinit();
     try expectEqual(
-        Relocatable.new(
+        Relocatable.init(
             0,
             32,
         ),
@@ -482,22 +508,22 @@ test "RunContext: computeOp0Addr should return self.fp + instruction.off_1 if in
 test "RunContext: compute_op1_addr for FP op1 addr and instruction off_2 < 0" {
     const run_context = try RunContext.initWithValues(
         std.testing.allocator,
-        Relocatable.new(
+        Relocatable.init(
             0,
             4,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             5,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             6,
         ),
     );
     defer run_context.deinit();
     try expectEqual(
-        Relocatable.new(
+        Relocatable.init(
             0,
             3,
         ),
@@ -523,22 +549,22 @@ test "RunContext: compute_op1_addr for FP op1 addr and instruction off_2 < 0" {
 test "RunContext: compute_op1_addr for FP op1 addr and instruction off_2 > 0" {
     const run_context = try RunContext.initWithValues(
         std.testing.allocator,
-        Relocatable.new(
+        Relocatable.init(
             0,
             4,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             5,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             6,
         ),
     );
     defer run_context.deinit();
     try expectEqual(
-        Relocatable.new(
+        Relocatable.init(
             0,
             9,
         ),
@@ -564,22 +590,22 @@ test "RunContext: compute_op1_addr for FP op1 addr and instruction off_2 > 0" {
 test "RunContext: compute_op1_addr for AP op1 addr and instruction off_2 < 0" {
     const run_context = try RunContext.initWithValues(
         std.testing.allocator,
-        Relocatable.new(
+        Relocatable.init(
             0,
             4,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             5,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             6,
         ),
     );
     defer run_context.deinit();
     try expectEqual(
-        Relocatable.new(
+        Relocatable.init(
             0,
             2,
         ),
@@ -605,22 +631,22 @@ test "RunContext: compute_op1_addr for AP op1 addr and instruction off_2 < 0" {
 test "RunContext: compute_op1_addr for AP op1 addr and instruction off_2 > 0" {
     const run_context = try RunContext.initWithValues(
         std.testing.allocator,
-        Relocatable.new(
+        Relocatable.init(
             0,
             4,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             5,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             6,
         ),
     );
     defer run_context.deinit();
     try expectEqual(
-        Relocatable.new(
+        Relocatable.init(
             0,
             8,
         ),
@@ -646,15 +672,15 @@ test "RunContext: compute_op1_addr for AP op1 addr and instruction off_2 > 0" {
 test "RunContext: compute_op1_addr for IMM op1 addr and instruction off_2 != 1" {
     const run_context = try RunContext.initWithValues(
         std.testing.allocator,
-        Relocatable.new(
+        Relocatable.init(
             0,
             4,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             5,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             6,
         ),
@@ -684,22 +710,22 @@ test "RunContext: compute_op1_addr for IMM op1 addr and instruction off_2 != 1" 
 test "RunContext: compute_op1_addr for IMM op1 addr and instruction off_2 == 1" {
     const run_context = try RunContext.initWithValues(
         std.testing.allocator,
-        Relocatable.new(
+        Relocatable.init(
             0,
             4,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             5,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             6,
         ),
     );
     defer run_context.deinit();
     try expectEqual(
-        Relocatable.new(
+        Relocatable.init(
             0,
             5,
         ),
@@ -725,15 +751,15 @@ test "RunContext: compute_op1_addr for IMM op1 addr and instruction off_2 == 1" 
 test "RunContext: compute_op1_addr for OP0 op1 addr and instruction op_0 is null" {
     const run_context = try RunContext.initWithValues(
         std.testing.allocator,
-        Relocatable.new(
+        Relocatable.init(
             0,
             4,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             5,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             6,
         ),
@@ -763,22 +789,22 @@ test "RunContext: compute_op1_addr for OP0 op1 addr and instruction op_0 is null
 test "RunContext: compute_op1_addr for OP0 op1 addr and instruction off_2 < 0" {
     const run_context = try RunContext.initWithValues(
         std.testing.allocator,
-        Relocatable.new(
+        Relocatable.init(
             0,
             4,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             5,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             6,
         ),
     );
     defer run_context.deinit();
     try expectEqual(
-        Relocatable.new(
+        Relocatable.init(
             0,
             28,
         ),
@@ -796,7 +822,7 @@ test "RunContext: compute_op1_addr for OP0 op1 addr and instruction off_2 < 0" {
                 .fp_update = .Regular,
                 .opcode = .NOp,
             },
-            .{ .relocatable = Relocatable.new(
+            .{ .relocatable = Relocatable.init(
                 0,
                 32,
             ) },
@@ -807,22 +833,22 @@ test "RunContext: compute_op1_addr for OP0 op1 addr and instruction off_2 < 0" {
 test "RunContext: compute_op1_addr for OP0 op1 addr and instruction off_2 > 0" {
     const run_context = try RunContext.initWithValues(
         std.testing.allocator,
-        Relocatable.new(
+        Relocatable.init(
             0,
             4,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             5,
         ),
-        Relocatable.new(
+        Relocatable.init(
             0,
             6,
         ),
     );
     defer run_context.deinit();
     try expectEqual(
-        Relocatable.new(
+        Relocatable.init(
             0,
             36,
         ),
@@ -840,7 +866,7 @@ test "RunContext: compute_op1_addr for OP0 op1 addr and instruction off_2 > 0" {
                 .fp_update = .Regular,
                 .opcode = .NOp,
             },
-            .{ .relocatable = Relocatable.new(
+            .{ .relocatable = Relocatable.init(
                 0,
                 32,
             ) },

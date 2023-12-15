@@ -31,9 +31,17 @@ pub const CairoVMError = error{
     FailedToComputeOp0,
     /// Signifies that the execution run has not finished.
     RunNotFinished,
+    /// Res.UNCONSTRAINED cannot be used with Opcode.ASSERT_EQ
+    UnconstrainedResAssertEq,
+    /// Different result and destination operands values for Opcode.ASSERT_EQ
+    DiffAssertValues,
+    /// Cannot return Program Counter
+    CantWriteReturnPc,
+    /// Cannot return Frame Pointer
+    CantWriteReturnFp,
 };
 
-/// Represent different error conditions that are memory-related.
+/// Represents different error conditions that are memory-related.
 pub const MemoryError = error{
     /// The amount of used cells associated with the Range Check runner is not available.
     MissingSegmentUsedSizes,
@@ -53,15 +61,29 @@ pub const MemoryError = error{
     GetRangeMemoryGap,
     /// Math error
     Math,
+    /// Represents a situation where a segment has more accessed addresses than its size.
+    SegmentHasMoreAccessedAddressesThanSize,
+    /// Represents an error when there's a failure to retrieve return values from memory.
+    FailedToGetReturnValues,
     /// Range Check Number is out of bounds
     RangeCheckNumberOutOfBounds,
     /// Range Check found a non int
     RangecheckNonInt,
     /// Range Check get error
     RangeCheckGetError,
+    /// Unknown memory cell
+    UnknownMemoryCell,
+    /// This memory cell doesn't contain an integer
+    ExpectedInteger,
 };
 
-/// Reepresents different error conditions that occur in the built-in runners.
+/// Represents the error conditions that are related to the `CairoRunner`.
+pub const CairoRunnerError = error{
+    // Raised when `end_run` hook of a runner is called more than once.
+    EndRunAlreadyCalled,
+};
+
+/// Represents different error conditions that occur in the built-in runners.
 pub const RunnerError = error{
     /// Errors associated with computing the address of a stop pointer of RangeCheckBuiltinRunner
     /// Raised when underflow occurs (i.e., subtracting 1 from 0),
@@ -75,6 +97,7 @@ pub const RunnerError = error{
     BuiltinExpectedInteger,
     /// Integer value exceeds a power of two.
     IntegerBiggerThanPowerOfTwo,
+    Memory,
 };
 
 /// Represents different error conditions that occur during mathematical operations.
@@ -87,4 +110,19 @@ pub const MathError = error{
     RelocatableSubUsizeNegOffset,
     /// Value is too large to be coerced to a u64.
     ValueTooLarge,
+    SubWithOverflow,
+    /// Error indicating that the addition operation on the Relocatable offset exceeds the maximum limit.
+    RelocatableAdditionOffsetExceeded,
+};
+
+/// Represents different error conditions that occur in trace relocation
+pub const TraceError = error{
+    /// Raised when tracing is disabled
+    TraceNotEnabled,
+    /// Raised when trace relocation has already been done.
+    AlreadyRelocated,
+    /// Raised when the relocation table doesn't contain the first two segments
+    NoRelocationFound,
+    /// Raised when trying to get relocated trace when trace hasn't been relocated
+    TraceNotRelocated,
 };

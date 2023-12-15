@@ -46,7 +46,7 @@ pub const SignatureBuiltinRunner = struct {
     /// # Returns
     ///
     /// A new `SignatureBuiltinRunner` instance.
-    pub fn new(allocator: Allocator, instance_def: *ecdsa_instance_def.EcdsaInstanceDef, included: bool) Self {
+    pub fn init(allocator: Allocator, instance_def: *ecdsa_instance_def.EcdsaInstanceDef, included: bool) Self {
         return .{
             .included = included,
             .ratio = instance_def.ratio,

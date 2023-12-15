@@ -27,14 +27,14 @@ jobs:
           zig version
           make build-optimize
           echo "Binary size:"
-          du -h ./zig-out/bin/cairo-zig
+          du -h ./zig-out/bin/ziggy-starkdust
 
       - name: Generate artifact name
         id: artifact-name
         run: |
           export COMMIT_HASH=$(git rev-parse --short HEAD)
           export CURRENT_DATE=$(date +"%Y%m%d")
-          export ARTIFACT_NAME="cairo-zig_${CURRENT_DATE}_${COMMIT_HASH}_$(uname -m)"
+          export ARTIFACT_NAME="ziggy-starkdust_${CURRENT_DATE}_${COMMIT_HASH}_$(uname -m)"
           echo "::set-output name=artifact_name::$ARTIFACT_NAME"
 
       - name: Upload Build Artifact

@@ -46,7 +46,7 @@ pub const PoseidonBuiltinRunner = struct {
     /// # Returns
     ///
     /// A new `PoseidonBuiltinRunner` instance.
-    pub fn new(
+    pub fn init(
         allocator: Allocator,
         ratio: ?u32,
         included: bool,
