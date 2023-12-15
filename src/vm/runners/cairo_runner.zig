@@ -153,19 +153,19 @@ pub const CairoRunner = struct {
         }
 
         // Presuming the default case of `allow_tmp_segments` in python version
-        _ = try self.vm.segments.computeEffectiveSize(false);
 
         // TODO handle proof_mode case
 
         self.run_ended = true;
     }
 
-    /// Ensures that the trace is relocated and is retrievable from the VM and returns it.
-    pub fn consolidateTrace(self: *Self) ![]RelocatedTraceEntry {
+    pub fn relocate(self: *Self) !void {
+        _ = try self.vm.segments.computeEffectiveSize(false);
+
         const relocation_table = try self.vm.segments.relocateSegments(self.allocator);
         try self.vm.relocateTrace(relocation_table);
-
-        return self.vm.getRelocatedTrace();
+        // relocate_memory here
+        self.relocated_trace = try self.vm.getRelocatedTrace();
     }
 
     pub fn deinit(self: *Self) void {

@@ -64,7 +64,7 @@ You can display the help message by running:
 
 ```bash
 
-./zig-out/bin/ziggy-starkdust execute --filename cairo-programs/fibonacci.json --proof-mode=false
+./zig-out/bin/ziggy-starkdust execute --filename cairo_programs/fibonacci.json --proof-mode=false
 ```
 
 

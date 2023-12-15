@@ -193,7 +193,7 @@ test "Program can be initialized from json file with correct program data" {
 
     // Get the absolute path of the current working directory.
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
-    const path = try std.os.realpath("cairo-programs/fibonacci.json", &buffer);
+    const path = try std.os.realpath("cairo_programs/fibonacci.json", &buffer);
     var parsed_program = try Program.parseFromFile(allocator, path);
     defer parsed_program.deinit();
 
