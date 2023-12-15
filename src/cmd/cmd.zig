@@ -62,7 +62,7 @@ var output_trace = cli.Option{
 var output_memory = cli.Option{
     .long_name = "output-memory",
     .help = "File where the memory post-execution is written.",
-    .short_alias = 'mem',
+    .short_alias = 'm',
     .value_ref = cli.mkRef(&config.output_memory),
     .required = false,
 };
