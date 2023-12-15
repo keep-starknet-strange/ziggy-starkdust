@@ -3,12 +3,13 @@ const Felt252 = @import("../fields/starknet.zig").Felt252;
 const expectEqual = std.testing.expectEqual;
 
 const starknet_crypto = @cImport(@cInclude("starknet_crypto.h"));
+const FELT_BYTE_SIZE = @import("../../math/fields/constants.zig").FELT_BYTE_SIZE;
 
 pub fn pedersenHash(a: Felt252, b: Felt252) Felt252 {
     // convert Felt252 to big endian byte array
     var a_bytes = a.toBytesBe();
     var b_bytes = b.toBytesBe();
-    var res = [_]u8{0} ** 32;
+    var res = [_]u8{0} ** FELT_BYTE_SIZE;
     // pedersen hash needs the representation in Big endian
     starknet_crypto.pedersen_hash(&a_bytes[0], &b_bytes[0], &res[0]);
     // pedersen hash stores a big endian byte array in res
