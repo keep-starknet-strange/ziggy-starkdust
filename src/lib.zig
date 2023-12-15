@@ -1,5 +1,6 @@
 pub const vm = struct {
     pub usingnamespace @import("vm/core.zig");
+    pub usingnamespace @import("vm/cairo_run.zig");
     pub usingnamespace @import("vm/core_test.zig");
     pub usingnamespace @import("vm/config.zig");
     pub usingnamespace @import("vm/error.zig");
@@ -22,6 +23,7 @@ pub const math = struct {
     pub usingnamespace @import("math/fields/fields.zig");
     pub usingnamespace @import("math/fields/stark_felt_252_gen_fp.zig");
     pub usingnamespace @import("math/fields/starknet.zig");
+    pub usingnamespace @import("math/fields/elliptic_curve.zig");
 };
 
 pub const utils = struct {
