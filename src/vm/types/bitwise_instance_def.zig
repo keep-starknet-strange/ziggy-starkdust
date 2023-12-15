@@ -14,7 +14,7 @@ pub const BitwiseInstanceDef = struct {
     /// The number of bits in a single field element that are supported by the bitwise builtin.
     total_n_bits: u32 = TOTAL_N_BITS_BITWISE_DEFAULT,
 
-    pub fn init() Self {
+    pub fn initDefault() Self {
         return .{ .ratio = 256, .total_n_bits = 251 };
     }
 
