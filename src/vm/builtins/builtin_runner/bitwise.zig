@@ -60,7 +60,7 @@ pub const BitwiseBuiltinRunner = struct {
     ///
     /// A new `BitwiseBuiltinRunner` instance.
     pub fn init(
-        instance_def: *bitwise_instance_def.BitwiseInstanceDef,
+        instance_def: *const bitwise_instance_def.BitwiseInstanceDef,
         included: bool,
     ) Self {
         return .{
@@ -76,8 +76,7 @@ pub const BitwiseBuiltinRunner = struct {
     }
 
     pub fn initDefault() Self {
-        var default: bitwise_instance_def.BitwiseInstanceDef = .{};
-        return Self.init(&default, true);
+        return Self.init(&@as(bitwise_instance_def.BitwiseInstanceDef, .{}), true);
     }
 
     /// Initializes segments for the Bitwise builtin instance using the provided MemorySegmentManager.
