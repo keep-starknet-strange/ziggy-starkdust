@@ -53,11 +53,19 @@ var enable_trace = cli.Option{
 
 var output_trace = cli.Option{
     .long_name = "output-trace",
-    .help = "Enable trace mode",
+    .help = "File where the register execution cycles are written. ",
     .short_alias = 'o',
     .value_ref = cli.mkRef(&config.output_trace),
     .required = false,
 };
+
+var output_memory = cli.Option{
+    .long_name = "output-memory",
+    .help = "File where the memory post-execution is written.",
+    .short_alias = 'o',
+    .value_ref = cli.mkRef(&config.output_memory),
+    .required = false,
+}
 
 // ************************************************************
 // *                    CLI APP                               *
