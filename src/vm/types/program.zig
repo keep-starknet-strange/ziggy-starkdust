@@ -118,12 +118,23 @@ pub const SharedProgramData = struct {
     }
 };
 
+/// Represents a program structure containing shared data, constants, and built-ins.
 pub const Program = struct {
     const Self = @This();
+    /// Represents shared data within the program.
     shared_program_data: SharedProgramData,
+    /// Contains constants mapped to their values.
     constants: std.StringHashMap(Felt252),
+    /// Stores the list of built-in names.
     builtins: std.ArrayList(BuiltinName),
 
+    /// Initializes a new `Program` instance.
+    ///
+    /// # Params:
+    ///   - `allocator`: The allocator used to initialize the program.
+    ///
+    /// # Returns:
+    ///   - A new instance of `Program`.
     pub fn init(allocator: Allocator) Self {
         return .{
             .shared_program_data = SharedProgramData.init(allocator),
@@ -132,6 +143,14 @@ pub const Program = struct {
         };
     }
 
+    /// Retrieves a list of references from a given reference manager.
+    ///
+    /// # Params:
+    ///   - `allocator`: The allocator used to initialize the list.
+    ///   - `reference_manager`: A pointer to an array of references.
+    ///
+    /// # Returns:
+    ///   - A list of `HintReference` containing references.
     pub fn getReferenceList(allocator: Allocator, reference_manager: *[]const Reference) !std.ArrayList(HintReference) {
         var res = std.ArrayList(HintReference).init(allocator);
 
@@ -149,6 +168,10 @@ pub const Program = struct {
         return res;
     }
 
+    /// Deinitializes the `Program` instance, freeing allocated memory.
+    ///
+    /// # Params:
+    ///   - `self`: A pointer to the `Program` instance.
     pub fn deinit(self: *Self) void {
         self.shared_program_data.deinit();
         self.constants.deinit();
