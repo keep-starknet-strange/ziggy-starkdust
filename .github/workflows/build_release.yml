@@ -17,10 +17,15 @@ jobs:
         with:
           zig-version: master
 
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
       - name: Build ReleaseFast
         run: |
           zig version
-          zig build -Doptimize=ReleaseFast
+          make build-optimize
           echo "Binary size:"
           du -h ./zig-out/bin/ziggy-starkdust
 

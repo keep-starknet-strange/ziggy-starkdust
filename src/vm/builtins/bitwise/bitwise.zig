@@ -58,7 +58,7 @@ fn getValue(address: Relocatable, memory: *Memory) BitwiseError!u256 {
 /// - memory: The cairo memory where addresses are looked up
 /// # Returns
 /// The deduced value as a `MaybeRelocatable`
-pub fn deduce(address: Relocatable, memory: *Memory) BitwiseError!MaybeRelocatable {
+pub fn deduce(address: Relocatable, memory: *Memory) !MaybeRelocatable {
     const index = address.offset % CELLS_PER_BITWISE;
 
     if (index < BITWISE_INPUT_CELLS_PER_INSTANCE) {
@@ -128,8 +128,7 @@ test "deduce when address points to relocatable variant of MaybeRelocatable " {
     // when
     const address = Relocatable.init(0, 3);
 
-    try memoryFile.setUpMemory(
-        mem,
+    try mem.setUpMemory(
         std.testing.allocator,
         .{.{ .{ 0, 5 }, .{ 0, 3 } }},
     );
@@ -149,8 +148,7 @@ test "deduce when address points to felt greater than BITWISE_TOTAL_N_BITS" {
     // when
     const address = Relocatable.init(0, 3);
 
-    try memoryFile.setUpMemory(
-        mem,
+    try mem.setUpMemory(
         std.testing.allocator,
         .{.{ .{ 0, 0 }, .{std.math.pow(u256, 2, BITWISE_TOTAL_N_BITS) + 1} }},
     );
@@ -169,8 +167,7 @@ test "valid bitwise and" {
     defer mem.deinit();
 
     // when
-    try memoryFile.setUpMemory(
-        mem,
+    try mem.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 5 }, .{10} },
@@ -199,8 +196,7 @@ test "valid bitwise xor" {
     defer mem.deinit();
 
     // when
-    try memoryFile.setUpMemory(
-        mem,
+    try mem.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 5 }, .{10} },
@@ -229,8 +225,7 @@ test "valid bitwise or" {
     defer mem.deinit();
 
     // when
-    try memoryFile.setUpMemory(
-        mem,
+    try mem.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 5 }, .{10} },

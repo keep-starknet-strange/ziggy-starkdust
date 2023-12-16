@@ -788,60 +788,60 @@ pub const Memory = struct {
         }
         return values;
     }
-};
 
-// Utility function to help set up memory for tests
-//
-// # Arguments
-// - `memory` - memory to be set
-// - `vals` - complile time structure with heterogenous types
-pub fn setUpMemory(memory: *Memory, allocator: Allocator, comptime vals: anytype) !void {
-    const segment = std.ArrayListUnmanaged(?MemoryCell){};
-    var si: usize = 0;
-    inline for (vals) |row| {
-        if (row[0][0] < 0) {
-            si = @intCast(-(row[0][0] + 1));
-            while (si >= memory.num_temp_segments) {
-                try memory.temp_data.append(segment);
-                memory.num_temp_segments += 1;
+    // Utility function to help set up memory for tests
+    //
+    // # Arguments
+    // - `memory` - memory to be set
+    // - `vals` - complile time structure with heterogenous types
+    pub fn setUpMemory(self: *Self, allocator: Allocator, comptime vals: anytype) !void {
+        const segment = std.ArrayListUnmanaged(?MemoryCell){};
+        var si: usize = 0;
+        inline for (vals) |row| {
+            if (row[0][0] < 0) {
+                si = @intCast(-(row[0][0] + 1));
+                while (si >= self.num_temp_segments) {
+                    try self.temp_data.append(segment);
+                    self.num_temp_segments += 1;
+                }
+            } else {
+                si = @intCast(row[0][0]);
+                while (si >= self.num_segments) {
+                    try self.data.append(segment);
+                    self.num_segments += 1;
+                }
             }
-        } else {
-            si = @intCast(row[0][0]);
-            while (si >= memory.num_segments) {
-                try memory.data.append(segment);
-                memory.num_segments += 1;
-            }
-        }
-        // Check number of inputs in row
-        if (row[1].len == 1) {
-            try memory.set(
-                allocator,
-                Relocatable.init(row[0][0], row[0][1]),
-                .{ .felt = Felt252.fromInteger(row[1][0]) },
-            );
-        } else {
-            switch (@typeInfo(@TypeOf(row[1][0]))) {
-                .Pointer => {
-                    try memory.set(
-                        allocator,
-                        Relocatable.init(row[0][0], row[0][1]),
-                        .{ .relocatable = Relocatable.init(
-                            try std.fmt.parseUnsigned(i64, row[1][0], 10),
-                            row[1][1],
-                        ) },
-                    );
-                },
-                else => {
-                    try memory.set(
-                        allocator,
-                        Relocatable.init(row[0][0], row[0][1]),
-                        .{ .relocatable = Relocatable.init(row[1][0], row[1][1]) },
-                    );
-                },
+            // Check number of inputs in row
+            if (row[1].len == 1) {
+                try self.set(
+                    allocator,
+                    Relocatable.init(row[0][0], row[0][1]),
+                    .{ .felt = Felt252.fromInteger(row[1][0]) },
+                );
+            } else {
+                switch (@typeInfo(@TypeOf(row[1][0]))) {
+                    .Pointer => {
+                        try self.set(
+                            allocator,
+                            Relocatable.init(row[0][0], row[0][1]),
+                            .{ .relocatable = Relocatable.init(
+                                try std.fmt.parseUnsigned(i64, row[1][0], 10),
+                                row[1][1],
+                            ) },
+                        );
+                    },
+                    else => {
+                        try self.set(
+                            allocator,
+                            Relocatable.init(row[0][0], row[0][1]),
+                            .{ .relocatable = Relocatable.init(row[1][0], row[1][1]) },
+                        );
+                    },
+                }
             }
         }
     }
-}
+};
 
 test "Memory: validate existing memory" {
     const allocator = std.testing.allocator;
@@ -850,10 +850,10 @@ test "Memory: validate existing memory" {
     defer segments.deinit();
 
     var builtin = RangeCheckBuiltinRunner.init(8, 8, true);
-    try builtin.initializeSegments(segments);
+    try builtin.initSegments(segments);
     try builtin.addValidationRule(segments.memory);
 
-    try setUpMemory(segments.memory, std.testing.allocator, .{
+    try segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 0, 2 }, .{1} },
         .{ .{ 0, 5 }, .{1} },
         .{ .{ 0, 7 }, .{1} },
@@ -890,11 +890,10 @@ test "Memory: validate memory cell" {
     defer segments.deinit();
 
     var builtin = RangeCheckBuiltinRunner.init(8, 8, true);
-    try builtin.initializeSegments(segments);
+    try builtin.initSegments(segments);
     try builtin.addValidationRule(segments.memory);
 
-    try setUpMemory(
-        segments.memory,
+    try segments.memory.setUpMemory(
         std.testing.allocator,
         .{.{ .{ 0, 1 }, .{1} }},
     );
@@ -917,10 +916,9 @@ test "Memory: validate memory cell segment index not in validation rules" {
     defer segments.deinit();
 
     var builtin = RangeCheckBuiltinRunner.init(8, 8, true);
-    try builtin.initializeSegments(segments);
+    try builtin.initSegments(segments);
 
-    try setUpMemory(
-        segments.memory,
+    try segments.memory.setUpMemory(
         std.testing.allocator,
         .{.{ .{ 0, 1 }, .{1} }},
     );
@@ -941,7 +939,7 @@ test "Memory: validate memory cell already exist in validation rules" {
     defer segments.deinit();
 
     var builtin = RangeCheckBuiltinRunner.init(8, 8, true);
-    try builtin.initializeSegments(segments);
+    try builtin.initSegments(segments);
     try builtin.addValidationRule(segments.memory);
 
     try segments.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
@@ -974,8 +972,7 @@ test "memory inner for testing test" {
     var memory = try Memory.init(allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 1, 3 }, .{ 4, 5 } },
@@ -1029,8 +1026,7 @@ test "Memory: get method wit segment but non allocated memory should return null
     defer memory.deinit();
 
     // Set a value into the memory.
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 0 }, .{1} },
@@ -1057,8 +1053,7 @@ test "Memory: set and get for both segments and temporary segments should return
     defer memory.deinit();
 
     // Set a value into the memory.
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 0 }, .{1} },
@@ -1088,8 +1083,7 @@ test "Memory: get inside a segment without value but inbout should return null" 
     defer memory.deinit();
 
     // Test body
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 1, 0 }, .{5} },
@@ -1112,8 +1106,7 @@ test "Memory: set where number of segments is less than segment index should ret
     var segments = try MemorySegmentManager.init(allocator);
     defer segments.deinit();
 
-    try setUpMemory(
-        segments.memory,
+    try segments.memory.setUpMemory(
         std.testing.allocator,
         .{.{ .{ 0, 1 }, .{1} }},
     );
@@ -1137,7 +1130,7 @@ test "validate existing memory for range check within bound" {
     defer segments.deinit();
 
     var builtin = RangeCheckBuiltinRunner.init(8, 8, true);
-    try builtin.initializeSegments(segments);
+    try builtin.initSegments(segments);
 
     // ************************************************************
     // *                      TEST BODY                           *
@@ -1149,8 +1142,7 @@ test "validate existing memory for range check within bound" {
     const value_1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.one());
 
     // Set a value into the memory.
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{.{ .{ 0, 0 }, .{1} }},
     );
@@ -1184,8 +1176,7 @@ test "Memory: getFelt should return Felt252 if available at the given address" {
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{.{ .{ 0, 0 }, .{23} }},
     );
@@ -1203,8 +1194,7 @@ test "Memory: getFelt should return ExpectedInteger error if Relocatable instead
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{.{ .{ 0, 0 }, .{ 3, 7 } }},
     );
@@ -1221,8 +1211,7 @@ test "Memory: getFelt should return UnknownMemoryCell error if no value at the g
     // Test setup
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 0 }, .{3} },
@@ -1255,8 +1244,7 @@ test "Memory: getRelocatable should return Relocatable if available at the given
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{.{ .{ 0, 0 }, .{ 4, 34 } }},
     );
@@ -1274,8 +1262,7 @@ test "Memory: getRelocatable should return ExpectedRelocatable error if Felt ins
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{.{ .{ 0, 0 }, .{3} }},
     );
@@ -1295,8 +1282,7 @@ test "Memory: markAsAccessed should mark memory cell" {
 
     const relo = Relocatable.init(0, 3);
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{.{ .{ 0, 3 }, .{ 4, 5 } }},
     );
@@ -1323,8 +1309,7 @@ test "Memory: markAsAccessed should not panic if non existing offset" {
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{.{ .{ 1, 3 }, .{ 4, 5 } }},
     );
@@ -1454,8 +1439,7 @@ test "Memory: memEq should return true if lhs and rhs offset are out of bounds f
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 7 }, .{3} },
@@ -1476,8 +1460,7 @@ test "Memory: memEq should return true if lhs and rhs offset are out of bounds f
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ -2, 7 }, .{3} },
@@ -1498,8 +1481,7 @@ test "Memory: memEq should return false if lhs offset is out of bounds for the g
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 7 }, .{3} },
@@ -1520,8 +1502,7 @@ test "Memory: memEq should return false if rhs offset is out of bounds for the g
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 7 }, .{3} },
@@ -1542,8 +1523,7 @@ test "Memory: memEq should return false if lhs offset is out of bounds for the g
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ -1, 7 }, .{3} },
@@ -1564,8 +1544,7 @@ test "Memory: memEq should return false if rhs offset is out of bounds for the g
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ -1, 7 }, .{3} },
@@ -1586,8 +1565,7 @@ test "Memory: memEq should return false if lhs and rhs segment size after offset
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 7 }, .{3} },
@@ -1608,8 +1586,7 @@ test "Memory: memEq should return true if lhs and rhs segment are the same after
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 7 }, .{3} },
@@ -1630,8 +1607,7 @@ test "Memory: memEq should return true if lhs and rhs segment are the same after
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 7 }, .{3} },
@@ -1654,8 +1630,7 @@ test "Memory: memCmp function" {
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ -2, 0 }, .{1} },
@@ -1797,8 +1772,7 @@ test "Memory: getRange for continuous memory" {
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 1, 0 }, .{2} },
@@ -1835,8 +1809,7 @@ test "Memory: getRange for non continuous memory" {
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 1, 0 }, .{2} },
@@ -1886,8 +1859,7 @@ test "Memory: countAccessedAddressesInSegment should return 0 if no accessed add
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 10, 1 }, .{3} },
@@ -1911,8 +1883,7 @@ test "Memory: countAccessedAddressesInSegment should return number of accessed a
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 10, 1 }, .{3} },
@@ -1940,8 +1911,7 @@ test "Memory: getContinuousRange for continuous memory" {
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 1, 0 }, .{2} },
@@ -1978,8 +1948,7 @@ test "Memory: getContinuousRange for non continuous memory" {
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 1, 0 }, .{2} },
@@ -2005,8 +1974,7 @@ test "Memory: getFeltRange for continuous memory" {
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 1, 0 }, .{2} },
@@ -2042,8 +2010,7 @@ test "Memory: getFeltRange for Relocatable instead of Felt" {
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 1, 0 }, .{2} },
@@ -2067,8 +2034,7 @@ test "Memory: getFeltRange for out of bounds memory" {
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 1, 0 }, .{2} },
@@ -2092,8 +2058,7 @@ test "Memory: getFeltRange for non continuous memory" {
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    try setUpMemory(
-        memory,
+    try memory.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 1, 0 }, .{2} },

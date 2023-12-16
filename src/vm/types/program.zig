@@ -1,22 +1,54 @@
-// ************************************************************
-// *                       IMPORTS                            *
-// ************************************************************
-
-// Core imports.
 const std = @import("std");
 const json = std.json;
 const Allocator = std.mem.Allocator;
 
-// Local imports.
-const relocatable = @import("../memory/relocatable.zig");
-const MaybeRelocatable = relocatable.MaybeRelocatable;
+const MaybeRelocatable = @import("../memory/relocatable.zig").MaybeRelocatable;
 
-const ApTracking = struct {
-    group: usize,
-    offset: usize,
+/// Enum representing built-in functions within the Cairo VM.
+///
+/// This enum defines various built-in functions available within the Cairo VM.
+pub const BuiltinName = enum {
+    /// Represents the output builtin.
+    output,
+    /// Represents the range check builtin.
+    range_check,
+    /// Represents the Pedersen builtin.
+    pedersen,
+    /// Represents the ECDSA builtin.
+    ecdsa,
+    /// Represents the Keccak builtin.
+    keccak,
+    /// Represents the bitwise builtin.
+    bitwise,
+    /// Represents the EC operation builtin.
+    ec_op,
+    /// Represents the Poseidon builtin.
+    poseidon,
+    /// Represents the segment arena builtin.
+    segment_arena,
 };
 
-const FlowTrackingData = struct { ap_tracking: ApTracking, reference_ids: ?json.ArrayHashMap(usize) = null };
+const ApTracking = struct {
+    const Self = @This();
+
+    /// Group information
+    group: usize,
+    /// Offset information
+    offset: usize,
+
+    /// Creates a new instance of `ApTracking`.
+    ///
+    /// Returns:
+    ///     A new instance of `ApTracking` with `group` set to 0 and `offset` set to 0.
+    pub fn init() Self {
+        return .{ .group = 0, .offset = 0 };
+    }
+};
+
+const FlowTrackingData = struct {
+    ap_tracking: ApTracking,
+    reference_ids: ?json.ArrayHashMap(usize) = null,
+};
 
 const Attribute = struct {
     name: []const u8,
@@ -26,7 +58,11 @@ const Attribute = struct {
     flow_tracking_data: ?FlowTrackingData,
 };
 
-const HintParams = struct { code: []const u8, accessible_scopes: []const u8, flow_tracking_data: FlowTrackingData };
+const HintParams = struct {
+    code: []const u8,
+    accessible_scopes: []const u8,
+    flow_tracking_data: FlowTrackingData,
+};
 
 const Instruction = struct {
     end_line: u32,
@@ -157,7 +193,7 @@ test "Program can be initialized from json file with correct program data" {
 
     // Get the absolute path of the current working directory.
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
-    const path = try std.os.realpath("cairo-programs/fibonacci.json", &buffer);
+    const path = try std.os.realpath("cairo_programs/fibonacci.json", &buffer);
     var parsed_program = try Program.parseFromFile(allocator, path);
     defer parsed_program.deinit();
 

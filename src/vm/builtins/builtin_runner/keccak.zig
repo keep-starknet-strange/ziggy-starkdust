@@ -99,13 +99,9 @@ pub const KeccakBuiltinRunner = struct {
     ///
     /// # Modifies
     /// - `self`: Updates the `base` value to the new segment's index.
-    pub fn initializeSegments(self: *Self, segments: *MemorySegmentManager) !void {
+    pub fn initSegments(self: *Self, segments: *MemorySegmentManager) !void {
         // `segments.addSegment()` always returns a positive index
-        const seg = try segments.addSegment();
-        self.base = @as(
-            usize,
-            @intCast(seg.segment_index),
-        );
+        self.base = @intCast((try segments.addSegment()).segment_index);
     }
 
     /// Initializes and returns an `ArrayList` of `MaybeRelocatable` values.
@@ -121,12 +117,10 @@ pub const KeccakBuiltinRunner = struct {
     pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
         var result = ArrayList(MaybeRelocatable).init(allocator);
         if (self.included) {
-            try result.append(.{
-                .relocatable = Relocatable.init(
-                    @intCast(self.base),
-                    0,
-                ),
-            });
+            try result.append(MaybeRelocatable.fromSegment(
+                @intCast(self.base),
+                0,
+            ));
             return result;
         }
         return result;
@@ -343,9 +337,7 @@ pub const KeccakBuiltinRunner = struct {
         pointer: Relocatable,
     ) !Relocatable {
         if (self.included) {
-            const stop_pointer_addr = pointer.subUint(
-                @intCast(1),
-            ) catch return RunnerError.NoStopPointer;
+            const stop_pointer_addr = pointer.subUint(1) catch return RunnerError.NoStopPointer;
             const stop_pointer = try (segments.memory.get(stop_pointer_addr) orelse return RunnerError.NoStopPointer).tryIntoRelocatable();
             if (@as(
                 isize,
@@ -418,8 +410,8 @@ pub const KeccakBuiltinRunner = struct {
             return .{ .felt = felt.? };
         }
 
-        const first_input_addr = try address.subUint(@intCast(index));
-        const first_output_addr = try first_input_addr.addUint(@intCast(self.n_input_cells));
+        const first_input_addr = try address.subUint(index);
+        const first_output_addr = try first_input_addr.addUint(self.n_input_cells);
 
         var input_felts = ArrayList(Felt252).init(allocator);
         defer input_felts.deinit();
@@ -428,7 +420,7 @@ pub const KeccakBuiltinRunner = struct {
             usize,
             @intCast(self.n_input_cells),
         )) |i| {
-            const num = (memory.get(try first_input_addr.addUint(@intCast(i))) orelse return null).tryIntoFelt() catch {
+            const num = (memory.get(try first_input_addr.addUint(i)) orelse return null).tryIntoFelt() catch {
                 return RunnerError.BuiltinExpectedInteger;
             };
 
@@ -473,7 +465,7 @@ pub const KeccakBuiltinRunner = struct {
             @memcpy(bytes[0..(end_index - start_index)], keccak_result.items[start_index..end_index]);
 
             try self.cache.put(
-                try first_output_addr.addUint(@intCast(i)),
+                try first_output_addr.addUint(i),
                 Felt252.fromBytes(bytes),
             );
             start_index = end_index;
@@ -531,7 +523,7 @@ test "KeccakBuiltinRunner: initialStack should return an a proper array list if 
     );
 }
 
-test "KeccakBuiltinRunner: initializeSegments should modify base field of Keccak built in" {
+test "KeccakBuiltinRunner: initSegments should modify base field of Keccak built in" {
     var keccak_instance_def = try KeccakInstanceDef.default(std.testing.allocator);
     var keccak_builtin = KeccakBuiltinRunner.init(
         std.testing.allocator,
@@ -541,8 +533,8 @@ test "KeccakBuiltinRunner: initializeSegments should modify base field of Keccak
     defer keccak_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    try keccak_builtin.initializeSegments(memory_segment_manager);
-    try keccak_builtin.initializeSegments(memory_segment_manager);
+    try keccak_builtin.initSegments(memory_segment_manager);
+    try keccak_builtin.initSegments(memory_segment_manager);
     try expectEqual(
         @as(usize, @intCast(1)),
         keccak_builtin.base,
@@ -844,7 +836,7 @@ test "KeccakBuiltinRunner: finalStack should return TypeMismatchNotRelocatable e
         try Relocatable.init(
             2,
             2,
-        ).subUint(@intCast(1)),
+        ).subUint(1),
         .{ .felt = Felt252.fromInteger(10) },
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
@@ -878,7 +870,7 @@ test "KeccakBuiltinRunner: finalStack should return InvalidStopPointerIndex erro
         try Relocatable.init(
             2,
             2,
-        ).subUint(@intCast(1)),
+        ).subUint(1),
         .{ .relocatable = Relocatable.init(
             10,
             2,
@@ -914,7 +906,7 @@ test "KeccakBuiltinRunner: finalStack should return InvalidStopPointer error if 
         try Relocatable.init(
             2,
             2,
-        ).subUint(@intCast(1)),
+        ).subUint(1),
         .{ .relocatable = Relocatable.init(
             22,
             2,
@@ -952,7 +944,7 @@ test "KeccakBuiltinRunner: finalStack should return stop pointer address and upd
         try Relocatable.init(
             2,
             2,
-        ).subUint(@intCast(1)),
+        ).subUint(1),
         .{ .relocatable = Relocatable.init(
             22,
             22 * 16,
@@ -986,8 +978,7 @@ test "KeccakBuiltinRunner: deduceMemoryCell memory valid" {
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
 
-    try memoryFile.setUpMemory(
-        mem,
+    try mem.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 16 }, .{43} },
@@ -1036,8 +1027,7 @@ test "KeccakBuiltinRunner: deduceMemoryCell non relocatable address should retur
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
 
-    try memoryFile.setUpMemory(
-        mem,
+    try mem.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 4 }, .{32} },
@@ -1071,8 +1061,7 @@ test "KeccakBuiltinRunner: deduceMemoryCell offset less than input cell length s
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
 
-    try memoryFile.setUpMemory(
-        mem,
+    try mem.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 4 }, .{32} },
@@ -1105,8 +1094,7 @@ test "KeccakBuiltinRunner: deduceMemoryCell memory cell expected integer" {
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
 
-    try memoryFile.setUpMemory(
-        mem,
+    try mem.setUpMemory(
         std.testing.allocator,
         .{.{ .{ 0, 0 }, .{ 1, 2 } }},
     );
@@ -1137,8 +1125,7 @@ test "KeccakBuiltinRunner: deduceMemoryCell missing input cells" {
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
 
-    try memoryFile.setUpMemory(
-        mem,
+    try mem.setUpMemory(
         std.testing.allocator,
         .{.{ .{ 0, 1 }, .{ 1, 2 } }},
     );
@@ -1169,8 +1156,7 @@ test "KeccakBuiltinRunner: deduceMemoryCell input cell" {
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
 
-    try memoryFile.setUpMemory(
-        mem,
+    try mem.setUpMemory(
         std.testing.allocator,
         .{.{ .{ 0, 0 }, .{ 1, 2 } }},
     );
@@ -1199,8 +1185,7 @@ test "KeccakBuiltinRunner: deduceMemoryCell get memory error" {
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
 
-    try memoryFile.setUpMemory(
-        mem,
+    try mem.setUpMemory(
         std.testing.allocator,
         .{.{ .{ 0, 35 }, .{0} }},
     );
@@ -1230,8 +1215,7 @@ test "KeccakBuiltinRunner: deduceMemoryCell memory int larger than bits" {
     var mem = try Memory.init(std.testing.allocator);
     defer mem.deinit();
 
-    try memoryFile.setUpMemory(
-        mem,
+    try mem.setUpMemory(
         std.testing.allocator,
         .{
             .{ .{ 0, 16 }, .{43} },

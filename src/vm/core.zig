@@ -12,6 +12,7 @@ const Relocatable = relocatable.Relocatable;
 const instructions = @import("instructions.zig");
 const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
+const MemoryError = @import("error.zig").MemoryError;
 const TraceError = @import("error.zig").TraceError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
@@ -48,6 +49,9 @@ pub const CairoVM = struct {
     current_step: usize,
     /// Rc limits
     rc_limits: ?struct { i16, i16 },
+    /// ArrayList containing instructions. May hold null elements.
+    /// Used as an instruction cache within the CairoVM instance.
+    instruction_cache: ArrayList(?Instruction),
 
     // ************************************************************
     // *             MEMORY ALLOCATION AND DEALLOCATION           *
@@ -77,8 +81,11 @@ pub const CairoVM = struct {
         // Initialize the built-in runners.
         const builtin_runners = ArrayList(BuiltinRunner).init(allocator);
         errdefer builtin_runners.deinit();
+        // Initialize the instruction cache.
+        const instruction_cache = ArrayList(?Instruction).init(allocator);
+        errdefer instruction_cache.deinit();
 
-        return Self{
+        return .{
             .allocator = allocator,
             .run_context = run_context,
             .builtin_runners = builtin_runners,
@@ -88,10 +95,18 @@ pub const CairoVM = struct {
             .trace_relocated = false,
             .current_step = 0,
             .rc_limits = null,
+            .instruction_cache = instruction_cache,
         };
     }
 
-    /// Safe deallocation of the VM resources.
+    /// Safely deallocates resources used by the CairoVM instance.
+    ///
+    /// This function ensures safe deallocation of various components within the CairoVM instance,
+    /// including the memory segment manager, run context, trace context, built-in runners, and the instruction cache.
+    ///
+    /// # Safety
+    /// This function assumes proper initialization of the CairoVM instance and must be called
+    /// to avoid memory leaks and ensure proper cleanup.
     pub fn deinit(self: *Self) void {
         // Deallocate the memory segment manager.
         self.segments.deinit();
@@ -101,6 +116,8 @@ pub const CairoVM = struct {
         self.trace_context.deinit();
         // Deallocate built-in runners
         self.builtin_runners.deinit();
+        // Deallocate instruction cache
+        self.instruction_cache.deinit();
     }
 
     // ************************************************************
@@ -229,8 +246,16 @@ pub const CairoVM = struct {
         // TODO: Run hints.
 
         std.log.debug(
-            "Running instruction at pc: {}",
+            "Running instruction at pc: {}\n",
             .{self.run_context.pc.*},
+        );
+        std.log.debug(
+            "Running instruction, ap: {}\n",
+            .{self.run_context.ap.*},
+        );
+        std.log.debug(
+            "Running instruction, fp: {}\n",
+            .{self.run_context.fp.*},
         );
 
         // ************************************************************
@@ -285,9 +310,9 @@ pub const CairoVM = struct {
     ) !void {
         if (!build_options.trace_disable) {
             try self.trace_context.traceInstruction(.{
-                .pc = self.run_context.pc,
-                .ap = self.run_context.ap,
-                .fp = self.run_context.fp,
+                .pc = self.run_context.pc.*,
+                .ap = self.run_context.ap.*,
+                .fp = self.run_context.fp.*,
             });
         }
 
@@ -675,16 +700,30 @@ pub const CairoVM = struct {
         return null;
     }
 
-    /// Relocates the VM's trace, turning relocatable registers to numbered ones
+    /// Relocates the trace within the Cairo VM, updating relocatable registers to numbered ones.
+    ///
+    /// This function is responsible for relocating the trace within the Cairo VM, converting relocatable registers
+    /// to their corresponding numbered ones based on the provided relocation table.
+    ///
     /// # Arguments
-    /// - `relocation_table`: The relocation table .
+    ///
+    /// - `relocation_table`: A table containing the relocation indices for converting relocatable addresses to numbered ones.
+    ///                       It maps indices representing relocatable addresses to their respective numbered ones.
+    ///
+    /// # Errors
+    ///
+    /// - Returns `TraceError.AlreadyRelocated` if the trace has already been relocated.
+    /// - Returns `TraceError.NoRelocationFound` if the relocation table has insufficient entries (less than 2) to perform relocations.
+    /// - Returns `TraceError.TraceNotEnabled` if the trace is not in an enabled state for relocation.
+    ///
+    /// # Safety
+    ///
+    /// This function assumes that the relocation table indices correspond correctly to the addresses
+    /// needing relocation within the Cairo VM's trace.
     pub fn relocateTrace(self: *Self, relocation_table: []usize) !void {
-        if (self.trace_relocated) {
-            return TraceError.AlreadyRelocated;
-        }
-        if (relocation_table.len < 2) {
-            return TraceError.NoRelocationFound;
-        }
+        if (self.trace_relocated) return TraceError.AlreadyRelocated;
+        if (relocation_table.len < 2) return TraceError.NoRelocationFound;
+
         switch (self.trace_context.state) {
             .enabled => |trace_enabled| {
                 for (trace_enabled.entries.items) |entry| {
@@ -737,13 +776,185 @@ pub const CairoVM = struct {
         }
     }
 
+    /// Loads data into the memory managed by CairoVM.
+    ///
+    /// This function ensures memory allocation in the CairoVM's segments, particularly in the instruction cache.
+    /// It checks if the provided pointer (`ptr`) is pointing to the first segment and if the instruction cache
+    /// is smaller than the incoming data. If so, it extends the instruction cache to accommodate the new data.
+    ///
+    /// After the cache is prepared, the function delegates the actual data loading to the segments, using the CairoVM's
+    /// allocator and the provided pointer and data.
+    ///
+    /// # Parameters
+    /// - `ptr` (Relocatable): The starting address in memory to write the data.
+    /// - `data` (*std.ArrayList(MaybeRelocatable)): The data to be loaded into memory.
+    ///
+    /// # Returns
+    /// A `Relocatable` representing the first address after the loaded data in memory.
+    ///
+    /// # Errors
+    /// - Returns a MemoryError.Math if there's an issue with memory arithmetic during loading.
+    pub fn loadData(
+        self: *Self,
+        ptr: Relocatable,
+        data: *std.ArrayList(MaybeRelocatable),
+    ) !Relocatable {
+        // Check if the pointer is in the first segment and the cache needs expansion.
+        if (ptr.segment_index == 0 and self.instruction_cache.items.len < data.items.len) {
+            // Extend the instruction cache to match the incoming data length.
+            try self.instruction_cache.appendNTimes(
+                null,
+                data.items.len - self.instruction_cache.items.len,
+            );
+        }
+        // Delegate the data loading operation to the segments' loadData method and return the result.
+        return self.segments.loadData(
+            self.allocator,
+            ptr,
+            data,
+        );
+    }
+
+    /// Compares two memory segments within the Cairo VM's memory starting from specified addresses for a given length.
+    ///
+    /// This function provides a comparison mechanism for memory segments within the Cairo VM's memory.
+    /// It compares the segments starting from the specified `lhs` (left-hand side) and `rhs`
+    /// (right-hand side) addresses for a length defined by `len`.
+    ///
+    /// Special Cases:
+    /// - If `lhs` exists in memory but `rhs` does not: returns `(Order::Greater, 0)`.
+    /// - If `rhs` exists in memory but `lhs` does not: returns `(Order::Less, 0)`.
+    /// - If neither `lhs` nor `rhs` exist in memory: returns `(Order::Equal, 0)`.
+    ///
+    /// The function behavior aligns with the C `memcmp` function for other cases,
+    /// offering an optimized comparison mechanism that hints to avoid unnecessary allocations.
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs`: The starting address of the left-hand memory segment.
+    /// - `rhs`: The starting address of the right-hand memory segment.
+    /// - `len`: The length to compare from each memory segment.
+    ///
+    /// # Returns
+    ///
+    /// Returns a tuple containing the ordering of the segments and the first relative position
+    /// where they differ.
+    pub fn memCmp(
+        self: *Self,
+        lhs: Relocatable,
+        rhs: Relocatable,
+        len: usize,
+    ) std.meta.Tuple(&.{ std.math.Order, usize }) {
+        return self.segments.memory.memCmp(lhs, rhs, len);
+    }
+
+    /// Compares memory segments for equality.
+    ///
+    /// Compares segments of MemoryCell items starting from the specified addresses
+    /// (`lhs` and `rhs`) for a given length.
+    ///
+    /// # Arguments
+    ///
+    /// - `lhs`: The starting address of the left-hand segment.
+    /// - `rhs`: The starting address of the right-hand segment.
+    /// - `len`: The length to compare from each segment.
+    ///
+    /// # Returns
+    ///
+    /// Returns `true` if segments are equal up to the specified length, otherwise `false`.
+    pub fn memEq(
+        self: *Self,
+        lhs: Relocatable,
+        rhs: Relocatable,
+        len: usize,
+    ) std.meta.Tuple(&.{ std.math.Order, usize }) {
+        return self.segments.memory.memEq(lhs, rhs, len);
+    }
+
+    /// Retrieves return values from the VM's memory as a continuous range of memory values.
+    ///
+    /// # Arguments
+    ///
+    /// - `n_ret`: The number of return values to retrieve from the memory.
+    ///
+    /// # Returns
+    ///
+    /// Returns a list containing memory values retrieved as return values from the VM's memory.
+    ///
+    /// # Errors
+    ///
+    /// - Returns `MemoryError.FailedToGetReturnValues` if there's an issue retrieving the return values
+    ///   from the specified memory addresses.
+    pub fn getReturnValues(self: *Self, n_ret: usize) !std.ArrayList(MaybeRelocatable) {
+        return self.segments.memory.getContinuousRange(
+            self.allocator,
+            self.run_context.ap.subUint(@intCast(n_ret)) catch {
+                return MemoryError.FailedToGetReturnValues;
+            },
+            n_ret,
+        );
+    }
+
+    /// Retrieves a range of memory values starting from a specified address within the Cairo VM's memory segment.
+    ///
+    /// # Arguments
+    ///
+    /// - `address`: The starting address in the memory from which the range is retrieved.
+    /// - `size`: The size of the range to be retrieved.
+    ///
+    /// # Returns
+    ///
+    /// Returns a list containing memory values retrieved from the specified range starting at the given address.
+    /// The list may contain `null` elements for inaccessible memory positions.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if there are any issues encountered during the retrieval of the memory range.
+    pub fn getRange(
+        self: *Self,
+        address: Relocatable,
+        size: usize,
+    ) !std.ArrayList(?MaybeRelocatable) {
+        return try self.segments.memory.getRange(
+            self.allocator,
+            address,
+            size,
+        );
+    }
+
+    /// Retrieves a continuous range of memory values starting from a specified address within the Cairo VM's memory segment.
+    ///
+    /// # Arguments
+    ///
+    /// - `address`: The starting address in the memory from which the continuous range is retrieved.
+    /// - `size`: The size of the continuous range to be retrieved.
+    ///
+    /// # Returns
+    ///
+    /// Returns a list containing memory values retrieved from the continuous range starting at the given address.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if there are any gaps encountered within the continuous memory range.
+    pub fn getContinuousRange(
+        self: *Self,
+        address: Relocatable,
+        size: usize,
+    ) !std.ArrayList(MaybeRelocatable) {
+        return try self.segments.memory.getContinuousRange(
+            self.allocator,
+            address,
+            size,
+        );
+    }
+    
     /// Performs opcode-specific assertions on the operands of an instruction.
     /// # Arguments
     /// - `instruction`: A pointer to the instruction being asserted.
     /// - `operands`: The result of the operands computation.
     /// # Errors
     /// - Returns an error if an assertion fails.
-    pub fn opcodeAssertions(self: *Self, instruction: *const Instruction, operands: OperandsResult) CairoVMError!void {
+    pub fn opcodeAssertions(self: *Self, instruction: *const Instruction, operands: OperandsResult) !void {
         // Switch on the opcode to perform the appropriate assertion.
         switch (instruction.opcode) {
             // Assert that the result and destination operands are equal for AssertEq opcode.
