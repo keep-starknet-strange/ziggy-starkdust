@@ -29,27 +29,27 @@ pub const PedersenInstanceDef = struct {
     /// The upper bound on the hash inputs.
     ///
     /// If None, the upper bound is 2^element_bits.
-    _hash_limit: u256,
+    hash_limit: u256,
 
-    pub fn initDefault() !Self {
+    pub fn initDefault() Self {
         return .{
             .ratio = 8,
-            ._repetitions = 4,
-            ._element_height = 256,
-            ._element_bits = 252,
-            ._n_inputs = 2,
-            ._hash_limit = PRIME,
+            .repetitions = 4,
+            .element_height = 256,
+            .element_bits = 252,
+            .n_inputs = 2,
+            .hash_limit = PRIME,
         };
     }
 
-    pub fn init(ratio: ?u32, _repetitions: u32) !Self {
+    pub fn init(ratio: ?u32, repetitions: u32) Self {
         return .{
             .ratio = ratio,
-            ._repetitions = _repetitions,
-            ._element_height = 256,
-            ._element_bits = 252,
-            ._n_inputs = 2,
-            ._hash_limit = PRIME,
+            .repetitions = repetitions,
+            .element_height = 256,
+            .element_bits = 252,
+            .n_inputs = 2,
+            .hash_limit = PRIME,
         };
     }
 
@@ -65,45 +65,45 @@ pub const PedersenInstanceDef = struct {
 test "PedersenInstanceDef: default implementation" {
     const builtin_instance = PedersenInstanceDef{
         .ratio = 8,
-        ._repetitions = 4,
-        ._element_height = 256,
-        ._element_bits = 252,
-        ._n_inputs = 2,
-        ._hash_limit = PRIME,
+        .repetitions = 4,
+        .element_height = 256,
+        .element_bits = 252,
+        .n_inputs = 2,
+        .hash_limit = PRIME,
     };
-    var default = try PedersenInstanceDef.initDefault();
+    var default = PedersenInstanceDef.initDefault();
     try expectEqual(builtin_instance.ratio, default.ratio);
-    try expectEqual(builtin_instance._repetitions, default._repetitions);
-    try expectEqual(builtin_instance._element_height, default._element_height);
-    try expectEqual(builtin_instance._element_bits, default._element_bits);
-    try expectEqual(builtin_instance._n_inputs, default._n_inputs);
-    try expectEqual(builtin_instance._hash_limit, default._hash_limit);
+    try expectEqual(builtin_instance.repetitions, default.repetitions);
+    try expectEqual(builtin_instance.element_height, default.element_height);
+    try expectEqual(builtin_instance.element_bits, default.element_bits);
+    try expectEqual(builtin_instance.n_inputs, default.n_inputs);
+    try expectEqual(builtin_instance.hash_limit, default.hash_limit);
 }
 
 test "PedersenInstanceDef: init implementation" {
     const builtin_instance = PedersenInstanceDef{
         .ratio = 10,
-        ._repetitions = 2,
-        ._element_height = 256,
-        ._element_bits = 252,
-        ._n_inputs = 2,
-        ._hash_limit = PRIME,
+        .repetitions = 2,
+        .element_height = 256,
+        .element_bits = 252,
+        .n_inputs = 2,
+        .hash_limit = PRIME,
     };
-    var pederesen_init = try PedersenInstanceDef.init(10, 2);
+    var pederesen_init = PedersenInstanceDef.init(10, 2);
     try expectEqual(builtin_instance.ratio, pederesen_init.ratio);
-    try expectEqual(builtin_instance._repetitions, pederesen_init._repetitions);
-    try expectEqual(builtin_instance._element_height, pederesen_init._element_height);
-    try expectEqual(builtin_instance._element_bits, pederesen_init._element_bits);
-    try expectEqual(builtin_instance._n_inputs, pederesen_init._n_inputs);
-    try expectEqual(builtin_instance._hash_limit, pederesen_init._hash_limit);
+    try expectEqual(builtin_instance.repetitions, pederesen_init.repetitions);
+    try expectEqual(builtin_instance.element_height, pederesen_init.element_height);
+    try expectEqual(builtin_instance.element_bits, pederesen_init.element_bits);
+    try expectEqual(builtin_instance.n_inputs, pederesen_init.n_inputs);
+    try expectEqual(builtin_instance.hash_limit, pederesen_init.hash_limit);
 }
 
 test "PedersenInstanceDef: cellsPerBuiltin implementation" {
-    var builtin_instance = try PedersenInstanceDef.initDefault();
+    var builtin_instance = PedersenInstanceDef.initDefault();
     try expectEqual(builtin_instance.cellsPerBuiltin(), 3);
 }
 
 test "PedersenInstanceDef: rangeCheckPerBuiltin implementation" {
-    var builtin_instance = try PedersenInstanceDef.initDefault();
+    var builtin_instance = PedersenInstanceDef.initDefault();
     try expectEqual(builtin_instance.rangeCheckPerBuiltin(), 0);
 }
