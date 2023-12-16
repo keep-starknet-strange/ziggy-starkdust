@@ -11,6 +11,8 @@ pub const CELLS_PER_HASH: u32 = 3;
 /// Number of input cells per hash.
 pub const INPUT_CELLS_PER_HASH: u32 = 2;
 
+pub const PRIME: u256 = std.math.pow(u256, 2, 251) + 17 * std.math.pow(u256, 2, 192) + 1;
+
 /// Represents a Pedersen Instance Definition.
 pub const PedersenInstanceDef = struct {
     const Self = @This();
@@ -27,56 +29,28 @@ pub const PedersenInstanceDef = struct {
     /// The upper bound on the hash inputs.
     ///
     /// If None, the upper bound is 2^element_bits.
-    _hash_limit: ManagedBigInt,
-    /// The memory allocator. Can be needed for the deallocation of the VM resources.
-    allocator: Allocator,
+    _hash_limit: u256,
 
-    pub fn default(allocator: Allocator) !Self {
-        var limbs = try allocator.alloc(Limb, 8);
-        limbs[0] = 1;
-        limbs[1] = 0;
-        limbs[2] = 0;
-        limbs[3] = 0;
-        limbs[4] = 0;
-        limbs[5] = 0;
-        limbs[6] = 17;
-        limbs[7] = 134217728;
-
+    pub fn initDefault() !Self {
         return .{
-            .allocator = allocator,
             .ratio = 8,
             ._repetitions = 4,
             ._element_height = 256,
             ._element_bits = 252,
             ._n_inputs = 2,
-            ._hash_limit = .{ .allocator = allocator, .limbs = limbs, .metadata = 1 },
+            ._hash_limit = PRIME,
         };
     }
 
-    pub fn init(allocator: Allocator, ratio: ?u32, _repetitions: u32) !Self {
-        var limbs = try allocator.alloc(Limb, 8);
-        limbs[0] = 1;
-        limbs[1] = 0;
-        limbs[2] = 0;
-        limbs[3] = 0;
-        limbs[4] = 0;
-        limbs[5] = 0;
-        limbs[6] = 17;
-        limbs[7] = 134217728;
-
+    pub fn init(ratio: ?u32, _repetitions: u32) !Self {
         return .{
             .ratio = ratio,
             ._repetitions = _repetitions,
             ._element_height = 256,
             ._element_bits = 252,
             ._n_inputs = 2,
-            ._hash_limit = .{ .allocator = allocator, .limbs = limbs, .metadata = 1 },
-            .allocator = allocator,
+            ._hash_limit = PRIME,
         };
-    }
-
-    pub fn deinit(self: *Self) void {
-        self._hash_limit.deinit();
     }
 
     pub fn cellsPerBuiltin(_: *const Self) u32 {
@@ -89,62 +63,47 @@ pub const PedersenInstanceDef = struct {
 };
 
 test "PedersenInstanceDef: default implementation" {
-    const allocator = std.testing.allocator;
-    var limbs = [_]Limb{ 1, 0, 0, 0, 0, 0, 17, 134217728 };
     const builtin_instance = PedersenInstanceDef{
         .ratio = 8,
         ._repetitions = 4,
         ._element_height = 256,
         ._element_bits = 252,
         ._n_inputs = 2,
-        ._hash_limit = .{ .allocator = allocator, .limbs = &limbs, .metadata = 1 },
-        .allocator = allocator,
+        ._hash_limit = PRIME,
     };
-    var default = try PedersenInstanceDef.default(allocator);
-
-    defer default.deinit();
-
+    var default = try PedersenInstanceDef.initDefault();
     try expectEqual(builtin_instance.ratio, default.ratio);
     try expectEqual(builtin_instance._repetitions, default._repetitions);
     try expectEqual(builtin_instance._element_height, default._element_height);
     try expectEqual(builtin_instance._element_bits, default._element_bits);
     try expectEqual(builtin_instance._n_inputs, default._n_inputs);
-    try expectEqual(builtin_instance._hash_limit.metadata, default._hash_limit.metadata);
-
-    try expect(ManagedBigInt.eql(builtin_instance._hash_limit, default._hash_limit));
+    try expectEqual(builtin_instance._hash_limit, default._hash_limit);
 }
 
 test "PedersenInstanceDef: init implementation" {
-    const allocator = std.testing.allocator;
-    var limbs = [_]Limb{ 1, 0, 0, 0, 0, 0, 17, 134217728 };
     const builtin_instance = PedersenInstanceDef{
         .ratio = 10,
         ._repetitions = 2,
         ._element_height = 256,
         ._element_bits = 252,
         ._n_inputs = 2,
-        ._hash_limit = .{ .allocator = allocator, .limbs = &limbs, .metadata = 1 },
-        .allocator = allocator,
+        ._hash_limit = PRIME,
     };
-    var pederesen_init = try PedersenInstanceDef.init(allocator, 10, 2);
-    pederesen_init.deinit();
-
+    var pederesen_init = try PedersenInstanceDef.init(10, 2);
     try expectEqual(builtin_instance.ratio, pederesen_init.ratio);
     try expectEqual(builtin_instance._repetitions, pederesen_init._repetitions);
     try expectEqual(builtin_instance._element_height, pederesen_init._element_height);
     try expectEqual(builtin_instance._element_bits, pederesen_init._element_bits);
     try expectEqual(builtin_instance._n_inputs, pederesen_init._n_inputs);
-    try expect(ManagedBigInt.eql(builtin_instance._hash_limit, pederesen_init._hash_limit));
+    try expectEqual(builtin_instance._hash_limit, pederesen_init._hash_limit);
 }
 
 test "PedersenInstanceDef: cellsPerBuiltin implementation" {
-    var builtin_instance = try PedersenInstanceDef.default(std.testing.allocator);
-    defer builtin_instance.deinit();
+    var builtin_instance = try PedersenInstanceDef.initDefault();
     try expectEqual(builtin_instance.cellsPerBuiltin(), 3);
 }
 
 test "PedersenInstanceDef: rangeCheckPerBuiltin implementation" {
-    var builtin_instance = try PedersenInstanceDef.default(std.testing.allocator);
-    defer builtin_instance.deinit();
+    var builtin_instance = try PedersenInstanceDef.initDefault();
     try expectEqual(builtin_instance.rangeCheckPerBuiltin(), 0);
 }
