@@ -116,7 +116,6 @@ pub const BitwiseBuiltinRunner = struct {
                 @intCast(self.base),
                 0,
             ));
-            return result;
         }
         return result;
     }
@@ -426,6 +425,7 @@ test "BitwiseBuiltinRunner: initialStack should return an empty array list if in
     // then
     var actual = try builtin.initialStack(std.testing.allocator);
     defer actual.deinit();
+
     try expectEqual(
         expected,
         actual,
@@ -464,10 +464,12 @@ test "BitwiseBuiltinRunner: initSegments should modify base field of Bitwise bui
     // when
     const memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
+
     _ = try memory_segment_manager.addSegment();
 
     // then
     try builtin.initSegments(memory_segment_manager);
+
     try expectEqual(
         @as(usize, 1),
         builtin.base,
@@ -496,6 +498,7 @@ test "BitwiseBuiltinRunner: getUsedCells should return the number of used cells"
     // when
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
+
     try memory_segment_manager.segment_used_sizes.put(0, 10);
 
     // then
@@ -545,6 +548,7 @@ test "BitwiseBuiltinRunner: getUsedInstances should return the number of used in
     // when
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
+
     try memory_segment_manager.segment_used_sizes.put(0, 345);
     // default cells per instance is 5
 
@@ -607,6 +611,7 @@ test "BitwiseBuiltinRunner: getMemoryAccesses should return the memory accesses"
         .{},
     );
     defer vm.deinit();
+
     try vm.segments.segment_used_sizes.put(5, 4);
 
     var actual = try builtin.getMemoryAccesses(
@@ -694,7 +699,8 @@ test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should throw MemoryError.Mis
         .{},
     );
     defer vm.deinit();
-    // where
+
+    // in the case of
     builtin.ratio = null;
 
     // default instances per component -> 1
@@ -717,11 +723,11 @@ test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should throw MemoryError.Mis
 test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should return expected memory units without ratio" {
     // given
     var builtin = BitwiseBuiltinRunner.initDefault();
+
     var vm = try CairoVM.init(
         std.testing.allocator,
         .{},
     );
-
     defer vm.deinit();
 
     // in the case of
@@ -798,7 +804,6 @@ test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should fail with MemoryError
 }
 
 test "BitwiseBuiltinRunner: should return expected result for deduceMemoryCell bitwise-and" {
-
     // given
     var builtin = BitwiseBuiltinRunner.initDefault();
 
@@ -827,7 +832,6 @@ test "BitwiseBuiltinRunner: should return expected result for deduceMemoryCell b
 }
 
 test "BitwiseBuiltinRunner: should return expected result for deduceMemoryCell bitwise-xor" {
-
     // given
     var builtin = BitwiseBuiltinRunner.initDefault();
 
@@ -848,6 +852,7 @@ test "BitwiseBuiltinRunner: should return expected result for deduceMemoryCell b
 
     // then
     const result = try builtin.deduceMemoryCell(address, mem);
+
     try expectEqual(
         expected,
         result.?,
@@ -855,7 +860,6 @@ test "BitwiseBuiltinRunner: should return expected result for deduceMemoryCell b
 }
 
 test "BitwiseBuiltinRunner: should return expectededuceMemoryCell bitwise-or" {
-
     // given
     var builtin = BitwiseBuiltinRunner.initDefault();
 
@@ -1020,9 +1024,11 @@ test "BitwiseBuiltinRunner: finalStack should return InvalidStopPointer error if
     // when
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
+
     _ = try memory_segment_manager.addSegment();
     _ = try memory_segment_manager.addSegment();
     _ = try memory_segment_manager.addSegment();
+
     try memory_segment_manager.memory.set(
         std.testing.allocator,
         try Relocatable.init(
@@ -1062,6 +1068,7 @@ test "BitwiseBuiltinRunner: finalStack should return stop pointer address and up
     _ = try memory_segment_manager.addSegment();
     _ = try memory_segment_manager.addSegment();
     _ = try memory_segment_manager.addSegment();
+
     try memory_segment_manager.memory.set(
         std.testing.allocator,
         try Relocatable.init(
@@ -1085,6 +1092,7 @@ test "BitwiseBuiltinRunner: finalStack should return stop pointer address and up
             Relocatable.init(2, 2),
         ),
     );
+
     try expectEqual(
         @as(?usize, @intCast(345)),
         builtin.stop_ptr.?,
@@ -1100,6 +1108,7 @@ test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should return InsufficientAl
         .{},
     );
     defer vm.deinit();
+
     // then
     try expectError(
         MemoryError.InsufficientAllocatedCellsErrorMinStepNotReached,
@@ -1108,7 +1117,6 @@ test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should return InsufficientAl
 }
 
 test "BitwiseBuiltinRunner: deduceMemoryCell when address.offset is outside input cell length should return null" {
-
     // given
     var builtin = BitwiseBuiltinRunner.initDefault();
 
@@ -1131,7 +1139,6 @@ test "BitwiseBuiltinRunner: deduceMemoryCell when address.offset is outside inpu
 }
 
 test "BitwiseBuiltinRunner: deduceMemoryCell when address points to nothing in memory should return null" {
-
     // given
     var builtin = BitwiseBuiltinRunner.initDefault();
 
@@ -1147,7 +1154,6 @@ test "BitwiseBuiltinRunner: deduceMemoryCell when address points to nothing in m
 }
 
 test "BitwiseBuiltinRunner: deduceMemoryCell should return InvalidAddressForBitwise when address points to relocatable variant of MaybeRelocatable " {
-
     // given
     var builtin = BitwiseBuiltinRunner.initDefault();
 
@@ -1175,6 +1181,7 @@ test "BitwiseBuiltinRunner: deduceMemoryCell should return UnsupportedNumberOfBi
     var mem = try Memory.init(allocator);
     defer mem.deinit();
     defer mem.deinitData(allocator);
+
     // when
     const address = Relocatable.init(0, 7);
 
