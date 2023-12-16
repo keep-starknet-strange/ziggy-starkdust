@@ -128,7 +128,7 @@ pub const BitwiseBuiltinRunner = struct {
     /// - memory: The cairo memory where addresses are looked up
     /// # Returns
     /// The felt as an integer.
-    fn getIntWithinBits(self: Self, address: Relocatable, memory: *Memory) BitwiseError!u256 {
+    fn getIntWithinBits(self: *const Self, address: Relocatable, memory: *Memory) BitwiseError!u256 {
         // Attempt to retrieve the felt from memory
         const num = memory.getFelt(address) catch return BitwiseError.InvalidAddressForBitwise;
 
@@ -303,7 +303,7 @@ pub const BitwiseBuiltinRunner = struct {
     ///
     /// # Returns
     /// The number of used diluted check units as a `usize`.
-    pub fn getUsedDilutedCheckUnits(self: Self, allocator: Allocator, diluted_spacing: u32, diluted_n_bits: u32) !usize {
+    pub fn getUsedDilutedCheckUnits(self: *Self, allocator: Allocator, diluted_spacing: u32, diluted_n_bits: u32) !usize {
         const total_n_bits = self.bitwise_builtin.total_n_bits;
 
         var partition = std.ArrayList(usize).init(allocator);
@@ -386,7 +386,7 @@ pub const BitwiseBuiltinRunner = struct {
     /// # Returns
     ///
     ///  Returns the number of memory units as `usize`.
-    pub fn getAllocatedMemoryUnits(self: Self, vm: CairoVM) !usize {
+    pub fn getAllocatedMemoryUnits(self: *Self, vm: *CairoVM) !usize {
         // on dynamic layout, ratio would be uninitialized for the builtin
         if (self.ratio == null) {
             // Dynamic layout has the exact number of instances it needs (up to a power of 2).
@@ -602,8 +602,6 @@ test "BitwiseBuiltinRunner: getMemoryAccesses should return the memory accesses"
     // in the case of
     builtin.base = 5;
 
-    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
-    defer memory_segment_manager.deinit();
     var vm = try CairoVM.init(
         std.testing.allocator,
         .{},
@@ -669,7 +667,7 @@ test "BitwiseBuiltinRunner: getUsedDilutedCheckUnits should pass  test cases" {
     }
 }
 
-test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should return expected memory units" {
+test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should return expected memory units with ratio" {
     // given
     var builtin = BitwiseBuiltinRunner.initDefault();
 
@@ -683,7 +681,75 @@ test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should return expected memor
     // then
     try expectEqual(
         @as(usize, 5),
-        try builtin.getAllocatedMemoryUnits(vm),
+        try builtin.getAllocatedMemoryUnits(&vm),
+    );
+}
+
+test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should throw MemoryError.MissingSegmentUsedSizes without ratio and no used cells" {
+    // given
+    var builtin = BitwiseBuiltinRunner.initDefault();
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+    // where
+    builtin.ratio = null;
+
+    // default instances per component -> 1
+    // default cells per instance -> 5
+    // used is the amount of cells the base segment has
+
+    // instance is used / cell per instance
+    // components is instances divided by instances per component
+    // to the next power of two
+
+    // expected should be 5 * 1 * components
+
+    // then
+    try expectError(
+        MemoryError.MissingSegmentUsedSizes,
+        builtin.getAllocatedMemoryUnits(&vm),
+    );
+}
+
+test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should return expected memory units without ratio" {
+    // given
+    var builtin = BitwiseBuiltinRunner.initDefault();
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+
+    defer vm.deinit();
+
+    // in the case of
+    builtin.ratio = null;
+
+    // when
+
+    // default instances per component -> 1
+    // default cells per instance -> 5
+    // used is the amount of cells the base segment has
+    // -> 10
+    try vm.segments.segment_used_sizes.put(0, 10);
+
+    // instances is used / cell per instance
+    // -> (2)
+    // components is instances divided by instances per component
+    // -> (2)
+    // to the next power of two
+    // (or the same if value is a power of 2)
+    // -> (2)
+
+    // expected should be 5 * 1 * 2
+    // -> 10
+
+    // then
+    try expectEqual(
+        @as(usize, 10),
+        try builtin.getAllocatedMemoryUnits(&vm),
     );
 }
 
@@ -706,7 +772,7 @@ test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should fail with MemoryError
     // then
     try expectError(
         MemoryError.InsufficientAllocatedCellsErrorMinStepNotReached,
-        builtin.getAllocatedMemoryUnits(vm),
+        builtin.getAllocatedMemoryUnits(&vm),
     );
 }
 
@@ -727,7 +793,7 @@ test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should fail with MemoryError
     // then
     try expectError(
         MemoryError.ErrorCalculatingMemoryUnits,
-        builtin.getAllocatedMemoryUnits(vm),
+        builtin.getAllocatedMemoryUnits(&vm),
     );
 }
 
@@ -1037,7 +1103,7 @@ test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should return InsufficientAl
     // then
     try expectError(
         MemoryError.InsufficientAllocatedCellsErrorMinStepNotReached,
-        builtin.getAllocatedMemoryUnits(vm),
+        builtin.getAllocatedMemoryUnits(&vm),
     );
 }
 
