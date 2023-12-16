@@ -191,24 +191,6 @@ pub const Reference = struct {
     value: []const u8,
 };
 
-const ValueAddress = struct {
-    const Self = @This();
-
-    offset1: OffsetValue,
-    offset2: OffsetValue,
-    dereference: bool,
-    value_type: []const u8,
-
-    pub fn initDefault() Self {
-        return .{
-            .offset1 = .{ .value = 99 },
-            .offset2 = .{ .value = 99 },
-            .dereference = false,
-            .value_type = "felt",
-        };
-    }
-};
-
 /// Represents a manager for references to memory addresses defined for specific program locations (pcs).
 ///
 /// This structure maintains a list of references (`references`)
@@ -256,7 +238,7 @@ pub const Identifier = struct {
     /// Type information associated with the identifier (optional, defaults to null).
     type: ?[]const u8 = null,
     /// Decorators related to the identifier (optional, defaults to null).
-    decorators: ?[]const u8 = null,
+    decorators: ?[]const []const u8 = null,
     /// Value associated with the identifier (optional, defaults to null).
     value: ?usize = null,
     /// Size information related to the identifier (optional, defaults to null).
@@ -336,10 +318,39 @@ pub const ProgramJson = struct {
         return parsed;
     }
 
+    /// Parses a compilation artifact of a Cairo v0 program in JSON format.
+    ///
+    /// This function extracts relevant information from the provided JSON structure
+    /// representing a Cairo v0 program compilation artifact. It constructs a `Program`
+    /// instance encapsulating the program's metadata, constants, builtins, and other necessary data.
+    ///
+    /// # Arguments
+    /// - `allocator`: The allocator for memory allocation during parsing.
+    /// - `entrypoint`: An optional pointer to the entrypoint identifier's name within the program.
+    ///
+    /// # Returns
+    /// - On success: A parsed `Program` instance.
+    /// - On failure: An appropriate `ProgramError` indicating the encountered issue.
+    ///
+    /// # Errors
+    /// - If the program's prime data differs from the expected value.
+    /// - If the specified entrypoint identifier is not found.
+    /// - If constants within the program lack associated values.
+    ///
+    /// # Remarks
+    /// This function is responsible for converting a JSON representation of a Cairo v0 program
+    /// into an internal `Program` structure, enabling subsequent processing and execution.
+    ///
+    /// The process involves extracting various program elements, including entrypoints, constants,
+    /// error messages, instruction locations, and identifiers with associated metadata.
+    ///
+    /// To use this function effectively, ensure correct and compatible JSON data representing a Cairo v0 program.
     pub fn parseProgramJson(self: *Self, allocator: Allocator, entrypoint: ?*[]const u8) !Program {
         if (!std.mem.eql(u8, PRIME_STR, self.prime))
             return ProgramError.PrimeDiffers;
 
+        // Finds the program counter of the specified entrypoint identifier.
+        // Returns an error if the identifier is not found.
         const entrypoint_pc = if (entrypoint) |e| blk: {
             const key = try std.mem.concat(
                 allocator,
@@ -359,7 +370,7 @@ pub const ProgramJson = struct {
         const end = if (self.identifiers.map.get("__main__.__end__")) |identifier| identifier.pc else null;
 
         var constants = std.StringHashMap(Felt252).init(allocator);
-
+        // Populates the constants hashmap with identifier keys and associated constant values.
         for (self.identifiers.map.keys(), self.identifiers.map.values()) |key, value| {
             if (value.type) |_| {
                 try constants.put(
@@ -369,6 +380,7 @@ pub const ProgramJson = struct {
             }
         }
 
+        // Collects attributes named "error_message" and adds them to error_message_attributes.
         var error_message_attributes = std.ArrayList(Attribute).init(allocator);
         for (0..self.attributes.len) |i| {
             const name = self.attributes[i].name;
@@ -378,16 +390,19 @@ pub const ProgramJson = struct {
         }
 
         var builtins = std.ArrayList(BuiltinName).init(allocator);
+        // Collects built-in names and adds them to the builtins list.
         for (0..self.attributes.len) |i| {
             try builtins.append(self.builtins[i]);
         }
 
         var instruction_locations = std.StringHashMap(InstructionLocation).init(allocator);
+        // Populates the instruction_locations hashmap with debug information related to instruction locations.
         for (self.debug_info.instruction_locations.map.keys(), self.debug_info.instruction_locations.map.values()) |key, value| {
             try instruction_locations.put(key, value);
         }
 
         var identifiers = std.StringHashMap(Identifier).init(allocator);
+        // Populates the identifiers hashmap with program identifiers and associated metadata.
         for (self.identifiers.map.keys(), self.identifiers.map.values()) |key, value| {
             try identifiers.put(key, value);
         }
@@ -410,11 +425,6 @@ pub const ProgramJson = struct {
             .constants = constants,
             .builtins = builtins,
         };
-    }
-
-    pub fn parseToProgram(allocator: Allocator, filename: []const u8) !Program {
-        const program_json = Self.parseFromFile(allocator, filename);
-        _ = program_json;
     }
 
     /// Takes the `data` array of a json compilation artifact of a v0 cairo program, which contains an array of hexidecimal strings, and reads them as an array of `MaybeRelocatable`'s to be read into the vm memory.
@@ -446,9 +456,11 @@ pub const ProgramJson = struct {
 // ************************************************************
 // *                         TESTS                            *
 // ************************************************************
+const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
 const expectEqualStrings = std.testing.expectEqualStrings;
+const expectEqualSlices = std.testing.expectEqualSlices;
 
 test "ProgramJson cannot be initialized from nonexistent json file" {
     try expectError(
@@ -513,15 +525,117 @@ test "ProgramJson can be initialized from json file with correct program data" {
     }
 }
 
-test "ProgramJson: parseProgramJson" {
-    const allocator = std.testing.allocator;
-
+test "ProgramJson: parseProgramJson should parse a Cairo v0 JSON Program and convert it to a Program" {
     // Get the absolute path of the current working directory.
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
     const path = try std.os.realpath("cairo-programs/fibonacci.json", &buffer);
-    var parsed_program = try ProgramJson.parseFromFile(allocator, path);
+    // Parse the JSON file into a `ProgramJson` structure
+    var parsed_program = try ProgramJson.parseFromFile(std.testing.allocator, path);
     defer parsed_program.deinit();
 
-    var program = try parsed_program.value.parseProgramJson(std.testing.allocator, null);
+    // Specify the entrypoint identifier
+    var entrypoint: []const u8 = "main";
+    // Parse the program JSON into a `Program` structure
+    var program = try parsed_program.value.parseProgramJson(std.testing.allocator, &entrypoint);
     defer program.deinit();
+
+    // Test the builtins count
+    try expect(program.builtins.items.len == 0);
+
+    // Test the count of constants within the program
+    try expectEqual(@as(usize, 17), program.constants.count());
+
+    // Test individual constant values within the program
+    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.fib").?);
+    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.fib.Args").?);
+    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.fib.ImplicitArgs").?);
+    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.fib.Return").?);
+    try expectEqual(Felt252.fromInteger(0), program.constants.get("__main__.fib.SIZEOF_LOCALS").?);
+    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.fib.fib_body").?);
+    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.fib.first_element").?);
+    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.fib.n").?);
+    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.fib.result").?);
+    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.fib.second_element").?);
+    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.fib.y").?);
+    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.main").?);
+    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.main.Args").?);
+    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.main.ImplicitArgs").?);
+    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.main.Return").?);
+    try expectEqual(Felt252.fromInteger(0), program.constants.get("__main__.main.SIZEOF_LOCALS").?);
+    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.main.result").?);
+
+    // Test hints collection count within shared_program_data
+    try expect(program.shared_program_data.hints_collection.hints.items.len == 0);
+    // Test hints_ranges count within shared_program_data
+    try expectEqual(
+        @as(usize, 0),
+        program.shared_program_data.hints_collection.hints_ranges.count(),
+    );
+
+    // Test various attributes and properties within shared_program_data
+    try expectEqual(@as(?usize, 0), program.shared_program_data.main);
+    try expectEqual(@as(?usize, null), program.shared_program_data.start);
+    try expectEqual(@as(?usize, null), program.shared_program_data.end);
+    try expect(program.shared_program_data.error_message_attributes.items.len == 0);
+    try expectEqual(
+        @as(usize, 16),
+        program.shared_program_data.instruction_locations.?.count(),
+    );
+
+    // Test a specific instruction location within shared_program_data
+    const instruction_location_0 = program.shared_program_data.instruction_locations.?.get("0").?;
+
+    // Define an array containing expected accessible scopes
+    const expected_accessible_scopes = [_][]const u8{ "__main__", "__main__.main" };
+
+    // Loop through accessible_scopes and compare with expected values
+    for (0..instruction_location_0.accessible_scopes.len) |i| {
+        try expectEqualStrings(
+            expected_accessible_scopes[i],
+            instruction_location_0.accessible_scopes[i],
+        );
+    }
+
+    // Test ApTracking data within instruction_location_0
+    try expectEqual(
+        ApTracking{ .group = 0, .offset = 0 },
+        instruction_location_0.flow_tracking_data.ap_tracking,
+    );
+
+    // Test the count of reference_ids within flow_tracking_data
+    try expectEqual(
+        @as(usize, 0),
+        instruction_location_0.flow_tracking_data.reference_ids.?.map.count(),
+    );
+
+    // Test various properties of the instruction (e.g., start and end positions, parent_location, filename)
+    try expect(instruction_location_0.inst.end_line == 3);
+    try expect(instruction_location_0.inst.end_col == 29);
+    try expect(instruction_location_0.inst.parent_location == null);
+    try expect(instruction_location_0.inst.start_col == 28);
+    try expect(instruction_location_0.inst.start_line == 3);
+    try expectEqualStrings(
+        "cairo_programs/fibonacci.cairo",
+        instruction_location_0.inst.input_file.filename,
+    );
+
+    // Test the count of hints within instruction_location_0
+    try expect(instruction_location_0.hints.len == 0);
+
+    // Test the count of identifiers within shared_program_data
+    try expectEqual(@as(usize, 17), program.shared_program_data.identifiers.count());
+
+    // Access a specific identifier and test its properties
+    const identifier_zero = program.shared_program_data.identifiers.get("__main__.fib").?;
+
+    // Test various properties of the identifier (e.g., pc, cairo_type, value, size)
+    try expectEqual(@as(?usize, 11), identifier_zero.pc.?);
+    try expectEqual(@as(?[]const u8, null), identifier_zero.cairo_type);
+    try expect(identifier_zero.decorators.?.len == 0);
+    try expectEqual(@as(?usize, 11111111), identifier_zero.value.?);
+    try expectEqual(@as(?usize, null), identifier_zero.size);
+    try expectEqual(@as(?[]const u8, null), identifier_zero.full_name);
+    try expectEqual(@as(?[]const Reference, null), identifier_zero.references);
+    try expectEqual(@as(?json.ArrayHashMap(IdentifierMember), null), identifier_zero.members);
+    try expectEqual(@as(?[]const u8, null), identifier_zero.cairo_type);
 }
