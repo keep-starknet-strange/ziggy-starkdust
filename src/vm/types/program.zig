@@ -132,42 +132,6 @@ pub const Program = struct {
         };
     }
 
-    // pub fn from(
-    //     builtins: std.ArrayList(BuiltinName),
-    //     data: std.ArrayList(MaybeRelocatable),
-    //     main: ?usize,
-    //     hints: std.HashMap(
-    //         usize,
-    //         std.ArrayList(HintParams),
-    //         std.hash_map.AutoContext(usize),
-    //         std.hash_map.default_max_load_percentage,
-    //     ),
-    //     reference_manager: ReferenceManager,
-    //     identifiers: std.HashMap(
-    //         []u8,
-    //         Identifier,
-    //         std.hash_map.AutoContext([]u8),
-    //         std.hash_map.default_max_load_percentage,
-    //     ),
-    //     error_message_attributes: std.ArrayList(Attribute),
-    //     instruction_locations: ?std.HashMap(
-    //         usize,
-    //         InstructionLocation,
-    //         std.hash_map.AutoContext(usize),
-    //         std.hash_map.default_max_load_percentage,
-    //     ),
-    // ) Self {
-    //     _ = error_message_attributes;
-    //     _ = instruction_locations;
-    //     _ = reference_manager;
-    //     _ = identifiers;
-    //     _ = main;
-    //     _ = hints;
-
-    //     _ = builtins;
-    //     _ = data;
-    // }
-
     pub fn getReferenceList(allocator: Allocator, reference_manager: *[]const Reference) !std.ArrayList(HintReference) {
         var res = std.ArrayList(HintReference).init(allocator);
 
