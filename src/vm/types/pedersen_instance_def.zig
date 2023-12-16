@@ -71,7 +71,7 @@ test "PedersenInstanceDef: default implementation" {
         .n_inputs = 2,
         .hash_limit = PRIME,
     };
-    var default = PedersenInstanceDef.initDefault();
+    const default = PedersenInstanceDef.initDefault();
     try expectEqual(builtin_instance.ratio, default.ratio);
     try expectEqual(builtin_instance.repetitions, default.repetitions);
     try expectEqual(builtin_instance.element_height, default.element_height);
@@ -89,7 +89,7 @@ test "PedersenInstanceDef: init implementation" {
         .n_inputs = 2,
         .hash_limit = PRIME,
     };
-    var pederesen_init = PedersenInstanceDef.init(10, 2);
+    const pederesen_init = PedersenInstanceDef.init(10, 2);
     try expectEqual(builtin_instance.ratio, pederesen_init.ratio);
     try expectEqual(builtin_instance.repetitions, pederesen_init.repetitions);
     try expectEqual(builtin_instance.element_height, pederesen_init.element_height);
@@ -99,11 +99,11 @@ test "PedersenInstanceDef: init implementation" {
 }
 
 test "PedersenInstanceDef: cellsPerBuiltin implementation" {
-    var builtin_instance = PedersenInstanceDef.initDefault();
+    const builtin_instance = PedersenInstanceDef.initDefault();
     try expectEqual(builtin_instance.cellsPerBuiltin(), 3);
 }
 
 test "PedersenInstanceDef: rangeCheckPerBuiltin implementation" {
-    var builtin_instance = PedersenInstanceDef.initDefault();
+    const builtin_instance = PedersenInstanceDef.initDefault();
     try expectEqual(builtin_instance.rangeCheckPerBuiltin(), 0);
 }
