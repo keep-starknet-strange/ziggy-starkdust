@@ -77,7 +77,7 @@ pub const MemoryError = error{
     UnknownMemoryCell,
     /// This memory cell doesn't contain an integer
     ExpectedInteger,
-    /// Occurs if the VM's current step count is less than the minimum required steps for a builtin operation. This error indicates that the VM has not advanced enough in its computation for a valid operation, which could be due to a sequence logic error or operational scheduling issues within the VM.
+    /// Occurs if the VM's current step count is less than the minimum required steps for a builtin operation. 
     InsufficientAllocatedCellsErrorMinStepNotReached,
 };
 
