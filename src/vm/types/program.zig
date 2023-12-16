@@ -153,6 +153,7 @@ pub const Program = struct {
     ///   - A list of `HintReference` containing references.
     pub fn getReferenceList(allocator: Allocator, reference_manager: *[]const Reference) !std.ArrayList(HintReference) {
         var res = std.ArrayList(HintReference).init(allocator);
+        errdefer res.deinit();
 
         for (0..reference_manager.len) |i| {
             const ref = reference_manager.*[i];

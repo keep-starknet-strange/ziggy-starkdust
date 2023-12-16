@@ -370,6 +370,7 @@ pub const ProgramJson = struct {
         const end = if (self.identifiers.map.get("__main__.__end__")) |identifier| identifier.pc else null;
 
         var constants = std.StringHashMap(Felt252).init(allocator);
+        errdefer constants.deinit();
         // Populates the constants hashmap with identifier keys and associated constant values.
         for (self.identifiers.map.keys(), self.identifiers.map.values()) |key, value| {
             if (value.type) |_| {
@@ -382,6 +383,7 @@ pub const ProgramJson = struct {
 
         // Collects attributes named "error_message" and adds them to error_message_attributes.
         var error_message_attributes = std.ArrayList(Attribute).init(allocator);
+        errdefer error_message_attributes.deinit();
         for (0..self.attributes.len) |i| {
             const name = self.attributes[i].name;
             if (std.mem.eql(u8, name, "error_message")) {
@@ -390,27 +392,33 @@ pub const ProgramJson = struct {
         }
 
         var builtins = std.ArrayList(BuiltinName).init(allocator);
+        errdefer builtins.deinit();
         // Collects built-in names and adds them to the builtins list.
         for (0..self.attributes.len) |i| {
             try builtins.append(self.builtins[i]);
         }
 
         var instruction_locations = std.StringHashMap(InstructionLocation).init(allocator);
+        errdefer instruction_locations.deinit();
         // Populates the instruction_locations hashmap with debug information related to instruction locations.
         for (self.debug_info.instruction_locations.map.keys(), self.debug_info.instruction_locations.map.values()) |key, value| {
             try instruction_locations.put(key, value);
         }
 
         var identifiers = std.StringHashMap(Identifier).init(allocator);
+        errdefer identifiers.deinit();
         // Populates the identifiers hashmap with program identifiers and associated metadata.
         for (self.identifiers.map.keys(), self.identifiers.map.values()) |key, value| {
             try identifiers.put(key, value);
         }
 
+        var hints_collection = HintsCollection.init(allocator);
+        errdefer hints_collection.deinit();
+
         return .{
             .shared_program_data = .{
                 .data = self.data,
-                .hints_collection = HintsCollection.init(allocator),
+                .hints_collection = hints_collection,
                 .main = entrypoint_pc,
                 .start = start,
                 .end = end,
