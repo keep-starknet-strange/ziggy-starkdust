@@ -17,30 +17,19 @@ pub const PRIME: u256 = std.math.pow(u256, 2, 251) + 17 * std.math.pow(u256, 2, 
 pub const PedersenInstanceDef = struct {
     const Self = @This();
     /// Ratio
-    ratio: ?u32,
+    ratio: ?u32 = 8,
     /// Split to this many different components - for optimization.
-    repetitions: u32,
+    repetitions: u32 = 4,
     /// Size of hash.
-    element_height: u32,
+    element_height: u32 = 256,
     /// Size of hash in bits.
-    element_bits: u32,
+    element_bits: u32 = 252,
     /// Number of inputs for hash.
-    n_inputs: u32,
+    n_inputs: u32 = 2,
     /// The upper bound on the hash inputs.
     ///
     /// If None, the upper bound is 2^element_bits.
-    hash_limit: u256,
-
-    pub fn initDefault() Self {
-        return .{
-            .ratio = 8,
-            .repetitions = 4,
-            .element_height = 256,
-            .element_bits = 252,
-            .n_inputs = 2,
-            .hash_limit = PRIME,
-        };
-    }
+    hash_limit: u256 = PRIME,
 
     pub fn init(ratio: ?u32, repetitions: u32) Self {
         return .{
@@ -71,7 +60,7 @@ test "PedersenInstanceDef: default implementation" {
         .n_inputs = 2,
         .hash_limit = PRIME,
     };
-    const default = PedersenInstanceDef.initDefault();
+    const default = PedersenInstanceDef{};
     try expectEqual(builtin_instance.ratio, default.ratio);
     try expectEqual(builtin_instance.repetitions, default.repetitions);
     try expectEqual(builtin_instance.element_height, default.element_height);
@@ -99,11 +88,11 @@ test "PedersenInstanceDef: init implementation" {
 }
 
 test "PedersenInstanceDef: cellsPerBuiltin implementation" {
-    const builtin_instance = PedersenInstanceDef.initDefault();
+    const builtin_instance = PedersenInstanceDef{};
     try expectEqual(builtin_instance.cellsPerBuiltin(), 3);
 }
 
 test "PedersenInstanceDef: rangeCheckPerBuiltin implementation" {
-    const builtin_instance = PedersenInstanceDef.initDefault();
+    const builtin_instance = PedersenInstanceDef{};
     try expectEqual(builtin_instance.rangeCheckPerBuiltin(), 0);
 }

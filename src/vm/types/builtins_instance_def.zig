@@ -75,7 +75,7 @@ pub const BuiltinsInstanceDef = struct {
     pub fn small() Self {
         return .{
             .output = true,
-            .pedersen = PedersenInstanceDef.initDefault(),
+            .pedersen = PedersenInstanceDef{},
             .range_check = RangeCheckInstanceDef.init(),
             .ecdsa = EcdsaInstanceDef.init(),
             .bitwise = null,
