@@ -42,10 +42,6 @@ pub const PedersenInstanceDef = struct {
         };
     }
 
-    pub fn cellsPerBuiltin(_: *const Self) u32 {
-        return CELLS_PER_HASH;
-    }
-
     pub fn rangeCheckPerBuiltin(_: *const Self) u32 {
         return 0;
     }
@@ -85,11 +81,6 @@ test "PedersenInstanceDef: init implementation" {
     try expectEqual(builtin_instance.element_bits, pederesen_init.element_bits);
     try expectEqual(builtin_instance.n_inputs, pederesen_init.n_inputs);
     try expectEqual(builtin_instance.hash_limit, pederesen_init.hash_limit);
-}
-
-test "PedersenInstanceDef: cellsPerBuiltin implementation" {
-    const builtin_instance = PedersenInstanceDef{};
-    try expectEqual(builtin_instance.cellsPerBuiltin(), 3);
 }
 
 test "PedersenInstanceDef: rangeCheckPerBuiltin implementation" {
