@@ -402,6 +402,7 @@ pub const MemorySegmentManager = struct {
             },
             else => MemoryError.WriteArg,
         };
+    }
 
     /// Calculates the total memory holes in segments excluding built-in segments.
     /// Memory holes are computed by subtracting accessed addresses from segment sizes.
@@ -1369,6 +1370,8 @@ test "MemorySegmentManager: writeArg should return memory error if type is not v
             Relocatable.init(1, 0),
             &arg,
         ),
+    );
+}
 
 test "MemorySegmentManager: getMemoryHoles with missing segment used sizes" {
     const allocator = std.testing.allocator;
