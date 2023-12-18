@@ -3,6 +3,7 @@ const Felt252 = @import("../../math/fields/starknet.zig").Felt252;
 const CairoVMError = @import("../error.zig").CairoVMError;
 const MathError = @import("../error.zig").MathError;
 const MemoryError = @import("../error.zig").MemoryError;
+const STARKNET_PRIME = @import("../../math/fields/constants.zig").STARKNET_PRIME;
 
 // Relocatable in the Cairo VM represents an address
 // in some memory segment. When the VM finishes running,
@@ -1148,7 +1149,7 @@ test "MaybeRelocatable: cmp should return proper order results for Felt252 compa
     );
     try expectEqual(
         std.math.Order.eq,
-        MaybeRelocatable.fromU256(10).cmp(MaybeRelocatable.fromU256(10 + 0x800000000000011000000000000000000000000000000000000000000000001)),
+        MaybeRelocatable.fromU256(10).cmp(MaybeRelocatable.fromU256(10 + STARKNET_PRIME)),
     );
 }
 

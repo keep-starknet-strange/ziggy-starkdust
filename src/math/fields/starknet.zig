@@ -2,12 +2,14 @@
 const std = @import("std");
 // Local imports.
 const fields = @import("fields.zig");
+const STARKNET_PRIME = @import("./constants.zig").STARKNET_PRIME;
+const FELT_BYTE_SIZE = @import("./constants.zig").FELT_BYTE_SIZE;
 
 // Base field for the Stark curve.
 // The prime is 0x800000000000011000000000000000000000000000000000000000000000001.
 pub const Felt252 = fields.Field(
     @import("stark_felt_252_gen_fp.zig"),
-    0x800000000000011000000000000000000000000000000000000000000000001,
+    STARKNET_PRIME,
 );
 
 const expect = std.testing.expect;
@@ -103,7 +105,7 @@ test "Felt252 isOne" {
 }
 
 test "Felt252 fromBytes" {
-    const a: [32]u8 = .{
+    const a: [FELT_BYTE_SIZE]u8 = .{
         0x4E,
         0x5F,
         0x5F,
@@ -453,7 +455,7 @@ test "Felt252 cmp" {
     try expect(Felt252.one().cmp(Felt252.one()) == .eq);
     try expect(Felt252.zero().cmp(Felt252.zero()) == .eq);
     try expect(Felt252.fromInteger(10).cmp(
-        Felt252.fromInteger(10 + 0x800000000000011000000000000000000000000000000000000000000000001),
+        Felt252.fromInteger(10 + STARKNET_PRIME),
     ) == .eq);
 }
 
@@ -466,7 +468,7 @@ test "Felt252 lt" {
     try expect(!Felt252.one().lt(Felt252.one()));
     try expect(!Felt252.zero().lt(Felt252.zero()));
     try expect(!Felt252.fromInteger(10).lt(
-        Felt252.fromInteger(10 + 0x800000000000011000000000000000000000000000000000000000000000001),
+        Felt252.fromInteger(10 + STARKNET_PRIME),
     ));
 }
 
@@ -479,7 +481,7 @@ test "Felt252 le" {
     try expect(Felt252.one().le(Felt252.one()));
     try expect(Felt252.zero().le(Felt252.zero()));
     try expect(Felt252.fromInteger(10).le(
-        Felt252.fromInteger(10 + 0x800000000000011000000000000000000000000000000000000000000000001),
+        Felt252.fromInteger(10 + STARKNET_PRIME),
     ));
 }
 
@@ -492,7 +494,7 @@ test "Felt252 gt" {
     try expect(!Felt252.one().gt(Felt252.one()));
     try expect(!Felt252.zero().gt(Felt252.zero()));
     try expect(!Felt252.fromInteger(10).gt(
-        Felt252.fromInteger(10 + 0x800000000000011000000000000000000000000000000000000000000000001),
+        Felt252.fromInteger(10 + STARKNET_PRIME),
     ));
 }
 
@@ -505,7 +507,7 @@ test "Felt252 ge" {
     try expect(Felt252.one().ge(Felt252.one()));
     try expect(Felt252.zero().ge(Felt252.zero()));
     try expect(Felt252.fromInteger(10).ge(
-        Felt252.fromInteger(10 + 0x800000000000011000000000000000000000000000000000000000000000001),
+        Felt252.fromInteger(10 + STARKNET_PRIME),
     ));
 }
 

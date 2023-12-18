@@ -17,8 +17,13 @@ jobs:
         with:
           zig-version: master
 
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
       - name: Build
-        run: zig build
+        run: make build
 
   lint:
     runs-on: ubuntu-latest
@@ -43,7 +48,12 @@ jobs:
         with:
           zig-version: master
 
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
       - name: Test
         run: |
           zig version
-          zig build test --summary all
+          make test
