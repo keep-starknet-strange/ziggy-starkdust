@@ -59,7 +59,7 @@ test "CairoVM: deduceMemoryCell builtin valid" {
         .{},
     );
     defer vm.deinit();
-    var instance_def: BitwiseInstanceDef = .{ .ratio = null, .total_n_bits = 2 };
+    var instance_def: BitwiseInstanceDef = .{};
     try vm.builtin_runners.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.init(
         &instance_def,
         true,
@@ -1714,7 +1714,7 @@ test "CairoVM: computeOp0Deductions with a valid built in and non null deduceMem
         .{},
     );
     defer vm.deinit();
-    var instance_def: BitwiseInstanceDef = .{ .ratio = null, .total_n_bits = 2 };
+    var instance_def: BitwiseInstanceDef = .{};
     try vm.builtin_runners.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.init(
         &instance_def,
         true,
@@ -2038,7 +2038,7 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceMemoryCell if n
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    var instance_def: BitwiseInstanceDef = .{ .ratio = null, .total_n_bits = 2 };
+    var instance_def: BitwiseInstanceDef = .{};
     try vm.builtin_runners.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.init(
         &instance_def,
         true,
