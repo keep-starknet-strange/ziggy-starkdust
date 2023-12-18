@@ -77,6 +77,8 @@ pub const MemoryError = error{
     UnknownMemoryCell,
     /// This memory cell doesn't contain an integer
     ExpectedInteger,
+    /// Error encountered during the WriteArg operation.
+    WriteArg,
     /// Occurs if the VM's current step count is less than the minimum required steps for a builtin operation. 
     InsufficientAllocatedCellsErrorMinStepNotReached,
 };
