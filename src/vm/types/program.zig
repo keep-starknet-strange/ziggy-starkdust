@@ -60,7 +60,7 @@ const Attribute = struct {
 
 const HintParams = struct {
     code: []const u8,
-    accessible_scopes: []const u8,
+    accessible_scopes: []const []const u8,
     flow_tracking_data: FlowTrackingData,
 };
 
@@ -102,6 +102,7 @@ const IdentifierMember = struct {
 const Identifier = struct {
     pc: ?usize = null,
     type: ?[]const u8 = null,
+    destination: ?[]const u8 = null,
     decorators: ?[]const u8 = null,
     value: ?usize = null,
     size: ?usize = null,
@@ -151,13 +152,17 @@ pub const Program = struct {
         const buffer = try file.readToEndAlloc(allocator, file_size);
         defer allocator.free(buffer);
 
-        const parsed = try json.parseFromSlice(Program, allocator, buffer, .{ .allocate = .alloc_always });
+        const parsed = try json.parseFromSlice(Program, allocator, buffer, .{
+            .allocate = .alloc_always,
+            .ignore_unknown_fields = true,
+        });
         errdefer parsed.deinit();
 
         return parsed;
     }
 
-    /// Takes the `data` array of a json compilation artifact of a v0 cairo program, which contains an array of hexidecimal strings, and reads them as an array of `MaybeRelocatable`'s to be read into the vm memory.
+    /// Takes the `data` array of a json compilation artifact of a v0 cairo program, which contains an array of hexidecimal strings,
+    /// and reads them as an array of `MaybeRelocatable`'s to be read into the vm memory.
     /// # Arguments
     /// - `allocator`: The allocator for reading the json file and parsing it.
     /// - `filename`: The location of the program json file.
