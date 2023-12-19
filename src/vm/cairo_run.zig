@@ -243,8 +243,8 @@ test "Array sum: can evaluate without runtime error" {
     defer parsed_program.deinit();
 
     const instructions = try parsed_program.value.readData(allocator);
-    const builtins = try parsed_program.value.readBuiltins(allocator);
-    _ = builtins;
+    // const builtins = parsed_program.value.builtins;
+    // _ = builtins;
 
     const vm = try CairoVM.init(
         allocator,
