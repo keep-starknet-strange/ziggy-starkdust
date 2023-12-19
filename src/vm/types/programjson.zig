@@ -485,7 +485,7 @@ test "ProgramJson can be initialized from json file with correct program data" {
 
     // Get the absolute path of the current working directory.
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
-    const path = try std.os.realpath("cairo-programs/fibonacci.json", &buffer);
+    const path = try std.os.realpath("cairo_programs/fibonacci.json", &buffer);
     var parsed_program = try ProgramJson.parseFromFile(allocator, path);
     defer parsed_program.deinit();
 
@@ -536,7 +536,7 @@ test "ProgramJson can be initialized from json file with correct program data" {
 test "ProgramJson: parseProgramJson should parse a Cairo v0 JSON Program and convert it to a Program" {
     // Get the absolute path of the current working directory.
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
-    const path = try std.os.realpath("cairo-programs/fibonacci.json", &buffer);
+    const path = try std.os.realpath("cairo_programs/fibonacci.json", &buffer);
     // Parse the JSON file into a `ProgramJson` structure
     var parsed_program = try ProgramJson.parseFromFile(std.testing.allocator, path);
     defer parsed_program.deinit();

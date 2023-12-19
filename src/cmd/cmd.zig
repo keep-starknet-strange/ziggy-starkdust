@@ -15,6 +15,7 @@ const build_options = @import("../build_options.zig");
 const cairo_runner = @import("../vm/runners/cairo_runner.zig");
 const CairoRunner = cairo_runner.CairoRunner;
 const ProgramJson = @import("../vm/types/programjson.zig").ProgramJson;
+const cairo_run = @import("../vm/cairo_run.zig");
 
 // ************************************************************
 // *                 GLOBAL VARIABLES                         *
@@ -53,6 +54,22 @@ var enable_trace = cli.Option{
     .required = false,
 };
 
+var output_trace = cli.Option{
+    .long_name = "output-trace",
+    .help = "File where the register execution cycles are written. ",
+    .short_alias = 'o',
+    .value_ref = cli.mkRef(&config.output_trace),
+    .required = false,
+};
+
+var output_memory = cli.Option{
+    .long_name = "output-memory",
+    .help = "File where the memory post-execution is written.",
+    .short_alias = 'm',
+    .value_ref = cli.mkRef(&config.output_memory),
+    .required = false,
+};
+
 // ************************************************************
 // *                    CLI APP                               *
 // ************************************************************
@@ -74,7 +91,7 @@ var app = &cli.App{
             \\Execute a cairo program with the virtual machine.
             ,
             .action = execute,
-            .options = &.{ &execute_proof_mode_option, &enable_trace, &program_option },
+            .options = &.{ &execute_proof_mode_option, &enable_trace, &program_option, &output_trace },
         },
     },
 };
@@ -111,5 +128,5 @@ fn execute(_: []const []const u8) !void {
         return UsageError.IncompatibleBuildOptions;
     }
 
-    try cairo_runner.runConfig(gpa_allocator, config);
+    try cairo_run.runConfig(gpa_allocator, config);
 }

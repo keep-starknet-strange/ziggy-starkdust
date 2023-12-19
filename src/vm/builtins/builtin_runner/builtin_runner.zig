@@ -11,8 +11,6 @@ const RangeCheckBuiltinRunner = @import("./range_check.zig").RangeCheckBuiltinRu
 const SegmentArenaBuiltinRunner = @import("./segment_arena.zig").SegmentArenaBuiltinRunner;
 const SignatureBuiltinRunner = @import("./signature.zig").SignatureBuiltinRunner;
 
-const BitwiseBuiltinRunnerTmp = @import("../bitwise/bitwise.zig");
-
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
 const Memory = @import("../../memory/memory.zig").Memory;
@@ -81,7 +79,7 @@ pub const BuiltinRunner = union(enum) {
     ) !?MaybeRelocatable {
         return switch (self.*) {
             // TODO: switch to `BitwiseBuiltinRunner` `deduceMemoryCell` function after migration of `deduce` to `BitwiseBuiltinRunner`
-            .Bitwise => try BitwiseBuiltinRunnerTmp.deduce(address, memory),
+            .Bitwise => |bitwise| try bitwise.deduceMemoryCell(address, memory),
             .EcOp => |ec| ec.deduceMemoryCell(address, memory),
             .Hash => |hash| hash.deduceMemoryCell(address, memory),
             .Output => |output| output.deduceMemoryCell(address, memory),

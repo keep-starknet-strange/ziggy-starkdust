@@ -10,4 +10,8 @@ pub const Config = struct {
     enable_trace: bool = false,
     /// The location of the program to be evaluated
     filename: []const u8 = undefined,
+    /// Write trace to binary file
+    output_trace: ?[]const u8 = undefined,
+    /// Write memory to binary file
+    output_memory: ?[]const u8 = undefined,
 };

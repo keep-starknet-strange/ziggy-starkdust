@@ -59,7 +59,7 @@ test "CairoVM: deduceMemoryCell builtin valid" {
         .{},
     );
     defer vm.deinit();
-    var instance_def: BitwiseInstanceDef = .{ .ratio = null, .total_n_bits = 2 };
+    var instance_def: BitwiseInstanceDef = .{};
     try vm.builtin_runners.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.init(
         &instance_def,
         true,
@@ -667,29 +667,23 @@ test "CairoVM: relocateTrace and trace comparison (simple use case)" {
         config,
     );
     defer vm.deinit();
-    var pc = Relocatable.init(0, 0);
-    var ap = Relocatable.init(2, 0);
-    var fp = Relocatable.init(2, 0);
-    try vm.trace_context.traceInstruction(.{ .pc = &pc, .ap = &ap, .fp = &fp });
+    const pc = Relocatable.init(0, 0);
+    const ap = Relocatable.init(2, 0);
+    const fp = Relocatable.init(2, 0);
+    try vm.trace_context.traceInstruction(.{ .pc = pc, .ap = ap, .fp = fp });
     for (0..4) |_| {
         _ = try vm.segments.addSegment();
     }
-    const page_allocator = std.heap.page_allocator;
-    try vm.segments.memory.set(
-        page_allocator,
-        Relocatable.init(0, 0),
-        MaybeRelocatable.fromU256(2345108766317314046),
+
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{2345108766317314046} },
+            .{ .{ 1, 0 }, .{ 2, 0 } },
+            .{ .{ 1, 1 }, .{ 3, 0 } },
+        },
     );
-    try vm.segments.memory.set(
-        page_allocator,
-        Relocatable.init(1, 0),
-        MaybeRelocatable.fromSegment(2, 0),
-    );
-    try vm.segments.memory.set(
-        page_allocator,
-        Relocatable.init(1, 1),
-        MaybeRelocatable.fromSegment(3, 0),
-    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
 
     _ = try vm.computeSegmentsEffectiveSizes(false);
 
@@ -745,54 +739,66 @@ test "CairoVM: relocateTrace and trace comparison (more complex use case)" {
     // Initial Trace Entries
     // Define and append initial trace entries to the VM trace context.
     // pc, ap, and fp values are initialized and appended in pairs.
-    var pc = Relocatable.init(0, 4);
-    var ap = Relocatable.init(1, 3);
-    var fp = Relocatable.init(1, 3);
-    try vm.trace_context.state.enabled.entries.append(.{ .pc = &pc, .ap = &ap, .fp = &fp });
-    var pc1 = Relocatable.init(0, 5);
-    var ap1 = Relocatable.init(1, 4);
-    var fp1 = Relocatable.init(1, 3);
-    try vm.trace_context.state.enabled.entries.append(.{ .pc = &pc1, .ap = &ap1, .fp = &fp1 });
-    var pc2 = Relocatable.init(0, 7);
-    var ap2 = Relocatable.init(1, 5);
-    var fp2 = Relocatable.init(1, 3);
-    try vm.trace_context.state.enabled.entries.append(.{ .pc = &pc2, .ap = &ap2, .fp = &fp2 });
-    var pc3 = Relocatable.init(0, 0);
-    var ap3 = Relocatable.init(1, 7);
-    var fp3 = Relocatable.init(1, 7);
-    try vm.trace_context.state.enabled.entries.append(.{ .pc = &pc3, .ap = &ap3, .fp = &fp3 });
-    var pc4 = Relocatable.init(0, 1);
-    var ap4 = Relocatable.init(1, 7);
-    var fp4 = Relocatable.init(1, 7);
-    try vm.trace_context.state.enabled.entries.append(.{ .pc = &pc4, .ap = &ap4, .fp = &fp4 });
-    var pc5 = Relocatable.init(0, 3);
-    var ap5 = Relocatable.init(1, 8);
-    var fp5 = Relocatable.init(1, 7);
-    try vm.trace_context.state.enabled.entries.append(.{ .pc = &pc5, .ap = &ap5, .fp = &fp5 });
-    var pc6 = Relocatable.init(0, 9);
-    var ap6 = Relocatable.init(1, 8);
-    var fp6 = Relocatable.init(1, 3);
-    try vm.trace_context.state.enabled.entries.append(.{ .pc = &pc6, .ap = &ap6, .fp = &fp6 });
-    var pc7 = Relocatable.init(0, 11);
-    var ap7 = Relocatable.init(1, 9);
-    var fp7 = Relocatable.init(1, 3);
-    try vm.trace_context.state.enabled.entries.append(.{ .pc = &pc7, .ap = &ap7, .fp = &fp7 });
-    var pc8 = Relocatable.init(0, 0);
-    var ap8 = Relocatable.init(1, 11);
-    var fp8 = Relocatable.init(1, 11);
-    try vm.trace_context.state.enabled.entries.append(.{ .pc = &pc8, .ap = &ap8, .fp = &fp8 });
-    var pc9 = Relocatable.init(0, 1);
-    var ap9 = Relocatable.init(1, 11);
-    var fp9 = Relocatable.init(1, 11);
-    try vm.trace_context.state.enabled.entries.append(.{ .pc = &pc9, .ap = &ap9, .fp = &fp9 });
-    var pc10 = Relocatable.init(0, 3);
-    var ap10 = Relocatable.init(1, 12);
-    var fp10 = Relocatable.init(1, 11);
-    try vm.trace_context.state.enabled.entries.append(.{ .pc = &pc10, .ap = &ap10, .fp = &fp10 });
-    var pc11 = Relocatable.init(0, 13);
-    var ap11 = Relocatable.init(1, 12);
-    var fp11 = Relocatable.init(1, 3);
-    try vm.trace_context.state.enabled.entries.append(.{ .pc = &pc11, .ap = &ap11, .fp = &fp11 });
+    try vm.trace_context.state.enabled.entries.append(.{
+        .pc = Relocatable.init(0, 4),
+        .ap = Relocatable.init(1, 3),
+        .fp = Relocatable.init(1, 3),
+    });
+    try vm.trace_context.state.enabled.entries.append(.{
+        .pc = Relocatable.init(0, 5),
+        .ap = Relocatable.init(1, 4),
+        .fp = Relocatable.init(1, 3),
+    });
+    try vm.trace_context.state.enabled.entries.append(.{
+        .pc = Relocatable.init(0, 7),
+        .ap = Relocatable.init(1, 5),
+        .fp = Relocatable.init(1, 3),
+    });
+    try vm.trace_context.state.enabled.entries.append(.{
+        .pc = Relocatable.init(0, 0),
+        .ap = Relocatable.init(1, 7),
+        .fp = Relocatable.init(1, 7),
+    });
+    try vm.trace_context.state.enabled.entries.append(.{
+        .pc = Relocatable.init(0, 1),
+        .ap = Relocatable.init(1, 7),
+        .fp = Relocatable.init(1, 7),
+    });
+    try vm.trace_context.state.enabled.entries.append(.{
+        .pc = Relocatable.init(0, 3),
+        .ap = Relocatable.init(1, 8),
+        .fp = Relocatable.init(1, 7),
+    });
+    try vm.trace_context.state.enabled.entries.append(.{
+        .pc = Relocatable.init(0, 9),
+        .ap = Relocatable.init(1, 8),
+        .fp = Relocatable.init(1, 3),
+    });
+    try vm.trace_context.state.enabled.entries.append(.{
+        .pc = Relocatable.init(0, 11),
+        .ap = Relocatable.init(1, 9),
+        .fp = Relocatable.init(1, 3),
+    });
+    try vm.trace_context.state.enabled.entries.append(.{
+        .pc = Relocatable.init(0, 0),
+        .ap = Relocatable.init(1, 11),
+        .fp = Relocatable.init(1, 11),
+    });
+    try vm.trace_context.state.enabled.entries.append(.{
+        .pc = Relocatable.init(0, 1),
+        .ap = Relocatable.init(1, 11),
+        .fp = Relocatable.init(1, 11),
+    });
+    try vm.trace_context.state.enabled.entries.append(.{
+        .pc = Relocatable.init(0, 3),
+        .ap = Relocatable.init(1, 12),
+        .fp = Relocatable.init(1, 11),
+    });
+    try vm.trace_context.state.enabled.entries.append(.{
+        .pc = Relocatable.init(0, 13),
+        .ap = Relocatable.init(1, 12),
+        .fp = Relocatable.init(1, 3),
+    });
 
     // Create a relocation table
     // Create a relocation table and append specific values to it.
@@ -1708,7 +1714,7 @@ test "CairoVM: computeOp0Deductions with a valid built in and non null deduceMem
         .{},
     );
     defer vm.deinit();
-    var instance_def: BitwiseInstanceDef = .{ .ratio = null, .total_n_bits = 2 };
+    var instance_def: BitwiseInstanceDef = .{};
     try vm.builtin_runners.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.init(
         &instance_def,
         true,
@@ -2032,7 +2038,7 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceMemoryCell if n
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    var instance_def: BitwiseInstanceDef = .{ .ratio = null, .total_n_bits = 2 };
+    var instance_def: BitwiseInstanceDef = .{};
     try vm.builtin_runners.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.init(
         &instance_def,
         true,
@@ -2602,6 +2608,108 @@ test "CairoVM: getFeltRange for non continuous memory" {
             Relocatable.init(1, 0),
             4,
         ),
+    );
+}
+
+test "CairoVM: loadData should give the correct segment size" {
+    // Test setup
+    const allocator = std.testing.allocator;
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+    const segment = try vm.segments.addSegment();
+
+    // Prepare data to load into memory
+    var data = std.ArrayList(MaybeRelocatable).init(allocator);
+    defer data.deinit();
+    try data.append(MaybeRelocatable.fromU256(1));
+    try data.append(MaybeRelocatable.fromU256(2));
+    try data.append(MaybeRelocatable.fromU256(3));
+    try data.append(MaybeRelocatable.fromU256(4));
+
+    // Load data into memory segment
+    const actual = try vm.loadData(segment, &data);
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Perform assertions
+    try expectEqual(
+        Relocatable.init(0, 4),
+        actual,
+    );
+
+    // Check the segment size
+    var segment_size = try vm.segments.computeEffectiveSize(false);
+
+    // Assert segment size count and the value at index 0
+    try expectEqual(@as(usize, 1), segment_size.count());
+    try expectEqual(@as(u32, 4), segment_size.get(0).?);
+}
+
+test "CairoVM: loadData should resize the instruction cache with null elements if ptr segment index is zero" {
+    // Test setup
+    const allocator = std.testing.allocator;
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+    const segment = try vm.segments.addSegment();
+
+    // Prepare data to load into memory
+    var data = std.ArrayList(MaybeRelocatable).init(allocator);
+    defer data.deinit();
+    try data.append(MaybeRelocatable.fromU256(1));
+    try data.append(MaybeRelocatable.fromU256(2));
+    try data.append(MaybeRelocatable.fromU256(3));
+    try data.append(MaybeRelocatable.fromU256(4));
+
+    // Load data into memory segment
+    const actual = try vm.loadData(segment, &data);
+    _ = actual;
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Prepare an expected instruction cache with null elements
+    var expected_instruction_cache = ArrayList(?Instruction).init(allocator);
+    defer expected_instruction_cache.deinit();
+    try expected_instruction_cache.appendNTimes(null, 4);
+
+    // Assert the instruction cache after loading data
+    try expectEqualSlices(
+        ?Instruction,
+        expected_instruction_cache.items,
+        vm.instruction_cache.items,
+    );
+}
+
+test "CairoVM: loadData should not resize the instruction cache if ptr segment index is not zero" {
+    // Test setup
+    const allocator = std.testing.allocator;
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+    _ = try vm.segments.addSegment();
+    const segment = try vm.segments.addSegment();
+
+    // Prepare data to load into memory
+    var data = std.ArrayList(MaybeRelocatable).init(allocator);
+    defer data.deinit();
+    try data.append(MaybeRelocatable.fromU256(1));
+    try data.append(MaybeRelocatable.fromU256(2));
+    try data.append(MaybeRelocatable.fromU256(3));
+    try data.append(MaybeRelocatable.fromU256(4));
+
+    // Load data into memory segment
+    const actual = try vm.loadData(segment, &data);
+    _ = actual;
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Prepare an empty expected instruction cache
+    var expected_instruction_cache = ArrayList(?Instruction).init(allocator);
+    defer expected_instruction_cache.deinit();
+
+    // Assert the instruction cache after loading data
+    try expectEqualSlices(
+        ?Instruction,
+        expected_instruction_cache.items,
+        vm.instruction_cache.items,
     );
 }
 

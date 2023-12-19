@@ -75,7 +75,7 @@ pub const BuiltinsInstanceDef = struct {
     pub fn small() Self {
         return .{
             .output = true,
-            .pedersen = PedersenInstanceDef.init(),
+            .pedersen = PedersenInstanceDef{},
             .range_check = RangeCheckInstanceDef.init(),
             .ecdsa = EcdsaInstanceDef.init(),
             .bitwise = null,
@@ -93,10 +93,10 @@ pub const BuiltinsInstanceDef = struct {
         try state_rep_keccak.appendNTimes(200, 8);
         return .{
             .output = true,
-            .pedersen = PedersenInstanceDef.from(256, 1),
+            .pedersen = PedersenInstanceDef.init(256, 1),
             .range_check = RangeCheckInstanceDef.init(),
             .ecdsa = EcdsaInstanceDef.from(2048),
-            .bitwise = BitwiseInstanceDef.from(16),
+            .bitwise = BitwiseInstanceDef.init(16),
             .ec_op = EcOpInstanceDef.from(1024),
             .keccak = KeccakInstanceDef.init(2048, state_rep_keccak),
             .poseidon = PoseidonInstanceDef.from(256),
@@ -107,10 +107,10 @@ pub const BuiltinsInstanceDef = struct {
     pub fn dynamic() Self {
         return .{
             .output = true,
-            .pedersen = PedersenInstanceDef.from(null, 4),
+            .pedersen = PedersenInstanceDef.init(null, 4),
             .range_check = RangeCheckInstanceDef.from(null, 8),
             .ecdsa = EcdsaInstanceDef.from(null),
-            .bitwise = BitwiseInstanceDef.from(null),
+            .bitwise = BitwiseInstanceDef.init(null),
             .ec_op = EcOpInstanceDef.from(null),
             .keccak = null,
             .poseidon = null,

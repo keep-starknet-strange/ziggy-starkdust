@@ -850,7 +850,7 @@ test "Memory: validate existing memory" {
     defer segments.deinit();
 
     var builtin = RangeCheckBuiltinRunner.init(8, 8, true);
-    try builtin.initializeSegments(segments);
+    try builtin.initSegments(segments);
     try builtin.addValidationRule(segments.memory);
 
     try segments.memory.setUpMemory(std.testing.allocator, .{
@@ -890,7 +890,7 @@ test "Memory: validate memory cell" {
     defer segments.deinit();
 
     var builtin = RangeCheckBuiltinRunner.init(8, 8, true);
-    try builtin.initializeSegments(segments);
+    try builtin.initSegments(segments);
     try builtin.addValidationRule(segments.memory);
 
     try segments.memory.setUpMemory(
@@ -916,7 +916,7 @@ test "Memory: validate memory cell segment index not in validation rules" {
     defer segments.deinit();
 
     var builtin = RangeCheckBuiltinRunner.init(8, 8, true);
-    try builtin.initializeSegments(segments);
+    try builtin.initSegments(segments);
 
     try segments.memory.setUpMemory(
         std.testing.allocator,
@@ -939,7 +939,7 @@ test "Memory: validate memory cell already exist in validation rules" {
     defer segments.deinit();
 
     var builtin = RangeCheckBuiltinRunner.init(8, 8, true);
-    try builtin.initializeSegments(segments);
+    try builtin.initSegments(segments);
     try builtin.addValidationRule(segments.memory);
 
     try segments.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
@@ -1130,7 +1130,7 @@ test "validate existing memory for range check within bound" {
     defer segments.deinit();
 
     var builtin = RangeCheckBuiltinRunner.init(8, 8, true);
-    try builtin.initializeSegments(segments);
+    try builtin.initSegments(segments);
 
     // ************************************************************
     // *                      TEST BODY                           *

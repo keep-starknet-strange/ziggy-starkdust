@@ -8,11 +8,10 @@ const Relocatable = @import("../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../memory/relocatable.zig").MaybeRelocatable;
 const ProgramJson = @import("../types/programjson.zig").ProgramJson;
 const CairoRunnerError = @import("../error.zig").CairoRunnerError;
-
-const expect = std.testing.expect;
-const expectEqual = std.testing.expectEqual;
-const expectError = std.testing.expectError;
-const expectEqualSlices = std.testing.expectEqualSlices;
+const trace_context = @import("../trace_context.zig");
+const RelocatedTraceEntry = trace_context.TraceContext.RelocatedTraceEntry;
+const starknet_felt = @import("../../math/fields/starknet.zig");
+const Felt252 = starknet_felt.Felt252;
 
 pub const CairoRunner = struct {
     const Self = @This();
@@ -31,6 +30,7 @@ pub const CairoRunner = struct {
     entrypoint_name: []const u8 = "main",
     proof_mode: bool,
     run_ended: bool = false,
+    relocated_trace: []RelocatedTraceEntry = undefined,
 
     pub fn init(
         allocator: Allocator,
@@ -153,11 +153,19 @@ pub const CairoRunner = struct {
         }
 
         // Presuming the default case of `allow_tmp_segments` in python version
-        _ = try self.vm.segments.computeEffectiveSize(false);
 
         // TODO handle proof_mode case
 
         self.run_ended = true;
+    }
+
+    pub fn relocate(self: *Self) !void {
+        _ = try self.vm.segments.computeEffectiveSize(false);
+
+        const relocation_table = try self.vm.segments.relocateSegments(self.allocator);
+        try self.vm.relocateTrace(relocation_table);
+        // relocate_memory here
+        self.relocated_trace = try self.vm.getRelocatedTrace();
     }
 
     pub fn deinit(self: *Self) void {
@@ -170,56 +178,3 @@ pub const CairoRunner = struct {
         self.vm.deinit();
     }
 };
-
-pub fn runConfig(allocator: Allocator, config: Config) !void {
-    const vm = try CairoVM.init(
-        allocator,
-        config,
-    );
-
-    const parsed_program = try ProgramJson.parseFromFile(allocator, config.filename);
-    const instructions = try parsed_program.value.readData(allocator);
-    defer parsed_program.deinit();
-
-    var runner = try CairoRunner.init(allocator, parsed_program.value, instructions, vm, config.proof_mode);
-    defer runner.deinit();
-    const end = try runner.setupExecutionState();
-    try runner.runUntilPC(end);
-    try runner.endRun();
-    // TODO readReturnValues necessary for builtins
-
-}
-
-test "Fibonacci: can evaluate without runtime error" {
-
-    // Given
-    const allocator = std.testing.allocator;
-    var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
-    const path = try std.os.realpath("cairo-programs/fibonacci.json", &buffer);
-
-    var parsed_program = try ProgramJson.parseFromFile(allocator, path);
-    defer parsed_program.deinit();
-
-    const instructions = try parsed_program.value.readData(allocator);
-
-    const vm = try CairoVM.init(
-        allocator,
-        .{},
-    );
-
-    // when
-    var runner = try CairoRunner.init(
-        allocator,
-        parsed_program.value,
-        instructions,
-        vm,
-        false,
-    );
-    defer runner.deinit();
-    const end = try runner.setupExecutionState();
-    errdefer std.debug.print("failed on step: {}\n", .{runner.vm.current_step});
-
-    // then
-    try runner.runUntilPC(end);
-    try runner.endRun();
-}

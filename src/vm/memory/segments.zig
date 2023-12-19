@@ -353,6 +353,99 @@ pub const MemorySegmentManager = struct {
 
         return public_memory_addresses;
     }
+
+    /// Writes data into the managed memory at the specified pointer location.
+    ///
+    /// This function writes data into the managed memory at the specified pointer location.
+    /// It supports writing different types of data and handles the loading process into memory.
+    ///
+    /// # Parameters
+    ///
+    /// - `self`: A pointer to the MemorySegmentManager.
+    /// - `T`: The type of data being written.
+    /// - `ptr`: The starting address in memory to write the data.
+    /// - `arg`: A pointer to the data to be loaded into memory.
+    ///
+    /// # Returns
+    ///
+    /// A `MaybeRelocatable` representing the first address after the loaded data in memory.
+    /// If the type isn't supported, it returns `MemoryError.WriteArg`.
+    ///
+    /// # Errors
+    ///
+    /// Throws a `MemoryError.WriteArg` if unsupported data type is passed.
+    pub fn writeArg(self: *Self, comptime T: type, ptr: Relocatable, arg: *T) !MaybeRelocatable {
+        return switch (T) {
+            std.ArrayList(MaybeRelocatable) => MaybeRelocatable.fromRelocatable(
+                try self.loadData(
+                    self.allocator,
+                    ptr,
+                    arg,
+                ),
+            ),
+            std.ArrayList(Relocatable) => {
+                // Prepare to load Relocatable data into memory
+                var tmp = std.ArrayList(MaybeRelocatable).init(self.allocator);
+                defer tmp.deinit();
+                // Iterate through each Relocatable item and prepare for loading
+                for (arg.*.items) |r| {
+                    try tmp.append(MaybeRelocatable.fromRelocatable(r));
+                }
+                // Load prepared data into memory and return the resulting address
+                return MaybeRelocatable.fromRelocatable(
+                    try self.loadData(
+                        self.allocator,
+                        ptr,
+                        &tmp,
+                    ),
+                );
+            },
+            else => MemoryError.WriteArg,
+        };
+    }
+
+    /// Calculates the total memory holes in segments excluding built-in segments.
+    /// Memory holes are computed by subtracting accessed addresses from segment sizes.
+    ///
+    /// Parameters:
+    /// - `self`: Pointer to the structure containing memory information.
+    /// - `builtin_count`: Number of built-in segments.
+    ///
+    /// Returns:
+    /// Result containing the total memory holes or an error of type `MemoryError`.
+    pub fn getMemoryHoles(self: *Self, builtin_count: usize) MemoryError!usize {
+        // Initialize variable to store the total memory holes
+        var memory_holes: usize = 0;
+
+        // Calculate the start and end indices for built-in segments
+        const builtin_segments_start = 1;
+        const builtin_segments_end = builtin_segments_start + builtin_count;
+
+        // Iterate through each segment in the memory data
+        for (0..self.memory.data.items.len) |i| {
+            // Skip built-in segments when counting memory holes
+            if (i > builtin_segments_start and i <= builtin_segments_end) continue;
+
+            // Get the amount of accessed addresses in the segment
+            const accessed_amount = self.memory.countAccessedAddressesInSegment(@intCast(i)) orelse continue;
+            // If no accessed addresses, move to the next segment
+            if (accessed_amount == 0) continue;
+
+            // Get the size of the segment
+            const segment_size = self.getSegmentSize(@intCast(i)) orelse {
+                return MemoryError.MissingSegmentUsedSizes;
+            };
+
+            // Check for more accessed addresses than the segment size
+            if (accessed_amount > segment_size) return MemoryError.SegmentHasMoreAccessedAddressesThanSize;
+
+            // Calculate and accumulate memory holes
+            memory_holes += segment_size - accessed_amount;
+        }
+
+        // Return the total memory holes calculated
+        return memory_holes;
+    }
 };
 
 // Utility function to help set up memory segments
@@ -1152,4 +1245,263 @@ test "MemorySegmentManager: getPublicMemoryAddresses with incorrect segment offs
     }
 
     try expectError(error.MalformedPublicMemory, memory_segment_manager.getPublicMemoryAddresses(&segment_offsets));
+}
+
+test "MemorySegmentManager: writeArg with apply modulo" {
+    // Initialize allocator for testing
+    const allocator = std.testing.allocator;
+
+    // Initialize MemorySegmentManager
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
+    defer memory_segment_manager.deinit();
+
+    // Prepare data with MaybeRelocatable values
+    var data = std.ArrayList(MaybeRelocatable).init(allocator);
+    defer data.deinit();
+
+    // Add MaybeRelocatable values to data array
+    try data.append(MaybeRelocatable.fromU256(11));
+    try data.append(MaybeRelocatable.fromU256(12));
+    try data.append(MaybeRelocatable.fromU256(3618502788666131213697322783095070105623107215331596699973092056135872020482));
+
+    // Add segments to the memory segment manager
+    for (0..2) |_| {
+        _ = try memory_segment_manager.addSegment();
+    }
+
+    // Perform the writeArg operation
+    const exec = try memory_segment_manager.writeArg(
+        std.ArrayList(MaybeRelocatable),
+        Relocatable.init(1, 0),
+        &data,
+    );
+    defer memory_segment_manager.memory.deinitData(std.testing.allocator);
+
+    // Prepare the expected data
+    var expected_data = std.ArrayList(?MemoryCell).init(std.testing.allocator);
+    defer expected_data.deinit();
+
+    try expected_data.append(MemoryCell.init(MaybeRelocatable.fromU256(11)));
+    try expected_data.append(MemoryCell.init(MaybeRelocatable.fromU256(12)));
+    try expected_data.append(MemoryCell.init(MaybeRelocatable.fromU256(1)));
+
+    // Perform assertions
+    try expectEqual(
+        MaybeRelocatable.fromSegment(1, 3),
+        exec,
+    );
+    try expectEqualSlices(
+        ?MemoryCell,
+        expected_data.items,
+        memory_segment_manager.memory.data.items[1].items,
+    );
+}
+
+test "MemorySegmentManager: writeArg with Relocatable" {
+    // (same comments structure as previous test, adapted to this scenario)
+
+    // Initialize allocator for testing
+    const allocator = std.testing.allocator;
+
+    // Initialize MemorySegmentManager
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
+    defer memory_segment_manager.deinit();
+
+    // Prepare data with Relocatable values
+    var data = std.ArrayList(Relocatable).init(allocator);
+    defer data.deinit();
+
+    // Add Relocatable values to data array
+    try data.append(Relocatable.init(0, 1));
+    try data.append(Relocatable.init(0, 2));
+    try data.append(Relocatable.init(0, 3));
+
+    // Add segments to the memory segment manager
+    for (0..2) |_| {
+        _ = try memory_segment_manager.addSegment();
+    }
+
+    // Perform the writeArg operation
+    const exec = try memory_segment_manager.writeArg(
+        std.ArrayList(Relocatable),
+        Relocatable.init(1, 0),
+        &data,
+    );
+    defer memory_segment_manager.memory.deinitData(std.testing.allocator);
+
+    // Prepare the expected data
+    var expected_data = std.ArrayList(?MemoryCell).init(std.testing.allocator);
+    defer expected_data.deinit();
+
+    try expected_data.append(MemoryCell.init(MaybeRelocatable.fromSegment(0, 1)));
+    try expected_data.append(MemoryCell.init(MaybeRelocatable.fromSegment(0, 2)));
+    try expected_data.append(MemoryCell.init(MaybeRelocatable.fromSegment(0, 3)));
+
+    // Perform assertions
+    try expectEqual(
+        MaybeRelocatable.fromSegment(1, 3),
+        exec,
+    );
+    try expectEqualSlices(
+        ?MemoryCell,
+        expected_data.items,
+        memory_segment_manager.memory.data.items[1].items,
+    );
+}
+
+test "MemorySegmentManager: writeArg should return memory error if type is not vec of MaybeRelocatable or Relocatable" {
+    // (same comments structure as previous tests, adapted to this scenario)
+
+    // Initialize allocator for testing
+    const allocator = std.testing.allocator;
+
+    // Initialize MemorySegmentManager
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
+    defer memory_segment_manager.deinit();
+
+    // Prepare unsupported data type
+    var arg: u64 = 10;
+
+    // Perform the writeArg operation with unsupported data type
+    try expectError(
+        MemoryError.WriteArg,
+        memory_segment_manager.writeArg(
+            u64,
+            Relocatable.init(1, 0),
+            &arg,
+        ),
+    );
+}
+
+test "MemorySegmentManager: getMemoryHoles with missing segment used sizes" {
+    const allocator = std.testing.allocator;
+
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
+    defer memory_segment_manager.deinit();
+
+    try memory_segment_manager.memory.setUpMemory(
+        std.testing.allocator,
+        .{.{ .{ 0, 0 }, .{0} }},
+    );
+    defer memory_segment_manager.memory.deinitData(std.testing.allocator);
+
+    memory_segment_manager.memory.markAsAccessed(Relocatable.init(0, 0));
+
+    try expectError(
+        MemoryError.MissingSegmentUsedSizes,
+        memory_segment_manager.getMemoryHoles(0),
+    );
+}
+
+test "MemorySegmentManager: getMemoryHoles with out of address offset that is bigger than size" {
+    const allocator = std.testing.allocator;
+
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.segment_used_sizes.put(0, 2);
+
+    try memory_segment_manager.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{0} },
+            .{ .{ 0, 1 }, .{1} },
+            .{ .{ 0, 2 }, .{2} },
+        },
+    );
+    defer memory_segment_manager.memory.deinitData(std.testing.allocator);
+
+    for (0..3) |i| {
+        memory_segment_manager.memory.markAsAccessed(Relocatable.init(0, i));
+    }
+
+    try expectError(
+        MemoryError.SegmentHasMoreAccessedAddressesThanSize,
+        memory_segment_manager.getMemoryHoles(0),
+    );
+}
+
+test "MemorySegmentManager: getMemoryHoles that is empty should return 0" {
+    const allocator = std.testing.allocator;
+
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
+    defer memory_segment_manager.deinit();
+
+    try expectEqual(
+        @as(usize, 0),
+        try memory_segment_manager.getMemoryHoles(0),
+    );
+
+    try memory_segment_manager.segment_used_sizes.put(0, 4);
+
+    try expectEqual(
+        @as(usize, 0),
+        try memory_segment_manager.getMemoryHoles(0),
+    );
+}
+
+test "MemorySegmentManager: getMemoryHoles with two memory holes" {
+    const allocator = std.testing.allocator;
+
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.segment_used_sizes.put(0, 10);
+
+    try memory_segment_manager.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{0} },
+            .{ .{ 0, 1 }, .{0} },
+            .{ .{ 0, 2 }, .{0} },
+            .{ .{ 0, 3 }, .{0} },
+            .{ .{ 0, 6 }, .{0} },
+            .{ .{ 0, 7 }, .{0} },
+            .{ .{ 0, 8 }, .{0} },
+            .{ .{ 0, 9 }, .{0} },
+        },
+    );
+    defer memory_segment_manager.memory.deinitData(std.testing.allocator);
+
+    for ([_]usize{ 0, 1, 2, 3, 6, 7, 8, 9 }) |i| {
+        memory_segment_manager.memory.markAsAccessed(Relocatable.init(0, i));
+    }
+
+    try expectEqual(
+        @as(usize, 2),
+        try memory_segment_manager.getMemoryHoles(0),
+    );
+}
+
+test "MemorySegmentManager: getMemoryHoles with seven memory holes" {
+    const allocator = std.testing.allocator;
+
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
+    defer memory_segment_manager.deinit();
+    try memory_segment_manager.segment_sizes.put(0, 15);
+    try memory_segment_manager.segment_used_sizes.put(0, 10);
+
+    try memory_segment_manager.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{0} },
+            .{ .{ 0, 1 }, .{0} },
+            .{ .{ 0, 2 }, .{0} },
+            .{ .{ 0, 3 }, .{0} },
+            .{ .{ 0, 4 }, .{0} },
+            .{ .{ 0, 5 }, .{0} },
+            .{ .{ 0, 6 }, .{0} },
+            .{ .{ 0, 7 }, .{0} },
+            .{ .{ 0, 8 }, .{0} },
+            .{ .{ 0, 9 }, .{0} },
+        },
+    );
+    defer memory_segment_manager.memory.deinitData(std.testing.allocator);
+
+    for ([_]usize{ 0, 1, 2, 3, 6, 7, 8, 9 }) |i| {
+        memory_segment_manager.memory.markAsAccessed(Relocatable.init(0, i));
+    }
+
+    try expectEqual(
+        @as(usize, 7),
+        try memory_segment_manager.getMemoryHoles(0),
+    );
 }
