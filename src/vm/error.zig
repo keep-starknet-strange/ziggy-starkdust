@@ -85,6 +85,8 @@ pub const MemoryError = error{
 pub const CairoRunnerError = error{
     // Raised when `end_run` hook of a runner is called more than once.
     EndRunAlreadyCalled,
+    // Unable to convert provided layout to a valid layout.
+    InvalidLayout,
 };
 
 /// Represents different error conditions that occur in the built-in runners.

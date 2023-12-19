@@ -55,7 +55,7 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
     const instructions = try parsed_program.value.readData(allocator);
     defer parsed_program.deinit();
 
-    var runner = try CairoRunner.init(allocator, parsed_program.value, instructions, vm, config.proof_mode);
+    var runner = try CairoRunner.init(allocator, parsed_program.value, config.layout, instructions, vm, config.proof_mode);
     defer runner.deinit();
     const end = try runner.setupExecutionState();
     try runner.runUntilPC(end);
@@ -183,6 +183,7 @@ test "Fibonacci: can evaluate without runtime error" {
     var runner = try CairoRunner.init(
         allocator,
         parsed_program.value,
+        "plain",
         instructions,
         vm,
         false,
@@ -217,6 +218,44 @@ test "Factorial: can evaluate without runtime error" {
     var runner = try CairoRunner.init(
         allocator,
         parsed_program.value,
+        "plain",
+        instructions,
+        vm,
+        false,
+    );
+    defer runner.deinit();
+    const end = try runner.setupExecutionState();
+    errdefer std.debug.print("failed on step: {}\n", .{runner.vm.current_step});
+
+    // then
+    try runner.runUntilPC(end);
+    try runner.endRun();
+}
+
+test "Array sum: can evaluate without runtime error" {
+
+    // Given
+    const allocator = std.testing.allocator;
+    var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+    const path = try std.os.realpath("cairo_programs/array_sum.json", &buffer);
+
+    var parsed_program = try Program.parseFromFile(allocator, path);
+    defer parsed_program.deinit();
+
+    const instructions = try parsed_program.value.readData(allocator);
+    const builtins = try parsed_program.value.readBuiltins(allocator);
+    _ = builtins;
+
+    const vm = try CairoVM.init(
+        allocator,
+        .{},
+    );
+
+    // when
+    var runner = try CairoRunner.init(
+        allocator,
+        parsed_program.value,
+        "small",
         instructions,
         vm,
         false,

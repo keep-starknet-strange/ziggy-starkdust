@@ -175,6 +175,16 @@ pub const Program = struct {
         }
         return parsed_data;
     }
+
+    pub fn readBuiltins(self: Self, allocator: Allocator) !std.ArrayList([]const u8) {
+        var parsed_builtins = std.ArrayList([]const u8).init(allocator);
+        errdefer parsed_builtins.deinit();
+
+        for (self.builtins) |builtin| {
+            try parsed_builtins.append(builtin);
+        }
+        return parsed_builtins;
+    }
 };
 
 // ************************************************************
