@@ -52,7 +52,7 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
         config,
     );
 
-    const parsed_program = try Program.parseFromFile(allocator, config.filename);
+    const parsed_program = try ProgramJson.parseFromFile(allocator, config.filename);
     const instructions = try parsed_program.value.readData(allocator);
     defer parsed_program.deinit();
 
