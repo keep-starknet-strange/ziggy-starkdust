@@ -150,9 +150,6 @@ pub const RunContext = struct {
         instruction: *const Instruction,
         op_0: ?MaybeRelocatable,
     ) !Relocatable {
-        std.debug.print("OP0: {any}\n", .{op_0});
-        std.debug.print("INSTRUCTION: {}\n", .{instruction});
-        std.debug.print("OP1 ADDR: {}\n", .{instruction.op_1_addr});
         const base_addr = switch (instruction.op_1_addr) {
             .FP => self.fp.*,
             .AP => self.ap.*,
