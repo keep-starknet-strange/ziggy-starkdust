@@ -50,6 +50,9 @@ pub const CairoVM = struct {
     /// Rc limits
     rc_limits: ?struct { i16, i16 },
     relocation_table: ?std.ArrayList(usize),
+    /// ArrayList containing instructions. May hold null elements.
+    /// Used as an instruction cache within the CairoVM instance.
+    instruction_cache: ArrayList(?Instruction),
 
     // ************************************************************
     // *             MEMORY ALLOCATION AND DEALLOCATION           *
@@ -79,8 +82,11 @@ pub const CairoVM = struct {
         // Initialize the built-in runners.
         const builtin_runners = ArrayList(BuiltinRunner).init(allocator);
         errdefer builtin_runners.deinit();
+        // Initialize the instruction cache.
+        const instruction_cache = ArrayList(?Instruction).init(allocator);
+        errdefer instruction_cache.deinit();
 
-        return Self{
+        return .{
             .allocator = allocator,
             .run_context = run_context,
             .builtin_runners = builtin_runners,
@@ -91,10 +97,18 @@ pub const CairoVM = struct {
             .current_step = 0,
             .rc_limits = null,
             .relocation_table = null,
+            .instruction_cache = instruction_cache,
         };
     }
 
-    /// Safe deallocation of the VM resources.
+    /// Safely deallocates resources used by the CairoVM instance.
+    ///
+    /// This function ensures safe deallocation of various components within the CairoVM instance,
+    /// including the memory segment manager, run context, trace context, built-in runners, and the instruction cache.
+    ///
+    /// # Safety
+    /// This function assumes proper initialization of the CairoVM instance and must be called
+    /// to avoid memory leaks and ensure proper cleanup.
     pub fn deinit(self: *Self) void {
         // Deallocate the memory segment manager.
         self.segments.deinit();
@@ -104,10 +118,11 @@ pub const CairoVM = struct {
         self.trace_context.deinit();
         // Deallocate built-in runners
         self.builtin_runners.deinit();
-
         if (self.relocation_table) |r| {
             r.deinit();
         }
+        // Deallocate instruction cache
+        self.instruction_cache.deinit();
     }
 
     // ************************************************************
@@ -805,6 +820,45 @@ pub const CairoVM = struct {
         }
         // Throw an error if the relocation table is not available
         return MemoryError.UnrelocatedMemory;
+    }
+    
+    /// Loads data into the memory managed by CairoVM.
+    ///
+    /// This function ensures memory allocation in the CairoVM's segments, particularly in the instruction cache.
+    /// It checks if the provided pointer (`ptr`) is pointing to the first segment and if the instruction cache
+    /// is smaller than the incoming data. If so, it extends the instruction cache to accommodate the new data.
+    ///
+    /// After the cache is prepared, the function delegates the actual data loading to the segments, using the CairoVM's
+    /// allocator and the provided pointer and data.
+    ///
+    /// # Parameters
+    /// - `ptr` (Relocatable): The starting address in memory to write the data.
+    /// - `data` (*std.ArrayList(MaybeRelocatable)): The data to be loaded into memory.
+    ///
+    /// # Returns
+    /// A `Relocatable` representing the first address after the loaded data in memory.
+    ///
+    /// # Errors
+    /// - Returns a MemoryError.Math if there's an issue with memory arithmetic during loading.
+    pub fn loadData(
+        self: *Self,
+        ptr: Relocatable,
+        data: *std.ArrayList(MaybeRelocatable),
+    ) !Relocatable {
+        // Check if the pointer is in the first segment and the cache needs expansion.
+        if (ptr.segment_index == 0 and self.instruction_cache.items.len < data.items.len) {
+            // Extend the instruction cache to match the incoming data length.
+            try self.instruction_cache.appendNTimes(
+                null,
+                data.items.len - self.instruction_cache.items.len,
+            );
+        }
+        // Delegate the data loading operation to the segments' loadData method and return the result.
+        return self.segments.loadData(
+            self.allocator,
+            ptr,
+            data,
+        );
     }
 
     /// Compares two memory segments within the Cairo VM's memory starting from specified addresses for a given length.

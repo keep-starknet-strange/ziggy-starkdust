@@ -45,6 +45,8 @@ pub const CairoVMError = error{
 
 /// Represents different error conditions that are memory-related.
 pub const MemoryError = error{
+    /// Occurs when the ratio of the builtin operation does not divide evenly into the current VM steps.
+    ErrorCalculatingMemoryUnits,
     /// The amount of used cells associated with the Range Check runner is not available.
     MissingSegmentUsedSizes,
     /// The address is not in the temporary segment.
@@ -67,6 +69,8 @@ pub const MemoryError = error{
     UnrelocatedMemory,
     /// Represents errors related to malformed or inconsistent public memory segments.
     MalformedPublicMemory,
+    /// Represents a situation where a segment has more accessed addresses than its size.
+    SegmentHasMoreAccessedAddressesThanSize,
     /// Represents an error when there's a failure to retrieve return values from memory.
     FailedToGetReturnValues,
     /// Range Check Number is out of bounds
@@ -79,6 +83,10 @@ pub const MemoryError = error{
     UnknownMemoryCell,
     /// This memory cell doesn't contain an integer
     ExpectedInteger,
+    /// Error encountered during the WriteArg operation.
+    WriteArg,
+    /// Occurs if the VM's current step count is less than the minimum required steps for a builtin operation. 
+    InsufficientAllocatedCellsErrorMinStepNotReached,
 };
 
 /// Represents the error conditions that are related to the `CairoRunner`.
@@ -94,6 +102,7 @@ pub const RunnerError = error{
     /// or when it fails to get a value for the computed address.
     NoStopPointer,
     /// Invalid stop pointer index occured in calculation of the final stack.
+    /// Raised when the current vm step
     InvalidStopPointerIndex,
     /// Invalid stop pointer occured in calculation of the final stack.
     InvalidStopPointer,
