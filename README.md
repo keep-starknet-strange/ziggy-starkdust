@@ -186,6 +186,9 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://ndcroos.github.io/site/"><img src="https://avatars.githubusercontent.com/u/16431833?v=4?s=100" width="100px;" alt="ndcroos"/><br /><sub><b>ndcroos</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/ziggy-starkdust/commits?author=ndcroos" title="Documentation">📖</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/0xicosahedron"><img src="https://avatars.githubusercontent.com/u/83328087?v=4?s=100" width="100px;" alt="Icosahedron"/><br /><sub><b>Icosahedron</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/ziggy-starkdust/commits?author=0xicosahedron" title="Code">💻</a></td>
     </tr>
+    <tr>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/pjserol"><img src="https://avatars.githubusercontent.com/u/3019795?v=4?s=100" width="100px;" alt="Pierre-Jean"/><br /><sub><b>Pierre-Jean</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/ziggy-starkdust/commits?author=pjserol" title="Code">💻</a></td>
+    </tr>
   </tbody>
 </table>
 
