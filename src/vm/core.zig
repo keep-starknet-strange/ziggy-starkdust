@@ -349,7 +349,6 @@ pub const CairoVM = struct {
         allocator: Allocator,
         instruction: *const instructions.Instruction,
     ) !OperandsResult {
-        std.debug.print("COMPUTING OPERANDS FOR INSTRUCTION: {any}\n", .{instruction});
         var op_res = OperandsResult.default();
         op_res.res = null;
 
@@ -406,13 +405,6 @@ pub const CairoVM = struct {
             op_res.dst = try self.deduceDst(instruction, op_res.res);
         }
 
-        std.debug.print("COMPUTED op_res dst: {any}\n", .{op_res.dst});
-        std.debug.print("COMPUTED op_res op_0: {any}\n", .{op_res.op_0});
-        std.debug.print("COMPUTED op_res op_1: {any}\n", .{op_res.op_1});
-        std.debug.print("COMPUTED op_res res: {any}\n", .{op_res.res});
-        std.debug.print("COMPUTED op_res op_0 addr: {any}\n", .{op_res.op_0_addr});
-        std.debug.print("COMPUTED op_res op_1 addr: {any}\n", .{op_res.op_1_addr});
-        std.debug.print("COMPUTED op_res dst addr: {any}\n", .{op_res.dst_addr});
         return op_res;
     }
 

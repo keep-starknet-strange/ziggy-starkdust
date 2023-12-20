@@ -8,11 +8,19 @@ const Config = @import("../config.zig").Config;
 const CairoVM = @import("../core.zig").CairoVM;
 const CairoLayout = @import("../types/layout.zig").CairoLayout;
 const BitwiseBuiltinRunner = @import("../builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
+const EcOpBuiltinRunner = @import("../builtins/builtin_runner/ec_op.zig").EcOpBuiltinRunner;
+const HashBuiltinRunner = @import("../builtins/builtin_runner/hash.zig").HashBuiltinRunner;
+const KeccakBuiltinRunner = @import("../builtins/builtin_runner/keccak.zig").KeccakBuiltinRunner;
+const PoseidonBuiltinRunner = @import("../builtins/builtin_runner/poseidon.zig").PoseidonBuiltinRunner;
 const OutputBuiltinRunner = @import("../builtins/builtin_runner/output.zig").OutputBuiltinRunner;
+const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
+const SegmentArenaBuiltinRunner = @import("../builtins/builtin_runner/segment_arena.zig").SegmentArenaBuiltinRunner;
+const SignatureBuiltinRunner = @import("../builtins/builtin_runner/signature.zig").SignatureBuiltinRunner;
 const Relocatable = @import("../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../memory/relocatable.zig").MaybeRelocatable;
 const Program = @import("../types/program.zig").Program;
 const CairoRunnerError = @import("../error.zig").CairoRunnerError;
+const RunnerError = @import("../error.zig").RunnerError;
 const trace_context = @import("../trace_context.zig");
 const RelocatedTraceEntry = trace_context.TraceContext.RelocatedTraceEntry;
 const starknet_felt = @import("../../math/fields/starknet.zig");
@@ -69,11 +77,13 @@ pub const CairoRunner = struct {
     }
 
     pub fn initBuiltins(self: *Self, vm: *CairoVM) !void {
-        var builtinRunners = ArrayList(BuiltinRunner).init(self.allocator);
-        if (self.layout.builtins.bitwise != null) {
-            try builtinRunners.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.initDefault()} );
-        }
-        vm.builtin_runners = builtinRunners;
+        const builtin_runners = try CairoLayout.setUpBuiltinRunners(
+            self.layout,
+            self.allocator,
+            self.proof_mode,
+            self.program.builtins,
+        );
+        vm.builtin_runners = builtin_runners;
     }
 
     pub fn setupExecutionState(self: *Self) !Relocatable {

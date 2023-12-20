@@ -1,5 +1,6 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
+const ArrayList = std.ArrayList;
 
 const BuiltinsInstanceDef = @import("./builtins_instance_def.zig").BuiltinsInstanceDef;
 const DilutedPoolInstanceDef = @import("./diluted_pool_instance_def.zig").DilutedPoolInstanceDef;
@@ -12,6 +13,18 @@ const BitwiseInstanceDef = @import("./bitwise_instance_def.zig").BitwiseInstance
 const EcOpInstanceDef = @import("./ec_op_instance_def.zig").EcOpInstanceDef;
 const KeccakInstanceDef = @import("./keccak_instance_def.zig").KeccakInstanceDef;
 const PoseidonInstanceDef = @import("./poseidon_instance_def.zig").PoseidonInstanceDef;
+
+const RunnerError = @import("../../vm/error.zig").RunnerError;
+const BuiltinRunner = @import("../builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
+
+const BitwiseBuiltinRunner = @import("../builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
+const EcOpBuiltinRunner = @import("../builtins/builtin_runner/ec_op.zig").EcOpBuiltinRunner;
+const HashBuiltinRunner = @import("../builtins/builtin_runner/hash.zig").HashBuiltinRunner;
+const KeccakBuiltinRunner = @import("../builtins/builtin_runner/keccak.zig").KeccakBuiltinRunner;
+const PoseidonBuiltinRunner = @import("../builtins/builtin_runner/poseidon.zig").PoseidonBuiltinRunner;
+const OutputBuiltinRunner = @import("../builtins/builtin_runner/output.zig").OutputBuiltinRunner;
+const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
+const SignatureBuiltinRunner = @import("../builtins/builtin_runner/signature.zig").SignatureBuiltinRunner;
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -151,6 +164,90 @@ pub const CairoLayout = struct {
             .n_trace_columns = 73,
             .cpu_instance_def = CpuInstanceDef.init(),
         };
+    }
+
+    /// Sets up the built-in runners for the layout.
+    ///
+    /// # Arguments
+    ///
+    /// - `self`: The layout structure.
+    /// - `allocator`: Allocator for memory management.
+    /// - `proof_mode`: Whether the program is in proof mode.
+    /// - `program_builtins`: The builtins used by the executed program.
+    ///
+    /// # Returns
+    ///
+    /// An array list of builtin runners.
+    pub fn setUpBuiltinRunners(
+        self: Self,
+        allocator: Allocator,
+        proof_mode: bool,
+        program_builtins: []const []const u8,
+    ) !ArrayList(BuiltinRunner) {
+        var builtin_runners = ArrayList(BuiltinRunner).init(allocator);
+
+        if (proof_mode) {
+            // TODO: initialize all the builtins in the layout.
+        }
+
+        const Case = enum {
+            output,
+            pedersen,
+            range_check,
+            ecdsa,
+            bitwise,
+            ec_op,
+            keccak,
+            poseidon,
+        };
+
+        for (program_builtins) |builtin| {
+            const case = std.meta.stringToEnum(Case, builtin) orelse return RunnerError.BuiltinNotInLayout;
+            switch (case) {
+                .output => if (self.builtins.output) {
+                    try builtin_runners.append(BuiltinRunner{ .Output = OutputBuiltinRunner.initDefault(allocator) });
+                },
+
+                // TODO: implement initDefault for the rest of the builtin runners.
+
+                .pedersen => if (self.builtins.pedersen != null) {
+                    // try builtin_runners.append(BuiltinRunner{ .Pedersen = HashBuiltinRunner.initDefault() });
+                } else {
+                    return RunnerError.BuiltinNotInLayout;
+                },
+                .range_check => if (self.builtins.range_check != null) {
+                    // try builtin_runners.append(BuiltinRunner{ .RangeCheck = RangeCheckBuiltinRunner.initDefault()} );
+                } else {
+                    return RunnerError.BuiltinNotInLayout;
+                },
+                .ecdsa => if (self.builtins.ecdsa != null) {
+                    // try builtin_runners.append(BuiltinRunner{ .Signature = SignatureBuiltinRunner.initDefault() });
+                } else {
+                    return RunnerError.BuiltinNotInLayout;
+                },
+                .bitwise => if (self.builtins.bitwise != null) {
+                    try builtin_runners.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.initDefault() });
+                } else {
+                    return RunnerError.BuiltinNotInLayout;
+                },
+                .ec_op => if (self.builtins.ec_op != null) {
+                    // try builtin_runners.append(BuiltinRunner{ .EcOp = EcOpBuiltinRunner.initDefault() });
+                } else {
+                    return RunnerError.BuiltinNotInLayout;
+                },
+                .keccak => if (self.builtins.keccak != null) {
+                    // try builtin_runners.append(BuiltinRunner{ .Keccak = KeccakBuiltinRunner.initDefault() });
+                } else {
+                    return RunnerError.BuiltinNotInLayout;
+                },
+                .poseidon => if (self.builtins.poseidon != null) {
+                    // try builtin_runners.append(BuiltinRunner{ .Poseidon = PoseidonBuiltinRunner.initDefault() });
+                } else {
+                    return RunnerError.BuiltinNotInLayout;
+                },
+            }
+        }
+        return builtin_runners;
     }
 
     /// Deinitializes resources held by the layout's built-in instances.

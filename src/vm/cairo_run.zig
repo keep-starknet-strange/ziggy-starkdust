@@ -232,7 +232,7 @@ test "Factorial: can evaluate without runtime error" {
     try runner.endRun();
 }
 
-test "Array sum: can evaluate without runtime error" {
+test "Bitwise builtin test: can evaluate without runtime error" {
 
     // Given
     const allocator = std.testing.allocator;
@@ -243,8 +243,6 @@ test "Array sum: can evaluate without runtime error" {
     defer parsed_program.deinit();
 
     const instructions = try parsed_program.value.readData(allocator);
-    // const builtins = parsed_program.value.builtins;
-    // _ = builtins;
 
     const vm = try CairoVM.init(
         allocator,
@@ -262,6 +260,7 @@ test "Array sum: can evaluate without runtime error" {
     );
     defer runner.deinit();
     const end = try runner.setupExecutionState();
+
     errdefer std.debug.print("failed on step: {}\n", .{runner.vm.current_step});
 
     // then
