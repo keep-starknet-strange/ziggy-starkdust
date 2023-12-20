@@ -38,6 +38,20 @@ const expectEqualSlices = std.testing.expectEqualSlices;
 // Default Test Instruction to avoid having to initialize it in every test
 const defaultTestInstruction = Instruction.default();
 
+const testInstruction = Instruction{
+    .off_0 = 0,
+    .off_1 = 1,
+    .off_2 = 2,
+    .dst_reg = .AP,
+    .op_0_reg = .AP,
+    .op_1_addr = .AP,
+    .res_logic = .Add,
+    .pc_update = .Regular,
+    .ap_update = .Regular,
+    .fp_update = .Regular,
+    .opcode = .NOp,
+};
+
 test "CairoVM: deduceMemoryCell no builtin" {
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -913,20 +927,6 @@ const deduceOpTestInstr = Instruction{
     .opcode = .Call,
 };
 
-const testInstruction = Instruction{
-    .off_0 = 0,
-    .off_1 = 1,
-    .off_2 = 2,
-    .dst_reg = .AP,
-    .op_0_reg = .AP,
-    .op_1_addr = .AP,
-    .res_logic = .Add,
-    .pc_update = .Regular,
-    .ap_update = .Regular,
-    .fp_update = .Regular,
-    .opcode = .NOp,
-};
-
 test "deduceOp0 when opcode == .Call" {
     // Setup test context
     var vm = try CairoVM.init(std.testing.allocator, .{});
@@ -1428,10 +1428,9 @@ test "compute res Unconstrained should return null" {
     );
 }
 
-test "compute operands add AP" {
+test "CairoVM: compute operands add AP" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = testInstruction;
 
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -1440,16 +1439,6 @@ test "compute operands add AP" {
     vm.run_context.ap.* = Relocatable.init(1, 0);
 
     // Test body
-
-    const dst_addr = Relocatable.init(1, 0);
-    const dst_val = MaybeRelocatable{ .felt = Felt252.fromInteger(5) };
-
-    const op0_addr = Relocatable.init(1, 1);
-    const op0_val = MaybeRelocatable{ .felt = Felt252.fromInteger(2) };
-
-    const op1_addr = Relocatable.init(1, 2);
-    const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
-
     try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
@@ -1461,19 +1450,31 @@ test "compute operands add AP" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     const expected_operands: OperandsResult = .{
-        .dst_addr = dst_addr,
-        .op_0_addr = op0_addr,
-        .op_1_addr = op1_addr,
-        .dst = dst_val,
-        .op_0 = op0_val,
-        .op_1 = op1_val,
-        .res = dst_val,
+        .dst_addr = .{ .segment_index = 1, .offset = 0 },
+        .op_0_addr = .{ .segment_index = 1, .offset = 1 },
+        .op_1_addr = .{ .segment_index = 1, .offset = 2 },
+        .dst = .{ .felt = Felt252.fromInteger(5) },
+        .op_0 = .{ .felt = Felt252.fromInteger(2) },
+        .op_1 = .{ .felt = Felt252.fromInteger(3) },
+        .res = .{ .felt = Felt252.fromInteger(5) },
         .deduced_operands = 0,
     };
 
     const actual_operands = try vm.computeOperands(
         std.testing.allocator,
-        &instruction,
+        &.{
+            .off_0 = 0,
+            .off_1 = 1,
+            .off_2 = 2,
+            .dst_reg = .AP,
+            .op_0_reg = .AP,
+            .op_1_addr = .AP,
+            .res_logic = .Add,
+            .pc_update = .Regular,
+            .ap_update = .Regular,
+            .fp_update = .Regular,
+            .opcode = .NOp,
+        },
     );
 
     // Test checks
@@ -1483,14 +1484,9 @@ test "compute operands add AP" {
     );
 }
 
-test "compute operands mul FP" {
+test "CairoVM: compute operands mul FP" {
     // Test setup
     const allocator = std.testing.allocator;
-    var instruction = testInstruction;
-    instruction.op_1_addr = .FP;
-    instruction.op_0_reg = .FP;
-    instruction.dst_reg = .FP;
-    instruction.res_logic = .Mul;
 
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -1499,15 +1495,6 @@ test "compute operands mul FP" {
     vm.run_context.fp.* = Relocatable.init(1, 0);
 
     // Test body
-
-    const dst_addr = Relocatable.init(1, 0);
-    const dst_val = MaybeRelocatable{ .felt = Felt252.fromInteger(6) };
-
-    const op0_addr = Relocatable.init(1, 1);
-    const op0_val = MaybeRelocatable{ .felt = Felt252.fromInteger(2) };
-
-    const op1_addr = Relocatable.init(1, 2);
-    const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
     try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
@@ -1519,19 +1506,183 @@ test "compute operands mul FP" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     const expected_operands: OperandsResult = .{
-        .dst_addr = dst_addr,
-        .op_0_addr = op0_addr,
-        .op_1_addr = op1_addr,
-        .dst = dst_val,
-        .op_0 = op0_val,
-        .op_1 = op1_val,
-        .res = dst_val,
+        .dst_addr = .{ .segment_index = 1, .offset = 0 },
+        .op_0_addr = .{ .segment_index = 1, .offset = 1 },
+        .op_1_addr = .{ .segment_index = 1, .offset = 2 },
+        .dst = .{ .felt = Felt252.fromInteger(6) },
+        .op_0 = .{ .felt = Felt252.fromInteger(2) },
+        .op_1 = .{ .felt = Felt252.fromInteger(3) },
+        .res = .{ .felt = Felt252.fromInteger(6) },
         .deduced_operands = 0,
     };
 
     const actual_operands = try vm.computeOperands(
         std.testing.allocator,
-        &instruction,
+        &.{
+            .off_0 = 0,
+            .off_1 = 1,
+            .off_2 = 2,
+            .dst_reg = .FP,
+            .op_0_reg = .FP,
+            .op_1_addr = .FP,
+            .res_logic = .Mul,
+            .pc_update = .Regular,
+            .ap_update = .Regular,
+            .fp_update = .Regular,
+            .opcode = .NOp,
+        },
+    );
+
+    // Test checks
+    try expectEqual(
+        expected_operands,
+        actual_operands,
+    );
+}
+
+test "CairoVM: compute operands JNZ" {
+    // Test setup
+    const allocator = std.testing.allocator;
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    vm.run_context.ap.* = Relocatable.init(1, 0);
+
+    // Test body
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{0x206800180018001} },
+            .{ .{ 1, 1 }, .{0x4} },
+            .{ .{ 0, 1 }, .{0x4} },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    const expected_operands: OperandsResult = .{
+        .dst_addr = .{ .segment_index = 1, .offset = 1 },
+        .op_0_addr = .{ .segment_index = 1, .offset = 1 },
+        .op_1_addr = .{ .segment_index = 0, .offset = 1 },
+        .dst = .{ .felt = Felt252.fromInteger(4) },
+        .op_0 = .{ .felt = Felt252.fromInteger(4) },
+        .op_1 = .{ .felt = Felt252.fromInteger(4) },
+        .res = null,
+        .deduced_operands = 0,
+    };
+
+    const actual_operands = try vm.computeOperands(
+        std.testing.allocator,
+        &.{
+            .off_0 = 1,
+            .off_1 = 1,
+            .off_2 = 1,
+            .dst_reg = .AP,
+            .op_0_reg = .AP,
+            .op_1_addr = .Imm,
+            .res_logic = .Unconstrained,
+            .pc_update = .Jnz,
+            .ap_update = .Regular,
+            .fp_update = .Regular,
+            .opcode = .NOp,
+        },
+    );
+
+    // Test checks
+    try expectEqual(
+        expected_operands,
+        actual_operands,
+    );
+}
+
+test "CairoVM: compute operands deduce dst none" {
+    // Test setup
+    const allocator = std.testing.allocator;
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    vm.run_context.ap.* = Relocatable.init(1, 0);
+
+    // Test body
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{.{ .{ 1, 0 }, .{145944781867024385} }},
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Test checks
+    try expectError(
+        CairoVMError.NoDst,
+        vm.computeOperands(
+            std.testing.allocator,
+            &.{
+                .off_0 = 2,
+                .off_1 = 0,
+                .off_2 = 0,
+                .dst_reg = .FP,
+                .op_0_reg = .AP,
+                .op_1_addr = .AP,
+                .res_logic = .Unconstrained,
+                .pc_update = .Regular,
+                .ap_update = .Regular,
+                .fp_update = .Regular,
+                .opcode = .NOp,
+            },
+        ),
+    );
+}
+
+test "CairoVM: compute operands with op_1_addr as Op0" {
+    // Test setup
+    const allocator = std.testing.allocator;
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    vm.run_context.ap.* = Relocatable.init(1, 0);
+
+    // Test body
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{0x206800180018001} },
+            .{ .{ 1, 1 }, .{ 1, 4 } },
+            .{ .{ 1, 5 }, .{ 1, 2 } },
+            .{ .{ 0, 1 }, .{0x4} },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    const expected_operands: OperandsResult = .{
+        .dst_addr = .{ .segment_index = 1, .offset = 1 },
+        .op_0_addr = .{ .segment_index = 1, .offset = 1 },
+        .op_1_addr = .{ .segment_index = 1, .offset = 5 },
+        .dst = .{ .relocatable = .{ .segment_index = 1, .offset = 4 } },
+        .op_0 = .{ .relocatable = .{ .segment_index = 1, .offset = 4 } },
+        .op_1 = .{ .relocatable = .{ .segment_index = 1, .offset = 2 } },
+        .res = null,
+        .deduced_operands = 0,
+    };
+
+    const actual_operands = try vm.computeOperands(
+        std.testing.allocator,
+        &.{
+            .off_0 = 1,
+            .off_1 = 1,
+            .off_2 = 1,
+            .dst_reg = .AP,
+            .op_0_reg = .AP,
+            .op_1_addr = .Op0,
+            .res_logic = .Unconstrained,
+            .pc_update = .Jnz,
+            .ap_update = .Regular,
+            .fp_update = .Regular,
+            .opcode = .NOp,
+        },
     );
 
     // Test checks
