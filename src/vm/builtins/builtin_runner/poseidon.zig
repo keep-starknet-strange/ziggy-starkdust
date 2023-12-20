@@ -5,8 +5,10 @@ const poseidon_instance_def = @import("../../types/poseidon_instance_def.zig");
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
 const Memory = @import("../../memory/memory.zig").Memory;
+const MemorySegmentManager = @import("../../memory/segments.zig").MemorySegmentManager;
 
 const AutoHashMap = std.AutoHashMap;
+const ArrayList = std.ArrayList;
 const Allocator = std.mem.Allocator;
 
 /// Poseidon built-in runner
@@ -61,6 +63,18 @@ pub const PoseidonBuiltinRunner = struct {
             .cache = AutoHashMap(Relocatable, Felt252).init(allocator),
             .instances_per_component = 1,
         };
+    }
+
+    pub fn initSegments(self: *Self, segments: *MemorySegmentManager)  !void {
+        _ = self;
+        _ = segments;
+    }
+
+    pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
+        _ = self;
+        var result = ArrayList(MaybeRelocatable).init(allocator);
+        errdefer result.deinit();        
+        return result;
     }
 
     pub fn deduceMemoryCell(
