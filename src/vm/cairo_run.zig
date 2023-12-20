@@ -237,7 +237,7 @@ test "Array sum: can evaluate without runtime error" {
     // Given
     const allocator = std.testing.allocator;
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
-    const path = try std.os.realpath("cairo_programs/array_sum.json", &buffer);
+    const path = try std.os.realpath("cairo_programs/bitwise_builtin_test.json", &buffer);
 
     var parsed_program = try Program.parseFromFile(allocator, path);
     defer parsed_program.deinit();
@@ -255,7 +255,7 @@ test "Array sum: can evaluate without runtime error" {
     var runner = try CairoRunner.init(
         allocator,
         parsed_program.value,
-        "small",
+        "all_cairo",
         instructions,
         vm,
         false,

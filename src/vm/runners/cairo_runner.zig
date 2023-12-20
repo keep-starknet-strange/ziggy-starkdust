@@ -7,6 +7,7 @@ const BuiltinRunner = @import("../builtins/builtin_runner/builtin_runner.zig").B
 const Config = @import("../config.zig").Config;
 const CairoVM = @import("../core.zig").CairoVM;
 const CairoLayout = @import("../types/layout.zig").CairoLayout;
+const BitwiseBuiltinRunner = @import("../builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
 const OutputBuiltinRunner = @import("../builtins/builtin_runner/output.zig").OutputBuiltinRunner;
 const Relocatable = @import("../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../memory/relocatable.zig").MaybeRelocatable;
@@ -69,8 +70,8 @@ pub const CairoRunner = struct {
 
     pub fn initBuiltins(self: *Self, vm: *CairoVM) !void {
         var builtinRunners = ArrayList(BuiltinRunner).init(self.allocator);
-        if (self.layout.builtins.output) {
-            try builtinRunners.append(BuiltinRunner{ .Output = OutputBuiltinRunner.initDefault(self.allocator)} );
+        if (self.layout.builtins.bitwise != null) {
+            try builtinRunners.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.initDefault()} );
         }
         vm.builtin_runners = builtinRunners;
     }
