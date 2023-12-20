@@ -49,6 +49,7 @@ pub const CairoVM = struct {
     current_step: usize,
     /// Rc limits
     rc_limits: ?struct { i16, i16 },
+    /// Relocation table
     relocation_table: ?std.ArrayList(usize),
     /// ArrayList containing instructions. May hold null elements.
     /// Used as an instruction cache within the CairoVM instance.
@@ -821,7 +822,7 @@ pub const CairoVM = struct {
         // Throw an error if the relocation table is not available
         return MemoryError.UnrelocatedMemory;
     }
-    
+
     /// Loads data into the memory managed by CairoVM.
     ///
     /// This function ensures memory allocation in the CairoVM's segments, particularly in the instruction cache.
@@ -993,7 +994,7 @@ pub const CairoVM = struct {
             size,
         );
     }
-    
+
     /// Performs opcode-specific assertions on the operands of an instruction.
     /// # Arguments
     /// - `instruction`: A pointer to the instruction being asserted.
