@@ -204,6 +204,7 @@ pub const CairoRunner = struct {
         self.function_call_stack.deinit();
         self.instructions.deinit();
         self.vm.segments.memory.deinitData(self.allocator);
+        self.layout.deinit();
         self.vm.deinit();
     }
 };
