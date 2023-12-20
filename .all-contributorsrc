@@ -126,6 +126,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "0xicosahedron",
+      "name": "Icosahedron",
+      "avatar_url": "https://avatars.githubusercontent.com/u/83328087?v=4",
+      "profile": "https://github.com/0xicosahedron",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

@@ -184,6 +184,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/edisontim"><img src="https://avatars.githubusercontent.com/u/76473430?v=4?s=100" width="100px;" alt="tedison"/><br /><sub><b>tedison</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/ziggy-starkdust/commits?author=edisontim" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/ptisserand"><img src="https://avatars.githubusercontent.com/u/544314?v=4?s=100" width="100px;" alt="ptisserand"/><br /><sub><b>ptisserand</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/ziggy-starkdust/commits?author=ptisserand" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://ndcroos.github.io/site/"><img src="https://avatars.githubusercontent.com/u/16431833?v=4?s=100" width="100px;" alt="ndcroos"/><br /><sub><b>ndcroos</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/ziggy-starkdust/commits?author=ndcroos" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/0xicosahedron"><img src="https://avatars.githubusercontent.com/u/83328087?v=4?s=100" width="100px;" alt="Icosahedron"/><br /><sub><b>Icosahedron</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/ziggy-starkdust/commits?author=0xicosahedron" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
