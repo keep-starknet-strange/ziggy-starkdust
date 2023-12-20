@@ -70,7 +70,9 @@ pub const CairoRunner = struct {
         // stores the execution stack
         self.execution_base = try self.vm.segments.addSegment();
 
-        // TODO, add builtin segments when fib milestone is completed
+        for (self.vm.builtin_runners.items) |*builtin_runner| {
+            try builtin_runner.initSegments(self.vm.segments);
+        }
     }
 
     /// Initializes runner state for execution, as in:
@@ -119,8 +121,14 @@ pub const CairoRunner = struct {
 
     /// Initializes runner state for execution of a program from the `main()` entrypoint.
     pub fn initMainEntrypoint(self: *Self) !Relocatable {
-        // TODO handle the necessary stack initializing for builtins
-        // and the case where we are running in proof mode
+        for (self.vm.builtin_runners.items) |*builtin_runner| {
+            const builtin_stack = try builtin_runner.initialStack(self.allocator);
+            defer builtin_stack.deinit();
+            for (builtin_stack.items) |item| {
+                try self.function_call_stack.append(item);
+            }
+        }
+        // TODO handle the case where we are running in proof mode
         const return_fp = try self.vm.segments.addSegment();
         // Buffer for concatenation
         var buffer: [100]u8 = undefined;
@@ -152,14 +160,12 @@ pub const CairoRunner = struct {
             return CairoRunnerError.EndRunAlreadyCalled;
         }
 
-        // Presuming the default case of `allow_tmp_segments` in python version
-
         // TODO handle proof_mode case
-
         self.run_ended = true;
     }
 
     pub fn relocate(self: *Self) !void {
+        // Presuming the default case of `allow_tmp_segments` in python version
         _ = try self.vm.segments.computeEffectiveSize(false);
 
         const relocation_table = try self.vm.segments.relocateSegments(self.allocator);
