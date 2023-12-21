@@ -113,6 +113,8 @@ pub const SharedProgramData = struct {
         if (self.instruction_locations != null) {
             self.instruction_locations.?.deinit();
         }
+        self.identifiers.deinit();
+        self.reference_manager.deinit();
     }
 };
 

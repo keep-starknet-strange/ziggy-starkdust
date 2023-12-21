@@ -259,7 +259,6 @@ pub const ProgramJson = struct {
     /// List of attributes.
     attributes: []Attribute,
     /// List of builtins.
-    // builtins: []const []const u8,
     builtins: []BuiltinName,
     /// Compiler version information.
     compiler_version: []const u8,
@@ -299,7 +298,7 @@ pub const ProgramJson = struct {
     /// # Errors
     /// - If loading the file fails.
     /// - If the file has incompatible json with respect to the `ProgramJson` struct.
-    pub fn parseFromFile(allocator: Allocator, filename: []const u8) !json.Parsed(ProgramJson) {
+    pub fn parseFromFile(allocator: Allocator, filename: []const u8) !json.Parsed(Self) {
         const file = try std.fs.cwd().openFile(filename, .{});
         const file_size = try file.getEndPos();
         defer file.close();
@@ -308,16 +307,18 @@ pub const ProgramJson = struct {
         defer allocator.free(buffer);
 
         const parsed = try json.parseFromSlice(
-            ProgramJson,
+            Self,
             allocator,
             buffer,
-            .{ .allocate = .alloc_always },
+            .{
+                .allocate = .alloc_always,
+                .ignore_unknown_fields = true,
+            },
         );
         errdefer parsed.deinit();
 
         return parsed;
     }
-
     /// Parses a compilation artifact of a Cairo v0 program in JSON format.
     ///
     /// This function extracts relevant information from the provided JSON structure
@@ -544,7 +545,10 @@ test "ProgramJson: parseProgramJson should parse a Cairo v0 JSON Program and con
     // Specify the entrypoint identifier
     var entrypoint: []const u8 = "main";
     // Parse the program JSON into a `Program` structure
-    var program = try parsed_program.value.parseProgramJson(std.testing.allocator, &entrypoint);
+    var program = try parsed_program.value.parseProgramJson(
+        std.testing.allocator,
+        &entrypoint,
+    );
     defer program.deinit();
 
     // Test the builtins count
