@@ -16,6 +16,7 @@ const PoseidonInstanceDef = @import("./poseidon_instance_def.zig").PoseidonInsta
 
 const RunnerError = @import("../../vm/error.zig").RunnerError;
 const BuiltinRunner = @import("../builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
+const BuiltinName = @import("./program.zig").BuiltinName;
 
 const BitwiseBuiltinRunner = @import("../builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
 const EcOpBuiltinRunner = @import("../builtins/builtin_runner/ec_op.zig").EcOpBuiltinRunner;
@@ -24,6 +25,7 @@ const KeccakBuiltinRunner = @import("../builtins/builtin_runner/keccak.zig").Kec
 const PoseidonBuiltinRunner = @import("../builtins/builtin_runner/poseidon.zig").PoseidonBuiltinRunner;
 const OutputBuiltinRunner = @import("../builtins/builtin_runner/output.zig").OutputBuiltinRunner;
 const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
+const SegmentArenaBuiltinRunner = @import("../builtins/builtin_runner/segment_arena.zig").SegmentArenaBuiltinRunner;
 const SignatureBuiltinRunner = @import("../builtins/builtin_runner/signature.zig").SignatureBuiltinRunner;
 
 const expect = std.testing.expect;
@@ -186,68 +188,63 @@ pub const CairoLayout = struct {
     ) !ArrayList(BuiltinRunner) {
         var builtin_runners = ArrayList(BuiltinRunner).init(allocator);
 
+        // When running in proof_mode, all builtins defined in a layout are included.
         if (proof_mode) {
             // TODO: initialize all the builtins in the layout.
         }
 
-        const Case = enum {
-            output,
-            pedersen,
-            range_check,
-            ecdsa,
-            bitwise,
-            ec_op,
-            keccak,
-            poseidon,
-        };
-
+        // If not in proof_mode, we iterate through the compiled program's json builtins array.
+        // For each builtin, we check if it exists in a layout, if not, we throw an error.
+        // If it does we include it's initialized builtin runner in the builtin_runners array.
         for (program_builtins) |builtin| {
-            const case = std.meta.stringToEnum(Case, builtin) orelse return RunnerError.BuiltinNotInLayout;
+            const case = std.meta.stringToEnum(BuiltinName, builtin) orelse return RunnerError.BuiltinNotInLayout;
+            if (!self.containsBuiltin(case)) return RunnerError.BuiltinNotInLayout;
+
             switch (case) {
-                .output => if (self.builtins.output) {
-                    try builtin_runners.append(BuiltinRunner{ .Output = OutputBuiltinRunner.initDefault(allocator) });
-                },
+                .output => try builtin_runners.append(BuiltinRunner{ .Output = OutputBuiltinRunner.initDefault(allocator) }),
 
                 // TODO: implement initDefault for the rest of the builtin runners.
 
-                .pedersen => if (self.builtins.pedersen != null) {
+                .pedersen => {
                     // try builtin_runners.append(BuiltinRunner{ .Pedersen = HashBuiltinRunner.initDefault() });
-                } else {
-                    return RunnerError.BuiltinNotInLayout;
                 },
-                .range_check => if (self.builtins.range_check != null) {
+                .range_check => {
                     // try builtin_runners.append(BuiltinRunner{ .RangeCheck = RangeCheckBuiltinRunner.initDefault()} );
-                } else {
-                    return RunnerError.BuiltinNotInLayout;
                 },
-                .ecdsa => if (self.builtins.ecdsa != null) {
+                .ecdsa => {
                     // try builtin_runners.append(BuiltinRunner{ .Signature = SignatureBuiltinRunner.initDefault() });
-                } else {
-                    return RunnerError.BuiltinNotInLayout;
                 },
-                .bitwise => if (self.builtins.bitwise != null) {
+                .bitwise => {
                     try builtin_runners.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.initDefault() });
-                } else {
-                    return RunnerError.BuiltinNotInLayout;
                 },
-                .ec_op => if (self.builtins.ec_op != null) {
+                .ec_op => {
                     // try builtin_runners.append(BuiltinRunner{ .EcOp = EcOpBuiltinRunner.initDefault() });
-                } else {
-                    return RunnerError.BuiltinNotInLayout;
                 },
-                .keccak => if (self.builtins.keccak != null) {
+                .keccak => {
                     // try builtin_runners.append(BuiltinRunner{ .Keccak = KeccakBuiltinRunner.initDefault() });
-                } else {
-                    return RunnerError.BuiltinNotInLayout;
                 },
-                .poseidon => if (self.builtins.poseidon != null) {
+                .poseidon => {
                     // try builtin_runners.append(BuiltinRunner{ .Poseidon = PoseidonBuiltinRunner.initDefault() });
-                } else {
-                    return RunnerError.BuiltinNotInLayout;
                 },
+                // TODO: add segment_arena to BuiltinsInstanceDef
+                .segment_arena => return RunnerError.BuiltinNotInLayout,
             }
         }
         return builtin_runners;
+    }
+
+    pub fn containsBuiltin(self: Self, builtin: BuiltinName) bool {
+        switch (builtin) {
+            .output => return self.builtins.output,
+            .pedersen => return self.builtins.pedersen != null,
+            .range_check => return self.builtins.range_check != null,
+            .ecdsa => return self.builtins.ecdsa != null,
+            .bitwise => return self.builtins.bitwise != null,
+            .ec_op => return self.builtins.ec_op != null,
+            .keccak => return self.builtins.keccak != null,
+            .poseidon => return self.builtins.poseidon != null,
+            .segment_arena => return false,
+        }
     }
 
     /// Deinitializes resources held by the layout's built-in instances.

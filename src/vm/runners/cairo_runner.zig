@@ -7,15 +7,6 @@ const BuiltinRunner = @import("../builtins/builtin_runner/builtin_runner.zig").B
 const Config = @import("../config.zig").Config;
 const CairoVM = @import("../core.zig").CairoVM;
 const CairoLayout = @import("../types/layout.zig").CairoLayout;
-const BitwiseBuiltinRunner = @import("../builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
-const EcOpBuiltinRunner = @import("../builtins/builtin_runner/ec_op.zig").EcOpBuiltinRunner;
-const HashBuiltinRunner = @import("../builtins/builtin_runner/hash.zig").HashBuiltinRunner;
-const KeccakBuiltinRunner = @import("../builtins/builtin_runner/keccak.zig").KeccakBuiltinRunner;
-const PoseidonBuiltinRunner = @import("../builtins/builtin_runner/poseidon.zig").PoseidonBuiltinRunner;
-const OutputBuiltinRunner = @import("../builtins/builtin_runner/output.zig").OutputBuiltinRunner;
-const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
-const SegmentArenaBuiltinRunner = @import("../builtins/builtin_runner/segment_arena.zig").SegmentArenaBuiltinRunner;
-const SignatureBuiltinRunner = @import("../builtins/builtin_runner/signature.zig").SignatureBuiltinRunner;
 const Relocatable = @import("../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../memory/relocatable.zig").MaybeRelocatable;
 const Program = @import("../types/program.zig").Program;
@@ -54,21 +45,16 @@ pub const CairoRunner = struct {
         vm: CairoVM,
         proof_mode: bool,
     ) !Self {
-        var runner_layout: CairoLayout = undefined;
         const Case = enum { plain, small, dynamic, all_cairo };
-        const case = std.meta.stringToEnum(Case, layout) orelse return CairoRunnerError.InvalidLayout;
-        switch (case) {
-            .plain => runner_layout = CairoLayout.plainInstance(),
-            .small => runner_layout = CairoLayout.smallInstance(),
-            .dynamic => runner_layout = CairoLayout.dynamicInstance(),
-            .all_cairo => runner_layout = CairoLayout.allCairoInstance(allocator) catch |err| {
-                return err;
-            },
-        }
         return .{
             .allocator = allocator,
             .program = program,
-            .layout = runner_layout,
+            .layout = switch (std.meta.stringToEnum(Case, layout) orelse return CairoRunnerError.InvalidLayout) {
+                .plain => CairoLayout.plainInstance(),
+                .small => CairoLayout.smallInstance(),
+                .dynamic => CairoLayout.dynamicInstance(),
+                .all_cairo => try CairoLayout.allCairoInstance(allocator),
+            },
             .instructions = instructions,
             .vm = vm,
             .function_call_stack = std.ArrayList(MaybeRelocatable).init(allocator),
@@ -77,13 +63,12 @@ pub const CairoRunner = struct {
     }
 
     pub fn initBuiltins(self: *Self, vm: *CairoVM) !void {
-        const builtin_runners = try CairoLayout.setUpBuiltinRunners(
+        vm.builtin_runners = try CairoLayout.setUpBuiltinRunners(
             self.layout,
             self.allocator,
             self.proof_mode,
             self.program.builtins,
         );
-        vm.builtin_runners = builtin_runners;
     }
 
     pub fn setupExecutionState(self: *Self) !Relocatable {
