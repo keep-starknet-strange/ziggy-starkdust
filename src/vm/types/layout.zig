@@ -184,7 +184,7 @@ pub const CairoLayout = struct {
         self: Self,
         allocator: Allocator,
         proof_mode: bool,
-        program_builtins: []BuiltinName,
+        program_builtins: []const []const u8,
     ) !ArrayList(BuiltinRunner) {
         var builtin_runners = ArrayList(BuiltinRunner).init(allocator);
 
@@ -197,9 +197,11 @@ pub const CairoLayout = struct {
         // For each builtin, we check if it exists in a layout, if not, we throw an error.
         // If it does we include it's initialized builtin runner in the builtin_runners array.
         for (program_builtins) |builtin| {
-            if (!self.containsBuiltin(builtin)) return RunnerError.BuiltinNotInLayout;
+            const case = std.meta.stringToEnum(BuiltinName, builtin) orelse return RunnerError.BuiltinNotInLayout;
 
-            switch (builtin) {
+            if (!self.containsBuiltin(case)) return RunnerError.BuiltinNotInLayout;
+
+            switch (case) {
                 .output => try builtin_runners.append(BuiltinRunner{ .Output = OutputBuiltinRunner.initDefault(allocator) }),
 
                 // TODO: implement initDefault for the rest of the builtin runners.

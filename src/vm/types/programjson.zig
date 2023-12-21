@@ -111,7 +111,7 @@ pub const HintParams = struct {
     /// Code associated with the hint.
     code: []const u8,
     /// Accessible scopes for the hint.
-    accessible_scopes: []const u8,
+    accessible_scopes: []const []const u8,
     /// Flow tracking data related to the hint.
     flow_tracking_data: FlowTrackingData,
 };
@@ -237,6 +237,7 @@ pub const Identifier = struct {
     pc: ?usize = null,
     /// Type information associated with the identifier (optional, defaults to null).
     type: ?[]const u8 = null,
+    destination: ?[]const u8 = null,
     /// Decorators related to the identifier (optional, defaults to null).
     decorators: ?[]const []const u8 = null,
     /// Value associated with the identifier (optional, defaults to null).
@@ -259,7 +260,7 @@ pub const ProgramJson = struct {
     /// List of attributes.
     attributes: []Attribute,
     /// List of builtins.
-    builtins: []BuiltinName,
+    builtins: []const []const u8,
     /// Compiler version information.
     compiler_version: []const u8,
     /// Program data.
@@ -396,7 +397,7 @@ pub const ProgramJson = struct {
         errdefer builtins.deinit();
         // Collects built-in names and adds them to the builtins list.
         for (0..self.attributes.len) |i| {
-            try builtins.append(self.builtins[i]);
+            try builtins.append(std.meta.stringToEnum(BuiltinName, self.builtins[i]) orelse return ProgramError.BuiltinNotInLayout);
         }
 
         var instruction_locations = std.StringHashMap(InstructionLocation).init(allocator);
