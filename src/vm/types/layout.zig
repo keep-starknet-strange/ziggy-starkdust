@@ -235,17 +235,17 @@ pub const CairoLayout = struct {
     }
 
     pub fn containsBuiltin(self: Self, builtin: BuiltinName) bool {
-        switch (builtin) {
-            .output => return self.builtins.output,
-            .pedersen => return self.builtins.pedersen != null,
-            .range_check => return self.builtins.range_check != null,
-            .ecdsa => return self.builtins.ecdsa != null,
-            .bitwise => return self.builtins.bitwise != null,
-            .ec_op => return self.builtins.ec_op != null,
-            .keccak => return self.builtins.keccak != null,
-            .poseidon => return self.builtins.poseidon != null,
-            .segment_arena => return false,
-        }
+        return switch (builtin) {
+            .output => self.builtins.output,
+            .pedersen => self.builtins.pedersen != null,
+            .range_check => self.builtins.range_check != null,
+            .ecdsa => self.builtins.ecdsa != null,
+            .bitwise => self.builtins.bitwise != null,
+            .ec_op => self.builtins.ec_op != null,
+            .keccak => self.builtins.keccak != null,
+            .poseidon => self.builtins.poseidon != null,
+            .segment_arena => false,
+        };
     }
 
     /// Deinitializes resources held by the layout's built-in instances.
