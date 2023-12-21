@@ -88,7 +88,7 @@ our tests are wrapped in another test call within `src/tests.zig`.
 
 In order to compare two memory files or trace files, use the following command: 
 
-`vbindiff cairo-programs/expected_fibonacci.trace cairo-programs/fibonacci.trace`
+`vbindiff cairo_programs/expected_fibonacci.trace cairo_programs/fibonacci.trace`
 
 ### 🔒 Security
 
