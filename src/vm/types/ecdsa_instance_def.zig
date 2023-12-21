@@ -17,7 +17,7 @@ pub const EcdsaInstanceDef = struct {
     /// Number of hash bits
     n_hash_bits: u32,
 
-    pub fn init() Self {
+    pub fn initDefault() Self {
         return .{
             .ratio = 512,
             .repetitions = 1,
@@ -26,7 +26,7 @@ pub const EcdsaInstanceDef = struct {
         };
     }
 
-    pub fn from(ratio: ?u32) Self {
+    pub fn init(ratio: ?u32) Self {
         return .{
             .ratio = ratio,
             .repetitions = 1,
@@ -35,16 +35,16 @@ pub const EcdsaInstanceDef = struct {
         };
     }
 
-    pub fn _cells_per_builtin(_: Self) u32 {
+    pub fn cellsPerBuiltin(_: Self) u32 {
         return CELLS_PER_SIGNATURE;
     }
 
-    pub fn _range_check_units_per_builtin(_: *const Self) u32 {
+    pub fn rangeCheckUnitsPerBuiltin(_: *const Self) u32 {
         return 0;
     }
 };
 
-test "EcdsaInstanceDef: test from" {
+test "EcdsaInstanceDef: test init" {
     const instance = EcdsaInstanceDef{
         .ratio = 8,
         .repetitions = 1,
@@ -52,12 +52,12 @@ test "EcdsaInstanceDef: test from" {
         .n_hash_bits = 251,
     };
     try expectEqual(
-        EcdsaInstanceDef.from(8),
+        EcdsaInstanceDef.init(8),
         instance,
     );
 }
 
-test "EcdsaInstanceDef: test init" {
+test "EcdsaInstanceDef: test initDefault" {
     const instance = EcdsaInstanceDef{
         .ratio = 512,
         .repetitions = 1,
@@ -65,23 +65,23 @@ test "EcdsaInstanceDef: test init" {
         .n_hash_bits = 251,
     };
     try expectEqual(
-        EcdsaInstanceDef.init(),
+        EcdsaInstanceDef.initDefault(),
         instance,
     );
 }
 
-test "EcdsaInstanceDef: test cells_per_builtin" {
-    const instance = EcdsaInstanceDef.init();
+test "EcdsaInstanceDef: test cellsPerBuiltin" {
+    const instance = EcdsaInstanceDef.initDefault();
     try expectEqual(
-        instance._cells_per_builtin(),
+        instance.cellsPerBuiltin(),
         CELLS_PER_SIGNATURE,
     );
 }
 
-test "EcdsaInstanceDef: test range_check_units_per_builtin" {
-    const instance = EcdsaInstanceDef.init();
+test "EcdsaInstanceDef: test rangeCheckUnitsPerBuiltin" {
+    const instance = EcdsaInstanceDef.initDefault();
     try expectEqual(
-        instance._range_check_units_per_builtin(),
+        instance.rangeCheckUnitsPerBuiltin(),
         0,
     );
 }
