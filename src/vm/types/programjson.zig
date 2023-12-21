@@ -276,7 +276,6 @@ pub const ProgramJson = struct {
     hints: json.ArrayHashMap([]const HintParams),
     /// Identifiers within the program.
     identifiers: json.ArrayHashMap(Identifier),
-    // identifiers: std.StringHashMap(Identifier),
     /// Main scope details.
     main_scope: []const u8,
     /// Prime data.
