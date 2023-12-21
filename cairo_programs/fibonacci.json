@@ -457,8 +457,7 @@
     "__main__.fib": {
       "decorators": [],
       "pc": 11,
-      "type": "function",
-      "value": 11111111
+      "type": "function"
     },
     "__main__.fib.Args": {
       "full_name": "__main__.fib.Args",
@@ -477,20 +476,17 @@
         }
       },
       "size": 3,
-      "type": "struct",
-      "value": 11111111
+      "type": "struct"
     },
     "__main__.fib.ImplicitArgs": {
       "full_name": "__main__.fib.ImplicitArgs",
       "members": {},
       "size": 0,
-      "type": "struct",
-      "value": 11111111
+      "type": "struct"
     },
     "__main__.fib.Return": {
       "cairo_type": "(res: felt)",
-      "type": "type_definition",
-      "value": 11111111
+      "type": "type_definition"
     },
     "__main__.fib.SIZEOF_LOCALS": {
       "type": "const",
@@ -498,8 +494,7 @@
     },
     "__main__.fib.fib_body": {
       "pc": 16,
-      "type": "label",
-      "value": 11111111
+      "type": "label"
     },
     "__main__.fib.first_element": {
       "cairo_type": "felt",
@@ -514,8 +509,7 @@
           "value": "[cast(fp + (-5), felt*)]"
         }
       ],
-      "type": "reference",
-      "value": 11111111
+      "type": "reference"
     },
     "__main__.fib.n": {
       "cairo_type": "felt",
@@ -530,8 +524,7 @@
           "value": "[cast(fp + (-3), felt*)]"
         }
       ],
-      "type": "reference",
-      "value": 11111111
+      "type": "reference"
     },
     "__main__.fib.result": {
       "cairo_type": "felt",
@@ -546,8 +539,7 @@
           "value": "[cast(ap + (-1), felt*)]"
         }
       ],
-      "type": "reference",
-      "value": 11111111
+      "type": "reference"
     },
     "__main__.fib.second_element": {
       "cairo_type": "felt",
@@ -562,8 +554,7 @@
           "value": "[cast(fp + (-4), felt*)]"
         }
       ],
-      "type": "reference",
-      "value": 11111111
+      "type": "reference"
     },
     "__main__.fib.y": {
       "cairo_type": "felt",
@@ -578,33 +569,28 @@
           "value": "[cast(ap + (-1), felt*)]"
         }
       ],
-      "type": "reference",
-      "value": 11111111
+      "type": "reference"
     },
     "__main__.main": {
       "decorators": [],
       "pc": 0,
-      "type": "function",
-      "value": 11111111
+      "type": "function"
     },
     "__main__.main.Args": {
       "full_name": "__main__.main.Args",
       "members": {},
       "size": 0,
-      "type": "struct",
-      "value": 11111111
+      "type": "struct"
     },
     "__main__.main.ImplicitArgs": {
       "full_name": "__main__.main.ImplicitArgs",
       "members": {},
       "size": 0,
-      "type": "struct",
-      "value": 11111111
+      "type": "struct"
     },
     "__main__.main.Return": {
       "cairo_type": "()",
-      "type": "type_definition",
-      "value": 11111111
+      "type": "type_definition"
     },
     "__main__.main.SIZEOF_LOCALS": {
       "type": "const",
@@ -623,8 +609,7 @@
           "value": "[cast(ap + (-1), felt*)]"
         }
       ],
-      "type": "reference",
-      "value": 11111111
+      "type": "reference"
     }
   },
   "main_scope": "__main__",

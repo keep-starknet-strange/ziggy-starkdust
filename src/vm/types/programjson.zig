@@ -374,7 +374,7 @@ pub const ProgramJson = struct {
         errdefer constants.deinit();
         // Populates the constants hashmap with identifier keys and associated constant values.
         for (self.identifiers.map.keys(), self.identifiers.map.values()) |key, value| {
-            if (value.type) |_| {
+            if (value.type != null and std.mem.eql(u8, value.type.?, "const")) {
                 try constants.put(
                     key,
                     if (value.value) |v| Felt252.fromInteger(@intCast(v)) else return ProgramError.ConstWithoutValue,
@@ -555,26 +555,11 @@ test "ProgramJson: parseProgramJson should parse a Cairo v0 JSON Program and con
     try expect(program.builtins.items.len == 0);
 
     // Test the count of constants within the program
-    try expectEqual(@as(usize, 17), program.constants.count());
+    try expectEqual(@as(usize, 2), program.constants.count());
 
     // Test individual constant values within the program
-    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.fib").?);
-    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.fib.Args").?);
-    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.fib.ImplicitArgs").?);
-    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.fib.Return").?);
     try expectEqual(Felt252.fromInteger(0), program.constants.get("__main__.fib.SIZEOF_LOCALS").?);
-    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.fib.fib_body").?);
-    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.fib.first_element").?);
-    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.fib.n").?);
-    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.fib.result").?);
-    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.fib.second_element").?);
-    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.fib.y").?);
-    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.main").?);
-    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.main.Args").?);
-    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.main.ImplicitArgs").?);
-    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.main.Return").?);
     try expectEqual(Felt252.fromInteger(0), program.constants.get("__main__.main.SIZEOF_LOCALS").?);
-    try expectEqual(Felt252.fromInteger(11111111), program.constants.get("__main__.main.result").?);
 
     // Test hints collection count within shared_program_data
     try expect(program.shared_program_data.hints_collection.hints.items.len == 0);
@@ -644,7 +629,6 @@ test "ProgramJson: parseProgramJson should parse a Cairo v0 JSON Program and con
     try expectEqual(@as(?usize, 11), identifier_zero.pc.?);
     try expectEqual(@as(?[]const u8, null), identifier_zero.cairo_type);
     try expect(identifier_zero.decorators.?.len == 0);
-    try expectEqual(@as(?i256, 11111111), identifier_zero.value.?);
     try expectEqual(@as(?usize, null), identifier_zero.size);
     try expectEqual(@as(?[]const u8, null), identifier_zero.full_name);
     try expectEqual(@as(?[]const Reference, null), identifier_zero.references);
