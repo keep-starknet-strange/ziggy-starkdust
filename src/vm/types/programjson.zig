@@ -241,7 +241,7 @@ pub const Identifier = struct {
     /// Decorators related to the identifier (optional, defaults to null).
     decorators: ?[]const []const u8 = null,
     /// Value associated with the identifier (optional, defaults to null).
-    value: ?usize = null,
+    value: ?i256 = null,
     /// Size information related to the identifier (optional, defaults to null).
     size: ?usize = null,
     /// Full name of the identifier (optional, defaults to null).
@@ -378,7 +378,7 @@ pub const ProgramJson = struct {
             if (value.type) |_| {
                 try constants.put(
                     key,
-                    if (value.value) |v| Felt252.fromInteger(v) else return ProgramError.ConstWithoutValue,
+                    if (value.value) |v| Felt252.fromInteger(@intCast(v)) else return ProgramError.ConstWithoutValue,
                 );
             }
         }
@@ -645,7 +645,7 @@ test "ProgramJson: parseProgramJson should parse a Cairo v0 JSON Program and con
     try expectEqual(@as(?usize, 11), identifier_zero.pc.?);
     try expectEqual(@as(?[]const u8, null), identifier_zero.cairo_type);
     try expect(identifier_zero.decorators.?.len == 0);
-    try expectEqual(@as(?usize, 11111111), identifier_zero.value.?);
+    try expectEqual(@as(?i256, 11111111), identifier_zero.value.?);
     try expectEqual(@as(?usize, null), identifier_zero.size);
     try expectEqual(@as(?[]const u8, null), identifier_zero.full_name);
     try expectEqual(@as(?[]const Reference, null), identifier_zero.references);
