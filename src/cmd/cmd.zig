@@ -67,6 +67,14 @@ var output_memory = cli.Option{
     .required = false,
 };
 
+var layout = cli.Option{
+    .long_name = "layout",
+    .help = "The memory layout to use.",
+    .short_alias = 'l',
+    .value_ref = cli.mkRef(&config.layout),
+    .required = false,
+};
+
 // ************************************************************
 // *                    CLI APP                               *
 // ************************************************************
@@ -88,7 +96,13 @@ var app = &cli.App{
             \\Execute a cairo program with the virtual machine.
             ,
             .action = execute,
-            .options = &.{ &execute_proof_mode_option, &enable_trace, &program_option, &output_trace },
+            .options = &.{
+                &execute_proof_mode_option,
+                &layout,
+                &enable_trace,
+                &program_option,
+                &output_trace,
+            },
         },
     },
 };
