@@ -240,7 +240,7 @@ test "Bitwise builtin test: can evaluate without runtime error" {
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
     const path = try std.os.realpath("cairo_programs/bitwise_builtin_test.json", &buffer);
 
-    var parsed_program = try Program.parseFromFile(allocator, path);
+    var parsed_program = try ProgramJson.parseFromFile(allocator, path);
     defer parsed_program.deinit();
 
     const instructions = try parsed_program.value.readData(allocator);
