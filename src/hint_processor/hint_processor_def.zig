@@ -49,7 +49,7 @@ pub const HintReference = struct {
     ///
     /// Params:
     ///   - `offset1`: First offset value for the hint reference.
-    pub fn init_simple(offset1: i32) Self {
+    pub fn initSimple(offset1: i32) Self {
         return .{
             .offset1 = .{ .reference = .{ .FP, offset1, false } },
             .offset2 = .{ .value = 0 },
@@ -73,7 +73,7 @@ test "HintReference: init should return a proper HintReference instance" {
     );
 }
 
-test "HintReference: init_simple should return a proper HintReference instance" {
+test "HintReference: initSimple should return a proper HintReference instance" {
     try expectEqual(
         HintReference{
             .offset1 = .{ .reference = .{ .FP, 10, false } },
@@ -82,6 +82,6 @@ test "HintReference: init_simple should return a proper HintReference instance" 
             .ap_tracking_data = null,
             .cairo_type = null,
         },
-        HintReference.init_simple(10),
+        HintReference.initSimple(10),
     );
 }
