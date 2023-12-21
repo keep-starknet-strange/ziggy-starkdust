@@ -79,7 +79,7 @@ pub const MemoryError = error{
     ExpectedInteger,
     /// Error encountered during the WriteArg operation.
     WriteArg,
-    /// Occurs if the VM's current step count is less than the minimum required steps for a builtin operation. 
+    /// Occurs if the VM's current step count is less than the minimum required steps for a builtin operation.
     InsufficientAllocatedCellsErrorMinStepNotReached,
 };
 
@@ -87,6 +87,8 @@ pub const MemoryError = error{
 pub const CairoRunnerError = error{
     // Raised when `end_run` hook of a runner is called more than once.
     EndRunAlreadyCalled,
+    // Unable to convert provided layout to a valid layout.
+    InvalidLayout,
 };
 
 /// Represents different error conditions that occur in the built-in runners.
@@ -102,6 +104,8 @@ pub const RunnerError = error{
     InvalidStopPointer,
     /// Raised when the conversion into a type of integer (e.g. a Felt) fails.
     BuiltinExpectedInteger,
+    /// Could not convert the builtin into one of the layout's builtins.
+    BuiltinNotInLayout,
     /// Integer value exceeds a power of two.
     IntegerBiggerThanPowerOfTwo,
     Memory,

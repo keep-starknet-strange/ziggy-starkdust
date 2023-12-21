@@ -60,6 +60,73 @@ pub const HintsCollection = struct {
     }
 };
 
+const FlowTrackingData = struct {
+    ap_tracking: ApTracking,
+    reference_ids: ?json.ArrayHashMap(usize) = null,
+};
+
+const Attribute = struct {
+    name: []const u8,
+    start_pc: usize,
+    end_pc: usize,
+    value: []const u8,
+    flow_tracking_data: ?FlowTrackingData,
+};
+
+const HintParams = struct {
+    code: []const u8,
+    accessible_scopes: []const []const u8,
+    flow_tracking_data: FlowTrackingData,
+};
+
+const Instruction = struct {
+    end_line: u32,
+    end_col: u32,
+    input_file: struct {
+        filename: []const u8,
+    },
+    parent_location: ?json.Value = null,
+    start_col: u32,
+    start_line: u32,
+};
+
+const HintLocation = struct {
+    location: Instruction,
+    n_prefix_newlines: u32,
+};
+
+const InstructionLocation = struct {
+    accessible_scopes: []const []const u8,
+    flow_tracking_data: FlowTrackingData,
+    inst: Instruction,
+    hints: []const HintLocation,
+};
+
+const Reference = struct {
+    ap_tracking_data: ApTracking,
+    pc: ?usize,
+    value: []const u8,
+};
+
+const IdentifierMember = struct {
+    cairo_type: ?[]const u8 = null,
+    offset: ?usize = null,
+    value: ?[]const u8 = null,
+};
+
+const Identifier = struct {
+    pc: ?usize = null,
+    type: ?[]const u8 = null,
+    destination: ?[]const u8 = null,
+    decorators: ?[]const u8 = null,
+    value: ?i256 = null,
+    size: ?usize = null,
+    full_name: ?[]const u8 = null,
+    references: ?[]const Reference = null,
+    members: ?json.ArrayHashMap(IdentifierMember) = null,
+    cairo_type: ?[]const u8 = null,
+};
+
 /// Represents shared program data.
 pub const SharedProgramData = struct {
     const Self = @This();
@@ -112,6 +179,49 @@ pub const SharedProgramData = struct {
         self.error_message_attributes.deinit();
         if (self.instruction_locations != null) {
             self.instruction_locations.?.deinit();
+    }
+    
+    /// # Arguments
+    /// - `allocator`: The allocator for reading the json file and parsing it.
+    /// - `filename`: The location of the program json file.
+    /// # Returns
+    /// - a parsed Program
+    /// # Errors
+    /// - If loading the file fails.
+    /// - If the file has incompatible json with respect to the `Program` struct.
+    pub fn parseFromFile(allocator: Allocator, filename: []const u8) !json.Parsed(Program) {
+        const file = try std.fs.cwd().openFile(filename, .{});
+        const file_size = try file.getEndPos();
+        defer file.close();
+
+        const buffer = try file.readToEndAlloc(allocator, file_size);
+        defer allocator.free(buffer);
+
+        const parsed = try json.parseFromSlice(Program, allocator, buffer, .{
+            .allocate = .alloc_always,
+            .ignore_unknown_fields = true,
+        });
+        errdefer parsed.deinit();
+
+        return parsed;
+    }
+
+    /// Takes the `data` array of a json compilation artifact of a v0 cairo program, which contains an array of hexidecimal strings,
+    /// and reads them as an array of `MaybeRelocatable`'s to be read into the vm memory.
+    /// # Arguments
+    /// - `allocator`: The allocator for reading the json file and parsing it.
+    /// - `filename`: The location of the program json file.
+    /// # Returns
+    /// - An ArrayList of `MaybeRelocatable`'s
+    /// # Errors
+    /// - If the string in the array is not able to be treated as a hex string to be parsed as an u256
+    pub fn readData(self: Self, allocator: Allocator) !std.ArrayList(MaybeRelocatable) {
+        var parsed_data = std.ArrayList(MaybeRelocatable).init(allocator);
+        errdefer parsed_data.deinit();
+
+        for (self.data) |instruction| {
+            const parsed_hex = try std.fmt.parseInt(u256, instruction[2..], 16);
+            try parsed_data.append(MaybeRelocatable.fromU256(parsed_hex));
         }
         self.identifiers.deinit();
         self.reference_manager.deinit();
