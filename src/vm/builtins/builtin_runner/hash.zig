@@ -3,6 +3,8 @@ const pedersen_instance_def = @import("../../types/pedersen_instance_def.zig");
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
 const Memory = @import("../../memory/memory.zig").Memory;
+const MemorySegmentManager = @import("../../memory/segments.zig").MemorySegmentManager;
+
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 
@@ -41,7 +43,7 @@ pub const HashBuiltinRunner = struct {
     /// # Returns
     ///
     /// A new `HashBuiltinRunner` instance.
-    pub fn new(
+    pub fn init(
         allocator: Allocator,
         ratio: ?u32,
         included: bool,
@@ -57,6 +59,19 @@ pub const HashBuiltinRunner = struct {
             .verified_addresses = ArrayList(bool).init(allocator),
         };
     }
+
+    pub fn initSegments(self: *Self, segments: *MemorySegmentManager)  !void {
+        _ = self;
+        _ = segments;
+    }
+
+    pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
+        _ = self;
+        var result = ArrayList(MaybeRelocatable).init(allocator);
+        errdefer result.deinit();        
+        return result;
+    }
+
 
     pub fn deduceMemoryCell(
         self: *const Self,

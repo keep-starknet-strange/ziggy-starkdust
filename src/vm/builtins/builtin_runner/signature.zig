@@ -3,10 +3,12 @@ const Signature = @import("../../../math/crypto/signatures.zig").Signature;
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
 const Memory = @import("../../memory/memory.zig").Memory;
+const MemorySegmentManager = @import("../../memory/segments.zig").MemorySegmentManager;
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
 const ecdsa_instance_def = @import("../../types/ecdsa_instance_def.zig");
 
 const AutoHashMap = std.AutoHashMap;
+const ArrayList = std.ArrayList;
 const Allocator = std.mem.Allocator;
 
 /// Signature built-in runner
@@ -46,7 +48,7 @@ pub const SignatureBuiltinRunner = struct {
     /// # Returns
     ///
     /// A new `SignatureBuiltinRunner` instance.
-    pub fn new(allocator: Allocator, instance_def: *ecdsa_instance_def.EcdsaInstanceDef, included: bool) Self {
+    pub fn init(allocator: Allocator, instance_def: *ecdsa_instance_def.EcdsaInstanceDef, included: bool) Self {
         return .{
             .included = included,
             .ratio = instance_def.ratio,
@@ -58,6 +60,18 @@ pub const SignatureBuiltinRunner = struct {
             .instances_per_component = 1,
             .signatures = AutoHashMap(Relocatable, Signature).init(allocator),
         };
+    }
+
+    pub fn initSegments(self: *Self, segments: *MemorySegmentManager)  !void {
+        _ = self;
+        _ = segments;
+    }
+
+    pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
+        _ = self;
+        var result = ArrayList(MaybeRelocatable).init(allocator);
+        errdefer result.deinit();        
+        return result;
     }
 
     pub fn deduceMemoryCell(

@@ -1,26 +1,28 @@
-// ************************************************************
-// *                       IMPORTS                            *
-// ************************************************************
-
-// Core imports.
 const std = @import("std");
 const json = std.json;
 const Allocator = std.mem.Allocator;
-// Local imports.
+const ArrayList = std.ArrayList;
+
+const BuiltinRunner = @import("../builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
 const Config = @import("../config.zig").Config;
-const vm_core = @import("../core.zig");
-const relocatable = @import("../memory/relocatable.zig");
-const Relocatable = relocatable.Relocatable;
-const MaybeRelocatable = relocatable.MaybeRelocatable;
+const CairoVM = @import("../core.zig").CairoVM;
+const CairoLayout = @import("../types/layout.zig").CairoLayout;
+const Relocatable = @import("../memory/relocatable.zig").Relocatable;
+const MaybeRelocatable = @import("../memory/relocatable.zig").MaybeRelocatable;
 const Program = @import("../types/program.zig").Program;
 const CairoRunnerError = @import("../error.zig").CairoRunnerError;
+const RunnerError = @import("../error.zig").RunnerError;
+const trace_context = @import("../trace_context.zig");
+const RelocatedTraceEntry = trace_context.TraceContext.RelocatedTraceEntry;
+const starknet_felt = @import("../../math/fields/starknet.zig");
+const Felt252 = starknet_felt.Felt252;
 
 pub const CairoRunner = struct {
     const Self = @This();
 
     program: Program,
     allocator: Allocator,
-    vm: vm_core.CairoVM,
+    vm: CairoVM,
     program_base: Relocatable = undefined,
     execution_base: Relocatable = undefined,
     initial_pc: Relocatable = undefined,
@@ -30,26 +32,47 @@ pub const CairoRunner = struct {
     instructions: std.ArrayList(MaybeRelocatable),
     function_call_stack: std.ArrayList(MaybeRelocatable),
     entrypoint_name: []const u8 = "main",
+    layout: CairoLayout,
     proof_mode: bool,
     run_ended: bool = false,
-    // layout
-    // execScopes
-    // executionPublicMemory
-    // Segments Finialized
+    relocated_trace: []RelocatedTraceEntry = undefined,
 
     pub fn init(
         allocator: Allocator,
         program: Program,
+        layout: []const u8,
         instructions: std.ArrayList(MaybeRelocatable),
-        vm: vm_core.CairoVM,
+        vm: CairoVM,
         proof_mode: bool,
     ) !Self {
-        const stack = std.ArrayList(MaybeRelocatable).init(allocator);
+        const Case = enum { plain, small, dynamic, all_cairo };
+        return .{
+            .allocator = allocator,
+            .program = program,
+            .layout = switch (std.meta.stringToEnum(Case, layout) orelse return CairoRunnerError.InvalidLayout) {
+                .plain => CairoLayout.plainInstance(),
+                .small => CairoLayout.smallInstance(),
+                .dynamic => CairoLayout.dynamicInstance(),
+                .all_cairo => try CairoLayout.allCairoInstance(allocator),
+            },
+            .instructions = instructions,
+            .vm = vm,
+            .function_call_stack = std.ArrayList(MaybeRelocatable).init(allocator),
+            .proof_mode = proof_mode,
+        };
+    }
 
-        return .{ .allocator = allocator, .program = program, .instructions = instructions, .vm = vm, .function_call_stack = stack, .proof_mode = proof_mode };
+    pub fn initBuiltins(self: *Self, vm: *CairoVM) !void {
+        vm.builtin_runners = try CairoLayout.setUpBuiltinRunners(
+            self.layout,
+            self.allocator,
+            self.proof_mode,
+            self.program.builtins,
+        );
     }
 
     pub fn setupExecutionState(self: *Self) !Relocatable {
+        try self.initBuiltins(&self.vm);
         try self.initSegments();
         const end = try self.initMainEntrypoint();
         self.initVM();
@@ -65,7 +88,9 @@ pub const CairoRunner = struct {
         // stores the execution stack
         self.execution_base = try self.vm.segments.addSegment();
 
-        // TODO, add builtin segments when fib milestone is completed
+        for (self.vm.builtin_runners.items) |*builtin_runner| {
+            try builtin_runner.initSegments(self.vm.segments);
+        }
     }
 
     /// Initializes runner state for execution, as in:
@@ -114,8 +139,14 @@ pub const CairoRunner = struct {
 
     /// Initializes runner state for execution of a program from the `main()` entrypoint.
     pub fn initMainEntrypoint(self: *Self) !Relocatable {
-        // TODO handle the necessary stack initializing for builtins
-        // and the case where we are running in proof mode
+        for (self.vm.builtin_runners.items) |*builtin_runner| {
+            const builtin_stack = try builtin_runner.initialStack(self.allocator);
+            defer builtin_stack.deinit();
+            for (builtin_stack.items) |item| {
+                try self.function_call_stack.append(item);
+            }
+        }
+        // TODO handle the case where we are running in proof mode
         const return_fp = try self.vm.segments.addSegment();
         // Buffer for concatenation
         var buffer: [100]u8 = undefined;
@@ -147,12 +178,18 @@ pub const CairoRunner = struct {
             return CairoRunnerError.EndRunAlreadyCalled;
         }
 
+        // TODO handle proof_mode case
+        self.run_ended = true;
+    }
+
+    pub fn relocate(self: *Self) !void {
         // Presuming the default case of `allow_tmp_segments` in python version
         _ = try self.vm.segments.computeEffectiveSize(false);
 
-        // TODO handle proof_mode case
-
-        self.run_ended = true;
+        const relocation_table = try self.vm.segments.relocateSegments(self.allocator);
+        try self.vm.relocateTrace(relocation_table);
+        // relocate_memory here
+        self.relocated_trace = try self.vm.getRelocatedTrace();
     }
 
     pub fn deinit(self: *Self) void {
@@ -162,58 +199,7 @@ pub const CairoRunner = struct {
         self.function_call_stack.deinit();
         self.instructions.deinit();
         self.vm.segments.memory.deinitData(self.allocator);
+        self.layout.deinit();
         self.vm.deinit();
     }
 };
-
-pub fn runConfig(allocator: Allocator, config: Config) !void {
-    const vm = try vm_core.CairoVM.init(
-        allocator,
-        config,
-    );
-
-    const parsed_program = try Program.parseFromFile(allocator, config.filename);
-    const instructions = try parsed_program.value.readData(allocator);
-    defer parsed_program.deinit();
-
-    var runner = try CairoRunner.init(allocator, parsed_program.value, instructions, vm, config.proof_mode);
-    defer runner.deinit();
-    const end = try runner.setupExecutionState();
-    try runner.runUntilPC(end);
-    try runner.endRun();
-    // TODO readReturnValues necessary for builtins
-
-}
-
-const expect = std.testing.expect;
-const expectEqual = std.testing.expectEqual;
-const expectError = std.testing.expectError;
-const expectEqualSlices = std.testing.expectEqualSlices;
-
-test "Fibonacci: can evaluate without runtime error" {
-
-    // Given
-    const allocator = std.testing.allocator;
-    var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
-    const path = try std.os.realpath("cairo-programs/fibonacci.json", &buffer);
-
-    var parsed_program = try Program.parseFromFile(allocator, path);
-    defer parsed_program.deinit();
-
-    const instructions = try parsed_program.value.readData(allocator);
-
-    const vm = try vm_core.CairoVM.init(
-        allocator,
-        .{},
-    );
-
-    // when
-    var runner = try CairoRunner.init(allocator, parsed_program.value, instructions, vm, false);
-    defer runner.deinit();
-    const end = try runner.setupExecutionState();
-    errdefer std.debug.print("failed on step: {}\n", .{runner.vm.current_step});
-
-    // then
-    try runner.runUntilPC(end);
-    try runner.endRun();
-}
