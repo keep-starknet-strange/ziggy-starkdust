@@ -53,6 +53,8 @@ pub const CairoVM = struct {
     /// Used as an instruction cache within the CairoVM instance.
     instruction_cache: ArrayList(?Instruction),
 
+    relocated_memory: ?std.AutoHashMap(u32, Felt252),
+
     // ************************************************************
     // *             MEMORY ALLOCATION AND DEALLOCATION           *
     // ************************************************************
@@ -96,6 +98,7 @@ pub const CairoVM = struct {
             .current_step = 0,
             .rc_limits = null,
             .instruction_cache = instruction_cache,
+            .relocated_memory = null,
         };
     }
 
@@ -721,6 +724,26 @@ pub const CairoVM = struct {
             }
         }
         return null;
+    }
+
+    /// Performs all relocation operations
+    ///
+    /// The relocation process:
+    ///
+    ///    1. Compute the sizes of each memory segment.
+    ///    2. Build an array that contains the first relocated address of each segment.
+    ///    3. Creates the relocated memory transforming the original memory by using the array built in 2.
+    ///    4. Creates the relocated trace transforming the original trace by using the array built in 2.
+    ///
+    pub fn relocate(self: *Self, allocator: Allocator, allow_tmp_segments: bool) !void {
+        _ = try self.segments.computeEffectiveSize(allow_tmp_segments);
+
+        const relocation_table = try self.segments.relocateSegments(allocator);
+
+        const relocated_memory = try self.segments.relocateMemory(relocation_table, allocator);
+
+        try self.relocateTrace(relocation_table);
+        self.relocated_memory = relocated_memory;
     }
 
     /// Relocates the trace within the Cairo VM, updating relocatable registers to numbered ones.
