@@ -81,6 +81,7 @@ pub const MemoryError = error{
     WriteArg,
     /// Occurs if the VM's current step count is less than the minimum required steps for a builtin operation.
     InsufficientAllocatedCellsErrorMinStepNotReached,
+    GenArgInvalidType,
 };
 
 /// Represents the error conditions that are related to the `CairoRunner`.
