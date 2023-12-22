@@ -354,13 +354,6 @@ pub const Memory = struct {
             return MemoryError.UnallocatedSegment;
         }
 
-        if (data.items.len <= @as(usize, segment_index)) {
-            try data.appendNTimes(
-                std.ArrayListUnmanaged(?MemoryCell){},
-                @as(usize, segment_index) + 1 - data.items.len,
-            );
-        }
-
         var data_segment = &data.items[segment_index];
 
         if (data_segment.items.len <= @as(usize, @intCast(address.offset))) {
