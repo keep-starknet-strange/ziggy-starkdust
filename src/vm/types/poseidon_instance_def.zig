@@ -13,7 +13,7 @@ pub const PoseidonInstanceDef = struct {
     /// Ratio
     ratio: ?u32 = 32,
 
-    pub fn from(ratio: ?u32) Self {
+    pub fn init(ratio: ?u32) Self {
         return .{ .ratio = ratio };
     }
 };
@@ -23,7 +23,7 @@ test "PoseidonInstanceDef: test default implementation" {
     try expectEqual(poseiden_instance.ratio, 32);
 }
 
-test "PoseidonInstanceDef: test from implementation" {
-    const poseiden_instance = PoseidonInstanceDef.from(64);
+test "PoseidonInstanceDef: test init implementation" {
+    const poseiden_instance = PoseidonInstanceDef.init(64);
     try expectEqual(poseiden_instance.ratio, 64);
 }
