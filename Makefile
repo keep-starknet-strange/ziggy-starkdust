@@ -1,11 +1,11 @@
 build: libstarknet_crypto.a
-	@zig build
+	@/Users/godspowereze/zig/zig build
 
 build-optimize: libstarknet_crypto.a
 	@zig build -Doptimize=ReleaseFast
 
 test: libstarknet_crypto.a
-	@zig build test --summary all
+	@/Users/godspowereze/zig/zig build test --summary all
 
 test-filter: libstarknet_crypto.a
 	@zig build test --summary all -Dtest-filter="$(FILTER)"
