@@ -718,7 +718,7 @@ test "CairoVM: relocateTrace and trace comparison (simple use case)" {
 }
 
 test "CairoVM: relocateTrace and trace comparison (more complex use case)" {
-    // Program used:
+    // ProgramJson used:
     // %builtins output
 
     // from starkware.cairo.common.serialize import serialize_word

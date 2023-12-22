@@ -9,7 +9,7 @@ const CairoVM = @import("../core.zig").CairoVM;
 const CairoLayout = @import("../types/layout.zig").CairoLayout;
 const Relocatable = @import("../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../memory/relocatable.zig").MaybeRelocatable;
-const Program = @import("../types/program.zig").Program;
+const ProgramJson = @import("../types/programjson.zig").ProgramJson;
 const CairoRunnerError = @import("../error.zig").CairoRunnerError;
 const RunnerError = @import("../error.zig").RunnerError;
 const trace_context = @import("../trace_context.zig");
@@ -20,7 +20,7 @@ const Felt252 = starknet_felt.Felt252;
 pub const CairoRunner = struct {
     const Self = @This();
 
-    program: Program,
+    program: ProgramJson,
     allocator: Allocator,
     vm: CairoVM,
     program_base: Relocatable = undefined,
@@ -39,7 +39,7 @@ pub const CairoRunner = struct {
 
     pub fn init(
         allocator: Allocator,
-        program: Program,
+        program: ProgramJson,
         layout: []const u8,
         instructions: std.ArrayList(MaybeRelocatable),
         vm: CairoVM,
@@ -83,7 +83,7 @@ pub const CairoRunner = struct {
     pub fn initSegments(self: *Self) !void {
 
         // Common segments, as defined in pg 41 of the cairo paper
-        // stores the bytecode of the executed Cairo Program
+        // stores the bytecode of the executed Cairo ProgramJson
         self.program_base = try self.vm.segments.addSegment();
         // stores the execution stack
         self.execution_base = try self.vm.segments.addSegment();
@@ -193,7 +193,7 @@ pub const CairoRunner = struct {
     }
 
     pub fn deinit(self: *Self) void {
-        // currently handling the deinit of the json.Parsed(Program) outside of constructor
+        // currently handling the deinit of the json.Parsed(ProgramJson) outside of constructor
         // otherwise the runner would always assume json in its interface
         // self.program.deinit();
         self.function_call_stack.deinit();
