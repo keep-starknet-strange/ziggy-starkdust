@@ -7,6 +7,7 @@ const CairoVM = @import("./core.zig").CairoVM;
 const Config = @import("./config.zig").Config;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const Program = @import("./types/program.zig").Program;
+const ProgramJson = @import("./types/programjson.zig").ProgramJson;
 
 const trace_context = @import("./trace_context.zig");
 const RelocatedTraceEntry = trace_context.TraceContext.RelocatedTraceEntry;
@@ -51,7 +52,7 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
         config,
     );
 
-    const parsed_program = try Program.parseFromFile(allocator, config.filename);
+    const parsed_program = try ProgramJson.parseFromFile(allocator, config.filename);
     const instructions = try parsed_program.value.readData(allocator);
     defer parsed_program.deinit();
 
@@ -169,7 +170,7 @@ test "Fibonacci: can evaluate without runtime error" {
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
     const path = try std.os.realpath("cairo_programs/fibonacci.json", &buffer);
 
-    var parsed_program = try Program.parseFromFile(allocator, path);
+    var parsed_program = try ProgramJson.parseFromFile(allocator, path);
     defer parsed_program.deinit();
 
     const instructions = try parsed_program.value.readData(allocator);
@@ -204,7 +205,7 @@ test "Factorial: can evaluate without runtime error" {
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
     const path = try std.os.realpath("cairo_programs/factorial.json", &buffer);
 
-    var parsed_program = try Program.parseFromFile(allocator, path);
+    var parsed_program = try ProgramJson.parseFromFile(allocator, path);
     defer parsed_program.deinit();
 
     const instructions = try parsed_program.value.readData(allocator);
@@ -239,7 +240,7 @@ test "Bitwise builtin test: can evaluate without runtime error" {
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
     const path = try std.os.realpath("cairo_programs/bitwise_builtin_test.json", &buffer);
 
-    var parsed_program = try Program.parseFromFile(allocator, path);
+    var parsed_program = try ProgramJson.parseFromFile(allocator, path);
     defer parsed_program.deinit();
 
     const instructions = try parsed_program.value.readData(allocator);

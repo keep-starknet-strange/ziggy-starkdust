@@ -12,6 +12,9 @@ const RunContext = @import("../vm/run_context.zig").RunContext;
 const relocatable = @import("../vm/memory/relocatable.zig");
 const Config = @import("../vm/config.zig").Config;
 const build_options = @import("../build_options.zig");
+const cairo_runner = @import("../vm/runners/cairo_runner.zig");
+const CairoRunner = cairo_runner.CairoRunner;
+const ProgramJson = @import("../vm/types/programjson.zig").ProgramJson;
 const cairo_run = @import("../vm/cairo_run.zig");
 
 // ************************************************************

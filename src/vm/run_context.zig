@@ -13,7 +13,7 @@ pub const RunContext = struct {
 
     /// The allocator used to allocate the memory for the run context.
     allocator: Allocator,
-    /// Program counter (pc) contains the address in memory of the current Cairo
+    /// ProgramJson counter (pc) contains the address in memory of the current Cairo
     /// instruction to be executed.
     pc: *Relocatable,
     /// Allocation pointer (ap) , by convention, points to the first memory cell
