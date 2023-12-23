@@ -493,6 +493,14 @@ pub const CairoVM = struct {
         }
     }
 
+    pub fn verifyAutoDeductionsForAddr(self: *const Self, allocator: Allocator, addr: Relocatable, builtin: *const BuiltinRunner) !void {
+        const value = try builtin.deduceMemoryCell(allocator, addr, self.segments.memory) orelse return;
+        const current_value = self.segments.memory.get(addr) orelse return;
+        if (!value.eq(current_value)) {
+            return CairoVMError.InconsistentAutoDeduction;
+        }
+    }
+
     /// Attempts to deduce `op0` and `res` for an instruction, given `dst` and `op1`.
     ///
     /// # Arguments

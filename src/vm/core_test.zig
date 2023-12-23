@@ -2912,3 +2912,26 @@ test "CairoVM: getReturnValues should return a memory error when Ap is 0" {
 
     try expectError(MemoryError.FailedToGetReturnValues, vm.getReturnValues(3));
 }
+
+test "CairoVM: verifyAutoDeductionsForAddr bitwise" {
+    var builtin = BuiltinRunner{
+        .Bitwise = BitwiseBuiltinRunner.init(&BitwiseInstanceDef{}, true),
+    };
+    builtin.Bitwise.base = 2;
+
+    const allocator = std.testing.allocator;
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(
+        allocator,
+        .{
+            .{ .{ 2, 0 }, .{12} },
+            .{ .{ 2, 1 }, .{12} },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    try expectEqual(@TypeOf(try vm.verifyAutoDeductionsForAddr(allocator, Relocatable.init(2, 0), &builtin)), void);
+    try expectEqual(@TypeOf(try vm.verifyAutoDeductionsForAddr(allocator, Relocatable.init(2, 1), &builtin)), void);
+}
