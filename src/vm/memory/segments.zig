@@ -272,14 +272,13 @@ pub const MemorySegmentManager = struct {
         errdefer relocated_memory.deinit();
         for (0..self.memory.num_segments) |i| {
             const segment_index = @as(i64, @intCast(i));
-            const size = self.getSegmentSize(@intCast(i));
-            if (size != null) {
-                for (0..size.?) |j| {
+            if (self.getSegmentSize(@intCast(i))) |size| {
+                for (0..size) |j| {
                     const key = Relocatable.init(segment_index, @as(u32, @truncate(j)));
                     const cell = self.memory.get(key);
-                    if (cell != null) {
+                    if (cell) |c| {
                         const relocated_address = try key.relocateAddress(relocation_table);
-                        const value = try cell.?.relocateValue(relocation_table);
+                        const value = try c.relocateValue(relocation_table);
                         try relocated_memory.put(@as(u32, @truncate(relocated_address)), value);
                     }
                 }
@@ -1048,6 +1047,8 @@ test "MemorySegmentManager: relocate memory" {
     try expectEqual(fourth, fourth_actual);
     try expectEqual(fifth, fifth_actual);
     try expectEqual(sixth, sixth_actual);
+
+    try expectEqual(expected_relocated_memory.count(), relocated_memory.count());
 }
 
 test "MemorySegmentManager: isValidMemoryValue should return true if Felt" {
