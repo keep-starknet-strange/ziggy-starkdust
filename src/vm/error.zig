@@ -35,7 +35,7 @@ pub const CairoVMError = error{
     UnconstrainedResAssertEq,
     /// Different result and destination operands values for Opcode.ASSERT_EQ
     DiffAssertValues,
-    /// Cannot return Program Counter
+    /// Cannot return ProgramJson Counter
     CantWriteReturnPc,
     /// Cannot return Frame Pointer
     CantWriteReturnFp,
@@ -136,4 +136,23 @@ pub const TraceError = error{
     NoRelocationFound,
     /// Raised when trying to get relocated trace when trace hasn't been relocated
     TraceNotRelocated,
+};
+
+/// Represents errors occurring during program execution.
+pub const ProgramError = error{
+    /// I/O errors
+    IO,
+    /// Errors in JSON parsing
+    Parse,
+    /// Indicates that the specified entrypoint was not found
+    EntrypointNotFound,
+    /// Indicates that a constant lacks a value
+    ConstWithoutValue,
+    /// Indicates a deviation from an expected prime value
+    PrimeDiffers,
+    /// Indicates the inability to build a StrippedProgram due to the absence of a main program entry
+    StrippedProgramNoMain,
+    /// Indicates an invalid hint PC value greater than or equal to the program length
+    InvalidHintPc,
+    BuiltinNotInLayout,
 };

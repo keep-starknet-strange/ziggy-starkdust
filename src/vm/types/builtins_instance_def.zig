@@ -99,7 +99,7 @@ pub const BuiltinsInstanceDef = struct {
             .bitwise = BitwiseInstanceDef.init(16),
             .ec_op = EcOpInstanceDef.from(1024),
             .keccak = KeccakInstanceDef.init(2048, state_rep_keccak),
-            .poseidon = PoseidonInstanceDef.from(256),
+            .poseidon = PoseidonInstanceDef.init(256),
         };
     }
 
