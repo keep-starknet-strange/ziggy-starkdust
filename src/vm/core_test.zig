@@ -2914,12 +2914,12 @@ test "CairoVM: getReturnValues should return a memory error when Ap is 0" {
 }
 
 test "CairoVM: verifyAutoDeductionsForAddr bitwise" {
-    var builtin = BuiltinRunner{
-        .Bitwise = BitwiseBuiltinRunner.init(&BitwiseInstanceDef{}, true),
-    };
-    builtin.Bitwise.base = 2;
-
     const allocator = std.testing.allocator;
+
+    var bitwise_builtin = BitwiseBuiltinRunner.initDefault();
+    bitwise_builtin.base = 2;
+    var builtin = BuiltinRunner{ .Bitwise = bitwise_builtin };
+
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
 
@@ -2927,11 +2927,36 @@ test "CairoVM: verifyAutoDeductionsForAddr bitwise" {
         allocator,
         .{
             .{ .{ 2, 0 }, .{12} },
-            .{ .{ 2, 1 }, .{12} },
+            .{ .{ 2, 1 }, .{10} },
+            .{ .{ 2, 2 }, .{8} },
         },
     );
-    defer vm.segments.memory.deinitData(std.testing.allocator);
+    defer vm.segments.memory.deinitData(allocator);
 
-    try expectEqual(@TypeOf(try vm.verifyAutoDeductionsForAddr(allocator, Relocatable.init(2, 0), &builtin)), void);
-    try expectEqual(@TypeOf(try vm.verifyAutoDeductionsForAddr(allocator, Relocatable.init(2, 1), &builtin)), void);
+    try expectEqual(void, @TypeOf(try vm.verifyAutoDeductionsForAddr(allocator, Relocatable.init(2, 0), &builtin)));
+    try expectEqual(void, @TypeOf(try vm.verifyAutoDeductionsForAddr(allocator, Relocatable.init(2, 1), &builtin)));
+    try expectEqual(void, @TypeOf(try vm.verifyAutoDeductionsForAddr(allocator, Relocatable.init(2, 2), &builtin)));
+}
+
+test "CairoVM: verifyAutoDeductionsForAddr throws InconsistentAutoDeduction" {
+    const allocator = std.testing.allocator;
+
+    var bitwise_builtin = BitwiseBuiltinRunner.initDefault();
+    bitwise_builtin.base = 2;
+    var builtin = BuiltinRunner{ .Bitwise = bitwise_builtin };
+
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(
+        allocator,
+        .{
+            .{ .{ 2, 0 }, .{12} },
+            .{ .{ 2, 1 }, .{10} },
+            .{ .{ 2, 2 }, .{7} },
+        },
+    );
+    defer vm.segments.memory.deinitData(allocator);
+
+    try expectError(CairoVMError.InconsistentAutoDeduction, vm.verifyAutoDeductionsForAddr(allocator, Relocatable.init(2, 2), &builtin));
 }
