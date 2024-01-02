@@ -5,6 +5,8 @@ const ArrayList = std.ArrayList;
 const starknet_felt = @import("../math/fields/starknet.zig");
 
 // Local imports.
+const KeccakInstanceDef = @import("./types/keccak_instance_def.zig").KeccakInstanceDef;
+const KeccakBuiltinRunner = @import("./builtins/builtin_runner/keccak.zig").KeccakBuiltinRunner;
 const segments = @import("memory/segments.zig");
 const memory = @import("memory/memory.zig");
 const MemoryCell = memory.MemoryCell;
@@ -2911,4 +2913,61 @@ test "CairoVM: getReturnValues should return a memory error when Ap is 0" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     try expectError(MemoryError.FailedToGetReturnValues, vm.getReturnValues(3));
+}
+
+test "CairoVM: verifyAutoDeductions for keccak builtin runner" {
+    const allocator = std.testing.allocator;
+
+    var keccak_instance_def = try KeccakInstanceDef.default(allocator);
+
+    // keccak_instance_def.deinit();
+
+    // var keccak_builtin = KeccakBuiltinRunner.init(
+    //     allocator,
+    //     &keccak_instance_def,
+    //     true,
+    // );
+
+    // defer keccak_builtin.deinit();
+
+    // var builtin = BuiltinRunner{ .Keccak = KeccakBuiltinRunner.init(
+    //     allocator,
+    //     &keccak_instance_def,
+    //     true,
+    // ) };
+
+    // defer builtin.Keccak.deinit();
+
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(
+        allocator,
+        .{
+            .{ .{ 0, 16 }, .{43} },
+            .{ .{ 0, 17 }, .{199} },
+            .{ .{ 0, 18 }, .{0} },
+            .{ .{ 0, 19 }, .{0} },
+            .{ .{ 0, 20 }, .{0} },
+            .{ .{ 0, 21 }, .{0} },
+            .{ .{ 0, 22 }, .{0} },
+            .{ .{ 0, 23 }, .{1} },
+            .{ .{ 0, 24 }, .{564514457304291355949254928395241013971879337011439882107889} },
+            .{ .{ 0, 25 }, .{1006979841721999878391288827876533441431370448293338267890891} },
+            .{ .{ 0, 26 }, .{811666116505725183408319428185457775191826596777361721216040} },
+        },
+    );
+    defer vm.segments.memory.deinitData(allocator);
+
+    try vm.builtin_runners.append(.{ .Keccak = KeccakBuiltinRunner.init(
+        allocator,
+        &keccak_instance_def,
+        true,
+    ) });
+
+    // defer vm.builtin_runners.items[0].Keccak.deinit();
+
+    const result = try vm.verifyAutoDeductions(allocator);
+
+    try expectEqual(void, @TypeOf(result));
 }
