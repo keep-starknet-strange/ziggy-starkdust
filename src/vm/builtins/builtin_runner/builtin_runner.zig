@@ -125,14 +125,7 @@ pub const BuiltinRunner = union(enum) {
             .Hash => |hash| hash.deduceMemoryCell(address, memory),
             .Output => |output| output.deduceMemoryCell(address, memory),
             .RangeCheck => |range_check| range_check.deduceMemoryCell(address, memory),
-            .Keccak => |*keccak| {
-
-                // var mut_keccak = keccak;
-                // const toto = try mut_keccak.deduceMemoryCell(allocator, address, memory);
-                // return toto;
-
-                return try keccak.deduceMemoryCell(allocator, address, memory);
-            },
+            .Keccak => |*keccak| try keccak.deduceMemoryCell(allocator, address, memory),
             .Signature => |signature| signature.deduceMemoryCell(address, memory),
             .Poseidon => |poseidon| poseidon.deduceMemoryCell(address, memory),
             .SegmentArena => |segment_arena| segment_arena.deduceMemoryCell(address, memory),
