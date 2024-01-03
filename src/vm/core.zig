@@ -514,8 +514,17 @@ pub const CairoVM = struct {
     /// ## Returns
     /// - `void`: Returns nothing on success.
     /// - `CairoVMError.InconsistentAutoDeduction`: Returns an error if the deduced value does not match the memory.
-    pub fn verifyAutoDeductionsForAddr(self: *const Self, allocator: Allocator, addr: Relocatable, builtin: *const BuiltinRunner) !void {
-        const value = try builtin.deduceMemoryCell(allocator, addr, self.segments.memory) orelse return;
+    pub fn verifyAutoDeductionsForAddr(
+        self: *const Self,
+        allocator: Allocator,
+        addr: Relocatable,
+        builtin: *BuiltinRunner,
+    ) !void {
+        const value = try builtin.deduceMemoryCell(
+            allocator,
+            addr,
+            self.segments.memory,
+        ) orelse return;
         const current_value = self.segments.memory.get(addr) orelse return;
         if (!value.eq(current_value)) {
             return CairoVMError.InconsistentAutoDeduction;
