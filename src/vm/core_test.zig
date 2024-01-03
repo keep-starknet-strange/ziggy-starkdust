@@ -2945,7 +2945,8 @@ test "CairoVM: verifyAutoDeductionsForAddr throws InconsistentAutoDeduction" {
 
     var bitwise_builtin = BitwiseBuiltinRunner.initDefault();
     bitwise_builtin.base = 2;
-    const builtin = BuiltinRunner{ .Bitwise = bitwise_builtin };
+
+    var builtin = BuiltinRunner{ .Bitwise = bitwise_builtin };
 
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -3059,3 +3060,4 @@ test "CairoVM: verifyAutoDeductions for keccak builtin runner" {
 
     try expectEqual(void, @TypeOf(result));
 }
+
