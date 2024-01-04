@@ -1,13 +1,17 @@
 const std = @import("std");
 const json = std.json;
 const Allocator = std.mem.Allocator;
+const ArrayList = std.ArrayList;
 
+const BuiltinRunner = @import("../builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
 const Config = @import("../config.zig").Config;
 const CairoVM = @import("../core.zig").CairoVM;
+const CairoLayout = @import("../types/layout.zig").CairoLayout;
 const Relocatable = @import("../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../memory/relocatable.zig").MaybeRelocatable;
-const Program = @import("../types/program.zig").Program;
+const ProgramJson = @import("../types/programjson.zig").ProgramJson;
 const CairoRunnerError = @import("../error.zig").CairoRunnerError;
+const RunnerError = @import("../error.zig").RunnerError;
 const trace_context = @import("../trace_context.zig");
 const RelocatedTraceEntry = trace_context.TraceContext.RelocatedTraceEntry;
 const starknet_felt = @import("../../math/fields/starknet.zig");
@@ -16,7 +20,7 @@ const Felt252 = starknet_felt.Felt252;
 pub const CairoRunner = struct {
     const Self = @This();
 
-    program: Program,
+    program: ProgramJson,
     allocator: Allocator,
     vm: CairoVM,
     program_base: Relocatable = undefined,
@@ -28,20 +32,29 @@ pub const CairoRunner = struct {
     instructions: std.ArrayList(MaybeRelocatable),
     function_call_stack: std.ArrayList(MaybeRelocatable),
     entrypoint_name: []const u8 = "main",
+    layout: CairoLayout,
     proof_mode: bool,
     run_ended: bool = false,
     relocated_trace: []RelocatedTraceEntry = undefined,
 
     pub fn init(
         allocator: Allocator,
-        program: Program,
+        program: ProgramJson,
+        layout: []const u8,
         instructions: std.ArrayList(MaybeRelocatable),
         vm: CairoVM,
         proof_mode: bool,
     ) !Self {
+        const Case = enum { plain, small, dynamic, all_cairo };
         return .{
             .allocator = allocator,
             .program = program,
+            .layout = switch (std.meta.stringToEnum(Case, layout) orelse return CairoRunnerError.InvalidLayout) {
+                .plain => CairoLayout.plainInstance(),
+                .small => CairoLayout.smallInstance(),
+                .dynamic => CairoLayout.dynamicInstance(),
+                .all_cairo => try CairoLayout.allCairoInstance(allocator),
+            },
             .instructions = instructions,
             .vm = vm,
             .function_call_stack = std.ArrayList(MaybeRelocatable).init(allocator),
@@ -50,11 +63,16 @@ pub const CairoRunner = struct {
     }
 
     pub fn initBuiltins(self: *Self, vm: *CairoVM) !void {
-        _ = self;
-        _ = vm;
+        vm.builtin_runners = try CairoLayout.setUpBuiltinRunners(
+            self.layout,
+            self.allocator,
+            self.proof_mode,
+            self.program.builtins,
+        );
     }
 
     pub fn setupExecutionState(self: *Self) !Relocatable {
+        try self.initBuiltins(&self.vm);
         try self.initSegments();
         const end = try self.initMainEntrypoint();
         self.initVM();
@@ -65,7 +83,7 @@ pub const CairoRunner = struct {
     pub fn initSegments(self: *Self) !void {
 
         // Common segments, as defined in pg 41 of the cairo paper
-        // stores the bytecode of the executed Cairo Program
+        // stores the bytecode of the executed Cairo ProgramJson
         self.program_base = try self.vm.segments.addSegment();
         // stores the execution stack
         self.execution_base = try self.vm.segments.addSegment();
@@ -175,12 +193,13 @@ pub const CairoRunner = struct {
     }
 
     pub fn deinit(self: *Self) void {
-        // currently handling the deinit of the json.Parsed(Program) outside of constructor
+        // currently handling the deinit of the json.Parsed(ProgramJson) outside of constructor
         // otherwise the runner would always assume json in its interface
         // self.program.deinit();
         self.function_call_stack.deinit();
         self.instructions.deinit();
         self.vm.segments.memory.deinitData(self.allocator);
+        self.layout.deinit();
         self.vm.deinit();
     }
 };

@@ -12,6 +12,9 @@ const RunContext = @import("../vm/run_context.zig").RunContext;
 const relocatable = @import("../vm/memory/relocatable.zig");
 const Config = @import("../vm/config.zig").Config;
 const build_options = @import("../build_options.zig");
+const cairo_runner = @import("../vm/runners/cairo_runner.zig");
+const CairoRunner = cairo_runner.CairoRunner;
+const ProgramJson = @import("../vm/types/programjson.zig").ProgramJson;
 const cairo_run = @import("../vm/cairo_run.zig");
 
 // ************************************************************
@@ -67,6 +70,14 @@ var output_memory = cli.Option{
     .required = false,
 };
 
+var layout = cli.Option{
+    .long_name = "layout",
+    .help = "The memory layout to use.",
+    .short_alias = 'l',
+    .value_ref = cli.mkRef(&config.layout),
+    .required = false,
+};
+
 // ************************************************************
 // *                    CLI APP                               *
 // ************************************************************
@@ -88,7 +99,13 @@ var app = &cli.App{
             \\Execute a cairo program with the virtual machine.
             ,
             .action = execute,
-            .options = &.{ &execute_proof_mode_option, &enable_trace, &program_option, &output_trace },
+            .options = &.{
+                &execute_proof_mode_option,
+                &layout,
+                &enable_trace,
+                &program_option,
+                &output_trace,
+            },
         },
     },
 };
