@@ -46,7 +46,7 @@ pub fn build(b: *std.Build) void {
     // **************************************************************
     // expose ziggy-starkdust as a module
     _ = b.addModule(package_name, .{
-        .source_file = .{ .path = package_path },
+        .root_source_file = .{ .path = package_path },
         .dependencies = deps,
     });
 
