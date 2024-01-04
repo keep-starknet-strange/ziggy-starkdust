@@ -30,16 +30,18 @@ pub fn outerBrackets(input: []const u8) ParseOptResult {
     // Split the input array at each ']' character, searching backward
     var it_out = std.mem.splitBackwardsSequence(u8, input, "]");
 
-    // Check if the first element after splitting at '[' and ']' is an empty string
+    // Empty string ("") case
+    if (std.mem.eql(u8, input, ""))
+        // No brackets found, return the original input with a false boolean value
+        return .{ input, false };
+
+    // Refine the check to ensure that the match is the beginning and end of the string
     if (std.mem.eql(u8, it_in.first(), "") and std.mem.eql(u8, it_out.first(), "")) {
-        // Check if both 'it_in' and 'it_out' indices are not null
-        if (it_in.index != null and it_out.index != null) {
-            // Return a tuple containing the content within the outer brackets and true
-            return .{ input[it_in.index.?..it_out.index.?], true };
-        }
+        // Return a tuple containing the content within the outer brackets and true
+        return .{ input[it_in.index.?..it_out.index.?], true };
     }
 
-    // Return the original input and a false boolean value indicating unsuccessful parsing
+    // If the above conditions are not met, return the original input with a false boolean value
     return .{ input, false };
 }
 
