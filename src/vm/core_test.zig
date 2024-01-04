@@ -36,7 +36,7 @@ const expectError = std.testing.expectError;
 const expectEqualSlices = std.testing.expectEqualSlices;
 
 // Default Test Instruction to avoid having to initialize it in every test
-const defaultTestInstruction = Instruction.default();
+const defaultTestInstruction = Instruction.initDefault();
 
 const testInstruction = Instruction{
     .off_0 = 0,
