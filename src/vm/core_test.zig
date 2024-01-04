@@ -5,6 +5,8 @@ const ArrayList = std.ArrayList;
 const starknet_felt = @import("../math/fields/starknet.zig");
 
 // Local imports.
+const KeccakInstanceDef = @import("./types/keccak_instance_def.zig").KeccakInstanceDef;
+const KeccakBuiltinRunner = @import("./builtins/builtin_runner/keccak.zig").KeccakBuiltinRunner;
 const segments = @import("memory/segments.zig");
 const memory = @import("memory/memory.zig");
 const MemoryCell = memory.MemoryCell;
