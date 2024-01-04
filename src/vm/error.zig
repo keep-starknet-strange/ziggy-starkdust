@@ -31,6 +31,8 @@ pub const CairoVMError = error{
     FailedToComputeOp0,
     /// Signifies that the execution run has not finished.
     RunNotFinished,
+    /// Represents errors related to memory management and access within the Cairo VM.
+    Memory,
     /// Res.UNCONSTRAINED cannot be used with Opcode.ASSERT_EQ
     UnconstrainedResAssertEq,
     /// Different result and destination operands values for Opcode.ASSERT_EQ
@@ -65,6 +67,10 @@ pub const MemoryError = error{
     GetRangeMemoryGap,
     /// Math error
     Math,
+    /// Represents errors related to unrelocated memory segments and associated operations.
+    UnrelocatedMemory,
+    /// Represents errors related to malformed or inconsistent public memory segments.
+    MalformedPublicMemory,
     /// Represents a situation where a segment has more accessed addresses than its size.
     SegmentHasMoreAccessedAddressesThanSize,
     /// Represents an error when there's a failure to retrieve return values from memory.
