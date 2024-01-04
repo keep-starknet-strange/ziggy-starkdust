@@ -5,8 +5,6 @@ const ArrayList = std.ArrayList;
 const starknet_felt = @import("../math/fields/starknet.zig");
 
 // Local imports.
-const KeccakInstanceDef = @import("./types/keccak_instance_def.zig").KeccakInstanceDef;
-const KeccakBuiltinRunner = @import("./builtins/builtin_runner/keccak.zig").KeccakBuiltinRunner;
 const segments = @import("memory/segments.zig");
 const memory = @import("memory/memory.zig");
 const MemoryCell = memory.MemoryCell;
@@ -3669,17 +3667,11 @@ test "CairoVM: verifyAutoDeductions for keccak builtin runner" {
     const allocator = std.testing.allocator;
 
     var keccak_instance_def = try KeccakInstanceDef.default(allocator);
-
-    // keccak_instance_def.deinit();
-
-    var keccak_builtin = KeccakBuiltinRunner.init(
+    const keccak_builtin = KeccakBuiltinRunner.init(
         allocator,
         &keccak_instance_def,
         true,
     );
-
-    defer keccak_builtin.deinit();
-
     const builtin = BuiltinRunner{ .Keccak = keccak_builtin };
 
     var vm = try CairoVM.init(allocator, .{});
@@ -3709,4 +3701,3 @@ test "CairoVM: verifyAutoDeductions for keccak builtin runner" {
 
     try expectEqual(void, @TypeOf(result));
 }
-

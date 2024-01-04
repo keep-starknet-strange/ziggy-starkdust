@@ -519,7 +519,7 @@ pub const CairoVM = struct {
     /// - `void`: Returns nothing on success.
     /// - `CairoVMError.InconsistentAutoDeduction`: Returns an error if a deduced value does not match the memory.
     pub fn verifyAutoDeductions(self: *const Self, allocator: Allocator) !void {
-        for (self.builtin_runners.items) |builtin| {
+        for (self.builtin_runners.items) |*builtin| {
             const segment_index = builtin.base();
             const segment = self.segments.memory.data.items[segment_index];
             for (segment.items, 0..) |value, offset| {
