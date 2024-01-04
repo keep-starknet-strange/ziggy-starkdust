@@ -118,9 +118,16 @@ pub const CairoVM = struct {
         self.segments.deinit();
         // Deallocate the run context.
         self.run_context.deinit();
-        // Deallocate trace
+        // Deallocate trace context.
         self.trace_context.deinit();
-        // Deallocate built-in runners
+        // Loop through the built-in runners and deallocate their resources.
+        for (self.builtin_runners.items) |*builtin| {
+            switch (builtin.*) {
+                .Keccak => |*keccak| keccak.deinit(),
+                else => {},
+            }
+        }
+        // Deallocate built-in runners.
         self.builtin_runners.deinit();
         if (self.relocation_table) |r| {
             r.deinit();
@@ -516,8 +523,17 @@ pub const CairoVM = struct {
     /// ## Returns
     /// - `void`: Returns nothing on success.
     /// - `CairoVMError.InconsistentAutoDeduction`: Returns an error if the deduced value does not match the memory.
-    pub fn verifyAutoDeductionsForAddr(self: *const Self, allocator: Allocator, addr: Relocatable, builtin: *const BuiltinRunner) !void {
-        const value = try builtin.deduceMemoryCell(allocator, addr, self.segments.memory) orelse return;
+    pub fn verifyAutoDeductionsForAddr(
+        self: *const Self,
+        allocator: Allocator,
+        addr: Relocatable,
+        builtin: *BuiltinRunner,
+    ) !void {
+        const value = try builtin.deduceMemoryCell(
+            allocator,
+            addr,
+            self.segments.memory,
+        ) orelse return;
         const current_value = self.segments.memory.get(addr) orelse return;
         if (!value.eq(current_value)) {
             return CairoVMError.InconsistentAutoDeduction;
@@ -737,7 +753,7 @@ pub const CairoVM = struct {
         allocator: Allocator,
         address: Relocatable,
     ) CairoVMError!?MaybeRelocatable {
-        for (self.builtin_runners.items) |builtin_item| {
+        for (self.builtin_runners.items) |*builtin_item| {
             if (@as(
                 u64,
                 @intCast(builtin_item.base()),

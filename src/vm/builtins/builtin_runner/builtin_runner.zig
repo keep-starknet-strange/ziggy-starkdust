@@ -100,7 +100,7 @@ pub const BuiltinRunner = union(enum) {
             .SegmentArena => |*segment_arena| try segment_arena.initialStack(allocator),
         };
     }
-    
+
     /// Deduces memory cell information for the built-in runner.
     ///
     /// This function deduces memory cell information for the specific type of built-in runner.
@@ -114,7 +114,7 @@ pub const BuiltinRunner = union(enum) {
     ///
     /// A `MaybeRelocatable` representing the deduced memory cell information, or an error if deduction fails.
     pub fn deduceMemoryCell(
-        self: *const Self,
+        self: *Self,
         allocator: Allocator,
         address: Relocatable,
         memory: *Memory,
@@ -125,10 +125,7 @@ pub const BuiltinRunner = union(enum) {
             .Hash => |hash| hash.deduceMemoryCell(address, memory),
             .Output => |output| output.deduceMemoryCell(address, memory),
             .RangeCheck => |range_check| range_check.deduceMemoryCell(address, memory),
-            .Keccak => |keccak| {
-                var mut_keccak = keccak;
-                return mut_keccak.deduceMemoryCell(allocator, address, memory);
-            },
+            .Keccak => |*keccak| try keccak.deduceMemoryCell(allocator, address, memory),
             .Signature => |signature| signature.deduceMemoryCell(address, memory),
             .Poseidon => |poseidon| poseidon.deduceMemoryCell(address, memory),
             .SegmentArena => |segment_arena| segment_arena.deduceMemoryCell(address, memory),
