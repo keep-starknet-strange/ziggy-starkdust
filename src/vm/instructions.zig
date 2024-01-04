@@ -1,5 +1,6 @@
 // Core imports.
 const std = @import("std");
+const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 
 //  Structure of the 63-bit that form the first word of each instruction.
 //  See Cairo whitepaper, page 32 - https://eprint.iacr.org/2021/1063.pdf.
@@ -15,6 +16,9 @@ const std = @import("std");
 // ├─────┼─────┼───┬───┼───┬───┼───┬───┬───┼───┬────┼────┬────┬────┬────┼────┤
 // │  0  │  1  │ 2 │ 3 │ 4 │ 5 │ 6 │ 7 │ 8 │ 9 │ 10 │ 11 │ 12 │ 13 │ 14 │ 15 │
 // └─────┴─────┴───┴───┴───┴───┴───┴───┴───┴───┴────┴────┴────┴────┴────┴────┘
+
+/// Used to represent 16-bit signed integer offsets
+pub const OFFSET_BITS: u32 = 16;
 
 // *****************************************************************************
 // *                       CUSTOM ERROR TYPE                                   *
@@ -124,38 +128,64 @@ pub const Opcode = enum {
 /// Represents a decoded instruction.
 pub const Instruction = struct {
     const Self = @This();
-
+    /// Offset 0
+    ///
+    /// In the range [-2**15, 2*15) = [-2**(OFFSET_BITS-1), 2**(OFFSET_BITS-1)).
     off_0: i16,
+    /// Offset 1
+    ///
+    /// In the range [-2**15, 2*15) = [-2**(OFFSET_BITS-1), 2**(OFFSET_BITS-1)).
     off_1: i16,
+    /// Offset 2
+    ///
+    /// In the range [-2**15, 2*15) = [-2**(OFFSET_BITS-1), 2**(OFFSET_BITS-1)).
     off_2: i16,
+    /// Destination register.
     dst_reg: Register,
+    /// Operand 0 register.
     op_0_reg: Register,
+    /// Source for Operand 1 data.
     op_1_addr: Op1Src,
+    /// Logic for result computation.
     res_logic: ResLogic,
+    /// Update method for the program counter.
     pc_update: PcUpdate,
+    /// Update method for the allocation pointer.
     ap_update: ApUpdate,
+    /// Update method for the frame pointer.
     fp_update: FpUpdate,
+    /// Opcode representing the operation or instruction type.
     opcode: Opcode,
 
     /// Returns the size of an instruction.
     /// # Returns
     /// Size of the instruction.
     pub fn size(self: Self) usize {
-        if (self.op_1_addr == Op1Src.Imm) {
-            return 2;
-        } else {
-            return 1;
-        }
+        return switch (self.op_1_addr) {
+            .Imm => 2,
+            else => 1,
+        };
     }
 
     /// Returns a default instruction.
-    pub fn default() Self {
+    ///
+    /// Generates a default instruction (`CALL FP FP Add2 JumpRel Add2 Imm`) and decodes it.
+    pub fn initDefault() Self {
         //  0|  opcode|ap_update|pc_update|res_logic|op1_src|op0_reg|dst_reg
         // 15|14 13 12|    11 10|  9  8  7|     6  5|4  3  2|      1|      0
         //   |    CALL|      ADD|     JUMP|      ADD|    IMM|     FP|     FP
         //  0  0  0  1      0  1   0  0  1      0  1 0  0  1       1       1
         //  0001 0100 1010 0111 = 0x14A7; offx = 0
         return decode(0x14A7800080008000) catch unreachable;
+    }
+
+    /// Checks if the instruction is a CALL instruction.
+    ///
+    /// Determines if the instruction represents a CALL operation.
+    /// # Returns
+    /// `true` if the instruction is a CALL instruction; otherwise, `false`.
+    pub fn isCallInstruction(self: *const Self) bool {
+        return self.res_logic == .Op1 and (self.pc_update == .Jump or self.pc_update == .JumpRel) and self.ap_update == .Add2 and self.fp_update == .APPlus2 and self.opcode == .Call;
     }
 };
 
@@ -165,55 +195,53 @@ pub const Instruction = struct {
 /// # Returns
 /// Decoded Instruction struct, or an error if decoding fails
 pub fn decode(encoded_instruction: u64) Error!Instruction {
+    // Check for the high bit (bit 63) to ensure it's not set, indicating an unsupported instruction.
     if (encoded_instruction & (1 << 63) != 0) return Error.NonZeroHighBit;
+
+    // Extract the flags containing various instruction components.
     const flags = @as(
         u16,
         @truncate(encoded_instruction >> 48),
     );
+
+    // Extract the offsets from the encoded instruction.
     const offsets = @as(
         u48,
         @truncate(encoded_instruction),
     );
-    const parsedNum = @as(
+
+    // Parse the opcode from the flags.
+    const opcode = try parseOpcode(@as(
         u8,
         @truncate((flags >> 12) & 7),
-    );
-    const opcode = try parseOpcode(parsedNum);
+    ));
 
-    const pc_update = try parsePcUpdate(
-        @as(
-            u8,
-            @truncate((flags >> 7) & 7),
-        ),
-    );
+    // Parse the program counter update information from the flags.
+    const pc_update = try parsePcUpdate(@as(
+        u8,
+        @truncate((flags >> 7) & 7),
+    ));
 
+    // Construct and return the decoded Instruction struct using the extracted information.
     return .{
-        .off_0 = fromBiasedRepresentation(
-            @as(
-                u16,
-                @truncate(offsets),
-            ),
-        ),
-        .off_1 = fromBiasedRepresentation(
-            @as(
-                u16,
-                @truncate(offsets >> 16),
-            ),
-        ),
-        .off_2 = fromBiasedRepresentation(
-            @as(
-                u16,
-                @truncate(offsets >> 32),
-            ),
-        ),
-        .dst_reg = if (flags & 1 != 0) Register.FP else Register.AP,
-        .op_0_reg = if (flags & 2 != 0) Register.FP else Register.AP,
-        .op_1_addr = try parseOp1Src(
-            @as(
-                u8,
-                @truncate((flags >> 2) & 7),
-            ),
-        ),
+        .off_0 = fromBiasedRepresentation(@as(
+            u16,
+            @truncate(offsets),
+        )),
+        .off_1 = fromBiasedRepresentation(@as(
+            u16,
+            @truncate(offsets >> 16),
+        )),
+        .off_2 = fromBiasedRepresentation(@as(
+            u16,
+            @truncate(offsets >> 32),
+        )),
+        .dst_reg = if (flags & 1 != 0) .FP else .AP,
+        .op_0_reg = if (flags & 2 != 0) .FP else .AP,
+        .op_1_addr = try parseOp1Src(@as(
+            u8,
+            @truncate((flags >> 2) & 7),
+        )),
         .res_logic = try parseResLogic(
             @as(
                 u8,
@@ -275,13 +303,7 @@ fn parseResLogic(
     pc_update: PcUpdate,
 ) Error!ResLogic {
     return switch (res_logic_num) {
-        0 => {
-            if (pc_update == .Jnz) {
-                return .Unconstrained;
-            } else {
-                return .Op1;
-            }
-        },
+        0 => if (pc_update == .Jnz) .Unconstrained else .Op1,
         1 => .Add,
         2 => .Mul,
         else => Error.Invalidres_logic,
@@ -314,11 +336,7 @@ fn parseApUpdate(
     opcode: Opcode,
 ) Error!ApUpdate {
     return switch (ap_update_num) {
-        0 => if (opcode == .Call) {
-            return .Add2;
-        } else {
-            return .Regular;
-        },
+        0 => if (opcode == .Call) .Add2 else .Regular,
         1 => .Add,
         2 => .Add1,
         else => Error.Invalidap_update,
@@ -344,11 +362,21 @@ fn parseFpUpdate(opcode: Opcode) FpUpdate {
 /// # Returns
 /// 16-bit signed integer
 pub fn fromBiasedRepresentation(biased_repr: u16) i16 {
-    const as_i32 = @as(
+    return @intCast(@as(
         i32,
         @intCast(biased_repr),
-    );
-    return @intCast(as_i32 - 32768);
+    ) - 32768);
+}
+
+/// Determines if the given encoded instruction represents a CALL instruction.
+///
+/// Decodes the provided encoded instruction and checks if it corresponds to a CALL instruction.
+/// # Parameters
+/// - `encoded_instruction`: The encoded instruction to be checked.
+/// # Returns
+/// `true` if the instruction, after decoding, is identified as a CALL instruction; otherwise, `false`.
+pub fn isCallInstruction(encoded_instruction: Felt252) bool {
+    return (decode(encoded_instruction.tryIntoU64() catch return false) catch return false).isCallInstruction();
 }
 
 // ************************************************************
@@ -654,4 +682,10 @@ test "invalid ap update" {
         Error.Invalidap_update,
         decode(encoded_instruction),
     );
+}
+
+test "isCallInstruction" {
+    try expect(isCallInstruction(Felt252.fromInteger(1226245742482522112)));
+    try expect(!isCallInstruction(Felt252.fromInteger(4612671187288031229)));
+    try expect(!isCallInstruction(Felt252.fromInteger(1 << 63)));
 }
