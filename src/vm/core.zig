@@ -339,36 +339,51 @@ pub const CairoVM = struct {
         self.current_step += 1;
     }
 
-    /// Compute the operands for a given instruction.
+    /// Compute and retrieve the necessary operands for executing a given instruction.
+    ///
+    /// This function resolves memory addresses, deduces operands based on context,
+    /// and computes the result of the instruction.
+    ///
+    /// It operates within a segmented memory
+    /// environment and handles the computation of operands, destinations, and results.
+    ///
     /// # Arguments
-    /// - `instruction`: The instruction to compute the operands for.
+    /// - `instruction`: The instruction to compute operands for.
+    /// - `allocator`: The memory allocator used for computation.
+    ///
     /// # Returns
-    /// - `Operands`: The operands for the instruction.
+    /// A structured `OperandsResult` containing computed operands, the result, and destinations.
     pub fn computeOperands(
         self: *Self,
         allocator: Allocator,
         instruction: *const instructions.Instruction,
     ) !OperandsResult {
+        // Create a default OperandsResult to store the computed operands.
         var op_res = OperandsResult.default();
         op_res.res = null;
 
+        // Compute the destination address of the instruction.
         op_res.dst_addr = try self.run_context.computeDstAddr(instruction);
         const dst_op = self.segments.memory.get(op_res.dst_addr);
 
+        // Compute the first operand address.
         op_res.op_0_addr = try self.run_context.computeOp0Addr(instruction);
+        const op_0_op = self.segments.memory.get(op_res.op_0_addr);
 
+        // Compute the second operand address based on the first operand.
         op_res.op_1_addr = try self.run_context.computeOp1Addr(
             instruction,
-            op_res.op_0,
+            op_0_op,
         );
         const op_1_op = self.segments.memory.get(op_res.op_1_addr);
 
-        // Deduce the operands if they haven't been successfully retrieved from memory.
-
-        if (self.segments.memory.get(op_res.op_0_addr)) |op_0| {
+        // Deduce the first operand if retrieval from memory fails.
+        if (op_0_op) |op_0| {
             op_res.op_0 = op_0;
         } else {
+            // Set flag to compute and deduce op_0.
             op_res.setOp0(true);
+            // Compute op_0 based on specific deductions.
             op_res.op_0 = try self.computeOp0Deductions(
                 allocator,
                 op_res.op_0_addr,
@@ -378,10 +393,13 @@ pub const CairoVM = struct {
             );
         }
 
+        // Deduce the second operand if retrieval from memory fails.
         if (op_1_op) |op_1| {
             op_res.op_1 = op_1;
         } else {
+            // Set flag to compute and deduce op_1.
             op_res.setOp1(true);
+            // Compute op_1 based on specific deductions.
             op_res.op_1 = try self.computeOp1Deductions(
                 allocator,
                 op_res.op_1_addr,
@@ -392,17 +410,22 @@ pub const CairoVM = struct {
             );
         }
 
+        // Compute the result if it hasn't been computed.
         if (op_res.res == null) {
             op_res.res = try computeRes(instruction, op_res.op_0, op_res.op_1);
         }
 
+        // Retrieve the destination if not already available.
         if (dst_op) |dst| {
             op_res.dst = dst;
         } else {
+            // Set flag to compute and deduce the destination.
             op_res.setDst(true);
+            // Compute the destination based on certain conditions.
             op_res.dst = try self.deduceDst(instruction, op_res.res);
         }
 
+        // Return the computed operands and result.
         return op_res;
     }
 
@@ -467,6 +490,28 @@ pub const CairoVM = struct {
                 res.* = op1_deductions.res;
             }
             return op1_deductions.op_1 orelse return CairoVMError.FailedToComputeOp1;
+        }
+    }
+
+    /// Verifies the auto deductions for a given memory address.
+    ///
+    /// This function checks if the value deduced by the builtin matches the current value
+    /// at the given address in the VM's memory. If they do not match, it returns an error
+    /// indicating an inconsistent auto deduction.
+    ///
+    /// ## Arguments
+    /// - `allocator`: The allocator instance to use for memory operations.
+    /// - `addr`: The memory address to verify.
+    /// - `builtin`: The BuiltinRunner instance used for deducing the memory cell.
+    ///
+    /// ## Returns
+    /// - `void`: Returns nothing on success.
+    /// - `CairoVMError.InconsistentAutoDeduction`: Returns an error if the deduced value does not match the memory.
+    pub fn verifyAutoDeductionsForAddr(self: *const Self, allocator: Allocator, addr: Relocatable, builtin: *const BuiltinRunner) !void {
+        const value = try builtin.deduceMemoryCell(allocator, addr, self.segments.memory) orelse return;
+        const current_value = self.segments.memory.get(addr) orelse return;
+        if (!value.eq(current_value)) {
+            return CairoVMError.InconsistentAutoDeduction;
         }
     }
 
@@ -947,7 +992,7 @@ pub const CairoVM = struct {
             size,
         );
     }
-    
+
     /// Performs opcode-specific assertions on the operands of an instruction.
     /// # Arguments
     /// - `instruction`: A pointer to the instruction being asserted.

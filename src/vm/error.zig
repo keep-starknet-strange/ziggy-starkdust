@@ -35,14 +35,18 @@ pub const CairoVMError = error{
     UnconstrainedResAssertEq,
     /// Different result and destination operands values for Opcode.ASSERT_EQ
     DiffAssertValues,
-    /// Cannot return Program Counter
+    /// Cannot return ProgramJson Counter
     CantWriteReturnPc,
     /// Cannot return Frame Pointer
     CantWriteReturnFp,
+    /// Inconsistent auto deduction
+    InconsistentAutoDeduction,
 };
 
 /// Represents different error conditions that are memory-related.
 pub const MemoryError = error{
+    /// Occurs when the ratio of the builtin operation does not divide evenly into the current VM steps.
+    ErrorCalculatingMemoryUnits,
     /// The amount of used cells associated with the Range Check runner is not available.
     MissingSegmentUsedSizes,
     /// The address is not in the temporary segment.
@@ -75,12 +79,18 @@ pub const MemoryError = error{
     UnknownMemoryCell,
     /// This memory cell doesn't contain an integer
     ExpectedInteger,
+    /// Error encountered during the WriteArg operation.
+    WriteArg,
+    /// Occurs if the VM's current step count is less than the minimum required steps for a builtin operation.
+    InsufficientAllocatedCellsErrorMinStepNotReached,
 };
 
 /// Represents the error conditions that are related to the `CairoRunner`.
 pub const CairoRunnerError = error{
     // Raised when `end_run` hook of a runner is called more than once.
     EndRunAlreadyCalled,
+    // Unable to convert provided layout to a valid layout.
+    InvalidLayout,
 };
 
 /// Represents different error conditions that occur in the built-in runners.
@@ -90,11 +100,14 @@ pub const RunnerError = error{
     /// or when it fails to get a value for the computed address.
     NoStopPointer,
     /// Invalid stop pointer index occured in calculation of the final stack.
+    /// Raised when the current vm step
     InvalidStopPointerIndex,
     /// Invalid stop pointer occured in calculation of the final stack.
     InvalidStopPointer,
     /// Raised when the conversion into a type of integer (e.g. a Felt) fails.
     BuiltinExpectedInteger,
+    /// Could not convert the builtin into one of the layout's builtins.
+    BuiltinNotInLayout,
     /// Integer value exceeds a power of two.
     IntegerBiggerThanPowerOfTwo,
     Memory,
@@ -125,4 +138,23 @@ pub const TraceError = error{
     NoRelocationFound,
     /// Raised when trying to get relocated trace when trace hasn't been relocated
     TraceNotRelocated,
+};
+
+/// Represents errors occurring during program execution.
+pub const ProgramError = error{
+    /// I/O errors
+    IO,
+    /// Errors in JSON parsing
+    Parse,
+    /// Indicates that the specified entrypoint was not found
+    EntrypointNotFound,
+    /// Indicates that a constant lacks a value
+    ConstWithoutValue,
+    /// Indicates a deviation from an expected prime value
+    PrimeDiffers,
+    /// Indicates the inability to build a StrippedProgram due to the absence of a main program entry
+    StrippedProgramNoMain,
+    /// Indicates an invalid hint PC value greater than or equal to the program length
+    InvalidHintPc,
+    BuiltinNotInLayout,
 };

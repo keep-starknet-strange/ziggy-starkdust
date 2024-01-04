@@ -1,6 +1,8 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 
+const MemorySegmentManager = @import("../../memory/segments.zig").MemorySegmentManager;
+
 const BitwiseBuiltinRunner = @import("./bitwise.zig").BitwiseBuiltinRunner;
 const EcOpBuiltinRunner = @import("./ec_op.zig").EcOpBuiltinRunner;
 const HashBuiltinRunner = @import("./hash.zig").HashBuiltinRunner;
@@ -11,11 +13,11 @@ const RangeCheckBuiltinRunner = @import("./range_check.zig").RangeCheckBuiltinRu
 const SegmentArenaBuiltinRunner = @import("./segment_arena.zig").SegmentArenaBuiltinRunner;
 const SignatureBuiltinRunner = @import("./signature.zig").SignatureBuiltinRunner;
 
-const BitwiseBuiltinRunnerTmp = @import("../bitwise/bitwise.zig");
-
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
 const Memory = @import("../../memory/memory.zig").Memory;
+
+const ArrayList = std.ArrayList;
 
 /// Built-in runner
 pub const BuiltinRunner = union(enum) {
@@ -61,6 +63,44 @@ pub const BuiltinRunner = union(enum) {
         };
     }
 
+    /// Initializes a builtin with its required memory segments.
+    ///
+    /// # Arguments
+    ///
+    /// - `segments`: A pointer to the MemorySegmentManager managing memory segments.
+    pub fn initSegments(self: *Self, segments: *MemorySegmentManager) !void {
+        switch (self.*) {
+            .Bitwise => |*bitwise| try bitwise.initSegments(segments),
+            .EcOp => |*ec| try ec.initSegments(segments),
+            .Hash => |*hash| try hash.initSegments(segments),
+            .Output => |*output| try output.initSegments(segments),
+            .RangeCheck => |*range_check| try range_check.initSegments(segments),
+            .Keccak => |*keccak| try keccak.initSegments(segments),
+            .Signature => |*signature| try signature.initSegments(segments),
+            .Poseidon => |*poseidon| try poseidon.initSegments(segments),
+            .SegmentArena => |*segment_arena| try segment_arena.initSegments(segments),
+        }
+    }
+
+    /// Derives necessary stack for a builtin.
+    ///
+    /// # Arguments
+    ///
+    ///  - `allocator`: The allocator to initialize the ArrayList.
+    pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
+        return switch (self.*) {
+            .Bitwise => |*bitwise| try bitwise.initialStack(allocator),
+            .EcOp => |*ec| try ec.initialStack(allocator),
+            .Hash => |*hash| try hash.initialStack(allocator),
+            .Output => |*output| try output.initialStack(allocator),
+            .RangeCheck => |*range_check| try range_check.initialStack(allocator),
+            .Keccak => |*keccak| try keccak.initialStack(allocator),
+            .Signature => |*signature| try signature.initialStack(allocator),
+            .Poseidon => |*poseidon| try poseidon.initialStack(allocator),
+            .SegmentArena => |*segment_arena| try segment_arena.initialStack(allocator),
+        };
+    }
+    
     /// Deduces memory cell information for the built-in runner.
     ///
     /// This function deduces memory cell information for the specific type of built-in runner.
@@ -80,8 +120,7 @@ pub const BuiltinRunner = union(enum) {
         memory: *Memory,
     ) !?MaybeRelocatable {
         return switch (self.*) {
-            // TODO: switch to `BitwiseBuiltinRunner` `deduceMemoryCell` function after migration of `deduce` to `BitwiseBuiltinRunner`
-            .Bitwise => try BitwiseBuiltinRunnerTmp.deduce(address, memory),
+            .Bitwise => |bitwise| try bitwise.deduceMemoryCell(address, memory),
             .EcOp => |ec| ec.deduceMemoryCell(address, memory),
             .Hash => |hash| hash.deduceMemoryCell(address, memory),
             .Output => |output| output.deduceMemoryCell(address, memory),

@@ -8,11 +8,13 @@ pub const vm = struct {
     pub usingnamespace @import("vm/run_context.zig");
     pub usingnamespace @import("vm/trace_context.zig");
     pub usingnamespace @import("vm/types/program.zig");
+    pub usingnamespace @import("vm/types/programjson.zig");
+    pub usingnamespace @import("vm/types/pedersen_instance_def.zig");
+    pub usingnamespace @import("vm/types/poseidon_instance_def.zig");
     pub usingnamespace @import("vm/memory/memory.zig");
     pub usingnamespace @import("vm/memory/relocatable.zig");
     pub usingnamespace @import("vm/memory/segments.zig");
     pub usingnamespace @import("vm/runners/cairo_runner.zig");
-    pub usingnamespace @import("vm/builtins/bitwise/bitwise.zig");
     pub usingnamespace @import("vm/types/builtins_instance_def.zig");
     pub usingnamespace @import("vm/types/diluted_pool_instance_def.zig");
     pub usingnamespace @import("vm/types/cpu_instance_def.zig");
@@ -33,3 +35,7 @@ pub const utils = struct {
 };
 
 pub const build_options = @import("build_options.zig");
+
+pub const hint_processor = struct {
+    pub usingnamespace @import("hint_processor/hint_processor_def.zig");
+};
