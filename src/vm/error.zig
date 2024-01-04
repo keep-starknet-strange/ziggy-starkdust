@@ -39,6 +39,8 @@ pub const CairoVMError = error{
     CantWriteReturnPc,
     /// Cannot return Frame Pointer
     CantWriteReturnFp,
+    /// Inconsistent auto deduction
+    InconsistentAutoDeduction,
 };
 
 /// Represents different error conditions that are memory-related.
