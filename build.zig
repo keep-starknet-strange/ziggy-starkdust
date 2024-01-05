@@ -47,7 +47,7 @@ pub fn build(b: *std.Build) void {
     // expose ziggy-starkdust as a module
     _ = b.addModule(package_name, .{
         .root_source_file = .{ .path = package_path },
-        .dependencies = deps,
+        .imports = deps,
     });
 
     // **************************************************************
@@ -62,7 +62,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     // Add dependency modules to the library.
-    for (deps) |mod| lib.addModule(
+    for (deps) |mod| lib.root_module.addImport(
         mod.name,
         mod.module,
     );
@@ -83,7 +83,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     // Add dependency modules to the executable.
-    for (deps) |mod| exe.addModule(
+    for (deps) |mod| exe.root_module.addImport(
         mod.name,
         mod.module,
     );
@@ -93,7 +93,7 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(exe);
 
     exe.addIncludePath(.{ .path = "./src/math/crypto/starknet_crypto/" });
-    exe.addObjectFile(std.build.LazyPath{ .path = "./src/math/crypto/starknet_crypto/libstarknet_crypto.a" });
+    exe.addObjectFile(std.Build.LazyPath{ .path = "./src/math/crypto/starknet_crypto/libstarknet_crypto.a" });
     exe.linkSystemLibrary("unwind");
 
     // This *creates* a Run step in the build graph, to be executed when another
@@ -138,7 +138,7 @@ pub fn build(b: *std.Build) void {
     });
 
     // Add dependency modules to the tests.
-    for (deps) |mod| unit_tests.addModule(
+    for (deps) |mod| unit_tests.root_module.addImport(
         mod.name,
         mod.module,
     );
