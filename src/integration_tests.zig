@@ -1,7 +1,7 @@
 const std = @import("std");
-const ProgramJson = @import("../vm/types/programjson.zig").ProgramJson;
-const CairoVM = @import("../vm/core.zig").CairoVM;
-const CairoRunner = @import("../vm/runners/cairo_runner.zig").CairoRunner;
+const ProgramJson = @import("vm/types/programjson.zig").ProgramJson;
+const CairoVM = @import("vm/core.zig").CairoVM;
+const CairoRunner = @import("vm/runners/cairo_runner.zig").CairoRunner;
 
 pub fn main() void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};

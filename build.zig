@@ -163,16 +163,15 @@ pub fn build(b: *std.Build) void {
 }
 
 fn integration_test(
-    b: *std.build.Builder,
+    b: *std.Build,
     mode: std.builtin.Mode,
-    target: std.zig.CrossTarget,
+    target: std.Build.ResolvedTarget,
 ) void {
     const binary = b.addExecutable(.{
         .name = "integration_test",
-        .root_source_file = .{ .path = "src/integration_test/main.zig" },
+        .root_source_file = .{ .path = "src/integration_tests.zig" },
         .target = target,
         .optimize = mode,
-        .main_pkg_path = .{ .path = "src" },
     });
 
     const integration_test_build = b.step("integration_test", "Build cli integration tests");
