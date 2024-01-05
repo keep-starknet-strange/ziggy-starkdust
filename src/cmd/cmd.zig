@@ -106,7 +106,7 @@ var layout = cli.Option{
     .required = false,
 };
 
-// Define the CLI app.
+// Define the CLI app
 var app = &cli.App{
     // Version of the application.
     .version = "0.0.1",
