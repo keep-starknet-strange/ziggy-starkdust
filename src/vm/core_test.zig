@@ -3666,7 +3666,7 @@ test "CairoVM: verifyAutoDeductions for bitwise builtin runner throws Inconsiste
 test "CairoVM: verifyAutoDeductions for keccak builtin runner" {
     const allocator = std.testing.allocator;
 
-    var keccak_instance_def = try KeccakInstanceDef.default(allocator);
+    var keccak_instance_def = try KeccakInstanceDef.initDefault(allocator);
     const keccak_builtin = KeccakBuiltinRunner.init(
         allocator,
         &keccak_instance_def,
