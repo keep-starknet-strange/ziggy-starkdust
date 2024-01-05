@@ -97,7 +97,7 @@ pub const BuiltinsInstanceDef = struct {
             .range_check = RangeCheckInstanceDef.init(),
             .ecdsa = EcdsaInstanceDef.init(2048),
             .bitwise = BitwiseInstanceDef.init(16),
-            .ec_op = EcOpInstanceDef.from(1024),
+            .ec_op = EcOpInstanceDef.init(1024),
             .keccak = KeccakInstanceDef.init(2048, state_rep_keccak),
             .poseidon = PoseidonInstanceDef.init(256),
         };
@@ -111,7 +111,7 @@ pub const BuiltinsInstanceDef = struct {
             .range_check = RangeCheckInstanceDef.from(null, 8),
             .ecdsa = EcdsaInstanceDef.init(null),
             .bitwise = BitwiseInstanceDef.init(null),
-            .ec_op = EcOpInstanceDef.from(null),
+            .ec_op = EcOpInstanceDef.init(null),
             .keccak = null,
             .poseidon = null,
         };
@@ -253,12 +253,12 @@ test "BuiltinsInstanceDef: builtins all Cairo" {
     );
     try expectEqual(
         @as(u32, 16),
-        actual.keccak.?._instance_per_component,
+        actual.keccak.?.instance_per_component,
     );
     try expectEqualSlices(
         u32,
         state_rep_keccak_expected.items,
-        actual.keccak.?._state_rep.items,
+        actual.keccak.?.state_rep.items,
     );
 
     try expectEqual(
