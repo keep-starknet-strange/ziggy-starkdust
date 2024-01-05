@@ -1,7 +1,3 @@
-// ************************************************************
-// *                       IMPORTS                            *
-// ************************************************************
-
 // Core imports.
 const std = @import("std");
 // Dependencies imports.
@@ -17,110 +13,160 @@ const CairoRunner = cairo_runner.CairoRunner;
 const ProgramJson = @import("../vm/types/programjson.zig").ProgramJson;
 const cairo_run = @import("../vm/cairo_run.zig");
 
-// ************************************************************
-// *                 GLOBAL VARIABLES                         *
-// ************************************************************
-
 var gpa = std.heap.GeneralPurposeAllocator(.{}){};
 const gpa_allocator = gpa.allocator();
 
-// ************************************************************
-// *                    CLI OPTIONS                           *
-// ************************************************************
+// Configuration settings for the CLI.
+var config = Config{
+    .proof_mode = false,
+    .enable_trace = false,
+};
 
-var config = Config{ .proof_mode = false, .enable_trace = false };
-
+// Command-line option for enabling proof mode.
 var execute_proof_mode_option = cli.Option{
+    // The full name of the option.
     .long_name = "proof-mode",
+    // Description of the option's purpose.
     .help = "Whether to run in proof mode or not.",
+    // Short alias for the option.
     .short_alias = 'p',
+    // Reference to the proof mode configuration.
     .value_ref = cli.mkRef(&config.proof_mode),
+    // Indicates if the option is required.
     .required = false,
 };
 
+// Command-line option for specifying the filename.
 var program_option = cli.Option{
+    // The full name of the option.
     .long_name = "filename",
+    // Description of the option's purpose.
     .help = "The location of the program to be evaluated.",
+    // Short alias for the option.
     .short_alias = 'f',
+    // Reference to the program filename.
     .value_ref = cli.mkRef(&config.filename),
+    // Indicates if the option is required.
     .required = true,
 };
 
+// Command-line option for enabling trace mode.
 var enable_trace = cli.Option{
+    // The full name of the option.
     .long_name = "enable-trace",
-    .help = "Enable trace mode",
+    // Description of the option's purpose.
+    .help = "Enable trace mode.",
+    // Short alias for the option.
     .short_alias = 't',
+    // Reference to the trace mode configuration.
     .value_ref = cli.mkRef(&config.enable_trace),
+    // Indicates if the option is required.
     .required = false,
 };
 
+// Command-line option for specifying the output trace file.
 var output_trace = cli.Option{
+    // The full name of the option.
     .long_name = "output-trace",
-    .help = "File where the register execution cycles are written. ",
+    // Description of the option's purpose.
+    .help = "File where the register execution cycles are written.",
+    // Short alias for the option.
     .short_alias = 'o',
+    // Reference to the output trace file.
     .value_ref = cli.mkRef(&config.output_trace),
+    // Indicates if the option is required.
     .required = false,
 };
 
+// Command-line option for specifying the output memory file.
 var output_memory = cli.Option{
+    // The full name of the option.
     .long_name = "output-memory",
+    // Description of the option's purpose.
     .help = "File where the memory post-execution is written.",
+    // Short alias for the option.
     .short_alias = 'm',
+    // Reference to the output memory file.
     .value_ref = cli.mkRef(&config.output_memory),
+    // Indicates if the option is required.
     .required = false,
 };
 
+// Command-line option for specifying the memory layout.
 var layout = cli.Option{
+    // The full name of the option.
     .long_name = "layout",
+    // Description of the option's purpose.
     .help = "The memory layout to use.",
+    // Short alias for the option.
     .short_alias = 'l',
+    // Reference to the memory layout.
     .value_ref = cli.mkRef(&config.layout),
+    // Indicates if the option is required.
     .required = false,
 };
-
-// ************************************************************
-// *                    CLI APP                               *
-// ************************************************************
 
 // Define the CLI app.
 var app = &cli.App{
-    .name = "ziggy-starkdust",
-    .description =
-    \\Cairo Virtual Machine written in Zig.
-    \\Highly experimental, use at your own risk.
-    ,
+    // Version of the application.
     .version = "0.0.1",
+    // Author information for the application.
     .author = "StarkWare & Contributors",
-    .subcommands = &.{
-        &cli.Command{
-            .name = "execute",
-            .help = "Execute a cairo program.",
-            .description =
-            \\Execute a cairo program with the virtual machine.
+    // Configuration for the main command.
+    .command = .{
+        // Name of the main command.
+        .name = "ziggy-starkdust",
+        // Description of the main command.
+        .description = .{
+            // One-line summary of the main command.
+            .one_line = "Cairo VM written in Zig.",
+            // Detailed description of the main command.
+            .detailed =
+            \\Cairo Virtual Machine written in Zig.
+            \\Highly experimental, use at your own risk.
             ,
-            .action = execute,
-            .options = &.{
-                &execute_proof_mode_option,
-                &layout,
-                &enable_trace,
-                &program_option,
-                &output_trace,
+        },
+        // Target subcommand details.
+        .target = .{
+            // Subcommands of the main command.
+            .subcommands = &.{
+                &.{
+                    // Name of the subcommand.
+                    .name = "execute",
+                    // Description of the subcommand.
+                    .description = .{
+                        // One-line summary of the subcommand.
+                        .one_line = "Execute a cairo program with the virtual machine.",
+                    },
+                    // Options for the subcommand.
+                    .options = &.{
+                        &execute_proof_mode_option,
+                        &layout,
+                        &enable_trace,
+                        &program_option,
+                        &output_trace,
+                    },
+                    // Action to be executed for the subcommand.
+                    .target = .{ .action = .{ .exec = execute } },
+                },
             },
         },
     },
 };
 
-/// Run the CLI app.
+/// Runs the Command-Line Interface application.
+///
+/// This function initializes and executes the CLI app with the provided configuration
+/// and allocator, handling errors and the application's execution flow.
+///
+/// # Errors
+///
+/// Returns an error of type `UsageError` if there's a misuse of the CLI by the user,
+/// such as requesting a configuration not supported by the current build,
+/// for example, when execution traces are globally disabled.
 pub fn run() !void {
-    return cli.run(
-        app,
-        gpa_allocator,
-    );
+    return cli.run(app, gpa_allocator);
 }
-
-// ************************************************************
-// *                       CLI COMMANDS                       *
-// ************************************************************
 
 /// Errors that occur because the user misused the CLI.
 const UsageError = error{
@@ -130,12 +176,17 @@ const UsageError = error{
     IncompatibleBuildOptions,
 };
 
-// execute entrypoint
-fn execute(_: []const []const u8) !void {
-    std.log.debug(
-        "Running Cairo VM...\n",
-        .{},
-    );
+/// Entry point for the execution of the Cairo Virtual Machine.
+///
+/// This function is responsible for executing the Cairo Virtual Machine based on the provided
+/// configuration, allocator, and build options.
+///
+/// # Errors
+///
+/// Returns a `UsageError` if there's a misuse of the CLI, specifically if tracing is attempted
+/// while it's disabled in the build.
+fn execute() anyerror!void {
+    std.log.debug("Running Cairo VM...\n", .{});
 
     if (build_options.trace_disable and config.enable_trace) {
         std.log.err("Tracing is disabled in this build.\n", .{});
