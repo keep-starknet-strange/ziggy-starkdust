@@ -6,19 +6,19 @@ pub const Dependency = struct {
     module_name: []const u8,
 };
 
-/// Generate an array of Build.ModuleDependency from the external dependencies.
+/// Generate an array of Build.Module.Import from the external dependencies.
 /// # Arguments
 /// * `b` - The build object.
 /// * `external_dependencies` - The external dependencies.
 /// * `dependencies_opts` - The options to use when generating the dependency modules.
 /// # Returns
-/// A new array of Build.ModuleDependency.
+/// A new array of Build.Module.Import.
 pub fn generateModuleDependencies(
     b: *std.Build,
     external_dependencies: []const Dependency,
     dependencies_opts: anytype,
-) ![]std.Build.ModuleDependency {
-    var dependency_modules = std.ArrayList(*std.build.Module).init(b.allocator);
+) ![]std.Build.Module.Import {
+    var dependency_modules = std.ArrayList(*std.Build.Module).init(b.allocator);
     defer _ = dependency_modules.deinit();
 
     // Populate dependency modules.
@@ -36,19 +36,19 @@ pub fn generateModuleDependencies(
     );
 }
 
-/// Convert an array of Build.Module pointers to an array of Build.ModuleDependency.
+/// Convert an array of Build.Module pointers to an array of Build.Module.Import.
 /// # Arguments
 /// * `allocator` - The allocator to use for the new array.
 /// * `modules` - The array of Build.Module pointers to convert.
 /// * `ext_deps` - The array of external dependencies.
 /// # Returns
-/// A new array of Build.ModuleDependency.
+/// A new array of Build.Module.Import.
 fn toModuleDependencyArray(
     allocator: std.mem.Allocator,
     modules: []const *std.Build.Module,
     ext_deps: []const Dependency,
-) ![]std.Build.ModuleDependency {
-    var deps = std.ArrayList(std.Build.ModuleDependency).init(allocator);
+) ![]std.Build.Module.Import {
+    var deps = std.ArrayList(std.Build.Module.Import).init(allocator);
     defer deps.deinit();
 
     for (

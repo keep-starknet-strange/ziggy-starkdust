@@ -49,6 +49,8 @@ pub const CairoVM = struct {
     current_step: usize,
     /// Rc limits
     rc_limits: ?struct { i16, i16 },
+    /// Relocation table
+    relocation_table: ?std.ArrayList(usize),
     /// ArrayList containing instructions. May hold null elements.
     /// Used as an instruction cache within the CairoVM instance.
     instruction_cache: ArrayList(?Instruction),
@@ -95,6 +97,7 @@ pub const CairoVM = struct {
             .trace_relocated = false,
             .current_step = 0,
             .rc_limits = null,
+            .relocation_table = null,
             .instruction_cache = instruction_cache,
         };
     }
@@ -112,10 +115,20 @@ pub const CairoVM = struct {
         self.segments.deinit();
         // Deallocate the run context.
         self.run_context.deinit();
-        // Deallocate trace
+        // Deallocate trace context.
         self.trace_context.deinit();
-        // Deallocate built-in runners
+        // Loop through the built-in runners and deallocate their resources.
+        for (self.builtin_runners.items) |*builtin| {
+            switch (builtin.*) {
+                .Keccak => |*keccak| keccak.deinit(),
+                else => {},
+            }
+        }
+        // Deallocate built-in runners.
         self.builtin_runners.deinit();
+        if (self.relocation_table) |r| {
+            r.deinit();
+        }
         // Deallocate instruction cache
         self.instruction_cache.deinit();
     }
@@ -493,6 +506,64 @@ pub const CairoVM = struct {
         }
     }
 
+    /// Verifies the auto deductions for all memory cells managed by the VM's builtins.
+    ///
+    /// This function iterates over all builtins and their corresponding memory segments.
+    /// For each memory cell, it attempts to deduce the value using the builtin's logic.
+    /// If the deduced value does not match the actual value in memory, an error is returned.
+    ///
+    /// ## Arguments
+    /// - `allocator`: The allocator instance to use for memory operations.
+    ///
+    /// ## Returns
+    /// - `void`: Returns nothing on success.
+    /// - `CairoVMError.InconsistentAutoDeduction`: Returns an error if a deduced value does not match the memory.
+    pub fn verifyAutoDeductions(self: *const Self, allocator: Allocator) !void {
+        for (self.builtin_runners.items) |*builtin| {
+            const segment_index = builtin.base();
+            const segment = self.segments.memory.data.items[segment_index];
+            for (segment.items, 0..) |value, offset| {
+                if (value == null) continue;
+                const addr = Relocatable.init(@as(i64, @intCast(segment_index)), offset);
+                const deduced_memory_cell = try builtin.deduceMemoryCell(allocator, addr, self.segments.memory) orelse continue;
+                if (!deduced_memory_cell.eq(value.?.maybe_relocatable)) {
+                    return CairoVMError.InconsistentAutoDeduction;
+                }
+            }
+        }
+    }
+
+    /// Verifies the auto deductions for a given memory address.
+    ///
+    /// This function checks if the value deduced by the builtin matches the current value
+    /// at the given address in the VM's memory. If they do not match, it returns an error
+    /// indicating an inconsistent auto deduction.
+    ///
+    /// ## Arguments
+    /// - `allocator`: The allocator instance to use for memory operations.
+    /// - `addr`: The memory address to verify.
+    /// - `builtin`: The BuiltinRunner instance used for deducing the memory cell.
+    ///
+    /// ## Returns
+    /// - `void`: Returns nothing on success.
+    /// - `CairoVMError.InconsistentAutoDeduction`: Returns an error if the deduced value does not match the memory.
+    pub fn verifyAutoDeductionsForAddr(
+        self: *const Self,
+        allocator: Allocator,
+        addr: Relocatable,
+        builtin: *BuiltinRunner,
+    ) !void {
+        const value = try builtin.deduceMemoryCell(
+            allocator,
+            addr,
+            self.segments.memory,
+        ) orelse return;
+        const current_value = self.segments.memory.get(addr) orelse return;
+        if (!value.eq(current_value)) {
+            return CairoVMError.InconsistentAutoDeduction;
+        }
+    }
+
     /// Attempts to deduce `op0` and `res` for an instruction, given `dst` and `op1`.
     ///
     /// # Arguments
@@ -706,7 +777,7 @@ pub const CairoVM = struct {
         allocator: Allocator,
         address: Relocatable,
     ) CairoVMError!?MaybeRelocatable {
-        for (self.builtin_runners.items) |builtin_item| {
+        for (self.builtin_runners.items) |*builtin_item| {
             if (@as(
                 u64,
                 @intCast(builtin_item.base()),
@@ -797,6 +868,47 @@ pub const CairoVM = struct {
         for (0..len) |i| {
             self.segments.memory.markAsAccessed(try base.addUint(@intCast(i)));
         }
+    }
+
+    /// Adds a relocation rule to the Cairo VM's memory, enabling the redirection of temporary data to a specified destination.
+    ///
+    /// # Arguments
+    ///
+    /// - `src_ptr`: The source Relocatable pointer representing the temporary segment to be relocated.
+    /// - `dst_ptr`: The destination Relocatable pointer where the temporary segment will be redirected.
+    ///
+    /// # Safety
+    ///
+    /// This function assumes correct usage and may result in memory relocations. It's crucial to ensure that both source and destination pointers are valid and within the boundaries of the memory segments.
+    ///
+    /// # Returns
+    ///
+    /// - This function returns an error if the relocation fails due to invalid conditions.
+    pub fn addRelocationRule(
+        self: *Self,
+        src_ptr: Relocatable,
+        dst_ptr: Relocatable,
+    ) !void {
+        try self.segments.memory.addRelocationRule(src_ptr, dst_ptr);
+    }
+
+    /// Retrieves the addresses of memory cells in the public memory based on segment offsets.
+    ///
+    /// Retrieves a list of addresses constituting the public memory. It utilizes the relocation table
+    /// (`self.relocation_table`) and the `self.segments.getPublicMemoryAddresses()` method. This method
+    /// ensures that the public memory addresses are retrieved based on the relocated segments.
+    ///
+    /// Returns a list of memory cell addresses that comprise the public memory. If the relocation table
+    /// is not available, it throws `MemoryError.UnrelocatedMemory`. If an error occurs during the
+    /// retrieval process, it throws `CairoVMError.Memory`.
+    pub fn getPublicMemoryAddresses(self: *Self) !std.ArrayList(std.meta.Tuple(&.{ usize, usize })) {
+        // Check if the relocation table is available
+        if (self.relocation_table) |r| {
+            // Retrieve the public memory addresses using the relocation table
+            return self.segments.getPublicMemoryAddresses(&r) catch CairoVMError.Memory;
+        }
+        // Throw an error if the relocation table is not available
+        return MemoryError.UnrelocatedMemory;
     }
 
     /// Loads data into the memory managed by CairoVM.
