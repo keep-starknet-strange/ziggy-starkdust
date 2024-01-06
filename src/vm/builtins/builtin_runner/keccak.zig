@@ -265,21 +265,22 @@ pub const KeccakBuiltinRunner = struct {
     /// Calculates the Keccak hash of the input message.
     ///
     /// This function computes the Keccak hash of the provided input message and returns
-    /// it as an `ArrayList(u8)`. The Keccak hash function involves multiple steps of data
+    /// it as an fixed array based on block type. The Keccak hash function involves multiple steps of data
     /// processing.
     ///
     /// # Arguments
     ///
-    /// - `allocator`: An allocator for managing memory.
     /// - `input_message`: A pointer to the input message as an array of bytes.
     ///
     /// # Returns
     ///
-    /// An `ArrayList(u8)` containing the Keccak hash.
-    fn keccakF(input_message: *[]const u8) ![KeccakPrimitives.PLEN * 8]u8 {
-        var result = [_]u8{0} ** (KeccakPrimitives.PLEN * 8);
+    /// An fixed array based on block type, containing the Keccak hash.
+    /// current block type hardcoded to u64.
+    fn keccakF(input_message: *[]const u8) ![KeccakPrimitives.PLEN * @sizeOf(u64)]u8 {
+        var result = [_]u8{0} ** (KeccakPrimitives.PLEN * @sizeOf(u64));
 
-        var st: std.crypto.core.keccak.KeccakF(1600) = .{
+        // 1600 bits = 200 bytes = 25 u64
+        var st: std.crypto.core.keccak.KeccakF(@bitSizeOf(u64) * KeccakPrimitives.PLEN) = .{
             .st = undefined,
         };
 
@@ -297,7 +298,7 @@ pub const KeccakBuiltinRunner = struct {
         st.permuteR(KeccakPrimitives.keccakF_ROUND_COUNT);
 
         for (st.st, 0..) |item, idx| {
-            std.mem.writeInt(u64, result[idx * 8 .. (idx + 1) * 8][0..8], item, .little);
+            std.mem.writeInt(u64, result[idx * @sizeOf(u64) .. (idx + 1) * @sizeOf(u64)][0..@sizeOf(u64)], item, .little);
         }
 
         return result;
