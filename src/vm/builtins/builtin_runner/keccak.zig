@@ -5,7 +5,6 @@ const Keccak_instance_def = @import("../../types/keccak_instance_def.zig");
 const Segments = @import("../../memory/segments.zig");
 const Error = @import("../../error.zig");
 const CoreVM = @import("../../../vm/core.zig");
-const KeccakPrimitives = @import("../../../math/crypto/keccak.zig");
 const memoryFile = @import("../../memory/memory.zig");
 const Memory = @import("../../memory/memory.zig").Memory;
 const MemoryCell = @import("../../memory/memory.zig").MemoryCell;
@@ -29,6 +28,7 @@ const expect = std.testing.expect;
 const expectEqualSlices = std.testing.expectEqualSlices;
 
 const keccakFELT_BYTE_SIZE: usize = 25; // 200 / 8
+const keccakFELT_ROUND_COUNT: usize = 24;
 
 /// Keccak built-in runner
 pub const KeccakBuiltinRunner = struct {
@@ -276,11 +276,11 @@ pub const KeccakBuiltinRunner = struct {
     ///
     /// An fixed array based on block type, containing the Keccak hash.
     /// current block type hardcoded to u64.
-    fn keccakF(input_message: *[]const u8) ![KeccakPrimitives.PLEN * @sizeOf(u64)]u8 {
-        var result = [_]u8{0} ** (KeccakPrimitives.PLEN * @sizeOf(u64));
+    fn keccakF(input_message: *[]const u8) ![keccakFELT_BYTE_SIZE * @sizeOf(u64)]u8 {
+        var result = [_]u8{0} ** (keccakFELT_BYTE_SIZE * @sizeOf(u64));
 
         // 1600 bits = 200 bytes = 25 u64
-        var st: std.crypto.core.keccak.KeccakF(@bitSizeOf(u64) * KeccakPrimitives.PLEN) = .{
+        var hashState: std.crypto.core.keccak.KeccakF(@bitSizeOf(u64) * keccakFELT_BYTE_SIZE) = .{
             .st = undefined,
         };
 
@@ -288,7 +288,7 @@ pub const KeccakBuiltinRunner = struct {
 
         var i: usize = 0;
         while (i + @sizeOf(u64) <= input.len) {
-            st.st[i / @sizeOf(u64)] = std.mem.readInt(
+            hashState.st[i / @sizeOf(u64)] = std.mem.readInt(
                 u64,
                 @ptrCast(input[i .. i + @sizeOf(u64)]),
                 .little,
@@ -297,10 +297,15 @@ pub const KeccakBuiltinRunner = struct {
             i += @sizeOf(u64);
         }
 
-        st.permuteR(KeccakPrimitives.keccakF_ROUND_COUNT);
+        hashState.permuteR(keccakFELT_ROUND_COUNT);
 
-        for (st.st, 0..) |item, idx| {
-            std.mem.writeInt(u64, result[idx * @sizeOf(u64) .. (idx + 1) * @sizeOf(u64)][0..@sizeOf(u64)], item, .little);
+        for (hashState.st, 0..) |item, idx| {
+            std.mem.writeInt(
+                u64,
+                result[idx * @sizeOf(u64) .. (idx + 1) * @sizeOf(u64)][0..@sizeOf(u64)],
+                item,
+                .little,
+            );
         }
 
         return result;
