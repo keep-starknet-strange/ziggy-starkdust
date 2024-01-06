@@ -276,42 +276,28 @@ pub const KeccakBuiltinRunner = struct {
     /// # Returns
     ///
     /// An `ArrayList(u8)` containing the Keccak hash.
-    fn keccakF(allocator: Allocator, input_message: *[]const u8) !ArrayList(u8) {
-        var result = ArrayList(u8).init(allocator);
-        var vec = ArrayList(u64).init(allocator);
-        defer vec.deinit();
+    fn keccakF(input_message: *[]const u8) ![KeccakPrimitives.PLEN * 8]u8 {
+        var result = [_]u8{0} ** (KeccakPrimitives.PLEN * 8);
+
+        var st: std.crypto.core.keccak.KeccakF(1600) = .{
+            .st = undefined,
+        };
 
         var i: usize = 0;
         while (i + @sizeOf(u64) <= input_message.len) {
-            try vec.append(std.mem.readInt(
+            st.st[i / @sizeOf(u64)] = std.mem.readInt(
                 u64,
                 @ptrCast(input_message.*[i .. i + @sizeOf(u64)]),
                 .little,
-            ));
+            );
+
             i += @sizeOf(u64);
         }
 
-        try vec.appendNTimes(
-            0,
-            KeccakPrimitives.PLEN - vec.items.len,
-        );
+        st.permuteR(KeccakPrimitives.keccakF_ROUND_COUNT);
 
-        try KeccakPrimitives.keccak_p(
-            @ptrCast(
-                vec.items.ptr,
-            ),
-            KeccakPrimitives.keccakF_ROUND_COUNT,
-        );
-
-        for (
-            @as(
-                *[KeccakPrimitives.PLEN]u64,
-                @ptrCast(vec.items.ptr),
-            ),
-        ) |item| {
-            var buf: [8]u8 = undefined;
-            std.mem.writeInt(u64, buf[0..], item, .little);
-            try result.appendSlice(&buf);
+        for (st.st, 0..) |item, idx| {
+            std.mem.writeInt(u64, result[idx * 8 .. (idx + 1) * 8][0..8], item, .little);
         }
 
         return result;
@@ -449,10 +435,8 @@ pub const KeccakBuiltinRunner = struct {
         }
 
         const keccak_result = try Self.keccakF(
-            allocator,
             &input_message.items,
         );
-        defer keccak_result.deinit();
 
         var start_index: usize = 0;
         for (self.state_rep.items, 0..) |bits, i| {
@@ -462,7 +446,7 @@ pub const KeccakBuiltinRunner = struct {
             ) / 8;
 
             var bytes = [_]u8{0} ** Felt252.BytesSize;
-            @memcpy(bytes[0..(end_index - start_index)], keccak_result.items[start_index..end_index]);
+            @memcpy(bytes[0..(end_index - start_index)], keccak_result[start_index..end_index]);
 
             try self.cache.put(
                 try first_output_addr.addUint(i),
@@ -745,14 +729,12 @@ test "KeccakBuiltinRunner: keccakF" {
     const expected_output_bytes = "\xf6\x98\x81\xe1\x00!\x1f.\xc4*\x8c\x0c\x7fF\xc8q8\xdf\xb9\xbe\x07H\xca7T1\xab\x16\x17\xa9\x11\xff-L\x87\xb2iY.\x96\x82x\xde\xbb\\up?uz:0\xee\x08\x1b\x15\xd6\n\xab\r\x0b\x87T:w\x0fH\xe7!f},\x08a\xe5\xbe8\x16\x13\x9a?\xad~<9\xf7\x03`\x8b\xd8\xa3F\x8aQ\xf9\n9\xcdD\xb7.X\xf7\x8e\x1f\x17\x9e \xe5i\x01rr\xdf\xaf\x99k\x9f\x8e\x84\\\xday`\xf1``\x02q+\x8e\xad\x96\xd8\xff\xff3<\xb6\x01o\xd7\xa6\x86\x9d\xea\xbc\xfb\x08\xe1\xa3\x1c\x06z\xab@\xa1\xc1\xb1xZ\x92\x96\xc0.\x01\x13g\x93\x87!\xa6\xa8z\x9c@\x0bY'\xe7\xa7Qr\xe5\xc1\xa3\xa6\x88H\xa5\xc0@9k:y\xd1Kw\xd5";
     var input_bytes: []const u8 = "\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x05\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x07\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
     var actual = try (KeccakBuiltinRunner.keccakF(
-        std.testing.allocator,
         &input_bytes,
     ));
-    defer actual.deinit();
     try expectEqualSlices(
         u8,
         expected_output_bytes,
-        actual.items,
+        &actual,
     );
 }
 
