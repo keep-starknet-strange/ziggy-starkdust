@@ -447,12 +447,12 @@ test "CairoLayout: allCairoInstance" {
     );
     try expectEqual(
         @as(u32, 16),
-        actual.builtins.keccak.?._instance_per_component,
+        actual.builtins.keccak.?.instance_per_component,
     );
     try expectEqualSlices(
         u32,
         state_rep_keccak_expected.items,
-        actual.builtins.keccak.?._state_rep.items,
+        actual.builtins.keccak.?.state_rep.items,
     );
 
     try expectEqual(
