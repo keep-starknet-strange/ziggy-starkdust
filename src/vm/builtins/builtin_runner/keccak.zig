@@ -284,11 +284,13 @@ pub const KeccakBuiltinRunner = struct {
             .st = undefined,
         };
 
+        const input = input_message.*;
+
         var i: usize = 0;
-        while (i + @sizeOf(u64) <= input_message.len) {
+        while (i + @sizeOf(u64) <= input.len) {
             st.st[i / @sizeOf(u64)] = std.mem.readInt(
                 u64,
-                @ptrCast(input_message.*[i .. i + @sizeOf(u64)]),
+                @ptrCast(input[i .. i + @sizeOf(u64)]),
                 .little,
             );
 
