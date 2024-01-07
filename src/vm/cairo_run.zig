@@ -180,18 +180,10 @@ test "Fibonacci: can evaluate without runtime error" {
         .{},
     );
 
-    // Specify the entrypoint identifier
-    var entrypoint: []const u8 = "main";
-    var program = try parsed_program.value.parseProgramJson(
-        std.testing.allocator,
-        &entrypoint,
-    );
-    defer program.deinit();
-
     // when
     var runner = try CairoRunner.init(
         allocator,
-        program,
+        parsed_program.value,
         "plain",
         instructions,
         vm,
@@ -223,18 +215,10 @@ test "Factorial: can evaluate without runtime error" {
         .{},
     );
 
-    // Specify the entrypoint identifier
-    var entrypoint: []const u8 = "main";
-    var program = try parsed_program.value.parseProgramJson(
-        std.testing.allocator,
-        &entrypoint,
-    );
-    defer program.deinit();
-
     // when
     var runner = try CairoRunner.init(
         allocator,
-        program,
+        parsed_program.value,
         "plain",
         instructions,
         vm,
@@ -266,18 +250,10 @@ test "Bitwise builtin test: can evaluate without runtime error" {
         .{},
     );
 
-    // Specify the entrypoint identifier
-    var entrypoint: []const u8 = "main";
-    var program = try parsed_program.value.parseProgramJson(
-        std.testing.allocator,
-        &entrypoint,
-    );
-    defer program.deinit();
-
     // when
     var runner = try CairoRunner.init(
         allocator,
-        program,
+        parsed_program.value,
         "all_cairo",
         instructions,
         vm,

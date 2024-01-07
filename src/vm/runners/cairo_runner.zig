@@ -21,7 +21,7 @@ const Felt252 = starknet_felt.Felt252;
 pub const CairoRunner = struct {
     const Self = @This();
 
-    program: Program,
+    program: ProgramJson,
     allocator: Allocator,
     vm: CairoVM,
     program_base: Relocatable = undefined,
@@ -40,7 +40,7 @@ pub const CairoRunner = struct {
 
     pub fn init(
         allocator: Allocator,
-        program: Program,
+        program: ProgramJson,
         layout: []const u8,
         instructions: std.ArrayList(MaybeRelocatable),
         vm: CairoVM,
@@ -68,7 +68,7 @@ pub const CairoRunner = struct {
             self.layout,
             self.allocator,
             self.proof_mode,
-            self.program.builtins,
+            self.program.builtins.?,
         );
     }
 
@@ -155,7 +155,7 @@ pub const CairoRunner = struct {
         // Concatenate strings
         const full_entrypoint_name = try std.fmt.bufPrint(&buffer, "__main__.{s}", .{self.entrypoint_name});
 
-        const main_offset: usize = self.program.shared_program_data.identifiers.get(full_entrypoint_name).?.pc orelse 0;
+        const main_offset: usize = self.program.identifiers.map.get(full_entrypoint_name).?.pc orelse 0;
 
         const end = try self.initFunctionEntrypoint(main_offset, return_fp);
         return end;
