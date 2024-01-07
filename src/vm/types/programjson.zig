@@ -3,6 +3,7 @@ const json = std.json;
 const Allocator = std.mem.Allocator;
 
 const MaybeRelocatable = @import("../memory/relocatable.zig").MaybeRelocatable;
+const Relocatable = @import("../memory/relocatable.zig").Relocatable;
 const ProgramError = @import("../error.zig").ProgramError;
 const Felt252 = @import("../../math/fields/starknet.zig").Felt252;
 const Register = @import("../instructions.zig").Register;
@@ -242,6 +243,8 @@ pub const Identifier = struct {
     decorators: ?[]const []const u8 = null,
     /// Value associated with the identifier (optional, defaults to null).
     value: ?i256 = null,
+    /// Value as a Felt252 associated with the identifier (optional, defaults to null).
+    valueFelt: ?Felt252 = null,
     /// Size information related to the identifier (optional, defaults to null).
     size: ?usize = null,
     /// Full name of the identifier (optional, defaults to null).
@@ -426,8 +429,13 @@ pub const ProgramJson = struct {
         errdefer builtins.deinit();
         // Collects built-in names and adds them to the builtins list.
         for (0..self.attributes.?.len) |i| {
-            if (self.builtins) |b|
-                try builtins.append(std.meta.stringToEnum(BuiltinName, b[i]) orelse return ProgramError.BuiltinNotInLayout);
+            if (self.builtins != null and i < self.builtins.?.len) {
+                try builtins.append(std.meta.stringToEnum(
+                    BuiltinName,
+                    self.builtins.?[i],
+                ) orelse
+                    return ProgramError.BuiltinNotInLayout);
+            }
         }
 
         var instruction_locations = std.StringHashMap(InstructionLocation).init(allocator);
@@ -444,7 +452,11 @@ pub const ProgramJson = struct {
         errdefer identifiers.deinit();
         // Populates the identifiers hashmap with program identifiers and associated metadata.
         for (self.identifiers.?.map.keys(), self.identifiers.?.map.values()) |key, value| {
-            try identifiers.put(key, value);
+            var val = value;
+            if (val.value) |v| {
+                val.valueFelt = Felt252.fromSignedInteger(v);
+            }
+            try identifiers.put(key, val);
         }
 
         var hints_collection = HintsCollection.init(allocator);
@@ -452,7 +464,7 @@ pub const ProgramJson = struct {
 
         return .{
             .shared_program_data = .{
-                .data = self.data.?,
+                .data = try self.readData(allocator),
                 .hints_collection = hints_collection,
                 .main = entrypoint_pc,
                 .start = start,
@@ -793,19 +805,17 @@ test "ProgramJson: parseFromString should return a parsed ProgramJson instance f
     defer data_vec.deinit();
 
     // Initialize an array list to hold the expected data using MaybeRelocatable type.
-    var expected_data_vec = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
-    defer expected_data_vec.deinit(); // Ensure deallocation after the test.
-
-    // Append expected MaybeRelocatable values to the array list.
-    try expected_data_vec.append(MaybeRelocatable.fromU256(5189976364521848832));
-    try expected_data_vec.append(MaybeRelocatable.fromU256(1000));
-    try expected_data_vec.append(MaybeRelocatable.fromU256(5189976364521848832));
-    try expected_data_vec.append(MaybeRelocatable.fromU256(2000));
-    try expected_data_vec.append(MaybeRelocatable.fromU256(5201798304953696256));
-    try expected_data_vec.append(MaybeRelocatable.fromU256(2345108766317314046));
+    const expected_data_vec = [_]MaybeRelocatable{
+        MaybeRelocatable.fromU256(5189976364521848832),
+        MaybeRelocatable.fromU256(1000),
+        MaybeRelocatable.fromU256(5189976364521848832),
+        MaybeRelocatable.fromU256(2000),
+        MaybeRelocatable.fromU256(5201798304953696256),
+        MaybeRelocatable.fromU256(2345108766317314046),
+    };
 
     // Compare the items in the expected and parsed data arrays.
-    try expectEqualSlices(MaybeRelocatable, expected_data_vec.items, data_vec.items);
+    try expectEqualSlices(MaybeRelocatable, &expected_data_vec, data_vec.items);
 
     // Expectation: Code in hints matches an expected string
     try expectEqualStrings(
@@ -996,4 +1006,229 @@ test "ProgramJson: parseProgramJson with missing entry point should return an er
             &entrypoint,
         ),
     );
+}
+
+test "ProgramJson: parseProgramJson should parse a valid manually compiled program with an entry point" {
+    // Get the absolute path of the current working directory.
+    var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+
+    // Obtain the real path of the JSON file
+    const path = try std.os.realpath(
+        "cairo_programs/manually_compiled/valid_program_a.json",
+        &buffer,
+    );
+
+    // Parse the JSON file into a `ProgramJson` structure
+    var parsed_program = try ProgramJson.parseFromFile(std.testing.allocator, path);
+    // Deallocate parsed_program at the end of the scope
+    defer parsed_program.deinit();
+
+    // Specify the entrypoint identifier
+    var entrypoint: []const u8 = "main";
+
+    // Parse the program JSON into a `Program` structure
+    var program = try parsed_program.value.parseProgramJson(
+        std.testing.allocator,
+        &entrypoint,
+    );
+    // Deallocate program at the end of the scope
+    defer program.deinit();
+
+    // Define an array of expected MaybeRelocatable values
+    const expected_data_vec = [_]MaybeRelocatable{
+        MaybeRelocatable.fromU256(5189976364521848832),
+        MaybeRelocatable.fromU256(1000),
+        MaybeRelocatable.fromU256(5189976364521848832),
+        MaybeRelocatable.fromU256(2000),
+        MaybeRelocatable.fromU256(5201798304953696256),
+        MaybeRelocatable.fromU256(2345108766317314046),
+    };
+
+    // Expect equality between the expected MaybeRelocatable values and the parsed program data items
+    try expectEqualSlices(
+        MaybeRelocatable,
+        &expected_data_vec,
+        program.shared_program_data.data.items,
+    );
+
+    // Expect the entrypoint `main` to be at index 0 in the shared_program_data
+    try expectEqual(
+        @as(usize, 0),
+        program.shared_program_data.main,
+    );
+
+    // TODO: validate hints once implemented
+}
+
+test "ProgramJson: parseProgramJson should parse a valid manually compiled program without entry point" {
+    // Get the absolute path of the current working directory.
+    var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+
+    // Obtain the real path of the JSON file
+    const path = try std.os.realpath(
+        "cairo_programs/manually_compiled/valid_program_a.json",
+        &buffer,
+    );
+
+    // Parse the JSON file into a `ProgramJson` structure
+    var parsed_program = try ProgramJson.parseFromFile(std.testing.allocator, path);
+    // Deallocate parsed_program at the end of the scope
+    defer parsed_program.deinit();
+
+    // Parse the program JSON into a `Program` structure
+    var program = try parsed_program.value.parseProgramJson(
+        std.testing.allocator,
+        null,
+    );
+    // Deallocate program at the end of the scope
+    defer program.deinit();
+
+    // Define an array of expected MaybeRelocatable values
+    const expected_data_vec = [_]MaybeRelocatable{
+        MaybeRelocatable.fromU256(5189976364521848832),
+        MaybeRelocatable.fromU256(1000),
+        MaybeRelocatable.fromU256(5189976364521848832),
+        MaybeRelocatable.fromU256(2000),
+        MaybeRelocatable.fromU256(5201798304953696256),
+        MaybeRelocatable.fromU256(2345108766317314046),
+    };
+
+    // Expect equality between the expected MaybeRelocatable values and the parsed program data items
+    try expectEqualSlices(
+        MaybeRelocatable,
+        &expected_data_vec,
+        program.shared_program_data.data.items,
+    );
+
+    // Expect the entrypoint `main` to be at index null in the shared_program_data
+    try expectEqual(
+        @as(?usize, null),
+        program.shared_program_data.main,
+    );
+
+    // TODO: validate hints once implemented
+}
+
+test "ProgramJson: parseProgramJson with constant deserialization" {
+    // Get the absolute path of the current working directory.
+    var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+
+    // Obtain the real path of the JSON file.
+    const path = try std.os.realpath(
+        "cairo_programs/manually_compiled/deserialize_constant_test.json",
+        &buffer,
+    );
+
+    // Parse the JSON file into a `ProgramJson` structure.
+    var parsed_program = try ProgramJson.parseFromFile(std.testing.allocator, path);
+    // Deallocate parsed_program at the end of the scope.
+    defer parsed_program.deinit();
+
+    // Parse the program JSON into a `Program` structure without specifying an entry point.
+    var program = try parsed_program.value.parseProgramJson(
+        std.testing.allocator,
+        null,
+    );
+    // Deallocate program at the end of the scope.
+    defer program.deinit();
+
+    // Define and initialize a hashmap for expected identifiers.
+    var expected_identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    defer expected_identifiers.deinit();
+
+    // Populate the hashmap with expected identifier values.
+    try expected_identifiers.put("__main__.main", .{
+        .pc = 0,
+        .type = "function",
+        .value = null,
+        .valueFelt = null,
+        .full_name = null,
+        .members = null,
+        .cairo_type = null,
+    });
+
+    try expected_identifiers.put("__main__.compare_abs_arrays.SIZEOF_LOCALS", .{
+        .pc = null,
+        .type = "const",
+        .value = -3618502788666131213697322783095070105623107215331596699973092056135872020481,
+        .valueFelt = Felt252.fromSignedInteger(-3618502788666131213697322783095070105623107215331596699973092056135872020481),
+        .full_name = null,
+        .members = null,
+        .cairo_type = null,
+    });
+
+    try expected_identifiers.put("starkware.cairo.common.cairo_keccak.keccak.unsigned_div_rem", .{
+        .pc = null,
+        .type = "alias",
+        .value = null,
+        .valueFelt = null,
+        .full_name = null,
+        .members = null,
+        .cairo_type = null,
+    });
+
+    try expected_identifiers.put("starkware.cairo.common.cairo_keccak.packed_keccak.ALL_ONES", .{
+        .pc = null,
+        .type = "const",
+        .value = -106710729501573572985208420194530329073740042555888586719234,
+        .valueFelt = Felt252.fromSignedInteger(-106710729501573572985208420194530329073740042555888586719234),
+        .full_name = null,
+        .members = null,
+        .cairo_type = null,
+    });
+
+    try expected_identifiers.put("starkware.cairo.common.cairo_keccak.packed_keccak.BLOCK_SIZE", .{
+        .pc = null,
+        .type = "const",
+        .value = 3,
+        .valueFelt = Felt252.fromInteger(3),
+        .full_name = null,
+        .members = null,
+        .cairo_type = null,
+    });
+
+    try expected_identifiers.put("starkware.cairo.common.alloc.alloc.SIZEOF_LOCALS", .{
+        .pc = null,
+        .type = "const",
+        .value = 0,
+        .valueFelt = Felt252.zero(),
+        .full_name = null,
+        .members = null,
+        .cairo_type = null,
+    });
+
+    try expected_identifiers.put("starkware.cairo.common.uint256.SHIFT", .{
+        .pc = null,
+        .type = "const",
+        .value = 340282366920938463463374607431768211456,
+        .valueFelt = Felt252.fromInteger(340282366920938463463374607431768211456),
+        .full_name = null,
+        .members = null,
+        .cairo_type = null,
+    });
+
+    // Check for equality between the counts of expected identifiers and parsed identifiers.
+    try expectEqual(
+        expected_identifiers.count(),
+        program.shared_program_data.identifiers.count(),
+    );
+
+    // Create an iterator for identifiers in the parsed program data.
+    var identifiers_iterator = program.shared_program_data.identifiers.iterator();
+
+    // Iterate through the parsed identifiers and check against expected values.
+    while (identifiers_iterator.next()) |kv| {
+        // Retrieve expected and parsed identifiers based on the key.
+        const expected_identifier = expected_identifiers.get(kv.key_ptr.*).?;
+        const identifier = program.shared_program_data.identifiers.get(kv.key_ptr.*).?;
+
+        // Compare various attributes of the expected and parsed identifiers.
+        try expectEqual(expected_identifier.pc, identifier.pc);
+        try expectEqualStrings(expected_identifier.type.?, identifier.type.?);
+        try expectEqual(expected_identifier.value, identifier.value);
+        try expectEqual(expected_identifier.valueFelt, identifier.valueFelt);
+        try expectEqual(expected_identifier.full_name, identifier.full_name);
+        try expectEqual(expected_identifier.members, identifier.members);
+        try expectEqual(expected_identifier.cairo_type, identifier.cairo_type);
+    }
 }
