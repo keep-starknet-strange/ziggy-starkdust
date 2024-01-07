@@ -377,7 +377,7 @@ pub const ProgramJson = struct {
             if (value.type != null and std.mem.eql(u8, value.type.?, "const")) {
                 try constants.put(
                     key,
-                    if (value.value) |v| Felt252.fromInteger(@intCast(v)) else return ProgramError.ConstWithoutValue,
+                    if (value.value) |v| Felt252.fromSignedInteger(v) else return ProgramError.ConstWithoutValue,
                 );
             }
         }

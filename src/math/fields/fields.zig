@@ -83,6 +83,29 @@ pub fn Field(
             return .{ .fe = mont };
         }
 
+        pub fn fromSignedInteger(num: i256) Self {
+            var lbe: [BytesSize]u8 = [_]u8{0} ** BytesSize;
+            std.mem.writeInt(
+                i256,
+                lbe[0..],
+                @mod(num, Modulo),
+                .little,
+            );
+
+            var nonMont: F.NonMontgomeryDomainFieldElement = undefined;
+            F.fromBytes(
+                &nonMont,
+                lbe,
+            );
+            var mont: F.MontgomeryDomainFieldElement = undefined;
+            F.toMontgomery(
+                &mont,
+                nonMont,
+            );
+
+            return .{ .fe = mont };
+        }
+
         /// Get the field element representing zero.
         ///
         /// Returns a field element with a value of zero.
@@ -129,7 +152,7 @@ pub fn Field(
         pub fn fromBytesBe(bytes: [BytesSize]u8) Self {
             var non_mont: F.NonMontgomeryDomainFieldElement = undefined;
             inline for (0..4) |i| {
-                non_mont[ 3 - i] = std.mem.readInt(
+                non_mont[3 - i] = std.mem.readInt(
                     u64,
                     bytes[i * 8 .. (i + 1) * 8],
                     .big,
