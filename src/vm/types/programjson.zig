@@ -517,17 +517,25 @@ test "ProgramJson cannot be initialized from nonexistent json file" {
 }
 
 test "ProgramJson can be initialized from json file with correct program data" {
+    // Allocate memory for testing purposes using std.testing.allocator.
     const allocator = std.testing.allocator;
 
-    // Get the absolute path of the current working directory.
+    // Define a buffer to hold the absolute path of the JSON file.
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
-    const path = try std.os.realpath("cairo_programs/fibonacci.json", &buffer);
-    var parsed_program = try ProgramJson.parseFromFile(allocator, path);
-    defer parsed_program.deinit();
 
+    // Parse the ProgramJson from the JSON file for testing.
+    var parsed_program = try ProgramJson.parseFromFile(
+        allocator,
+        try std.os.realpath("cairo_programs/fibonacci.json", &buffer),
+    );
+    defer parsed_program.deinit(); // Ensure deallocation after the test.
+
+    // Read the data from the parsed ProgramJson.
     const data = try parsed_program.value.readData(allocator);
+    // Deallocate the data after the test.
     defer data.deinit();
 
+    // Define expected data obtained from the JSON file.
     const expected_data: []const []const u8 = &[_][]const u8{
         "0x480680017fff8000",
         "0x1",
@@ -555,28 +563,35 @@ test "ProgramJson can be initialized from json file with correct program data" {
         "0x208b7fff7fff7ffe",
     };
 
+    // Ensure the length of expected data matches the parsed data.
     try expectEqual(expected_data.len, data.items.len);
 
+    // Iterate through each item in the parsed data.
     for (0..expected_data.len) |idx| {
+        // Initialize a list to store hexadecimal representations.
         var hex_list = std.ArrayList(u8).init(allocator);
+        // Deallocate after each iteration.
         defer hex_list.deinit();
 
-        const instruction = data.items[idx].felt.toInteger();
-        // Format the integer as hexadecimal and store in buffer
-        try std.fmt.format(hex_list.writer(), "0x{x}", .{instruction});
+        // Convert the felt integer to a hexadecimal representation.
+        try std.fmt.format(
+            hex_list.writer(),
+            "0x{x}",
+            .{data.items[idx].felt.toInteger()},
+        );
 
+        // Ensure the generated hexadecimal string matches the expected value.
         try expectEqualStrings(expected_data[idx], hex_list.items);
     }
 }
 
-test "ProgramJson: parseFromFile should return a parsed ProgramJson instance from a valid JSON" {
-    // Test case: ProgramJson: parseFromFile should return a parsed ProgramJson instance from a valid JSON
+test "ProgramJson: parseFromFile should return a parsed ProgramJson instance from a valid JSON A" {
+    // Buffer to store the path of the JSON file
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
 
     // Attempting to parse a ProgramJson instance from a JSON file
     var parsed_program = try ProgramJson.parseFromFile(
         std.testing.allocator,
-        // Obtaining the real path of the JSON file and parsing it
         try std.os.realpath(
             "cairo_programs/manually_compiled/valid_program_a.json",
             &buffer,
@@ -600,6 +615,48 @@ test "ProgramJson: parseFromFile should return a parsed ProgramJson instance fro
     // Expecting equality for a specific numeric value extracted from identifiers in the parsed JSON
     try expectEqual(
         @as(usize, 0),
+        parsed_program.value.identifiers.map.get("__main__.main").?.pc,
+    );
+}
+
+test "ProgramJson: parseFromFile should return a parsed ProgramJson instance from a valid JSON B" {
+    // Buffer to store the path of the JSON file
+    var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+
+    // Attempting to parse a ProgramJson instance from a JSON file
+    var parsed_program = try ProgramJson.parseFromFile(
+        std.testing.allocator,
+        try std.os.realpath(
+            "cairo_programs/manually_compiled/valid_program_b.json",
+            &buffer,
+        ),
+    );
+    // Deinitializing parsed_program at the end of the scope
+    defer parsed_program.deinit();
+
+    // Expecting equality for a specific string field in the parsed JSON
+    try expectEqualStrings(
+        "0x800000000000011000000000000000000000000000000000000000000000001",
+        parsed_program.value.prime,
+    );
+
+    // Expected builtins to compare against the parsed JSON builtins
+    const expected_builtins = [_][]const u8{
+        "output",
+        "range_check",
+    };
+
+    // Loop through parsed JSON builtins and compare with expected builtins
+    for (parsed_program.value.builtins.?, 0..) |builtin, i| {
+        try expectEqualStrings(expected_builtins[i], builtin);
+    }
+
+    // Expecting that a certain field in the parsed JSON has an array of length 24
+    try expect(parsed_program.value.data.len == 24);
+
+    // Expecting equality for a specific numeric value extracted from identifiers in the parsed JSON
+    try expectEqual(
+        @as(usize, 13),
         parsed_program.value.identifiers.map.get("__main__.main").?.pc,
     );
 }
@@ -730,6 +787,26 @@ test "ProgramJson: parseFromString should return a parsed ProgramJson instance f
     for (parsed_program.value.data, 0..) |data, i| {
         try expectEqualStrings(expected_data[i], data);
     }
+
+    // Read the data from the parsed ProgramJson.
+    const data_vec = try parsed_program.value.readData(std.testing.allocator);
+    // Deallocate the data after the test.
+    defer data_vec.deinit();
+
+    // Initialize an array list to hold the expected data using MaybeRelocatable type.
+    var expected_data_vec = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    defer expected_data_vec.deinit(); // Ensure deallocation after the test.
+
+    // Append expected MaybeRelocatable values to the array list.
+    try expected_data_vec.append(MaybeRelocatable.fromU256(5189976364521848832));
+    try expected_data_vec.append(MaybeRelocatable.fromU256(1000));
+    try expected_data_vec.append(MaybeRelocatable.fromU256(5189976364521848832));
+    try expected_data_vec.append(MaybeRelocatable.fromU256(2000));
+    try expected_data_vec.append(MaybeRelocatable.fromU256(5201798304953696256));
+    try expected_data_vec.append(MaybeRelocatable.fromU256(2345108766317314046));
+
+    // Compare the items in the expected and parsed data arrays.
+    try expectEqualSlices(MaybeRelocatable, expected_data_vec.items, data_vec.items);
 
     // Expectation: Code in hints matches an expected string
     try expect(std.mem.eql(u8, "memory[ap] = segments.add()", parsed_program.value.hints.map.get("0").?[0].code));
