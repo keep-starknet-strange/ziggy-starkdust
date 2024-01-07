@@ -401,64 +401,6 @@ pub const ProgramJson = struct {
             }
         } else null;
 
-        const start = if (self.identifiers.?.map.get("__main__.__start__")) |identifier| identifier.pc else null;
-        const end = if (self.identifiers.?.map.get("__main__.__end__")) |identifier| identifier.pc else null;
-
-        var constants = std.StringHashMap(Felt252).init(allocator);
-        errdefer constants.deinit();
-        // Populates the constants hashmap with identifier keys and associated constant values.
-        for (self.identifiers.?.map.keys(), self.identifiers.?.map.values()) |key, value| {
-            if (value.type != null and std.mem.eql(u8, value.type.?, "const")) {
-                try constants.put(
-                    key,
-                    if (value.value) |v| Felt252.fromSignedInteger(v) else return ProgramError.ConstWithoutValue,
-                );
-            }
-        }
-
-        // Collects attributes named "error_message" and adds them to error_message_attributes.
-        var error_message_attributes = std.ArrayList(Attribute).init(allocator);
-        errdefer error_message_attributes.deinit();
-        for (self.attributes.?) |attribute| {
-            if (std.mem.eql(u8, attribute.name, "error_message")) {
-                try error_message_attributes.append(attribute);
-            }
-        }
-
-        var builtins = std.ArrayList(BuiltinName).init(allocator);
-        errdefer builtins.deinit();
-        // Collects built-in names and adds them to the builtins list.
-        for (0..self.attributes.?.len) |i| {
-            if (self.builtins != null and i < self.builtins.?.len) {
-                try builtins.append(std.meta.stringToEnum(
-                    BuiltinName,
-                    self.builtins.?[i],
-                ) orelse
-                    return ProgramError.BuiltinNotInLayout);
-            }
-        }
-
-        var instruction_locations = std.StringHashMap(InstructionLocation).init(allocator);
-        errdefer instruction_locations.deinit();
-
-        if (self.debug_info.?.instruction_locations) |il| {
-            // Populates the instruction_locations hashmap with debug information related to instruction locations.
-            for (il.map.keys(), il.map.values()) |key, value| {
-                try instruction_locations.put(key, value);
-            }
-        }
-
-        var identifiers = std.StringHashMap(Identifier).init(allocator);
-        errdefer identifiers.deinit();
-        // Populates the identifiers hashmap with program identifiers and associated metadata.
-        for (self.identifiers.?.map.keys(), self.identifiers.?.map.values()) |key, value| {
-            var val = value;
-            if (val.value) |v| {
-                val.valueFelt = Felt252.fromSignedInteger(v);
-            }
-            try identifiers.put(key, val);
-        }
-
         var hints_collection = HintsCollection.init(allocator);
         errdefer hints_collection.deinit();
 
@@ -467,18 +409,18 @@ pub const ProgramJson = struct {
                 .data = try self.readData(allocator),
                 .hints_collection = hints_collection,
                 .main = entrypoint_pc,
-                .start = start,
-                .end = end,
-                .error_message_attributes = error_message_attributes,
-                .instruction_locations = instruction_locations,
-                .identifiers = identifiers,
+                .start = self.getStartPc(),
+                .end = self.getEndPc(),
+                .error_message_attributes = try self.getErrorMessageAttributes(allocator),
+                .instruction_locations = try self.getInstructionLocations(allocator),
+                .identifiers = try self.getIdentifiers(allocator),
                 .reference_manager = try Program.getReferenceList(
                     allocator,
                     &self.reference_manager.?.references.?,
                 ),
             },
-            .constants = constants,
-            .builtins = builtins,
+            .constants = try self.getConstants(allocator),
+            .builtins = try self.getBuiltins(allocator),
         };
     }
 
@@ -505,6 +447,202 @@ pub const ProgramJson = struct {
             )));
         }
         return parsed_data;
+    }
+
+    /// Extracts built-in names from a Cairo v0 program's attributes and populates an `ArrayList` with `BuiltinName` instances.
+    ///
+    /// # Arguments
+    /// - `allocator`: The allocator for managing memory during extraction.
+    ///
+    /// # Returns
+    /// An `ArrayList` containing `BuiltinName` instances extracted from the program's attributes.
+    ///
+    /// # Errors
+    /// - If a built-in name is not found in the provided layout.
+    pub fn getBuiltins(self: *Self, allocator: Allocator) !std.ArrayList(BuiltinName) {
+        // Initialize an array list for storing built-in names.
+        var builtins = std.ArrayList(BuiltinName).init(allocator);
+        // Deinitialize the array list in case of errors.
+        errdefer builtins.deinit();
+
+        // Collects built-in names and adds them to the builtins list.
+        for (0..self.attributes.?.len) |i| {
+            if (self.builtins != null and i < self.builtins.?.len) {
+                // Convert the string to the corresponding BuiltinName enum value and append it.
+                try builtins.append(std.meta.stringToEnum(
+                    BuiltinName,
+                    self.builtins.?[i],
+                ) orelse
+                    return ProgramError.BuiltinNotInLayout);
+            }
+        }
+
+        // Return the populated array list of built-in names.
+        return builtins;
+    }
+
+    /// Retrieves the constants defined within a Cairo v0 program by extracting them from the identifiers and their associated values.
+    ///
+    /// # Arguments
+    /// - `allocator`: The allocator for managing memory during extraction.
+    ///
+    /// # Returns
+    /// A `StringHashMap` containing `Felt252` values associated with their respective identifier keys representing constants within the program.
+    ///
+    /// # Errors
+    /// - If a constant is found without an associated value.
+    pub fn getConstants(self: *Self, allocator: Allocator) !std.StringHashMap(Felt252) {
+        // Initialize a hashmap to store constants.
+        var constants = std.StringHashMap(Felt252).init(allocator);
+        // Deinitialize the hashmap in case of errors.
+        errdefer constants.deinit();
+
+        // Iterate over identifiers to populate the constants hashmap.
+        for (self.identifiers.?.map.keys(), self.identifiers.?.map.values()) |key, value| {
+            // Check if the identifier represents a constant.
+            if (value.type) |t| {
+                if (std.mem.eql(u8, t, "const")) {
+                    // Attempt to add the constant to the hashmap.
+                    try constants.put(
+                        key,
+                        // Convert the value to Felt252 and add it to the hashmap.
+                        if (value.value) |v| Felt252.fromSignedInteger(v) else return ProgramError.ConstWithoutValue,
+                    );
+                }
+            }
+        }
+
+        // Return the populated constants hashmap.
+        return constants;
+    }
+
+    /// Collects error message attributes from the program's attributes.
+    ///
+    /// This function iterates through the provided attributes of a Cairo v0 program
+    /// and collects attributes with the name "error_message", adding them to a list
+    /// of attributes related to error messages.
+    ///
+    /// # Arguments
+    /// - `allocator`: The allocator for memory allocation during attribute collection.
+    ///
+    /// # Returns
+    /// - An ArrayList of `Attribute` instances related to error messages.
+    pub fn getErrorMessageAttributes(self: *Self, allocator: Allocator) !std.ArrayList(Attribute) {
+        // Initialize an array list to store error message attributes.
+        var error_message_attributes = std.ArrayList(Attribute).init(allocator);
+        // Deinitialize the array list in case of errors.
+        errdefer error_message_attributes.deinit();
+
+        // Iterate through the attributes and collect those named "error_message".
+        for (self.attributes.?) |attribute| {
+            // Check if the attribute name matches "error_message".
+            if (std.mem.eql(u8, attribute.name, "error_message")) {
+                // Append the attribute to the error message attributes list.
+                try error_message_attributes.append(attribute);
+            }
+        }
+
+        // Return the collected error message attributes.
+        return error_message_attributes;
+    }
+
+    /// Collects identifiers and associated metadata into a hashmap.
+    ///
+    /// This function iterates through the provided identifiers' map of a Cairo v0 program
+    /// and constructs a hashmap containing identifiers as keys and their metadata as values.
+    ///
+    /// # Arguments
+    /// - `allocator`: The allocator for memory allocation during identifier collection.
+    ///
+    /// # Returns
+    /// - A StringHashMap of `Identifier` instances containing program identifiers and metadata.
+    pub fn getIdentifiers(self: *Self, allocator: Allocator) !std.StringHashMap(Identifier) {
+        // Initialize a StringHashMap to store identifiers and metadata.
+        var identifiers = std.StringHashMap(Identifier).init(allocator);
+        // Deinitialize the hashmap in case of errors.
+        errdefer identifiers.deinit();
+
+        // Iterate through the identifiers and populate the hashmap with metadata.
+        for (self.identifiers.?.map.keys(), self.identifiers.?.map.values()) |key, value| {
+            var val = value;
+            // If the identifier has a numeric value, convert it to Felt252 and update the valueFelt field.
+            if (val.value) |v| {
+                val.valueFelt = Felt252.fromSignedInteger(v);
+            }
+            // Put the identifier and its metadata into the hashmap.
+            try identifiers.put(key, val);
+        }
+
+        // Return the populated hashmap of identifiers.
+        return identifiers;
+    }
+
+    /// Retrieves and organizes debug information related to instruction locations.
+    ///
+    /// This function extracts and organizes debug information concerning instruction locations
+    /// from the provided `debug_info` of a Cairo v0 program compilation artifact.
+    ///
+    /// # Arguments
+    /// - `allocator`: The allocator for memory allocation during instruction location retrieval.
+    ///
+    /// # Returns
+    /// - A StringHashMap containing debug information related to instruction locations.
+    ///   Keys represent the location identifier, and values encapsulate instruction location metadata.
+    pub fn getInstructionLocations(self: *Self, allocator: Allocator) !std.StringHashMap(InstructionLocation) {
+        // Initialize a StringHashMap to store instruction locations and their metadata.
+        var instruction_locations = std.StringHashMap(InstructionLocation).init(allocator);
+        // Deinitialize the hashmap in case of errors.
+        errdefer instruction_locations.deinit();
+
+        // Check if debug information related to instruction locations exists.
+        if (self.debug_info.?.instruction_locations) |il| {
+            // Populate the instruction_locations hashmap with debug information.
+            for (il.map.keys(), il.map.values()) |key, value| {
+                // Put each key-value pair into the instruction_locations hashmap.
+                try instruction_locations.put(key, value);
+            }
+        }
+
+        // Return the populated hashmap of instruction locations.
+        return instruction_locations;
+    }
+
+    /// Retrieves the program counter (pc) for the start of the main function.
+    ///
+    /// This function retrieves the program counter (pc) indicating the start of the main function
+    /// within the Cairo v0 program's identifiers. If the program counter is found, it is returned;
+    /// otherwise, it returns null.
+    ///
+    /// # Returns
+    /// - If found: The program counter (pc) for the start of the main function.
+    /// - If not found: Null.
+    pub fn getStartPc(self: *Self) ?usize {
+        // Check if the identifier for the start of the main function exists in identifiers.
+        if (self.identifiers.?.map.get("__main__.__start__")) |identifier| {
+            // Return the program counter (pc) for the start of the main function.
+            return identifier.pc;
+        }
+        // Return null if the start of the main function identifier is not found.
+        return null;
+    }
+
+    /// Retrieves the program counter (pc) for the end of the main function.
+    ///
+    /// This function retrieves the program counter (pc) indicating the end of the main function
+    /// within the Cairo v0 program's identifiers. If the program counter is found, it is returned;
+    /// otherwise, it returns null.
+    ///
+    /// # Returns
+    /// - If found: The program counter (pc) for the end of the main function.
+    /// - If not found: Null.
+    pub fn getEndPc(self: *Self) ?usize {
+        // Check if the identifier for the end of the main function exists in identifiers.
+        if (self.identifiers.?.map.get("__main__.__end__")) |identifier| {
+            // Return the program counter (pc) for the end of the main function.
+            return identifier.pc;
+        }
+        // Return null if the end of the main function identifier is not found.
+        return null;
     }
 };
 
