@@ -155,7 +155,7 @@ pub const CairoRunner = struct {
         // Concatenate strings
         const full_entrypoint_name = try std.fmt.bufPrint(&buffer, "__main__.{s}", .{self.entrypoint_name});
 
-        const main_offset: usize = self.program.identifiers.map.get(full_entrypoint_name).?.pc orelse 0;
+        const main_offset: usize = self.program.identifiers.?.map.get(full_entrypoint_name).?.pc orelse 0;
 
         const end = try self.initFunctionEntrypoint(main_offset, return_fp);
         return end;

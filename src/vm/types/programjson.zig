@@ -258,33 +258,33 @@ pub const Identifier = struct {
 pub const ProgramJson = struct {
     const Self = @This();
     /// List of attributes.
-    attributes: []Attribute,
+    attributes: ?[]Attribute = null,
     /// List of builtins.
     builtins: ?[]const []const u8 = null,
     /// Compiler version information.
     compiler_version: ?[]const u8 = null,
     /// Program data.
-    data: []const []const u8,
+    data: ?[]const []const u8 = null,
     /// Debug information.
-    debug_info: struct {
+    debug_info: ?struct {
         /// File contents associated with debug information.
         file_contents: ?json.ArrayHashMap([]const u8) = null,
         /// Instruction locations linked with debug information.
         instruction_locations: ?json.ArrayHashMap(InstructionLocation) = null,
-    },
+    } = null,
     /// Hints associated with the program.
-    hints: json.ArrayHashMap([]const HintParams),
+    hints: ?json.ArrayHashMap([]const HintParams) = null,
     /// Identifiers within the program.
-    identifiers: json.ArrayHashMap(Identifier),
+    identifiers: ?json.ArrayHashMap(Identifier) = null,
     /// Main scope details.
     main_scope: ?[]const u8 = null,
     /// Prime data.
-    prime: []const u8,
+    prime: ?[]const u8 = null,
     /// Reference manager containing references.
-    reference_manager: struct {
+    reference_manager: ?struct {
         /// List of references.
-        references: []const Reference,
-    },
+        references: ?[]const Reference = null,
+    } = null,
 
     /// Attempts to parse the compilation artifact of a Cairo v0 program from a JSON file.
     ///
@@ -378,7 +378,7 @@ pub const ProgramJson = struct {
     ///
     /// To use this function effectively, ensure correct and compatible JSON data representing a Cairo v0 program.
     pub fn parseProgramJson(self: *Self, allocator: Allocator, entrypoint: ?*[]const u8) !Program {
-        if (!std.mem.eql(u8, PRIME_STR, self.prime))
+        if (!std.mem.eql(u8, PRIME_STR, self.prime.?))
             return ProgramError.PrimeDiffers;
 
         // Finds the program counter of the specified entrypoint identifier.
@@ -391,20 +391,20 @@ pub const ProgramJson = struct {
             );
             defer allocator.free(key);
 
-            if (self.identifiers.map.get(key)) |entrypoint_identifier| {
+            if (self.identifiers.?.map.get(key)) |entrypoint_identifier| {
                 break :blk entrypoint_identifier.pc;
             } else {
                 return ProgramError.EntrypointNotFound;
             }
         } else null;
 
-        const start = if (self.identifiers.map.get("__main__.__start__")) |identifier| identifier.pc else null;
-        const end = if (self.identifiers.map.get("__main__.__end__")) |identifier| identifier.pc else null;
+        const start = if (self.identifiers.?.map.get("__main__.__start__")) |identifier| identifier.pc else null;
+        const end = if (self.identifiers.?.map.get("__main__.__end__")) |identifier| identifier.pc else null;
 
         var constants = std.StringHashMap(Felt252).init(allocator);
         errdefer constants.deinit();
         // Populates the constants hashmap with identifier keys and associated constant values.
-        for (self.identifiers.map.keys(), self.identifiers.map.values()) |key, value| {
+        for (self.identifiers.?.map.keys(), self.identifiers.?.map.values()) |key, value| {
             if (value.type != null and std.mem.eql(u8, value.type.?, "const")) {
                 try constants.put(
                     key,
@@ -416,17 +416,16 @@ pub const ProgramJson = struct {
         // Collects attributes named "error_message" and adds them to error_message_attributes.
         var error_message_attributes = std.ArrayList(Attribute).init(allocator);
         errdefer error_message_attributes.deinit();
-        for (0..self.attributes.len) |i| {
-            const name = self.attributes[i].name;
-            if (std.mem.eql(u8, name, "error_message")) {
-                try error_message_attributes.append(self.attributes[i]);
+        for (self.attributes.?) |attribute| {
+            if (std.mem.eql(u8, attribute.name, "error_message")) {
+                try error_message_attributes.append(attribute);
             }
         }
 
         var builtins = std.ArrayList(BuiltinName).init(allocator);
         errdefer builtins.deinit();
         // Collects built-in names and adds them to the builtins list.
-        for (0..self.attributes.len) |i| {
+        for (0..self.attributes.?.len) |i| {
             if (self.builtins) |b|
                 try builtins.append(std.meta.stringToEnum(BuiltinName, b[i]) orelse return ProgramError.BuiltinNotInLayout);
         }
@@ -434,7 +433,7 @@ pub const ProgramJson = struct {
         var instruction_locations = std.StringHashMap(InstructionLocation).init(allocator);
         errdefer instruction_locations.deinit();
 
-        if (self.debug_info.instruction_locations) |il| {
+        if (self.debug_info.?.instruction_locations) |il| {
             // Populates the instruction_locations hashmap with debug information related to instruction locations.
             for (il.map.keys(), il.map.values()) |key, value| {
                 try instruction_locations.put(key, value);
@@ -444,7 +443,7 @@ pub const ProgramJson = struct {
         var identifiers = std.StringHashMap(Identifier).init(allocator);
         errdefer identifiers.deinit();
         // Populates the identifiers hashmap with program identifiers and associated metadata.
-        for (self.identifiers.map.keys(), self.identifiers.map.values()) |key, value| {
+        for (self.identifiers.?.map.keys(), self.identifiers.?.map.values()) |key, value| {
             try identifiers.put(key, value);
         }
 
@@ -453,7 +452,7 @@ pub const ProgramJson = struct {
 
         return .{
             .shared_program_data = .{
-                .data = self.data,
+                .data = self.data.?,
                 .hints_collection = hints_collection,
                 .main = entrypoint_pc,
                 .start = start,
@@ -463,7 +462,7 @@ pub const ProgramJson = struct {
                 .identifiers = identifiers,
                 .reference_manager = try Program.getReferenceList(
                     allocator,
-                    &self.reference_manager.references,
+                    &self.reference_manager.?.references.?,
                 ),
             },
             .constants = constants,
@@ -486,7 +485,7 @@ pub const ProgramJson = struct {
         var parsed_data = std.ArrayList(MaybeRelocatable).init(allocator);
         errdefer parsed_data.deinit();
 
-        for (self.data) |instruction| {
+        for (self.data.?) |instruction| {
             try parsed_data.append(MaybeRelocatable.fromU256(try std.fmt.parseInt(
                 u256,
                 instruction[2..],
@@ -603,19 +602,19 @@ test "ProgramJson: parseFromFile should return a parsed ProgramJson instance fro
     // Expecting equality for a specific string field in the parsed JSON
     try expectEqualStrings(
         "0x800000000000011000000000000000000000000000000000000000000000001",
-        parsed_program.value.prime,
+        parsed_program.value.prime.?,
     );
 
     // Expecting that a certain field in the parsed JSON has an empty array or is not present
     try expect(parsed_program.value.builtins.?.len == 0);
 
     // Expecting that a certain field in the parsed JSON has an array of length 6
-    try expect(parsed_program.value.data.len == 6);
+    try expect(parsed_program.value.data.?.len == 6);
 
     // Expecting equality for a specific numeric value extracted from identifiers in the parsed JSON
     try expectEqual(
         @as(usize, 0),
-        parsed_program.value.identifiers.map.get("__main__.main").?.pc,
+        parsed_program.value.identifiers.?.map.get("__main__.main").?.pc,
     );
 }
 
@@ -637,7 +636,7 @@ test "ProgramJson: parseFromFile should return a parsed ProgramJson instance fro
     // Expecting equality for a specific string field in the parsed JSON
     try expectEqualStrings(
         "0x800000000000011000000000000000000000000000000000000000000000001",
-        parsed_program.value.prime,
+        parsed_program.value.prime.?,
     );
 
     // Expected builtins to compare against the parsed JSON builtins
@@ -652,12 +651,12 @@ test "ProgramJson: parseFromFile should return a parsed ProgramJson instance fro
     }
 
     // Expecting that a certain field in the parsed JSON has an array of length 24
-    try expect(parsed_program.value.data.len == 24);
+    try expect(parsed_program.value.data.?.len == 24);
 
     // Expecting equality for a specific numeric value extracted from identifiers in the parsed JSON
     try expectEqual(
         @as(usize, 13),
-        parsed_program.value.identifiers.map.get("__main__.main").?.pc,
+        parsed_program.value.identifiers.?.map.get("__main__.main").?.pc,
     );
 }
 
@@ -766,14 +765,14 @@ test "ProgramJson: parseFromString should return a parsed ProgramJson instance f
     // Expectation: prime value matches
     try expectEqualStrings(
         "0x800000000000011000000000000000000000000000000000000000000000001",
-        parsed_program.value.prime,
+        parsed_program.value.prime.?,
     );
 
     // Expectation: length of builtins is 0
     try expect(parsed_program.value.builtins.?.len == 0);
 
     // Expectation: `pc` value for "__main__.main" identifier is 0
-    try expect(parsed_program.value.identifiers.map.get("__main__.main").?.pc == 0);
+    try expect(parsed_program.value.identifiers.?.map.get("__main__.main").?.pc == 0);
 
     // Expectation: Data array matches the expected values
     const expected_data = [_][]const u8{
@@ -784,7 +783,7 @@ test "ProgramJson: parseFromString should return a parsed ProgramJson instance f
         "0x48307fff7ffe8000",
         "0x208b7fff7fff7ffe",
     };
-    for (parsed_program.value.data, 0..) |data, i| {
+    for (parsed_program.value.data.?, 0..) |data, i| {
         try expectEqualStrings(expected_data[i], data);
     }
 
@@ -809,8 +808,14 @@ test "ProgramJson: parseFromString should return a parsed ProgramJson instance f
     try expectEqualSlices(MaybeRelocatable, expected_data_vec.items, data_vec.items);
 
     // Expectation: Code in hints matches an expected string
-    try expect(std.mem.eql(u8, "memory[ap] = segments.add()", parsed_program.value.hints.map.get("0").?[0].code));
-    try expect(std.mem.eql(u8, "memory[ap] = segments.add()", parsed_program.value.hints.map.get("0").?[0].code));
+    try expectEqualStrings(
+        "memory[ap] = segments.add()",
+        parsed_program.value.hints.?.map.get("0").?[0].code,
+    );
+    try expectEqualStrings(
+        "memory[ap] = segments.add()",
+        parsed_program.value.hints.?.map.get("0").?[0].code,
+    );
 
     // Defining an array of expected accessible scopes
     const expected_hint_accessible_scope = [_][]const u8{
@@ -819,32 +824,32 @@ test "ProgramJson: parseFromString should return a parsed ProgramJson instance f
     };
 
     // Looping through the accessible scopes extracted from the parsed JSON and comparing them with expected values
-    for (parsed_program.value.hints.map.get("0").?[0].accessible_scopes, 0..) |accessible_scope, i| {
+    for (parsed_program.value.hints.?.map.get("0").?[0].accessible_scopes, 0..) |accessible_scope, i| {
         try expectEqualStrings(expected_hint_accessible_scope[i], accessible_scope);
     }
 
     // Expecting equality for ApTracking's ap_tracking field extracted from parsed JSON
     try expectEqual(
         ApTracking{ .group = 0, .offset = 0 },
-        parsed_program.value.hints.map.get("0").?[0].flow_tracking_data.ap_tracking,
+        parsed_program.value.hints.?.map.get("0").?[0].flow_tracking_data.ap_tracking,
     );
 
     // Expecting equality for specific numeric values from reference_ids in flow_tracking_data
     try expectEqual(
         @as(usize, 0),
-        parsed_program.value.hints.map.get("0").?[0].flow_tracking_data.reference_ids.?.map.get("starkware.cairo.common.math.split_felt.high"),
+        parsed_program.value.hints.?.map.get("0").?[0].flow_tracking_data.reference_ids.?.map.get("starkware.cairo.common.math.split_felt.high"),
     );
     try expectEqual(
         @as(usize, 14),
-        parsed_program.value.hints.map.get("0").?[0].flow_tracking_data.reference_ids.?.map.get("starkware.cairo.common.math.split_felt.low"),
+        parsed_program.value.hints.?.map.get("0").?[0].flow_tracking_data.reference_ids.?.map.get("starkware.cairo.common.math.split_felt.low"),
     );
     try expectEqual(
         @as(usize, 16),
-        parsed_program.value.hints.map.get("0").?[0].flow_tracking_data.reference_ids.?.map.get("starkware.cairo.common.math.split_felt.range_check_ptr"),
+        parsed_program.value.hints.?.map.get("0").?[0].flow_tracking_data.reference_ids.?.map.get("starkware.cairo.common.math.split_felt.range_check_ptr"),
     );
     try expectEqual(
         @as(usize, 12),
-        parsed_program.value.hints.map.get("0").?[0].flow_tracking_data.reference_ids.?.map.get("starkware.cairo.common.math.split_felt.value"),
+        parsed_program.value.hints.?.map.get("0").?[0].flow_tracking_data.reference_ids.?.map.get("starkware.cairo.common.math.split_felt.value"),
     );
 
     // Defining an array of expected Reference values
@@ -856,7 +861,7 @@ test "ProgramJson: parseFromString should return a parsed ProgramJson instance f
     };
 
     // Looping through the reference manager references extracted from parsed JSON and comparing them with expected values
-    for (parsed_program.value.reference_manager.references, 0..) |ref, i| {
+    for (parsed_program.value.reference_manager.?.references.?, 0..) |ref, i| {
         try expectEqual(expected_reference_manager[i].ap_tracking_data, ref.ap_tracking_data);
         try expectEqual(expected_reference_manager[i].pc, ref.pc);
         try expectEqualStrings(expected_reference_manager[i].value, ref.value);
@@ -963,4 +968,32 @@ test "ProgramJson: parseProgramJson should parse a Cairo v0 JSON Program and con
     try expectEqual(@as(?[]const Reference, null), identifier_zero.references);
     try expectEqual(@as(?json.ArrayHashMap(IdentifierMember), null), identifier_zero.members);
     try expectEqual(@as(?[]const u8, null), identifier_zero.cairo_type);
+}
+
+test "ProgramJson: parseProgramJson with missing entry point should return an error" {
+    // Get the absolute path of the current working directory.
+    var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+
+    // Obtain the real path of the JSON file
+    const path = try std.os.realpath(
+        "cairo_programs/manually_compiled/valid_program_a.json",
+        &buffer,
+    );
+
+    // Parse the JSON file into a `ProgramJson` structure
+    var parsed_program = try ProgramJson.parseFromFile(std.testing.allocator, path);
+    // Deallocate parsed_program at the end of the scope
+    defer parsed_program.deinit();
+
+    // Specify the entrypoint identifier
+    var entrypoint: []const u8 = "missing_function";
+
+    // Expect an error related to an entrypoint not found in the parsed program
+    try expectError(
+        ProgramError.EntrypointNotFound,
+        parsed_program.value.parseProgramJson(
+            std.testing.allocator,
+            &entrypoint,
+        ),
+    );
 }
