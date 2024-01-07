@@ -260,24 +260,24 @@ pub const ProgramJson = struct {
     /// List of attributes.
     attributes: []Attribute,
     /// List of builtins.
-    builtins: []const []const u8,
+    builtins: ?[]const []const u8 = null,
     /// Compiler version information.
-    compiler_version: []const u8,
+    compiler_version: ?[]const u8 = null,
     /// Program data.
     data: []const []const u8,
     /// Debug information.
     debug_info: struct {
         /// File contents associated with debug information.
-        file_contents: json.ArrayHashMap([]const u8),
+        file_contents: ?json.ArrayHashMap([]const u8) = null,
         /// Instruction locations linked with debug information.
-        instruction_locations: json.ArrayHashMap(InstructionLocation),
+        instruction_locations: ?json.ArrayHashMap(InstructionLocation) = null,
     },
     /// Hints associated with the program.
     hints: json.ArrayHashMap([]const HintParams),
     /// Identifiers within the program.
     identifiers: json.ArrayHashMap(Identifier),
     /// Main scope details.
-    main_scope: []const u8,
+    main_scope: ?[]const u8 = null,
     /// Prime data.
     prime: []const u8,
     /// Reference manager containing references.
@@ -319,6 +319,22 @@ pub const ProgramJson = struct {
 
         return parsed;
     }
+
+    pub fn parseFromString(allocator: Allocator, buffer: []const u8) !json.Parsed(Self) {
+        const parsed = try json.parseFromSlice(
+            Self,
+            allocator,
+            buffer,
+            .{
+                .allocate = .alloc_always,
+                .ignore_unknown_fields = true,
+            },
+        );
+        errdefer parsed.deinit();
+
+        return parsed;
+    }
+
     /// Parses a compilation artifact of a Cairo v0 program in JSON format.
     ///
     /// This function extracts relevant information from the provided JSON structure
@@ -396,14 +412,18 @@ pub const ProgramJson = struct {
         errdefer builtins.deinit();
         // Collects built-in names and adds them to the builtins list.
         for (0..self.attributes.len) |i| {
-            try builtins.append(std.meta.stringToEnum(BuiltinName, self.builtins[i]) orelse return ProgramError.BuiltinNotInLayout);
+            if (self.builtins) |b|
+                try builtins.append(std.meta.stringToEnum(BuiltinName, b[i]) orelse return ProgramError.BuiltinNotInLayout);
         }
 
         var instruction_locations = std.StringHashMap(InstructionLocation).init(allocator);
         errdefer instruction_locations.deinit();
-        // Populates the instruction_locations hashmap with debug information related to instruction locations.
-        for (self.debug_info.instruction_locations.map.keys(), self.debug_info.instruction_locations.map.values()) |key, value| {
-            try instruction_locations.put(key, value);
+
+        if (self.debug_info.instruction_locations) |il| {
+            // Populates the instruction_locations hashmap with debug information related to instruction locations.
+            for (il.map.keys(), il.map.values()) |key, value| {
+                try instruction_locations.put(key, value);
+            }
         }
 
         var identifiers = std.StringHashMap(Identifier).init(allocator);
@@ -531,6 +551,188 @@ test "ProgramJson can be initialized from json file with correct program data" {
         try std.fmt.format(hex_list.writer(), "0x{x}", .{instruction});
 
         try expectEqualStrings(expected_data[idx], hex_list.items);
+    }
+}
+
+test "ProgramJson: parseFromString should return a parsed ProgramJson instance from string" {
+    const valid_json =
+        \\  {
+        \\     "prime": "0x800000000000011000000000000000000000000000000000000000000000001",
+        \\     "attributes": [],
+        \\    "debug_info": {
+        \\        "instruction_locations": {}
+        \\    },
+        \\    "builtins": [],
+        \\ "data": [
+        \\    "0x480680017fff8000",
+        \\    "0x3e8",
+        \\    "0x480680017fff8000",
+        \\    "0x7d0",
+        \\    "0x48307fff7ffe8000",
+        \\    "0x208b7fff7fff7ffe"
+        \\ ],
+        \\ "identifiers": {
+        \\    "__main__.main": {
+        \\        "decorators": [],
+        \\        "pc": 0,
+        \\        "type": "function"
+        \\    },
+        \\    "__main__.main.Args": {
+        \\        "full_name": "__main__.main.Args",
+        \\        "members": {},
+        \\        "size": 0,
+        \\        "type": "struct"
+        \\    },
+        \\    "__main__.main.ImplicitArgs": {
+        \\        "full_name": "__main__.main.ImplicitArgs",
+        \\        "members": {},
+        \\        "size": 0,
+        \\        "type": "struct"
+        \\    }
+        \\ },
+        \\ "hints": {
+        \\     "0": [
+        \\        {
+        \\            "accessible_scopes": [
+        \\                "starkware.cairo.common.alloc",
+        \\               "starkware.cairo.common.alloc.alloc"
+        \\           ],
+        \\         "code": "memory[ap] = segments.add()",
+        \\       "flow_tracking_data": {
+        \\          "ap_tracking": {
+        \\"group": 0,
+        \\ "offset": 0
+        \\ },
+        \\ "reference_ids": {
+        \\     "starkware.cairo.common.math.split_felt.high": 0,
+        \\    "starkware.cairo.common.math.split_felt.low": 14,
+        \\      "starkware.cairo.common.math.split_felt.range_check_ptr": 16,
+        \\       "starkware.cairo.common.math.split_felt.value": 12
+        \\      }
+        \\     }
+        \\   }
+        \\    ]
+        \\   },
+        \\    "reference_manager": {
+        \\       "references": [
+        \\            {
+        \\                "ap_tracking_data": {
+        \\                     "group": 0,
+        \\                    "offset": 0
+        \\               },
+        \\               "pc": 0,
+        \\               "value": "[cast(fp + (-4), felt*)]"
+        \\           },
+        \\          {
+        \\               "ap_tracking_data": {
+        \\                    "group": 0,
+        \\                    "offset": 0
+        \\               },
+        \\                "pc": 0,
+        \\                "value": "[cast(fp + (-3), felt*)]"
+        \\            },
+        \\           {
+        \\              "ap_tracking_data": {
+        \\                  "group": 0,
+        \\                    "offset": 0
+        \\              },
+        \\               "pc": 0,
+        \\             "value": "cast([fp + (-3)] + 2, felt)"
+        \\           },
+        \\           {
+        \\               "ap_tracking_data": {
+        \\                   "group": 0,
+        \\                    "offset": 0
+        \\                },
+        \\                "pc": 0,
+        \\                 "value": "[cast(fp, felt**)]"
+        \\             }
+        \\         ]
+        \\      }
+        \\  }
+    ;
+
+    // Parsing the JSON string into a `ProgramJson` instance
+    var parsed_program = try ProgramJson.parseFromString(std.testing.allocator, valid_json);
+    defer parsed_program.deinit();
+
+    // Expectation: prime value matches
+    try expectEqualStrings(
+        "0x800000000000011000000000000000000000000000000000000000000000001",
+        parsed_program.value.prime,
+    );
+
+    // Expectation: length of builtins is 0
+    try expect(parsed_program.value.builtins.?.len == 0);
+
+    // Expectation: `pc` value for "__main__.main" identifier is 0
+    try expect(parsed_program.value.identifiers.map.get("__main__.main").?.pc == 0);
+
+    // Expectation: Data array matches the expected values
+    const expected_data = [_][]const u8{
+        "0x480680017fff8000",
+        "0x3e8",
+        "0x480680017fff8000",
+        "0x7d0",
+        "0x48307fff7ffe8000",
+        "0x208b7fff7fff7ffe",
+    };
+    for (parsed_program.value.data, 0..) |data, i| {
+        try expect(std.mem.eql(u8, expected_data[i], data));
+    }
+
+    // Expectation: Code in hints matches an expected string
+    try expect(std.mem.eql(u8, "memory[ap] = segments.add()", parsed_program.value.hints.map.get("0").?[0].code));
+    try expect(std.mem.eql(u8, "memory[ap] = segments.add()", parsed_program.value.hints.map.get("0").?[0].code));
+
+    // Defining an array of expected accessible scopes
+    const expected_hint_accessible_scope = [_][]const u8{
+        "starkware.cairo.common.alloc",
+        "starkware.cairo.common.alloc.alloc",
+    };
+
+    // Looping through the accessible scopes extracted from the parsed JSON and comparing them with expected values
+    for (parsed_program.value.hints.map.get("0").?[0].accessible_scopes, 0..) |accessible_scope, i| {
+        try expect(std.mem.eql(u8, expected_hint_accessible_scope[i], accessible_scope));
+    }
+
+    // Expecting equality for ApTracking's ap_tracking field extracted from parsed JSON
+    try expectEqual(
+        ApTracking{ .group = 0, .offset = 0 },
+        parsed_program.value.hints.map.get("0").?[0].flow_tracking_data.ap_tracking,
+    );
+
+    // Expecting equality for specific numeric values from reference_ids in flow_tracking_data
+    try expectEqual(
+        @as(usize, 0),
+        parsed_program.value.hints.map.get("0").?[0].flow_tracking_data.reference_ids.?.map.get("starkware.cairo.common.math.split_felt.high"),
+    );
+    try expectEqual(
+        @as(usize, 14),
+        parsed_program.value.hints.map.get("0").?[0].flow_tracking_data.reference_ids.?.map.get("starkware.cairo.common.math.split_felt.low"),
+    );
+    try expectEqual(
+        @as(usize, 16),
+        parsed_program.value.hints.map.get("0").?[0].flow_tracking_data.reference_ids.?.map.get("starkware.cairo.common.math.split_felt.range_check_ptr"),
+    );
+    try expectEqual(
+        @as(usize, 12),
+        parsed_program.value.hints.map.get("0").?[0].flow_tracking_data.reference_ids.?.map.get("starkware.cairo.common.math.split_felt.value"),
+    );
+
+    // Defining an array of expected Reference values
+    const reference_manager = [_]Reference{
+        .{ .ap_tracking_data = .{ .group = 0, .offset = 0 }, .pc = 0, .value = "[cast(fp + (-4), felt*)]" },
+        .{ .ap_tracking_data = .{ .group = 0, .offset = 0 }, .pc = 0, .value = "[cast(fp + (-3), felt*)]" },
+        .{ .ap_tracking_data = .{ .group = 0, .offset = 0 }, .pc = 0, .value = "cast([fp + (-3)] + 2, felt)" },
+        .{ .ap_tracking_data = .{ .group = 0, .offset = 0 }, .pc = 0, .value = "[cast(fp, felt**)]" },
+    };
+
+    // Looping through the reference manager references extracted from parsed JSON and comparing them with expected values
+    for (parsed_program.value.reference_manager.references, 0..) |ref, i| {
+        try expectEqual(reference_manager[i].ap_tracking_data, ref.ap_tracking_data);
+        try expectEqual(reference_manager[i].pc, ref.pc);
+        try expect(std.mem.eql(u8, reference_manager[i].value, ref.value));
     }
 }
 

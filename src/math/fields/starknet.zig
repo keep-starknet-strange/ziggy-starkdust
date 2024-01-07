@@ -34,7 +34,6 @@ test "Felt252 fromInteger" {
         } },
         Felt252.fromInteger(10),
     );
-
     try expectEqual(
         Felt252{ .fe = .{
             0xfffffd737e000421,
@@ -52,6 +51,10 @@ test "Felt252 fromSignedInteger" {
             0xffffffeb9bf00041, 0x9987fff, 0xfffffffffffb7c00, 0x7fffea55af00670,
         } },
         Felt252.fromSignedInteger(-106710729501573572985208420194530329073740042555888586719234),
+    );
+    try expectEqual(
+        Felt252.fromInteger(10),
+        Felt252.fromSignedInteger(10),
     );
 }
 

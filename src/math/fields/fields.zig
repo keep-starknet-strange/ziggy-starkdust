@@ -83,6 +83,9 @@ pub fn Field(
             return .{ .fe = mont };
         }
 
+        /// Create a field element from a signed integer in Montgomery representation.
+        ///
+        /// This function converts a signed integer to a field element in Montgomery form.
         pub fn fromSignedInteger(num: i256) Self {
             var lbe: [BytesSize]u8 = [_]u8{0} ** BytesSize;
             std.mem.writeInt(
