@@ -286,52 +286,67 @@ pub const ProgramJson = struct {
         references: []const Reference,
     },
 
-    /// Attempts to parse the compilation artifact of a cairo v0 program
+    /// Attempts to parse the compilation artifact of a Cairo v0 program from a JSON file.
+    ///
+    /// This function reads a JSON file containing program information in the Cairo v0 format
+    /// and attempts to parse it into a `ProgramJson` struct.
     ///
     /// # Arguments
-    /// - `allocator`: The allocator for reading the json file and parsing it.
-    /// - `filename`: The location of the program json file.
+    /// - `allocator`: The allocator used for reading the JSON file and parsing it.
+    /// - `filename`: The location of the program JSON file.
     ///
     /// # Returns
-    /// - a parsed ProgramJson
+    /// A parsed `ProgramJson` instance if successful.
     ///
     /// # Errors
     /// - If loading the file fails.
-    /// - If the file has incompatible json with respect to the `ProgramJson` struct.
+    /// - If the file has incompatible JSON structure with respect to the `ProgramJson` struct.
     pub fn parseFromFile(allocator: Allocator, filename: []const u8) !json.Parsed(Self) {
+        // Open the file for reading
         const file = try std.fs.cwd().openFile(filename, .{});
-        const file_size = try file.getEndPos();
         defer file.close();
 
-        const buffer = try file.readToEndAlloc(allocator, file_size);
+        // Read the entire file content into a buffer using the provided allocator
+        const buffer = try file.readToEndAlloc(
+            allocator,
+            try file.getEndPos(),
+        );
         defer allocator.free(buffer);
 
-        const parsed = try json.parseFromSlice(
-            Self,
-            allocator,
-            buffer,
-            .{
-                .allocate = .alloc_always,
-                .ignore_unknown_fields = true,
-            },
-        );
-        errdefer parsed.deinit();
-
-        return parsed;
+        // Parse the JSON content from the buffer into a `ProgramJson` struct
+        return try parseFromString(allocator, buffer);
     }
 
+    /// Parses a JSON string buffer into a `ProgramJson` instance.
+    ///
+    /// This function takes a JSON string buffer and attempts to parse it into a `ProgramJson` struct.
+    ///
+    /// # Arguments
+    /// - `allocator`: The allocator used for parsing the JSON string buffer.
+    /// - `buffer`: The JSON string buffer containing the program information.
+    ///
+    /// # Returns
+    /// A parsed `ProgramJson` instance if successful.
+    ///
+    /// # Errors
+    /// - If parsing the JSON string buffer fails.
+    /// - If there are unknown fields in the JSON, unless the 'ignore_unknown_fields' flag is set to true.
     pub fn parseFromString(allocator: Allocator, buffer: []const u8) !json.Parsed(Self) {
+        // Parse the JSON string buffer into a `ProgramJson` struct
         const parsed = try json.parseFromSlice(
             Self,
             allocator,
             buffer,
             .{
+                // Always allocate memory during parsing
                 .allocate = .alloc_always,
+                // Ignore unknown fields while parsing
                 .ignore_unknown_fields = true,
             },
         );
         errdefer parsed.deinit();
 
+        // Return the parsed `ProgramJson` instance
         return parsed;
     }
 
@@ -554,6 +569,41 @@ test "ProgramJson can be initialized from json file with correct program data" {
     }
 }
 
+test "ProgramJson: parseFromFile should return a parsed ProgramJson instance from a valid JSON" {
+    // Test case: ProgramJson: parseFromFile should return a parsed ProgramJson instance from a valid JSON
+    var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+
+    // Attempting to parse a ProgramJson instance from a JSON file
+    var parsed_program = try ProgramJson.parseFromFile(
+        std.testing.allocator,
+        // Obtaining the real path of the JSON file and parsing it
+        try std.os.realpath(
+            "cairo_programs/manually_compiled/valid_program_a.json",
+            &buffer,
+        ),
+    );
+    // Deinitializing parsed_program at the end of the scope
+    defer parsed_program.deinit();
+
+    // Expecting equality for a specific string field in the parsed JSON
+    try expectEqualStrings(
+        "0x800000000000011000000000000000000000000000000000000000000000001",
+        parsed_program.value.prime,
+    );
+
+    // Expecting that a certain field in the parsed JSON has an empty array or is not present
+    try expect(parsed_program.value.builtins.?.len == 0);
+
+    // Expecting that a certain field in the parsed JSON has an array of length 6
+    try expect(parsed_program.value.data.len == 6);
+
+    // Expecting equality for a specific numeric value extracted from identifiers in the parsed JSON
+    try expectEqual(
+        @as(usize, 0),
+        parsed_program.value.identifiers.map.get("__main__.main").?.pc,
+    );
+}
+
 test "ProgramJson: parseFromString should return a parsed ProgramJson instance from string" {
     const valid_json =
         \\  {
@@ -678,7 +728,7 @@ test "ProgramJson: parseFromString should return a parsed ProgramJson instance f
         "0x208b7fff7fff7ffe",
     };
     for (parsed_program.value.data, 0..) |data, i| {
-        try expect(std.mem.eql(u8, expected_data[i], data));
+        try expectEqualStrings(expected_data[i], data);
     }
 
     // Expectation: Code in hints matches an expected string
@@ -693,7 +743,7 @@ test "ProgramJson: parseFromString should return a parsed ProgramJson instance f
 
     // Looping through the accessible scopes extracted from the parsed JSON and comparing them with expected values
     for (parsed_program.value.hints.map.get("0").?[0].accessible_scopes, 0..) |accessible_scope, i| {
-        try expect(std.mem.eql(u8, expected_hint_accessible_scope[i], accessible_scope));
+        try expectEqualStrings(expected_hint_accessible_scope[i], accessible_scope);
     }
 
     // Expecting equality for ApTracking's ap_tracking field extracted from parsed JSON
@@ -721,7 +771,7 @@ test "ProgramJson: parseFromString should return a parsed ProgramJson instance f
     );
 
     // Defining an array of expected Reference values
-    const reference_manager = [_]Reference{
+    const expected_reference_manager = [_]Reference{
         .{ .ap_tracking_data = .{ .group = 0, .offset = 0 }, .pc = 0, .value = "[cast(fp + (-4), felt*)]" },
         .{ .ap_tracking_data = .{ .group = 0, .offset = 0 }, .pc = 0, .value = "[cast(fp + (-3), felt*)]" },
         .{ .ap_tracking_data = .{ .group = 0, .offset = 0 }, .pc = 0, .value = "cast([fp + (-3)] + 2, felt)" },
@@ -730,9 +780,9 @@ test "ProgramJson: parseFromString should return a parsed ProgramJson instance f
 
     // Looping through the reference manager references extracted from parsed JSON and comparing them with expected values
     for (parsed_program.value.reference_manager.references, 0..) |ref, i| {
-        try expectEqual(reference_manager[i].ap_tracking_data, ref.ap_tracking_data);
-        try expectEqual(reference_manager[i].pc, ref.pc);
-        try expect(std.mem.eql(u8, reference_manager[i].value, ref.value));
+        try expectEqual(expected_reference_manager[i].ap_tracking_data, ref.ap_tracking_data);
+        try expectEqual(expected_reference_manager[i].pc, ref.pc);
+        try expectEqualStrings(expected_reference_manager[i].value, ref.value);
     }
 }
 
