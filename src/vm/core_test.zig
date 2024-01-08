@@ -5,8 +5,6 @@ const ArrayList = std.ArrayList;
 const starknet_felt = @import("../math/fields/starknet.zig");
 
 // Local imports.
-const KeccakInstanceDef = @import("./types/keccak_instance_def.zig").KeccakInstanceDef;
-const KeccakBuiltinRunner = @import("./builtins/builtin_runner/keccak.zig").KeccakBuiltinRunner;
 const segments = @import("memory/segments.zig");
 const memory = @import("memory/memory.zig");
 const MemoryCell = memory.MemoryCell;
@@ -23,7 +21,9 @@ const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
 const BuiltinRunner = @import("./builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
 const BitwiseBuiltinRunner = @import("./builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
+const KeccakBuiltinRunner = @import("./builtins/builtin_runner/keccak.zig").KeccakBuiltinRunner;
 const BitwiseInstanceDef = @import("./types/bitwise_instance_def.zig").BitwiseInstanceDef;
+const KeccakInstanceDef = @import("./types/keccak_instance_def.zig").KeccakInstanceDef;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const HashBuiltinRunner = @import("./builtins/builtin_runner/hash.zig").HashBuiltinRunner;
 const Instruction = @import("instructions.zig").Instruction;
@@ -3592,6 +3592,7 @@ test "CairoVM: verifyAutoDeductionsForAddr throws InconsistentAutoDeduction" {
 
     var bitwise_builtin = BitwiseBuiltinRunner.initDefault();
     bitwise_builtin.base = 2;
+
     var builtin = BuiltinRunner{ .Bitwise = bitwise_builtin };
 
     var vm = try CairoVM.init(allocator, .{});
@@ -3608,4 +3609,95 @@ test "CairoVM: verifyAutoDeductionsForAddr throws InconsistentAutoDeduction" {
     defer vm.segments.memory.deinitData(allocator);
 
     try expectError(CairoVMError.InconsistentAutoDeduction, vm.verifyAutoDeductionsForAddr(allocator, Relocatable.init(2, 2), &builtin));
+}
+
+test "CairoVM: verifyAutoDeductions for bitwise builtin runner" {
+    const allocator = std.testing.allocator;
+
+    var bitwise_builtin = BitwiseBuiltinRunner.initDefault();
+    bitwise_builtin.base = 2;
+    const builtin = BuiltinRunner{ .Bitwise = bitwise_builtin };
+
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    try vm.builtin_runners.append(builtin);
+
+    try vm.segments.memory.setUpMemory(
+        allocator,
+        .{
+            .{ .{ 2, 0 }, .{12} },
+            .{ .{ 2, 1 }, .{10} },
+            .{ .{ 2, 2 }, .{8} },
+        },
+    );
+    defer vm.segments.memory.deinitData(allocator);
+
+    const result = try vm.verifyAutoDeductions(allocator);
+    try expectEqual(void, @TypeOf(result));
+}
+
+test "CairoVM: verifyAutoDeductions for bitwise builtin runner throws InconsistentAutoDeduction" {
+    const allocator = std.testing.allocator;
+
+    var bitwise_builtin = BitwiseBuiltinRunner.initDefault();
+    bitwise_builtin.base = 2;
+    const builtin = BuiltinRunner{ .Bitwise = bitwise_builtin };
+
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    try vm.builtin_runners.append(builtin);
+
+    try vm.segments.memory.setUpMemory(
+        allocator,
+        .{
+            .{ .{ 2, 0 }, .{12} },
+            .{ .{ 2, 1 }, .{10} },
+            .{ .{ 2, 2 }, .{7} },
+        },
+    );
+
+    defer vm.segments.memory.deinitData(allocator);
+
+    try expectError(CairoVMError.InconsistentAutoDeduction, vm.verifyAutoDeductions(allocator));
+}
+
+test "CairoVM: verifyAutoDeductions for keccak builtin runner" {
+    const allocator = std.testing.allocator;
+
+    var keccak_instance_def = try KeccakInstanceDef.initDefault(allocator);
+    const keccak_builtin = KeccakBuiltinRunner.init(
+        allocator,
+        &keccak_instance_def,
+        true,
+    );
+    const builtin = BuiltinRunner{ .Keccak = keccak_builtin };
+
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(
+        allocator,
+        .{
+            .{ .{ 0, 16 }, .{43} },
+            .{ .{ 0, 17 }, .{199} },
+            .{ .{ 0, 18 }, .{0} },
+            .{ .{ 0, 19 }, .{0} },
+            .{ .{ 0, 20 }, .{0} },
+            .{ .{ 0, 21 }, .{0} },
+            .{ .{ 0, 22 }, .{0} },
+            .{ .{ 0, 23 }, .{1} },
+            .{ .{ 0, 24 }, .{564514457304291355949254928395241013971879337011439882107889} },
+            .{ .{ 0, 25 }, .{1006979841721999878391288827876533441431370448293338267890891} },
+            .{ .{ 0, 26 }, .{811666116505725183408319428185457775191826596777361721216040} },
+        },
+    );
+    defer vm.segments.memory.deinitData(allocator);
+
+    try vm.builtin_runners.append(builtin);
+
+    const result = try vm.verifyAutoDeductions(allocator);
+
+    try expectEqual(void, @TypeOf(result));
 }

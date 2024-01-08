@@ -57,3 +57,19 @@ jobs:
         run: |
           zig version
           make test
+
+  integration_test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Zig
+        uses: korandoru/setup-zig@v1
+        with:
+          zig-version: master
+
+      - name: Integration test
+        run: |
+          zig version
+          make build-integration-test
+          ./zig-out/bin/integration_test

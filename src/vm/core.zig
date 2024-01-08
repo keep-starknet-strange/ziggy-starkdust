@@ -509,6 +509,33 @@ pub const CairoVM = struct {
         }
     }
 
+    /// Verifies the auto deductions for all memory cells managed by the VM's builtins.
+    ///
+    /// This function iterates over all builtins and their corresponding memory segments.
+    /// For each memory cell, it attempts to deduce the value using the builtin's logic.
+    /// If the deduced value does not match the actual value in memory, an error is returned.
+    ///
+    /// ## Arguments
+    /// - `allocator`: The allocator instance to use for memory operations.
+    ///
+    /// ## Returns
+    /// - `void`: Returns nothing on success.
+    /// - `CairoVMError.InconsistentAutoDeduction`: Returns an error if a deduced value does not match the memory.
+    pub fn verifyAutoDeductions(self: *const Self, allocator: Allocator) !void {
+        for (self.builtin_runners.items) |*builtin| {
+            const segment_index = builtin.base();
+            const segment = self.segments.memory.data.items[segment_index];
+            for (segment.items, 0..) |value, offset| {
+                if (value == null) continue;
+                const addr = Relocatable.init(@as(i64, @intCast(segment_index)), offset);
+                const deduced_memory_cell = try builtin.deduceMemoryCell(allocator, addr, self.segments.memory) orelse continue;
+                if (!deduced_memory_cell.eq(value.?.maybe_relocatable)) {
+                    return CairoVMError.InconsistentAutoDeduction;
+                }
+            }
+        }
+    }
+
     /// Verifies the auto deductions for a given memory address.
     ///
     /// This function checks if the value deduced by the builtin matches the current value
