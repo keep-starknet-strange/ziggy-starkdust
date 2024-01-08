@@ -1,6 +1,8 @@
 pub const FULL_ROUNDS: usize = 8;
 pub const PARTIAL_ROUNDS: usize = 83;
 
+// values taken from https://github.com/starkware-industries/poseidon/blob/5403dff9ff4eadb07deb5c0a43e88bedb011deb8/poseidon3.txt
+
 pub const roundKeys = [_][3]u256{
     [3]u256{
         2950795762459345168613727575620414179244544320470208355568817838579231751791,
