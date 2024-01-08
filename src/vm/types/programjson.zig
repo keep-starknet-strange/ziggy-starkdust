@@ -381,34 +381,24 @@ pub const ProgramJson = struct {
     ///
     /// To use this function effectively, ensure correct and compatible JSON data representing a Cairo v0 program.
     pub fn parseProgramJson(self: *Self, allocator: Allocator, entrypoint: ?*[]const u8) !Program {
+        // Check if the prime string matches the expected value.
         if (!std.mem.eql(u8, PRIME_STR, self.prime.?))
             return ProgramError.PrimeDiffers;
 
-        // Finds the program counter of the specified entrypoint identifier.
-        // Returns an error if the identifier is not found.
-        const entrypoint_pc = if (entrypoint) |e| blk: {
-            const key = try std.mem.concat(
-                allocator,
-                u8,
-                &[_][]const u8{ "__main__.", e.* },
-            );
-            defer allocator.free(key);
+        // Obtain the entrypoint's program counter.
+        const entrypoint_pc = try self.getEntrypointPc(allocator, entrypoint);
 
-            if (self.identifiers.?.map.get(key)) |entrypoint_identifier| {
-                break :blk entrypoint_identifier.pc;
-            } else {
-                return ProgramError.EntrypointNotFound;
-            }
-        } else null;
+        // Defer freeing the memory allocated for the entrypoint key.
+        if (entrypoint_pc[0]) |*e| {
+            defer allocator.free(e.*);
+        }
 
-        var hints_collection = HintsCollection.init(allocator);
-        errdefer hints_collection.deinit();
-
+        // Construct and return a `Program` instance.
         return .{
             .shared_program_data = .{
                 .data = try self.readData(allocator),
-                .hints_collection = hints_collection,
-                .main = entrypoint_pc,
+                .hints_collection = self.getHintsCollections(allocator),
+                .main = entrypoint_pc[1],
                 .start = self.getStartPc(),
                 .end = self.getEndPc(),
                 .error_message_attributes = try self.getErrorMessageAttributes(allocator),
@@ -643,6 +633,61 @@ pub const ProgramJson = struct {
         }
         // Return null if the end of the main function identifier is not found.
         return null;
+    }
+
+    /// Retrieves the program counter (PC) associated with the specified entrypoint identifier.
+    ///
+    /// This function aims to obtain the program counter linked to the provided entrypoint identifier.
+    /// If the identifier exists in the program's identifiers map, it returns a tuple containing the entrypoint
+    /// identifier's concatenated key and its associated program counter (PC). If not found, it returns a tuple
+    /// with null values.
+    ///
+    /// # Arguments
+    /// - `self`: A reference to the program instance.
+    /// - `allocator`: The allocator for managing memory.
+    /// - `entrypoint`: An optional pointer to the entrypoint identifier's name within the program.
+    ///
+    /// # Returns
+    /// A tuple containing the entrypoint identifier's concatenated key and its corresponding program counter (PC)
+    /// if the identifier exists. If not found, it returns a tuple with null values.
+    ///
+    /// # Errors
+    /// - If the specified entrypoint identifier is not found within the program.
+    pub fn getEntrypointPc(
+        self: *Self,
+        allocator: Allocator,
+        entrypoint: ?*[]const u8,
+    ) !std.meta.Tuple(&.{ ?[]u8, ?usize }) {
+        // Check if an entrypoint is provided.
+        return if (entrypoint) |e| blk: {
+            // Concatenate the entrypoint identifier with "__main__."
+            const key = try std.mem.concat(
+                allocator,
+                u8,
+                &[_][]const u8{ "__main__.", e.* },
+            );
+            // Defer freeing the memory allocated for the key.
+            errdefer allocator.free(key);
+
+            // Check if the entrypoint identifier exists in the identifiers map.
+            if (self.identifiers.?.map.get(key)) |entrypoint_identifier| {
+                // Return the key and its associated program counter.
+                break :blk .{ key, entrypoint_identifier.pc };
+            } else {
+                // Return an error if the entrypoint identifier is not found.
+                return ProgramError.EntrypointNotFound;
+            }
+        } else .{ null, null }; // Return null values if no entrypoint is provided.
+    }
+
+    pub fn getHintsCollections(self: *Self, allocator: Allocator) HintsCollection {
+        _ = self;
+        var hints_collection = HintsCollection.init(allocator);
+        errdefer hints_collection.deinit();
+
+        // TODO: make implementation
+
+        return hints_collection;
     }
 };
 
