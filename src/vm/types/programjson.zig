@@ -473,7 +473,7 @@ pub const ProgramJson = struct {
                     BuiltinName,
                     self.builtins.?[i],
                 ) orelse
-                    return ProgramError.BuiltinNotInLayout);
+                    return ProgramError.UnsupportedBuiltin);
             }
         }
 
@@ -956,10 +956,6 @@ test "ProgramJson: parseFromString should return a parsed ProgramJson instance f
     try expectEqualSlices(MaybeRelocatable, &expected_data_vec, data_vec.items);
 
     // Expectation: Code in hints matches an expected string
-    try expectEqualStrings(
-        "memory[ap] = segments.add()",
-        parsed_program.value.hints.?.map.get("0").?[0].code,
-    );
     try expectEqualStrings(
         "memory[ap] = segments.add()",
         parsed_program.value.hints.?.map.get("0").?[0].code,
