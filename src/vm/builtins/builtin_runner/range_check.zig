@@ -413,9 +413,12 @@ test "Range Check: validation rule should return Relocatable in array successful
     try mem.memory.set(std.testing.allocator, relo, MaybeRelocatable.fromFelt(Felt252.zero()));
     defer mem.memory.deinitData(std.testing.allocator);
 
-    const result = try rangeCheckValidationRule(mem.memory, relo);
     // assert
-    try std.testing.expectEqual(relo, result[0]);
+    try std.testing.expectEqualSlices(
+        Relocatable,
+        &[_]Relocatable{relo},
+        try rangeCheckValidationRule(mem.memory, relo),
+    );
 }
 
 test "Range Check: validation rule should return erorr out of bounds" {

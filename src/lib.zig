@@ -10,6 +10,7 @@ pub const vm = struct {
     pub usingnamespace @import("vm/types/program.zig");
     pub usingnamespace @import("vm/types/programjson.zig");
     pub usingnamespace @import("vm/types/pedersen_instance_def.zig");
+    pub usingnamespace @import("vm/types/poseidon_instance_def.zig");
     pub usingnamespace @import("vm/memory/memory.zig");
     pub usingnamespace @import("vm/memory/relocatable.zig");
     pub usingnamespace @import("vm/memory/segments.zig");
