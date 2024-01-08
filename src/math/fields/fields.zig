@@ -141,37 +141,6 @@ pub fn Field(
             return base_three;
         }
 
-        /// Create a field element with a str value.
-        ///
-        /// Returns a field element with a value of str.
-        //pub fn fromHexBe(value: []const u8) !Self {
-        //    value[2..]
-        //    const hex_chars_len = value.len;
-        //    const expected_hex_length = @sizeOf(u256) * 2;
-        //
-        //    std.fmt.parseInt(u256, buf: []const u8, base: u8)
-        //
-        //    const parsed_bytes: [32]u256 = if hex_chars_len == expected_hex_length {
-        //        let mut buffer = [0u8; U256_BYTE_COUNT];
-        //        hex::decode_to_slice(value, &mut buffer).map_err(|_| FromStrError::InvalidCharacter)?;
-        //        buffer
-        //    } else if hex_chars_len < expected_hex_length {
-        //        let mut padded_hex = str::repeat("0", expected_hex_length - hex_chars_len);
-        //        padded_hex.push_str(value);
-        //
-        //        let mut buffer = [0u8; U256_BYTE_COUNT];
-        //        hex::decode_to_slice(&padded_hex, &mut buffer)
-        //            .map_err(|_| FromStrError::InvalidCharacter)?;
-        //        buffer
-        //    } else {
-        //        return Err(FromStrError::OutOfRange);
-        //    };
-        //
-        //    match Self::from_bytes_be(&parsed_bytes) {
-        //        Ok(value) => Ok(value),
-        //        Err(_) => Err(FromStrError::OutOfRange),
-        //    }
-
         /// Create a field element from a byte array.
         ///
         /// Converts a byte array into a field element in Montgomery representation.
