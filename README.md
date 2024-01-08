@@ -70,7 +70,13 @@ You can display the help message by running:
 
 ### 🧪 Testing
 
-Run all tests with test summary:
+Run all integration tests with summary:
+```bash
+make build-integration-test
+./zig-out/bin/integration_test
+```
+
+Run all unit tests with test summary:
 
 ```bash
 make test
