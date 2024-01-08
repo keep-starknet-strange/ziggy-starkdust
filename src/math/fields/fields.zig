@@ -42,6 +42,36 @@ pub fn Field(
             break :val .{ .fe = bz };
         };
 
+        const base_one = val: {
+            const bo: F.MontgomeryDomainFieldElement = [4]u64{
+                18446744073709551585,
+                18446744073709551615,
+                18446744073709551615,
+                576460752303422960,
+            };
+            break :val .{ .fe = bo };
+        };
+
+        pub const base_two = val: {
+            const bt: F.MontgomeryDomainFieldElement = [4]u64{
+                18446744073709551553,
+                18446744073709551615,
+                18446744073709551615,
+                576460752303422416,
+            };
+            break :val .{ .fe = bt };
+        };
+
+        pub const base_three = val: {
+            const bt: F.MontgomeryDomainFieldElement = [4]u64{
+                18446744073709551521,
+                18446744073709551615,
+                18446744073709551615,
+                576460752303421872,
+            };
+            break :val .{ .fe = bt };
+        };
+
         fe: F.MontgomeryDomainFieldElement,
 
         /// Mask to apply to the highest limb to get the correct number of bits.
@@ -94,13 +124,53 @@ pub fn Field(
         ///
         /// Returns a field element with a value of one.
         pub fn one() Self {
-            const oneValue = comptime blk: {
-                var baseOne: F.MontgomeryDomainFieldElement = undefined;
-                F.setOne(&baseOne);
-                break :blk .{ .fe = baseOne };
-            };
-            return oneValue;
+            return base_one;
         }
+
+        /// Get the field element representing two.
+        ///
+        /// Returns a field element with a value of two.
+        pub fn two() Self {
+            return base_two;
+        }
+
+        /// Get the field element representing three.
+        ///
+        /// Returns a field element with a value of three.
+        pub fn three() Self {
+            return base_three;
+        }
+
+        /// Create a field element with a str value.
+        ///
+        /// Returns a field element with a value of str.
+        //pub fn fromHexBe(value: []const u8) !Self {
+        //    value[2..]
+        //    const hex_chars_len = value.len;
+        //    const expected_hex_length = @sizeOf(u256) * 2;
+        //
+        //    std.fmt.parseInt(u256, buf: []const u8, base: u8)
+        //
+        //    const parsed_bytes: [32]u256 = if hex_chars_len == expected_hex_length {
+        //        let mut buffer = [0u8; U256_BYTE_COUNT];
+        //        hex::decode_to_slice(value, &mut buffer).map_err(|_| FromStrError::InvalidCharacter)?;
+        //        buffer
+        //    } else if hex_chars_len < expected_hex_length {
+        //        let mut padded_hex = str::repeat("0", expected_hex_length - hex_chars_len);
+        //        padded_hex.push_str(value);
+        //
+        //        let mut buffer = [0u8; U256_BYTE_COUNT];
+        //        hex::decode_to_slice(&padded_hex, &mut buffer)
+        //            .map_err(|_| FromStrError::InvalidCharacter)?;
+        //        buffer
+        //    } else {
+        //        return Err(FromStrError::OutOfRange);
+        //    };
+        //
+        //    match Self::from_bytes_be(&parsed_bytes) {
+        //        Ok(value) => Ok(value),
+        //        Err(_) => Err(FromStrError::OutOfRange),
+        //    }
 
         /// Create a field element from a byte array.
         ///
@@ -129,7 +199,7 @@ pub fn Field(
         pub fn fromBytesBe(bytes: [BytesSize]u8) Self {
             var non_mont: F.NonMontgomeryDomainFieldElement = undefined;
             inline for (0..4) |i| {
-                non_mont[ 3 - i] = std.mem.readInt(
+                non_mont[3 - i] = std.mem.readInt(
                     u64,
                     bytes[i * 8 .. (i + 1) * 8],
                     .big,
