@@ -46,8 +46,8 @@ pub fn build(b: *std.Build) void {
     // **************************************************************
     // expose ziggy-starkdust as a module
     _ = b.addModule(package_name, .{
-        .source_file = .{ .path = package_path },
-        .dependencies = deps,
+        .root_source_file = .{ .path = package_path },
+        .imports = deps,
     });
 
     // **************************************************************
@@ -62,7 +62,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     // Add dependency modules to the library.
-    for (deps) |mod| lib.addModule(
+    for (deps) |mod| lib.root_module.addImport(
         mod.name,
         mod.module,
     );
@@ -83,7 +83,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
     });
     // Add dependency modules to the executable.
-    for (deps) |mod| exe.addModule(
+    for (deps) |mod| exe.root_module.addImport(
         mod.name,
         mod.module,
     );
@@ -93,7 +93,7 @@ pub fn build(b: *std.Build) void {
     b.installArtifact(exe);
 
     exe.addIncludePath(.{ .path = "./src/math/crypto/starknet_crypto/" });
-    exe.addObjectFile(std.build.LazyPath{ .path = "./src/math/crypto/starknet_crypto/libstarknet_crypto.a" });
+    exe.addObjectFile(std.Build.LazyPath{ .path = "./src/math/crypto/starknet_crypto/libstarknet_crypto.a" });
     exe.linkSystemLibrary("unwind");
 
     // This *creates* a Run step in the build graph, to be executed when another
@@ -112,6 +112,8 @@ pub fn build(b: *std.Build) void {
     if (b.args) |args| {
         run_cmd.addArgs(args);
     }
+
+    integration_test(b, optimize, target);
 
     // This creates a build step. It will be visible in the `zig build --help` menu,
     // and can be selected like this: `zig build run`
@@ -138,7 +140,7 @@ pub fn build(b: *std.Build) void {
     });
 
     // Add dependency modules to the tests.
-    for (deps) |mod| unit_tests.addModule(
+    for (deps) |mod| unit_tests.root_module.addImport(
         mod.name,
         mod.module,
     );
@@ -158,4 +160,23 @@ pub fn build(b: *std.Build) void {
     );
     test_step.dependOn(&lib.step);
     test_step.dependOn(&run_unit_tests.step);
+}
+
+fn integration_test(
+    b: *std.Build,
+    mode: std.builtin.Mode,
+    target: std.Build.ResolvedTarget,
+) void {
+    const binary = b.addExecutable(.{
+        .name = "integration_test",
+        .root_source_file = .{ .path = "src/integration_tests.zig" },
+        .target = target,
+        .optimize = mode,
+    });
+
+    const integration_test_build = b.step("integration_test", "Build cli integration tests");
+    integration_test_build.dependOn(&binary.step);
+
+    const install_step = b.addInstallArtifact(binary, .{});
+    integration_test_build.dependOn(&install_step.step);
 }

@@ -10,6 +10,9 @@ test: libstarknet_crypto.a
 test-filter: libstarknet_crypto.a
 	@zig build test --summary all -Dtest-filter="$(FILTER)"
 
+build-integration-test:
+	@zig build integration_test
+
 libstarknet_crypto.a:
 	@rm -f src/math/crypto/starknet_crypto/libstarknet_crypto.a
 	@cd src/math/crypto/starknet_crypto/starknet_crypto && cargo build --release

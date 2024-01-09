@@ -1,0 +1,45 @@
+{
+    "prime": "0x800000000000011000000000000000000000000000000000000000000000001",
+    "attributes": [],
+    "debug_info": {
+        "instruction_locations": {}
+    },
+    "data": [
+    ],
+    "builtins": [],
+    "hints": {},
+    "reference_manager": {
+        "references": []
+    },
+    "identifiers": {
+        "__main__.main": {
+            "decorators": [],
+            "pc": 0,
+            "type": "function"
+        },
+        "__main__.compare_abs_arrays.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": -3618502788666131213697322783095070105623107215331596699973092056135872020481
+        },
+        "starkware.cairo.common.cairo_keccak.keccak.unsigned_div_rem": {
+            "destination": "starkware.cairo.common.math.unsigned_div_rem",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_keccak.packed_keccak.ALL_ONES": {
+            "type": "const",
+            "value": -106710729501573572985208420194530329073740042555888586719234
+        },
+        "starkware.cairo.common.cairo_keccak.packed_keccak.BLOCK_SIZE": {
+            "type": "const",
+            "value": 3
+        },
+        "starkware.cairo.common.alloc.alloc.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 0
+        },
+        "starkware.cairo.common.uint256.SHIFT": {
+            "type": "const",
+            "value": 340282366920938463463374607431768211456
+        }
+    }
+}

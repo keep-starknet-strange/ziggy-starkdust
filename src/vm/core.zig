@@ -115,9 +115,16 @@ pub const CairoVM = struct {
         self.segments.deinit();
         // Deallocate the run context.
         self.run_context.deinit();
-        // Deallocate trace
+        // Deallocate trace context.
         self.trace_context.deinit();
-        // Deallocate built-in runners
+        // Loop through the built-in runners and deallocate their resources.
+        for (self.builtin_runners.items) |*builtin| {
+            switch (builtin.*) {
+                .Keccak => |*keccak| keccak.deinit(),
+                else => {},
+            }
+        }
+        // Deallocate built-in runners.
         self.builtin_runners.deinit();
         if (self.relocation_table) |r| {
             r.deinit();
@@ -499,6 +506,33 @@ pub const CairoVM = struct {
         }
     }
 
+    /// Verifies the auto deductions for all memory cells managed by the VM's builtins.
+    ///
+    /// This function iterates over all builtins and their corresponding memory segments.
+    /// For each memory cell, it attempts to deduce the value using the builtin's logic.
+    /// If the deduced value does not match the actual value in memory, an error is returned.
+    ///
+    /// ## Arguments
+    /// - `allocator`: The allocator instance to use for memory operations.
+    ///
+    /// ## Returns
+    /// - `void`: Returns nothing on success.
+    /// - `CairoVMError.InconsistentAutoDeduction`: Returns an error if a deduced value does not match the memory.
+    pub fn verifyAutoDeductions(self: *const Self, allocator: Allocator) !void {
+        for (self.builtin_runners.items) |*builtin| {
+            const segment_index = builtin.base();
+            const segment = self.segments.memory.data.items[segment_index];
+            for (segment.items, 0..) |value, offset| {
+                if (value == null) continue;
+                const addr = Relocatable.init(@as(i64, @intCast(segment_index)), offset);
+                const deduced_memory_cell = try builtin.deduceMemoryCell(allocator, addr, self.segments.memory) orelse continue;
+                if (!deduced_memory_cell.eq(value.?.maybe_relocatable)) {
+                    return CairoVMError.InconsistentAutoDeduction;
+                }
+            }
+        }
+    }
+
     /// Verifies the auto deductions for a given memory address.
     ///
     /// This function checks if the value deduced by the builtin matches the current value
@@ -513,8 +547,17 @@ pub const CairoVM = struct {
     /// ## Returns
     /// - `void`: Returns nothing on success.
     /// - `CairoVMError.InconsistentAutoDeduction`: Returns an error if the deduced value does not match the memory.
-    pub fn verifyAutoDeductionsForAddr(self: *const Self, allocator: Allocator, addr: Relocatable, builtin: *const BuiltinRunner) !void {
-        const value = try builtin.deduceMemoryCell(allocator, addr, self.segments.memory) orelse return;
+    pub fn verifyAutoDeductionsForAddr(
+        self: *const Self,
+        allocator: Allocator,
+        addr: Relocatable,
+        builtin: *BuiltinRunner,
+    ) !void {
+        const value = try builtin.deduceMemoryCell(
+            allocator,
+            addr,
+            self.segments.memory,
+        ) orelse return;
         const current_value = self.segments.memory.get(addr) orelse return;
         if (!value.eq(current_value)) {
             return CairoVMError.InconsistentAutoDeduction;
@@ -734,7 +777,7 @@ pub const CairoVM = struct {
         allocator: Allocator,
         address: Relocatable,
     ) CairoVMError!?MaybeRelocatable {
-        for (self.builtin_runners.items) |builtin_item| {
+        for (self.builtin_runners.items) |*builtin_item| {
             if (@as(
                 u64,
                 @intCast(builtin_item.base()),

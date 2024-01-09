@@ -1,6 +1,7 @@
 const std = @import("std");
 const OffsetValue = @import("../vm/types/programjson.zig").OffsetValue;
 const ApTracking = @import("../vm/types/programjson.zig").ApTracking;
+const Reference = @import("../vm/types/programjson.zig").Reference;
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
