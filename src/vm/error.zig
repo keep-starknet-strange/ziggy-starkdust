@@ -162,5 +162,6 @@ pub const ProgramError = error{
     StrippedProgramNoMain,
     /// Indicates an invalid hint PC value greater than or equal to the program length
     InvalidHintPc,
-    BuiltinNotInLayout,
+    /// Indicates an unsupported or unimplemented builtin encountered within the program.
+    UnsupportedBuiltin,
 };
