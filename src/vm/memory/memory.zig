@@ -843,6 +843,10 @@ pub const Memory = struct {
             .felt => value,
             .relocatable => |r| .{ .relocatable = try self.relocateValueFromRelocatable(r) },
         };
+            MaybeRelocatable.fromRelocatable(try x.addUint(address.offset))
+        else
+            // If no rules exist, return the address without modification.
+            MaybeRelocatable.fromRelocatable(address);
     }
 
     // Utility function to help set up memory for tests
@@ -2513,6 +2517,7 @@ test "Memory: relocateValueFromRelocatable with positive segment index" {
     defer memory.deinit();
 
     // Add relocation rules for positive segment indices
+    // Add relocation rules to the Memory instance
     try memory.addRelocationRule(
         Relocatable.init(-1, 0),
         Relocatable.init(2, 0),
