@@ -797,6 +797,43 @@ pub const Memory = struct {
         return value;
     }
 
+    /// Relocates an address represented as `Relocatable` based on provided relocation rules.
+    ///
+    /// This function handles the relocation of a `Relocatable` address by verifying relocation rules
+    /// and updating the address if necessary.
+    ///
+    /// # Arguments
+    ///
+    /// - `address`: The original `Relocatable` address to be relocated.
+    /// - `relocation_rules`: A pointer to a hash map containing relocation rules.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `MaybeRelocatable` value after applying relocation rules to the provided address.
+    pub fn relocateAddress(
+        address: Relocatable,
+        relocation_rules: *std.HashMap(
+            u64,
+            Relocatable,
+            std.hash_map.AutoContext(u64),
+            std.hash_map.default_max_load_percentage,
+        ),
+    ) !MaybeRelocatable {
+        // Check if the segment index of the provided address is already valid.
+        if (address.segment_index >= 0) return MaybeRelocatable.fromRelocatable(address);
+
+        // Attempt to retrieve relocation rules for the given segment index.
+        return if (relocation_rules.get(@as(
+            usize,
+            @intCast(-(address.segment_index + 1)),
+        ))) |x|
+            // If rules exist, add the address offset according to the rules.
+            MaybeRelocatable.fromRelocatable(try x.addUint(address.offset))
+        else
+            // If no rules exist, return the address without modification.
+            MaybeRelocatable.fromRelocatable(address);
+    }
+
     /// Relocates a value represented as `Relocatable`.
     ///
     /// This function handles the relocation of a `Relocatable` address by checking
@@ -2492,6 +2529,76 @@ test "Memory: set should not rewrite memory" {
         Relocatable.init(0, 1),
         .{ .felt = Felt252.fromInteger(8) },
     ));
+}
+
+test "Memory: relocateAddress with some relocation some rules" {
+    // Create a new Memory instance using the testing allocator
+    var memory = try Memory.init(std.testing.allocator);
+    // Defer memory deallocation to ensure proper cleanup
+    defer memory.deinit();
+
+    // Add relocation rules to the Memory instance
+    try memory.addRelocationRule(
+        Relocatable.init(-1, 0),
+        Relocatable.init(2, 0),
+    );
+    try memory.addRelocationRule(
+        Relocatable.init(-2, 0),
+        Relocatable.init(2, 2),
+    );
+
+    // Test relocation with rules applied
+    try expectEqual(
+        MaybeRelocatable.fromRelocatable(Relocatable.init(2, 0)),
+        try Memory.relocateAddress(
+            Relocatable.init(-1, 0),
+            &memory.relocation_rules,
+        ),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromRelocatable(Relocatable.init(2, 3)),
+        try Memory.relocateAddress(
+            Relocatable.init(-2, 1),
+            &memory.relocation_rules,
+        ),
+    );
+}
+
+test "Memory: relocateAddress with no relocation rule" {
+    // Create a new Memory instance using the testing allocator
+    var memory = try Memory.init(std.testing.allocator);
+    // Defer memory deallocation to ensure proper cleanup
+    defer memory.deinit();
+
+    // Test relocation without any rules applied
+    try expectEqual(
+        MaybeRelocatable.fromRelocatable(Relocatable.init(-1, 0)),
+        try Memory.relocateAddress(
+            Relocatable.init(-1, 0),
+            &memory.relocation_rules,
+        ),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromRelocatable(Relocatable.init(-2, 1)),
+        try Memory.relocateAddress(
+            Relocatable.init(-2, 1),
+            &memory.relocation_rules,
+        ),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromRelocatable(Relocatable.init(1, 0)),
+        try Memory.relocateAddress(
+            Relocatable.init(1, 0),
+            &memory.relocation_rules,
+        ),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromRelocatable(Relocatable.init(1, 1)),
+        try Memory.relocateAddress(
+            Relocatable.init(1, 1),
+            &memory.relocation_rules,
+        ),
+    );
 }
 
 test "Memory: relocateValueFromFelt should return the Felt252 value" {
