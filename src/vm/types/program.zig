@@ -109,30 +109,41 @@ pub const SharedProgramData = struct {
 
     /// Deinitializes the `SharedProgramData`, freeing allocated memory.
     pub fn deinit(self: *Self, allocator: Allocator) void {
+        // Deinitialize shared data.
         self.data.deinit();
+
+        // Deinitialize hints collection.
         self.hints_collection.deinit();
+
+        // Deinitialize error message attributes.
         self.error_message_attributes.deinit();
+
+        // Check and deinitialize instruction locations if they exist.
         if (self.instruction_locations) |*instruction_locations| {
+            // Initialize an iterator over instruction locations.
             var it = instruction_locations.iterator();
 
+            // Iterate through each instruction location.
             while (it.next()) |kv| {
+                // Check if the parent_location_instruction exists.
                 if (instruction_locations.getPtr(kv.key_ptr.*).?.inst.parent_location_instruction) |*p| {
-                    // var it_list = p.first;
-                    // while (it_list) |node| : (it_list = node.next) {
-                    //     allocator.destroy(node);
-                    // }
-
+                    // Retrieve and remove the first element of the list.
                     var it_list = p.popFirst();
 
+                    // Iterate through the list and deallocate nodes.
                     while (it_list) |node| : (it_list = p.popFirst()) {
                         allocator.destroy(node);
                     }
                 }
             }
-
+            // Deinitialize the instruction_locations hashmap.
             instruction_locations.deinit();
         }
+
+        // Deinitialize identifiers.
         self.identifiers.deinit();
+
+        // Deinitialize reference manager.
         self.reference_manager.deinit();
     }
 };
