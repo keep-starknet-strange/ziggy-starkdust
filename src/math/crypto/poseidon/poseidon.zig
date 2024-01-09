@@ -1,89 +1,12 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
-const constants = @import("constants.zig");
 const Fr = @import("../../fields/stark_felt_252_gen_fp.zig");
 
 const Felt252 = @import("../../fields/starknet.zig").Felt252;
 
-const round_constants: [constants.roundKeys.len][3]Felt252 = val: {
-    @setEvalBranchQuota(200_000);
-    var result: [constants.roundKeys.len][3]Felt252 = [_][3]Felt252{[_]Felt252{Felt252.zero()} ** 3} ** constants.roundKeys.len;
-
-    for (constants.roundKeys, 0..) |round_key, idx| {
-        for (round_key, 0..) |rk, idy| {
-            result[idx][idy] = Felt252.fromInteger(rk);
-        }
-    }
-
-    break :val result;
-};
-
-const COMPRESSED_SIZE = (constants.FULL_ROUNDS / 2) * 3 + constants.PARTIAL_ROUNDS + 3 + (round_constants.len - (constants.FULL_ROUNDS / 2 + 1 + constants.PARTIAL_ROUNDS)) * 3;
-
-const compress_round_constants: [COMPRESSED_SIZE]Felt252 = val: {
-    @setEvalBranchQuota(200_000);
-    var result: [COMPRESSED_SIZE]Felt252 = undefined;
-
-    var append_idx = 0;
-
-    {
-        for (round_constants[0 .. constants.FULL_ROUNDS / 2]) |rk| {
-            result[append_idx] = rk[0];
-            result[append_idx + 1] = rk[1];
-            result[append_idx + 2] = rk[2];
-            append_idx += 3;
-        }
-    }
-
-    {
-        var idx = constants.FULL_ROUNDS / 2;
-
-        var state = [_]Felt252{Felt252.zero()} ** 3;
-
-        // Add keys for partial rounds
-        for (0..constants.PARTIAL_ROUNDS) |_| {
-            state[0] = Felt252.add(state[0], round_constants[idx][0]);
-            state[1] = Felt252.add(state[1], round_constants[idx][1]);
-            state[2] = Felt252.add(state[2], round_constants[idx][2]);
-            // Add last state
-            result[append_idx] = state[2];
-
-            // Reset last state
-            state[2] = Felt252.zero();
-
-            const st = Felt252.add(Felt252.add(state[0], state[1]), state[2]);
-
-            // MixLayer
-            state[0] = Felt252.add(st, Felt252.mul(Felt252.two(), state[0]));
-            state[1] = Felt252.sub(st, Felt252.mul(Felt252.two(), state[1]));
-            state[2] = Felt252.sub(st, Felt252.mul(Felt252.two(), state[2]));
-
-            idx += 1;
-            append_idx += 1;
-        }
-
-        // Add keys for first of the last full rounds
-        state[0] = Felt252.add(state[0], round_constants[idx][0]);
-        state[1] = Felt252.add(state[1], round_constants[idx][1]);
-        state[2] = Felt252.add(state[2], round_constants[idx][2]);
-
-        result[append_idx] = state[0];
-        result[append_idx + 1] = state[1];
-        result[append_idx + 2] = state[2];
-
-        append_idx += 3;
-    }
-
-    {
-        for (round_constants[constants.FULL_ROUNDS / 2 + constants.PARTIAL_ROUNDS + 1 ..]) |rk| {
-            result[append_idx] = rk[0];
-            result[append_idx + 1] = rk[1];
-            result[append_idx + 2] = rk[2];
-            append_idx += 3;
-        }
-    }
-    break :val result;
-};
+const COMPRESSED_ROUND_CONSTS = @import("./gen/constants.zig").POSEIDON_COMPRESSED_ROUND_CONSTS;
+const FULL_ROUNDS = @import("./gen/constants.zig").POSEIDON_FULL_ROUNDS;
+const PARTIAL_ROUNDS = @import("./gen/constants.zig").POSEIDON_PARTIAL_ROUNDS;
 
 fn mix(state: *[3]Felt252) void {
     const t = Felt252.add(Felt252.add(state[0], state[1]), state[2]);
@@ -97,15 +20,15 @@ fn mix(state: *[3]Felt252) void {
 /// Given state vector x, it returns Mx, optimized by precomputing t.
 fn round_comp(state: *[3]Felt252, idx: usize, full: bool) void {
     if (full) {
-        state[0] = Felt252.add(state[0], compress_round_constants[idx]);
-        state[1] = Felt252.add(state[1], compress_round_constants[idx + 1]);
-        state[2] = Felt252.add(state[2], compress_round_constants[idx + 2]);
+        state[0] = Felt252.add(state[0], COMPRESSED_ROUND_CONSTS[idx]);
+        state[1] = Felt252.add(state[1], COMPRESSED_ROUND_CONSTS[idx + 1]);
+        state[2] = Felt252.add(state[2], COMPRESSED_ROUND_CONSTS[idx + 2]);
 
         state[0] = Felt252.mul(Felt252.mul(state[0], state[0]), state[0]);
         state[1] = Felt252.mul(Felt252.mul(state[1], state[1]), state[1]);
         state[2] = Felt252.mul(Felt252.mul(state[2], state[2]), state[2]);
     } else {
-        state[2] = Felt252.add(state[2], compress_round_constants[idx]);
+        state[2] = Felt252.add(state[2], COMPRESSED_ROUND_CONSTS[idx]);
         state[2] = Felt252.mul(Felt252.mul(state[2], state[2]), state[2]);
     }
     mix(state);
@@ -116,19 +39,19 @@ pub fn poseidon_permute_comp(state: *[3]Felt252) void {
     var idx: usize = 0;
 
     // Full rounds
-    for (0..(constants.FULL_ROUNDS / 2)) |_| {
+    for (0..(FULL_ROUNDS / 2)) |_| {
         round_comp(state, idx, true);
         idx += 3;
     }
 
     // Partial rounds
-    for (0..constants.PARTIAL_ROUNDS) |_| {
+    for (0..PARTIAL_ROUNDS) |_| {
         round_comp(state, idx, false);
         idx += 1;
     }
 
     // Full rounds
-    for (0..(constants.FULL_ROUNDS / 2)) |_| {
+    for (0..(FULL_ROUNDS / 2)) |_| {
         round_comp(state, idx, true);
         idx += 3;
     }
