@@ -782,6 +782,21 @@ pub const Memory = struct {
         return values;
     }
 
+    /// Relocates a value represented as `Felt252`.
+    ///
+    /// This function relocates and returns the input `Felt252` value.
+    ///
+    /// # Arguments
+    ///
+    /// - `value`: The `Felt252` value to be relocated.
+    ///
+    /// # Returns
+    ///
+    /// Returns the input `Felt252` value.
+    pub fn relocateValueFromFelt(_: *Self, value: Felt252) Felt252 {
+        return value;
+    }
+
     /// Relocates an address represented as `Relocatable` based on provided relocation rules.
     ///
     /// This function handles the relocation of a `Relocatable` address by verifying relocation rules
@@ -817,6 +832,54 @@ pub const Memory = struct {
         else
             // If no rules exist, return the address without modification.
             MaybeRelocatable.fromRelocatable(address);
+    }
+
+    /// Relocates a value represented as `Relocatable`.
+    ///
+    /// This function handles the relocation of a `Relocatable` address by checking
+    /// relocation rules and returning the updated `Relocatable` address if necessary.
+    ///
+    /// # Arguments
+    ///
+    /// - `address`: The `Relocatable` address to be relocated.
+    ///
+    /// # Returns
+    ///
+    /// Returns the updated `Relocatable` address based on relocation rules or the original address.
+    pub fn relocateValueFromRelocatable(self: *Self, address: Relocatable) !Relocatable {
+        // Check if the segment index of the provided address is already valid.
+        if (address.segment_index >= 0) return address;
+
+        // Try to retrieve relocation rules for the given segment index.
+        return if (self.relocation_rules.get(@as(
+            usize,
+            @intCast(-(address.segment_index + 1)),
+        ))) |x|
+            // If rules exist, add the address offset according to the rules.
+            try x.addUint(address.offset)
+        else
+            // If no rules exist, return the address without modification.
+            address;
+    }
+
+    /// Relocates a value represented as `MaybeRelocatable`.
+    ///
+    /// This function handles the relocation of a `MaybeRelocatable` value by checking its type.
+    /// If it's a `felt` value, it remains unchanged. If it's a `relocatable` value, it calls
+    /// `relocateValueFromRelocatable` to handle the relocation.
+    ///
+    /// # Arguments
+    ///
+    /// - `value`: The `MaybeRelocatable` value to be relocated.
+    ///
+    /// # Returns
+    ///
+    /// Returns the relocated `MaybeRelocatable` value.
+    pub fn relocateValueFromMaybeRelocatable(self: *Self, value: MaybeRelocatable) !MaybeRelocatable {
+        return switch (value) {
+            .felt => value,
+            .relocatable => |r| .{ .relocatable = try self.relocateValueFromRelocatable(r) },
+        };
     }
 
     // Utility function to help set up memory for tests
@@ -2535,5 +2598,173 @@ test "Memory: relocateAddress with no relocation rule" {
             Relocatable.init(1, 1),
             &memory.relocation_rules,
         ),
+    );
+}
+
+test "Memory: relocateValueFromFelt should return the Felt252 value" {
+    // Create a new Memory instance using the testing allocator
+    var memory = try Memory.init(std.testing.allocator);
+    // Defer memory deallocation to ensure proper cleanup
+    defer memory.deinit();
+
+    // Test relocating Felt252 values and assert the expected results
+    try expectEqual(Felt252.fromInteger(111), memory.relocateValueFromFelt(Felt252.fromInteger(111)));
+    try expectEqual(Felt252.fromInteger(0), memory.relocateValueFromFelt(Felt252.fromInteger(0)));
+    try expectEqual(Felt252.fromInteger(1), memory.relocateValueFromFelt(Felt252.fromInteger(1)));
+}
+
+test "Memory: relocateValueFromRelocatable with positive segment index" {
+    // Create a new Memory instance using the testing allocator
+    var memory = try Memory.init(std.testing.allocator);
+    // Defer memory deallocation to ensure proper cleanup
+    defer memory.deinit();
+
+    // Add relocation rules for positive segment indices
+    try memory.addRelocationRule(
+        Relocatable.init(-1, 0),
+        Relocatable.init(2, 0),
+    );
+    try memory.addRelocationRule(
+        Relocatable.init(-2, 0),
+        Relocatable.init(2, 2),
+    );
+
+    // Test relocating values with positive segment indices and assert the expected results
+    try expectEqual(
+        Relocatable.init(0, 0),
+        try memory.relocateValueFromRelocatable(Relocatable.init(0, 0)),
+    );
+    try expectEqual(
+        Relocatable.init(5, 0),
+        try memory.relocateValueFromRelocatable(Relocatable.init(5, 0)),
+    );
+}
+
+test "Memory: relocateValueFromRelocatable with negative segment index (temporary data) without using relocation rule" {
+    // Create a new Memory instance using the testing allocator
+    var memory = try Memory.init(std.testing.allocator);
+    // Defer memory deallocation to ensure proper cleanup
+    defer memory.deinit();
+
+    // Add relocation rules for negative segment indices
+    try memory.addRelocationRule(
+        Relocatable.init(-1, 0),
+        Relocatable.init(2, 0),
+    );
+    try memory.addRelocationRule(
+        Relocatable.init(-2, 0),
+        Relocatable.init(2, 2),
+    );
+
+    // Test relocating values with negative segment indices without using relocation rules
+    // Assert the expected results
+    try expectEqual(
+        Relocatable.init(-5, 0),
+        try memory.relocateValueFromRelocatable(Relocatable.init(-5, 0)),
+    );
+}
+
+test "Memory: relocateValueFromRelocatable with negative segment index (temporary data) using relocation rules" {
+    // Create a new Memory instance using the testing allocator
+    var memory = try Memory.init(std.testing.allocator);
+    // Defer memory deallocation to ensure proper cleanup
+    defer memory.deinit();
+
+    // Add relocation rules for negative segment indices
+    try memory.addRelocationRule(
+        Relocatable.init(-1, 0),
+        Relocatable.init(2, 0),
+    );
+    try memory.addRelocationRule(
+        Relocatable.init(-2, 0),
+        Relocatable.init(2, 2),
+    );
+
+    // Test relocating values with negative segment indices using relocation rules
+    // Assert the expected results for various scenarios
+    try expectEqual(
+        Relocatable.init(2, 0),
+        try memory.relocateValueFromRelocatable(Relocatable.init(-1, 0)),
+    );
+    try expectEqual(
+        Relocatable.init(2, 2),
+        try memory.relocateValueFromRelocatable(Relocatable.init(-2, 0)),
+    );
+    try expectEqual(
+        Relocatable.init(2, 5),
+        try memory.relocateValueFromRelocatable(Relocatable.init(-1, 5)),
+    );
+    try expectEqual(
+        Relocatable.init(2, 7),
+        try memory.relocateValueFromRelocatable(Relocatable.init(-2, 5)),
+    );
+}
+
+test "Memory: relocateValueFromMaybeRelocatable with Felt252 should return the Felt252" {
+    // Create a new Memory instance using the testing allocator
+    var memory = try Memory.init(std.testing.allocator);
+    // Defer memory deallocation to ensure proper cleanup
+    defer memory.deinit();
+
+    // Test relocating MaybeRelocatable values containing Felt252 and assert the expected results
+    try expectEqual(
+        MaybeRelocatable.fromU256(111),
+        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromU256(111)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU256(0),
+        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromU256(0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU256(1),
+        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromU256(1)),
+    );
+}
+
+test "Memory: relocateValueFromMaybeRelocatable with Relocatable should use relocateValueFromRelocatable" {
+    // Create a new Memory instance using the testing allocator
+    var memory = try Memory.init(std.testing.allocator);
+    // Defer memory deallocation to ensure proper cleanup
+    defer memory.deinit();
+
+    // Add relocation rules for specific segment indices
+    try memory.addRelocationRule(
+        Relocatable.init(-1, 0),
+        Relocatable.init(2, 0),
+    );
+    try memory.addRelocationRule(
+        Relocatable.init(-2, 0),
+        Relocatable.init(2, 2),
+    );
+
+    // Test relocating MaybeRelocatable values with segment indices
+    // Assert the expected results for different scenarios
+    try expectEqual(
+        MaybeRelocatable.fromSegment(0, 0),
+        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromSegment(0, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(5, 0),
+        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromSegment(5, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(-5, 0),
+        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromSegment(-5, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(2, 0),
+        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromSegment(-1, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(2, 2),
+        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromSegment(-2, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(2, 5),
+        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromSegment(-1, 5)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(2, 7),
+        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromSegment(-2, 5)),
     );
 }
