@@ -12,6 +12,9 @@ const HintsCollection = @import("./program.zig").HintsCollection;
 const SharedProgramData = @import("./program.zig").SharedProgramData;
 const PRIME_STR = @import("../../math/fields/starknet.zig").PRIME_STR;
 
+/// Represents a singly linked list structure specialized for storing Instructions.
+pub const InstructionLinkedList = std.SinglyLinkedList(Instruction);
+
 /// Enum representing built-in functions within the Cairo VM.
 ///
 /// This enum defines various built-in functions available within the Cairo VM.
@@ -121,7 +124,7 @@ pub const HintParams = struct {
 ///
 /// This structure defines an instruction with start and end line/column information,
 /// an input file reference, and optional parent location details.
-const Instruction = struct {
+pub const Instruction = struct {
     /// Ending line number of the instruction.
     end_line: u32,
     /// Ending column number of the instruction.
@@ -131,7 +134,7 @@ const Instruction = struct {
     /// Optional parent location details (defaults to null).
     parent_location: ?json.Value = null,
     /// Optional parent location formatted as a nested `Instruction` instance for `Program` purposes (defaults to null).
-    parent_location_instruction: ?*Instruction = null,
+    parent_location_instruction: ?std.SinglyLinkedList(Instruction) = null,
     /// Starting column number of the instruction.
     start_col: u32,
     /// Starting line number of the instruction.
@@ -589,10 +592,47 @@ pub const ProgramJson = struct {
 
         // Check if debug information related to instruction locations exists.
         if (self.debug_info.?.instruction_locations) |il| {
-            // Populate the instruction_locations hashmap with debug information.
-            for (il.map.keys(), il.map.values()) |key, value| {
+            // Iterate through the keys and values in the instruction locations map.
+            for (il.map.keys(), il.map.values()) |key, *value| {
+                // Initialize a linked list and a pointer to the parent location.
+                var list = InstructionLinkedList{};
+                var parent_location = value.inst.parent_location;
+
+                // Process each parent location in the instruction.
+                while (parent_location) |p| {
+                    // Retrieve content for the current parent location.
+                    const p_content = p.array.items[0].object;
+
+                    // Create and allocate a new Node for the linked list.
+                    const instruction = try allocator.create(InstructionLinkedList.Node);
+                    errdefer allocator.destroy(instruction);
+
+                    // Assign values to the Node based on the parent location content.
+                    instruction.* = InstructionLinkedList.Node{ .data = .{
+                        .end_col = @intCast(p_content.get("end_col").?.integer),
+                        .end_line = @intCast(p_content.get("end_line").?.integer),
+                        .input_file = .{
+                            .filename = p_content.get("input_file").?.object.get("filename").?.string,
+                        },
+                        .start_col = @intCast(p_content.get("start_col").?.integer),
+                        .start_line = @intCast(p_content.get("start_line").?.integer),
+                    } };
+
+                    // Insert the newly created Node into the linked list.
+                    if (list.len() == 0) {
+                        list.prepend(instruction);
+                    } else {
+                        InstructionLinkedList.Node.findLast(list.first.?).insertAfter(instruction);
+                    }
+                    parent_location = p_content.get("parent_location");
+                }
+
+                // Set the parent location instruction list in the value struct.
+                if (list.len() > 0)
+                    value.inst.parent_location_instruction = list;
+
                 // Put each key-value pair into the instruction_locations hashmap.
-                try instruction_locations.put(key, value);
+                try instruction_locations.put(key, value.*);
             }
         }
 
@@ -681,6 +721,18 @@ pub const ProgramJson = struct {
                 return ProgramError.EntrypointNotFound;
             }
         } else .{ null, null }; // Return null values if no entrypoint is provided.
+    }
+
+    pub fn transformParentLocation(parent_location: std.json.ObjectMap) Instruction {
+        return .{
+            .end_col = @intCast(parent_location.get("end_col").?.integer),
+            .end_line = @intCast(parent_location.get("end_line").?.integer),
+            .input_file = .{
+                .filename = parent_location.get("input_file").?.object.get("filename").?.string,
+            },
+            .start_col = @intCast(parent_location.get("start_col").?.integer),
+            .start_line = @intCast(parent_location.get("start_line").?.integer),
+        };
     }
 
     pub fn getHintsCollections(self: *Self, allocator: Allocator) HintsCollection {
@@ -1075,7 +1127,7 @@ test "ProgramJson: parseProgramJson should parse a Cairo v0 JSON Program and con
         std.testing.allocator,
         &entrypoint,
     );
-    defer program.deinit();
+    defer program.deinit(std.testing.allocator);
 
     // Test the builtins count
     try expect(program.builtins.items.len == 0);
@@ -1102,11 +1154,11 @@ test "ProgramJson: parseProgramJson should parse a Cairo v0 JSON Program and con
     try expect(program.shared_program_data.error_message_attributes.items.len == 0);
     try expectEqual(
         @as(usize, 16),
-        program.shared_program_data.instruction_locations.?.count(),
+        program.getInstructionLocations().?.count(),
     );
 
     // Test a specific instruction location within shared_program_data
-    const instruction_location_0 = program.shared_program_data.instruction_locations.?.get("0").?;
+    const instruction_location_0 = program.getInstructionLocation("0").?;
 
     // Define an array containing expected accessible scopes
     const expected_accessible_scopes = [_][]const u8{ "__main__", "__main__.main" };
@@ -1214,7 +1266,7 @@ test "ProgramJson: parseProgramJson should parse a valid manually compiled progr
         &entrypoint,
     );
     // Deallocate program at the end of the scope
-    defer program.deinit();
+    defer program.deinit(std.testing.allocator);
 
     // Define an array of expected MaybeRelocatable values
     const expected_data_vec = [_]MaybeRelocatable{
@@ -1263,7 +1315,7 @@ test "ProgramJson: parseProgramJson should parse a valid manually compiled progr
         null,
     );
     // Deallocate program at the end of the scope
-    defer program.deinit();
+    defer program.deinit(std.testing.allocator);
 
     // Define an array of expected MaybeRelocatable values
     const expected_data_vec = [_]MaybeRelocatable{
@@ -1312,7 +1364,7 @@ test "ProgramJson: parseProgramJson with constant deserialization" {
         null,
     );
     // Deallocate program at the end of the scope.
-    defer program.deinit();
+    defer program.deinit(std.testing.allocator);
 
     // Define and initialize a hashmap for expected identifiers.
     var expected_identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
@@ -1944,5 +1996,230 @@ test "ProgramJson: parseFromString should deserialize instruction locations with
             @as(i64, 11),
             second_parent_location.get("start_line").?.integer,
         );
+    }
+}
+
+test "ProgramJson: Program deserialization with instruction locations containing parent_location" {
+    // Valid JSON string representing a Cairo v0 program
+    const valid_json =
+        \\   {
+        \\            "prime": "0x800000000000011000000000000000000000000000000000000000000000001",
+        \\            "attributes": [],
+        \\            "debug_info": {
+        \\                "file_contents": {},
+        \\                "instruction_locations": {
+        \\                    "4": {
+        \\                        "accessible_scopes": [
+        \\                            "__main__",
+        \\                            "__main__",
+        \\                            "__main__.constructor"
+        \\                        ],
+        \\                        "flow_tracking_data": null,
+        \\                        "hints": [],
+        \\                        "inst": {
+        \\                            "end_col": 36,
+        \\                            "end_line": 9,
+        \\                            "input_file": {
+        \\                                "filename": "test/contracts/cairo/always_fail.cairo"
+        \\                            },
+        \\                            "parent_location": [
+        \\                               {
+        \\                                    "end_col": 36,
+        \\                                    "end_line": 9,
+        \\                                    "input_file": {
+        \\                                        "filename": "test/contracts/cairo/always_fail.cairo"
+        \\                                    },
+        \\                                    "parent_location": [
+        \\                                        {
+        \\                                            "end_col": 15,
+        \\                                            "end_line": 11,
+        \\                                            "input_file": {
+        \\                                                "filename": "test/contracts/cairo/always_fail.cairo"
+        \\                                            },
+        \\                                            "start_col": 5,
+        \\                                            "start_line": 11
+        \\                                        },
+        \\                                        "While trying to retrieve the implicit argument 'syscall_ptr' in:"
+        \\                                    ],
+        \\                                    "start_col": 18,
+        \\                                    "start_line": 9
+        \\                                },
+        \\                                "While expanding the reference 'syscall_ptr' in:"
+        \\                            ],
+        \\                            "start_col": 18,
+        \\                            "start_line": 9
+        \\                        }
+        \\                    }
+        \\                }
+        \\            },
+        \\            "builtins": [],
+        \\            "data": [
+        \\            ],
+        \\            "identifiers": {
+        \\            },
+        \\            "hints": {
+        \\            },
+        \\            "reference_manager": {
+        \\                "references": [
+        \\                ]
+        \\            }
+        \\        }
+    ;
+
+    // Parsing the JSON string into a `ProgramJson` instance
+    var parsed_program = try ProgramJson.parseFromString(std.testing.allocator, valid_json);
+    defer parsed_program.deinit();
+
+    // Parse the program JSON into a `Program` structure without specifying an entry point.
+    var program = try parsed_program.value.parseProgramJson(
+        std.testing.allocator,
+        null,
+    );
+    // Deallocate program at the end of the scope.
+    defer program.deinit(std.testing.allocator);
+
+    // Creating an empty hash map to hold expected instruction locations
+    var expected_instructions_location = std.StringHashMap(InstructionLocation).init(std.testing.allocator);
+    defer expected_instructions_location.deinit();
+
+    // Create an empty linked list structure to hold `Node`s
+    var list = InstructionLinkedList{};
+
+    // Initialize the first `Node` structure for `parent_location_instruction_2`
+    var parent_location_instruction_2 = InstructionLinkedList.Node{ .data = .{
+        .end_col = 15,
+        .end_line = 11,
+        .input_file = .{ .filename = "test/contracts/cairo/always_fail.cairo" },
+        .start_col = 5,
+        .start_line = 11,
+    } };
+
+    // Initialize the second `Node` structure for `parent_location_instruction_1`
+    var parent_location_instruction_1 = InstructionLinkedList.Node{ .data = .{
+        .end_col = 36,
+        .end_line = 9,
+        .input_file = .{ .filename = "test/contracts/cairo/always_fail.cairo" },
+        .start_col = 18,
+        .start_line = 9,
+    } };
+
+    // Prepend `parent_location_instruction_2` to the linked list
+    list.prepend(&parent_location_instruction_2);
+
+    // Prepend `parent_location_instruction_1` to the linked list
+    list.prepend(&parent_location_instruction_1);
+
+    // Create an expected instruction location and add it to the hashmap
+    try expected_instructions_location.put(
+        "4",
+        .{
+            .accessible_scopes = &[_][]const u8{
+                "__main__",
+                "__main__",
+                "__main__.constructor",
+            },
+            .flow_tracking_data = null,
+            .hints = &[_]HintLocation{},
+            .inst = .{
+                .end_col = 36,
+                .end_line = 9,
+                .input_file = .{ .filename = "test/contracts/cairo/always_fail.cairo" },
+                .parent_location_instruction = list,
+                .start_col = 18,
+                .start_line = 9,
+            },
+        },
+    );
+
+    // Ensure the count of expected instructions matches the parsed program's instruction locations
+    try expectEqual(
+        expected_instructions_location.count(),
+        program.getInstructionLocations().?.count(),
+    );
+
+    // Iterator for parsed instruction locations
+    var it = program.getInstructionLocations().?.iterator();
+
+    // Iterate through the parsed instruction locations
+    while (it.next()) |kv| {
+        // Retrieve expected and parsed instruction locations by key
+        const expected_instruction_location = expected_instructions_location.get(kv.key_ptr.*);
+        const instruction_location = program.getInstructionLocation(kv.key_ptr.*);
+
+        // Comparing attributes of expected and parsed instruction locations
+        for (instruction_location.?.accessible_scopes, 0..) |accessible_scope, i| {
+            // Checking and asserting the equality of accessible scopes
+            try expectEqualStrings(
+                accessible_scope,
+                expected_instruction_location.?.accessible_scopes[i],
+            );
+        }
+
+        // Asserting the equality of Ap register tracking between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.flow_tracking_data,
+            instruction_location.?.flow_tracking_data,
+        );
+
+        // Asserting the equality of HintLocation slices between expected and parsed locations
+        try expectEqualSlices(
+            HintLocation,
+            expected_instruction_location.?.hints,
+            instruction_location.?.hints,
+        );
+
+        // Asserting the equality of end column attribute between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.inst.end_col,
+            instruction_location.?.inst.end_col,
+        );
+        // Asserting the equality of end line attribute between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.inst.end_line,
+            instruction_location.?.inst.end_line,
+        );
+        // Asserting the equality of input file filename attribute between expected and parsed locations
+        try expectEqualStrings(
+            expected_instruction_location.?.inst.input_file.filename,
+            instruction_location.?.inst.input_file.filename,
+        );
+        // Asserting the equality of start column attribute between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.inst.start_col,
+            instruction_location.?.inst.start_col,
+        );
+        // Asserting the equality of start line attribute between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.inst.start_line,
+            instruction_location.?.inst.start_line,
+        );
+
+        // Iterating through the linked list of parent_location_instruction nodes
+        var it_actual = instruction_location.?.inst.parent_location_instruction.?.first;
+        var it_expected = expected_instruction_location.?.inst.parent_location_instruction.?.first;
+
+        // Loop through the linked list until it_actual reaches the end (null)
+        while (it_actual) |node| : (it_actual = node.next) {
+            // Asserting the equality of 'end_col' attribute between expected and actual nodes
+            try expectEqual(it_expected.?.data.end_col, it_actual.?.data.end_col);
+
+            // Asserting the equality of 'end_line' attribute between expected and actual nodes
+            try expectEqual(it_expected.?.data.end_line, it_actual.?.data.end_line);
+
+            // Asserting the equality of 'filename' attribute between expected and actual nodes' input_file
+            try expectEqualStrings(
+                it_expected.?.data.input_file.filename,
+                it_actual.?.data.input_file.filename,
+            );
+
+            // Asserting the equality of 'start_col' attribute between expected and actual nodes
+            try expectEqual(it_expected.?.data.start_col, it_actual.?.data.start_col);
+
+            // Asserting the equality of 'start_line' attribute between expected and actual nodes
+            try expectEqual(it_expected.?.data.start_line, it_actual.?.data.start_line);
+
+            // Move to the next expected node for comparison in the next iteration
+            it_expected = it_expected.?.next;
+        }
     }
 }

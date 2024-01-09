@@ -6,6 +6,7 @@ const Felt252 = @import("../../math/fields/starknet.zig").Felt252;
 const MaybeRelocatable = @import("../memory/relocatable.zig").MaybeRelocatable;
 const HintParams = @import("./programjson.zig").HintParams;
 const Attribute = @import("./programjson.zig").Attribute;
+const Instruction = @import("./programjson.zig").Instruction;
 const InstructionLocation = @import("./programjson.zig").InstructionLocation;
 const Identifier = @import("./programjson.zig").Identifier;
 pub const BuiltinName = @import("./programjson.zig").BuiltinName;
@@ -107,12 +108,29 @@ pub const SharedProgramData = struct {
     }
 
     /// Deinitializes the `SharedProgramData`, freeing allocated memory.
-    pub fn deinit(self: *Self) void {
+    pub fn deinit(self: *Self, allocator: Allocator) void {
         self.data.deinit();
         self.hints_collection.deinit();
         self.error_message_attributes.deinit();
-        if (self.instruction_locations != null) {
-            self.instruction_locations.?.deinit();
+        if (self.instruction_locations) |*instruction_locations| {
+            var it = instruction_locations.iterator();
+
+            while (it.next()) |kv| {
+                if (instruction_locations.getPtr(kv.key_ptr.*).?.inst.parent_location_instruction) |*p| {
+                    // var it_list = p.first;
+                    // while (it_list) |node| : (it_list = node.next) {
+                    //     allocator.destroy(node);
+                    // }
+
+                    var it_list = p.popFirst();
+
+                    while (it_list) |node| : (it_list = p.popFirst()) {
+                        allocator.destroy(node);
+                    }
+                }
+            }
+
+            instruction_locations.deinit();
         }
         self.identifiers.deinit();
         self.reference_manager.deinit();
@@ -170,12 +188,31 @@ pub const Program = struct {
         return res;
     }
 
+    /// Retrieves the complete hash map of instruction locations stored in the program's shared data.
+    ///
+    /// # Returns:
+    ///   - A `std.StringHashMap(InstructionLocation)` containing all instruction locations.
+    pub fn getInstructionLocations(self: *Self) ?std.StringHashMap(InstructionLocation) {
+        return self.shared_program_data.instruction_locations;
+    }
+
+    /// Retrieves a specific instruction location based on the provided key.
+    ///
+    /// # Params:
+    ///   - `key`: A byte slice representing the key to retrieve the instruction location.
+    ///
+    /// # Returns:
+    ///   - An optional `InstructionLocation` corresponding to the provided key, if found.
+    pub fn getInstructionLocation(self: *Self, key: []const u8) ?InstructionLocation {
+        return self.shared_program_data.instruction_locations.?.get(key);
+    }
+
     /// Deinitializes the `Program` instance, freeing allocated memory.
     ///
     /// # Params:
     ///   - `self`: A pointer to the `Program` instance.
-    pub fn deinit(self: *Self) void {
-        self.shared_program_data.deinit();
+    pub fn deinit(self: *Self, allocator: Allocator) void {
+        self.shared_program_data.deinit(allocator);
         self.constants.deinit();
         self.builtins.deinit();
     }
