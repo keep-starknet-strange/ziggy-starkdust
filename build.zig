@@ -113,6 +113,8 @@ pub fn build(b: *std.Build) void {
         run_cmd.addArgs(args);
     }
 
+    integration_test(b, optimize, target);
+
     // This creates a build step. It will be visible in the `zig build --help` menu,
     // and can be selected like this: `zig build run`
     // This will evaluate the `run` step rather than the default, which is "install".
@@ -158,4 +160,23 @@ pub fn build(b: *std.Build) void {
     );
     test_step.dependOn(&lib.step);
     test_step.dependOn(&run_unit_tests.step);
+}
+
+fn integration_test(
+    b: *std.Build,
+    mode: std.builtin.Mode,
+    target: std.Build.ResolvedTarget,
+) void {
+    const binary = b.addExecutable(.{
+        .name = "integration_test",
+        .root_source_file = .{ .path = "src/integration_tests.zig" },
+        .target = target,
+        .optimize = mode,
+    });
+
+    const integration_test_build = b.step("integration_test", "Build cli integration tests");
+    integration_test_build.dependOn(&binary.step);
+
+    const install_step = b.addInstallArtifact(binary, .{});
+    integration_test_build.dependOn(&install_step.step);
 }
