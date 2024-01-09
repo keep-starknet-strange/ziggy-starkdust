@@ -89,6 +89,7 @@ pub const MemoryError = error{
     WriteArg,
     /// Occurs if the VM's current step count is less than the minimum required steps for a builtin operation.
     InsufficientAllocatedCellsErrorMinStepNotReached,
+    GenArgInvalidType,
 };
 
 /// Represents the error conditions that are related to the `CairoRunner`.
@@ -162,5 +163,6 @@ pub const ProgramError = error{
     StrippedProgramNoMain,
     /// Indicates an invalid hint PC value greater than or equal to the program length
     InvalidHintPc,
-    BuiltinNotInLayout,
+    /// Indicates an unsupported or unimplemented builtin encountered within the program.
+    UnsupportedBuiltin,
 };

@@ -475,6 +475,37 @@ pub const MemorySegmentManager = struct {
         // Return the total memory holes calculated
         return memory_holes;
     }
+
+    /// Generates a relocatable argument for the managed memory.
+    ///
+    /// This function supports generating relocatable arguments for various data types. It provides
+    /// flexibility in handling memory segments and writes the specified data into the managed memory.
+    ///
+    /// # Parameters
+    ///
+    /// - `self`: A pointer to the MemorySegmentManager.
+    /// - `T`: The type of data for which the argument needs to be generated.
+    /// - `arg`: A pointer to the data to be loaded into memory.
+    ///
+    /// # Returns
+    ///
+    /// A `MaybeRelocatable` representing the first address after the loaded data in memory.
+    /// If the specified data type is not supported, it returns `MemoryError.GenArgInvalidType`.
+    ///
+    /// # Errors
+    ///
+    /// Throws a `MemoryError.GenArgInvalidType` if an unsupported data type is passed.
+    pub fn genArg(self: *Self, comptime T: type, arg: *T) !MaybeRelocatable {
+        return switch (T) {
+            MaybeRelocatable => arg.*,
+            std.ArrayList(MaybeRelocatable), std.ArrayList(Relocatable) => blk: {
+                const base = try self.addSegment();
+                _ = try self.writeArg(T, base, arg);
+                break :blk MaybeRelocatable.fromRelocatable(base);
+            },
+            else => MemoryError.GenArgInvalidType,
+        };
+    }
 };
 
 // Utility function to help set up memory segments
@@ -1561,5 +1592,130 @@ test "MemorySegmentManager: getMemoryHoles with seven memory holes" {
     try expectEqual(
         @as(usize, 7),
         try memory_segment_manager.getMemoryHoles(0),
+    );
+}
+
+test "MemorySegmentManager: genArg with a relocatable value should pass the value through" {
+    // Define the allocator for testing purposes.
+    const allocator = std.testing.allocator;
+
+    // Initialize a MemorySegmentManager instance for testing.
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
+    // Defer its deinitialization to ensure proper cleanup.
+    defer memory_segment_manager.deinit();
+
+    // Create a MaybeRelocatable value from a segment (0, 0) for testing.
+    var maybe_relocatable = MaybeRelocatable.fromSegment(0, 0);
+
+    // Test that the genArg function passes the MaybeRelocatable value through.
+    try expectEqual(
+        MaybeRelocatable.fromSegment(0, 0),
+        try memory_segment_manager.genArg(MaybeRelocatable, &maybe_relocatable),
+    );
+}
+
+test "MemorySegmentManager: genArg with a big int value should pass the value through" {
+    // Define the allocator for testing purposes.
+    const allocator = std.testing.allocator;
+
+    // Initialize a MemorySegmentManager instance for testing.
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
+    // Defer its deinitialization to ensure proper cleanup.
+    defer memory_segment_manager.deinit();
+
+    // Create a MaybeRelocatable value from a U256 big int value (1234) for testing.
+    var maybe_relocatable = MaybeRelocatable.fromU256(1234);
+
+    // Test that the genArg function passes the MaybeRelocatable value through.
+    try expectEqual(
+        MaybeRelocatable.fromU256(1234),
+        try memory_segment_manager.genArg(MaybeRelocatable, &maybe_relocatable),
+    );
+}
+
+test "MemorySegmentManager: genArg with a vector of MaybeRelocatable should write its content into a new segment and returns a pointer to it." {
+    // Define the allocator for testing purposes.
+    const allocator = std.testing.allocator;
+
+    // Initialize a MemorySegmentManager instance for testing.
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
+    // Defer its deinitialization to ensure proper cleanup.
+    defer memory_segment_manager.deinit();
+
+    // Initialize a vector of MaybeRelocatable for testing.
+    var vec = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    // Defer its deinitialization to ensure proper cleanup.
+    defer vec.deinit();
+
+    // Append various MaybeRelocatable values to the vector for testing purposes.
+    try vec.append(MaybeRelocatable.fromU256(0));
+    try vec.append(MaybeRelocatable.fromU256(1));
+    try vec.append(MaybeRelocatable.fromU256(2));
+    try vec.append(MaybeRelocatable.fromU256(3));
+    try vec.append(MaybeRelocatable.fromSegment(0, 0));
+    try vec.append(MaybeRelocatable.fromSegment(0, 1));
+    try vec.append(MaybeRelocatable.fromSegment(0, 2));
+    try vec.append(MaybeRelocatable.fromSegment(0, 3));
+
+    // Execute the genArg function with the vector and store the result.
+    const actual = try memory_segment_manager.genArg(std.ArrayList(MaybeRelocatable), &vec);
+    // Defer the deinitialization of MemorySegmentManager's memory to ensure proper cleanup.
+    defer memory_segment_manager.memory.deinitData(std.testing.allocator);
+
+    // Test that the genArg function writes the content of the vector into a new segment and returns a pointer to it.
+    try expectEqual(
+        MaybeRelocatable.fromSegment(0, 0),
+        actual,
+    );
+}
+
+test "MemorySegmentManager: genArg with a vector of Relocatable should write its content into a new segment and returns a pointer to it." {
+    // Define the allocator for testing purposes.
+    const allocator = std.testing.allocator;
+
+    // Initialize a MemorySegmentManager instance for testing.
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
+    // Defer its deinitialization to ensure proper cleanup.
+    defer memory_segment_manager.deinit();
+
+    // Initialize a vector of Relocatable for testing.
+    var vec = std.ArrayList(Relocatable).init(std.testing.allocator);
+    // Defer its deinitialization to ensure proper cleanup.
+    defer vec.deinit();
+
+    // Append various Relocatable values to the vector for testing purposes.
+    try vec.append(Relocatable.init(0, 0));
+    try vec.append(Relocatable.init(0, 1));
+    try vec.append(Relocatable.init(0, 2));
+    try vec.append(Relocatable.init(0, 3));
+
+    // Execute the genArg function with the vector and store the result.
+    const actual = try memory_segment_manager.genArg(std.ArrayList(Relocatable), &vec);
+    // Defer the deinitialization of MemorySegmentManager's memory to ensure proper cleanup.
+    defer memory_segment_manager.memory.deinitData(std.testing.allocator);
+
+    // Test that the genArg function writes the content of the vector into a new segment and returns a pointer to it.
+    try expectEqual(
+        MaybeRelocatable.fromSegment(0, 0),
+        actual,
+    );
+}
+
+test "MemorySegmentManager: genArg with invalid type should throw an error" {
+    // Define the allocator for testing purposes.
+    const allocator = std.testing.allocator;
+
+    // Initialize a MemorySegmentManager instance for testing.
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
+    // Defer its deinitialization to ensure proper cleanup.
+    defer memory_segment_manager.deinit();
+
+    // Define an invalid argument of type u64 for testing.
+    var arg: u64 = 10;
+
+    // Test that calling genArg with an invalid type throws the expected error.
+    try expectError(
+        MemoryError.GenArgInvalidType, // Expected error type when using an invalid type.
+        memory_segment_manager.genArg(u64, &arg), // Attempting to use an invalid type with genArg.
     );
 }

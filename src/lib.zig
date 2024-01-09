@@ -41,3 +41,7 @@ pub const build_options = @import("build_options.zig");
 pub const hint_processor = struct {
     pub usingnamespace @import("hint_processor/hint_processor_def.zig");
 };
+
+pub const parser = struct {
+    pub usingnamespace @import("parser/deserialize_utils.zig");
+};

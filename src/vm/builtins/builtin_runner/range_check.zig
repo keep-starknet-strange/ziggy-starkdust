@@ -78,6 +78,10 @@ pub const RangeCheckBuiltinRunner = struct {
         };
     }
 
+    pub fn initDefault() Self {
+        return Self.init(8, N_PARTS, true);
+    }
+
     /// Initializes memory segments and sets the base value for the Range Check runner.
     ///
     /// This function adds a memory segment using the provided `segments` manager and
