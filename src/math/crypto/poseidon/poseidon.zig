@@ -20,13 +20,10 @@ fn mix(state: *[3]Felt252) void {
 /// Given state vector x, it returns Mx, optimized by precomputing t.
 fn round_comp(state: *[3]Felt252, idx: usize, full: bool) void {
     if (full) {
-        state[0] = Felt252.add(state[0], COMPRESSED_ROUND_CONSTS[idx]);
-        state[1] = Felt252.add(state[1], COMPRESSED_ROUND_CONSTS[idx + 1]);
-        state[2] = Felt252.add(state[2], COMPRESSED_ROUND_CONSTS[idx + 2]);
-
-        state[0] = Felt252.mul(Felt252.mul(state[0], state[0]), state[0]);
-        state[1] = Felt252.mul(Felt252.mul(state[1], state[1]), state[1]);
-        state[2] = Felt252.mul(Felt252.mul(state[2], state[2]), state[2]);
+        inline for (0..3) |i| {
+            state[i] = Felt252.add(state[i], COMPRESSED_ROUND_CONSTS[idx + i]);
+            state[i] = Felt252.mul(Felt252.mul(state[i], state[i]), state[i]);
+        }
     } else {
         state[2] = Felt252.add(state[2], COMPRESSED_ROUND_CONSTS[idx]);
         state[2] = Felt252.mul(Felt252.mul(state[2], state[2]), state[2]);
@@ -73,13 +70,11 @@ pub fn poseidon_hash_many(msgs: []const Felt252) Felt252 {
     var state = [_]Felt252{Felt252.zero()} ** 3;
 
     var i: usize = 0;
-    while (i + 1 < msgs.len) {
+    while (i + 1 < msgs.len) : (i += 2) {
         state[0] = Felt252.add(state[0], msgs[i]);
         state[1] = Felt252.add(state[1], msgs[i + 1]);
 
         poseidon_permute_comp(&state);
-
-        i += 2;
     }
 
     const rem_len = msgs.len % 2;

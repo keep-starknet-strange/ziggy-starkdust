@@ -27,26 +27,34 @@ fn generate_round_constant_block(allocator: Allocator, config: ConfigJSON, round
     for (round_keys) |round_key| {
         const value = round_key.fe;
         // writing array felt item
-        try std.fmt.format(array_tpl.writer(), round_constants_block_item, .{ value[0], value[1], value[2], value[3] });
+        try std.fmt.format(array_tpl.writer(), round_constants_block_item, .{
+            value[0],
+            value[1],
+            value[2],
+            value[3],
+        });
     }
 
     var result = std.ArrayList(u8).init(allocator);
 
-    try std.fmt.format(result.writer(), round_constants_block, .{ round_keys.len, try array_tpl.toOwnedSlice(), config.full_rounds, config.partial_rounds });
+    try std.fmt.format(result.writer(), round_constants_block, .{
+        round_keys.len,
+        try array_tpl.toOwnedSlice(),
+        config.full_rounds,
+        config.partial_rounds,
+    });
 
     return try result.toOwnedSlice();
 }
 
 // parse_config - parsing config from json, allocator should be arena allocator
 fn parse_config(allocator: Allocator, json_spec: []const u8) !ConfigJSON {
-    const config = try std.json.parseFromSliceLeaky(
+    return try std.json.parseFromSliceLeaky(
         ConfigJSON,
         allocator,
         json_spec,
         .{ .allocate = std.json.AllocWhen.alloc_always },
     );
-
-    return config;
 }
 
 // compress_round_constants - compressing round constants
@@ -55,9 +63,9 @@ fn compress_round_constants(allocator: Allocator, config: ConfigJSON, round_cons
     var result = std.ArrayList(Felt252).init(allocator);
 
     for (round_constants[0 .. config.full_rounds / 2]) |rk| {
-        try result.append(rk[0]);
-        try result.append(rk[1]);
-        try result.append(rk[2]);
+        inline for (0..3) |i| {
+            try result.append(rk[i]);
+        }
     }
 
     var idx = config.full_rounds / 2;
@@ -66,9 +74,10 @@ fn compress_round_constants(allocator: Allocator, config: ConfigJSON, round_cons
 
     // Add keys for partial rounds
     for (0..config.partial_rounds) |_| {
-        state[0] = Felt252.add(state[0], round_constants[idx][0]);
-        state[1] = Felt252.add(state[1], round_constants[idx][1]);
-        state[2] = Felt252.add(state[2], round_constants[idx][2]);
+        inline for (0..3) |i| {
+            state[i] = Felt252.add(state[i], round_constants[idx][i]);
+        }
+
         // Add last state
         try result.append(state[2]);
 
@@ -86,18 +95,13 @@ fn compress_round_constants(allocator: Allocator, config: ConfigJSON, round_cons
     }
 
     // Add keys for first of the last full rounds
-    state[0] = Felt252.add(state[0], round_constants[idx][0]);
-    state[1] = Felt252.add(state[1], round_constants[idx][1]);
-    state[2] = Felt252.add(state[2], round_constants[idx][2]);
-
-    try result.append(state[0]);
-    try result.append(state[1]);
-    try result.append(state[2]);
+    inline for (0..3) |i| {
+        state[i] = Felt252.add(state[i], round_constants[idx][i]);
+        try result.append(state[i]);
+    }
 
     for (round_constants[config.full_rounds / 2 + config.partial_rounds + 1 ..]) |rk| {
-        try result.append(rk[0]);
-        try result.append(rk[1]);
-        try result.append(rk[2]);
+        try result.appendSlice(&rk);
     }
 
     return try result.toOwnedSlice();
@@ -130,6 +134,7 @@ pub fn main() !void {
     const compressed_round_consts = try compress_round_constants(allocator, config, round_consts);
 
     const result = try generate_round_constant_block(allocator, config, compressed_round_consts);
+
     var file = try std.fs.cwd().openFile("./src/math/crypto/poseidon/gen/constants.zig", .{ .mode = .write_only });
 
     try file.writer().writeAll(result);
