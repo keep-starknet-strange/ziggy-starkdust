@@ -257,6 +257,14 @@ pub const Identifier = struct {
     cairo_type: ?[]const u8 = null,
 };
 
+/// Represents debug information associated with a program.
+pub const DebugInfo = struct {
+    /// File contents associated with debug information.
+    file_contents: ?json.ArrayHashMap([]const u8) = null,
+    /// Instruction locations linked with debug information.
+    instruction_locations: ?json.ArrayHashMap(InstructionLocation) = null,
+};
+
 /// Represents a program in JSON format.
 pub const ProgramJson = struct {
     const Self = @This();
@@ -269,12 +277,7 @@ pub const ProgramJson = struct {
     /// Program data.
     data: ?[]const []const u8 = null,
     /// Debug information.
-    debug_info: ?struct {
-        /// File contents associated with debug information.
-        file_contents: ?json.ArrayHashMap([]const u8) = null,
-        /// Instruction locations linked with debug information.
-        instruction_locations: ?json.ArrayHashMap(InstructionLocation) = null,
-    } = null,
+    debug_info: ?DebugInfo = null,
     /// Hints associated with the program.
     hints: ?json.ArrayHashMap([]const HintParams) = null,
     /// Identifiers within the program.
@@ -1500,6 +1503,9 @@ test "ProgramJson: parseFromString should deserialize attributes properly" {
         },
     };
 
+    // Ensure that the number of parsed attributes matches the number of expected attributes.
+    try expect(parsed_program.value.attributes.?.len == expected_attributes.len);
+
     // Iterating over parsed attributes and checking against expected values
     for (parsed_program.value.attributes.?, 0..) |attribute, i| {
         try expectEqualStrings(expected_attributes[i].name, attribute.name);
@@ -1512,6 +1518,205 @@ test "ProgramJson: parseFromString should deserialize attributes properly" {
         try expectEqual(
             @as(usize, 0),
             attribute.flow_tracking_data.?.reference_ids.?.map.count(),
+        );
+    }
+}
+
+test "ProgramJson: parseFromString should deserialize instruction locations with no parent properly" {
+    // Valid JSON string representing a Cairo v0 program
+    const valid_json =
+        \\    {
+        \\            "prime": "0x800000000000011000000000000000000000000000000000000000000000001",
+        \\            "attributes": [],
+        \\            "debug_info": {
+        \\                "file_contents": {},
+        \\                "instruction_locations": {
+        \\                    "0": {
+        \\                        "accessible_scopes": [
+        \\                            "starkware.cairo.lang.compiler.lib.registers",
+        \\                            "starkware.cairo.lang.compiler.lib.registers.get_fp_and_pc"
+        \\                        ],
+        \\                        "flow_tracking_data": {
+        \\                            "ap_tracking": {
+        \\                                "group": 0,
+        \\                                "offset": 0
+        \\                            },
+        \\                            "reference_ids": {}
+        \\                        },
+        \\                        "hints": [],
+        \\                        "inst": {
+        \\                            "end_col": 73,
+        \\                            "end_line": 7,
+        \\                            "input_file": {
+        \\                                "filename": "/Users/user/test/env/lib/python3.9/site-packages/starkware/cairo/lang/compiler/lib/registers.cairo"
+        \\                            },
+        \\                            "start_col": 5,
+        \\                            "start_line": 7
+        \\                        }
+        \\                    },
+        \\                    "3": {
+        \\                        "accessible_scopes": [
+        \\                            "starkware.cairo.common.alloc",
+        \\                            "starkware.cairo.common.alloc.alloc"
+        \\                        ],
+        \\                        "flow_tracking_data": {
+        \\                            "ap_tracking": {
+        \\                                "group": 1,
+        \\                                "offset": 1
+        \\                            },
+        \\                            "reference_ids": {}
+        \\                        },
+        \\                        "hints": [],
+        \\                        "inst": {
+        \\                            "end_col": 40,
+        \\                            "end_line": 5,
+        \\                            "input_file": {
+        \\                                "filename": "/Users/user/test/env/lib/python3.9/site-packages/starkware/cairo/common/alloc.cairo"
+        \\                            },
+        \\                            "start_col": 5,
+        \\                            "start_line": 5
+        \\                        }
+        \\                    }
+        \\                }
+        \\            },
+        \\            "builtins": [],
+        \\            "data": [
+        \\            ],
+        \\            "identifiers": {
+        \\            },
+        \\            "hints": {
+        \\            },
+        \\            "reference_manager": {
+        \\                "references": [
+        \\                ]
+        \\            }
+        \\        }
+    ;
+
+    // Parsing the JSON string into a `ProgramJson` instance
+    var parsed_program = try ProgramJson.parseFromString(std.testing.allocator, valid_json);
+    defer parsed_program.deinit();
+
+    // Creating an empty hash map to hold expected instruction locations
+    var expected_instructions_location = std.StringHashMap(InstructionLocation).init(std.testing.allocator);
+    defer expected_instructions_location.deinit();
+
+    // Adding expected instruction locations to the hash map
+    try expected_instructions_location.put(
+        "0",
+        .{
+            .accessible_scopes = &[_][]const u8{
+                "starkware.cairo.lang.compiler.lib.registers",
+                "starkware.cairo.lang.compiler.lib.registers.get_fp_and_pc",
+            },
+            .flow_tracking_data = .{
+                .ap_tracking = .{ .group = 0, .offset = 0 },
+                .reference_ids = null,
+            },
+            .hints = &[_]HintLocation{},
+            .inst = .{
+                .end_col = 73,
+                .end_line = 7,
+                .input_file = .{
+                    .filename = "/Users/user/test/env/lib/python3.9/site-packages/starkware/cairo/lang/compiler/lib/registers.cairo",
+                },
+                .start_col = 5,
+                .start_line = 7,
+            },
+        },
+    );
+
+    // Adding another expected instruction location to the hash map
+    try expected_instructions_location.put(
+        "3",
+        .{
+            .accessible_scopes = &[_][]const u8{
+                "starkware.cairo.common.alloc",
+                "starkware.cairo.common.alloc.alloc",
+            },
+            .flow_tracking_data = .{
+                .ap_tracking = .{ .group = 1, .offset = 1 },
+                .reference_ids = null,
+            },
+            .hints = &[_]HintLocation{},
+            .inst = .{
+                .end_col = 40,
+                .end_line = 5,
+                .input_file = .{
+                    .filename = "/Users/user/test/env/lib/python3.9/site-packages/starkware/cairo/common/alloc.cairo",
+                },
+                .start_col = 5,
+                .start_line = 5,
+            },
+        },
+    );
+
+    // Ensure that the count of expected and parsed instruction locations matches
+    try expectEqual(
+        expected_instructions_location.count(),
+        parsed_program.value.debug_info.?.instruction_locations.?.map.count(),
+    );
+
+    // Iterator for parsed instruction locations
+    var instruction_location_iterator = parsed_program.value.debug_info.?.instruction_locations.?.map.iterator();
+
+    while (instruction_location_iterator.next()) |kv| {
+        // Retrieving expected and parsed instruction locations by key
+        const expected_instruction_location = expected_instructions_location.get(kv.key_ptr.*);
+        const instruction_location = parsed_program.value.debug_info.?.instruction_locations.?.map.get(kv.key_ptr.*);
+
+        // Comparing attributes of expected and parsed instruction locations
+        for (instruction_location.?.accessible_scopes, 0..) |accessible_scope, i| {
+            // Checking and asserting the equality of accessible scopes
+            try expectEqualStrings(
+                accessible_scope,
+                expected_instruction_location.?.accessible_scopes[i],
+            );
+        }
+
+        // Asserting the equality of Ap register tracking between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.flow_tracking_data.ap_tracking,
+            instruction_location.?.flow_tracking_data.ap_tracking,
+        );
+
+        // Asserting that the reference IDs count of the parsed location's flow tracking data is zero
+        try expectEqual(
+            @as(usize, 0),
+            instruction_location.?.flow_tracking_data.reference_ids.?.map.count(),
+        );
+
+        // Asserting the equality of HintLocation slices between expected and parsed locations
+        try expectEqualSlices(
+            HintLocation,
+            expected_instruction_location.?.hints,
+            instruction_location.?.hints,
+        );
+
+        // Asserting the equality of end column attribute between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.inst.end_col,
+            instruction_location.?.inst.end_col,
+        );
+        // Asserting the equality of end line attribute between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.inst.end_line,
+            instruction_location.?.inst.end_line,
+        );
+        // Asserting the equality of input file filename attribute between expected and parsed locations
+        try expectEqualStrings(
+            expected_instruction_location.?.inst.input_file.filename,
+            instruction_location.?.inst.input_file.filename,
+        );
+        // Asserting the equality of start column attribute between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.inst.start_col,
+            instruction_location.?.inst.start_col,
+        );
+        // Asserting the equality of start line attribute between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.inst.start_line,
+            instruction_location.?.inst.start_line,
         );
     }
 }
