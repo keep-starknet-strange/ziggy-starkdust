@@ -1411,3 +1411,107 @@ test "ProgramJson: parseProgramJson with constant deserialization" {
         try expectEqual(expected_identifier.cairo_type, identifier.cairo_type);
     }
 }
+
+test "ProgramJson: parseFromString should deserialize attributes properly" {
+    // Valid JSON string representing a Cairo v0 program
+    const valid_json =
+        \\  {
+        \\     "prime": "0x800000000000011000000000000000000000000000000000000000000000001",
+        \\    "attributes": [
+        \\        {
+        \\             "accessible_scopes": [
+        \\                 "openzeppelin.security.safemath.library",
+        \\                 "openzeppelin.security.safemath.library.SafeUint256",
+        \\                 "openzeppelin.security.safemath.library.SafeUint256.add"
+        \\            ],
+        \\             "end_pc": 381,
+        \\             "flow_tracking_data": {
+        \\                 "ap_tracking": {
+        \\                     "group": 14,
+        \\                     "offset": 35
+        \\                 },
+        \\                 "reference_ids": {}
+        \\             },
+        \\              "name": "error_message",
+        \\             "start_pc": 379,
+        \\             "value": "SafeUint256: addition overflow"
+        \\          },
+        \\          {
+        \\                        "accessible_scopes": [
+        \\                          "openzeppelin.security.safemath.library",
+        \\                          "openzeppelin.security.safemath.library.SafeUint256",
+        \\                          "openzeppelin.security.safemath.library.SafeUint256.sub_le"
+        \\                      ],
+        \\                      "end_pc": 404,
+        \\                     "flow_tracking_data": {
+        \\                          "ap_tracking": {
+        \\                              "group": 15,
+        \\                              "offset": 60
+        \\                          },
+        \\                          "reference_ids": {}
+        \\                      },
+        \\                      "name": "error_message",
+        \\                      "start_pc": 402,
+        \\                      "value": "SafeUint256: subtraction overflow"
+        \\                  }
+        \\              ],
+        \\             "debug_info": {
+        \\                  "instruction_locations": {}
+        \\              },
+        \\              "builtins": [],
+        \\            "data": [
+        \\               ],
+        \\               "identifiers": {
+        \\               },
+        \\               "hints": {
+        \\               },
+        \\               "reference_manager": {
+        \\                   "references": [
+        \\                   ]
+        \\               }
+        \\          }
+    ;
+
+    // Parsing the JSON string into a `ProgramJson` instance
+    var parsed_program = try ProgramJson.parseFromString(std.testing.allocator, valid_json);
+    defer parsed_program.deinit();
+
+    // Expected attributes to be parsed from the JSON
+    const expected_attributes = [_]Attribute{
+        .{
+            .name = "error_message",
+            .start_pc = 379,
+            .end_pc = 381,
+            .value = "SafeUint256: addition overflow",
+            .flow_tracking_data = .{
+                .ap_tracking = .{ .group = 14, .offset = 35 },
+                .reference_ids = null,
+            },
+        },
+        .{
+            .name = "error_message",
+            .start_pc = 402,
+            .end_pc = 404,
+            .value = "SafeUint256: subtraction overflow",
+            .flow_tracking_data = .{
+                .ap_tracking = .{ .group = 15, .offset = 60 },
+                .reference_ids = null,
+            },
+        },
+    };
+
+    // Iterating over parsed attributes and checking against expected values
+    for (parsed_program.value.attributes.?, 0..) |attribute, i| {
+        try expectEqualStrings(expected_attributes[i].name, attribute.name);
+        try expectEqual(expected_attributes[i].start_pc, attribute.start_pc);
+        try expectEqual(expected_attributes[i].end_pc, attribute.end_pc);
+        try expectEqual(
+            expected_attributes[i].flow_tracking_data.?.ap_tracking,
+            attribute.flow_tracking_data.?.ap_tracking,
+        );
+        try expectEqual(
+            @as(usize, 0),
+            attribute.flow_tracking_data.?.reference_ids.?.map.count(),
+        );
+    }
+}
