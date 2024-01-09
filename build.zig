@@ -116,6 +116,10 @@ pub fn build(b: *std.Build) void {
     integration_test(b, optimize, target);
 
     // This creates a build step. It will be visible in the `zig build --help` menu,
+    // and can be selected like this: `zig build poseidon_consts_gen`
+    poseidon_consts_gen(b, optimize, target);
+
+    // This creates a build step. It will be visible in the `zig build --help` menu,
     // and can be selected like this: `zig build run`
     // This will evaluate the `run` step rather than the default, which is "install".
     const run_step = b.step(
@@ -179,4 +183,23 @@ fn integration_test(
 
     const install_step = b.addInstallArtifact(binary, .{});
     integration_test_build.dependOn(&install_step.step);
+}
+
+fn poseidon_consts_gen(
+    b: *std.Build,
+    mode: std.builtin.Mode,
+    target: std.Build.ResolvedTarget,
+) void {
+    const binary = b.addExecutable(.{
+        .name = "poseidon_consts_gen",
+        .root_source_file = .{ .path = "src/poseidon_consts_gen.zig" },
+        .target = target,
+        .optimize = mode,
+    });
+
+    const poseidon_consts_gen_build = b.step("poseidon_consts_gen", "Cli: poseidon consts generator");
+    poseidon_consts_gen_build.dependOn(&binary.step);
+
+    const install_step = b.addInstallArtifact(binary, .{});
+    poseidon_consts_gen_build.dependOn(&install_step.step);
 }

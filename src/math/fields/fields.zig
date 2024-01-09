@@ -42,6 +42,36 @@ pub fn Field(
             break :val .{ .fe = bz };
         };
 
+        const base_one = val: {
+            const bo: F.MontgomeryDomainFieldElement = [4]u64{
+                18446744073709551585,
+                18446744073709551615,
+                18446744073709551615,
+                576460752303422960,
+            };
+            break :val .{ .fe = bo };
+        };
+
+        pub const base_two = val: {
+            const bt: F.MontgomeryDomainFieldElement = [4]u64{
+                18446744073709551553,
+                18446744073709551615,
+                18446744073709551615,
+                576460752303422416,
+            };
+            break :val .{ .fe = bt };
+        };
+
+        pub const base_three = val: {
+            const bt: F.MontgomeryDomainFieldElement = [4]u64{
+                18446744073709551521,
+                18446744073709551615,
+                18446744073709551615,
+                576460752303421872,
+            };
+            break :val .{ .fe = bt };
+        };
+
         fe: F.MontgomeryDomainFieldElement,
 
         /// Mask to apply to the highest limb to get the correct number of bits.
@@ -120,12 +150,21 @@ pub fn Field(
         ///
         /// Returns a field element with a value of one.
         pub fn one() Self {
-            const oneValue = comptime blk: {
-                var baseOne: F.MontgomeryDomainFieldElement = undefined;
-                F.setOne(&baseOne);
-                break :blk .{ .fe = baseOne };
-            };
-            return oneValue;
+            return base_one;
+        }
+
+        /// Get the field element representing two.
+        ///
+        /// Returns a field element with a value of two.
+        pub fn two() Self {
+            return base_two;
+        }
+
+        /// Get the field element representing three.
+        ///
+        /// Returns a field element with a value of three.
+        pub fn three() Self {
+            return base_three;
         }
 
         /// Create a field element from a byte array.
