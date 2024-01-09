@@ -10,6 +10,7 @@ const CairoLayout = @import("../types/layout.zig").CairoLayout;
 const Relocatable = @import("../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../memory/relocatable.zig").MaybeRelocatable;
 const ProgramJson = @import("../types/programjson.zig").ProgramJson;
+const Program = @import("../types/program.zig").Program;
 const CairoRunnerError = @import("../error.zig").CairoRunnerError;
 const RunnerError = @import("../error.zig").RunnerError;
 const trace_context = @import("../trace_context.zig");
@@ -67,7 +68,7 @@ pub const CairoRunner = struct {
             self.layout,
             self.allocator,
             self.proof_mode,
-            self.program.builtins,
+            self.program.builtins.?,
         );
     }
 
@@ -154,7 +155,8 @@ pub const CairoRunner = struct {
         // Concatenate strings
         const full_entrypoint_name = try std.fmt.bufPrint(&buffer, "__main__.{s}", .{self.entrypoint_name});
 
-        const main_offset: usize = self.program.identifiers.map.get(full_entrypoint_name).?.pc orelse 0;
+        const main_offset: usize = self.program.identifiers.?.map.get(full_entrypoint_name).?.pc orelse 0;
+
         const end = try self.initFunctionEntrypoint(main_offset, return_fp);
         return end;
     }
