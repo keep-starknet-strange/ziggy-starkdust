@@ -64,7 +64,7 @@ pub const HintsCollection = struct {
 pub const SharedProgramData = struct {
     const Self = @This();
     /// List of `MaybeRelocatable` items.
-    data: []const []const u8,
+    data: std.ArrayList(MaybeRelocatable),
     /// Collection of hints.
     hints_collection: HintsCollection,
     /// Program's main entry point (optional, defaults to `null`).
@@ -108,6 +108,7 @@ pub const SharedProgramData = struct {
 
     /// Deinitializes the `SharedProgramData`, freeing allocated memory.
     pub fn deinit(self: *Self) void {
+        self.data.deinit();
         self.hints_collection.deinit();
         self.error_message_attributes.deinit();
         if (self.instruction_locations != null) {
