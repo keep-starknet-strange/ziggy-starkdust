@@ -1,9 +1,9 @@
 const std = @import("std");
+const expectEqual = std.testing.expectEqual;
 
 const ManagedBigInt = std.math.big.int.Managed;
 const Limb = std.math.big.Limb;
 const Allocator = std.mem.Allocator;
-const expectEqual = std.testing.expectEqual;
 const expect = std.testing.expect;
 
 /// Each hash consists of 3 cells (two inputs and one output).
