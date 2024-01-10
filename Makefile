@@ -10,7 +10,7 @@ test: libstarknet_crypto.a
 test-filter: libstarknet_crypto.a
 	@zig build test --summary all -Dtest-filter="$(FILTER)"
 
-build-integration-test:
+build-integration-test: libstarknet_crypto.a
 	@zig build integration_test
 
 build-and-run-pedersen-table-gen:
