@@ -1112,7 +1112,6 @@ test "ProgramJson: parseFromString should return a parsed ProgramJson instance f
     }
 }
 
-
 test "ProgramJson: parseProgramJson should parse a Cairo v0 JSON Program and convert it to a Program" {
     // Get the absolute path of the current working directory.
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
@@ -2222,11 +2221,12 @@ test "ProgramJson: Program deserialization with instruction locations containing
             // Move to the next expected node for comparison in the next iteration
             it_expected = it_expected.?.next;
         }
+    }
 }
 
-test "ProgramJson should be able to parse a sample subset of cairo0 files"  {
+test "ProgramJson should be able to parse a sample subset of cairo0 files" {
     const allocator = std.testing.allocator;
-    
+
     const program_names: []const []const u8 = &[_][]const u8{
         "_keccak",
         "assert_nn",
@@ -2252,7 +2252,7 @@ test "ProgramJson should be able to parse a sample subset of cairo0 files"  {
             &[_][]const u8{ "cairo_programs/", program_name, ".json" },
         );
         defer allocator.free(program_path);
-        errdefer std.debug.print("cannot parse program: {s}\n", .{program_path});        
+        errdefer std.debug.print("cannot parse program: {s}\n", .{program_path});
 
         var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
         const path = try std.os.realpath(program_path, &buffer);
