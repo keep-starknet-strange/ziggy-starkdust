@@ -133,6 +133,8 @@ pub const MathError = error{
     SubWithOverflow,
     /// Error indicating that the addition operation on the Relocatable offset exceeds the maximum limit.
     RelocatableAdditionOffsetExceeded,
+    /// Error indicating that a point is not on the elliptic curve.
+    PointNotOnCurve,
 };
 
 /// Represents different error conditions that occur in trace relocation
