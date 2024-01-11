@@ -209,6 +209,22 @@ pub fn Field(
             return ret;
         }
 
+        /// Convert the field element to a bits little endian array.
+        ///
+        /// This function converts the field element to a byte array for serialization.
+        pub fn toBitsLe(self: Self) [@bitSizeOf(u256)]bool {
+            var bits = [_]bool{false} ** @bitSizeOf(u256);
+            const nmself = self.fromMontgomery();
+
+            for (0..4) |ind_element| {
+                for (0..64) |ind_bit| {
+                    bits[ind_element * 64 + ind_bit] = (nmself[ind_element] >> @intCast(ind_bit)) & 1 == 1;
+                }
+            }
+
+            return bits;
+        }
+
         /// Convert the field element to a byte array.
         ///
         /// This function converts the field element to a byte array for serialization.
