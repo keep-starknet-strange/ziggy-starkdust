@@ -87,7 +87,7 @@ pub const EcOpBuiltinRunner = struct {
         return result;
     }
 
-    pub fn deduceMemoryCell(self: *const Self, allocator: Allocator, address: Relocatable, memory: *Memory) !?MaybeRelocatable {
+    pub fn deduceMemoryCell(self: *Self, allocator: Allocator, address: Relocatable, memory: *Memory) !?MaybeRelocatable {
         const index = address.offset % self.cells_per_instance;
         if ((index != OUTPUT_INDICES[0]) and (index != OUTPUT_INDICES[1])) return null;
 
@@ -128,8 +128,8 @@ pub const EcOpBuiltinRunner = struct {
         };
 
         const result = try EC.ecOpImpl(partial_sum, doubled_point, input_cells.items[4], EC.ALPHA, height);
-        try self.cache.put(x_addr, result[0]);
-        try self.cache.put(x_addr.addFelt(Felt252.one()), result[0]);
+        try self.cache.put(x_addr, result.x);
+        try self.cache.put(try x_addr.addFelt(Felt252.one()), result.x);
 
         return null;
     }
