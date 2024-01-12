@@ -131,6 +131,9 @@ pub const EcOpBuiltinRunner = struct {
         try self.cache.put(x_addr, result.x);
         try self.cache.put(try x_addr.addFelt(Felt252.one()), result.x);
 
-        return null;
+        return switch (index - self.n_input_cells) {
+            0 => MaybeRelocatable.fromFelt(result.x),
+            else => MaybeRelocatable.fromFelt(result.y),
+        };
     }
 };
