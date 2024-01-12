@@ -76,8 +76,8 @@ pub const BuiltinsInstanceDef = struct {
         return .{
             .output = true,
             .pedersen = PedersenInstanceDef{},
-            .range_check = RangeCheckInstanceDef.init(),
-            .ecdsa = EcdsaInstanceDef.initDefault(),
+            .range_check = RangeCheckInstanceDef{},
+            .ecdsa = EcdsaInstanceDef{},
             .bitwise = null,
             .ec_op = null,
             .keccak = null,
@@ -94,7 +94,7 @@ pub const BuiltinsInstanceDef = struct {
         return .{
             .output = true,
             .pedersen = PedersenInstanceDef.init(256, 1),
-            .range_check = RangeCheckInstanceDef.init(),
+            .range_check = RangeCheckInstanceDef{},
             .ecdsa = EcdsaInstanceDef.init(2048),
             .bitwise = BitwiseInstanceDef.init(16),
             .ec_op = EcOpInstanceDef.init(1024),
@@ -108,7 +108,7 @@ pub const BuiltinsInstanceDef = struct {
         return .{
             .output = true,
             .pedersen = PedersenInstanceDef.init(null, 4),
-            .range_check = RangeCheckInstanceDef.from(null, 8),
+            .range_check = RangeCheckInstanceDef.init(null, 8),
             .ecdsa = EcdsaInstanceDef.init(null),
             .bitwise = BitwiseInstanceDef.init(null),
             .ec_op = EcOpInstanceDef.init(null),
