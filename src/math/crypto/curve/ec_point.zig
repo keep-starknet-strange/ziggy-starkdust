@@ -12,7 +12,7 @@ pub const ProjectivePoint = struct {
     z: Felt252,
     infinity: bool,
 
-    pub fn from_affine_point(p: AffinePoint) Self {
+    pub fn fromAffinePoint(p: AffinePoint) Self {
         return .{
             .x = p.x,
             .y = p.y,
@@ -21,7 +21,7 @@ pub const ProjectivePoint = struct {
         };
     }
 
-    pub fn double_assign(self: *Self) void {
+    pub fn doubleAssign(self: *Self) void {
         if (self.infinity) {
             return;
         }
@@ -34,16 +34,15 @@ pub const ProjectivePoint = struct {
 
         const uy = u.mul(self.y);
 
-        const x = u.mul(w);
-        const y = t.mul(v.sub(w)).sub(Felt252.two().mul(uy).mul(uy));
-        const z = u.mul(u).mul(u);
-
-        self.x = x;
-        self.y = y;
-        self.z = z;
+        self.* = .{
+            .x = u.mul(w),
+            .y = t.mul(v.sub(w)).sub(Felt252.two().mul(uy).mul(uy)),
+            .z = u.mul(u).mul(u),
+            .infinity = self.infinity,
+        };
     }
 
-    pub fn add_assign_affine_point(self: *Self, rhs: AffinePoint) void {
+    pub fn addAssignAffinePoint(self: *Self, rhs: AffinePoint) void {
         if (rhs.infinity) {
             return;
         }
@@ -66,7 +65,7 @@ pub const ProjectivePoint = struct {
                 self.infinity = true;
                 return;
             } else {
-                self.double_assign();
+                self.doubleAssign();
                 return;
             }
         }
@@ -95,7 +94,7 @@ pub const AffinePoint = struct {
     y: Felt252,
     infinity: bool,
 
-    pub fn add_assign(self: *Self, rhs: *AffinePoint) void {
+    pub fn addAssign(self: *Self, rhs: *AffinePoint) void {
         if (rhs.infinity) {
             return;
         }
@@ -113,7 +112,7 @@ pub const AffinePoint = struct {
                 self.infinity = true;
                 return;
             }
-            self.double_assign();
+            self.doubleAssign();
             return;
         }
 
@@ -125,7 +124,7 @@ pub const AffinePoint = struct {
         self.x = result_x;
     }
 
-    pub fn double_assign(self: *Self) void {
+    pub fn doubleAssign(self: *Self) void {
         if (self.infinity) {
             return;
         }
@@ -138,7 +137,7 @@ pub const AffinePoint = struct {
         self.x = result_x;
     }
 
-    pub fn from_projective_point(p: *ProjectivePoint) Self {
+    pub fn fromProjectivePoint(p: *ProjectivePoint) Self {
         const zinv = p.z.inv().?;
 
         return .{

@@ -11,20 +11,20 @@ const curve_params = @import("./math/crypto/curve/curve_params.zig");
 const final_block = "const AffinePoint = @import(\"../../curve/ec_point.zig\").AffinePoint;\n" ++
     "pub const CURVE_CONSTS_BITS: usize = {};";
 
-fn lookup_table(allocator: Allocator, comptime bits: u32) ![]u8 {
+fn lookupTable(allocator: Allocator, comptime bits: u32) ![]u8 {
     var output = std.ArrayList(u8).init(allocator);
 
     try std.fmt.format(output.writer(), final_block, .{bits});
 
-    try push_points(output.writer(), "P0", curve_params.PEDERSEN_P0, 248, bits);
-    try push_points(output.writer(), "P1", curve_params.PEDERSEN_P1, 4, bits);
-    try push_points(output.writer(), "P2", curve_params.PEDERSEN_P2, 248, bits);
-    try push_points(output.writer(), "P3", curve_params.PEDERSEN_P3, 4, bits);
+    try pushPoints(output.writer(), "P0", curve_params.PEDERSEN_P0, 248, bits);
+    try pushPoints(output.writer(), "P1", curve_params.PEDERSEN_P1, 4, bits);
+    try pushPoints(output.writer(), "P2", curve_params.PEDERSEN_P2, 248, bits);
+    try pushPoints(output.writer(), "P3", curve_params.PEDERSEN_P3, 4, bits);
 
     return try output.toOwnedSlice();
 }
 
-fn push_point(writer: anytype, p: *AffinePoint) !void {
+fn pushPoint(writer: anytype, p: *AffinePoint) !void {
     const felt = ".{{\t\n\t.fe = [4]u64{{\n{},\n{},\n{},\n{},\n}},\n}},\n";
 
     try writer.writeAll(".{\n.x = ");
@@ -34,7 +34,7 @@ fn push_point(writer: anytype, p: *AffinePoint) !void {
     try writer.writeAll(".infinity = false,\n},");
 }
 
-fn push_points(writer: anytype, name: []const u8, base: AffinePoint, comptime max_bits: u32, comptime bits: u32) !void {
+fn pushPoints(writer: anytype, name: []const u8, base: AffinePoint, comptime max_bits: u32, comptime bits: u32) !void {
     const full_chunks = max_bits / bits;
     const leftover_bits = max_bits % bits;
     const table_size_full = (1 << bits) - 1;
@@ -53,14 +53,14 @@ fn push_points(writer: anytype, name: []const u8, base: AffinePoint, comptime ma
         // Loop through each possible bit combination except zero
         var inner_point = outer_point;
         for (1..(table_size + 1)) |_| {
-            try push_point(writer, &inner_point);
-            inner_point.add_assign(&outer_point);
+            try pushPoint(writer, &inner_point);
+            inner_point.addAssign(&outer_point);
         }
 
         // Shift outer point #bits times
         bits_left -= eat_bits;
         inline for (0..bits) |_| {
-            outer_point.double_assign();
+            outer_point.doubleAssign();
         }
     }
 
@@ -72,7 +72,7 @@ pub fn main() !void {
     defer arena.deinit();
     const allocator = arena.allocator();
 
-    const output = try lookup_table(allocator, 4);
+    const output = try lookupTable(allocator, 4);
 
     var file = try std.fs.cwd().openFile("./src/math/crypto/pedersen/gen/constants.zig", .{ .mode = .write_only });
 

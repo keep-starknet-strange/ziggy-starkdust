@@ -20,7 +20,7 @@ const ConfigJSON = struct {
 
 // generate_round_constant_block - injecting compressed round constants and config into template
 // result slice owner is caller, so it should be deinit by caller
-fn generate_round_constant_block(allocator: Allocator, config: ConfigJSON, round_keys: []Felt252) ![]const u8 {
+fn generateRoundConstantBlock(allocator: Allocator, config: ConfigJSON, round_keys: []Felt252) ![]const u8 {
     var array_tpl = std.ArrayList(u8).init(allocator);
     defer array_tpl.deinit();
 
@@ -48,7 +48,7 @@ fn generate_round_constant_block(allocator: Allocator, config: ConfigJSON, round
 }
 
 // parse_config - parsing config from json, allocator should be arena allocator
-fn parse_config(allocator: Allocator, json_spec: []const u8) !ConfigJSON {
+fn parseConfig(allocator: Allocator, json_spec: []const u8) !ConfigJSON {
     return try std.json.parseFromSliceLeaky(
         ConfigJSON,
         allocator,
@@ -59,7 +59,7 @@ fn parse_config(allocator: Allocator, json_spec: []const u8) !ConfigJSON {
 
 // compress_round_constants - compressing round constants
 // caller is owner of result slice and should deinit it
-fn compress_round_constants(allocator: Allocator, config: ConfigJSON, round_constants: [][3]Felt252) ![]Felt252 {
+fn compressRoundConstants(allocator: Allocator, config: ConfigJSON, round_constants: [][3]Felt252) ![]Felt252 {
     var result = std.ArrayList(Felt252).init(allocator);
 
     for (round_constants[0 .. config.full_rounds / 2]) |rk| {
@@ -109,7 +109,7 @@ fn compress_round_constants(allocator: Allocator, config: ConfigJSON, round_cons
 
 // parse_numbers_to_field_element - parsing numbers to field element
 // caller is owner of result slice and should deinit it
-fn parse_numbers_to_field_element(allocator: Allocator, keys: [][3]u256) ![][3]Felt252 {
+fn parseNumbersToFieldElement(allocator: Allocator, keys: [][3]u256) ![][3]Felt252 {
     var result = try allocator.alloc([3]Felt252, keys.len);
 
     for (keys, 0..) |key, idx| {
@@ -127,13 +127,13 @@ pub fn main() !void {
     const allocator = arena.allocator();
 
     // writing constants for poseidon
-    const config = try parse_config(allocator, @embedFile("./math/crypto/poseidon/gen/config.json"));
+    const config = try parseConfig(allocator, @embedFile("./math/crypto/poseidon/gen/config.json"));
 
-    const round_consts = try parse_numbers_to_field_element(allocator, config.round_keys);
+    const round_consts = try parseNumbersToFieldElement(allocator, config.round_keys);
 
-    const compressed_round_consts = try compress_round_constants(allocator, config, round_consts);
+    const compressed_round_consts = try compressRoundConstants(allocator, config, round_consts);
 
-    const result = try generate_round_constant_block(allocator, config, compressed_round_consts);
+    const result = try generateRoundConstantBlock(allocator, config, compressed_round_consts);
 
     var file = try std.fs.cwd().openFile("./src/math/crypto/poseidon/gen/constants.zig", .{ .mode = .write_only });
 
