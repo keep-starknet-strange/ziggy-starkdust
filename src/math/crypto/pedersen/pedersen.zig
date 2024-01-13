@@ -62,6 +62,8 @@ pub fn pedersen_hash(x: Felt252, y: Felt252) Felt252 {
 }
 
 test "pedersen-hash" {
+    //   Test case ported from:
+    //   https://github.com/starkware-libs/crypto-cpp/blob/95864fbe11d5287e345432dbe1e80dea3c35fc58/src/starkware/crypto/ffi/crypto_lib_test.go
     const in1 = Felt252.fromInteger(
         0x03d937c035c878245caf64531a5756109c53068da139362728feb561405371cb,
     );
