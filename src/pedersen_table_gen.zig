@@ -1,6 +1,7 @@
 /// Generating pedersen table for Felt252
 /// All memory allocation is on arena allocator
-///
+/// code ported from starknet-crypto-codegen:
+/// https://github.com/xJonathanLEI/starknet-rs/blob/0857bd6cd3bd34cbb06708f0a185757044171d8d/starknet-crypto-codegen/src/pedersen.rs
 const std = @import("std");
 const Felt252 = @import("./math/fields/starknet.zig").Felt252;
 const AffinePoint = @import("./math/crypto/curve/ec_point.zig").AffinePoint;
