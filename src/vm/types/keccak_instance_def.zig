@@ -10,13 +10,13 @@ pub const KeccakInstanceDef = struct {
     const Self = @This();
 
     /// Ratio associated with the instance.
-    ratio: ?u32,
+    ratio: ?u32 = 2048,
     /// The input and output are 1600 bits that are represented using a sequence of field elements.
     ///
     /// For example, [64] * 25 means 25 field elements, each containing 64 bits.
     state_rep: ArrayList(u32),
     /// Should equal n_diluted_bits.
-    instance_per_component: u32,
+    instance_per_component: u32 = 16,
 
     /// Initializes a default instance of `KeccakInstanceDef` with an allocator.
     ///
@@ -33,11 +33,7 @@ pub const KeccakInstanceDef = struct {
     pub fn initDefault(allocator: Allocator) !Self {
         var instance_per_component = ArrayList(u32).init(allocator);
         try instance_per_component.appendNTimes(200, 8);
-        return .{
-            .ratio = 2048,
-            .state_rep = instance_per_component,
-            .instance_per_component = 16,
-        };
+        return .{ .state_rep = instance_per_component };
     }
 
     /// Creates a new instance of `KeccakInstanceDef` with the specified ratio and state representation.
@@ -57,7 +53,6 @@ pub const KeccakInstanceDef = struct {
         return .{
             .ratio = ratio,
             .state_rep = state_rep,
-            .instance_per_component = 16,
         };
     }
 
