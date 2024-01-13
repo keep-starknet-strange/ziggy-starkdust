@@ -1,3 +1,5 @@
+// code ported from starknet-crypto implementation:
+// https://github.com/xJonathanLEI/starknet-rs/blob/0857bd6cd3bd34cbb06708f0a185757044171d8d/starknet-crypto/src/poseidon_hash.rs
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const Fr = @import("../../fields/stark_felt_252_gen_fp.zig");
@@ -101,6 +103,7 @@ pub fn poseidon_hash_single(x: Felt252) Felt252 {
 }
 
 test "poseidon-hash" {
+    // Test data generated from `cairo-lang` v0.11.0
     const test_data = [_][3]Felt252{
         .{
             Felt252.fromInteger(0xb662f9017fa7956fd70e26129b1833e10ad000fd37b4d9f4e0ce6884b7bbe),
@@ -123,6 +126,7 @@ test "poseidon-hash" {
 }
 
 test "poseidon-hash-single" {
+    // Test data generated from `cairo-lang` v0.11.0
     const test_data = [_][2]Felt252{
         .{
             Felt252.fromInteger(0x9dad5d6f502ccbcb6d34ede04f0337df3b98936aaf782f4cc07d147e3a4fd6),
@@ -143,6 +147,7 @@ test "poseidon-hash-single" {
 }
 
 test "poseidon-hash-many" {
+    // Test data generated from `cairo-lang` v0.11.0
     const test_data: [2]struct {
         input: []const Felt252,
         expected: Felt252,
