@@ -120,10 +120,13 @@ pub fn build(b: *std.Build) void {
     poseidon_consts_gen(b, optimize, target);
 
     // This creates a build step. It will be visible in the `zig build --help` menu,
+<<<<<<< HEAD
     // and can be selected like this: `zig build pedersen_table_gen`
     pedersen_table_gen(b, optimize, target);
 
     // This creates a build step. It will be visible in the `zig build --help` menu,
+=======
+>>>>>>> 9c7f6665cf60d1fa3748c64f11c144c353117da2
     // and can be selected like this: `zig build run`
     // This will evaluate the `run` step rather than the default, which is "install".
     const run_step = b.step(
@@ -207,6 +210,7 @@ fn poseidon_consts_gen(
     const install_step = b.addInstallArtifact(binary, .{});
     poseidon_consts_gen_build.dependOn(&install_step.step);
 }
+<<<<<<< HEAD
 
 fn pedersen_table_gen(
     b: *std.Build,
@@ -226,3 +230,5 @@ fn pedersen_table_gen(
     const install_step = b.addInstallArtifact(binary, .{});
     pedersen_table_gen_build.dependOn(&install_step.step);
 }
+=======
+>>>>>>> 9c7f6665cf60d1fa3748c64f11c144c353117da2

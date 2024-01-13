@@ -1,3 +1,5 @@
+// code ported from starknet-crypto implementation:
+// https://github.com/xJonathanLEI/starknet-rs/blob/0857bd6cd3bd34cbb06708f0a185757044171d8d/starknet-crypto/src/pedersen_hash.rs
 const std = @import("std");
 const curve_params = @import("../curve/curve_params.zig");
 const AffinePoint = @import("../curve/ec_point.zig").AffinePoint;

@@ -26,7 +26,10 @@ pub const math = struct {
     pub usingnamespace @import("math/fields/stark_felt_252_gen_fp.zig");
     pub usingnamespace @import("math/fields/starknet.zig");
     pub usingnamespace @import("math/crypto/poseidon/poseidon.zig");
+<<<<<<< HEAD
     pub usingnamespace @import("math/crypto/pedersen/pedersen.zig");
+=======
+>>>>>>> 9c7f6665cf60d1fa3748c64f11c144c353117da2
 
     pub usingnamespace @import("math/crypto/pedersen_hash.zig");
     pub usingnamespace @import("math/fields/elliptic_curve.zig");
