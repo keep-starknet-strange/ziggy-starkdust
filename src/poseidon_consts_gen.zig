@@ -18,7 +18,7 @@ const ConfigJSON = struct {
     round_keys: [][3]u256,
 };
 
-// generate_round_constant_block - injecting compressed round constants and config into template
+// generateRoundConstantBlock - injecting compressed round constants and config into template
 // result slice owner is caller, so it should be deinit by caller
 fn generateRoundConstantBlock(allocator: Allocator, config: ConfigJSON, round_keys: []Felt252) ![]const u8 {
     var array_tpl = std.ArrayList(u8).init(allocator);
@@ -47,7 +47,7 @@ fn generateRoundConstantBlock(allocator: Allocator, config: ConfigJSON, round_ke
     return try result.toOwnedSlice();
 }
 
-// parse_config - parsing config from json, allocator should be arena allocator
+// parseConfig - parsing config from json, allocator should be arena allocator
 fn parseConfig(allocator: Allocator, json_spec: []const u8) !ConfigJSON {
     return try std.json.parseFromSliceLeaky(
         ConfigJSON,
@@ -57,7 +57,7 @@ fn parseConfig(allocator: Allocator, json_spec: []const u8) !ConfigJSON {
     );
 }
 
-// compress_round_constants - compressing round constants
+// compressRoundConstants - compressing round constants
 // caller is owner of result slice and should deinit it
 fn compressRoundConstants(allocator: Allocator, config: ConfigJSON, round_constants: [][3]Felt252) ![]Felt252 {
     var result = std.ArrayList(Felt252).init(allocator);
@@ -107,7 +107,7 @@ fn compressRoundConstants(allocator: Allocator, config: ConfigJSON, round_consta
     return try result.toOwnedSlice();
 }
 
-// parse_numbers_to_field_element - parsing numbers to field element
+// parseNumbersToFieldElement - parsing numbers to field element
 // caller is owner of result slice and should deinit it
 fn parseNumbersToFieldElement(allocator: Allocator, keys: [][3]u256) ![][3]Felt252 {
     var result = try allocator.alloc([3]Felt252, keys.len);
