@@ -14,23 +14,11 @@ pub const EcOpInstanceDef = struct {
     const Self = @This();
 
     /// The ratio associated with the instance.
-    ratio: ?u32,
+    ratio: ?u32 = 256,
     /// The height of the scalar in bits.
-    scalar_height: u32,
+    scalar_height: u32 = 256,
     /// The number of bits in the scalar.
-    scalar_bits: u32,
-
-    /// Initializes an instance with default values.
-    ///
-    /// Returns:
-    /// An instance of EC Operation Definition with default values.
-    pub fn initDefault() Self {
-        return .{
-            .ratio = 256,
-            .scalar_height = 256,
-            .scalar_bits = 252,
-        };
-    }
+    scalar_bits: u32 = 252,
 
     /// Initializes an instance with the specified ratio.
     ///
@@ -40,11 +28,7 @@ pub const EcOpInstanceDef = struct {
     /// Returns:
     /// An instance of EC Operation Definition with the specified ratio.
     pub fn init(ratio: ?u32) Self {
-        return .{
-            .ratio = ratio,
-            .scalar_height = 256,
-            .scalar_bits = 252,
-        };
+        return .{ .ratio = ratio };
     }
 
     /// Retrieves the number of cells per built-in EC operation.
@@ -71,37 +55,47 @@ pub const EcOpInstanceDef = struct {
 };
 
 test "EcOpInstanceDef: init function should return an EcOp instance def with provided ratio" {
-    try expectEqual(
-        EcOpInstanceDef{
-            .ratio = 8,
-            .scalar_height = 256,
-            .scalar_bits = 252,
-        },
-        EcOpInstanceDef.init(8),
-    );
+    // Define the expected EcOpInstanceDef with specified ratio.
+    const expected_instance = EcOpInstanceDef{
+        .ratio = 8,
+        .scalar_height = 256,
+        .scalar_bits = 252,
+    };
+
+    // Initialize a new EcOpInstanceDef using the init function with the specified ratio.
+    const initialized_instance = EcOpInstanceDef.init(8);
+
+    // Ensure that the initialized instance is equal to the expected instance.
+    try expectEqual(expected_instance, initialized_instance);
 }
 
 test "EcOpInstanceDef: initDefault function should return the default EcOp instance def" {
-    try expectEqual(
-        EcOpInstanceDef{
-            .ratio = 256,
-            .scalar_height = 256,
-            .scalar_bits = 252,
-        },
-        EcOpInstanceDef.initDefault(),
-    );
+    // Define the expected EcOpInstanceDef with default values.
+    const expected_instance = EcOpInstanceDef{
+        .ratio = 256,
+        .scalar_height = 256,
+        .scalar_bits = 252,
+    };
+
+    // Initialize a new EcOpInstanceDef using the default init function.
+    const initialized_instance = EcOpInstanceDef{};
+
+    // Ensure that the initialized instance is equal to the expected instance.
+    try expectEqual(expected_instance, initialized_instance);
 }
 
 test "EcOpInstanceDef: cellsPerBuiltin function should return CELLS_PER_EC_OP" {
-    try expectEqual(
-        CELLS_PER_EC_OP,
-        EcOpInstanceDef.initDefault().cellsPerBuiltin(),
-    );
+    // Initialize a default EcOpInstanceDef.
+    const defaut_instance_def = EcOpInstanceDef{};
+
+    // Call the cellsPerBuiltin method and ensure it returns the expected number of cells.
+    try expectEqual(CELLS_PER_EC_OP, defaut_instance_def.cellsPerBuiltin());
 }
 
 test "EcOpInstanceDef: rangeCheckUnitsPerBuiltin function should return 0" {
-    try expectEqual(
-        @as(u32, 0),
-        EcOpInstanceDef.initDefault().rangeCheckUnitsPerBuiltin(),
-    );
+    // Initialize a default EcOpInstanceDef.
+    const defaut_instance_def = EcOpInstanceDef{};
+
+    // Call the rangeCheckUnitsPerBuiltin method and ensure it returns zero.
+    try expectEqual(0, defaut_instance_def.rangeCheckUnitsPerBuiltin());
 }

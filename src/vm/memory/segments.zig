@@ -229,7 +229,7 @@ pub const MemorySegmentManager = struct {
     ///              0 --(has size)--> 3
     ///              1 --(has size)--> 5
     ///              2 --(has size)--> 1
-    ///     Step 2: Step 2: Assign a base to each segment:
+    ///     Step 2: Assign a base to each segment:
     ///              0 --(has base value)--> 1
     ///              1 --(has base value)--> 4 (that is: 1 + 3)
     ///              2 --(has base value)--> 9 (that is: 4 + 5)
@@ -249,6 +249,43 @@ pub const MemorySegmentManager = struct {
         // The last value corresponds to the total amount of elements across all segments, which isnt needed for relocation.
         _ = relocatable_table.pop();
         return relocatable_table.toOwnedSlice();
+    }
+
+    /// Adds the relocate segments to the relocated memory
+    ///
+    /// This is step 3 following step 2 above(`relocateSegments`):
+    ///         1 (base[0] + 0) -> 1
+    ///         2 (base[0] + 1) -> 4
+    ///         3 (base[0] + 2) -> 7
+    ///         4 (base[1] + 0) -> 8
+    ///         5 (base[1] + 1) -> 3 (that is: base[0] + 2)
+    ///         .... (memory gaps)
+    ///         8 (base[1] + 4) -> 2 (that is: base[0] + 1)
+    ///         9 (base[2] + 0) -> 1
+    /// # Returns
+    ///
+    /// `A `HashMap`
+    pub fn relocateMemory(self: *Self, relocation_table: []usize, allocator: Allocator) !std.AutoHashMap(u32, Felt252) {
+        var relocated_memory = std.AutoHashMap(
+            u32,
+            Felt252,
+        ).init(allocator);
+        errdefer relocated_memory.deinit();
+        for (0..self.memory.num_segments) |i| {
+            const segment_index = @as(i64, @intCast(i));
+            if (self.getSegmentSize(@intCast(i))) |size| {
+                for (0..size) |j| {
+                    const key = Relocatable.init(segment_index, @as(u32, @truncate(j)));
+                    const cell = self.memory.get(key);
+                    if (cell) |c| {
+                        const relocated_address = try key.relocateAddress(relocation_table);
+                        const value = try c.relocateValue(relocation_table);
+                        try relocated_memory.put(@as(u32, @truncate(relocated_address)), value);
+                    }
+                }
+            }
+        }
+        return relocated_memory;
     }
 
     /// Checks if a memory value is valid within the MemorySegmentManager.
@@ -1006,6 +1043,70 @@ test "MemorySegmentManager: relocateSegments for ten segments" {
     try expected_value.append(98); // 30 + 68 = 98
     try expected_value.append(153); // 55 + 98 = 153
     try expectEqualSlices(usize, expected_value.items, actual_value);
+}
+
+test "MemorySegmentManager: relocate memory" {
+    const allocator = std.testing.allocator;
+    var memory_segment_manager = try MemorySegmentManager.init(allocator);
+    defer memory_segment_manager.deinit();
+    for (0..4) |_| {
+        _ = try memory_segment_manager.addSegment();
+    }
+    try memory_segment_manager.memory.set(allocator, Relocatable.init(0, 0), MaybeRelocatable.fromU256(656720927189829));
+    try memory_segment_manager.memory.set(allocator, Relocatable.init(0, 1), MaybeRelocatable.fromU256(876));
+    try memory_segment_manager.memory.set(allocator, Relocatable.init(0, 2), MaybeRelocatable.fromU256(87289918263880112));
+    try memory_segment_manager.memory.set(allocator, Relocatable.init(1, 0), MaybeRelocatable.fromRelocatable(Relocatable.init(2, 0)));
+    try memory_segment_manager.memory.set(allocator, Relocatable.init(1, 1), MaybeRelocatable.fromRelocatable(Relocatable.init(3, 0)));
+    try memory_segment_manager.memory.set(allocator, Relocatable.init(1, 5), MaybeRelocatable.fromU256(10));
+    defer memory_segment_manager.memory.deinitData(allocator);
+
+    _ = try memory_segment_manager.computeEffectiveSize(false);
+
+    const relocation_table = try memory_segment_manager.relocateSegments(allocator);
+    defer allocator.free(relocation_table);
+
+    var relocated_memory = try memory_segment_manager.relocateMemory(relocation_table, allocator);
+    defer relocated_memory.deinit();
+
+    var expected_relocated_memory = std.AutoHashMap(
+        u32,
+        Felt252,
+    ).init(allocator);
+    defer expected_relocated_memory.deinit();
+
+    try expected_relocated_memory.put(1, Felt252.fromInteger(656720927189829));
+    try expected_relocated_memory.put(2, Felt252.fromInteger(876));
+    try expected_relocated_memory.put(3, Felt252.fromInteger(87289918263880112));
+    try expected_relocated_memory.put(4, Felt252.fromInteger(10));
+    try expected_relocated_memory.put(5, Felt252.fromInteger(10));
+    try expected_relocated_memory.put(9, Felt252.fromInteger(10));
+
+    const first = expected_relocated_memory.get(1);
+    const first_actual = relocated_memory.get(1);
+
+    const second = expected_relocated_memory.get(2);
+    const second_actual = relocated_memory.get(2);
+
+    const third = expected_relocated_memory.get(3);
+    const third_actual = relocated_memory.get(3);
+
+    const fourth = expected_relocated_memory.get(4);
+    const fourth_actual = relocated_memory.get(4);
+
+    const fifth = expected_relocated_memory.get(5);
+    const fifth_actual = relocated_memory.get(5);
+
+    const sixth = expected_relocated_memory.get(9);
+    const sixth_actual = relocated_memory.get(9);
+
+    try expectEqual(first, first_actual);
+    try expectEqual(second, second_actual);
+    try expectEqual(third, third_actual);
+    try expectEqual(fourth, fourth_actual);
+    try expectEqual(fifth, fifth_actual);
+    try expectEqual(sixth, sixth_actual);
+
+    try expectEqual(expected_relocated_memory.count(), relocated_memory.count());
 }
 
 test "MemorySegmentManager: isValidMemoryValue should return true if Felt" {

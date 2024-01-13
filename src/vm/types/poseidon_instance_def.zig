@@ -13,17 +13,32 @@ pub const PoseidonInstanceDef = struct {
     /// Ratio
     ratio: ?u32 = 32,
 
+    /// Initializes a Poseidon Instance Definition with the specified ratio.
+    ///
+    /// # Parameters
+    ///
+    /// - `ratio`: The ratio to associate with the instance.
+    ///
+    /// # Returns
+    ///
+    /// A Poseidon Instance Definition with the specified ratio.
     pub fn init(ratio: ?u32) Self {
         return .{ .ratio = ratio };
     }
 };
 
 test "PoseidonInstanceDef: test default implementation" {
-    const poseiden_instance = PoseidonInstanceDef{};
-    try expectEqual(poseiden_instance.ratio, 32);
+    // Initialize a PoseidonInstanceDef with default values.
+    const poseidon_instance = PoseidonInstanceDef{};
+
+    // Ensure that the default instance has the expected ratio.
+    try expectEqual(@as(u32, 32), poseidon_instance.ratio);
 }
 
 test "PoseidonInstanceDef: test init implementation" {
-    const poseiden_instance = PoseidonInstanceDef.init(64);
-    try expectEqual(poseiden_instance.ratio, 64);
+    // Initialize a PoseidonInstanceDef using the init function with a specific ratio.
+    const poseidon_instance = PoseidonInstanceDef.init(64);
+
+    // Ensure that the initialized instance has the expected ratio.
+    try expectEqual(@as(u32, 64), poseidon_instance.ratio);
 }
