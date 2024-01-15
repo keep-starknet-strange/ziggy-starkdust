@@ -122,7 +122,7 @@ pub const BuiltinRunner = union(enum) {
         return switch (self.*) {
             .Bitwise => |bitwise| try bitwise.deduceMemoryCell(address, memory),
             .EcOp => |ec| ec.deduceMemoryCell(address, memory),
-            .Hash => |hash| {
+            .Hash => |*hash| {
                 var mut_hash = hash;
                 return mut_hash.deduceMemoryCell(address, memory);
             },
