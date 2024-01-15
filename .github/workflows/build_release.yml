@@ -38,7 +38,7 @@ jobs:
           echo "::set-output name=artifact_name::$ARTIFACT_NAME"
 
       - name: Upload Build Artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ steps.artifact-name.outputs.artifact_name }}
           path: ./zig-out
