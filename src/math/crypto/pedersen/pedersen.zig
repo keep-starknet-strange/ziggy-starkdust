@@ -29,8 +29,7 @@ fn addPoints(acc: *ProjectivePoint, bits: []const bool, prep: []const AffinePoin
     // Preprocessed material is lookup-tables for each chunk of bits
     const table_size = (1 << CURVE_CONSTS_BITS) - 1;
 
-    var i: usize = 0;
-    while (i < bits.len / CURVE_CONSTS_BITS) : (i += 1) {
+    for (0..bits.len / CURVE_CONSTS_BITS) |i| {
         const offset = boolsToUsizeLe(bits[i * CURVE_CONSTS_BITS .. (i + 1) * CURVE_CONSTS_BITS][0..4]);
 
         if (offset > 0) {

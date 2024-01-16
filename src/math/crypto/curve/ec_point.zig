@@ -9,15 +9,13 @@ pub const ProjectivePoint = struct {
 
     x: Felt252,
     y: Felt252,
-    z: Felt252,
-    infinity: bool,
+    z: Felt252 = Felt252.one(),
+    infinity: bool = false,
 
     pub fn fromAffinePoint(p: AffinePoint) Self {
         return .{
             .x = p.x,
             .y = p.y,
-            .z = Felt252.one(),
-            .infinity = false,
         };
     }
 
@@ -48,10 +46,12 @@ pub const ProjectivePoint = struct {
         }
 
         if (self.infinity) {
-            self.x = rhs.x;
-            self.y = rhs.y;
-            self.z = Felt252.one();
-            self.infinity = rhs.infinity;
+            self.* = .{
+                .x = rhs.x,
+                .y = rhs.y,
+                .z = Felt252.one(),
+                .infinity = rhs.infinity,
+            };
             return;
         }
 
@@ -63,11 +63,10 @@ pub const ProjectivePoint = struct {
         if (u_0.equal(u_1)) {
             if (!t0.equal(t1)) {
                 self.infinity = true;
-                return;
             } else {
                 self.doubleAssign();
-                return;
             }
+            return;
         }
 
         const t = t0.sub(t1);
@@ -82,9 +81,12 @@ pub const ProjectivePoint = struct {
         const y = t.mul(u_0.mul(u_2).sub(w)).sub(t0.mul(u_3));
         const z = u_3.mul(v);
 
-        self.x = x;
-        self.y = y;
-        self.z = z;
+        self.* = .{
+            .x = x,
+            .y = y,
+            .z = z,
+            .infinity = self.infinity,
+        };
     }
 };
 
