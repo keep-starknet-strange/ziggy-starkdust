@@ -11,32 +11,17 @@ pub const EcdsaInstanceDef = struct {
     const Self = @This();
 
     /// Ratio
-    ratio: ?u32,
+    ratio: ?u32 = 512,
     /// Split to this many different components - for optimization.
-    repetitions: u32,
+    repetitions: u32 = 1,
     /// Size of hash.
-    height: u32,
+    height: u32 = 256,
     /// Number of hash bits
-    n_hash_bits: u32,
-
-    /// Initializes an ECDSA Instance Definition with default values.
-    pub fn initDefault() Self {
-        return .{
-            .ratio = 512,
-            .repetitions = 1,
-            .height = 256,
-            .n_hash_bits = 251,
-        };
-    }
+    n_hash_bits: u32 = 251,
 
     /// Initializes an ECDSA Instance Definition with a specified ratio.
     pub fn init(ratio: ?u32) Self {
-        return .{
-            .ratio = ratio,
-            .repetitions = 1,
-            .height = 256,
-            .n_hash_bits = 251,
-        };
+        return .{ .ratio = ratio };
     }
 
     /// Retrieves the number of cells per ECDSA builtin.
@@ -63,39 +48,49 @@ pub const EcdsaInstanceDef = struct {
 };
 
 test "EcdsaInstanceDef: init should return an ECDSA instance def with provided ratio" {
-    try expectEqual(
-        EcdsaInstanceDef{
-            .ratio = 8,
-            .repetitions = 1,
-            .height = 256,
-            .n_hash_bits = 251,
-        },
-        EcdsaInstanceDef.init(8),
-    );
+    // Define the expected EcdsaInstanceDef with specified ratio.
+    const expected_instance = EcdsaInstanceDef{
+        .ratio = 8,
+        .repetitions = 1,
+        .height = 256,
+        .n_hash_bits = 251,
+    };
+
+    // Initialize a new EcdsaInstanceDef using the init function with the specified ratio.
+    const initialized_instance = EcdsaInstanceDef.init(8);
+
+    // Ensure that the initialized instance is equal to the expected instance.
+    try expectEqual(expected_instance, initialized_instance);
 }
 
 test "EcdsaInstanceDef: initDefault should return a default ECDSA instance def" {
-    try expectEqual(
-        EcdsaInstanceDef{
-            .ratio = 512,
-            .repetitions = 1,
-            .height = 256,
-            .n_hash_bits = 251,
-        },
-        EcdsaInstanceDef.initDefault(),
-    );
+    // Define the expected EcdsaInstanceDef with default values.
+    const expected_instance = EcdsaInstanceDef{
+        .ratio = 512,
+        .repetitions = 1,
+        .height = 256,
+        .n_hash_bits = 251,
+    };
+
+    // Initialize a new EcdsaInstanceDef using the default init function.
+    const initialized_instance = EcdsaInstanceDef{};
+
+    // Ensure that the initialized instance is equal to the expected instance.
+    try expectEqual(expected_instance, initialized_instance);
 }
 
 test "EcdsaInstanceDef: cellsPerBuiltin should return the number of cells per signature" {
-    try expectEqual(
-        CELLS_PER_SIGNATURE,
-        EcdsaInstanceDef.initDefault().cellsPerBuiltin(),
-    );
+    // Initialize a default EcdsaInstanceDef.
+    const default_instance = EcdsaInstanceDef{};
+
+    // Call the cellsPerBuiltin method and ensure it returns the expected number of cells.
+    try expectEqual(CELLS_PER_SIGNATURE, default_instance.cellsPerBuiltin());
 }
 
 test "EcdsaInstanceDef: rangeCheckUnitsPerBuiltin should return 0" {
-    try expectEqual(
-        @as(u32, 0),
-        EcdsaInstanceDef.initDefault().rangeCheckUnitsPerBuiltin(),
-    );
+    // Initialize a default EcdsaInstanceDef.
+    const default_instance = EcdsaInstanceDef{};
+
+    // Call the rangeCheckUnitsPerBuiltin method and ensure it returns zero.
+    try expectEqual(@as(u32, 0), default_instance.rangeCheckUnitsPerBuiltin());
 }
