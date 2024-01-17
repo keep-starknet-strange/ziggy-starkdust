@@ -85,11 +85,13 @@ pub const MemoryError = error{
     UnknownMemoryCell,
     /// This memory cell doesn't contain an integer
     ExpectedInteger,
+    /// This memory cell doesn't contain a relocatable value.
     ExpectedRelocatable,
     /// Error encountered during the WriteArg operation.
     WriteArg,
     /// Occurs if the VM's current step count is less than the minimum required steps for a builtin operation.
     InsufficientAllocatedCellsErrorMinStepNotReached,
+    /// Invalid type encountered during the GenArg operation.
     GenArgInvalidType,
 };
 
@@ -118,6 +120,7 @@ pub const RunnerError = error{
     BuiltinNotInLayout,
     /// Integer value exceeds a power of two.
     IntegerBiggerThanPowerOfTwo,
+    /// Memory-related errors in the built-in runners.
     Memory,
 };
 
@@ -131,6 +134,7 @@ pub const MathError = error{
     RelocatableSubUsizeNegOffset,
     /// Value is too large to be coerced to a u64.
     ValueTooLarge,
+    /// Error indicating subtraction with overflow.
     SubWithOverflow,
     /// Error indicating that the addition operation on the Relocatable offset exceeds the maximum limit.
     RelocatableAdditionOffsetExceeded,
