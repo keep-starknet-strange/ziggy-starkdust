@@ -1181,7 +1181,6 @@ pub fn computeRes(
 ) !?MaybeRelocatable {
     return switch (instruction.res_logic) {
         .Op1 => op_1,
-        // .Add => try addOperands(op_0, op_1),
         .Add => try op_0.add(op_1),
         .Mul => try op_0.mul(op_1),
         .Unconstrained => null,
