@@ -294,9 +294,9 @@ pub const MaybeRelocatable = union(enum) {
     /// ## Returns:
     ///   * `true` if the two instances are equal.
     ///   * `false` otherwise.
-    pub fn eq(self: Self, other: Self) bool {
+    pub fn eq(self: *const Self, other: Self) bool {
         // Switch on the type of `self`
-        return switch (self) {
+        return switch (self.*) {
             // If `self` is of type `relocatable`
             .relocatable => |self_value| switch (other) {
                 // Compare the `relocatable` values if both `self` and `other` are `relocatable`
@@ -322,9 +322,9 @@ pub const MaybeRelocatable = union(enum) {
     /// ## Returns:
     ///   * `true` if self is less than other
     ///   * `false` otherwise.
-    pub fn lt(self: Self, other: Self) bool {
+    pub fn lt(self: *const Self, other: Self) bool {
         // Switch on the type of `self`
-        return switch (self) {
+        return switch (self.*) {
             // If `self` is of type `relocatable`
             .relocatable => |self_value| switch (other) {
                 // Compare the `relocatable` values if both `self` and `other` are `relocatable`
@@ -350,9 +350,9 @@ pub const MaybeRelocatable = union(enum) {
     /// ## Returns:
     ///   * `true` if self is less than or equal to other
     ///   * `false` otherwise.
-    pub fn le(self: Self, other: Self) bool {
+    pub fn le(self: *const Self, other: Self) bool {
         // Switch on the type of `self`
-        return switch (self) {
+        return switch (self.*) {
             // If `self` is of type `relocatable`
             .relocatable => |self_value| switch (other) {
                 // Compare the `relocatable` values if both `self` and `other` are `relocatable`
@@ -378,9 +378,9 @@ pub const MaybeRelocatable = union(enum) {
     /// ## Returns:
     ///   * `true` if self is greater than other
     ///   * `false` otherwise.
-    pub fn gt(self: Self, other: Self) bool {
+    pub fn gt(self: *const Self, other: Self) bool {
         // Switch on the type of `self`
-        return switch (self) {
+        return switch (self.*) {
             // If `self` is of type `relocatable`
             .relocatable => |self_value| switch (other) {
                 // Compare the `relocatable` values if both `self` and `other` are `relocatable`
@@ -406,9 +406,9 @@ pub const MaybeRelocatable = union(enum) {
     /// ## Returns:
     ///   * `true` if self is greater than other
     ///   * `false` otherwise.
-    pub fn ge(self: Self, other: Self) bool {
+    pub fn ge(self: *const Self, other: Self) bool {
         // Switch on the type of `self`
-        return switch (self) {
+        return switch (self.*) {
             // If `self` is of type `relocatable`
             .relocatable => |self_value| switch (other) {
                 // Compare the `relocatable` values if both `self` and `other` are `relocatable`
@@ -441,9 +441,9 @@ pub const MaybeRelocatable = union(enum) {
     /// and `.eq` if they are equal based on their `segment_index` and `offset` values.
     ///
     /// Returns `MathError.IncompatibleComparisonTypes` if the comparison involves incompatible types.
-    pub fn cmp(self: Self, other: Self) std.math.Order {
+    pub fn cmp(self: *const Self, other: Self) std.math.Order {
         // Compare the `self` variant type against `other`
-        return switch (self) {
+        return switch (self.*) {
             // If `self` is of type `relocatable`
             .relocatable => |self_value| switch (other) {
                 // If `other` is also `relocatable`, compare the `relocatable` values
@@ -464,8 +464,8 @@ pub const MaybeRelocatable = union(enum) {
     /// Return the value of the MaybeRelocatable as a felt or error.
     /// # Returns
     /// The value of the MaybeRelocatable as a Relocatable felt or error.
-    pub fn tryIntoFelt(self: Self) CairoVMError!Felt252 {
-        return switch (self) {
+    pub fn tryIntoFelt(self: *const Self) CairoVMError!Felt252 {
+        return switch (self.*) {
             .relocatable => CairoVMError.TypeMismatchNotFelt,
             .felt => |felt| felt,
         };
@@ -474,11 +474,11 @@ pub const MaybeRelocatable = union(enum) {
     /// Return the value of the MaybeRelocatable as a felt or error.
     /// # Returns
     /// The value of the MaybeRelocatable as a Relocatable felt or error.
-    pub fn tryIntoU64(self: Self) error{
+    pub fn tryIntoU64(self: *const Self) error{
         TypeMismatchNotFelt,
         ValueTooLarge,
     }!u64 {
-        return switch (self) {
+        return switch (self.*) {
             .relocatable => CairoVMError.TypeMismatchNotFelt,
             .felt => |felt| felt.tryIntoU64(),
         };
@@ -487,8 +487,8 @@ pub const MaybeRelocatable = union(enum) {
     /// Return the value of the MaybeRelocatable as a Relocatable.
     /// # Returns
     /// The value of the MaybeRelocatable as a Relocatable.
-    pub fn tryIntoRelocatable(self: Self) CairoVMError!Relocatable {
-        return switch (self) {
+    pub fn tryIntoRelocatable(self: *const Self) CairoVMError!Relocatable {
+        return switch (self.*) {
             .relocatable => |relocatable| relocatable,
             .felt => CairoVMError.TypeMismatchNotRelocatable,
         };
@@ -497,8 +497,8 @@ pub const MaybeRelocatable = union(enum) {
     /// Whether the MaybeRelocatable is zero or not.
     /// # Returns
     /// true if the MaybeRelocatable is zero, false otherwise.
-    pub fn isZero(self: Self) bool {
-        return switch (self) {
+    pub fn isZero(self: *const Self) bool {
+        return switch (self.*) {
             .relocatable => false,
             .felt => |felt| felt.isZero(),
         };
@@ -507,8 +507,8 @@ pub const MaybeRelocatable = union(enum) {
     /// Whether the MaybeRelocatable is a relocatable or not.
     /// # Returns
     /// true if the MaybeRelocatable is a relocatable, false otherwise.
-    pub fn isRelocatable(self: MaybeRelocatable) bool {
-        return std.meta.activeTag(self) == .relocatable;
+    pub fn isRelocatable(self: *const MaybeRelocatable) bool {
+        return std.meta.activeTag(self.*) == .relocatable;
     }
 
     /// Returns whether the MaybeRelocatable is a felt or not.
@@ -532,9 +532,9 @@ pub const MaybeRelocatable = union(enum) {
     /// # Returns:
     ///   * A new MaybeRelocatable value after the addition operation.
     ///   * An error in case of type mismatch or specific math errors.
-    pub fn add(self: Self, other: Self) MathError!Self {
+    pub fn add(self: *const Self, other: Self) MathError!Self {
         // Switch on the type of `self`
-        return switch (self) {
+        return switch (self.*) {
             // If `self` is of type `relocatable`
             .relocatable => |self_value| switch (other) {
                 // If `other` is also `relocatable`, addition is not supported, return an error
@@ -564,9 +564,9 @@ pub const MaybeRelocatable = union(enum) {
     /// # Returns:
     ///   * A new MaybeRelocatable value after the subtraction operation.
     ///   * An error in case of type mismatch or specific math errors.
-    pub fn sub(self: Self, other: Self) !Self {
+    pub fn sub(self: *const Self, other: Self) !Self {
         // Switch on the type of `self`
-        return switch (self) {
+        return switch (self.*) {
             // If `self` is of type `relocatable`
             .relocatable => |self_value| switch (other) {
                 // If `other` is also `relocatable`, call `sub` method on `self_value`
@@ -580,6 +580,32 @@ pub const MaybeRelocatable = union(enum) {
                 .felt => |fe| .{ .felt = self_value.sub(fe) },
                 // If `other` is `relocatable`, return an error as subtraction is not supported
                 .relocatable => MathError.SubRelocatableFromInt,
+            },
+        };
+    }
+
+    /// Multiplies two MaybeRelocatable values.
+    ///
+    /// This method performs multiplication between two MaybeRelocatable instances, either Felt252 or Felt.
+    /// It returns an error if either operand is Relocatable.
+    ///
+    /// # Arguments:
+    ///   * self: The first MaybeRelocatable value.
+    ///   * other: The second MaybeRelocatable value to multiply with `self`.
+    ///
+    /// # Returns:
+    ///   * A new MaybeRelocatable value after the multiplication operation.
+    ///   * An error in case either operand is Relocatable.
+    pub fn mul(self: *const Self, other: Self) !Self {
+        return switch (self.*) {
+            // If `self` is of type `relocatable`
+            .relocatable => MathError.RelocatableMul,
+            // If `self` is of type `felt`
+            .felt => |self_value| switch (other) {
+                // If `other` is also `relocatable`, multiplication is not supported, return an error
+                .relocatable => MathError.RelocatableMul,
+                // If `other` is `felt`, call `mul` method on `self_value`
+                .felt => |fe| .{ .felt = self_value.mul(fe) },
             },
         };
     }
@@ -1416,5 +1442,75 @@ test "MaybeRelocatable.fromU64: should create a MaybeRelocatable from a u64" {
     try expectEqual(
         MaybeRelocatable.fromU256(45),
         MaybeRelocatable.fromU64(@intCast(45)),
+    );
+}
+
+test "MaybeRelocatable.mul: should return an error if lhs is Relocatable" {
+    // Test Case 1
+    // Try to perform multiplication with Relocatable value on the left-hand side.
+    try expectError(
+        MathError.RelocatableMul,
+        MaybeRelocatable.fromSegment(
+            0,
+            1,
+        ).mul(MaybeRelocatable.fromU256(45)),
+    );
+
+    // Test Case 2
+    // Try to perform multiplication with two Relocatable values.
+    try expectError(
+        MathError.RelocatableMul,
+        MaybeRelocatable.fromSegment(
+            0,
+            1,
+        ).mul(MaybeRelocatable.fromSegment(
+            0,
+            1,
+        )),
+    );
+}
+
+test "MaybeRelocatable.mul: should return an error if rhs is Relocatable" {
+    // Test Case
+    // Try to perform multiplication with Relocatable value on the right-hand side.
+    try expectError(
+        MathError.RelocatableMul,
+        MaybeRelocatable.fromU256(45).mul(MaybeRelocatable.fromSegment(
+            0,
+            1,
+        )),
+    );
+}
+
+test "MaybeRelocatable.mul: should return Felt multiplication operation if both lhs and rhs are Felt252" {
+    // Test Case 1
+    // Perform multiplication with two Felt values (10 and 5).
+    const result1 = (try MaybeRelocatable.fromU256(10).mul(
+        MaybeRelocatable.fromU256(5),
+    ));
+    // Expectation: Result should be equal to 0x32.
+    try expectEqual(
+        @as(
+            u256,
+            0x32,
+        ),
+        (try result1.tryIntoFelt()).toInteger(),
+    );
+
+    // Test Case 2
+    // Perform multiplication with two large Felt values.
+    const result2 = (try MaybeRelocatable.fromU256(
+        std.math.maxInt(u256),
+    ).mul(
+        MaybeRelocatable.fromU256(2),
+    ));
+
+    // Expectation: Result should be equal to 0x7fffffffffffbd0ffffffffffffffffffffffffffffffffffffffffffffffbf.
+    try expectEqual(
+        @as(
+            u256,
+            0x7fffffffffffbd0ffffffffffffffffffffffffffffffffffffffffffffffbf,
+        ),
+        (try result2.tryIntoFelt()).toInteger(),
     );
 }

@@ -138,6 +138,7 @@ pub const MathError = error{
     SubWithOverflow,
     /// Error indicating that the addition operation on the Relocatable offset exceeds the maximum limit.
     RelocatableAdditionOffsetExceeded,
+    RelocatableMul,
 };
 
 /// Represents different error conditions that occur in trace relocation
