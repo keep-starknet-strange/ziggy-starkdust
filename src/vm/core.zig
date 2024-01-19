@@ -23,6 +23,8 @@ const HashBuiltinRunner = @import("./builtins/builtin_runner/hash.zig").HashBuil
 const Instruction = instructions.Instruction;
 const Opcode = instructions.Opcode;
 
+const decoder = @import("../vm/decoding/decoder.zig");
+
 /// Represents the Cairo VM.
 pub const CairoVM = struct {
     const Self = @This();
@@ -1114,6 +1116,24 @@ pub const CairoVM = struct {
     /// Returns an error if value inside the range is not a `Felt252`
     pub fn getFeltRange(self: *Self, address: Relocatable, size: usize) !std.ArrayList(Felt252) {
         return self.segments.memory.getFeltRange(address, size);
+    }
+
+    /// Decodes the current instruction at the program counter (PC) of the Cairo VM.
+    ///
+    /// # Returns
+    ///
+    ///  Returns the decoded instruction at the current PC.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the instruction encoding is invalid.
+    pub fn decodeCurrentInstruction(self: *const Self) !Instruction {
+        const felt = try self.segments.memory.getFelt(self.run_context.getPC());
+
+        const instruction = felt.tryIntoU64() catch {
+            return CairoVMError.InvalidInstructionEncoding;
+        };
+        return decoder.decodeInstructions(instruction);
     }
 };
 
