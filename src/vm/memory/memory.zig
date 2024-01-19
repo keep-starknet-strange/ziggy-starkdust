@@ -782,6 +782,201 @@ pub const Memory = struct {
         return values;
     }
 
+    /// Relocates a value represented as `Felt252`.
+    ///
+    /// This function relocates and returns the input `Felt252` value.
+    ///
+    /// # Arguments
+    ///
+    /// - `value`: The `Felt252` value to be relocated.
+    ///
+    /// # Returns
+    ///
+    /// Returns the input `Felt252` value.
+    pub fn relocateValueFromFelt(_: *Self, value: Felt252) Felt252 {
+        return value;
+    }
+
+    /// Relocates an address represented as `Relocatable` based on provided relocation rules.
+    ///
+    /// This function handles the relocation of a `Relocatable` address by verifying relocation rules
+    /// and updating the address if necessary.
+    ///
+    /// # Arguments
+    ///
+    /// - `address`: The original `Relocatable` address to be relocated.
+    /// - `relocation_rules`: A pointer to a hash map containing relocation rules.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `MaybeRelocatable` value after applying relocation rules to the provided address.
+    pub fn relocateAddress(
+        address: Relocatable,
+        relocation_rules: *std.HashMap(
+            u64,
+            Relocatable,
+            std.hash_map.AutoContext(u64),
+            std.hash_map.default_max_load_percentage,
+        ),
+    ) !MaybeRelocatable {
+        // Check if the segment index of the provided address is already valid.
+        if (address.segment_index >= 0) return MaybeRelocatable.fromRelocatable(address);
+
+        // Attempt to retrieve relocation rules for the given segment index.
+        return if (relocation_rules.get(@as(
+            usize,
+            @intCast(-(address.segment_index + 1)),
+        ))) |x|
+            // If rules exist, add the address offset according to the rules.
+            MaybeRelocatable.fromRelocatable(try x.addUint(address.offset))
+        else
+            // If no rules exist, return the address without modification.
+            MaybeRelocatable.fromRelocatable(address);
+    }
+
+    /// Relocates a value represented as `Relocatable`.
+    ///
+    /// This function handles the relocation of a `Relocatable` address by checking
+    /// relocation rules and returning the updated `Relocatable` address if necessary.
+    ///
+    /// # Arguments
+    ///
+    /// - `address`: The `Relocatable` address to be relocated.
+    ///
+    /// # Returns
+    ///
+    /// Returns the updated `Relocatable` address based on relocation rules or the original address.
+    pub fn relocateValueFromRelocatable(self: *Self, address: Relocatable) !Relocatable {
+        // Check if the segment index of the provided address is already valid.
+        if (address.segment_index >= 0) return address;
+
+        // Try to retrieve relocation rules for the given segment index.
+        return if (self.relocation_rules.get(@as(
+            usize,
+            @intCast(-(address.segment_index + 1)),
+        ))) |x|
+            // If rules exist, add the address offset according to the rules.
+            try x.addUint(address.offset)
+        else
+            // If no rules exist, return the address without modification.
+            address;
+    }
+
+    /// Relocates a value represented as `MaybeRelocatable`.
+    ///
+    /// This function handles the relocation of a `MaybeRelocatable` value by checking its type.
+    /// If it's a `felt` value, it remains unchanged. If it's a `relocatable` value, it calls
+    /// `relocateValueFromRelocatable` to handle the relocation.
+    ///
+    /// # Arguments
+    ///
+    /// - `value`: The `MaybeRelocatable` value to be relocated.
+    ///
+    /// # Returns
+    ///
+    /// Returns the relocated `MaybeRelocatable` value.
+    pub fn relocateValueFromMaybeRelocatable(self: *Self, value: MaybeRelocatable) !MaybeRelocatable {
+        return switch (value) {
+            .felt => value,
+            .relocatable => |r| .{ .relocatable = try self.relocateValueFromRelocatable(r) },
+        };
+    }
+
+    /// Relocates a memory segment based on predefined rules.
+    ///
+    /// This function iterates through a memory segment, applying relocation rules to
+    /// efficiently move data to its final destination. It updates the memory cell's
+    /// relocatable address if needed.
+    ///
+    /// # Arguments
+    /// - `segment`: The memory segment to be relocated.
+    ///
+    /// # Errors
+    /// Returns an error if relocation of an address fails.
+    pub fn relocateSegment(self: *Self, segment: *std.ArrayListUnmanaged(?MemoryCell)) !void {
+        for (segment.items) |*memory_cell| {
+            if (memory_cell.*) |*cell| {
+                // Check if the memory cell contains a relocatable address.
+                switch (cell.maybe_relocatable) {
+                    .relocatable => |address| {
+                        // Check if the address is temporary.
+                        if (address.segment_index < 0)
+                            // Relocate the address using predefined rules.
+                            cell.*.maybe_relocatable = try Memory.relocateAddress(
+                                address,
+                                &self.relocation_rules,
+                            );
+                    },
+                    else => {},
+                }
+            }
+        }
+    }
+
+    /// Relocates memory segments based on relocation rules.
+    ///
+    /// This function iterates through temporary and permanent memory segments,
+    /// applying relocation rules to efficiently move data to its final destination.
+    /// It clears relocation rules once the relocation process is complete.
+    ///
+    /// # Errors
+    /// Returns an error if memory allocation or relocation fails.
+    pub fn relocateMemory(self: *Self) !void {
+        // Check if relocation is necessary.
+        if (self.relocation_rules.count() == 0 or self.temp_data.items.len == 0) {
+            return;
+        }
+
+        // Relocate segments in the main data.
+        for (self.data.items) |*segment|
+            try self.relocateSegment(segment);
+
+        // Relocate segments in temporary data.
+        for (self.temp_data.items) |*segment|
+            try self.relocateSegment(segment);
+
+        // Iterate through relocation rules in reverse order.
+        var index = self.temp_data.items.len;
+        while (index > 0) {
+            index -= 1;
+
+            // Get the base address from relocation rules.
+            if (self.relocation_rules.get(index)) |base_address| {
+                // Remove the corresponding temporary data segment.
+                var data_segment = self.temp_data.orderedRemove(index);
+                defer data_segment.deinit(self.allocator);
+
+                // Initialize the address for relocation.
+                var address = base_address;
+
+                // Ensure capacity in the destination segment.
+                const idx_data: usize = @intCast(address.segment_index);
+                if (idx_data < self.data.items.len)
+                    try (self.data.items[idx_data]).ensureUnusedCapacity(
+                        self.allocator,
+                        data_segment.items.len,
+                    );
+
+                // Copy and relocate each cell from the temporary segment to the main data.
+                for (data_segment.items) |cell| {
+                    if (cell) |c| {
+                        try self.set(
+                            self.allocator,
+                            address,
+                            c.maybe_relocatable,
+                        );
+                    }
+
+                    // Move to the next address.
+                    address = try address.addUint(1);
+                }
+            }
+        }
+
+        // Clear and free relocation rules after relocation.
+        self.relocation_rules.clearAndFree();
+    }
+
     // Utility function to help set up memory for tests
     //
     // # Arguments
@@ -2429,4 +2624,848 @@ test "Memory: set should not rewrite memory" {
         Relocatable.init(0, 1),
         .{ .felt = Felt252.fromInteger(8) },
     ));
+}
+
+test "Memory: relocateAddress with some relocation some rules" {
+    // Create a new Memory instance using the testing allocator
+    var memory = try Memory.init(std.testing.allocator);
+    // Defer memory deallocation to ensure proper cleanup
+    defer memory.deinit();
+
+    // Add relocation rules to the Memory instance
+    try memory.addRelocationRule(
+        Relocatable.init(-1, 0),
+        Relocatable.init(2, 0),
+    );
+    try memory.addRelocationRule(
+        Relocatable.init(-2, 0),
+        Relocatable.init(2, 2),
+    );
+
+    // Test relocation with rules applied
+    try expectEqual(
+        MaybeRelocatable.fromRelocatable(Relocatable.init(2, 0)),
+        try Memory.relocateAddress(
+            Relocatable.init(-1, 0),
+            &memory.relocation_rules,
+        ),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromRelocatable(Relocatable.init(2, 3)),
+        try Memory.relocateAddress(
+            Relocatable.init(-2, 1),
+            &memory.relocation_rules,
+        ),
+    );
+}
+
+test "Memory: relocateAddress with no relocation rule" {
+    // Create a new Memory instance using the testing allocator
+    var memory = try Memory.init(std.testing.allocator);
+    // Defer memory deallocation to ensure proper cleanup
+    defer memory.deinit();
+
+    // Test relocation without any rules applied
+    try expectEqual(
+        MaybeRelocatable.fromRelocatable(Relocatable.init(-1, 0)),
+        try Memory.relocateAddress(
+            Relocatable.init(-1, 0),
+            &memory.relocation_rules,
+        ),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromRelocatable(Relocatable.init(-2, 1)),
+        try Memory.relocateAddress(
+            Relocatable.init(-2, 1),
+            &memory.relocation_rules,
+        ),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromRelocatable(Relocatable.init(1, 0)),
+        try Memory.relocateAddress(
+            Relocatable.init(1, 0),
+            &memory.relocation_rules,
+        ),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromRelocatable(Relocatable.init(1, 1)),
+        try Memory.relocateAddress(
+            Relocatable.init(1, 1),
+            &memory.relocation_rules,
+        ),
+    );
+}
+
+test "Memory: relocateValueFromFelt should return the Felt252 value" {
+    // Create a new Memory instance using the testing allocator
+    var memory = try Memory.init(std.testing.allocator);
+    // Defer memory deallocation to ensure proper cleanup
+    defer memory.deinit();
+
+    // Test relocating Felt252 values and assert the expected results
+    try expectEqual(Felt252.fromInteger(111), memory.relocateValueFromFelt(Felt252.fromInteger(111)));
+    try expectEqual(Felt252.fromInteger(0), memory.relocateValueFromFelt(Felt252.fromInteger(0)));
+    try expectEqual(Felt252.fromInteger(1), memory.relocateValueFromFelt(Felt252.fromInteger(1)));
+}
+
+test "Memory: relocateValueFromRelocatable with positive segment index" {
+    // Create a new Memory instance using the testing allocator
+    var memory = try Memory.init(std.testing.allocator);
+    // Defer memory deallocation to ensure proper cleanup
+    defer memory.deinit();
+
+    // Add relocation rules for positive segment indices
+    try memory.addRelocationRule(
+        Relocatable.init(-1, 0),
+        Relocatable.init(2, 0),
+    );
+    try memory.addRelocationRule(
+        Relocatable.init(-2, 0),
+        Relocatable.init(2, 2),
+    );
+
+    // Test relocating values with positive segment indices and assert the expected results
+    try expectEqual(
+        Relocatable.init(0, 0),
+        try memory.relocateValueFromRelocatable(Relocatable.init(0, 0)),
+    );
+    try expectEqual(
+        Relocatable.init(5, 0),
+        try memory.relocateValueFromRelocatable(Relocatable.init(5, 0)),
+    );
+}
+
+test "Memory: relocateValueFromRelocatable with negative segment index (temporary data) without using relocation rule" {
+    // Create a new Memory instance using the testing allocator
+    var memory = try Memory.init(std.testing.allocator);
+    // Defer memory deallocation to ensure proper cleanup
+    defer memory.deinit();
+
+    // Add relocation rules for negative segment indices
+    try memory.addRelocationRule(
+        Relocatable.init(-1, 0),
+        Relocatable.init(2, 0),
+    );
+    try memory.addRelocationRule(
+        Relocatable.init(-2, 0),
+        Relocatable.init(2, 2),
+    );
+
+    // Test relocating values with negative segment indices without using relocation rules
+    // Assert the expected results
+    try expectEqual(
+        Relocatable.init(-5, 0),
+        try memory.relocateValueFromRelocatable(Relocatable.init(-5, 0)),
+    );
+}
+
+test "Memory: relocateValueFromRelocatable with negative segment index (temporary data) using relocation rules" {
+    // Create a new Memory instance using the testing allocator
+    var memory = try Memory.init(std.testing.allocator);
+    // Defer memory deallocation to ensure proper cleanup
+    defer memory.deinit();
+
+    // Add relocation rules for negative segment indices
+    try memory.addRelocationRule(
+        Relocatable.init(-1, 0),
+        Relocatable.init(2, 0),
+    );
+    try memory.addRelocationRule(
+        Relocatable.init(-2, 0),
+        Relocatable.init(2, 2),
+    );
+
+    // Test relocating values with negative segment indices using relocation rules
+    // Assert the expected results for various scenarios
+    try expectEqual(
+        Relocatable.init(2, 0),
+        try memory.relocateValueFromRelocatable(Relocatable.init(-1, 0)),
+    );
+    try expectEqual(
+        Relocatable.init(2, 2),
+        try memory.relocateValueFromRelocatable(Relocatable.init(-2, 0)),
+    );
+    try expectEqual(
+        Relocatable.init(2, 5),
+        try memory.relocateValueFromRelocatable(Relocatable.init(-1, 5)),
+    );
+    try expectEqual(
+        Relocatable.init(2, 7),
+        try memory.relocateValueFromRelocatable(Relocatable.init(-2, 5)),
+    );
+}
+
+test "Memory: relocateValueFromMaybeRelocatable with Felt252 should return the Felt252" {
+    // Create a new Memory instance using the testing allocator
+    var memory = try Memory.init(std.testing.allocator);
+    // Defer memory deallocation to ensure proper cleanup
+    defer memory.deinit();
+
+    // Test relocating MaybeRelocatable values containing Felt252 and assert the expected results
+    try expectEqual(
+        MaybeRelocatable.fromU256(111),
+        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromU256(111)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU256(0),
+        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromU256(0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU256(1),
+        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromU256(1)),
+    );
+}
+
+test "Memory: relocateValueFromMaybeRelocatable with Relocatable should use relocateValueFromRelocatable" {
+    // Create a new Memory instance using the testing allocator
+    var memory = try Memory.init(std.testing.allocator);
+    // Defer memory deallocation to ensure proper cleanup
+    defer memory.deinit();
+
+    // Add relocation rules for specific segment indices
+    try memory.addRelocationRule(
+        Relocatable.init(-1, 0),
+        Relocatable.init(2, 0),
+    );
+    try memory.addRelocationRule(
+        Relocatable.init(-2, 0),
+        Relocatable.init(2, 2),
+    );
+
+    // Test relocating MaybeRelocatable values with segment indices
+    // Assert the expected results for different scenarios
+    try expectEqual(
+        MaybeRelocatable.fromSegment(0, 0),
+        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromSegment(0, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(5, 0),
+        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromSegment(5, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(-5, 0),
+        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromSegment(-5, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(2, 0),
+        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromSegment(-1, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(2, 2),
+        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromSegment(-2, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(2, 5),
+        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromSegment(-1, 5)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(2, 7),
+        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromSegment(-2, 5)),
+    );
+}
+
+test "Memory: relocateMemory with empty relocation rules" {
+    // Initialize Memory instance.
+    var memory = try Memory.init(std.testing.allocator);
+    // Ensure memory is deallocated after the test.
+    defer memory.deinit();
+
+    // Set up memory with predefined data.
+    try memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ 0, 1 }, .{2} },
+            .{ .{ 0, 2 }, .{3} },
+        },
+    );
+    // Ensure data memory is deallocated after the test.
+    defer memory.deinitData(std.testing.allocator);
+
+    // Invoke the relocation process.
+    try memory.relocateMemory();
+
+    // Verify the relocation results using expectEqual.
+    try expectEqual(
+        MaybeRelocatable.fromU64(1),
+        memory.get(Relocatable.init(0, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(2),
+        memory.get(Relocatable.init(0, 1)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(3),
+        memory.get(Relocatable.init(0, 2)),
+    );
+}
+
+test "Memory: relocateMemory with new segment and gap" {
+    // Initialize Memory instance.
+    var memory = try Memory.init(std.testing.allocator);
+    // Ensure memory is deallocated after the test.
+    defer memory.deinit();
+
+    // Set up memory with predefined data, including new segments and gaps.
+    try memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ 0, 1 }, .{ -1, 0 } },
+            .{ .{ 0, 2 }, .{3} },
+            .{ .{ 1, 0 }, .{ -1, 1 } },
+            .{ .{ 1, 1 }, .{5} },
+            .{ .{ 1, 2 }, .{ -1, 2 } },
+            .{ .{ -1, 0 }, .{7} },
+            .{ .{ -1, 1 }, .{8} },
+            .{ .{ -1, 2 }, .{9} },
+        },
+    );
+    // Ensure data memory is deallocated after the test.
+    defer memory.deinitData(std.testing.allocator);
+
+    // Add a relocation rule to redirect a temporary segment.
+    try memory.addRelocationRule(
+        Relocatable.init(-1, 0),
+        Relocatable.init(2, 1),
+    );
+
+    // Append an empty segment to the main data.
+    try memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
+
+    // Ensure that temporary data is not empty before relocation.
+    try expect(!(memory.temp_data.items.len == 0));
+
+    // Invoke the relocation process.
+    try memory.relocateMemory();
+
+    // Verify the relocation results using expectEqual.
+    try expectEqual(
+        MaybeRelocatable.fromU64(1),
+        memory.get(Relocatable.init(0, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(2, 1),
+        memory.get(Relocatable.init(0, 1)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(3),
+        memory.get(Relocatable.init(0, 2)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(2, 2),
+        memory.get(Relocatable.init(1, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(5),
+        memory.get(Relocatable.init(1, 1)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(2, 3),
+        memory.get(Relocatable.init(1, 2)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(7),
+        memory.get(Relocatable.init(2, 1)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(8),
+        memory.get(Relocatable.init(2, 2)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(9),
+        memory.get(Relocatable.init(2, 3)),
+    );
+
+    // Ensure that temporary data is empty after relocation.
+    try expect(memory.temp_data.items.len == 0);
+}
+
+test "Memory: relocateMemory with new segment" {
+    // Initialize Memory instance.
+    var memory = try Memory.init(std.testing.allocator);
+    // Ensure memory is deallocated after the test.
+    defer memory.deinit();
+
+    // Set up memory with predefined data, including new segments.
+    try memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ 0, 1 }, .{ -1, 0 } },
+            .{ .{ 0, 2 }, .{3} },
+            .{ .{ 1, 0 }, .{ -1, 1 } },
+            .{ .{ 1, 1 }, .{5} },
+            .{ .{ 1, 2 }, .{ -1, 2 } },
+            .{ .{ -1, 0 }, .{7} },
+            .{ .{ -1, 1 }, .{8} },
+            .{ .{ -1, 2 }, .{9} },
+        },
+    );
+    // Ensure data memory is deallocated after the test.
+    defer memory.deinitData(std.testing.allocator);
+
+    // Add a relocation rule to redirect a temporary segment to a new segment.
+    try memory.addRelocationRule(
+        Relocatable.init(-1, 0),
+        Relocatable.init(2, 0),
+    );
+
+    // Append an empty segment to the main data.
+    try memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
+
+    // Ensure that temporary data is not empty before relocation.
+    try expect(!(memory.temp_data.items.len == 0));
+
+    // Invoke the relocation process.
+    try memory.relocateMemory();
+
+    // Verify the relocation results using expectEqual.
+    try expectEqual(
+        MaybeRelocatable.fromU64(1),
+        memory.get(Relocatable.init(0, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(2, 0),
+        memory.get(Relocatable.init(0, 1)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(3),
+        memory.get(Relocatable.init(0, 2)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(2, 1),
+        memory.get(Relocatable.init(1, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(5),
+        memory.get(Relocatable.init(1, 1)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(2, 2),
+        memory.get(Relocatable.init(1, 2)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(7),
+        memory.get(Relocatable.init(2, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(8),
+        memory.get(Relocatable.init(2, 1)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(9),
+        memory.get(Relocatable.init(2, 2)),
+    );
+
+    // Ensure that temporary data is empty after relocation.
+    try expect(memory.temp_data.items.len == 0);
+}
+
+test "Memory: relocateMemory with new segment unallocated" {
+    // Initialize Memory instance.
+    var memory = try Memory.init(std.testing.allocator);
+    // Ensure memory is deallocated after the test.
+    defer memory.deinit();
+
+    // Set up memory with predefined data, including new segments.
+    try memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ 0, 1 }, .{ -1, 0 } },
+            .{ .{ 0, 2 }, .{3} },
+            .{ .{ 1, 0 }, .{ -1, 1 } },
+            .{ .{ 1, 1 }, .{5} },
+            .{ .{ 1, 2 }, .{ -1, 2 } },
+            .{ .{ -1, 0 }, .{7} },
+            .{ .{ -1, 1 }, .{8} },
+            .{ .{ -1, 2 }, .{9} },
+        },
+    );
+    // Ensure data memory is deallocated after the test.
+    defer memory.deinitData(std.testing.allocator);
+
+    // Add a relocation rule to redirect a temporary segment to a new segment.
+    try memory.addRelocationRule(
+        Relocatable.init(-1, 0),
+        Relocatable.init(2, 0),
+    );
+
+    // Expect an error due to an attempt to relocate an unallocated segment.
+    try expectError(
+        MemoryError.UnallocatedSegment,
+        memory.relocateMemory(),
+    );
+}
+
+test "Memory: relocateMemory into an existing segment" {
+    // Initialize Memory instance.
+    var memory = try Memory.init(std.testing.allocator);
+    // Ensure memory is deallocated after the test.
+    defer memory.deinit();
+
+    // Set up memory with predefined data, including existing segments.
+    try memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ 0, 1 }, .{ -1, 0 } },
+            .{ .{ 0, 2 }, .{3} },
+            .{ .{ 1, 0 }, .{ -1, 1 } },
+            .{ .{ 1, 1 }, .{5} },
+            .{ .{ 1, 2 }, .{ -1, 2 } },
+            .{ .{ -1, 0 }, .{7} },
+            .{ .{ -1, 1 }, .{8} },
+            .{ .{ -1, 2 }, .{9} },
+        },
+    );
+    // Ensure data memory is deallocated after the test.
+    defer memory.deinitData(std.testing.allocator);
+
+    // Add a relocation rule to relocate a temporary segment into an existing segment.
+    try memory.addRelocationRule(
+        Relocatable.init(-1, 0),
+        Relocatable.init(1, 3),
+    );
+
+    // Expect the temporary segment to be non-empty.
+    try expect(!(memory.temp_data.items.len == 0));
+
+    // Perform memory relocation.
+    try memory.relocateMemory();
+
+    // Expect values in memory after relocation.
+    try expectEqual(
+        MaybeRelocatable.fromU64(1),
+        memory.get(Relocatable.init(0, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(1, 3),
+        memory.get(Relocatable.init(0, 1)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(3),
+        memory.get(Relocatable.init(0, 2)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(1, 4),
+        memory.get(Relocatable.init(1, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(5),
+        memory.get(Relocatable.init(1, 1)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(1, 5),
+        memory.get(Relocatable.init(1, 2)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(7),
+        memory.get(Relocatable.init(1, 3)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(8),
+        memory.get(Relocatable.init(1, 4)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(9),
+        memory.get(Relocatable.init(1, 5)),
+    );
+
+    // Expect the temporary segment to be empty after relocation.
+    try expect(memory.temp_data.items.len == 0);
+}
+
+test "Memory: relocateMemory into an existing segment with inconsistent memory" {
+    // Initialize Memory instance.
+    var memory = try Memory.init(std.testing.allocator);
+    // Ensure memory is deallocated after the test.
+    defer memory.deinit();
+
+    // Set up memory with predefined data, including existing segments.
+    try memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ 0, 1 }, .{ -1, 0 } },
+            .{ .{ 0, 2 }, .{3} },
+            .{ .{ 1, 0 }, .{ -1, 1 } },
+            .{ .{ 1, 1 }, .{5} },
+            .{ .{ 1, 2 }, .{ -1, 2 } },
+            .{ .{ -1, 0 }, .{7} },
+            .{ .{ -1, 1 }, .{8} },
+            .{ .{ -1, 2 }, .{9} },
+        },
+    );
+    // Ensure data memory is deallocated after the test.
+    defer memory.deinitData(std.testing.allocator);
+
+    // Add a relocation rule to relocate a temporary segment into an existing segment.
+    try memory.addRelocationRule(
+        Relocatable.init(-1, 0),
+        Relocatable.init(1, 0),
+    );
+
+    // Expect an error due to inconsistent memory after relocation.
+    try expectError(
+        MemoryError.DuplicatedRelocation,
+        memory.relocateMemory(),
+    );
+}
+
+test "Memory: relocateMemory into new segment with two temporary segments and one relocated" {
+    // Initialize Memory instance.
+    var memory = try Memory.init(std.testing.allocator);
+    // Ensure memory is deallocated after the test.
+    defer memory.deinit();
+
+    // Set up memory with predefined data, including existing segments.
+    try memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ 0, 1 }, .{ -1, 0 } },
+            .{ .{ 0, 2 }, .{3} },
+            .{ .{ 1, 0 }, .{ -1, 1 } },
+            .{ .{ 1, 1 }, .{5} },
+            .{ .{ 1, 2 }, .{ -1, 2 } },
+            .{ .{ -1, 0 }, .{7} },
+            .{ .{ -1, 1 }, .{8} },
+            .{ .{ -1, 2 }, .{9} },
+            .{ .{ -2, 0 }, .{10} },
+            .{ .{ -2, 1 }, .{11} },
+        },
+    );
+    // Ensure data memory is deallocated after the test.
+    defer memory.deinitData(std.testing.allocator);
+
+    // Add a relocation rule to relocate a temporary segment into a new segment.
+    try memory.addRelocationRule(
+        Relocatable.init(-1, 0),
+        Relocatable.init(2, 0),
+    );
+
+    // Append a new empty segment to data.
+    try memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
+
+    // Perform memory relocation.
+    try memory.relocateMemory();
+
+    // Expectations for the relocated memory after relocation.
+    try expectEqual(
+        MaybeRelocatable.fromU64(1),
+        memory.get(Relocatable.init(0, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(2, 0),
+        memory.get(Relocatable.init(0, 1)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(3),
+        memory.get(Relocatable.init(0, 2)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(2, 1),
+        memory.get(Relocatable.init(1, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(5),
+        memory.get(Relocatable.init(1, 1)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(2, 2),
+        memory.get(Relocatable.init(1, 2)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(7),
+        memory.get(Relocatable.init(2, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(8),
+        memory.get(Relocatable.init(2, 1)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(9),
+        memory.get(Relocatable.init(2, 2)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(10),
+        memory.get(Relocatable.init(-1, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(11),
+        memory.get(Relocatable.init(-1, 1)),
+    );
+}
+
+test "Memory: relocateMemory into new segment with two temporary segments and two relocated" {
+    // Initialize Memory instance.
+    var memory = try Memory.init(std.testing.allocator);
+    // Ensure memory is deallocated after the test.
+    defer memory.deinit();
+
+    // Set up memory with predefined data, including existing segments.
+    try memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ 0, 1 }, .{ -1, 0 } },
+            .{ .{ 0, 2 }, .{3} },
+            .{ .{ 1, 0 }, .{ -1, 1 } },
+            .{ .{ 1, 1 }, .{5} },
+            .{ .{ 1, 2 }, .{ -1, 2 } },
+            .{ .{ -1, 0 }, .{7} },
+            .{ .{ -1, 1 }, .{8} },
+            .{ .{ -1, 2 }, .{9} },
+            .{ .{ -2, 0 }, .{10} },
+            .{ .{ -2, 1 }, .{11} },
+        },
+    );
+    // Ensure data memory is deallocated after the test.
+    defer memory.deinitData(std.testing.allocator);
+
+    // Add a relocation rule to relocate a temporary segment into a new segment.
+    try memory.addRelocationRule(
+        Relocatable.init(-1, 0),
+        Relocatable.init(2, 0),
+    );
+    // Append a new empty segment to data.
+    try memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
+    // Add another relocation rule to relocate a temporary segment into a new segment.
+    try memory.addRelocationRule(
+        Relocatable.init(-2, 0),
+        Relocatable.init(3, 0),
+    );
+    // Append another new empty segment to data.
+    try memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
+
+    // Perform memory relocation.
+    try memory.relocateMemory();
+
+    // Expectations for the relocated memory after relocation.
+    try expectEqual(
+        MaybeRelocatable.fromU64(1),
+        memory.get(Relocatable.init(0, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(2, 0),
+        memory.get(Relocatable.init(0, 1)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(3),
+        memory.get(Relocatable.init(0, 2)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(2, 1),
+        memory.get(Relocatable.init(1, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(5),
+        memory.get(Relocatable.init(1, 1)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(2, 2),
+        memory.get(Relocatable.init(1, 2)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(7),
+        memory.get(Relocatable.init(2, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(8),
+        memory.get(Relocatable.init(2, 1)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(9),
+        memory.get(Relocatable.init(2, 2)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(10),
+        memory.get(Relocatable.init(3, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(11),
+        memory.get(Relocatable.init(3, 1)),
+    );
+
+    // Ensure temporary data is empty after relocation.
+    try expect(memory.temp_data.items.len == 0);
+}
+
+test "Memory: relocateMemory into an existing segment with temporary values in temporary memory" {
+    // Initialize Memory instance.
+    var memory = try Memory.init(std.testing.allocator);
+    // Ensure memory is deallocated after the test.
+    defer memory.deinit();
+
+    // Set up memory with predefined data, including existing segments.
+    try memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ 0, 1 }, .{ -1, 0 } },
+            .{ .{ 0, 2 }, .{3} },
+            .{ .{ 1, 0 }, .{ -1, 1 } },
+            .{ .{ 1, 1 }, .{5} },
+            .{ .{ 1, 2 }, .{ -1, 2 } },
+            .{ .{ -1, 0 }, .{ -1, 0 } },
+            .{ .{ -1, 1 }, .{8} },
+            .{ .{ -1, 2 }, .{9} },
+        },
+    );
+    // Ensure data memory is deallocated after the test.
+    defer memory.deinitData(std.testing.allocator);
+
+    // Add a relocation rule to relocate a temporary segment into an existing segment.
+    try memory.addRelocationRule(
+        Relocatable.init(-1, 0),
+        Relocatable.init(1, 3),
+    );
+    // Append a new empty segment to data.
+    try memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
+
+    // Perform memory relocation.
+    try memory.relocateMemory();
+
+    // Expectations for the relocated memory after relocation.
+    try expectEqual(
+        MaybeRelocatable.fromU64(1),
+        memory.get(Relocatable.init(0, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(1, 3),
+        memory.get(Relocatable.init(0, 1)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(3),
+        memory.get(Relocatable.init(0, 2)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(1, 4),
+        memory.get(Relocatable.init(1, 0)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(5),
+        memory.get(Relocatable.init(1, 1)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(1, 5),
+        memory.get(Relocatable.init(1, 2)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromSegment(1, 3),
+        memory.get(Relocatable.init(1, 3)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(8),
+        memory.get(Relocatable.init(1, 4)),
+    );
+    try expectEqual(
+        MaybeRelocatable.fromU64(9),
+        memory.get(Relocatable.init(1, 5)),
+    );
+
+    // Ensure temporary data is empty after relocation.
+    try expect(memory.temp_data.items.len == 0);
 }

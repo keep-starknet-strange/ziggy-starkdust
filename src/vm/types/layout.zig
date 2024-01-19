@@ -78,7 +78,7 @@ pub const CairoLayout = struct {
             .memory_units_per_step = 8,
             .diluted_pool_instance_def = null,
             .n_trace_columns = 8,
-            .cpu_instance_def = CpuInstanceDef.init(),
+            .cpu_instance_def = CpuInstanceDef{},
         };
     }
 
@@ -104,7 +104,7 @@ pub const CairoLayout = struct {
             .memory_units_per_step = 8,
             .diluted_pool_instance_def = null,
             .n_trace_columns = 25,
-            .cpu_instance_def = CpuInstanceDef.init(),
+            .cpu_instance_def = CpuInstanceDef{},
         };
     }
 
@@ -134,9 +134,9 @@ pub const CairoLayout = struct {
             .builtins = try BuiltinsInstanceDef.allCairo(allocator),
             .public_memory_fraction = 8,
             .memory_units_per_step = 8,
-            .diluted_pool_instance_def = DilutedPoolInstanceDef.init(),
+            .diluted_pool_instance_def = DilutedPoolInstanceDef{},
             .n_trace_columns = 11,
-            .cpu_instance_def = CpuInstanceDef.init(),
+            .cpu_instance_def = CpuInstanceDef{},
         };
     }
 
@@ -162,9 +162,9 @@ pub const CairoLayout = struct {
             .builtins = BuiltinsInstanceDef.dynamic(),
             .public_memory_fraction = 8,
             .memory_units_per_step = 8,
-            .diluted_pool_instance_def = DilutedPoolInstanceDef.init(),
+            .diluted_pool_instance_def = DilutedPoolInstanceDef{},
             .n_trace_columns = 73,
-            .cpu_instance_def = CpuInstanceDef.init(),
+            .cpu_instance_def = CpuInstanceDef{},
         };
     }
 
@@ -210,7 +210,7 @@ pub const CairoLayout = struct {
                     // try builtin_runners.append(BuiltinRunner{ .Pedersen = HashBuiltinRunner.initDefault() });
                 },
                 .range_check => {
-                    // try builtin_runners.append(BuiltinRunner{ .RangeCheck = RangeCheckBuiltinRunner.initDefault()} );
+                    try builtin_runners.append(BuiltinRunner{ .RangeCheck = RangeCheckBuiltinRunner.initDefault() });
                 },
                 .ecdsa => {
                     // try builtin_runners.append(BuiltinRunner{ .Signature = SignatureBuiltinRunner.initDefault() });

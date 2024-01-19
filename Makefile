@@ -10,6 +10,21 @@ test: libstarknet_crypto.a
 test-filter: libstarknet_crypto.a
 	@zig build test --summary all -Dtest-filter="$(FILTER)"
 
+build-integration-test:
+	@zig build integration_test
+
+build-and-run-pedersen-table-gen:
+	@zig build pedersen_table_gen
+	> ./src/math/crypto/pedersen/gen/constants.zig
+	./zig-out/bin/pedersen_table_gen
+	@zig fmt ./src/math/crypto/pedersen/gen/constants.zig
+
+build-and-run-poseidon-consts-gen:
+	@zig build poseidon_consts_gen
+	> ./src/math/crypto/poseidon/gen/constants.zig
+	./zig-out/bin/poseidon_consts_gen
+	@zig fmt ./src/math/crypto/poseidon/gen/constants.zig
+
 libstarknet_crypto.a:
 	@rm -f src/math/crypto/starknet_crypto/libstarknet_crypto.a
 	@cd src/math/crypto/starknet_crypto/starknet_crypto && cargo build --release

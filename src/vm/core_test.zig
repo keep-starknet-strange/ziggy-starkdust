@@ -5,8 +5,6 @@ const ArrayList = std.ArrayList;
 const starknet_felt = @import("../math/fields/starknet.zig");
 
 // Local imports.
-const KeccakInstanceDef = @import("./types/keccak_instance_def.zig").KeccakInstanceDef;
-const KeccakBuiltinRunner = @import("./builtins/builtin_runner/keccak.zig").KeccakBuiltinRunner;
 const segments = @import("memory/segments.zig");
 const memory = @import("memory/memory.zig");
 const MemoryCell = memory.MemoryCell;
@@ -18,12 +16,15 @@ const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
 const TraceError = @import("error.zig").TraceError;
 const MemoryError = @import("error.zig").MemoryError;
+const MathError = @import("error.zig").MathError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
 const BuiltinRunner = @import("./builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
 const BitwiseBuiltinRunner = @import("./builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
+const KeccakBuiltinRunner = @import("./builtins/builtin_runner/keccak.zig").KeccakBuiltinRunner;
 const BitwiseInstanceDef = @import("./types/bitwise_instance_def.zig").BitwiseInstanceDef;
+const KeccakInstanceDef = @import("./types/keccak_instance_def.zig").KeccakInstanceDef;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const HashBuiltinRunner = @import("./builtins/builtin_runner/hash.zig").HashBuiltinRunner;
 const Instruction = @import("instructions.zig").Instruction;
@@ -475,7 +476,7 @@ test "update pc update jnz with operands dst not zero op1 felt" {
     );
 }
 
-test "update ap add with operands res unconstrained" {
+test "CairoVM: updateAp using Add for AP update with null operands res" {
     // Test setup
     const allocator = std.testing.allocator;
     var operands = OperandsResult.default();
@@ -485,7 +486,41 @@ test "update ap add with operands res unconstrained" {
     defer vm.deinit();
 
     // Test body
-    try expectError(error.ApUpdateAddResUnconstrained, vm.updateAp(
+    try expectError(
+        error.ApUpdateAddResUnconstrained,
+        vm.updateAp(
+            &.{
+                .off_0 = 0,
+                .off_1 = 1,
+                .off_2 = 2,
+                .dst_reg = .FP,
+                .op_0_reg = .FP,
+                .op_1_addr = .Imm,
+                .res_logic = .Add,
+                .pc_update = .Jump,
+                .ap_update = .Add,
+                .fp_update = .Regular,
+                .opcode = .Call,
+            },
+            operands,
+        ),
+    );
+}
+
+test "CairoVM: updateAp using Add for AP update with non-null operands result" {
+    // Create an allocator for testing purposes.
+    const allocator = std.testing.allocator;
+    // Initialize operands result with a non-null result value.
+    var operands = OperandsResult.default();
+    operands.res = MaybeRelocatable.fromU256(10);
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    // Ensure VM instance is deallocated after the test.
+    defer vm.deinit();
+
+    // Invoke the updateAp function with specified parameters.
+    try vm.updateAp(
         &.{
             .off_0 = 0,
             .off_1 = 1,
@@ -500,10 +535,16 @@ test "update ap add with operands res unconstrained" {
             .opcode = .Call,
         },
         operands,
-    ));
+    );
+
+    // Expectation: The AP offset should be updated to the expected value after the operation.
+    try expectEqual(
+        @as(u64, 10),
+        vm.run_context.ap.*.offset,
+    );
 }
 
-test "update ap add1" {
+test "CairoVM: updateAp using Add1 for AP update" {
     // Test setup
     const allocator = std.testing.allocator;
     const operands = OperandsResult.default();
@@ -1541,23 +1582,26 @@ test "compute res add fails two relocs" {
     const op1 = MaybeRelocatable.fromRelocatable(value_op1);
 
     // Test checks
-    try expectError(error.AddRelocToRelocForbidden, computeRes(
-        &.{
-            .off_0 = 0,
-            .off_1 = 1,
-            .off_2 = 2,
-            .dst_reg = .AP,
-            .op_0_reg = .AP,
-            .op_1_addr = .AP,
-            .res_logic = .Add,
-            .pc_update = .Regular,
-            .ap_update = .Regular,
-            .fp_update = .Regular,
-            .opcode = .NOp,
-        },
-        op0,
-        op1,
-    ));
+    try expectError(
+        MathError.RelocatableAdd,
+        computeRes(
+            &.{
+                .off_0 = 0,
+                .off_1 = 1,
+                .off_2 = 2,
+                .dst_reg = .AP,
+                .op_0_reg = .AP,
+                .op_1_addr = .AP,
+                .res_logic = .Add,
+                .pc_update = .Regular,
+                .ap_update = .Regular,
+                .fp_update = .Regular,
+                .opcode = .NOp,
+            },
+            op0,
+            op1,
+        ),
+    );
 }
 
 test "compute res mul works" {
@@ -1619,23 +1663,26 @@ test "compute res mul fails two relocs" {
     const op1 = MaybeRelocatable.fromRelocatable(value_op1);
 
     // Test checks
-    try expectError(error.MulRelocForbidden, computeRes(
-        &.{
-            .off_0 = 0,
-            .off_1 = 1,
-            .off_2 = 2,
-            .dst_reg = .AP,
-            .op_0_reg = .AP,
-            .op_1_addr = .AP,
-            .res_logic = .Mul,
-            .pc_update = .Regular,
-            .ap_update = .Regular,
-            .fp_update = .Regular,
-            .opcode = .NOp,
-        },
-        op0,
-        op1,
-    ));
+    try expectError(
+        MathError.RelocatableMul,
+        computeRes(
+            &.{
+                .off_0 = 0,
+                .off_1 = 1,
+                .off_2 = 2,
+                .dst_reg = .AP,
+                .op_0_reg = .AP,
+                .op_1_addr = .AP,
+                .res_logic = .Mul,
+                .pc_update = .Regular,
+                .ap_update = .Regular,
+                .fp_update = .Regular,
+                .opcode = .NOp,
+            },
+            op0,
+            op1,
+        ),
+    );
 }
 
 test "compute res mul fails felt and reloc" {
@@ -1652,19 +1699,22 @@ test "compute res mul fails felt and reloc" {
     const op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
 
     // Test checks
-    try expectError(error.MulRelocForbidden, computeRes(&.{
-        .off_0 = 0,
-        .off_1 = 1,
-        .off_2 = 2,
-        .dst_reg = .AP,
-        .op_0_reg = .AP,
-        .op_1_addr = .AP,
-        .res_logic = .Mul,
-        .pc_update = .Regular,
-        .ap_update = .Regular,
-        .fp_update = .Regular,
-        .opcode = .NOp,
-    }, op0, op1));
+    try expectError(
+        MathError.RelocatableMul,
+        computeRes(&.{
+            .off_0 = 0,
+            .off_1 = 1,
+            .off_2 = 2,
+            .dst_reg = .AP,
+            .op_0_reg = .AP,
+            .op_1_addr = .AP,
+            .res_logic = .Mul,
+            .pc_update = .Regular,
+            .ap_update = .Regular,
+            .fp_update = .Regular,
+            .opcode = .NOp,
+        }, op0, op1),
+    );
 }
 
 test "compute res Unconstrained should return null" {
@@ -3592,6 +3642,7 @@ test "CairoVM: verifyAutoDeductionsForAddr throws InconsistentAutoDeduction" {
 
     var bitwise_builtin = BitwiseBuiltinRunner.initDefault();
     bitwise_builtin.base = 2;
+
     var builtin = BuiltinRunner{ .Bitwise = bitwise_builtin };
 
     var vm = try CairoVM.init(allocator, .{});
@@ -3644,4 +3695,95 @@ test "CairoVM: decode current instruction invalid encoding" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     try expectError(CairoVMError.InvalidInstructionEncoding, vm.decodeCurrentInstruction());
+}
+
+test "CairoVM: verifyAutoDeductions for bitwise builtin runner" {
+    const allocator = std.testing.allocator;
+
+    var bitwise_builtin = BitwiseBuiltinRunner.initDefault();
+    bitwise_builtin.base = 2;
+    const builtin = BuiltinRunner{ .Bitwise = bitwise_builtin };
+
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    try vm.builtin_runners.append(builtin);
+
+    try vm.segments.memory.setUpMemory(
+        allocator,
+        .{
+            .{ .{ 2, 0 }, .{12} },
+            .{ .{ 2, 1 }, .{10} },
+            .{ .{ 2, 2 }, .{8} },
+        },
+    );
+    defer vm.segments.memory.deinitData(allocator);
+
+    const result = try vm.verifyAutoDeductions(allocator);
+    try expectEqual(void, @TypeOf(result));
+}
+
+test "CairoVM: verifyAutoDeductions for bitwise builtin runner throws InconsistentAutoDeduction" {
+    const allocator = std.testing.allocator;
+
+    var bitwise_builtin = BitwiseBuiltinRunner.initDefault();
+    bitwise_builtin.base = 2;
+    const builtin = BuiltinRunner{ .Bitwise = bitwise_builtin };
+
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    try vm.builtin_runners.append(builtin);
+
+    try vm.segments.memory.setUpMemory(
+        allocator,
+        .{
+            .{ .{ 2, 0 }, .{12} },
+            .{ .{ 2, 1 }, .{10} },
+            .{ .{ 2, 2 }, .{7} },
+        },
+    );
+
+    defer vm.segments.memory.deinitData(allocator);
+
+    try expectError(CairoVMError.InconsistentAutoDeduction, vm.verifyAutoDeductions(allocator));
+}
+
+test "CairoVM: verifyAutoDeductions for keccak builtin runner" {
+    const allocator = std.testing.allocator;
+
+    var keccak_instance_def = try KeccakInstanceDef.initDefault(allocator);
+    const keccak_builtin = KeccakBuiltinRunner.init(
+        allocator,
+        &keccak_instance_def,
+        true,
+    );
+    const builtin = BuiltinRunner{ .Keccak = keccak_builtin };
+
+    var vm = try CairoVM.init(allocator, .{});
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(
+        allocator,
+        .{
+            .{ .{ 0, 16 }, .{43} },
+            .{ .{ 0, 17 }, .{199} },
+            .{ .{ 0, 18 }, .{0} },
+            .{ .{ 0, 19 }, .{0} },
+            .{ .{ 0, 20 }, .{0} },
+            .{ .{ 0, 21 }, .{0} },
+            .{ .{ 0, 22 }, .{0} },
+            .{ .{ 0, 23 }, .{1} },
+            .{ .{ 0, 24 }, .{564514457304291355949254928395241013971879337011439882107889} },
+            .{ .{ 0, 25 }, .{1006979841721999878391288827876533441431370448293338267890891} },
+            .{ .{ 0, 26 }, .{811666116505725183408319428185457775191826596777361721216040} },
+        },
+    );
+    defer vm.segments.memory.deinitData(allocator);
+
+    try vm.builtin_runners.append(builtin);
+
+    const result = try vm.verifyAutoDeductions(allocator);
+
+    try expectEqual(void, @TypeOf(result));
 }

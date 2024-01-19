@@ -42,6 +42,36 @@ pub fn Field(
             break :val .{ .fe = bz };
         };
 
+        const base_one = val: {
+            const bo: F.MontgomeryDomainFieldElement = [4]u64{
+                18446744073709551585,
+                18446744073709551615,
+                18446744073709551615,
+                576460752303422960,
+            };
+            break :val .{ .fe = bo };
+        };
+
+        pub const base_two = val: {
+            const bt: F.MontgomeryDomainFieldElement = [4]u64{
+                18446744073709551553,
+                18446744073709551615,
+                18446744073709551615,
+                576460752303422416,
+            };
+            break :val .{ .fe = bt };
+        };
+
+        pub const base_three = val: {
+            const bt: F.MontgomeryDomainFieldElement = [4]u64{
+                18446744073709551521,
+                18446744073709551615,
+                18446744073709551615,
+                576460752303421872,
+            };
+            break :val .{ .fe = bt };
+        };
+
         fe: F.MontgomeryDomainFieldElement,
 
         /// Mask to apply to the highest limb to get the correct number of bits.
@@ -83,6 +113,32 @@ pub fn Field(
             return .{ .fe = mont };
         }
 
+        /// Create a field element from a signed integer in Montgomery representation.
+        ///
+        /// This function converts a signed integer to a field element in Montgomery form.
+        pub fn fromSignedInteger(num: i256) Self {
+            var lbe: [BytesSize]u8 = [_]u8{0} ** BytesSize;
+            std.mem.writeInt(
+                i256,
+                lbe[0..],
+                @mod(num, Modulo),
+                .little,
+            );
+
+            var nonMont: F.NonMontgomeryDomainFieldElement = undefined;
+            F.fromBytes(
+                &nonMont,
+                lbe,
+            );
+            var mont: F.MontgomeryDomainFieldElement = undefined;
+            F.toMontgomery(
+                &mont,
+                nonMont,
+            );
+
+            return .{ .fe = mont };
+        }
+
         /// Get the field element representing zero.
         ///
         /// Returns a field element with a value of zero.
@@ -94,12 +150,21 @@ pub fn Field(
         ///
         /// Returns a field element with a value of one.
         pub fn one() Self {
-            const oneValue = comptime blk: {
-                var baseOne: F.MontgomeryDomainFieldElement = undefined;
-                F.setOne(&baseOne);
-                break :blk .{ .fe = baseOne };
-            };
-            return oneValue;
+            return base_one;
+        }
+
+        /// Get the field element representing two.
+        ///
+        /// Returns a field element with a value of two.
+        pub fn two() Self {
+            return base_two;
+        }
+
+        /// Get the field element representing three.
+        ///
+        /// Returns a field element with a value of three.
+        pub fn three() Self {
+            return base_three;
         }
 
         /// Create a field element from a byte array.
@@ -129,7 +194,7 @@ pub fn Field(
         pub fn fromBytesBe(bytes: [BytesSize]u8) Self {
             var non_mont: F.NonMontgomeryDomainFieldElement = undefined;
             inline for (0..4) |i| {
-                non_mont[ 3 - i] = std.mem.readInt(
+                non_mont[3 - i] = std.mem.readInt(
                     u64,
                     bytes[i * 8 .. (i + 1) * 8],
                     .big,
@@ -142,6 +207,22 @@ pub fn Field(
             );
 
             return ret;
+        }
+
+        /// Convert the field element to a bits little endian array.
+        ///
+        /// This function converts the field element to a byte array for serialization.
+        pub fn toBitsLe(self: Self) [@bitSizeOf(u256)]bool {
+            var bits = [_]bool{false} ** @bitSizeOf(u256);
+            const nmself = self.fromMontgomery();
+
+            for (0..4) |ind_element| {
+                for (0..64) |ind_bit| {
+                    bits[ind_element * 64 + ind_bit] = (nmself[ind_element] >> @intCast(ind_bit)) & 1 == 1;
+                }
+            }
+
+            return bits;
         }
 
         /// Convert the field element to a byte array.
