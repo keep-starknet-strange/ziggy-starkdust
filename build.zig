@@ -92,10 +92,6 @@ pub fn build(b: *std.Build) void {
     // step when running `zig build`).
     b.installArtifact(exe);
 
-    exe.addIncludePath(.{ .path = "./src/math/crypto/starknet_crypto/" });
-    exe.addObjectFile(std.Build.LazyPath{ .path = "./src/math/crypto/starknet_crypto/libstarknet_crypto.a" });
-    exe.linkSystemLibrary("unwind");
-
     // This *creates* a Run step in the build graph, to be executed when another
     // step is evaluated that depends on it. The next line below will establish
     // such a dependency.
@@ -153,10 +149,6 @@ pub fn build(b: *std.Build) void {
         mod.module,
     );
 
-    unit_tests.addIncludePath(.{ .path = "./src/math/crypto/starknet_crypto/" });
-    unit_tests.addObjectFile(.{ .path = "./src/math/crypto/starknet_crypto/libstarknet_crypto.a" });
-    unit_tests.linkSystemLibrary("unwind");
-
     const run_unit_tests = b.addRunArtifact(unit_tests);
 
     // Similar to creating the run step earlier, this exposes a `test` step to
@@ -181,10 +173,6 @@ fn integration_test(
         .target = target,
         .optimize = mode,
     });
-
-    binary.addIncludePath(.{ .path = "./src/math/crypto/starknet_crypto/" });
-    binary.addObjectFile(.{ .path = "./src/math/crypto/starknet_crypto/libstarknet_crypto.a" });
-    binary.linkSystemLibrary("unwind");
 
     const integration_test_build = b.step("integration_test", "Build cli integration tests");
     integration_test_build.dependOn(&binary.step);

@@ -19,7 +19,7 @@ const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 const MemorySegmentManager = Segments.MemorySegmentManager;
 const RunnerError = Error.RunnerError;
-const pedersen_hash = @import("../../../math/crypto/pedersen_hash.zig").pedersenHash;
+const pedersen_hash = @import("../../../math/crypto/pedersen/pedersen.zig").pedersenHash;
 const CairoVMError = @import("../../../vm/error.zig").CairoVMError;
 
 const insertAtIndex = @import("../../../utils/testing.zig").insertAtIndex;
