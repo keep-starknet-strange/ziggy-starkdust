@@ -16,6 +16,7 @@ const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
 const TraceError = @import("error.zig").TraceError;
 const MemoryError = @import("error.zig").MemoryError;
+const MathError = @import("error.zig").MathError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
@@ -475,7 +476,7 @@ test "update pc update jnz with operands dst not zero op1 felt" {
     );
 }
 
-test "update ap add with operands res unconstrained" {
+test "CairoVM: updateAp using Add for AP update with null operands res" {
     // Test setup
     const allocator = std.testing.allocator;
     var operands = OperandsResult.default();
@@ -485,7 +486,41 @@ test "update ap add with operands res unconstrained" {
     defer vm.deinit();
 
     // Test body
-    try expectError(error.ApUpdateAddResUnconstrained, vm.updateAp(
+    try expectError(
+        error.ApUpdateAddResUnconstrained,
+        vm.updateAp(
+            &.{
+                .off_0 = 0,
+                .off_1 = 1,
+                .off_2 = 2,
+                .dst_reg = .FP,
+                .op_0_reg = .FP,
+                .op_1_addr = .Imm,
+                .res_logic = .Add,
+                .pc_update = .Jump,
+                .ap_update = .Add,
+                .fp_update = .Regular,
+                .opcode = .Call,
+            },
+            operands,
+        ),
+    );
+}
+
+test "CairoVM: updateAp using Add for AP update with non-null operands result" {
+    // Create an allocator for testing purposes.
+    const allocator = std.testing.allocator;
+    // Initialize operands result with a non-null result value.
+    var operands = OperandsResult.default();
+    operands.res = MaybeRelocatable.fromU256(10);
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(allocator, .{});
+    // Ensure VM instance is deallocated after the test.
+    defer vm.deinit();
+
+    // Invoke the updateAp function with specified parameters.
+    try vm.updateAp(
         &.{
             .off_0 = 0,
             .off_1 = 1,
@@ -500,10 +535,16 @@ test "update ap add with operands res unconstrained" {
             .opcode = .Call,
         },
         operands,
-    ));
+    );
+
+    // Expectation: The AP offset should be updated to the expected value after the operation.
+    try expectEqual(
+        @as(u64, 10),
+        vm.run_context.ap.*.offset,
+    );
 }
 
-test "update ap add1" {
+test "CairoVM: updateAp using Add1 for AP update" {
     // Test setup
     const allocator = std.testing.allocator;
     const operands = OperandsResult.default();
@@ -1541,23 +1582,26 @@ test "compute res add fails two relocs" {
     const op1 = MaybeRelocatable.fromRelocatable(value_op1);
 
     // Test checks
-    try expectError(error.AddRelocToRelocForbidden, computeRes(
-        &.{
-            .off_0 = 0,
-            .off_1 = 1,
-            .off_2 = 2,
-            .dst_reg = .AP,
-            .op_0_reg = .AP,
-            .op_1_addr = .AP,
-            .res_logic = .Add,
-            .pc_update = .Regular,
-            .ap_update = .Regular,
-            .fp_update = .Regular,
-            .opcode = .NOp,
-        },
-        op0,
-        op1,
-    ));
+    try expectError(
+        MathError.RelocatableAdd,
+        computeRes(
+            &.{
+                .off_0 = 0,
+                .off_1 = 1,
+                .off_2 = 2,
+                .dst_reg = .AP,
+                .op_0_reg = .AP,
+                .op_1_addr = .AP,
+                .res_logic = .Add,
+                .pc_update = .Regular,
+                .ap_update = .Regular,
+                .fp_update = .Regular,
+                .opcode = .NOp,
+            },
+            op0,
+            op1,
+        ),
+    );
 }
 
 test "compute res mul works" {
@@ -1619,23 +1663,26 @@ test "compute res mul fails two relocs" {
     const op1 = MaybeRelocatable.fromRelocatable(value_op1);
 
     // Test checks
-    try expectError(error.MulRelocForbidden, computeRes(
-        &.{
-            .off_0 = 0,
-            .off_1 = 1,
-            .off_2 = 2,
-            .dst_reg = .AP,
-            .op_0_reg = .AP,
-            .op_1_addr = .AP,
-            .res_logic = .Mul,
-            .pc_update = .Regular,
-            .ap_update = .Regular,
-            .fp_update = .Regular,
-            .opcode = .NOp,
-        },
-        op0,
-        op1,
-    ));
+    try expectError(
+        MathError.RelocatableMul,
+        computeRes(
+            &.{
+                .off_0 = 0,
+                .off_1 = 1,
+                .off_2 = 2,
+                .dst_reg = .AP,
+                .op_0_reg = .AP,
+                .op_1_addr = .AP,
+                .res_logic = .Mul,
+                .pc_update = .Regular,
+                .ap_update = .Regular,
+                .fp_update = .Regular,
+                .opcode = .NOp,
+            },
+            op0,
+            op1,
+        ),
+    );
 }
 
 test "compute res mul fails felt and reloc" {
@@ -1652,19 +1699,22 @@ test "compute res mul fails felt and reloc" {
     const op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
 
     // Test checks
-    try expectError(error.MulRelocForbidden, computeRes(&.{
-        .off_0 = 0,
-        .off_1 = 1,
-        .off_2 = 2,
-        .dst_reg = .AP,
-        .op_0_reg = .AP,
-        .op_1_addr = .AP,
-        .res_logic = .Mul,
-        .pc_update = .Regular,
-        .ap_update = .Regular,
-        .fp_update = .Regular,
-        .opcode = .NOp,
-    }, op0, op1));
+    try expectError(
+        MathError.RelocatableMul,
+        computeRes(&.{
+            .off_0 = 0,
+            .off_1 = 1,
+            .off_2 = 2,
+            .dst_reg = .AP,
+            .op_0_reg = .AP,
+            .op_1_addr = .AP,
+            .res_logic = .Mul,
+            .pc_update = .Regular,
+            .ap_update = .Regular,
+            .fp_update = .Regular,
+            .opcode = .NOp,
+        }, op0, op1),
+    );
 }
 
 test "compute res Unconstrained should return null" {
