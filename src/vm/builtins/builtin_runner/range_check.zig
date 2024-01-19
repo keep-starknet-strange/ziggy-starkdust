@@ -19,29 +19,30 @@ const RunnerError = Error.RunnerError;
 
 const N_PARTS: u64 = 8;
 const INNER_RC_BOUND_SHIFT: u64 = 16;
+const BOUND = Felt252.one().saturating_shl(16 * N_PARTS);
 
 /// Range check built-in runner
 pub const RangeCheckBuiltinRunner = struct {
     const Self = @This();
 
     /// Ratio
-    ratio: ?u32,
+    ratio: ?u32 = 8,
     /// Base
-    base: usize,
+    base: usize = 0,
     /// Stop pointer
-    stop_ptr: ?usize,
+    stop_ptr: ?usize = null,
     /// Number of cells per instance
-    cells_per_instance: u32,
+    cells_per_instance: u32 = CELLS_PER_RANGE_CHECK,
     /// Number of input cells
-    n_input_cells: u32,
+    n_input_cells: u32 = CELLS_PER_RANGE_CHECK,
     /// Felt252 field element bound
-    _bound: ?Felt252,
+    bound: ?Felt252 = if (N_PARTS != 0 and BOUND.isZero()) null else BOUND,
     /// Included boolean flag
-    included: bool,
+    included: bool = true,
     /// Number of parts
-    n_parts: u32,
+    n_parts: u32 = N_PARTS,
     /// Number of instances per component
-    instances_per_component: u32,
+    instances_per_component: u32 = 1,
 
     /// Create a new RangeCheckBuiltinRunner instance.
     ///
@@ -63,23 +64,12 @@ pub const RangeCheckBuiltinRunner = struct {
         included: bool,
     ) Self {
         const bound: Felt252 = Felt252.one().saturating_shl(16 * n_parts);
-        const _bound: ?Felt252 = if (n_parts != 0 and bound.isZero()) null else bound;
-
         return .{
             .ratio = ratio,
-            .base = 0,
-            .stop_ptr = null,
-            .cells_per_instance = CELLS_PER_RANGE_CHECK,
-            .n_input_cells = CELLS_PER_RANGE_CHECK,
-            ._bound = _bound,
+            .bound = if (n_parts != 0 and bound.isZero()) null else bound,
             .included = included,
             .n_parts = n_parts,
-            .instances_per_component = 1,
         };
-    }
-
-    pub fn initDefault() Self {
-        return Self.init(8, N_PARTS, true);
     }
 
     /// Initializes memory segments and sets the base value for the Range Check runner.
