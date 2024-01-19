@@ -86,7 +86,6 @@ pub const PoseidonBuiltinRunner = struct {
                 @intCast(self.base),
                 0,
             ));
-            return result;
         }
         return result;
     }
@@ -180,18 +179,12 @@ pub const PoseidonBuiltinRunner = struct {
                 @intCast(self.cells_per_instance),
             ),
         );
-        if (index < @as(
-            usize,
-            @intCast(self.n_input_cells),
-        )) {
+
+        if (index < self.n_input_cells) {
             return null;
         }
 
-        const felt = self.cache.get(address);
-
-        if (felt != null) {
-            return .{ .felt = felt.? };
-        }
+        if (self.cache.get(address)) |felt| return .{ .felt = felt };
 
         const first_input_addr = try address.subUint(index);
         const first_output_addr = try first_input_addr.addUint(self.n_input_cells);
