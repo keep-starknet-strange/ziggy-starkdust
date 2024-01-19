@@ -96,6 +96,9 @@ pub const AffinePoint = struct {
     y: Felt252,
     infinity: bool,
 
+    // TODO: think about from_x method, dont implemented right now, because need to implemented
+    // sqrt method for Felt252
+
     pub fn addAssign(self: *Self, rhs: *AffinePoint) void {
         if (rhs.infinity) {
             return;
@@ -140,7 +143,8 @@ pub const AffinePoint = struct {
     }
 
     pub fn fromProjectivePoint(p: *ProjectivePoint) Self {
-        const zinv = p.z.inv().?;
+        // always one, that is why we can unwrap, unreachable will not happen
+        const zinv = if (p.z.inv()) |zinv| zinv else unreachable;
 
         return .{
             .x = p.x.mul(zinv),
