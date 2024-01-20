@@ -79,6 +79,16 @@ pub const PoseidonBuiltinRunner = struct {
         self.base = @intCast((try segments.addSegment()).segment_index);
     }
 
+    pub fn getMemorySegmentAddresses(self: *const Self) std.meta.Tuple(&.{
+        usize,
+        ?usize,
+    }) {
+        return .{
+            self.base,
+            self.stop_ptr,
+        };
+    }
+
     pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
         var result = ArrayList(MaybeRelocatable).init(allocator);
         if (self.included) {
@@ -96,7 +106,7 @@ pub const PoseidonBuiltinRunner = struct {
 
     /// Calculate the final stack.
     ///
-    /// This function calculates the final stack pointer for the Keccak runner, based on the provided `segments`, `pointer`, and `self` settings. If the runner is included,
+    /// This function calculates the final stack pointer for the Poseidon runner, based on the provided `segments`, `pointer`, and `self` settings. If the runner is included,
     /// it verifies the stop pointer for consistency and sets it. Otherwise, it sets the stop pointer to zero.
     ///
     /// # Parameters
@@ -139,7 +149,7 @@ pub const PoseidonBuiltinRunner = struct {
         return pointer;
     }
 
-    /// Get the number of used cells associated with this Keccak runner.
+    /// Get the number of used cells associated with this Poseidon runner.
     ///
     /// # Parameters
     ///
