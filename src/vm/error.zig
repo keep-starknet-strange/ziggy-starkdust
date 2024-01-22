@@ -135,6 +135,7 @@ pub const MathError = error{
     RelocatableAdditionOffsetExceeded,
     /// Error indicating that a point is not on the elliptic curve.
     PointNotOnCurve,
+    RelocatableMul,
 };
 
 /// Represents different error conditions that occur in trace relocation

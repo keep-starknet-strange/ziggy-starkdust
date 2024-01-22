@@ -156,11 +156,6 @@ test "BuiltinsInstanceDef: builtins small" {
             .output = true,
             .pedersen = .{
                 .ratio = 8,
-                .repetitions = 4,
-                .element_height = 256,
-                .element_bits = 252,
-                .n_inputs = 2,
-                .hash_limit = 3618502788666131213697322783095070105623107215331596699973092056135872020481,
             },
             .range_check = .{
                 .ratio = 8,
@@ -195,11 +190,7 @@ test "BuiltinsInstanceDef: builtins all Cairo" {
             ?PedersenInstanceDef,
             .{
                 .ratio = 256,
-                .repetitions = 1,
-                .element_height = 256,
-                .element_bits = 252,
-                .n_inputs = 2,
-                .hash_limit = 3618502788666131213697322783095070105623107215331596699973092056135872020481,
+				.repetitions = 1,
             },
         ),
         actual.pedersen,
@@ -276,11 +267,6 @@ test "BuiltinsInstanceDef: builtins dynamic" {
             .output = true,
             .pedersen = .{
                 .ratio = null,
-                .repetitions = 4,
-                .element_height = 256,
-                .element_bits = 252,
-                .n_inputs = 2,
-                .hash_limit = 3618502788666131213697322783095070105623107215331596699973092056135872020481,
             },
             .range_check = .{
                 .ratio = null,
