@@ -16,15 +16,15 @@ pub const PoseidonBuiltinRunner = struct {
     const Self = @This();
 
     /// Base
-    base: usize,
+    base: usize = 0,
     /// Ratio
     ratio: ?u32,
     /// Number of cells per instance
-    cells_per_instance: u32,
+    cells_per_instance: u32 = poseidon_instance_def.CELLS_PER_POSEIDON,
     /// Number of input cells
-    n_input_cells: u32,
+    n_input_cells: u32 = poseidon_instance_def.INPUT_CELLS_PER_POSEIDON,
     /// Stop pointer
-    stop_ptr: ?usize,
+    stop_ptr: ?usize = null,
     /// Included boolean flag
     included: bool,
     /// Cache
@@ -32,7 +32,7 @@ pub const PoseidonBuiltinRunner = struct {
     /// Hashmap between an address in some memory segment and `Felt252` field element
     cache: AutoHashMap(Relocatable, Felt252),
     /// Number of instances per component
-    instances_per_component: u32,
+    instances_per_component: u32 = 1,
 
     /// Create a new PoseidonBuiltinRunner instance.
     ///
@@ -54,18 +54,13 @@ pub const PoseidonBuiltinRunner = struct {
         included: bool,
     ) Self {
         return .{
-            .base = 0,
             .ratio = ratio,
-            .cell_per_instance = poseidon_instance_def.CELLS_PER_POSEIDON,
-            .n_input_cells = poseidon_instance_def.INPUT_CELLS_PER_POSEIDON,
-            .stop_ptr = null,
             .included = included,
             .cache = AutoHashMap(Relocatable, Felt252).init(allocator),
-            .instances_per_component = 1,
         };
     }
 
-    pub fn initSegments(self: *Self, segments: *MemorySegmentManager)  !void {
+    pub fn initSegments(self: *Self, segments: *MemorySegmentManager) !void {
         _ = self;
         _ = segments;
     }
@@ -73,7 +68,7 @@ pub const PoseidonBuiltinRunner = struct {
     pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
         _ = self;
         var result = ArrayList(MaybeRelocatable).init(allocator);
-        errdefer result.deinit();        
+        errdefer result.deinit();
         return result;
     }
 
