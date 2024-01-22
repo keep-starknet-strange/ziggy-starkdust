@@ -260,7 +260,7 @@ pub const OutputBuiltinRunner = struct {
     /// # Returns
     ///
     /// A Tuple containing the base and stop pointer addresses, indicating the memory segment configuration.
-    pub fn getMemorySegmentAddresses(self: *Self) std.meta.Tuple(&.{ usize, ?usize }) {
+    pub fn getMemorySegmentAddresses(self: *const Self) std.meta.Tuple(&.{ usize, ?usize }) {
         return .{ self.base, self.stop_ptr };
     }
 

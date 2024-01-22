@@ -12,6 +12,9 @@ const HintsCollection = @import("./program.zig").HintsCollection;
 const SharedProgramData = @import("./program.zig").SharedProgramData;
 const PRIME_STR = @import("../../math/fields/starknet.zig").PRIME_STR;
 
+/// Represents a singly linked list structure specialized for storing Instructions.
+pub const InstructionLinkedList = std.SinglyLinkedList(Instruction);
+
 /// Enum representing built-in functions within the Cairo VM.
 ///
 /// This enum defines various built-in functions available within the Cairo VM.
@@ -121,17 +124,17 @@ pub const HintParams = struct {
 ///
 /// This structure defines an instruction with start and end line/column information,
 /// an input file reference, and optional parent location details.
-const Instruction = struct {
+pub const Instruction = struct {
     /// Ending line number of the instruction.
     end_line: u32,
     /// Ending column number of the instruction.
     end_col: u32,
     /// Input file details containing the filename.
-    input_file: struct {
-        filename: []const u8,
-    },
+    input_file: struct { filename: []const u8 },
     /// Optional parent location details (defaults to null).
     parent_location: ?json.Value = null,
+    /// Optional parent location formatted as a nested `Instruction` instance for `Program` purposes (defaults to null).
+    parent_location_instruction: ?std.SinglyLinkedList(Instruction) = null,
     /// Starting column number of the instruction.
     start_col: u32,
     /// Starting line number of the instruction.
@@ -157,7 +160,7 @@ pub const InstructionLocation = struct {
     /// Accessible scopes associated with the instruction location.
     accessible_scopes: []const []const u8,
     /// Flow tracking data specific to the instruction location.
-    flow_tracking_data: FlowTrackingData,
+    flow_tracking_data: ?FlowTrackingData = null,
     /// The instruction's location details.
     inst: Instruction,
     /// Array of hint locations related to the instruction.
@@ -257,6 +260,14 @@ pub const Identifier = struct {
     cairo_type: ?[]const u8 = null,
 };
 
+/// Represents debug information associated with a program.
+pub const DebugInfo = struct {
+    /// File contents associated with debug information.
+    file_contents: ?json.ArrayHashMap([]const u8) = null,
+    /// Instruction locations linked with debug information.
+    instruction_locations: ?json.ArrayHashMap(InstructionLocation) = null,
+};
+
 /// Represents a program in JSON format.
 pub const ProgramJson = struct {
     const Self = @This();
@@ -269,12 +280,7 @@ pub const ProgramJson = struct {
     /// Program data.
     data: ?[]const []const u8 = null,
     /// Debug information.
-    debug_info: ?struct {
-        /// File contents associated with debug information.
-        file_contents: ?json.ArrayHashMap([]const u8) = null,
-        /// Instruction locations linked with debug information.
-        instruction_locations: ?json.ArrayHashMap(InstructionLocation) = null,
-    } = null,
+    debug_info: ?DebugInfo = null,
     /// Hints associated with the program.
     hints: ?json.ArrayHashMap([]const HintParams) = null,
     /// Identifiers within the program.
@@ -586,10 +592,47 @@ pub const ProgramJson = struct {
 
         // Check if debug information related to instruction locations exists.
         if (self.debug_info.?.instruction_locations) |il| {
-            // Populate the instruction_locations hashmap with debug information.
-            for (il.map.keys(), il.map.values()) |key, value| {
+            // Iterate through the keys and values in the instruction locations map.
+            for (il.map.keys(), il.map.values()) |key, *value| {
+                // Initialize a linked list and a pointer to the parent location.
+                var list = InstructionLinkedList{};
+                var parent_location = value.inst.parent_location;
+
+                // Process each parent location in the instruction.
+                while (parent_location) |p| {
+                    // Retrieve content for the current parent location.
+                    const p_content = p.array.items[0].object;
+
+                    // Create and allocate a new Node for the linked list.
+                    const instruction = try allocator.create(InstructionLinkedList.Node);
+                    errdefer allocator.destroy(instruction);
+
+                    // Assign values to the Node based on the parent location content.
+                    instruction.* = InstructionLinkedList.Node{ .data = .{
+                        .end_col = @intCast(p_content.get("end_col").?.integer),
+                        .end_line = @intCast(p_content.get("end_line").?.integer),
+                        .input_file = .{
+                            .filename = p_content.get("input_file").?.object.get("filename").?.string,
+                        },
+                        .start_col = @intCast(p_content.get("start_col").?.integer),
+                        .start_line = @intCast(p_content.get("start_line").?.integer),
+                    } };
+
+                    // Insert the newly created Node into the linked list.
+                    if (list.len() == 0) {
+                        list.prepend(instruction);
+                    } else {
+                        InstructionLinkedList.Node.findLast(list.first.?).insertAfter(instruction);
+                    }
+                    parent_location = p_content.get("parent_location");
+                }
+
+                // Set the parent location instruction list in the value struct.
+                if (list.len() > 0)
+                    value.inst.parent_location_instruction = list;
+
                 // Put each key-value pair into the instruction_locations hashmap.
-                try instruction_locations.put(key, value);
+                try instruction_locations.put(key, value.*);
             }
         }
 
@@ -678,6 +721,18 @@ pub const ProgramJson = struct {
                 return ProgramError.EntrypointNotFound;
             }
         } else .{ null, null }; // Return null values if no entrypoint is provided.
+    }
+
+    pub fn transformParentLocation(parent_location: std.json.ObjectMap) Instruction {
+        return .{
+            .end_col = @intCast(parent_location.get("end_col").?.integer),
+            .end_line = @intCast(parent_location.get("end_line").?.integer),
+            .input_file = .{
+                .filename = parent_location.get("input_file").?.object.get("filename").?.string,
+            },
+            .start_col = @intCast(parent_location.get("start_col").?.integer),
+            .start_line = @intCast(parent_location.get("start_line").?.integer),
+        };
     }
 
     pub fn getHintsCollections(self: *Self, allocator: Allocator) HintsCollection {
@@ -1057,7 +1112,6 @@ test "ProgramJson: parseFromString should return a parsed ProgramJson instance f
     }
 }
 
-
 test "ProgramJson: parseProgramJson should parse a Cairo v0 JSON Program and convert it to a Program" {
     // Get the absolute path of the current working directory.
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
@@ -1073,7 +1127,7 @@ test "ProgramJson: parseProgramJson should parse a Cairo v0 JSON Program and con
         std.testing.allocator,
         &entrypoint,
     );
-    defer program.deinit();
+    defer program.deinit(std.testing.allocator);
 
     // Test the builtins count
     try expect(program.builtins.items.len == 0);
@@ -1100,11 +1154,11 @@ test "ProgramJson: parseProgramJson should parse a Cairo v0 JSON Program and con
     try expect(program.shared_program_data.error_message_attributes.items.len == 0);
     try expectEqual(
         @as(usize, 16),
-        program.shared_program_data.instruction_locations.?.count(),
+        program.getInstructionLocations().?.count(),
     );
 
     // Test a specific instruction location within shared_program_data
-    const instruction_location_0 = program.shared_program_data.instruction_locations.?.get("0").?;
+    const instruction_location_0 = program.getInstructionLocation("0").?;
 
     // Define an array containing expected accessible scopes
     const expected_accessible_scopes = [_][]const u8{ "__main__", "__main__.main" };
@@ -1120,13 +1174,13 @@ test "ProgramJson: parseProgramJson should parse a Cairo v0 JSON Program and con
     // Test ApTracking data within instruction_location_0
     try expectEqual(
         ApTracking{ .group = 0, .offset = 0 },
-        instruction_location_0.flow_tracking_data.ap_tracking,
+        instruction_location_0.flow_tracking_data.?.ap_tracking,
     );
 
     // Test the count of reference_ids within flow_tracking_data
     try expectEqual(
         @as(usize, 0),
-        instruction_location_0.flow_tracking_data.reference_ids.?.map.count(),
+        instruction_location_0.flow_tracking_data.?.reference_ids.?.map.count(),
     );
 
     // Test various properties of the instruction (e.g., start and end positions, parent_location, filename)
@@ -1212,7 +1266,7 @@ test "ProgramJson: parseProgramJson should parse a valid manually compiled progr
         &entrypoint,
     );
     // Deallocate program at the end of the scope
-    defer program.deinit();
+    defer program.deinit(std.testing.allocator);
 
     // Define an array of expected MaybeRelocatable values
     const expected_data_vec = [_]MaybeRelocatable{
@@ -1261,7 +1315,7 @@ test "ProgramJson: parseProgramJson should parse a valid manually compiled progr
         null,
     );
     // Deallocate program at the end of the scope
-    defer program.deinit();
+    defer program.deinit(std.testing.allocator);
 
     // Define an array of expected MaybeRelocatable values
     const expected_data_vec = [_]MaybeRelocatable{
@@ -1310,7 +1364,7 @@ test "ProgramJson: parseProgramJson with constant deserialization" {
         null,
     );
     // Deallocate program at the end of the scope.
-    defer program.deinit();
+    defer program.deinit(std.testing.allocator);
 
     // Define and initialize a hashmap for expected identifiers.
     var expected_identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
@@ -1413,9 +1467,766 @@ test "ProgramJson: parseProgramJson with constant deserialization" {
     }
 }
 
-test "ProgramJson should be able to parse a sample subset of cairo0 files"  {
+test "ProgramJson: parseFromString should deserialize attributes properly" {
+    // Valid JSON string representing a Cairo v0 program
+    const valid_json =
+        \\  {
+        \\     "prime": "0x800000000000011000000000000000000000000000000000000000000000001",
+        \\    "attributes": [
+        \\        {
+        \\             "accessible_scopes": [
+        \\                 "openzeppelin.security.safemath.library",
+        \\                 "openzeppelin.security.safemath.library.SafeUint256",
+        \\                 "openzeppelin.security.safemath.library.SafeUint256.add"
+        \\            ],
+        \\             "end_pc": 381,
+        \\             "flow_tracking_data": {
+        \\                 "ap_tracking": {
+        \\                     "group": 14,
+        \\                     "offset": 35
+        \\                 },
+        \\                 "reference_ids": {}
+        \\             },
+        \\              "name": "error_message",
+        \\             "start_pc": 379,
+        \\             "value": "SafeUint256: addition overflow"
+        \\          },
+        \\          {
+        \\                        "accessible_scopes": [
+        \\                          "openzeppelin.security.safemath.library",
+        \\                          "openzeppelin.security.safemath.library.SafeUint256",
+        \\                          "openzeppelin.security.safemath.library.SafeUint256.sub_le"
+        \\                      ],
+        \\                      "end_pc": 404,
+        \\                     "flow_tracking_data": {
+        \\                          "ap_tracking": {
+        \\                              "group": 15,
+        \\                              "offset": 60
+        \\                          },
+        \\                          "reference_ids": {}
+        \\                      },
+        \\                      "name": "error_message",
+        \\                      "start_pc": 402,
+        \\                      "value": "SafeUint256: subtraction overflow"
+        \\                  }
+        \\              ],
+        \\             "debug_info": {
+        \\                  "instruction_locations": {}
+        \\              },
+        \\              "builtins": [],
+        \\            "data": [
+        \\               ],
+        \\               "identifiers": {
+        \\               },
+        \\               "hints": {
+        \\               },
+        \\               "reference_manager": {
+        \\                   "references": [
+        \\                   ]
+        \\               }
+        \\          }
+    ;
+
+    // Parsing the JSON string into a `ProgramJson` instance
+    var parsed_program = try ProgramJson.parseFromString(std.testing.allocator, valid_json);
+    defer parsed_program.deinit();
+
+    // Expected attributes to be parsed from the JSON
+    const expected_attributes = [_]Attribute{
+        .{
+            .name = "error_message",
+            .start_pc = 379,
+            .end_pc = 381,
+            .value = "SafeUint256: addition overflow",
+            .flow_tracking_data = .{
+                .ap_tracking = .{ .group = 14, .offset = 35 },
+                .reference_ids = null,
+            },
+        },
+        .{
+            .name = "error_message",
+            .start_pc = 402,
+            .end_pc = 404,
+            .value = "SafeUint256: subtraction overflow",
+            .flow_tracking_data = .{
+                .ap_tracking = .{ .group = 15, .offset = 60 },
+                .reference_ids = null,
+            },
+        },
+    };
+
+    // Ensure that the number of parsed attributes matches the number of expected attributes.
+    try expect(parsed_program.value.attributes.?.len == expected_attributes.len);
+
+    // Iterating over parsed attributes and checking against expected values
+    for (parsed_program.value.attributes.?, 0..) |attribute, i| {
+        try expectEqualStrings(expected_attributes[i].name, attribute.name);
+        try expectEqual(expected_attributes[i].start_pc, attribute.start_pc);
+        try expectEqual(expected_attributes[i].end_pc, attribute.end_pc);
+        try expectEqual(
+            expected_attributes[i].flow_tracking_data.?.ap_tracking,
+            attribute.flow_tracking_data.?.ap_tracking,
+        );
+        try expectEqual(
+            @as(usize, 0),
+            attribute.flow_tracking_data.?.reference_ids.?.map.count(),
+        );
+    }
+}
+
+test "ProgramJson: parseFromString should deserialize instruction locations with no parent properly" {
+    // Valid JSON string representing a Cairo v0 program
+    const valid_json =
+        \\    {
+        \\            "prime": "0x800000000000011000000000000000000000000000000000000000000000001",
+        \\            "attributes": [],
+        \\            "debug_info": {
+        \\                "file_contents": {},
+        \\                "instruction_locations": {
+        \\                    "0": {
+        \\                        "accessible_scopes": [
+        \\                            "starkware.cairo.lang.compiler.lib.registers",
+        \\                            "starkware.cairo.lang.compiler.lib.registers.get_fp_and_pc"
+        \\                        ],
+        \\                        "flow_tracking_data": {
+        \\                            "ap_tracking": {
+        \\                                "group": 0,
+        \\                                "offset": 0
+        \\                            },
+        \\                            "reference_ids": {}
+        \\                        },
+        \\                        "hints": [],
+        \\                        "inst": {
+        \\                            "end_col": 73,
+        \\                            "end_line": 7,
+        \\                            "input_file": {
+        \\                                "filename": "/Users/user/test/env/lib/python3.9/site-packages/starkware/cairo/lang/compiler/lib/registers.cairo"
+        \\                            },
+        \\                            "start_col": 5,
+        \\                            "start_line": 7
+        \\                        }
+        \\                    },
+        \\                    "3": {
+        \\                        "accessible_scopes": [
+        \\                            "starkware.cairo.common.alloc",
+        \\                            "starkware.cairo.common.alloc.alloc"
+        \\                        ],
+        \\                        "flow_tracking_data": {
+        \\                            "ap_tracking": {
+        \\                                "group": 1,
+        \\                                "offset": 1
+        \\                            },
+        \\                            "reference_ids": {}
+        \\                        },
+        \\                        "hints": [],
+        \\                        "inst": {
+        \\                            "end_col": 40,
+        \\                            "end_line": 5,
+        \\                            "input_file": {
+        \\                                "filename": "/Users/user/test/env/lib/python3.9/site-packages/starkware/cairo/common/alloc.cairo"
+        \\                            },
+        \\                            "start_col": 5,
+        \\                            "start_line": 5
+        \\                        }
+        \\                    }
+        \\                }
+        \\            },
+        \\            "builtins": [],
+        \\            "data": [
+        \\            ],
+        \\            "identifiers": {
+        \\            },
+        \\            "hints": {
+        \\            },
+        \\            "reference_manager": {
+        \\                "references": [
+        \\                ]
+        \\            }
+        \\        }
+    ;
+
+    // Parsing the JSON string into a `ProgramJson` instance
+    var parsed_program = try ProgramJson.parseFromString(std.testing.allocator, valid_json);
+    defer parsed_program.deinit();
+
+    // Creating an empty hash map to hold expected instruction locations
+    var expected_instructions_location = std.StringHashMap(InstructionLocation).init(std.testing.allocator);
+    defer expected_instructions_location.deinit();
+
+    // Adding expected instruction locations to the hash map
+    try expected_instructions_location.put(
+        "0",
+        .{
+            .accessible_scopes = &[_][]const u8{
+                "starkware.cairo.lang.compiler.lib.registers",
+                "starkware.cairo.lang.compiler.lib.registers.get_fp_and_pc",
+            },
+            .flow_tracking_data = .{
+                .ap_tracking = .{ .group = 0, .offset = 0 },
+                .reference_ids = null,
+            },
+            .hints = &[_]HintLocation{},
+            .inst = .{
+                .end_col = 73,
+                .end_line = 7,
+                .input_file = .{
+                    .filename = "/Users/user/test/env/lib/python3.9/site-packages/starkware/cairo/lang/compiler/lib/registers.cairo",
+                },
+                .start_col = 5,
+                .start_line = 7,
+            },
+        },
+    );
+
+    // Adding another expected instruction location to the hash map
+    try expected_instructions_location.put(
+        "3",
+        .{
+            .accessible_scopes = &[_][]const u8{
+                "starkware.cairo.common.alloc",
+                "starkware.cairo.common.alloc.alloc",
+            },
+            .flow_tracking_data = .{
+                .ap_tracking = .{ .group = 1, .offset = 1 },
+                .reference_ids = null,
+            },
+            .hints = &[_]HintLocation{},
+            .inst = .{
+                .end_col = 40,
+                .end_line = 5,
+                .input_file = .{
+                    .filename = "/Users/user/test/env/lib/python3.9/site-packages/starkware/cairo/common/alloc.cairo",
+                },
+                .start_col = 5,
+                .start_line = 5,
+            },
+        },
+    );
+
+    // Ensure that the count of expected and parsed instruction locations matches
+    try expectEqual(
+        expected_instructions_location.count(),
+        parsed_program.value.debug_info.?.instruction_locations.?.map.count(),
+    );
+
+    // Iterator for parsed instruction locations
+    var instruction_location_iterator = parsed_program.value.debug_info.?.instruction_locations.?.map.iterator();
+
+    while (instruction_location_iterator.next()) |kv| {
+        // Retrieving expected and parsed instruction locations by key
+        const expected_instruction_location = expected_instructions_location.get(kv.key_ptr.*);
+        const instruction_location = parsed_program.value.debug_info.?.instruction_locations.?.map.get(kv.key_ptr.*);
+
+        // Comparing attributes of expected and parsed instruction locations
+        for (instruction_location.?.accessible_scopes, 0..) |accessible_scope, i| {
+            // Checking and asserting the equality of accessible scopes
+            try expectEqualStrings(
+                accessible_scope,
+                expected_instruction_location.?.accessible_scopes[i],
+            );
+        }
+
+        // Asserting the equality of Ap register tracking between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.flow_tracking_data.?.ap_tracking,
+            instruction_location.?.flow_tracking_data.?.ap_tracking,
+        );
+
+        // Asserting that the reference IDs count of the parsed location's flow tracking data is zero
+        try expectEqual(
+            @as(usize, 0),
+            instruction_location.?.flow_tracking_data.?.reference_ids.?.map.count(),
+        );
+
+        // Asserting the equality of HintLocation slices between expected and parsed locations
+        try expectEqualSlices(
+            HintLocation,
+            expected_instruction_location.?.hints,
+            instruction_location.?.hints,
+        );
+
+        // Asserting the equality of end column attribute between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.inst.end_col,
+            instruction_location.?.inst.end_col,
+        );
+        // Asserting the equality of end line attribute between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.inst.end_line,
+            instruction_location.?.inst.end_line,
+        );
+        // Asserting the equality of input file filename attribute between expected and parsed locations
+        try expectEqualStrings(
+            expected_instruction_location.?.inst.input_file.filename,
+            instruction_location.?.inst.input_file.filename,
+        );
+        // Asserting the equality of start column attribute between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.inst.start_col,
+            instruction_location.?.inst.start_col,
+        );
+        // Asserting the equality of start line attribute between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.inst.start_line,
+            instruction_location.?.inst.start_line,
+        );
+    }
+}
+
+test "ProgramJson: parseFromString should deserialize instruction locations with parent properly" {
+    // Valid JSON string representing a Cairo v0 program
+    const valid_json =
+        \\   {
+        \\            "prime": "0x800000000000011000000000000000000000000000000000000000000000001",
+        \\            "attributes": [],
+        \\            "debug_info": {
+        \\                "file_contents": {},
+        \\                "instruction_locations": {
+        \\                    "4": {
+        \\                        "accessible_scopes": [
+        \\                            "__main__",
+        \\                            "__main__",
+        \\                            "__main__.constructor"
+        \\                        ],
+        \\                        "flow_tracking_data": null,
+        \\                        "hints": [],
+        \\                        "inst": {
+        \\                            "end_col": 36,
+        \\                            "end_line": 9,
+        \\                            "input_file": {
+        \\                                "filename": "test/contracts/cairo/always_fail.cairo"
+        \\                            },
+        \\                            "parent_location": [
+        \\                               {
+        \\                                    "end_col": 36,
+        \\                                    "end_line": 9,
+        \\                                    "input_file": {
+        \\                                        "filename": "test/contracts/cairo/always_fail.cairo"
+        \\                                    },
+        \\                                    "parent_location": [
+        \\                                        {
+        \\                                            "end_col": 15,
+        \\                                            "end_line": 11,
+        \\                                            "input_file": {
+        \\                                                "filename": "test/contracts/cairo/always_fail.cairo"
+        \\                                            },
+        \\                                            "start_col": 5,
+        \\                                            "start_line": 11
+        \\                                        },
+        \\                                        "While trying to retrieve the implicit argument 'syscall_ptr' in:"
+        \\                                    ],
+        \\                                    "start_col": 18,
+        \\                                    "start_line": 9
+        \\                                },
+        \\                                "While expanding the reference 'syscall_ptr' in:"
+        \\                            ],
+        \\                            "start_col": 18,
+        \\                            "start_line": 9
+        \\                        }
+        \\                    }
+        \\                }
+        \\            },
+        \\            "builtins": [],
+        \\            "data": [
+        \\            ],
+        \\            "identifiers": {
+        \\            },
+        \\            "hints": {
+        \\            },
+        \\            "reference_manager": {
+        \\                "references": [
+        \\                ]
+        \\            }
+        \\        }
+    ;
+
+    // Parsing the JSON string into a `ProgramJson` instance
+    var parsed_program = try ProgramJson.parseFromString(std.testing.allocator, valid_json);
+    defer parsed_program.deinit();
+
+    // Creating an empty hash map to hold expected instruction locations
+    var expected_instructions_location = std.StringHashMap(InstructionLocation).init(std.testing.allocator);
+    defer expected_instructions_location.deinit();
+
+    // Adding expected instruction locations to the hash map
+    try expected_instructions_location.put(
+        "4",
+        .{
+            .accessible_scopes = &[_][]const u8{
+                "__main__",
+                "__main__",
+                "__main__.constructor",
+            },
+            .flow_tracking_data = null,
+            .hints = &[_]HintLocation{},
+            .inst = .{
+                .end_col = 36,
+                .end_line = 9,
+                .input_file = .{ .filename = "test/contracts/cairo/always_fail.cairo" },
+                .start_col = 18,
+                .start_line = 9,
+            },
+        },
+    );
+
+    // Ensure that the count of expected and parsed instruction locations matches
+    try expectEqual(
+        expected_instructions_location.count(),
+        parsed_program.value.debug_info.?.instruction_locations.?.map.count(),
+    );
+
+    // Iterator for parsed instruction locations
+    var instruction_location_iterator = parsed_program.value.debug_info.?.instruction_locations.?.map.iterator();
+
+    while (instruction_location_iterator.next()) |kv| {
+        // Retrieving expected and parsed instruction locations by key
+        const expected_instruction_location = expected_instructions_location.get(kv.key_ptr.*);
+        const instruction_location = parsed_program.value.debug_info.?.instruction_locations.?.map.get(kv.key_ptr.*);
+
+        // Comparing attributes of expected and parsed instruction locations
+        for (instruction_location.?.accessible_scopes, 0..) |accessible_scope, i| {
+            // Checking and asserting the equality of accessible scopes
+            try expectEqualStrings(
+                accessible_scope,
+                expected_instruction_location.?.accessible_scopes[i],
+            );
+        }
+
+        // Asserting the equality of Ap register tracking between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.flow_tracking_data,
+            instruction_location.?.flow_tracking_data,
+        );
+
+        // Asserting the equality of HintLocation slices between expected and parsed locations
+        try expectEqualSlices(
+            HintLocation,
+            expected_instruction_location.?.hints,
+            instruction_location.?.hints,
+        );
+
+        // Asserting the equality of end column attribute between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.inst.end_col,
+            instruction_location.?.inst.end_col,
+        );
+        // Asserting the equality of end line attribute between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.inst.end_line,
+            instruction_location.?.inst.end_line,
+        );
+        // Asserting the equality of input file filename attribute between expected and parsed locations
+        try expectEqualStrings(
+            expected_instruction_location.?.inst.input_file.filename,
+            instruction_location.?.inst.input_file.filename,
+        );
+        // Asserting the equality of start column attribute between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.inst.start_col,
+            instruction_location.?.inst.start_col,
+        );
+        // Asserting the equality of start line attribute between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.inst.start_line,
+            instruction_location.?.inst.start_line,
+        );
+
+        // First parent location
+        const first_parent_location = instruction_location.?.inst.parent_location.?.array.items[0].object;
+
+        // Assertion: Ensuring the end column of the first parent location matches the expected value 36
+        try expectEqual(
+            @as(i64, 36),
+            first_parent_location.get("end_col").?.integer,
+        );
+
+        // Assertion: Ensuring the end line of the first parent location matches the expected value 9
+        try expectEqual(
+            @as(i64, 9),
+            first_parent_location.get("end_line").?.integer,
+        );
+
+        // Assertion: Ensuring the filename of the input file of the first parent location matches the expected string
+        try expectEqualStrings(
+            "test/contracts/cairo/always_fail.cairo",
+            first_parent_location.get("input_file").?.object.get("filename").?.string,
+        );
+
+        // Assertion: Ensuring the start column of the first parent location matches the expected value 18
+        try expectEqual(
+            @as(i64, 18),
+            first_parent_location.get("start_col").?.integer,
+        );
+
+        // Assertion: Ensuring the start line of the first parent location matches the expected value 9
+        try expectEqual(
+            @as(i64, 9),
+            first_parent_location.get("start_line").?.integer,
+        );
+
+        // Second parent location
+        const second_parent_location = first_parent_location.get("parent_location").?.array.items[0].object;
+
+        // Assertion: Ensuring the end column of the second parent location matches the expected value 15
+        try expectEqual(
+            @as(i64, 15),
+            second_parent_location.get("end_col").?.integer,
+        );
+
+        // Assertion: Ensuring the end line of the second parent location matches the expected value 11
+        try expectEqual(
+            @as(i64, 11),
+            second_parent_location.get("end_line").?.integer,
+        );
+
+        // Assertion: Ensuring the filename of the input file of the second parent location matches the expected string
+        try expectEqualStrings(
+            "test/contracts/cairo/always_fail.cairo",
+            second_parent_location.get("input_file").?.object.get("filename").?.string,
+        );
+
+        // Assertion: Ensuring the start column of the second parent location matches the expected value 5
+        try expectEqual(
+            @as(i64, 5),
+            second_parent_location.get("start_col").?.integer,
+        );
+
+        // Assertion: Ensuring the start line of the second parent location matches the expected value 11
+        try expectEqual(
+            @as(i64, 11),
+            second_parent_location.get("start_line").?.integer,
+        );
+    }
+}
+
+test "ProgramJson: Program deserialization with instruction locations containing parent_location" {
+    // Valid JSON string representing a Cairo v0 program
+    const valid_json =
+        \\   {
+        \\            "prime": "0x800000000000011000000000000000000000000000000000000000000000001",
+        \\            "attributes": [],
+        \\            "debug_info": {
+        \\                "file_contents": {},
+        \\                "instruction_locations": {
+        \\                    "4": {
+        \\                        "accessible_scopes": [
+        \\                            "__main__",
+        \\                            "__main__",
+        \\                            "__main__.constructor"
+        \\                        ],
+        \\                        "flow_tracking_data": null,
+        \\                        "hints": [],
+        \\                        "inst": {
+        \\                            "end_col": 36,
+        \\                            "end_line": 9,
+        \\                            "input_file": {
+        \\                                "filename": "test/contracts/cairo/always_fail.cairo"
+        \\                            },
+        \\                            "parent_location": [
+        \\                               {
+        \\                                    "end_col": 36,
+        \\                                    "end_line": 9,
+        \\                                    "input_file": {
+        \\                                        "filename": "test/contracts/cairo/always_fail.cairo"
+        \\                                    },
+        \\                                    "parent_location": [
+        \\                                        {
+        \\                                            "end_col": 15,
+        \\                                            "end_line": 11,
+        \\                                            "input_file": {
+        \\                                                "filename": "test/contracts/cairo/always_fail.cairo"
+        \\                                            },
+        \\                                            "start_col": 5,
+        \\                                            "start_line": 11
+        \\                                        },
+        \\                                        "While trying to retrieve the implicit argument 'syscall_ptr' in:"
+        \\                                    ],
+        \\                                    "start_col": 18,
+        \\                                    "start_line": 9
+        \\                                },
+        \\                                "While expanding the reference 'syscall_ptr' in:"
+        \\                            ],
+        \\                            "start_col": 18,
+        \\                            "start_line": 9
+        \\                        }
+        \\                    }
+        \\                }
+        \\            },
+        \\            "builtins": [],
+        \\            "data": [
+        \\            ],
+        \\            "identifiers": {
+        \\            },
+        \\            "hints": {
+        \\            },
+        \\            "reference_manager": {
+        \\                "references": [
+        \\                ]
+        \\            }
+        \\        }
+    ;
+
+    // Parsing the JSON string into a `ProgramJson` instance
+    var parsed_program = try ProgramJson.parseFromString(std.testing.allocator, valid_json);
+    defer parsed_program.deinit();
+
+    // Parse the program JSON into a `Program` structure without specifying an entry point.
+    var program = try parsed_program.value.parseProgramJson(
+        std.testing.allocator,
+        null,
+    );
+    // Deallocate program at the end of the scope.
+    defer program.deinit(std.testing.allocator);
+
+    // Creating an empty hash map to hold expected instruction locations
+    var expected_instructions_location = std.StringHashMap(InstructionLocation).init(std.testing.allocator);
+    defer expected_instructions_location.deinit();
+
+    // Create an empty linked list structure to hold `Node`s
+    var list = InstructionLinkedList{};
+
+    // Initialize the first `Node` structure for `parent_location_instruction_2`
+    var parent_location_instruction_2 = InstructionLinkedList.Node{ .data = .{
+        .end_col = 15,
+        .end_line = 11,
+        .input_file = .{ .filename = "test/contracts/cairo/always_fail.cairo" },
+        .start_col = 5,
+        .start_line = 11,
+    } };
+
+    // Initialize the second `Node` structure for `parent_location_instruction_1`
+    var parent_location_instruction_1 = InstructionLinkedList.Node{ .data = .{
+        .end_col = 36,
+        .end_line = 9,
+        .input_file = .{ .filename = "test/contracts/cairo/always_fail.cairo" },
+        .start_col = 18,
+        .start_line = 9,
+    } };
+
+    // Prepend `parent_location_instruction_2` to the linked list
+    list.prepend(&parent_location_instruction_2);
+
+    // Prepend `parent_location_instruction_1` to the linked list
+    list.prepend(&parent_location_instruction_1);
+
+    // Create an expected instruction location and add it to the hashmap
+    try expected_instructions_location.put(
+        "4",
+        .{
+            .accessible_scopes = &[_][]const u8{
+                "__main__",
+                "__main__",
+                "__main__.constructor",
+            },
+            .flow_tracking_data = null,
+            .hints = &[_]HintLocation{},
+            .inst = .{
+                .end_col = 36,
+                .end_line = 9,
+                .input_file = .{ .filename = "test/contracts/cairo/always_fail.cairo" },
+                .parent_location_instruction = list,
+                .start_col = 18,
+                .start_line = 9,
+            },
+        },
+    );
+
+    // Ensure the count of expected instructions matches the parsed program's instruction locations
+    try expectEqual(
+        expected_instructions_location.count(),
+        program.getInstructionLocations().?.count(),
+    );
+
+    // Iterator for parsed instruction locations
+    var it = program.getInstructionLocations().?.iterator();
+
+    // Iterate through the parsed instruction locations
+    while (it.next()) |kv| {
+        // Retrieve expected and parsed instruction locations by key
+        const expected_instruction_location = expected_instructions_location.get(kv.key_ptr.*);
+        const instruction_location = program.getInstructionLocation(kv.key_ptr.*);
+
+        // Comparing attributes of expected and parsed instruction locations
+        for (instruction_location.?.accessible_scopes, 0..) |accessible_scope, i| {
+            // Checking and asserting the equality of accessible scopes
+            try expectEqualStrings(
+                accessible_scope,
+                expected_instruction_location.?.accessible_scopes[i],
+            );
+        }
+
+        // Asserting the equality of Ap register tracking between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.flow_tracking_data,
+            instruction_location.?.flow_tracking_data,
+        );
+
+        // Asserting the equality of HintLocation slices between expected and parsed locations
+        try expectEqualSlices(
+            HintLocation,
+            expected_instruction_location.?.hints,
+            instruction_location.?.hints,
+        );
+
+        // Asserting the equality of end column attribute between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.inst.end_col,
+            instruction_location.?.inst.end_col,
+        );
+        // Asserting the equality of end line attribute between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.inst.end_line,
+            instruction_location.?.inst.end_line,
+        );
+        // Asserting the equality of input file filename attribute between expected and parsed locations
+        try expectEqualStrings(
+            expected_instruction_location.?.inst.input_file.filename,
+            instruction_location.?.inst.input_file.filename,
+        );
+        // Asserting the equality of start column attribute between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.inst.start_col,
+            instruction_location.?.inst.start_col,
+        );
+        // Asserting the equality of start line attribute between expected and parsed locations
+        try expectEqual(
+            expected_instruction_location.?.inst.start_line,
+            instruction_location.?.inst.start_line,
+        );
+
+        // Iterating through the linked list of parent_location_instruction nodes
+        var it_actual = instruction_location.?.inst.parent_location_instruction.?.first;
+        var it_expected = expected_instruction_location.?.inst.parent_location_instruction.?.first;
+
+        // Loop through the linked list until it_actual reaches the end (null)
+        while (it_actual) |node| : (it_actual = node.next) {
+            // Asserting the equality of 'end_col' attribute between expected and actual nodes
+            try expectEqual(it_expected.?.data.end_col, it_actual.?.data.end_col);
+
+            // Asserting the equality of 'end_line' attribute between expected and actual nodes
+            try expectEqual(it_expected.?.data.end_line, it_actual.?.data.end_line);
+
+            // Asserting the equality of 'filename' attribute between expected and actual nodes' input_file
+            try expectEqualStrings(
+                it_expected.?.data.input_file.filename,
+                it_actual.?.data.input_file.filename,
+            );
+
+            // Asserting the equality of 'start_col' attribute between expected and actual nodes
+            try expectEqual(it_expected.?.data.start_col, it_actual.?.data.start_col);
+
+            // Asserting the equality of 'start_line' attribute between expected and actual nodes
+            try expectEqual(it_expected.?.data.start_line, it_actual.?.data.start_line);
+
+            // Move to the next expected node for comparison in the next iteration
+            it_expected = it_expected.?.next;
+        }
+    }
+}
+
+test "ProgramJson should be able to parse a sample subset of cairo0 files" {
     const allocator = std.testing.allocator;
-    
+
     const program_names: []const []const u8 = &[_][]const u8{
         "_keccak",
         "assert_nn",
@@ -1441,7 +2252,7 @@ test "ProgramJson should be able to parse a sample subset of cairo0 files"  {
             &[_][]const u8{ "cairo_programs/", program_name, ".json" },
         );
         defer allocator.free(program_path);
-        errdefer std.debug.print("cannot parse program: {s}\n", .{program_path});        
+        errdefer std.debug.print("cannot parse program: {s}\n", .{program_path});
 
         var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
         const path = try std.os.realpath(program_path, &buffer);

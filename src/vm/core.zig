@@ -22,6 +22,7 @@ const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const HashBuiltinRunner = @import("./builtins/builtin_runner/hash.zig").HashBuiltinRunner;
 const Instruction = instructions.Instruction;
 const Opcode = instructions.Opcode;
+const Error = @import("./error.zig");
 
 /// Represents the Cairo VM.
 pub const CairoVM = struct {
@@ -198,14 +199,11 @@ pub const CairoVM = struct {
 
     pub fn insertInMemory(
         self: *Self,
+        allocator: Allocator,
         address: Relocatable,
         value: MaybeRelocatable,
-    ) error{ InvalidMemoryAddress, MemoryOutOfBounds }!void {
-        _ = value;
-        _ = address;
-        _ = self;
-
-        // TODO: complete the implementation once set method is completed in Memory
+    ) !void {
+        try self.segments.memory.set(allocator, address, value);
     }
 
     /// Retrieves the used size of a memory segment by its index, if available; otherwise, returns null.
