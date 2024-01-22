@@ -28,11 +28,6 @@ const expectEqualSlices = std.testing.expectEqualSlices;
 
 const BuiltinInfo = struct { segment_index: usize, stop_pointer: usize };
 
-const expect = std.testing.expect;
-const expectEqual = std.testing.expectEqual;
-const expectError = std.testing.expectError;
-const expectEqualSlices = std.testing.expectEqualSlices;
-
 pub const CairoRunner = struct {
     const Self = @This();
 
@@ -318,8 +313,8 @@ pub const CairoRunner = struct {
     }
 };
 
-test "CairoRunner: relocateMemory should relocated memory properly with gaps" {
-    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+test "CairoRunner: getBuiltinSegmentsInfo with segment info empty should return an empty vector" {
+    // Create a CairoRunner instance for testing.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
         ProgramJson{},
@@ -331,53 +326,6 @@ test "CairoRunner: relocateMemory should relocated memory properly with gaps" {
         ),
         false,
     );
-    defer cairo_runner.deinit(); // Ensure CairoRunner resources are cleaned up.
-
-    // Create four memory segments in the VM.
-    inline for (0..4) |_| {
-        _ = try cairo_runner.vm.segments.addSegment();
-    }
-
-    // Set up memory in the VM segments with gaps.
-    try cairo_runner.vm.segments.memory.setUpMemory(
-        std.testing.allocator,
-        .{
-            .{ .{ 0, 0 }, .{4613515612218425347} },
-            .{ .{ 0, 1 }, .{5} },
-            .{ .{ 0, 2 }, .{2345108766317314046} },
-            .{ .{ 1, 0 }, .{ 2, 0 } },
-            .{ .{ 1, 1 }, .{ 3, 0 } },
-            .{ .{ 1, 5 }, .{5} },
-        },
-    );
-    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
-
-    // Compute the effective size of the VM segments.
-    _ = try cairo_runner.vm.segments.computeEffectiveSize(false);
-
-    // Relocate the segments and obtain the relocation table.
-    const relocation_table = try cairo_runner.vm.segments.relocateSegments(std.testing.allocator);
-    defer std.testing.allocator.free(relocation_table);
-
-    // Call the `relocateMemory` function.
-    try cairo_runner.relocateMemory(relocation_table);
-
-    // Perform assertions to check if memory relocation is correct.
-    try expectEqualSlices(
-        ?Felt252,
-        &[_]?Felt252{
-            null,
-            Felt252.fromInteger(4613515612218425347),
-            Felt252.fromInteger(5),
-            Felt252.fromInteger(2345108766317314046),
-            Felt252.fromInteger(10),
-            Felt252.fromInteger(10),
-            null,
-            null,
-            null,
-            Felt252.fromInteger(5),
-        },
-        cairo_runner.relocated_memory.items,
     defer cairo_runner.deinit();
 
     // Retrieve the builtin segment info from the CairoRunner.
@@ -457,5 +405,68 @@ test "CairoRunner: getBuiltinSegmentsInfo should provide builtin segment informa
             .{ .segment_index = 0, .stop_pointer = 25 },
         },
         builtin_segment_info.items,
+    );
+}
+
+test "CairoRunner: relocateMemory should relocated memory properly with gaps" {
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        ProgramJson{},
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+    defer cairo_runner.deinit(); // Ensure CairoRunner resources are cleaned up.
+
+    // Create four memory segments in the VM.
+    inline for (0..4) |_| {
+        _ = try cairo_runner.vm.segments.addSegment();
+    }
+
+    // Set up memory in the VM segments with gaps.
+    try cairo_runner.vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{4613515612218425347} },
+            .{ .{ 0, 1 }, .{5} },
+            .{ .{ 0, 2 }, .{2345108766317314046} },
+            .{ .{ 1, 0 }, .{ 2, 0 } },
+            .{ .{ 1, 1 }, .{ 3, 0 } },
+            .{ .{ 1, 5 }, .{5} },
+        },
+    );
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Compute the effective size of the VM segments.
+    _ = try cairo_runner.vm.segments.computeEffectiveSize(false);
+
+    // Relocate the segments and obtain the relocation table.
+    const relocation_table = try cairo_runner.vm.segments.relocateSegments(std.testing.allocator);
+    defer std.testing.allocator.free(relocation_table);
+
+    // Call the `relocateMemory` function.
+    try cairo_runner.relocateMemory(relocation_table);
+
+    // Perform assertions to check if memory relocation is correct.
+    try expectEqualSlices(
+        ?Felt252,
+        &[_]?Felt252{
+            null,
+            Felt252.fromInteger(4613515612218425347),
+            Felt252.fromInteger(5),
+            Felt252.fromInteger(2345108766317314046),
+            Felt252.fromInteger(10),
+            Felt252.fromInteger(10),
+            null,
+            null,
+            null,
+            Felt252.fromInteger(5),
+        },
+        cairo_runner.relocated_memory.items,
     );
 }
