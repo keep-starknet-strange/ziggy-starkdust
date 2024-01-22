@@ -287,18 +287,19 @@ pub const RangeCheckBuiltinRunner = struct {
 ///
 /// An `ArrayList(Relocatable)` containing the rules address
 /// verification fails.
-pub fn rangeCheckValidationRule(memory: *Memory, address: Relocatable) MemoryError![]const Relocatable {
+pub fn rangeCheckValidationRule(memory: *Memory, address: Relocatable) MemoryError![1]Relocatable {
     const num = memory.getFelt(address) catch |err| switch (err) {
         error.UnknownMemoryCell => return MemoryError.RangeCheckGetError,
         error.ExpectedInteger => return MemoryError.RangecheckNonInt,
     };
 
     if (num.numBits() <= N_PARTS * INNER_RC_BOUND_SHIFT) {
-        return &[_]Relocatable{address};
+        return .{address};
     } else {
         return MemoryError.RangeCheckNumberOutOfBounds;
     }
 }
+
 test "initialize segments for range check" {
 
     // given
@@ -417,7 +418,7 @@ test "Range Check: validation rule should return Relocatable in array successful
     try std.testing.expectEqualSlices(
         Relocatable,
         &[_]Relocatable{relo},
-        try rangeCheckValidationRule(mem.memory, relo),
+        (try rangeCheckValidationRule(mem.memory, relo))[0..],
     );
 }
 
