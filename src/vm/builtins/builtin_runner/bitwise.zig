@@ -226,7 +226,7 @@ pub const BitwiseBuiltinRunner = struct {
     ///
     /// # Returns
     /// A tuple of `usize` and `?usize` addresses.
-    pub fn getMemorySegmentAddresses(self: *Self) Tuple(&.{
+    pub fn getMemorySegmentAddresses(self: *const Self) Tuple(&.{
         usize,
         ?usize,
     }) {

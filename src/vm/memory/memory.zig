@@ -21,7 +21,7 @@ const MemorySegmentManager = @import("./segments.zig").MemorySegmentManager;
 const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
 
 // Function that validates a memory address and returns a list of validated adresses
-pub const validation_rule = *const fn (*Memory, Relocatable) anyerror![]const Relocatable;
+pub const validation_rule = *const fn (*Memory, Relocatable) anyerror![1]Relocatable;
 
 pub const MemoryCell = struct {
     /// Represents a memory cell that holds relocation information and access status.
@@ -348,13 +348,13 @@ pub const Memory = struct {
         value: MaybeRelocatable,
     ) !void {
         var data = if (address.segment_index < 0) &self.temp_data else &self.data;
-        const segment_index: usize = @intCast(if (address.segment_index < 0) -(address.segment_index + 1) else address.segment_index);
+        const insert_segment_index: usize = @intCast(if (address.segment_index < 0) -(address.segment_index + 1) else address.segment_index);
 
-        if (data.items.len <= segment_index) {
+        if (insert_segment_index >= data.items.len) {
             return MemoryError.UnallocatedSegment;
         }
 
-        var data_segment = &data.items[segment_index];
+        var data_segment = &data.items[insert_segment_index];
 
         if (data_segment.items.len <= @as(usize, @intCast(address.offset))) {
             try data_segment.appendNTimes(
@@ -1299,7 +1299,7 @@ test "Memory: set where number of segments is less than segment index should ret
         .{.{ .{ 0, 1 }, .{1} }},
     );
 
-    try expectError(MemoryError.UnallocatedSegment, segments.memory.set(allocator, Relocatable.init(3, 1), .{ .felt = Felt252.fromInteger(3) }));
+    try expectError(MemoryError.UnallocatedSegment, segments.memory.set(allocator, Relocatable.new(3, 1), .{ .felt = Felt252.fromInteger(3) }));
     defer segments.memory.deinitData(std.testing.allocator);
 }
 
