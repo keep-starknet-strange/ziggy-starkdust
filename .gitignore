@@ -14,3 +14,6 @@ zig-out/
 /build-*/
 /docgen_tmp/
 docsite/
+
+# Misc
+.vscode/

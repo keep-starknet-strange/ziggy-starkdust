@@ -92,10 +92,6 @@ pub fn build(b: *std.Build) void {
     // step when running `zig build`).
     b.installArtifact(exe);
 
-    exe.addIncludePath(.{ .path = "./src/math/crypto/starknet_crypto/" });
-    exe.addObjectFile(std.Build.LazyPath{ .path = "./src/math/crypto/starknet_crypto/libstarknet_crypto.a" });
-    exe.linkSystemLibrary("unwind");
-
     // This *creates* a Run step in the build graph, to be executed when another
     // step is evaluated that depends on it. The next line below will establish
     // such a dependency.
@@ -118,6 +114,10 @@ pub fn build(b: *std.Build) void {
     // This creates a build step. It will be visible in the `zig build --help` menu,
     // and can be selected like this: `zig build poseidon_consts_gen`
     poseidon_consts_gen(b, optimize, target);
+
+    // This creates a build step. It will be visible in the `zig build --help` menu,
+    // and can be selected like this: `zig build pedersen_table_gen`
+    pedersen_table_gen(b, optimize, target);
 
     // This creates a build step. It will be visible in the `zig build --help` menu,
     // and can be selected like this: `zig build run`
@@ -148,10 +148,6 @@ pub fn build(b: *std.Build) void {
         mod.name,
         mod.module,
     );
-
-    unit_tests.addIncludePath(.{ .path = "./src/math/crypto/starknet_crypto/" });
-    unit_tests.addObjectFile(.{ .path = "./src/math/crypto/starknet_crypto/libstarknet_crypto.a" });
-    unit_tests.linkSystemLibrary("unwind");
 
     const run_unit_tests = b.addRunArtifact(unit_tests);
 
@@ -202,4 +198,23 @@ fn poseidon_consts_gen(
 
     const install_step = b.addInstallArtifact(binary, .{});
     poseidon_consts_gen_build.dependOn(&install_step.step);
+}
+
+fn pedersen_table_gen(
+    b: *std.Build,
+    mode: std.builtin.Mode,
+    target: std.Build.ResolvedTarget,
+) void {
+    const binary = b.addExecutable(.{
+        .name = "pedersen_table_gen",
+        .root_source_file = .{ .path = "src/pedersen_table_gen.zig" },
+        .target = target,
+        .optimize = mode,
+    });
+
+    const pedersen_table_gen_build = b.step("pedersen_table_gen", "Cli: pedersen table generator");
+    pedersen_table_gen_build.dependOn(&binary.step);
+
+    const install_step = b.addInstallArtifact(binary, .{});
+    pedersen_table_gen_build.dependOn(&install_step.step);
 }
