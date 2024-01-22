@@ -329,7 +329,7 @@ test "CairoRunner: getBuiltinSegmentsInfo should provide builtin segment informa
     var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
     output_builtin.stop_ptr = 10;
 
-    var bitwise_builtin = BitwiseBuiltinRunner.initDefault();
+    var bitwise_builtin = BitwiseBuiltinRunner{};
     bitwise_builtin.stop_ptr = 25;
 
     // Append instances of OutputBuiltinRunner and BitwiseBuiltinRunner to the CairoRunner.
