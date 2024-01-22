@@ -163,7 +163,7 @@ pub const RangeCheckBuiltinRunner = struct {
     ///
     /// # Returns
     /// A tuple of `usize` and `?usize` addresses.
-    pub fn getMemorySegmentAddresses(self: *Self) std.meta.Tuple(&.{
+    pub fn getMemorySegmentAddresses(self: *const Self) std.meta.Tuple(&.{
         usize,
         ?usize,
     }) {
