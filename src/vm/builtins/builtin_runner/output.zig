@@ -53,11 +53,11 @@ pub const OutputBuiltinRunner = struct {
     const Self = @This();
 
     /// Base
-    base: usize,
+    base: usize = 0,
     /// Stop pointer
-    stop_ptr: ?usize,
+    stop_ptr: ?usize = null,
     /// Included boolean flag
-    included: bool,
+    included: bool = true,
     /// A mapping init page IDs to their respective PublicMemoryPage configurations.
     ///
     /// This map stores associations between page IDs and their corresponding PublicMemoryPage configurations.
@@ -73,12 +73,7 @@ pub const OutputBuiltinRunner = struct {
     ///
     /// A new instance of OutputBuiltinRunner with default settings.
     pub fn initDefault(allocator: Allocator) Self {
-        return .{
-            .base = 0,
-            .stop_ptr = null,
-            .included = true,
-            .pages = AutoHashMap(usize, PublicMemoryPage).init(allocator),
-        };
+        return .{ .pages = AutoHashMap(usize, PublicMemoryPage).init(allocator) };
     }
 
     /// Create a new OutputBuiltinRunner instance.
@@ -94,8 +89,6 @@ pub const OutputBuiltinRunner = struct {
     /// A new `OutputBuiltinRunner` instance.
     pub fn init(included: bool, allocator: Allocator) Self {
         return .{
-            .base = 0,
-            .stop_ptr = null,
             .included = included,
             .pages = AutoHashMap(usize, PublicMemoryPage).init(allocator),
         };
@@ -260,7 +253,7 @@ pub const OutputBuiltinRunner = struct {
     /// # Returns
     ///
     /// A Tuple containing the base and stop pointer addresses, indicating the memory segment configuration.
-    pub fn getMemorySegmentAddresses(self: *Self) std.meta.Tuple(&.{ usize, ?usize }) {
+    pub fn getMemorySegmentAddresses(self: *const Self) std.meta.Tuple(&.{ usize, ?usize }) {
         return .{ self.base, self.stop_ptr };
     }
 

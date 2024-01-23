@@ -37,13 +37,13 @@ pub const KeccakBuiltinRunner = struct {
     /// Ratio
     ratio: ?u32,
     /// Base
-    base: usize,
+    base: usize = 0,
     /// Number of cells per instance
     cells_per_instance: u32,
     /// Number of input cells
     n_input_cells: u32,
     /// Stop pointer
-    stop_ptr: ?usize,
+    stop_ptr: ?usize = null,
     /// Included boolean flag
     included: bool,
     state_rep: ArrayList(u32),
@@ -75,13 +75,8 @@ pub const KeccakBuiltinRunner = struct {
     ) Self {
         return .{
             .ratio = instance_def.ratio,
-            .base = 0,
-            .n_input_cells = @as(
-                u32,
-                @intCast(instance_def.state_rep.items.len),
-            ),
+            .n_input_cells = @intCast(instance_def.state_rep.items.len),
             .cells_per_instance = instance_def.cellsPerBuiltin(),
-            .stop_ptr = null,
             .included = included,
             .state_rep = instance_def.state_rep,
             .instances_per_component = instance_def.instance_per_component,
@@ -149,7 +144,7 @@ pub const KeccakBuiltinRunner = struct {
     ///
     /// # Returns
     /// A tuple of `usize` and `?usize` addresses.
-    pub fn getMemorySegmentAddresses(self: *Self) std.meta.Tuple(&.{
+    pub fn getMemorySegmentAddresses(self: *const Self) std.meta.Tuple(&.{
         usize,
         ?usize,
     }) {

@@ -91,12 +91,14 @@ pub const PoseidonBuiltinRunner = struct {
 
     pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
         var result = ArrayList(MaybeRelocatable).init(allocator);
+        
         if (self.included) {
             try result.append(MaybeRelocatable.fromSegment(
                 @intCast(self.base),
                 0,
             ));
         }
+
         return result;
     }
 

@@ -22,6 +22,7 @@ const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const HashBuiltinRunner = @import("./builtins/builtin_runner/hash.zig").HashBuiltinRunner;
 const Instruction = instructions.Instruction;
 const Opcode = instructions.Opcode;
+const Error = @import("./error.zig");
 
 /// Represents the Cairo VM.
 pub const CairoVM = struct {
@@ -198,14 +199,11 @@ pub const CairoVM = struct {
 
     pub fn insertInMemory(
         self: *Self,
+        allocator: Allocator,
         address: Relocatable,
         value: MaybeRelocatable,
-    ) error{ InvalidMemoryAddress, MemoryOutOfBounds }!void {
-        _ = value;
-        _ = address;
-        _ = self;
-
-        // TODO: complete the implementation once set method is completed in Memory
+    ) !void {
+        try self.segments.memory.set(allocator, address, value);
     }
 
     /// Retrieves the used size of a memory segment by its index, if available; otherwise, returns null.
@@ -594,7 +592,7 @@ pub const CairoVM = struct {
                 const op1_val = op1.* orelse return .{ .op_0 = null, .res = null };
                 if ((inst.res_logic == .Add)) {
                     return .{
-                        .op_0 = try subOperands(dst_val, op1_val),
+                        .op_0 = try dst_val.sub(op1_val),
                         .res = dst_val,
                     };
                 } else if (dst_val.isFelt() and op1_val.isFelt() and !op1_val.felt.isZero()) {
@@ -1181,90 +1179,9 @@ pub fn computeRes(
 ) !?MaybeRelocatable {
     return switch (instruction.res_logic) {
         .Op1 => op_1,
-        .Add => try addOperands(op_0, op_1),
-        .Mul => try mulOperands(op_0, op_1),
+        .Add => try op_0.add(op_1),
+        .Mul => try op_0.mul(op_1),
         .Unconstrained => null,
-    };
-}
-
-/// Add two operands which can either be a "relocatable" or a "felt".
-/// The operation is allowed between:
-/// 1. A felt and another felt.
-/// 2. A felt and a relocatable.
-/// Adding two relocatables is forbidden.
-/// # Arguments
-/// - `op_0`: The operand 0.
-/// - `op_1`: The operand 1.
-/// # Returns
-/// - `MaybeRelocatable`: The result of the operation or an error.
-pub fn addOperands(
-    op_0: MaybeRelocatable,
-    op_1: MaybeRelocatable,
-) !MaybeRelocatable {
-    // Both operands are relocatables, operation forbidden
-    if (op_0.isRelocatable() and op_1.isRelocatable()) {
-        return error.AddRelocToRelocForbidden;
-    }
-
-    // One of the operands is relocatable, the other is felt
-    if (op_0.isRelocatable() or op_1.isRelocatable()) {
-        // Determine which operand is relocatable and which one is felt
-        const reloc_op = if (op_0.isRelocatable()) op_0 else op_1;
-        const felt_op = if (op_0.isRelocatable()) op_1 else op_0;
-
-        var reloc = try reloc_op.tryIntoRelocatable();
-
-        // Add the felt to the relocatable's offset
-        try reloc.addFeltInPlace(try felt_op.tryIntoFelt());
-
-        return MaybeRelocatable.fromRelocatable(reloc);
-    }
-
-    // Add the felts and return as a new felt wrapped in a relocatable
-    return MaybeRelocatable.fromFelt((try op_0.tryIntoFelt()).add(
-        try op_1.tryIntoFelt(),
-    ));
-}
-
-/// Compute the product of two operands op 0 and op 1.
-/// # Arguments
-/// - `op_0`: The operand 0.
-/// - `op_1`: The operand 1.
-/// # Returns
-/// - `MaybeRelocatable`: The result of the operation or an error.
-pub fn mulOperands(
-    op_0: MaybeRelocatable,
-    op_1: MaybeRelocatable,
-) CairoVMError!MaybeRelocatable {
-    // At least one of the operands is relocatable
-    if (op_0.isRelocatable() or op_1.isRelocatable()) {
-        return CairoVMError.MulRelocForbidden;
-    }
-
-    // Multiply the felts and return as a new felt wrapped in a relocatable
-    return MaybeRelocatable.fromFelt(
-        (try op_0.tryIntoFelt()).mul(try op_1.tryIntoFelt()),
-    );
-}
-
-/// Subtracts a `MaybeRelocatable` from this one and returns the new value.
-///
-/// Only values of the same type may be subtracted. Specifically, attempting to
-/// subtract a `.felt` with a `.relocatable` will result in an error.
-pub fn subOperands(self: MaybeRelocatable, other: MaybeRelocatable) !MaybeRelocatable {
-    return switch (self) {
-        .felt => |self_value| switch (other) {
-            .felt => |other_value| return MaybeRelocatable.fromFelt(
-                self_value.sub(other_value),
-            ),
-            .relocatable => error.TypeMismatchNotFelt,
-        },
-        .relocatable => |self_value| switch (other) {
-            .felt => error.TypeMismatchNotFelt,
-            .relocatable => |other_value| return MaybeRelocatable.fromRelocatable(
-                try self_value.sub(other_value),
-            ),
-        },
     };
 }
 
@@ -1292,7 +1209,7 @@ pub fn deduceOp1(
         },
         .Add => if (dst.* != null and op0.* != null) {
             return .{
-                .op_1 = try subOperands(dst.*.?, op0.*.?),
+                .op_1 = try dst.*.?.sub(op0.*.?),
                 .res = dst.*.?,
             };
         },

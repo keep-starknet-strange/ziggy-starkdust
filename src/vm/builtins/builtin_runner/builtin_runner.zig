@@ -1,5 +1,6 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
+const Tuple = std.meta.Tuple;
 
 const MemorySegmentManager = @import("../../memory/segments.zig").MemorySegmentManager;
 
@@ -12,11 +13,9 @@ const PoseidonBuiltinRunner = @import("./poseidon.zig").PoseidonBuiltinRunner;
 const RangeCheckBuiltinRunner = @import("./range_check.zig").RangeCheckBuiltinRunner;
 const SegmentArenaBuiltinRunner = @import("./segment_arena.zig").SegmentArenaBuiltinRunner;
 const SignatureBuiltinRunner = @import("./signature.zig").SignatureBuiltinRunner;
-
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
 const Memory = @import("../../memory/memory.zig").Memory;
-
 const ArrayList = std.ArrayList;
 
 /// Built-in runner
@@ -122,13 +121,39 @@ pub const BuiltinRunner = union(enum) {
         return switch (self.*) {
             .Bitwise => |bitwise| try bitwise.deduceMemoryCell(address, memory),
             .EcOp => |ec| ec.deduceMemoryCell(address, memory),
-            .Hash => |hash| hash.deduceMemoryCell(address, memory),
+            .Hash => |*hash| try hash.deduceMemoryCell(address, memory),
             .Output => |output| output.deduceMemoryCell(address, memory),
             .RangeCheck => |range_check| range_check.deduceMemoryCell(address, memory),
             .Keccak => |*keccak| try keccak.deduceMemoryCell(allocator, address, memory),
             .Signature => |signature| signature.deduceMemoryCell(address, memory),
             .Poseidon => |*poseidon| try poseidon.deduceMemoryCell(allocator, address, memory),
             .SegmentArena => |segment_arena| segment_arena.deduceMemoryCell(address, memory),
+        };
+    }
+
+    /// Retrieves the memory segment addresses associated with the built-in runner.
+    ///
+    /// This function returns a `Tuple` containing the starting address and optional stop address
+    /// for each memory segment used by the specific type of built-in runner. The stop address may
+    /// be `null` if the built-in runner doesn't have a distinct stop address for its memory segment.
+    ///
+    /// # Returns
+    ///
+    /// A `Tuple` containing the memory segment addresses as follows:
+    /// - The starting address of the memory segment.
+    /// - An optional stop address of the memory segment (may be `null`).
+    pub fn getMemorySegmentAddresses(self: *Self) Tuple(&.{ usize, ?usize }) {
+        // TODO: fill-in missing builtins when implemented
+        return switch (self.*) {
+            .Bitwise => |*bitwise| bitwise.getMemorySegmentAddresses(),
+            .EcOp => .{ 0, 0 },
+            .Hash => .{ 0, 0 },
+            .Output => |*output| output.getMemorySegmentAddresses(),
+            .RangeCheck => |*range_check| range_check.getMemorySegmentAddresses(),
+            .Keccak => |*keccak| keccak.getMemorySegmentAddresses(),
+            .Signature => .{ 0, 0 },
+            .Poseidon => .{ 0, 0 },
+            .SegmentArena => .{ 0, 0 },
         };
     }
 };

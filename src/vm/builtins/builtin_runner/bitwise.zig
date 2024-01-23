@@ -24,27 +24,29 @@ pub const BitwiseError = error{
     InvalidAddressForBitwise,
 };
 
+const BITWISE_INSTANCE_DEF = bitwise_instance_def.BitwiseInstanceDef{};
+
 /// Bitwise built-in runner
 pub const BitwiseBuiltinRunner = struct {
     const Self = @This();
 
     /// Ratio
-    ratio: ?u32,
+    ratio: ?u32 = BITWISE_INSTANCE_DEF.ratio,
     /// Base
-    base: usize,
+    base: usize = 0,
     /// the number of memory cells per invocation
-    cells_per_instance: u32,
+    cells_per_instance: u32 = bitwise_instance_def.CELLS_PER_BITWISE,
     /// The number of the first memory cells in each invocation that that form the input.
     /// The rest of the cells are considered output.
-    n_input_cells: u32,
+    n_input_cells: u32 = bitwise_instance_def.INPUT_CELLS_PER_BITWISE,
     /// Built-in bitwise instance
-    bitwise_builtin: bitwise_instance_def.BitwiseInstanceDef,
+    bitwise_builtin: bitwise_instance_def.BitwiseInstanceDef = BITWISE_INSTANCE_DEF,
     /// Stop pointer
-    stop_ptr: ?usize,
+    stop_ptr: ?usize = null,
     /// Included boolean flag
-    included: bool,
+    included: bool = true,
     /// The number of invocations being handled in each call to the corresponding component
-    instances_per_component: u32,
+    instances_per_component: u32 = 1,
 
     /// Create a new BitwiseBuiltinRunner instance.
     ///
@@ -65,18 +67,9 @@ pub const BitwiseBuiltinRunner = struct {
     ) Self {
         return .{
             .ratio = instance_def.ratio,
-            .base = 0,
-            .cells_per_instance = bitwise_instance_def.CELLS_PER_BITWISE,
-            .n_input_cells = bitwise_instance_def.INPUT_CELLS_PER_BITWISE,
             .bitwise_builtin = instance_def.*,
-            .stop_ptr = null,
             .included = included,
-            .instances_per_component = 1,
         };
-    }
-
-    pub fn initDefault() Self {
-        return Self.init(&@as(bitwise_instance_def.BitwiseInstanceDef, .{}), true);
     }
 
     /// Initializes segments for the Bitwise builtin instance using the provided MemorySegmentManager.
@@ -233,7 +226,7 @@ pub const BitwiseBuiltinRunner = struct {
     ///
     /// # Returns
     /// A tuple of `usize` and `?usize` addresses.
-    pub fn getMemorySegmentAddresses(self: *Self) Tuple(&.{
+    pub fn getMemorySegmentAddresses(self: *const Self) Tuple(&.{
         usize,
         ?usize,
     }) {
@@ -441,7 +434,7 @@ test "BitwiseBuiltinRunner: initialStack should return an a proper array list if
     defer expected.deinit();
 
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     // when
     builtin.base = 10;
@@ -459,7 +452,7 @@ test "BitwiseBuiltinRunner: initialStack should return an a proper array list if
 
 test "BitwiseBuiltinRunner: initSegments should modify base field of Bitwise builtin" {
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     // when
     const memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
@@ -478,7 +471,7 @@ test "BitwiseBuiltinRunner: initSegments should modify base field of Bitwise bui
 
 test "BitwiseBuiltinRunner: getUsedCells should return memory error if segment used size is null" {
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     // when
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
@@ -493,7 +486,7 @@ test "BitwiseBuiltinRunner: getUsedCells should return memory error if segment u
 
 test "BitwiseBuiltinRunner: getUsedCells should return the number of used cells" {
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     // when
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
@@ -513,7 +506,7 @@ test "BitwiseBuiltinRunner: getUsedCells should return the number of used cells"
 
 test "BitwiseBuiltinRunner: getMemorySegmentAddresses should return base and stop pointer" {
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
     // in the case of
     builtin.base = 22;
 
@@ -528,7 +521,7 @@ test "BitwiseBuiltinRunner: getMemorySegmentAddresses should return base and sto
 
 test "BitwiseBuiltinRunner: getUsedInstances should return memory error if segment used size is null" {
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     // when
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
@@ -543,7 +536,7 @@ test "BitwiseBuiltinRunner: getUsedInstances should return memory error if segme
 
 test "BitwiseBuiltinRunner: getUsedInstances should return the number of used instances" {
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     // when
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
@@ -561,7 +554,7 @@ test "BitwiseBuiltinRunner: getUsedInstances should return the number of used in
 
 test "BitwiseBuiltinRunner: getMemoryAccesses should return memory error if segment used size is null" {
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
@@ -602,7 +595,7 @@ test "BitwiseBuiltinRunner: getMemoryAccesses should return the memory accesses"
     });
 
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
     // in the case of
     builtin.base = 5;
 
@@ -661,7 +654,7 @@ test "BitwiseBuiltinRunner: getUsedDilutedCheckUnits should pass  test cases" {
     inline for (cases) |case| {
 
         // given
-        var builtin = BitwiseBuiltinRunner.initDefault();
+        var builtin = BitwiseBuiltinRunner{};
         const allocator = std.testing.allocator;
 
         // when
@@ -674,7 +667,7 @@ test "BitwiseBuiltinRunner: getUsedDilutedCheckUnits should pass  test cases" {
 
 test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should return expected memory units with ratio" {
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -692,7 +685,7 @@ test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should return expected memor
 
 test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should throw MemoryError.MissingSegmentUsedSizes without ratio and no used cells" {
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -722,7 +715,7 @@ test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should throw MemoryError.Mis
 
 test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should return expected memory units without ratio" {
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -761,7 +754,7 @@ test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should return expected memor
 
 test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should fail with MemoryError.InsufficientAllocatedCellsErrorMinStepNotReached when minimum step threshold is not met" {
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -784,7 +777,7 @@ test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should fail with MemoryError
 
 test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should fail with MemoryError.ErrorCalculatingMemoryUnits when vm step cannot divide exactly into builtin ratio" {
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -805,7 +798,7 @@ test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should fail with MemoryError
 
 test "BitwiseBuiltinRunner: should return expected result for deduceMemoryCell bitwise-and" {
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     const allocator = std.testing.allocator;
     const mem = try Memory.init(allocator);
@@ -833,7 +826,7 @@ test "BitwiseBuiltinRunner: should return expected result for deduceMemoryCell b
 
 test "BitwiseBuiltinRunner: should return expected result for deduceMemoryCell bitwise-xor" {
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     const allocator = std.testing.allocator;
     const mem = try Memory.init(allocator);
@@ -861,7 +854,7 @@ test "BitwiseBuiltinRunner: should return expected result for deduceMemoryCell b
 
 test "BitwiseBuiltinRunner: should return expectededuceMemoryCell bitwise-or" {
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     const allocator = std.testing.allocator;
     const mem = try Memory.init(allocator);
@@ -910,7 +903,7 @@ test "BitwiseBuiltinRunner: finalStack should return relocatable pointer if not 
 
 test "BitwiseBuiltinRunner: finalStack should return NoStopPointer error if pointer offset is 0" {
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     // when
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
@@ -928,7 +921,7 @@ test "BitwiseBuiltinRunner: finalStack should return NoStopPointer error if poin
 
 test "BitwiseBuiltinRunner: finalStack should return NoStopPointer error if no data in memory at the given stop pointer address" {
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     // when
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
@@ -946,7 +939,7 @@ test "BitwiseBuiltinRunner: finalStack should return NoStopPointer error if no d
 
 test "BitwiseBuiltinRunner: finalStack should return TypeMismatchNotRelocatable error if data in memory at the given stop pointer address is not Relocatable" {
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     // when
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
@@ -980,7 +973,7 @@ test "BitwiseBuiltinRunner: finalStack should return TypeMismatchNotRelocatable 
 test "BitwiseBuiltinRunner: finalStack should return InvalidStopPointerIndex error if segment index of stop pointer is not BitwiseBuiltinRunner base" {
 
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     // in the case of
     builtin.base = 22;
@@ -1017,7 +1010,7 @@ test "BitwiseBuiltinRunner: finalStack should return InvalidStopPointerIndex err
 
 test "BitwiseBuiltinRunner: finalStack should return InvalidStopPointer error if stop pointer offset is not cells used" {
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
     // in the case of
     builtin.base = 22;
 
@@ -1056,7 +1049,7 @@ test "BitwiseBuiltinRunner: finalStack should return InvalidStopPointer error if
 
 test "BitwiseBuiltinRunner: finalStack should return stop pointer address and update stop_ptr" {
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     // in the case of
     builtin.base = 22;
@@ -1101,7 +1094,7 @@ test "BitwiseBuiltinRunner: finalStack should return stop pointer address and up
 
 test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should return InsufficientAllocatedCellsErrorMinStepNotReached" {
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -1118,7 +1111,7 @@ test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should return InsufficientAl
 
 test "BitwiseBuiltinRunner: deduceMemoryCell when address.offset is outside input cell length should return null" {
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     const allocator = std.testing.allocator;
     const mem = try Memory.init(allocator);
@@ -1140,7 +1133,7 @@ test "BitwiseBuiltinRunner: deduceMemoryCell when address.offset is outside inpu
 
 test "BitwiseBuiltinRunner: deduceMemoryCell when address points to nothing in memory should return null" {
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     const allocator = std.testing.allocator;
     var mem = try Memory.init(allocator);
@@ -1155,7 +1148,7 @@ test "BitwiseBuiltinRunner: deduceMemoryCell when address points to nothing in m
 
 test "BitwiseBuiltinRunner: deduceMemoryCell should return InvalidAddressForBitwise when address points to relocatable variant of MaybeRelocatable " {
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     const allocator = std.testing.allocator;
     var mem = try Memory.init(allocator);
@@ -1175,7 +1168,7 @@ test "BitwiseBuiltinRunner: deduceMemoryCell should return InvalidAddressForBitw
 test "BitwiseBuiltinRunner: deduceMemoryCell should return UnsupportedNumberOfBits error when address points to felt greater than BITWISE_TOTAL_N_BITS" {
 
     // given
-    var builtin = BitwiseBuiltinRunner.initDefault();
+    var builtin = BitwiseBuiltinRunner{};
 
     const allocator = std.testing.allocator;
     var mem = try Memory.init(allocator);
