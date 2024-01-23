@@ -20,15 +20,15 @@ pub const SegmentArenaBuiltinRunner = struct {
     const Self = @This();
 
     /// Base
-    base: Relocatable,
+    base: Relocatable = Relocatable.init(0, 0),
     /// Included boolean flag
     included: bool,
     /// Number of cells per instance
-    cells_per_instance: u32,
+    cells_per_instance: u32 = ARENA_BUILTIN_SIZE,
     /// Number of input cells per instance
-    n_input_cells_per_instance: u32,
+    n_input_cells_per_instance: u32 = ARENA_BUILTIN_SIZE,
     /// Stop pointer
-    stop_ptr: ?usize,
+    stop_ptr: ?usize = null,
 
     /// Create a new SegmentArenaBuiltinRunner instance.
     ///
@@ -42,24 +42,18 @@ pub const SegmentArenaBuiltinRunner = struct {
     ///
     /// A new `SegmentArenaBuiltinRunner` instance.
     pub fn init(included: bool) Self {
-        return .{
-            .base = Relocatable.default(),
-            .included = included,
-            .cell_per_instance = ARENA_BUILTIN_SIZE,
-            .n_input_cells_per_instance = ARENA_BUILTIN_SIZE,
-            .stop_ptr = null,
-        };
+        return .{ .included = included };
     }
 
-    pub fn initSegments(self: *Self, segments: *MemorySegmentManager)  !void {
+    pub fn initSegments(self: *Self, segments: *MemorySegmentManager) !void {
         _ = self;
         _ = segments;
     }
-    
+
     pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
         _ = self;
         var result = ArrayList(MaybeRelocatable).init(allocator);
-        errdefer result.deinit();        
+        errdefer result.deinit();
         return result;
     }
 
