@@ -3615,7 +3615,7 @@ test "CairoVM: getReturnValues should return a memory error when Ap is 0" {
 test "CairoVM: verifyAutoDeductionsForAddr bitwise" {
     const allocator = std.testing.allocator;
 
-    var bitwise_builtin = BitwiseBuiltinRunner.initDefault();
+    var bitwise_builtin = BitwiseBuiltinRunner{};
     bitwise_builtin.base = 2;
     var builtin = BuiltinRunner{ .Bitwise = bitwise_builtin };
 
@@ -3640,7 +3640,7 @@ test "CairoVM: verifyAutoDeductionsForAddr bitwise" {
 test "CairoVM: verifyAutoDeductionsForAddr throws InconsistentAutoDeduction" {
     const allocator = std.testing.allocator;
 
-    var bitwise_builtin = BitwiseBuiltinRunner.initDefault();
+    var bitwise_builtin = BitwiseBuiltinRunner{};
     bitwise_builtin.base = 2;
 
     var builtin = BuiltinRunner{ .Bitwise = bitwise_builtin };
@@ -3664,7 +3664,7 @@ test "CairoVM: verifyAutoDeductionsForAddr throws InconsistentAutoDeduction" {
 test "CairoVM: verifyAutoDeductions for bitwise builtin runner" {
     const allocator = std.testing.allocator;
 
-    var bitwise_builtin = BitwiseBuiltinRunner.initDefault();
+    var bitwise_builtin = BitwiseBuiltinRunner{};
     bitwise_builtin.base = 2;
     const builtin = BuiltinRunner{ .Bitwise = bitwise_builtin };
 
@@ -3690,7 +3690,7 @@ test "CairoVM: verifyAutoDeductions for bitwise builtin runner" {
 test "CairoVM: verifyAutoDeductions for bitwise builtin runner throws InconsistentAutoDeduction" {
     const allocator = std.testing.allocator;
 
-    var bitwise_builtin = BitwiseBuiltinRunner.initDefault();
+    var bitwise_builtin = BitwiseBuiltinRunner{};
     bitwise_builtin.base = 2;
     const builtin = BuiltinRunner{ .Bitwise = bitwise_builtin };
 

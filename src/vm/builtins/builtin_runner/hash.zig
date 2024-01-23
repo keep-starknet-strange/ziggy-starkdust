@@ -29,19 +29,19 @@ pub const HashBuiltinRunner = struct {
     const Self = @This();
 
     /// Base
-    base: usize,
+    base: usize = 0,
     /// Ratio
     ratio: ?u32,
     /// Number of cells per instance
-    cells_per_instance: u32,
+    cells_per_instance: u32 = pedersen_instance_def.CELLS_PER_HASH,
     /// Number of input cells
-    n_input_cells: u32,
+    n_input_cells: u32 = pedersen_instance_def.INPUT_CELLS_PER_HASH,
     /// Stop pointer
-    stop_ptr: ?usize,
+    stop_ptr: ?usize = null,
     /// Included boolean flag
     included: bool,
     /// Number of instance per component
-    instances_per_component: u32,
+    instances_per_component: u32 = 1,
     /// Vector for verified addresses
     verified_addresses: ArrayList(bool),
 
@@ -65,13 +65,8 @@ pub const HashBuiltinRunner = struct {
         included: bool,
     ) Self {
         return .{
-            .base = 0,
             .ratio = ratio,
-            .cells_per_instance = pedersen_instance_def.CELLS_PER_HASH,
-            .n_input_cells = pedersen_instance_def.INPUT_CELLS_PER_HASH,
-            .stop_ptr = null,
             .included = included,
-            .instances_per_component = 1,
             .verified_addresses = ArrayList(bool).init(allocator),
         };
     }

@@ -210,13 +210,13 @@ pub const CairoLayout = struct {
                     // try builtin_runners.append(BuiltinRunner{ .Pedersen = HashBuiltinRunner.initDefault() });
                 },
                 .range_check => {
-                    try builtin_runners.append(BuiltinRunner{ .RangeCheck = RangeCheckBuiltinRunner.initDefault() });
+                    try builtin_runners.append(BuiltinRunner{ .RangeCheck = RangeCheckBuiltinRunner{} });
                 },
                 .ecdsa => {
                     // try builtin_runners.append(BuiltinRunner{ .Signature = SignatureBuiltinRunner.initDefault() });
                 },
                 .bitwise => {
-                    try builtin_runners.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.initDefault() });
+                    try builtin_runners.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner{} });
                 },
                 .ec_op => {
                     // try builtin_runners.append(BuiltinRunner{ .EcOp = EcOpBuiltinRunner.initDefault() });
