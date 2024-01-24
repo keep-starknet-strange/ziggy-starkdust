@@ -250,7 +250,7 @@ pub const CairoRunner = struct {
 
         const relocation_table = try self.vm.segments.relocateSegments(self.allocator);
         try self.vm.relocateTrace(relocation_table);
-        // relocate_memory here
+        try self.relocateMemory(relocation_table);
         self.relocated_trace = try self.vm.getRelocatedTrace();
     }
 
