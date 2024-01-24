@@ -20,7 +20,7 @@ fn mix(state: *[3]Felt252) void {
 
 /// Linear layer for MDS matrix M = ((3,1,1), (1,-1,1), (1,1,2))
 /// Given state vector x, it returns Mx, optimized by precomputing t.
-fn round_comp(state: *[3]Felt252, idx: usize, full: bool) void {
+fn roundComp(state: *[3]Felt252, idx: usize, full: bool) void {
     if (full) {
         inline for (0..3) |i| {
             state[i] = Felt252.add(state[i], COMPRESSED_ROUND_CONSTS[idx + i]);
@@ -34,33 +34,33 @@ fn round_comp(state: *[3]Felt252, idx: usize, full: bool) void {
 }
 
 /// Poseidon permutation function.
-pub fn poseidon_permute_comp(state: *[3]Felt252) void {
+pub fn poseidonPermuteComp(state: *[3]Felt252) void {
     var idx: usize = 0;
 
     // Full rounds
     for (0..(FULL_ROUNDS / 2)) |_| {
-        round_comp(state, idx, true);
+        roundComp(state, idx, true);
         idx += 3;
     }
 
     // Partial rounds
     for (0..PARTIAL_ROUNDS) |_| {
-        round_comp(state, idx, false);
+        roundComp(state, idx, false);
         idx += 1;
     }
 
     // Full rounds
     for (0..(FULL_ROUNDS / 2)) |_| {
-        round_comp(state, idx, true);
+        roundComp(state, idx, true);
         idx += 3;
     }
 }
 
 /// Computes the Starknet Poseidon hash of x and y.
-pub fn poseidon_hash(x: Felt252, y: Felt252) Felt252 {
+pub fn poseidonHash(x: Felt252, y: Felt252) Felt252 {
     var state = [_]Felt252{ x, y, Felt252.two() };
 
-    poseidon_permute_comp(&state);
+    poseidonPermuteComp(&state);
 
     return state[0];
 }
@@ -68,7 +68,7 @@ pub fn poseidon_hash(x: Felt252, y: Felt252) Felt252 {
 /// Computes the Starknet Poseidon hash of an arbitrary number of [Felt252]s.
 ///
 /// Using this function is the same as using [PoseidonHasher].
-pub fn poseidon_hash_many(msgs: []const Felt252) Felt252 {
+pub fn poseidonHashMany(msgs: []const Felt252) Felt252 {
     var state = [_]Felt252{Felt252.zero()} ** 3;
 
     var i: usize = 0;
@@ -76,7 +76,7 @@ pub fn poseidon_hash_many(msgs: []const Felt252) Felt252 {
         state[0] = Felt252.add(state[0], msgs[i]);
         state[1] = Felt252.add(state[1], msgs[i + 1]);
 
-        poseidon_permute_comp(&state);
+        poseidonPermuteComp(&state);
     }
 
     const rem_len = msgs.len % 2;
@@ -86,18 +86,18 @@ pub fn poseidon_hash_many(msgs: []const Felt252) Felt252 {
 
     state[rem_len] = Felt252.add(Felt252.one(), state[rem_len]);
 
-    poseidon_permute_comp(&state);
+    poseidonPermuteComp(&state);
 
     return state[0];
 }
 
 /// Computes the Starknet Poseidon hash of a single [Felt252].
-pub fn poseidon_hash_single(x: Felt252) Felt252 {
+pub fn poseidonHashSingle(x: Felt252) Felt252 {
     var state = [_]Felt252{
         x, Felt252.zero(), Felt252.one(),
     };
 
-    poseidon_permute_comp(&state);
+    poseidonPermuteComp(&state);
 
     return state[0];
 }
@@ -120,7 +120,7 @@ test "poseidon-hash" {
     for (test_data) |input| {
         try std.testing.expectEqual(
             input[2],
-            poseidon_hash(input[0], input[1]),
+            poseidonHash(input[0], input[1]),
         );
     }
 }
@@ -141,7 +141,7 @@ test "poseidon-hash-single" {
     for (test_data) |input| {
         try std.testing.expectEqual(
             input[1],
-            poseidon_hash_single(input[0]),
+            poseidonHashSingle(input[0]),
         );
     }
 }
@@ -174,7 +174,7 @@ test "poseidon-hash-many" {
     for (test_data) |input| {
         try std.testing.expectEqual(
             input.expected,
-            poseidon_hash_many(input.input),
+            poseidonHashMany(input.input),
         );
     }
 }
