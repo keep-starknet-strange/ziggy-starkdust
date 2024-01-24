@@ -75,7 +75,6 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
         try writeEncodedTrace(runner.relocated_trace, &trace_writer);
     }
 
-    // blocked until memory relocation is implemented
     if (config.output_memory) |mem_path| {
         const mem_file = try std.fs.cwd().createFile(mem_path, .{});
         defer mem_file.close();
