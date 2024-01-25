@@ -22,8 +22,6 @@ const RunnerError = Error.RunnerError;
 const pedersen_hash = @import("../../../math/crypto/pedersen/pedersen.zig").pedersenHash;
 const CairoVMError = @import("../../../vm/error.zig").CairoVMError;
 
-const insertAtIndex = @import("../../../utils/testing.zig").insertAtIndex;
-
 /// Hash built-in runner
 pub const HashBuiltinRunner = struct {
     const Self = @This();
@@ -316,10 +314,13 @@ test "HashBuiltinRunner: final stack success" {
     );
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
-    try insertAtIndex(vm.segments, std.testing.allocator, Relocatable.new(0, 0), MaybeRelocatable.fromRelocatable(Relocatable.new(0, 0)));
-    try insertAtIndex(vm.segments, std.testing.allocator, Relocatable.new(0, 1), MaybeRelocatable.fromRelocatable(Relocatable.new(0, 1)));
-    try insertAtIndex(vm.segments, std.testing.allocator, Relocatable.new(2, 0), MaybeRelocatable.fromRelocatable(Relocatable.new(0, 0)));
-    try insertAtIndex(vm.segments, std.testing.allocator, Relocatable.new(2, 1), MaybeRelocatable.fromRelocatable(Relocatable.new(0, 0)));
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 0 }, .{ 0, 0 } },
+        .{ .{ 0, 1 }, .{ 0, 1 } },
+        .{ .{ 2, 0 }, .{ 0, 0 } },
+        .{ .{ 2, 1 }, .{ 0, 0 } },
+    });
+
     var segment_used_size = std.ArrayHashMap(
         i64,
         u32,
@@ -346,10 +347,13 @@ test "HashBuiltinRunner: final stack error stop pointer" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    try insertAtIndex(vm.segments, std.testing.allocator, Relocatable.new(0, 0), MaybeRelocatable.fromRelocatable(Relocatable.new(0, 0)));
-    try insertAtIndex(vm.segments, std.testing.allocator, Relocatable.new(0, 1), MaybeRelocatable.fromRelocatable(Relocatable.new(0, 1)));
-    try insertAtIndex(vm.segments, std.testing.allocator, Relocatable.new(2, 0), MaybeRelocatable.fromRelocatable(Relocatable.new(0, 0)));
-    try insertAtIndex(vm.segments, std.testing.allocator, Relocatable.new(2, 1), MaybeRelocatable.fromRelocatable(Relocatable.new(0, 0)));
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 0 }, .{ 0, 0 } },
+        .{ .{ 0, 1 }, .{ 0, 1 } },
+        .{ .{ 2, 0 }, .{ 0, 0 } },
+        .{ .{ 2, 1 }, .{ 0, 0 } },
+    });
+
     var segment_used_size = std.ArrayHashMap(
         i64,
         u32,
@@ -374,11 +378,13 @@ test "HashBuiltinRunner: final stack error when not included" {
     );
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 0 }, .{ 0, 0 } },
+        .{ .{ 0, 1 }, .{ 0, 1 } },
+        .{ .{ 2, 0 }, .{ 0, 0 } },
+        .{ .{ 2, 1 }, .{ 0, 0 } },
+    });
 
-    try insertAtIndex(vm.segments, std.testing.allocator, Relocatable.new(0, 0), MaybeRelocatable.fromRelocatable(Relocatable.new(0, 0)));
-    try insertAtIndex(vm.segments, std.testing.allocator, Relocatable.new(0, 1), MaybeRelocatable.fromRelocatable(Relocatable.new(0, 1)));
-    try insertAtIndex(vm.segments, std.testing.allocator, Relocatable.new(2, 0), MaybeRelocatable.fromRelocatable(Relocatable.new(0, 0)));
-    try insertAtIndex(vm.segments, std.testing.allocator, Relocatable.new(2, 1), MaybeRelocatable.fromRelocatable(Relocatable.new(0, 0)));
     try vm.segments.segment_used_sizes.put(0, 0);
 
     const pointer = Relocatable.new(2, 2);
@@ -397,11 +403,13 @@ test "HashBuiltinRunner: final stack error non relocatable" {
     );
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 0 }, .{ 0, 0 } },
+        .{ .{ 0, 1 }, .{ 0, 1 } },
+        .{ .{ 2, 0 }, .{ 0, 0 } },
+        .{ .{ 2, 1 }, .{2} },
+    });
 
-    try insertAtIndex(vm.segments, std.testing.allocator, Relocatable.new(0, 0), MaybeRelocatable.fromRelocatable(Relocatable.new(0, 0)));
-    try insertAtIndex(vm.segments, std.testing.allocator, Relocatable.new(0, 1), MaybeRelocatable.fromRelocatable(Relocatable.new(0, 1)));
-    try insertAtIndex(vm.segments, std.testing.allocator, Relocatable.new(2, 0), MaybeRelocatable.fromRelocatable(Relocatable.new(0, 0)));
-    try insertAtIndex(vm.segments, std.testing.allocator, Relocatable.new(2, 1), MaybeRelocatable.fromFelt(Felt252.fromInteger(2)));
     var segment_used_size = std.ArrayHashMap(
         i64,
         u32,
@@ -429,10 +437,11 @@ test "HashBuiltinRunner: deduce memory cell pedersen for preset memory valid" {
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
     const verified_addresses = [_]bool{ false, false, false, false, false, true };
-
-    try insertAtIndex(memory_segment_manager, std.testing.allocator, Relocatable.new(0, 3), MaybeRelocatable.fromFelt(Felt252.fromInteger(32)));
-    try insertAtIndex(memory_segment_manager, std.testing.allocator, Relocatable.new(0, 4), MaybeRelocatable.fromFelt(Felt252.fromInteger(72)));
-    try insertAtIndex(memory_segment_manager, std.testing.allocator, Relocatable.new(0, 5), MaybeRelocatable.fromFelt(Felt252.fromInteger(0)));
+    try memory_segment_manager.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 3 }, .{32} },
+        .{ .{ 0, 4 }, .{72} },
+        .{ .{ 0, 5 }, .{0} },
+    });
 
     const res = (try hash_builtin.deduceMemoryCell(Relocatable.new(0, 5), memory_segment_manager.memory)).?;
     const expected = Felt252.fromInteger(0x73b3ec210cccbb970f80c6826fb1c40ae9f487617696234ff147451405c339f);
@@ -453,9 +462,11 @@ test "HashBuiltinRunner: deduce memory cell pedersen for preset memory incorrect
     defer memory_segment_manager.deinit();
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
-    try insertAtIndex(memory_segment_manager, std.testing.allocator, Relocatable.new(0, 4), MaybeRelocatable.fromFelt(Felt252.fromInteger(32)));
-    try insertAtIndex(memory_segment_manager, std.testing.allocator, Relocatable.new(0, 5), MaybeRelocatable.fromFelt(Felt252.fromInteger(72)));
-    try insertAtIndex(memory_segment_manager, std.testing.allocator, Relocatable.new(0, 6), MaybeRelocatable.fromFelt(Felt252.fromInteger(0)));
+    try memory_segment_manager.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 4 }, .{32} },
+        .{ .{ 0, 5 }, .{72} },
+        .{ .{ 0, 6 }, .{0} },
+    });
 
     const res = (try hash_builtin.deduceMemoryCell(Relocatable.new(0, 6), memory_segment_manager.memory));
     try expectEqual(@as(?MaybeRelocatable, null), res);
@@ -473,8 +484,10 @@ test "HashBuiltinRunner: deduce memory cell pedersen for preset memory no values
     defer memory_segment_manager.deinit();
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
-    try insertAtIndex(memory_segment_manager, std.testing.allocator, Relocatable.new(0, 4), MaybeRelocatable.fromFelt(Felt252.fromInteger(72)));
-    try insertAtIndex(memory_segment_manager, std.testing.allocator, Relocatable.new(0, 5), MaybeRelocatable.fromFelt(Felt252.fromInteger(0)));
+    try memory_segment_manager.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 4 }, .{72} },
+        .{ .{ 0, 5 }, .{0} },
+    });
 
     const res = (try hash_builtin.deduceMemoryCell(Relocatable.new(0, 5), memory_segment_manager.memory));
     try expectEqual(@as(?MaybeRelocatable, null), res);
@@ -490,9 +503,11 @@ test "HashBuiltinRunner: deduce memory cell pedersen for preset memory already c
     defer memory_segment_manager.deinit();
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
-    try insertAtIndex(memory_segment_manager, std.testing.allocator, Relocatable.new(0, 3), MaybeRelocatable.fromFelt(Felt252.fromInteger(32)));
-    try insertAtIndex(memory_segment_manager, std.testing.allocator, Relocatable.new(0, 4), MaybeRelocatable.fromFelt(Felt252.fromInteger(72)));
-    try insertAtIndex(memory_segment_manager, std.testing.allocator, Relocatable.new(0, 5), MaybeRelocatable.fromFelt(Felt252.fromInteger(0)));
+    try memory_segment_manager.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 3 }, .{32} },
+        .{ .{ 0, 4 }, .{72} },
+        .{ .{ 0, 5 }, .{0} },
+    });
 
     hash_builtin.verified_addresses.deinit();
     hash_builtin.verified_addresses = ArrayList(bool).init(std.testing.allocator);
@@ -596,8 +611,8 @@ test "HashBuiltinRunner: get used cells missing segment used sizes" {
     );
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
-	
-	try expectError(MemoryError.MissingSegmentUsedSizes, hash_builtin.getUsedCells(vm.segments));
+
+    try expectError(MemoryError.MissingSegmentUsedSizes, hash_builtin.getUsedCells(vm.segments));
 }
 
 test "HashBuiltinRunner: get used cells empty" {
@@ -613,10 +628,10 @@ test "HashBuiltinRunner: get used cells empty" {
     );
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
-	
-	try vm.segments.segment_used_sizes.put(0, 0);
 
-	try expectEqual(@as(?usize, 0), try hash_builtin.getUsedCells(vm.segments));
+    try vm.segments.segment_used_sizes.put(0, 0);
+
+    try expectEqual(@as(?usize, 0), try hash_builtin.getUsedCells(vm.segments));
 }
 
 test "HashBuiltinRunner: get used cells valid" {
@@ -632,8 +647,8 @@ test "HashBuiltinRunner: get used cells valid" {
     );
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
-	
-	try vm.segments.segment_used_sizes.put(0, 4);
 
-	try expectEqual(@as(?usize, 4), try hash_builtin.getUsedCells(vm.segments));
+    try vm.segments.segment_used_sizes.put(0, 4);
+
+    try expectEqual(@as(?usize, 4), try hash_builtin.getUsedCells(vm.segments));
 }
