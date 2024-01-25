@@ -1,0 +1,16 @@
+---
+name: Workflow - Daily Cron
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "0 0 * * *"
+
+jobs:
+  stale_issues:
+    name: Stale issues
+    uses: ./.github/workflows/stale-issues.yml
+
+  lock_closed:
+    name: Lock closed issues/PRs
+    uses: ./.github/workflows/lock-closed.yml
