@@ -16,6 +16,7 @@ const ArrayList = std.ArrayList;
 const AutoHashMap = std.AutoHashMap;
 const CairoVM = CoreVM.CairoVM;
 const CairoVMError = @import("../../../vm/error.zig").CairoVMError;
+const insertAtIndex = @import("../../../utils/testing.zig").insertAtIndex;
 const RunnerError = Error.RunnerError;
 const Tuple = std.meta.Tuple;
 
@@ -101,7 +102,7 @@ pub const EcOpBuiltinRunner = struct {
 
     /// Initializes and returns an `ArrayList` of `MaybeRelocatable` values.
     ///
-    /// If the Hash runner is included, it appends a `Relocatable` element to the `ArrayList`
+    /// If the EC OP runner is included, it appends a `Relocatable` element to the `ArrayList`
     /// with the base value. Otherwise, it returns an empty `ArrayList`.
     ///
     /// # Parameters
@@ -206,6 +207,35 @@ pub const EcOpBuiltinRunner = struct {
         );
     }
 
+    /// Retrieves memory access `Relocatable` for the EC OP runner.
+    ///
+    /// This function returns an `ArrayList` of `Relocatable` elements, each representing
+    /// a memory access within the segment associated with the EC OP runner's base.
+    ///
+    /// # Parameters
+    /// - `allocator`: An allocator for initializing the `ArrayList`.
+    /// - `vm`: A pointer to the `CairoVM` containing segment information.
+    ///
+    /// # Returns
+    /// An `ArrayList` of `Relocatable` elements.
+    pub fn getMemoryAccesses(
+        self: *Self,
+        allocator: Allocator,
+        vm: *CairoVM,
+    ) !ArrayList(Relocatable) {
+        const segment_size = try (vm.segments.getSegmentUsedSize(
+            @intCast(self.base),
+        ) orelse MemoryError.MissingSegmentUsedSizes);
+        var result = ArrayList(Relocatable).init(allocator);
+        for (0..segment_size) |i| {
+            try result.append(.{
+                .segment_index = @intCast(self.base),
+                .offset = i,
+            });
+        }
+        return result;
+    }
+
     /// Retrieves memory segment addresses as a tuple.
     ///
     /// Returns a tuple containing the `base` and `stop_ptr` addresses associated
@@ -222,7 +252,7 @@ pub const EcOpBuiltinRunner = struct {
 
     /// Calculate the final stack.
     ///
-    /// This function calculates the final stack pointer for the Hash runner, based on the provided `segments`, `pointer`, and `self` settings. If the runner is included,
+    /// This function calculates the final stack pointer for the EC OP runner, based on the provided `segments`, `pointer`, and `self` settings. If the runner is included,
     /// it verifies the stop pointer for consistency and sets it. Otherwise, it sets the stop pointer to zero.
     ///
     /// # Parameters
@@ -451,32 +481,187 @@ test "ECOPBuiltinRunner: final stack error non relocatable" {
     );
 }
 
-test "ECOPBuiltinRunner: get_used_cells_and_allocated_size_test" {}
+test "ECOPBuiltinRunner: get allocated memory units" {}
 
-test "ECOPBuiltinRunner: get_allocated_memory_units" {}
+test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory valid" {
+    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+        .ratio = 10,
+    };
+    const builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
 
-test "ECOPBuiltinRunner: deduce_memory_cell_ec_op_for_preset_memory_valid" {}
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
 
-test "ECOPBuiltinRunner: deduce_memory_cell_ec_op_for_preset_memory_unfilled_input_cells" {}
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{
+                .{ 3, 0 },
+                .{@as(u256, 0x68caa9509b7c2e90b4d92661cbf7c465471c1e8598c5f989691eef6653e0f38)},
+            },
+            .{
+                .{ 3, 1 },
+                .{@as(u256, 0x79a8673f498531002fc549e06ff2010ffc0c191cceb7da5532acb95cdcb591)},
+            },
+            .{
+                .{ 3, 2 },
+                .{@as(u256, 0x1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca)},
+            },
+            .{
+                .{ 3, 3 },
+                .{@as(u256, 0x5668060aa49730b7be4801df46ec62de53ecd11abe43a32873000c36e8dc1f)},
+            },
+            .{ .{ 3, 4 }, .{34} },
+            .{ .{ 3, 5 }, .{2778063437308421278851140253538604815869848682781135193774472480292420096757} },
+        },
+    );
 
-test "ECOPBuiltinRunner: deduce_memory_cell_ec_op_for_preset_memory_addr_not_an_output_cell" {}
+    const expected = Felt252.fromInteger(0x73b3ec210cccbb970f80c6826fb1c40ae9f487617696234ff147451405c339f);
+    try expectEqual(
+        MaybeRelocatable.fromFelt(expected),
+        builtin.deduceMemoryCell(Relocatable.new(3, 6), std.testing.allocator, vm.segments),
+    );
+}
 
-test "ECOPBuiltinRunner: deduce_memory_cell_ec_op_for_preset_memory_non_integer_input" {}
+test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory unfilled input cells" {
+    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+        .ratio = 10,
+    };
+    const builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+    _ = builtin;
+}
 
-test "ECOPBuiltinRunner: get_memory_segment_addresses" {}
+test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory addr not an output cell" {
+    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+        .ratio = 10,
+    };
+    const builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+    _ = builtin;
+}
 
-test "ECOPBuiltinRunner: get_memory_accesses_missing_segment_used_sizes" {}
+test "ECOPBuiltinRunner: deduce_memory_cell_ec_op_for_preset_memory_non_integer_input" {
+    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+        .ratio = 10,
+    };
+    const builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+    _ = builtin;
+}
 
-test "ECOPBuiltinRunner: get_memory_accesses_empty" {}
+test "ECOPBuiltinRunner: get memory segment addresses" {
+    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+        .ratio = 10,
+    };
+    var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
 
-test "ECOPBuiltinRunner: get_memory_accesses" {}
+    const expected: std.meta.Tuple(&.{ usize, ?usize }) = .{ 0, @as(?usize, null) };
+    const actual: std.meta.Tuple(&.{ usize, ?usize }) = builtin.getMemorySegmentAddresses();
+    try expectEqual(expected, actual);
+}
 
-test "ECOPBuiltinRunner: get_used_cells_missing_segment_used_sizes" {}
+test "ECOPBuiltinRunner: get memory accesses missing segment used sizes" {
+    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+        .ratio = 10,
+    };
+    var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
 
-test "ECOPBuiltinRunner: get_used_cells_empty" {}
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
 
-test "ECOPBuiltinRunner: get used cells success" {
-    const instance_def = ec_op_instance_def.EcOpInstanceDef{};
+    try vm.segments.segment_used_sizes.put(0, 0);
+
+    const actual = try builtin.getMemoryAccesses(std.testing.allocator, &vm);
+    defer actual.deinit();
+    try expectEqualSlices(Relocatable, &[_]Relocatable{}, actual.items);
+}
+
+test "ECOPBuiltinRunner: get memory accesses empty" {
+    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+        .ratio = 10,
+    };
+    var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.segment_used_sizes.put(0, 0);
+
+    const actual = try builtin.getMemoryAccesses(std.testing.allocator, &vm);
+    defer actual.deinit();
+    try expectEqualSlices(Relocatable, &[_]Relocatable{}, actual.items);
+}
+
+test "ECOPBuiltinRunner: get memory accesses" {
+    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+        .ratio = 10,
+    };
+    var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.segment_used_sizes.put(0, 4);
+
+    const expected = [_]Relocatable{
+        Relocatable.init(@intCast(builtin.base), 0),
+        Relocatable.init(@intCast(builtin.base), 1),
+        Relocatable.init(@intCast(builtin.base), 2),
+        Relocatable.init(@intCast(builtin.base), 3),
+    };
+
+    var actual = try builtin.getMemoryAccesses(std.testing.allocator, &vm);
+    defer actual.deinit();
+    try expectEqualSlices(Relocatable, &expected, actual.items);
+}
+
+test "ECOPBuiltinRunner: get used cells missing segment used sizes" {
+    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+        .ratio = 10,
+    };
+    var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try expectError(MemoryError.MissingSegmentUsedSizes, builtin.getUsedCells(vm.segments));
+}
+
+test "ECOPBuiltinRunner: get used cells empty" {
+    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+        .ratio = 10,
+    };
+    var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.segment_used_sizes.put(0, 0);
+
+    try expectEqual(0, try builtin.getUsedCells(vm.segments));
+}
+
+test "ECOPBuiltinRunner: get used cells and allocated size test" {
+    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+        .ratio = 10,
+    };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
 
     var vm = try CairoVM.init(
@@ -488,5 +673,23 @@ test "ECOPBuiltinRunner: get used cells success" {
     const segment = try vm.segments.addSegment();
     try vm.segments.segment_used_sizes.put(@intCast(segment.segment_index), 4);
 
-    try expectEqual(builtin.getUsedCells(vm.segments), 4);
+    try expectEqual(4, builtin.getUsedCells(vm.segments));
+}
+
+test "ECOPBuiltinRunner: get used cells success" {
+    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+        .ratio = 10,
+    };
+    var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    const segment = try vm.segments.addSegment();
+    try vm.segments.segment_used_sizes.put(@intCast(segment.segment_index), 4);
+
+    try expectEqual(4, builtin.getUsedCells(vm.segments));
 }

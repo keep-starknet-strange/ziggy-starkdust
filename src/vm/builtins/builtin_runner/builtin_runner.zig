@@ -120,7 +120,7 @@ pub const BuiltinRunner = union(enum) {
     ) !?MaybeRelocatable {
         return switch (self.*) {
             .Bitwise => |bitwise| try bitwise.deduceMemoryCell(address, memory),
-            .EcOp => |*ec| ec.deduceMemoryCell(allocator, address, memory),
+            .EcOp => |*ec| try ec.deduceMemoryCell(allocator, address, memory),
             .Hash => |*hash| try hash.deduceMemoryCell(address, memory),
             .Output => |output| output.deduceMemoryCell(address, memory),
             .RangeCheck => |range_check| range_check.deduceMemoryCell(address, memory),
