@@ -735,10 +735,23 @@ pub const ProgramJson = struct {
         };
     }
 
+    /// Retrieves the hints from the program's `hints` map and organizes them into a `HintsCollection`.
+    ///
+    /// This function iterates over the hints map, extracts information about the maximum hint PC
+    /// and the total length of hints. It then initializes a new `HintsCollection` and populates it
+    /// with ranges and hint values from the map. The resulting `HintsCollection` is returned.
+    ///
+    /// # Params:
+    ///   - `allocator`: The allocator used to initialize the `HintsCollection`.
+    ///
+    /// # Returns:
+    ///   - A `HintsCollection` containing organized hint information.
     pub fn getHintsCollections(self: *Self, allocator: Allocator) !HintsCollection {
+        // Initialize variables to track maximum hint PC and total length of hints.
         var max_hint_pc: usize = 0;
         var full_len: usize = 0;
 
+        // Iterate over the hints map to calculate max_hint_pc and full_len.
         if (self.hints) |hints| {
             var it = hints.map.iterator();
 
@@ -751,18 +764,24 @@ pub const ProgramJson = struct {
             }
         }
 
+        // Check if there are valid hints to collect.
         if (max_hint_pc > 0 and full_len > 0) {
+            // Check for invalid max_hint_pc value.
             if (max_hint_pc >= self.data.?.len) return ProgramError.InvalidHintPc;
 
+            // Initialize a new HintsCollection.
             var hints_collection = HintsCollection.init(allocator);
             errdefer hints_collection.deinit();
 
+            // Iterate over the hints map to populate the HintsCollection.
             if (self.hints) |hints| {
                 var it = hints.map.iterator();
 
                 while (it.next()) |entry| {
+                    // Check for empty vector in the hints map.
                     if (entry.value_ptr.len <= 0) return ProgramError.EmptyVecAlreadyFiltered;
 
+                    // Populate hints_ranges and hints in the HintsCollection.
                     try hints_collection.hints_ranges.put(
                         Relocatable.init(
                             0,
@@ -780,6 +799,7 @@ pub const ProgramJson = struct {
             return hints_collection;
         }
 
+        // Return an empty HintsCollection if there are no valid hints.
         return HintsCollection.init(allocator);
     }
 };
@@ -792,6 +812,7 @@ const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
 const expectEqualStrings = std.testing.expectEqualStrings;
 const expectEqualSlices = std.testing.expectEqualSlices;
+const expectEqualDeep = std.testing.expectEqualDeep;
 
 test "ProgramJson cannot be initialized from nonexistent json file" {
     try expectError(
@@ -1329,7 +1350,64 @@ test "ProgramJson: parseProgramJson should parse a valid manually compiled progr
         program.shared_program_data.main,
     );
 
-    // TODO: validate hints once implemented
+    // Initialize an AutoHashMap to store the expected hints.
+    var expected_hints = std.AutoHashMap(
+        usize,
+        []const HintParams,
+    ).init(std.testing.allocator);
+    defer expected_hints.deinit();
+
+    // Put an expected hint at offset 0.
+    try expected_hints.put(
+        0,
+        &[_]HintParams{
+            .{
+                .code = "memory[ap] = segments.add()",
+                .accessible_scopes = &[_][]const u8{
+                    "starkware.cairo.common.alloc",
+                    "starkware.cairo.common.alloc.alloc",
+                },
+                .flow_tracking_data = .{
+                    .ap_tracking = .{ .group = 0, .offset = 0 },
+                    .reference_ids = json.ArrayHashMap(usize){},
+                },
+            },
+        },
+    );
+    // Put another expected hint at offset 4.
+    try expected_hints.put(
+        4,
+        &[_]HintParams{
+            .{
+                .code = "import math",
+                .accessible_scopes = &[_][]const u8{
+                    "__main__",
+                    "__main__.main",
+                },
+                .flow_tracking_data = .{
+                    .ap_tracking = .{ .group = 5, .offset = 0 },
+                    .reference_ids = json.ArrayHashMap(usize){},
+                },
+            },
+        },
+    );
+
+    // Convert the hints collection from the program into an AutoHashMap.
+    var hints_hash_map = try program.shared_program_data.hints_collection.intoHashMap(std.testing.allocator);
+    defer hints_hash_map.deinit();
+
+    // Ensure that the AutoHashMap has the expected number of hints.
+    try expectEqual(@as(usize, 2), hints_hash_map.count());
+
+    // Check the number of hints at offset 0 and compare with the expected hint count.
+    try expect(hints_hash_map.get(0).?.len == 1);
+    // Compare the expected hint at offset 0 with the actual hint from the AutoHashMap.
+    try expectEqualDeep(expected_hints.get(0).?[0], hints_hash_map.get(0).?[0]);
+
+    // Check the number of hints at offset 4 and compare with the expected hint count.
+    try expect(hints_hash_map.get(4).?.len == 1);
+    // Compare the expected hint at offset 4 with the actual hint from the AutoHashMap.
+    try expectEqualDeep(expected_hints.get(4).?[0], hints_hash_map.get(4).?[0]);
 }
 
 test "ProgramJson: parseProgramJson should parse a valid manually compiled program without entry point" {
@@ -1378,7 +1456,64 @@ test "ProgramJson: parseProgramJson should parse a valid manually compiled progr
         program.shared_program_data.main,
     );
 
-    // TODO: validate hints once implemented
+    // Initialize an AutoHashMap to store the expected hints.
+    var expected_hints = std.AutoHashMap(
+        usize,
+        []const HintParams,
+    ).init(std.testing.allocator);
+    defer expected_hints.deinit();
+
+    // Put an expected hint at offset 0.
+    try expected_hints.put(
+        0,
+        &[_]HintParams{
+            .{
+                .code = "memory[ap] = segments.add()",
+                .accessible_scopes = &[_][]const u8{
+                    "starkware.cairo.common.alloc",
+                    "starkware.cairo.common.alloc.alloc",
+                },
+                .flow_tracking_data = .{
+                    .ap_tracking = .{ .group = 0, .offset = 0 },
+                    .reference_ids = json.ArrayHashMap(usize){},
+                },
+            },
+        },
+    );
+    // Put another expected hint at offset 4.
+    try expected_hints.put(
+        4,
+        &[_]HintParams{
+            .{
+                .code = "import math",
+                .accessible_scopes = &[_][]const u8{
+                    "__main__",
+                    "__main__.main",
+                },
+                .flow_tracking_data = .{
+                    .ap_tracking = .{ .group = 5, .offset = 0 },
+                    .reference_ids = json.ArrayHashMap(usize){},
+                },
+            },
+        },
+    );
+
+    // Convert the hints collection from the program into an AutoHashMap.
+    var hints_hash_map = try program.shared_program_data.hints_collection.intoHashMap(std.testing.allocator);
+    defer hints_hash_map.deinit();
+
+    // Ensure that the AutoHashMap has the expected number of hints.
+    try expectEqual(@as(usize, 2), hints_hash_map.count());
+
+    // Check the number of hints at offset 0 and compare with the expected hint count.
+    try expect(hints_hash_map.get(0).?.len == 1);
+    // Compare the expected hint at offset 0 with the actual hint from the AutoHashMap.
+    try expectEqualDeep(expected_hints.get(0).?[0], hints_hash_map.get(0).?[0]);
+
+    // Check the number of hints at offset 4 and compare with the expected hint count.
+    try expect(hints_hash_map.get(4).?.len == 1);
+    // Compare the expected hint at offset 4 with the actual hint from the AutoHashMap.
+    try expectEqualDeep(expected_hints.get(4).?[0], hints_hash_map.get(4).?[0]);
 }
 
 test "ProgramJson: parseProgramJson with constant deserialization" {

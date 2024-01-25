@@ -54,6 +54,44 @@ pub const HintsCollection = struct {
         };
     }
 
+    /// Converts the HintsCollection into a HashMap for efficient hint retrieval.
+    ///
+    /// This method iterates over the `hints_ranges` map, extracts hint ranges, and populates
+    /// a new `AutoHashMap` with offsets as keys and corresponding `HintParams` slices as values.
+    ///
+    /// # Params:
+    ///   - `allocator`: The allocator used to initialize the new AutoHashMap.
+    ///
+    /// # Returns:
+    ///   - An AutoHashMap with offsets as keys and corresponding HintParams slices as values.
+    pub fn intoHashMap(
+        self: *Self,
+        allocator: Allocator,
+    ) !std.AutoHashMap(usize, []const HintParams) {
+        // Initialize a new AutoHashMap.
+        var res = std.AutoHashMap(usize, []const HintParams).init(allocator);
+        errdefer res.deinit();
+
+        // Iterate over hints_ranges to populate the AutoHashMap.
+        var it = self.hints_ranges.iterator();
+
+        while (it.next()) |kv| {
+            // Calculate the end index of the hint slice.
+            const end = kv.value_ptr.start + kv.value_ptr.length;
+
+            // Check if the end index is within bounds of hints.items.
+            if (end <= self.hints.items.len) {
+                // Put the offset and corresponding hint slice into the AutoHashMap.
+                try res.put(
+                    kv.key_ptr.offset,
+                    self.hints.items[kv.value_ptr.start..end],
+                );
+            }
+        }
+
+        return res;
+    }
+
     /// Deinitializes the HintsCollection, freeing allocated memory.
     pub fn deinit(self: *Self) void {
         self.hints.deinit();
