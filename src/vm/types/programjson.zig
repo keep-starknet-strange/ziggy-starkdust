@@ -403,7 +403,7 @@ pub const ProgramJson = struct {
         return .{
             .shared_program_data = .{
                 .data = try self.readData(allocator),
-                .hints_collection = self.getHintsCollections(allocator),
+                .hints_collection = try self.getHintsCollections(allocator),
                 .main = entrypoint_pc[1],
                 .start = self.getStartPc(),
                 .end = self.getEndPc(),
@@ -735,14 +735,52 @@ pub const ProgramJson = struct {
         };
     }
 
-    pub fn getHintsCollections(self: *Self, allocator: Allocator) HintsCollection {
-        _ = self;
-        var hints_collection = HintsCollection.init(allocator);
-        errdefer hints_collection.deinit();
+    pub fn getHintsCollections(self: *Self, allocator: Allocator) !HintsCollection {
+        var max_hint_pc: usize = 0;
+        var full_len: usize = 0;
 
-        // TODO: make implementation
+        if (self.hints) |hints| {
+            var it = hints.map.iterator();
 
-        return hints_collection;
+            while (it.next()) |entry| {
+                max_hint_pc = @max(
+                    max_hint_pc,
+                    try std.fmt.parseInt(usize, entry.key_ptr.*, 10),
+                );
+                full_len = full_len + entry.value_ptr.len;
+            }
+        }
+
+        if (max_hint_pc > 0 and full_len > 0) {
+            if (max_hint_pc >= self.data.?.len) return ProgramError.InvalidHintPc;
+
+            var hints_collection = HintsCollection.init(allocator);
+            errdefer hints_collection.deinit();
+
+            if (self.hints) |hints| {
+                var it = hints.map.iterator();
+
+                while (it.next()) |entry| {
+                    if (entry.value_ptr.len <= 0) return ProgramError.EmptyVecAlreadyFiltered;
+
+                    try hints_collection.hints_ranges.put(
+                        Relocatable.init(
+                            0,
+                            try std.fmt.parseInt(u64, entry.key_ptr.*, 10),
+                        ),
+                        .{
+                            .start = hints_collection.hints.items.len,
+                            .length = entry.value_ptr.len,
+                        },
+                    );
+                    try hints_collection.hints.appendSlice(entry.value_ptr.*);
+                }
+            }
+
+            return hints_collection;
+        }
+
+        return HintsCollection.init(allocator);
     }
 };
 

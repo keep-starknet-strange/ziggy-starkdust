@@ -171,4 +171,5 @@ pub const ProgramError = error{
     InvalidHintPc,
     /// Indicates an unsupported or unimplemented builtin encountered within the program.
     UnsupportedBuiltin,
+    EmptyVecAlreadyFiltered,
 };
