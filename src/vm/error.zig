@@ -135,6 +135,8 @@ pub const MathError = error{
     RelocatableAdditionOffsetExceeded,
     /// Error indicating that a point is not on the elliptic curve.
     PointNotOnCurve,
+    /// Cell is not output cell
+    NotOutputCell,
     RelocatableMul,
 };
 

@@ -126,7 +126,7 @@ pub const EcOpBuiltinRunner = struct {
 
     pub fn deduceMemoryCell(self: *Self, allocator: Allocator, address: Relocatable, memory: *Memory) !?MaybeRelocatable {
         const index = address.offset % self.cells_per_instance;
-        if ((index != OUTPUT_INDICES[0]) and (index != OUTPUT_INDICES[1])) return null;
+        if ((index != OUTPUT_INDICES[0]) and (index != OUTPUT_INDICES[1])) return error.NotOutputCell;
 
         const instance = Relocatable.init(address.segment_index, address.offset - index);
         const x_addr = try instance.addFelt(Felt252.fromInteger(self.n_input_cells));
@@ -291,6 +291,11 @@ pub const EcOpBuiltinRunner = struct {
         self.stop_ptr = 0;
         return pointer;
     }
+
+    /// Frees the resources owned by this instance of `EcOpBuiltinRunner`.
+    pub fn deinit(self: *Self) void {
+        self.cache.deinit();
+    }
 };
 
 // ************************************************************
@@ -305,6 +310,7 @@ test "ECOPBuiltinRunner: assert that the number of instances used by the builtin
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+    defer builtin.deinit();
 
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -323,6 +329,7 @@ test "ECOPBuiltinRunner: final stack success" {
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+    defer builtin.deinit();
 
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -364,6 +371,7 @@ test "ECOPBuiltinRunner: final stack error stop pointer" {
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+    defer builtin.deinit();
 
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -405,6 +413,7 @@ test "ECOPBuiltinRunner: final stack error when not included" {
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, false);
+    defer builtin.deinit();
 
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -446,6 +455,7 @@ test "ECOPBuiltinRunner: final stack error non relocatable" {
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+    defer builtin.deinit();
 
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -485,10 +495,28 @@ test "ECOPBuiltinRunner: final stack error non relocatable" {
 test "ECOPBuiltinRunner: get allocated memory units" {}
 
 test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory valid" {
+    //    Data taken from this program execution:
+
+    //    %builtins output ec_op
+    //    from starkware.cairo.common.cairo_builtins import EcOpBuiltin
+    //    from starkware.cairo.common.serialize import serialize_word
+    //    from starkware.cairo.common.ec_point import EcPoint
+    //    from starkware.cairo.common.ec import ec_op
+
+    //    func main{output_ptr: felt*, ec_op_ptr: EcOpBuiltin*}():
+    //        let x: EcPoint = EcPoint(2089986280348253421170679821480865132823066470938446095505822317253594081284, 1713931329540660377023406109199410414810705867260802078187082345529207694986)
+
+    //        let y: EcPoint = EcPoint(874739451078007766457464989774322083649278607533249481151382481072868806602,152666792071518830868575557812948353041420400780739481342941381225525861407)
+    //        let z: EcPoint = ec_op(x,34, y)
+    //        serialize_word(z.x)
+    //        return()
+    //        end
+
     const instance_def = ec_op_instance_def.EcOpInstanceDef{
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+    defer builtin.deinit();
 
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -534,24 +562,126 @@ test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory unfilled inp
     const instance_def = ec_op_instance_def.EcOpInstanceDef{
         .ratio = 10,
     };
-    const builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
-    _ = builtin;
+    var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+    defer builtin.deinit();
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{
+                .{ 3, 1 },
+                .{@as(u256, 0x79a8673f498531002fc549e06ff2010ffc0c191cceb7da5532acb95cdcb591)},
+            },
+            .{
+                .{ 3, 2 },
+                .{@as(u256, 0x1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca)},
+            },
+            .{
+                .{ 3, 3 },
+                .{@as(u256, 0x5668060aa49730b7be4801df46ec62de53ecd11abe43a32873000c36e8dc1f)},
+            },
+            .{ .{ 3, 4 }, .{34} },
+            .{ .{ 3, 5 }, .{2778063437308421278851140253538604815869848682781135193774472480292420096757} },
+        },
+    );
+
+    const actual = builtin.deduceMemoryCell(std.testing.allocator, Relocatable.new(3, 6), vm.segments.memory);
+
+    try expectError(
+        error.PointNotOnCurve,
+        actual,
+    );
 }
 
 test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory addr not an output cell" {
     const instance_def = ec_op_instance_def.EcOpInstanceDef{
         .ratio = 10,
     };
-    const builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
-    _ = builtin;
+    var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+    defer builtin.deinit();
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{
+                .{ 3, 1 },
+                .{@as(u256, 0x79a8673f498531002fc549e06ff2010ffc0c191cceb7da5532acb95cdcb591)},
+            },
+            .{
+                .{ 3, 2 },
+                .{@as(u256, 0x1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca)},
+            },
+            .{
+                .{ 3, 3 },
+                .{@as(u256, 0x5668060aa49730b7be4801df46ec62de53ecd11abe43a32873000c36e8dc1f)},
+            },
+            .{ .{ 3, 4 }, .{34} },
+            .{ .{ 3, 5 }, .{2778063437308421278851140253538604815869848682781135193774472480292420096757} },
+        },
+    );
+
+    const actual = builtin.deduceMemoryCell(std.testing.allocator, Relocatable.new(3, 3), vm.segments.memory);
+
+    try expectError(
+        error.NotOutputCell,
+        actual,
+    );
 }
 
-test "ECOPBuiltinRunner: deduce_memory_cell_ec_op_for_preset_memory_non_integer_input" {
+test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory non integer input" {
     const instance_def = ec_op_instance_def.EcOpInstanceDef{
         .ratio = 10,
     };
-    const builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
-    _ = builtin;
+    var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+    defer builtin.deinit();
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{
+                .{ 3, 1 },
+                .{@as(u256, 0x79a8673f498531002fc549e06ff2010ffc0c191cceb7da5532acb95cdcb591)},
+            },
+            .{
+                .{ 3, 2 },
+                .{@as(u256, 0x1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca)},
+            },
+            .{
+                .{ 3, 3 },
+                .{ 1, 2 },
+            },
+            .{ .{ 3, 4 }, .{34} },
+            .{ .{ 3, 5 }, .{2778063437308421278851140253538604815869848682781135193774472480292420096757} },
+        },
+    );
+
+    const actual = builtin.deduceMemoryCell(std.testing.allocator, Relocatable.new(3, 6), vm.segments.memory);
+
+    try expectError(
+        error.TypeMismatchNotFelt,
+        actual,
+    );
 }
 
 test "ECOPBuiltinRunner: get memory segment addresses" {
@@ -559,6 +689,7 @@ test "ECOPBuiltinRunner: get memory segment addresses" {
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+    defer builtin.deinit();
 
     const expected: std.meta.Tuple(&.{ usize, ?usize }) = .{ 0, @as(?usize, null) };
     const actual: std.meta.Tuple(&.{ usize, ?usize }) = builtin.getMemorySegmentAddresses();
@@ -570,6 +701,7 @@ test "ECOPBuiltinRunner: get memory accesses missing segment used sizes" {
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+    defer builtin.deinit();
 
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -589,6 +721,7 @@ test "ECOPBuiltinRunner: get memory accesses empty" {
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+    defer builtin.deinit();
 
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -608,6 +741,7 @@ test "ECOPBuiltinRunner: get memory accesses" {
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+    defer builtin.deinit();
 
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -634,6 +768,7 @@ test "ECOPBuiltinRunner: get used cells missing segment used sizes" {
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+    defer builtin.deinit();
 
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -649,6 +784,7 @@ test "ECOPBuiltinRunner: get used cells empty" {
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+    defer builtin.deinit();
 
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -666,6 +802,7 @@ test "ECOPBuiltinRunner: get used cells and allocated size test" {
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+    defer builtin.deinit();
 
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -684,6 +821,7 @@ test "ECOPBuiltinRunner: get used cells success" {
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+    defer builtin.deinit();
 
     var vm = try CairoVM.init(
         std.testing.allocator,
