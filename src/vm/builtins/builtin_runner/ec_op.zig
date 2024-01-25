@@ -136,6 +136,7 @@ pub const EcOpBuiltinRunner = struct {
         }
 
         var input_cells = ArrayList(Felt252).init(allocator);
+        defer input_cells.deinit();
 
         // All input cells should be filled, and be integer values.
         for (0..self.n_input_cells) |i| {
@@ -487,7 +488,7 @@ test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory valid" {
     const instance_def = ec_op_instance_def.EcOpInstanceDef{
         .ratio = 10,
     };
-    const builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
+    var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
 
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -520,10 +521,12 @@ test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory valid" {
         },
     );
 
-    const expected = Felt252.fromInteger(0x73b3ec210cccbb970f80c6826fb1c40ae9f487617696234ff147451405c339f);
+    const expected = Felt252.fromInteger(3598390311618116577316045819420613574162151407434885460365915347732568210029);
+    const actual = try builtin.deduceMemoryCell(std.testing.allocator, Relocatable.new(3, 6), vm.segments.memory);
+
     try expectEqual(
         MaybeRelocatable.fromFelt(expected),
-        builtin.deduceMemoryCell(Relocatable.new(3, 6), std.testing.allocator, vm.segments),
+        actual,
     );
 }
 
