@@ -685,7 +685,7 @@ test "invalid ap update" {
 }
 
 test "isCallInstruction" {
-    try expect(isCallInstruction(Felt252.fromInteger(1226245742482522112)));
-    try expect(!isCallInstruction(Felt252.fromInteger(4612671187288031229)));
-    try expect(!isCallInstruction(Felt252.fromInteger(1 << 63)));
+    try expect(isCallInstruction(Felt252.fromInt(u256, 1226245742482522112)));
+    try expect(!isCallInstruction(Felt252.fromInt(u256, 4612671187288031229)));
+    try expect(!isCallInstruction(Felt252.fromInt(u256, 1 << 63)));
 }
