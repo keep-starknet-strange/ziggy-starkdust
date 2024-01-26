@@ -88,109 +88,60 @@ pub fn Field(comptime F: type, comptime mod: u256) type {
             };
         }
 
-        /// Create a field element from an integer in Montgomery representation.
+        /// Creates a `Field` element from an integer of type `T`. The resulting field element is
+        /// in Montgomery form. This function handles conversion for integers of various sizes,
+        /// ensuring compatibility with the defined finite field (`Field`) and its modulo value.
         ///
-        /// This function converts an integer to a field element in Montgomery form.
-        pub fn fromInteger(num: u256) Self {
-            var lbe: [BytesSize]u8 = [_]u8{0} ** BytesSize;
-            std.mem.writeInt(
-                u256,
-                lbe[0..],
-                num % Modulo,
-                .little,
-            );
-
-            var nonMont: F.NonMontgomeryDomainFieldElement = undefined;
-            F.fromBytes(
-                &nonMont,
-                lbe,
-            );
+        /// # Arguments:
+        /// - `T`: The type of the integer value.
+        /// - `num`: The integer value to create the `Field` element from.
+        ///
+        /// # Returns:
+        /// A new `Field` element in Montgomery form representing the converted integer.
+        pub fn fromInt(comptime T: type, num: T) Self {
             var mont: F.MontgomeryDomainFieldElement = undefined;
-            F.toMontgomery(
-                &mont,
-                nonMont,
-            );
-
-            return .{ .fe = mont };
-        }
-
-        /// Create a field element from an 8-bit unsigned integer.
-        pub fn fromU8(num: u8) Self {
-            var mont: F.MontgomeryDomainFieldElement = undefined;
-            F.toMontgomery(
-                &mont,
-                [_]u64{ @intCast(num), 0, 0, 0 },
-            );
-
-            return .{ .fe = mont };
-        }
-
-        /// Create a field element from an 16-bit unsigned integer.
-        pub fn fromU16(num: u16) Self {
-            var mont: F.MontgomeryDomainFieldElement = undefined;
-            F.toMontgomery(
-                &mont,
-                [_]u64{ @intCast(num), 0, 0, 0 },
-            );
-
-            return .{ .fe = mont };
-        }
-
-        /// Create a field element from an 32-bit unsigned integer.
-        pub fn fromU32(num: u32) Self {
-            var mont: F.MontgomeryDomainFieldElement = undefined;
-            F.toMontgomery(
-                &mont,
-                [_]u64{ @intCast(num), 0, 0, 0 },
-            );
-
-            return .{ .fe = mont };
-        }
-
-        /// Create a field element from an 64-bit unsigned integer.
-        pub fn fromU64(num: u64) Self {
-            var mont: F.MontgomeryDomainFieldElement = undefined;
-            F.toMontgomery(
-                &mont,
-                [_]u64{ num, 0, 0, 0 },
-            );
-
-            return .{ .fe = mont };
-        }
-
-        /// Create a field element from an usize unsigned integer.
-        pub fn fromUsize(num: usize) Self {
-            var mont: F.MontgomeryDomainFieldElement = undefined;
-            F.toMontgomery(
-                &mont,
-                [_]u64{ num, 0, 0, 0 },
-            );
-
-            return .{ .fe = mont };
-        }
-
-        /// Create a field element from an 128-bit unsigned integer.
-        pub fn fromU128(num: u128) Self {
-            var mont: F.MontgomeryDomainFieldElement = undefined;
-            F.toMontgomery(
-                &mont,
-                [_]u64{
-                    @truncate(
-                        @mod(
-                            num,
-                            @as(u128, @intCast(std.math.maxInt(u64))) + 1,
+            std.debug.assert(num >= 0);
+            switch (@typeInfo(T).Int.bits) {
+                0...63 => F.toMontgomery(&mont, [_]u64{ @intCast(num), 0, 0, 0 }),
+                64 => F.toMontgomery(&mont, [_]u64{ num, 0, 0, 0 }),
+                65...128 => F.toMontgomery(
+                    &mont,
+                    [_]u64{
+                        @truncate(
+                            @mod(
+                                num,
+                                @as(u128, @intCast(std.math.maxInt(u64))) + 1,
+                            ),
                         ),
-                    ),
-                    @truncate(
-                        @divTrunc(
-                            num,
-                            @as(u128, @intCast(std.math.maxInt(u64))) + 1,
+                        @truncate(
+                            @divTrunc(
+                                num,
+                                @as(u128, @intCast(std.math.maxInt(u64))) + 1,
+                            ),
                         ),
-                    ),
-                    0,
-                    0,
+                        0,
+                        0,
+                    },
+                ),
+                else => {
+                    var lbe: [BytesSize]u8 = [_]u8{0} ** BytesSize;
+                    std.mem.writeInt(
+                        u256,
+                        lbe[0..],
+                        num % Modulo,
+                        .little,
+                    );
+                    var nonMont: F.NonMontgomeryDomainFieldElement = undefined;
+                    F.fromBytes(
+                        &nonMont,
+                        lbe,
+                    );
+                    F.toMontgomery(
+                        &mont,
+                        nonMont,
+                    );
                 },
-            );
+            }
 
             return .{ .fe = mont };
         }
@@ -585,7 +536,7 @@ pub fn Field(comptime F: type, comptime mod: u256) type {
                 t = t + Modulo;
             }
 
-            return Self.fromInteger(@intCast(t));
+            return Self.fromInt(u256, @intCast(t));
         }
 
         /// Divide one field element by another.
@@ -668,7 +619,7 @@ pub fn Field(comptime F: type, comptime mod: u256) type {
             // p, -1 otherwise.
             const ls = a.pow((Modulo - 1) / 2);
 
-            const modulo_minus_one = comptime fromInteger(Modulo - 1);
+            const modulo_minus_one = comptime fromInt(u256, Modulo - 1);
             if (ls.equal(modulo_minus_one)) {
                 return -1;
             } else if (ls.isZero()) {

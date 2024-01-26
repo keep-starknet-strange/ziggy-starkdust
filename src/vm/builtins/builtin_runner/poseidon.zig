@@ -287,7 +287,7 @@ test "PoseidonBuiltinRunner: finalStack should return TypeMismatchNotRelocatable
             2,
             2,
         ).subUint(1),
-        .{ .felt = Felt252.fromU8(10) },
+        .{ .felt = Felt252.fromInt(u8, 10) },
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 

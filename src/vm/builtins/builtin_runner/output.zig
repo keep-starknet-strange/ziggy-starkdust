@@ -529,7 +529,7 @@ test "OutputBuiltinRunner: finalStack should return TypeMismatchNotRelocatable e
             2,
             2,
         ).subUint(@intCast(1)),
-        .{ .felt = Felt252.fromU8(10) },
+        .{ .felt = Felt252.fromInt(u8, 10) },
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
@@ -679,7 +679,7 @@ test "OutputBuiltinRunner: addPage should an error if the page already exists" {
         OutputBuiltinRunnerError.PageIdAlreadyAssigned,
         output_builtin.addPage(
             10,
-            MaybeRelocatable.fromU8(4),
+            MaybeRelocatable.fromInt(u8, 4),
             5,
         ),
     );
@@ -693,7 +693,7 @@ test "OutputBuiltinRunner: addPage should an error if page_start is Felt252" {
         OutputBuiltinRunnerError.PageStartNotInOutputSegment,
         output_builtin.addPage(
             10,
-            MaybeRelocatable.fromU8(4),
+            MaybeRelocatable.fromInt(u8, 4),
             5,
         ),
     );

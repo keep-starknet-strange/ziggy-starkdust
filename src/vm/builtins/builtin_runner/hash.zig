@@ -454,24 +454,24 @@ test "HashBuiltinRunner: deduce memory cell pedersen for preset memory valid" {
         memory_segment_manager,
         std.testing.allocator,
         Relocatable.new(0, 3),
-        MaybeRelocatable.fromFelt(Felt252.fromU8(32)),
+        MaybeRelocatable.fromFelt(Felt252.fromInt(u8, 32)),
     );
     try insertAtIndex(
         memory_segment_manager,
         std.testing.allocator,
         Relocatable.new(0, 4),
-        MaybeRelocatable.fromFelt(Felt252.fromU8(72)),
+        MaybeRelocatable.fromFelt(Felt252.fromInt(u8, 72)),
     );
     try insertAtIndex(
         memory_segment_manager,
         std.testing.allocator,
         Relocatable.new(0, 5),
-        MaybeRelocatable.fromFelt(Felt252.fromU8(0)),
+        MaybeRelocatable.fromFelt(Felt252.fromInt(u8, 0)),
     );
 
     const res = (try hash_builtin.deduceMemoryCell(Relocatable.new(0, 5), memory_segment_manager.memory)).?;
     try expectEqual(
-        MaybeRelocatable.fromU256(0x73b3ec210cccbb970f80c6826fb1c40ae9f487617696234ff147451405c339f),
+        MaybeRelocatable.fromInt(u256, 0x73b3ec210cccbb970f80c6826fb1c40ae9f487617696234ff147451405c339f),
         res,
     );
 
@@ -494,19 +494,19 @@ test "HashBuiltinRunner: deduce memory cell pedersen for preset memory incorrect
         memory_segment_manager,
         std.testing.allocator,
         Relocatable.new(0, 4),
-        MaybeRelocatable.fromFelt(Felt252.fromU8(32)),
+        MaybeRelocatable.fromFelt(Felt252.fromInt(u8, 32)),
     );
     try insertAtIndex(
         memory_segment_manager,
         std.testing.allocator,
         Relocatable.new(0, 5),
-        MaybeRelocatable.fromFelt(Felt252.fromU8(72)),
+        MaybeRelocatable.fromFelt(Felt252.fromInt(u8, 72)),
     );
     try insertAtIndex(
         memory_segment_manager,
         std.testing.allocator,
         Relocatable.new(0, 6),
-        MaybeRelocatable.fromFelt(Felt252.fromU8(0)),
+        MaybeRelocatable.fromFelt(Felt252.fromInt(u8, 0)),
     );
 
     const res = (try hash_builtin.deduceMemoryCell(Relocatable.new(0, 6), memory_segment_manager.memory));
@@ -529,13 +529,13 @@ test "HashBuiltinRunner: deduce memory cell pedersen for preset memory no values
         memory_segment_manager,
         std.testing.allocator,
         Relocatable.new(0, 4),
-        MaybeRelocatable.fromFelt(Felt252.fromU8(72)),
+        MaybeRelocatable.fromFelt(Felt252.fromInt(u8, 72)),
     );
     try insertAtIndex(
         memory_segment_manager,
         std.testing.allocator,
         Relocatable.new(0, 5),
-        MaybeRelocatable.fromFelt(Felt252.fromU8(0)),
+        MaybeRelocatable.fromFelt(Felt252.fromInt(u8, 0)),
     );
 
     const res = (try hash_builtin.deduceMemoryCell(Relocatable.new(0, 5), memory_segment_manager.memory));
@@ -556,19 +556,19 @@ test "HashBuiltinRunner: deduce memory cell pedersen for preset memory already c
         memory_segment_manager,
         std.testing.allocator,
         Relocatable.new(0, 3),
-        MaybeRelocatable.fromFelt(Felt252.fromU8(32)),
+        MaybeRelocatable.fromFelt(Felt252.fromInt(u8, 32)),
     );
     try insertAtIndex(
         memory_segment_manager,
         std.testing.allocator,
         Relocatable.new(0, 4),
-        MaybeRelocatable.fromFelt(Felt252.fromU8(72)),
+        MaybeRelocatable.fromFelt(Felt252.fromInt(u8, 72)),
     );
     try insertAtIndex(
         memory_segment_manager,
         std.testing.allocator,
         Relocatable.new(0, 5),
-        MaybeRelocatable.fromFelt(Felt252.fromU8(0)),
+        MaybeRelocatable.fromFelt(Felt252.fromInt(u8, 0)),
     );
 
     hash_builtin.verified_addresses.deinit();

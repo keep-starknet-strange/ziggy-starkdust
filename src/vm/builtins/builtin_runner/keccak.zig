@@ -822,7 +822,7 @@ test "KeccakBuiltinRunner: finalStack should return TypeMismatchNotRelocatable e
             2,
             2,
         ).subUint(1),
-        .{ .felt = Felt252.fromU8(10) },
+        .{ .felt = Felt252.fromInt(u8, 10) },
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
@@ -991,7 +991,7 @@ test "KeccakBuiltinRunner: deduceMemoryCell memory valid" {
     defer mem.deinitData(std.testing.allocator);
 
     try expectEqual(
-        MaybeRelocatable{ .felt = Felt252.fromInteger(1006979841721999878391288827876533441431370448293338267890891) },
+        MaybeRelocatable{ .felt = Felt252.fromInt(u256, 1006979841721999878391288827876533441431370448293338267890891) },
         (try keccak_builtin.deduceMemoryCell(
             std.testing.allocator,
             Relocatable.init(0, 25),

@@ -425,7 +425,7 @@ test "Range Check: validation rule should return erorr out of bounds" {
     try mem.memory.set(
         std.testing.allocator,
         relo,
-        MaybeRelocatable.fromFelt(Felt252.fromU8(10).neg()),
+        MaybeRelocatable.fromFelt(Felt252.fromInt(u8, 10).neg()),
     );
     defer mem.memory.deinitData(std.testing.allocator);
 

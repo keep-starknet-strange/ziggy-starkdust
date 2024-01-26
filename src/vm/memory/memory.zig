@@ -1065,7 +1065,7 @@ pub const Memory = struct {
                 try self.set(
                     allocator,
                     Relocatable.init(row[0][0], row[0][1]),
-                    .{ .felt = Felt252.fromInteger(row[1][0]) },
+                    .{ .felt = Felt252.fromInt(u256, row[1][0]) },
                 );
             } else {
                 switch (@typeInfo(@TypeOf(row[1][0]))) {
@@ -1233,7 +1233,7 @@ test "memory inner for testing test" {
     defer memory.deinitData(std.testing.allocator);
 
     try expectEqual(
-        Felt252.fromU8(23),
+        Felt252.fromInt(u8, 23),
         try memory.getFelt(Relocatable.init(9, 10)),
     );
 
@@ -1313,11 +1313,11 @@ test "Memory: set and get for both segments and temporary segments should return
 
     // Test checks
     try expectEqual(
-        @as(?MaybeRelocatable, MaybeRelocatable.fromU8(1)),
+        @as(?MaybeRelocatable, MaybeRelocatable.fromInt(u8, 1)),
         memory.get(Relocatable.init(0, 0)),
     );
     try expectEqual(
-        @as(?MaybeRelocatable, MaybeRelocatable.fromU8(1)),
+        @as(?MaybeRelocatable, MaybeRelocatable.fromInt(u8, 1)),
         memory.get(Relocatable.init(-1, 0)),
     );
 }
@@ -1440,7 +1440,7 @@ test "Memory: getFelt should return Felt252 if available at the given address" {
 
     // Test checks
     try expectEqual(
-        Felt252.fromU8(23),
+        Felt252.fromInt(u8, 23),
         try memory.getFelt(Relocatable.init(0, 0)),
     );
 }
@@ -2041,9 +2041,9 @@ test "Memory: getRange for continuous memory" {
     var expected_vec = std.ArrayList(?MaybeRelocatable).init(std.testing.allocator);
     defer expected_vec.deinit();
 
-    try expected_vec.append(MaybeRelocatable.fromU8(2));
-    try expected_vec.append(MaybeRelocatable.fromU8(3));
-    try expected_vec.append(MaybeRelocatable.fromU8(4));
+    try expected_vec.append(MaybeRelocatable.fromInt(u8, 2));
+    try expected_vec.append(MaybeRelocatable.fromInt(u8, 3));
+    try expected_vec.append(MaybeRelocatable.fromInt(u8, 4));
 
     var actual = try memory.getRange(
         std.testing.allocator,
@@ -2078,10 +2078,10 @@ test "Memory: getRange for non continuous memory" {
     var expected_vec = std.ArrayList(?MaybeRelocatable).init(std.testing.allocator);
     defer expected_vec.deinit();
 
-    try expected_vec.append(MaybeRelocatable.fromU8(2));
-    try expected_vec.append(MaybeRelocatable.fromU8(3));
+    try expected_vec.append(MaybeRelocatable.fromInt(u8, 2));
+    try expected_vec.append(MaybeRelocatable.fromInt(u8, 3));
     try expected_vec.append(null);
-    try expected_vec.append(MaybeRelocatable.fromU8(4));
+    try expected_vec.append(MaybeRelocatable.fromInt(u8, 4));
 
     var actual = try memory.getRange(
         std.testing.allocator,
@@ -2180,9 +2180,9 @@ test "Memory: getContinuousRange for continuous memory" {
     var expected_vec = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
     defer expected_vec.deinit();
 
-    try expected_vec.append(MaybeRelocatable.fromU8(2));
-    try expected_vec.append(MaybeRelocatable.fromU8(3));
-    try expected_vec.append(MaybeRelocatable.fromU8(4));
+    try expected_vec.append(MaybeRelocatable.fromInt(u8, 2));
+    try expected_vec.append(MaybeRelocatable.fromInt(u8, 3));
+    try expected_vec.append(MaybeRelocatable.fromInt(u8, 4));
 
     var actual = try memory.getContinuousRange(
         std.testing.allocator,
@@ -2245,7 +2245,7 @@ test "Memory: getFeltRange for continuous memory" {
 
     try expected_vec.append(Felt252.two());
     try expected_vec.append(Felt252.three());
-    try expected_vec.append(Felt252.fromU8(4));
+    try expected_vec.append(Felt252.fromInt(u8, 4));
 
     var actual = try memory.getFeltRange(
         Relocatable.init(1, 0),
@@ -2403,10 +2403,10 @@ test "AddressSet: len should return the number of addresses in the address set" 
 
 test "MemoryCell: eql function" {
     // Test setup
-    const memoryCell1 = MemoryCell.init(.{ .felt = Felt252.fromU8(10) });
-    const memoryCell2 = MemoryCell.init(.{ .felt = Felt252.fromU8(10) });
+    const memoryCell1 = MemoryCell.init(.{ .felt = Felt252.fromInt(u8, 10) });
+    const memoryCell2 = MemoryCell.init(.{ .felt = Felt252.fromInt(u8, 10) });
     const memoryCell3 = MemoryCell.init(.{ .felt = Felt252.three() });
-    var memoryCell4 = MemoryCell.init(.{ .felt = Felt252.fromU8(10) });
+    var memoryCell4 = MemoryCell.init(.{ .felt = Felt252.fromInt(u8, 10) });
     memoryCell4.is_accessed = true;
 
     // Test checks
@@ -2417,8 +2417,8 @@ test "MemoryCell: eql function" {
 
 test "MemoryCell: eqlSlice should return false if slice len are not the same" {
     // Test setup
-    const memoryCell1 = MemoryCell.init(.{ .felt = Felt252.fromU8(10) });
-    const memoryCell2 = MemoryCell.init(.{ .felt = Felt252.fromU8(10) });
+    const memoryCell1 = MemoryCell.init(.{ .felt = Felt252.fromInt(u8, 10) });
+    const memoryCell2 = MemoryCell.init(.{ .felt = Felt252.fromInt(u8, 10) });
     const memoryCell3 = MemoryCell.init(.{ .felt = Felt252.three() });
 
     // Test checks
@@ -2430,8 +2430,8 @@ test "MemoryCell: eqlSlice should return false if slice len are not the same" {
 
 test "MemoryCell: eqlSlice should return true if same pointer" {
     // Test setup
-    const memoryCell1 = MemoryCell.init(.{ .felt = Felt252.fromU8(10) });
-    const memoryCell2 = MemoryCell.init(.{ .felt = Felt252.fromU8(10) });
+    const memoryCell1 = MemoryCell.init(.{ .felt = Felt252.fromInt(u8, 10) });
+    const memoryCell2 = MemoryCell.init(.{ .felt = Felt252.fromInt(u8, 10) });
 
     const a = [_]?MemoryCell{ memoryCell1, memoryCell2 };
 
@@ -2441,8 +2441,8 @@ test "MemoryCell: eqlSlice should return true if same pointer" {
 
 test "MemoryCell: eqlSlice should return false if slice are not equal" {
     // Test setup
-    const memoryCell1 = MemoryCell.init(.{ .felt = Felt252.fromU8(10) });
-    const memoryCell2 = MemoryCell.init(.{ .felt = Felt252.fromU8(10) });
+    const memoryCell1 = MemoryCell.init(.{ .felt = Felt252.fromInt(u8, 10) });
+    const memoryCell2 = MemoryCell.init(.{ .felt = Felt252.fromInt(u8, 10) });
 
     // Test checks
     try expect(!MemoryCell.eqlSlice(
@@ -2453,8 +2453,8 @@ test "MemoryCell: eqlSlice should return false if slice are not equal" {
 
 test "MemoryCell: eqlSlice should return true if slice are equal" {
     // Test setup
-    const memoryCell1 = MemoryCell.init(.{ .felt = Felt252.fromU8(10) });
-    const memoryCell2 = MemoryCell.init(.{ .felt = Felt252.fromU8(10) });
+    const memoryCell1 = MemoryCell.init(.{ .felt = Felt252.fromInt(u8, 10) });
+    const memoryCell2 = MemoryCell.init(.{ .felt = Felt252.fromInt(u8, 10) });
 
     // Test checks
     try expect(MemoryCell.eqlSlice(
@@ -2530,11 +2530,12 @@ test "MemoryCell: cmp should return an error if incompatible types for a compari
         MemoryCell.init(MaybeRelocatable.fromSegment(
             4,
             10,
-        )).cmp(MemoryCell.init(MaybeRelocatable.fromU8(4))),
+        )).cmp(MemoryCell.init(MaybeRelocatable.fromInt(u8, 4))),
     );
     try expectEqual(
         std.math.Order.gt,
-        MemoryCell.init(MaybeRelocatable.fromU8(
+        MemoryCell.init(MaybeRelocatable.fromInt(
+            u8,
             4,
         )).cmp(MemoryCell.init(MaybeRelocatable.fromSegment(4, 10))),
     );
@@ -2542,26 +2543,26 @@ test "MemoryCell: cmp should return an error if incompatible types for a compari
 
 test "MemoryCell: cmp should return proper order results for Felt252 comparisons" {
     // Should return less than (lt) when the first Felt252 is smaller than the second Felt252.
-    try expectEqual(std.math.Order.lt, MemoryCell.init(MaybeRelocatable.fromU8(10)).cmp(MemoryCell.init(MaybeRelocatable.fromU64(343535))));
+    try expectEqual(std.math.Order.lt, MemoryCell.init(MaybeRelocatable.fromInt(u8, 10)).cmp(MemoryCell.init(MaybeRelocatable.fromInt(u64, 343535))));
 
     // Should return greater than (gt) when the first Felt252 is larger than the second Felt252.
-    try expectEqual(std.math.Order.gt, MemoryCell.init(MaybeRelocatable.fromU256(543636535)).cmp(MemoryCell.init(MaybeRelocatable.fromU64(434))));
+    try expectEqual(std.math.Order.gt, MemoryCell.init(MaybeRelocatable.fromInt(u256, 543636535)).cmp(MemoryCell.init(MaybeRelocatable.fromInt(u64, 434))));
 
     // Should return equal (eq) when both Felt252 values are identical.
-    try expectEqual(std.math.Order.eq, MemoryCell.init(MaybeRelocatable.fromU8(10)).cmp(MemoryCell.init(MaybeRelocatable.fromU8(10))));
+    try expectEqual(std.math.Order.eq, MemoryCell.init(MaybeRelocatable.fromInt(u8, 10)).cmp(MemoryCell.init(MaybeRelocatable.fromInt(u8, 10))));
 
     // Should return less than (lt) when the cell's accessed status differs.
-    var memCell = MemoryCell.init(MaybeRelocatable.fromU8(10));
+    var memCell = MemoryCell.init(MaybeRelocatable.fromInt(u8, 10));
     memCell.is_accessed = true;
-    try expectEqual(std.math.Order.lt, MemoryCell.init(MaybeRelocatable.fromU8(10)).cmp(memCell));
+    try expectEqual(std.math.Order.lt, MemoryCell.init(MaybeRelocatable.fromInt(u8, 10)).cmp(memCell));
 
     // Should return greater than (gt) when the cell's accessed status differs (reversed order).
-    try expectEqual(std.math.Order.gt, memCell.cmp(MemoryCell.init(MaybeRelocatable.fromU8(10))));
+    try expectEqual(std.math.Order.gt, memCell.cmp(MemoryCell.init(MaybeRelocatable.fromInt(u8, 10))));
 }
 
 test "MemoryCell: cmp with null values" {
     const memCell = MemoryCell.init(MaybeRelocatable.fromSegment(4, 15));
-    const memCell1 = MemoryCell.init(MaybeRelocatable.fromU8(15));
+    const memCell1 = MemoryCell.init(MaybeRelocatable.fromInt(u8, 15));
 
     try expectEqual(std.math.Order.lt, MemoryCell.cmp(null, memCell));
     try expectEqual(std.math.Order.gt, MemoryCell.cmp(memCell, null));
@@ -2591,7 +2592,7 @@ test "MemoryCell: cmpSlice should compare MemoryCell slices (if eq and one longe
 
 test "MemoryCell: cmpSlice should return .eq if both slices are equal" {
     const memCell = MemoryCell.init(MaybeRelocatable.fromSegment(4, 15));
-    const memCell1 = MemoryCell.init(MaybeRelocatable.fromU8(15));
+    const memCell1 = MemoryCell.init(MaybeRelocatable.fromInt(u8, 15));
     const slc = &[_]?MemoryCell{ null, null, memCell };
 
     try expectEqual(
@@ -2617,8 +2618,8 @@ test "MemoryCell: cmpSlice should return .eq if both slices are equal" {
 test "MemoryCell: cmpSlice should return .lt if a < b" {
     const memCell = MemoryCell.init(MaybeRelocatable.fromSegment(40, 15));
     const memCell1 = MemoryCell.init(MaybeRelocatable.fromSegment(3, 15));
-    const memCell2 = MemoryCell.init(MaybeRelocatable.fromU8(10));
-    const memCell3 = MemoryCell.init(MaybeRelocatable.fromU8(15));
+    const memCell2 = MemoryCell.init(MaybeRelocatable.fromInt(u8, 10));
+    const memCell3 = MemoryCell.init(MaybeRelocatable.fromInt(u8, 15));
 
     try expectEqual(
         std.math.Order.lt,
@@ -2646,8 +2647,8 @@ test "MemoryCell: cmpSlice should return .lt if a < b" {
 test "MemoryCell: cmpSlice should return .gt if a > b" {
     const memCell = MemoryCell.init(MaybeRelocatable.fromSegment(40, 15));
     const memCell1 = MemoryCell.init(MaybeRelocatable.fromSegment(3, 15));
-    const memCell2 = MemoryCell.init(MaybeRelocatable.fromU8(10));
-    const memCell3 = MemoryCell.init(MaybeRelocatable.fromU8(15));
+    const memCell2 = MemoryCell.init(MaybeRelocatable.fromInt(u8, 10));
+    const memCell3 = MemoryCell.init(MaybeRelocatable.fromInt(u8, 15));
 
     try expectEqual(
         std.math.Order.gt,
@@ -2682,7 +2683,7 @@ test "Memory: set should not rewrite memory" {
     try memory.set(
         std.testing.allocator,
         Relocatable.init(0, 1),
-        .{ .felt = Felt252.fromU8(23) },
+        .{ .felt = Felt252.fromInt(u8, 23) },
     );
     defer memory.deinitData(std.testing.allocator);
 
@@ -2690,7 +2691,7 @@ test "Memory: set should not rewrite memory" {
     try expectError(MemoryError.DuplicatedRelocation, memory.set(
         std.testing.allocator,
         Relocatable.init(0, 1),
-        .{ .felt = Felt252.fromU8(8) },
+        .{ .felt = Felt252.fromInt(u8, 8) },
     ));
 }
 
@@ -2771,9 +2772,9 @@ test "Memory: relocateValueFromFelt should return the Felt252 value" {
     defer memory.deinit();
 
     // Test relocating Felt252 values and assert the expected results
-    try expectEqual(Felt252.fromU8(111), memory.relocateValueFromFelt(Felt252.fromU8(111)));
-    try expectEqual(Felt252.fromU8(0), memory.relocateValueFromFelt(Felt252.fromU8(0)));
-    try expectEqual(Felt252.fromU8(1), memory.relocateValueFromFelt(Felt252.fromU8(1)));
+    try expectEqual(Felt252.fromInt(u8, 111), memory.relocateValueFromFelt(Felt252.fromInt(u8, 111)));
+    try expectEqual(Felt252.fromInt(u8, 0), memory.relocateValueFromFelt(Felt252.fromInt(u8, 0)));
+    try expectEqual(Felt252.fromInt(u8, 1), memory.relocateValueFromFelt(Felt252.fromInt(u8, 1)));
 }
 
 test "Memory: relocateValueFromRelocatable with positive segment index" {
@@ -2871,16 +2872,16 @@ test "Memory: relocateValueFromMaybeRelocatable with Felt252 should return the F
 
     // Test relocating MaybeRelocatable values containing Felt252 and assert the expected results
     try expectEqual(
-        MaybeRelocatable.fromU8(111),
-        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromU8(111)),
+        MaybeRelocatable.fromInt(u8, 111),
+        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromInt(u8, 111)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU8(0),
-        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromU8(0)),
+        MaybeRelocatable.fromInt(u8, 0),
+        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromInt(u8, 0)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU8(1),
-        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromU8(1)),
+        MaybeRelocatable.fromInt(u8, 1),
+        try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromInt(u8, 1)),
     );
 }
 
@@ -2990,15 +2991,15 @@ test "Memory: relocateMemory with empty relocation rules" {
 
     // Verify the relocation results using expectEqual.
     try expectEqual(
-        MaybeRelocatable.fromU64(1),
+        MaybeRelocatable.fromInt(u64, 1),
         memory.get(Relocatable.init(0, 0)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(2),
+        MaybeRelocatable.fromInt(u64, 2),
         memory.get(Relocatable.init(0, 1)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(3),
+        MaybeRelocatable.fromInt(u64, 3),
         memory.get(Relocatable.init(0, 2)),
     );
 }
@@ -3044,7 +3045,7 @@ test "Memory: relocateMemory with new segment and gap" {
 
     // Verify the relocation results using expectEqual.
     try expectEqual(
-        MaybeRelocatable.fromU64(1),
+        MaybeRelocatable.fromInt(u64, 1),
         memory.get(Relocatable.init(0, 0)),
     );
     try expectEqual(
@@ -3052,7 +3053,7 @@ test "Memory: relocateMemory with new segment and gap" {
         memory.get(Relocatable.init(0, 1)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(3),
+        MaybeRelocatable.fromInt(u64, 3),
         memory.get(Relocatable.init(0, 2)),
     );
     try expectEqual(
@@ -3060,7 +3061,7 @@ test "Memory: relocateMemory with new segment and gap" {
         memory.get(Relocatable.init(1, 0)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(5),
+        MaybeRelocatable.fromInt(u64, 5),
         memory.get(Relocatable.init(1, 1)),
     );
     try expectEqual(
@@ -3068,15 +3069,15 @@ test "Memory: relocateMemory with new segment and gap" {
         memory.get(Relocatable.init(1, 2)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(7),
+        MaybeRelocatable.fromInt(u64, 7),
         memory.get(Relocatable.init(2, 1)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(8),
+        MaybeRelocatable.fromInt(u64, 8),
         memory.get(Relocatable.init(2, 2)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(9),
+        MaybeRelocatable.fromInt(u64, 9),
         memory.get(Relocatable.init(2, 3)),
     );
 
@@ -3125,7 +3126,7 @@ test "Memory: relocateMemory with new segment" {
 
     // Verify the relocation results using expectEqual.
     try expectEqual(
-        MaybeRelocatable.fromU64(1),
+        MaybeRelocatable.fromInt(u64, 1),
         memory.get(Relocatable.init(0, 0)),
     );
     try expectEqual(
@@ -3133,7 +3134,7 @@ test "Memory: relocateMemory with new segment" {
         memory.get(Relocatable.init(0, 1)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(3),
+        MaybeRelocatable.fromInt(u64, 3),
         memory.get(Relocatable.init(0, 2)),
     );
     try expectEqual(
@@ -3141,7 +3142,7 @@ test "Memory: relocateMemory with new segment" {
         memory.get(Relocatable.init(1, 0)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(5),
+        MaybeRelocatable.fromInt(u64, 5),
         memory.get(Relocatable.init(1, 1)),
     );
     try expectEqual(
@@ -3149,15 +3150,15 @@ test "Memory: relocateMemory with new segment" {
         memory.get(Relocatable.init(1, 2)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(7),
+        MaybeRelocatable.fromInt(u64, 7),
         memory.get(Relocatable.init(2, 0)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(8),
+        MaybeRelocatable.fromInt(u64, 8),
         memory.get(Relocatable.init(2, 1)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(9),
+        MaybeRelocatable.fromInt(u64, 9),
         memory.get(Relocatable.init(2, 2)),
     );
 
@@ -3240,7 +3241,7 @@ test "Memory: relocateMemory into an existing segment" {
 
     // Expect values in memory after relocation.
     try expectEqual(
-        MaybeRelocatable.fromU64(1),
+        MaybeRelocatable.fromInt(u64, 1),
         memory.get(Relocatable.init(0, 0)),
     );
     try expectEqual(
@@ -3248,7 +3249,7 @@ test "Memory: relocateMemory into an existing segment" {
         memory.get(Relocatable.init(0, 1)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(3),
+        MaybeRelocatable.fromInt(u64, 3),
         memory.get(Relocatable.init(0, 2)),
     );
     try expectEqual(
@@ -3256,7 +3257,7 @@ test "Memory: relocateMemory into an existing segment" {
         memory.get(Relocatable.init(1, 0)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(5),
+        MaybeRelocatable.fromInt(u64, 5),
         memory.get(Relocatable.init(1, 1)),
     );
     try expectEqual(
@@ -3264,15 +3265,15 @@ test "Memory: relocateMemory into an existing segment" {
         memory.get(Relocatable.init(1, 2)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(7),
+        MaybeRelocatable.fromInt(u64, 7),
         memory.get(Relocatable.init(1, 3)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(8),
+        MaybeRelocatable.fromInt(u64, 8),
         memory.get(Relocatable.init(1, 4)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(9),
+        MaybeRelocatable.fromInt(u64, 9),
         memory.get(Relocatable.init(1, 5)),
     );
 
@@ -3357,7 +3358,7 @@ test "Memory: relocateMemory into new segment with two temporary segments and on
 
     // Expectations for the relocated memory after relocation.
     try expectEqual(
-        MaybeRelocatable.fromU64(1),
+        MaybeRelocatable.fromInt(u64, 1),
         memory.get(Relocatable.init(0, 0)),
     );
     try expectEqual(
@@ -3365,7 +3366,7 @@ test "Memory: relocateMemory into new segment with two temporary segments and on
         memory.get(Relocatable.init(0, 1)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(3),
+        MaybeRelocatable.fromInt(u64, 3),
         memory.get(Relocatable.init(0, 2)),
     );
     try expectEqual(
@@ -3373,7 +3374,7 @@ test "Memory: relocateMemory into new segment with two temporary segments and on
         memory.get(Relocatable.init(1, 0)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(5),
+        MaybeRelocatable.fromInt(u64, 5),
         memory.get(Relocatable.init(1, 1)),
     );
     try expectEqual(
@@ -3381,23 +3382,23 @@ test "Memory: relocateMemory into new segment with two temporary segments and on
         memory.get(Relocatable.init(1, 2)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(7),
+        MaybeRelocatable.fromInt(u64, 7),
         memory.get(Relocatable.init(2, 0)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(8),
+        MaybeRelocatable.fromInt(u64, 8),
         memory.get(Relocatable.init(2, 1)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(9),
+        MaybeRelocatable.fromInt(u64, 9),
         memory.get(Relocatable.init(2, 2)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(10),
+        MaybeRelocatable.fromInt(u64, 10),
         memory.get(Relocatable.init(-1, 0)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(11),
+        MaybeRelocatable.fromInt(u64, 11),
         memory.get(Relocatable.init(-1, 1)),
     );
 }
@@ -3448,7 +3449,7 @@ test "Memory: relocateMemory into new segment with two temporary segments and tw
 
     // Expectations for the relocated memory after relocation.
     try expectEqual(
-        MaybeRelocatable.fromU64(1),
+        MaybeRelocatable.fromInt(u64, 1),
         memory.get(Relocatable.init(0, 0)),
     );
     try expectEqual(
@@ -3456,7 +3457,7 @@ test "Memory: relocateMemory into new segment with two temporary segments and tw
         memory.get(Relocatable.init(0, 1)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(3),
+        MaybeRelocatable.fromInt(u64, 3),
         memory.get(Relocatable.init(0, 2)),
     );
     try expectEqual(
@@ -3464,7 +3465,7 @@ test "Memory: relocateMemory into new segment with two temporary segments and tw
         memory.get(Relocatable.init(1, 0)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(5),
+        MaybeRelocatable.fromInt(u64, 5),
         memory.get(Relocatable.init(1, 1)),
     );
     try expectEqual(
@@ -3472,23 +3473,23 @@ test "Memory: relocateMemory into new segment with two temporary segments and tw
         memory.get(Relocatable.init(1, 2)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(7),
+        MaybeRelocatable.fromInt(u64, 7),
         memory.get(Relocatable.init(2, 0)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(8),
+        MaybeRelocatable.fromInt(u64, 8),
         memory.get(Relocatable.init(2, 1)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(9),
+        MaybeRelocatable.fromInt(u64, 9),
         memory.get(Relocatable.init(2, 2)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(10),
+        MaybeRelocatable.fromInt(u64, 10),
         memory.get(Relocatable.init(3, 0)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(11),
+        MaybeRelocatable.fromInt(u64, 11),
         memory.get(Relocatable.init(3, 1)),
     );
 
@@ -3533,7 +3534,7 @@ test "Memory: relocateMemory into an existing segment with temporary values in t
 
     // Expectations for the relocated memory after relocation.
     try expectEqual(
-        MaybeRelocatable.fromU64(1),
+        MaybeRelocatable.fromInt(u64, 1),
         memory.get(Relocatable.init(0, 0)),
     );
     try expectEqual(
@@ -3541,7 +3542,7 @@ test "Memory: relocateMemory into an existing segment with temporary values in t
         memory.get(Relocatable.init(0, 1)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(3),
+        MaybeRelocatable.fromInt(u64, 3),
         memory.get(Relocatable.init(0, 2)),
     );
     try expectEqual(
@@ -3549,7 +3550,7 @@ test "Memory: relocateMemory into an existing segment with temporary values in t
         memory.get(Relocatable.init(1, 0)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(5),
+        MaybeRelocatable.fromInt(u64, 5),
         memory.get(Relocatable.init(1, 1)),
     );
     try expectEqual(
@@ -3561,11 +3562,11 @@ test "Memory: relocateMemory into an existing segment with temporary values in t
         memory.get(Relocatable.init(1, 3)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(8),
+        MaybeRelocatable.fromInt(u64, 8),
         memory.get(Relocatable.init(1, 4)),
     );
     try expectEqual(
-        MaybeRelocatable.fromU64(9),
+        MaybeRelocatable.fromInt(u64, 9),
         memory.get(Relocatable.init(1, 5)),
     );
 
