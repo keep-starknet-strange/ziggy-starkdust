@@ -131,7 +131,7 @@ test "EncodedMemory: can round trip from valid memory binary" {
 
         const value = std.mem.readInt(u256, &value_buf, .little);
 
-        try relocated_memory.insert(idx, Felt252.fromInteger(value));
+        try relocated_memory.insert(idx, Felt252.fromInt(u256, value));
     }
 
     // now we have the shape of a bonafide relocated memory,

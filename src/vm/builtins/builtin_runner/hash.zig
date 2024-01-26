@@ -442,10 +442,11 @@ test "HashBuiltinRunner: deduce memory cell pedersen for preset memory valid" {
         .{ .{ 0, 4 }, .{72} },
         .{ .{ 0, 5 }, .{0} },
     });
-
     const res = (try hash_builtin.deduceMemoryCell(Relocatable.new(0, 5), memory_segment_manager.memory)).?;
-    const expected = Felt252.fromInteger(0x73b3ec210cccbb970f80c6826fb1c40ae9f487617696234ff147451405c339f);
-    try expectEqual(MaybeRelocatable.fromFelt(expected), res);
+    try expectEqual(
+        MaybeRelocatable.fromInt(u256, 0x73b3ec210cccbb970f80c6826fb1c40ae9f487617696234ff147451405c339f),
+        res,
+    );
 
     try expectEqualSlices(bool, &verified_addresses, hash_builtin.verified_addresses.items);
 }
@@ -502,6 +503,7 @@ test "HashBuiltinRunner: deduce memory cell pedersen for preset memory already c
     const memory_segment_manager = try Segments.MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
+
 
     try memory_segment_manager.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 0, 3 }, .{32} },

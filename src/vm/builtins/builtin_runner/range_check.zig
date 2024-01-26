@@ -422,7 +422,11 @@ test "Range Check: validation rule should return erorr out of bounds" {
     _ = try seg;
 
     const relo = Relocatable.init(0, 1);
-    try mem.memory.set(std.testing.allocator, relo, MaybeRelocatable.fromFelt(Felt252.fromInteger(10).neg()));
+    try mem.memory.set(
+        std.testing.allocator,
+        relo,
+        MaybeRelocatable.fromFelt(Felt252.fromInt(u8, 10).neg()),
+    );
     defer mem.memory.deinitData(std.testing.allocator);
 
     const result = rangeCheckValidationRule(mem.memory, relo);

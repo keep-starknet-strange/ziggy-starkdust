@@ -75,7 +75,7 @@ test "CairoVM: deduceMemoryCell builtin valid" {
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
     try expectEqual(
-        MaybeRelocatable.fromU256(8),
+        MaybeRelocatable.fromInt(u8, 8),
         (try vm.deduceMemoryCell(std.testing.allocator, Relocatable.init(
             0,
             7,
@@ -193,7 +193,7 @@ test "update pc jump with operands res not relocatable" {
     // Test setup
     const allocator = std.testing.allocator;
     var operands = OperandsResult.default();
-    operands.res = MaybeRelocatable.fromU64(0);
+    operands.res = MaybeRelocatable.fromInt(u64, 0);
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -330,7 +330,7 @@ test "update pc jump rel with operands res felt" {
     // Test setup
     const allocator = std.testing.allocator;
     var operands = OperandsResult.default();
-    operands.res = MaybeRelocatable.fromU64(42);
+    operands.res = MaybeRelocatable.fromInt(u64, 42);
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -368,7 +368,7 @@ test "update pc update jnz with operands dst zero" {
     // Test setup
     const allocator = std.testing.allocator;
     var operands = OperandsResult.default();
-    operands.dst = MaybeRelocatable.fromU64(0);
+    operands.dst = MaybeRelocatable.fromInt(u64, 0);
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -406,7 +406,7 @@ test "update pc update jnz with operands dst not zero op1 not felt" {
     // Test setup
     const allocator = std.testing.allocator;
     var operands = OperandsResult.default();
-    operands.dst = MaybeRelocatable.fromU64(1);
+    operands.dst = MaybeRelocatable.fromInt(u64, 1);
     operands.op_1 = MaybeRelocatable.fromRelocatable(Relocatable.init(
         0,
         42,
@@ -441,8 +441,8 @@ test "update pc update jnz with operands dst not zero op1 felt" {
     // Test setup
     const allocator = std.testing.allocator;
     var operands = OperandsResult.default();
-    operands.dst = MaybeRelocatable.fromU64(1);
-    operands.op_1 = MaybeRelocatable.fromU64(42);
+    operands.dst = MaybeRelocatable.fromInt(u64, 1);
+    operands.op_1 = MaybeRelocatable.fromInt(u64, 42);
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -512,7 +512,7 @@ test "CairoVM: updateAp using Add for AP update with non-null operands result" {
     const allocator = std.testing.allocator;
     // Initialize operands result with a non-null result value.
     var operands = OperandsResult.default();
-    operands.res = MaybeRelocatable.fromU256(10);
+    operands.res = MaybeRelocatable.fromInt(u8, 10);
 
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -704,7 +704,7 @@ test "update fp dst felt" {
     // Test setup
     const allocator = std.testing.allocator;
     var operands = OperandsResult.default();
-    operands.dst = MaybeRelocatable.fromU64(42);
+    operands.dst = MaybeRelocatable.fromInt(u64, 42);
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -913,9 +913,9 @@ test "CairoVM: relocateTrace and trace comparison (simple use case)" {
     try vm.relocateTrace(relocation_table);
 
     const relocated_trace = TraceContext.RelocatedTraceEntry{
-        .pc = Felt252.fromInteger(1),
-        .ap = Felt252.fromInteger(4),
-        .fp = Felt252.fromInteger(4),
+        .pc = Felt252.fromInt(u8, 1),
+        .ap = Felt252.fromInt(u8, 4),
+        .fp = Felt252.fromInt(u8, 4),
     };
     const expected_relocated_trace = [_]TraceContext.RelocatedTraceEntry{relocated_trace};
     const actual_relocated_trace = try vm.getRelocatedTrace();
@@ -1046,64 +1046,64 @@ test "CairoVM: relocateTrace and trace comparison (more complex use case)" {
     // Append expected relocated entries using Felt252 values.
     // pc, ap, and fp values are appended in pairs similar to the initial entries.
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInteger(5),
-        .ap = Felt252.fromInteger(18),
-        .fp = Felt252.fromInteger(18),
+        .pc = Felt252.fromInt(u8, 5),
+        .ap = Felt252.fromInt(u8, 18),
+        .fp = Felt252.fromInt(u8, 18),
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInteger(6),
-        .ap = Felt252.fromInteger(19),
-        .fp = Felt252.fromInteger(18),
+        .pc = Felt252.fromInt(u8, 6),
+        .ap = Felt252.fromInt(u8, 19),
+        .fp = Felt252.fromInt(u8, 18),
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInteger(8),
-        .ap = Felt252.fromInteger(20),
-        .fp = Felt252.fromInteger(18),
+        .pc = Felt252.fromInt(u8, 8),
+        .ap = Felt252.fromInt(u8, 20),
+        .fp = Felt252.fromInt(u8, 18),
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInteger(1),
-        .ap = Felt252.fromInteger(22),
-        .fp = Felt252.fromInteger(22),
+        .pc = Felt252.fromInt(u8, 1),
+        .ap = Felt252.fromInt(u8, 22),
+        .fp = Felt252.fromInt(u8, 22),
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInteger(2),
-        .ap = Felt252.fromInteger(22),
-        .fp = Felt252.fromInteger(22),
+        .pc = Felt252.two(),
+        .ap = Felt252.fromInt(u8, 22),
+        .fp = Felt252.fromInt(u8, 22),
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInteger(4),
-        .ap = Felt252.fromInteger(23),
-        .fp = Felt252.fromInteger(22),
+        .pc = Felt252.fromInt(u8, 4),
+        .ap = Felt252.fromInt(u8, 23),
+        .fp = Felt252.fromInt(u8, 22),
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInteger(10),
-        .ap = Felt252.fromInteger(23),
-        .fp = Felt252.fromInteger(18),
+        .pc = Felt252.fromInt(u8, 10),
+        .ap = Felt252.fromInt(u8, 23),
+        .fp = Felt252.fromInt(u8, 18),
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInteger(12),
-        .ap = Felt252.fromInteger(24),
-        .fp = Felt252.fromInteger(18),
+        .pc = Felt252.fromInt(u8, 12),
+        .ap = Felt252.fromInt(u8, 24),
+        .fp = Felt252.fromInt(u8, 18),
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInteger(1),
-        .ap = Felt252.fromInteger(26),
-        .fp = Felt252.fromInteger(26),
+        .pc = Felt252.fromInt(u8, 1),
+        .ap = Felt252.fromInt(u8, 26),
+        .fp = Felt252.fromInt(u8, 26),
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInteger(2),
-        .ap = Felt252.fromInteger(26),
-        .fp = Felt252.fromInteger(26),
+        .pc = Felt252.two(),
+        .ap = Felt252.fromInt(u8, 26),
+        .fp = Felt252.fromInt(u8, 26),
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInteger(4),
-        .ap = Felt252.fromInteger(27),
-        .fp = Felt252.fromInteger(26),
+        .pc = Felt252.fromInt(u8, 4),
+        .ap = Felt252.fromInt(u8, 27),
+        .fp = Felt252.fromInt(u8, 26),
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInteger(14),
-        .ap = Felt252.fromInteger(27),
-        .fp = Felt252.fromInteger(18),
+        .pc = Felt252.fromInt(u8, 14),
+        .ap = Felt252.fromInt(u8, 27),
+        .fp = Felt252.fromInt(u8, 18),
     });
 
     // Assert relocated entries match the expected entries
@@ -1162,14 +1162,14 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Add, input is felt" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Add;
 
-    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(3);
-    const op1: ?MaybeRelocatable = MaybeRelocatable.fromU64(2);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 3);
+    const op1: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 2);
 
     const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
     // Test checks
-    try expect(deduceOp0.op_0.?.eq(MaybeRelocatable.fromU64(1)));
-    try expect(deduceOp0.res.?.eq(MaybeRelocatable.fromU64(3)));
+    try expect(deduceOp0.op_0.?.eq(MaybeRelocatable.fromInt(u64, 1)));
+    try expect(deduceOp0.res.?.eq(MaybeRelocatable.fromInt(u64, 3)));
 }
 
 test "deduceOp0 when opcode == .AssertEq, res_logic == .Add, with no input" {
@@ -1201,14 +1201,14 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Mul, input is felt 1" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Mul;
 
-    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(4);
-    const op1: ?MaybeRelocatable = MaybeRelocatable.fromU64(2);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 4);
+    const op1: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 2);
 
     const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
     // Test checks
-    const expected_op_0: ?MaybeRelocatable = MaybeRelocatable.fromU64(2); // temp var needed for type inference
-    const expected_res: ?MaybeRelocatable = MaybeRelocatable.fromU64(4);
+    const expected_op_0: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 2); // temp var needed for type inference
+    const expected_res: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 4);
     try expectEqual(expected_op_0, deduceOp0.op_0);
     try expectEqual(expected_res, deduceOp0.res);
 }
@@ -1223,8 +1223,8 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Op1, input is felt" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
-    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(4);
-    const op1: ?MaybeRelocatable = MaybeRelocatable.fromU64(0);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 4);
+    const op1: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 0);
 
     const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
@@ -1245,8 +1245,8 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Mul, input is felt 2" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Mul;
 
-    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(4);
-    const op1: ?MaybeRelocatable = MaybeRelocatable.fromU64(0);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 4);
+    const op1: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 0);
 
     const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
@@ -1267,8 +1267,8 @@ test "deduceOp0 when opcode == .Ret, res_logic == .Mul, input is felt" {
     instr.opcode = .Ret;
     instr.res_logic = .Mul;
 
-    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(4);
-    const op1: ?MaybeRelocatable = MaybeRelocatable.fromU64(0);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 4);
+    const op1: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 0);
 
     const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
 
@@ -1305,14 +1305,14 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Add, input is felt" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Add;
 
-    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(3);
-    const op0: ?MaybeRelocatable = MaybeRelocatable.fromU64(2);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 3);
+    const op0: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 2);
 
     const op1Deduction = try deduceOp1(&instr, &dst, &op0);
 
     // Test checks
-    try expect(op1Deduction.op_1.?.eq(MaybeRelocatable.fromU64(1)));
-    try expect(op1Deduction.res.?.eq(MaybeRelocatable.fromU64(3)));
+    try expect(op1Deduction.op_1.?.eq(MaybeRelocatable.fromInt(u64, 1)));
+    try expect(op1Deduction.res.?.eq(MaybeRelocatable.fromInt(u64, 3)));
 }
 
 test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, non-zero op0" {
@@ -1324,14 +1324,14 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, non-zero op0" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Mul;
 
-    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(4);
-    const op0: ?MaybeRelocatable = MaybeRelocatable.fromU64(2);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 4);
+    const op0: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 2);
 
     const op1Deduction = try deduceOp1(&instr, &dst, &op0);
 
     // Test checks
-    try expect(op1Deduction.op_1.?.eq(MaybeRelocatable.fromU64(2)));
-    try expect(op1Deduction.res.?.eq(MaybeRelocatable.fromU64(4)));
+    try expect(op1Deduction.op_1.?.eq(MaybeRelocatable.fromInt(u64, 2)));
+    try expect(op1Deduction.res.?.eq(MaybeRelocatable.fromInt(u64, 4)));
 }
 
 test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
@@ -1343,8 +1343,8 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Mul;
 
-    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(4);
-    const op0: ?MaybeRelocatable = MaybeRelocatable.fromU64(0);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 4);
+    const op0: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 0);
 
     const op1Deduction = try deduceOp1(&instr, &dst, &op0);
 
@@ -1382,7 +1382,7 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
-    const op0: ?MaybeRelocatable = MaybeRelocatable.fromU64(0);
+    const op0: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 0);
 
     const op1Deduction = try deduceOp1(&instr, &null, &op0);
 
@@ -1402,13 +1402,13 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no op0" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
-    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(7);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 7);
 
     const op1Deduction = try deduceOp1(&instr, &dst, &null);
 
     // Test checks
-    try expect(op1Deduction.op_1.?.eq(MaybeRelocatable.fromU64(7)));
-    try expect(op1Deduction.res.?.eq(MaybeRelocatable.fromU64(7)));
+    try expect(op1Deduction.op_1.?.eq(MaybeRelocatable.fromInt(u64, 7)));
+    try expect(op1Deduction.res.?.eq(MaybeRelocatable.fromInt(u64, 7)));
 }
 
 test "set get value in vm memory" {
@@ -1420,13 +1420,11 @@ test "set get value in vm memory" {
     defer vm.deinit();
 
     const address = Relocatable.init(1, 0);
-    const value = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(42));
+    const value = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInt(u8, 42));
 
     try vm.segments.memory.setUpMemory(
         std.testing.allocator,
-        .{
-            .{ .{ 1, 0 }, .{42} },
-        },
+        .{.{ .{ 1, 0 }, .{42} }},
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
@@ -1451,8 +1449,8 @@ test "compute res op1 works" {
     vm.run_context.ap.* = Relocatable.init(1, 0);
     // Test body
 
-    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
-    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.two());
+    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.three());
 
     // Call with Op1 res logic
     const actual_res = try computeRes(
@@ -1492,8 +1490,8 @@ test "compute res add felts works" {
     vm.run_context.ap.* = Relocatable.init(1, 0);
     // Test body
 
-    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
-    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.two());
+    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.three());
 
     const actual_res = try computeRes(
         &.{
@@ -1512,7 +1510,7 @@ test "compute res add felts works" {
         value_op0,
         value_op1,
     );
-    const expected_res = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(5));
+    const expected_res = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInt(u8, 5));
 
     // Test checks
     try expectEqual(
@@ -1535,7 +1533,7 @@ test "compute res add felt to offset works" {
     const value_op0 = Relocatable.init(1, 1);
     const op0 = MaybeRelocatable.fromRelocatable(value_op0);
 
-    const op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.three());
 
     const actual_res = try computeRes(
         &.{
@@ -1615,8 +1613,8 @@ test "compute res mul works" {
     vm.run_context.ap.* = Relocatable.init(1, 0);
     // Test body
 
-    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
-    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.two());
+    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.three());
 
     // Call with Mul res logic
     const actual_res = try computeRes(
@@ -1636,7 +1634,7 @@ test "compute res mul works" {
         value_op0,
         value_op1,
     );
-    const expected_res = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(6));
+    const expected_res = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInt(u8, 6));
 
     // Test checks
     try expectEqual(
@@ -1696,7 +1694,7 @@ test "compute res mul fails felt and reloc" {
 
     const value_op0 = Relocatable.init(1, 0);
     const op0 = MaybeRelocatable.fromRelocatable(value_op0);
-    const op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+    const op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.two());
 
     // Test checks
     try expectError(
@@ -1728,8 +1726,8 @@ test "compute res Unconstrained should return null" {
     vm.run_context.ap.* = Relocatable.init(1, 0);
     // Test body
 
-    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
-    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.two());
+    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.three());
 
     // Call with unconstrained res logic
     const actual_res = try computeRes(
@@ -1783,10 +1781,10 @@ test "CairoVM: compute operands add AP" {
         .dst_addr = .{ .segment_index = 1, .offset = 0 },
         .op_0_addr = .{ .segment_index = 1, .offset = 1 },
         .op_1_addr = .{ .segment_index = 1, .offset = 2 },
-        .dst = .{ .felt = Felt252.fromInteger(5) },
-        .op_0 = .{ .felt = Felt252.fromInteger(2) },
-        .op_1 = .{ .felt = Felt252.fromInteger(3) },
-        .res = .{ .felt = Felt252.fromInteger(5) },
+        .dst = .{ .felt = Felt252.fromInt(u8, 5) },
+        .op_0 = .{ .felt = Felt252.two() },
+        .op_1 = .{ .felt = Felt252.three() },
+        .res = .{ .felt = Felt252.fromInt(u8, 5) },
         .deduced_operands = 0,
     };
 
@@ -1839,10 +1837,10 @@ test "CairoVM: compute operands mul FP" {
         .dst_addr = .{ .segment_index = 1, .offset = 0 },
         .op_0_addr = .{ .segment_index = 1, .offset = 1 },
         .op_1_addr = .{ .segment_index = 1, .offset = 2 },
-        .dst = .{ .felt = Felt252.fromInteger(6) },
-        .op_0 = .{ .felt = Felt252.fromInteger(2) },
-        .op_1 = .{ .felt = Felt252.fromInteger(3) },
-        .res = .{ .felt = Felt252.fromInteger(6) },
+        .dst = .{ .felt = Felt252.fromInt(u8, 6) },
+        .op_0 = .{ .felt = Felt252.two() },
+        .op_1 = .{ .felt = Felt252.three() },
+        .res = .{ .felt = Felt252.fromInt(u8, 6) },
         .deduced_operands = 0,
     };
 
@@ -1895,9 +1893,9 @@ test "CairoVM: compute operands JNZ" {
         .dst_addr = .{ .segment_index = 1, .offset = 1 },
         .op_0_addr = .{ .segment_index = 1, .offset = 1 },
         .op_1_addr = .{ .segment_index = 0, .offset = 1 },
-        .dst = .{ .felt = Felt252.fromInteger(4) },
-        .op_0 = .{ .felt = Felt252.fromInteger(4) },
-        .op_1 = .{ .felt = Felt252.fromInteger(4) },
+        .dst = .{ .felt = Felt252.fromInt(u8, 4) },
+        .op_0 = .{ .felt = Felt252.fromInt(u8, 4) },
+        .op_1 = .{ .felt = Felt252.fromInt(u8, 4) },
         .res = null,
         .deduced_operands = 0,
     };
@@ -2057,10 +2055,10 @@ test "memory is not leaked upon allocation failure during initialization" {
 test "updateRegisters all regular" {
     // Test setup
     const operands = OperandsResult{
-        .dst = .{ .felt = Felt252.fromInteger(11) },
-        .res = .{ .felt = Felt252.fromInteger(8) },
-        .op_0 = .{ .felt = Felt252.fromInteger(9) },
-        .op_1 = .{ .felt = Felt252.fromInteger(10) },
+        .dst = .{ .felt = Felt252.fromInt(u8, 11) },
+        .res = .{ .felt = Felt252.fromInt(u8, 8) },
+        .op_0 = .{ .felt = Felt252.fromInt(u8, 9) },
+        .op_1 = .{ .felt = Felt252.fromInt(u8, 10) },
         .dst_addr = .{},
         .op_0_addr = .{},
         .op_1_addr = .{},
@@ -2128,9 +2126,9 @@ test "updateRegisters with mixed types" {
             1,
             11,
         ) },
-        .res = .{ .felt = Felt252.fromInteger(8) },
-        .op_0 = .{ .felt = Felt252.fromInteger(9) },
-        .op_1 = .{ .felt = Felt252.fromInteger(10) },
+        .res = .{ .felt = Felt252.fromInt(u8, 8) },
+        .op_0 = .{ .felt = Felt252.fromInt(u8, 9) },
+        .op_1 = .{ .felt = Felt252.fromInt(u8, 10) },
         .dst_addr = .{},
         .op_0_addr = .{},
         .op_1_addr = .{},
@@ -2218,7 +2216,7 @@ test "CairoVM: computeOp0Deductions with a valid built in and non null deduceMem
 
     // Test check
     try expectEqual(
-        MaybeRelocatable.fromU256(8),
+        MaybeRelocatable.fromInt(u8, 8),
         try vm.computeOp0Deductions(
             std.testing.allocator,
             Relocatable.init(0, 7),
@@ -2245,8 +2243,8 @@ test "CairoVM: computeOp0Deductions should return VM error if deduceOp0 and dedu
             std.testing.allocator,
             Relocatable.init(0, 7),
             &instr,
-            &MaybeRelocatable.fromU64(4),
-            &MaybeRelocatable.fromU64(0),
+            &MaybeRelocatable.fromInt(u64, 4),
+            &MaybeRelocatable.fromInt(u64, 0),
         ),
     );
 }
@@ -2277,11 +2275,11 @@ test "CairoVM: deduceDst should return res if AssertEq opcode" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    const res = MaybeRelocatable.fromU256(7);
+    const res = MaybeRelocatable.fromInt(u8, 7);
 
     // Test check
     try expectEqual(
-        MaybeRelocatable.fromU256(7),
+        MaybeRelocatable.fromInt(u8, 7),
         try vm.deduceDst(
             &.{
                 .off_0 = 0,
@@ -2438,7 +2436,7 @@ test "CairoVM: getRelocatable with value should return a MaybeRelocatable" {
 
     // Test check
     try expectEqual(
-        MaybeRelocatable.fromU256(5),
+        MaybeRelocatable.fromInt(u8, 5),
         (vm.getRelocatable(Relocatable.init(34, 12))).?,
     );
 }
@@ -2540,7 +2538,7 @@ test "CairoVM: getFelt should return Felt252 if available at the given address" 
 
     // Test checks
     try expectEqual(
-        Felt252.fromInteger(23),
+        Felt252.fromInt(u8, 23),
         try vm.getFelt(Relocatable.init(10, 30)),
     );
 }
@@ -2593,7 +2591,7 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceMemoryCell if n
 
     // Test check
     try expectEqual(
-        MaybeRelocatable.fromU256(8),
+        MaybeRelocatable.fromInt(u8, 8),
         try vm.computeOp1Deductions(
             std.testing.allocator,
             Relocatable.init(0, 7),
@@ -2614,12 +2612,12 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceOp1 if deduceMe
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
-    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(7);
-    var res: ?MaybeRelocatable = MaybeRelocatable.fromU64(7);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 7);
+    var res: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 7);
 
     // Test check
     try expectEqual(
-        MaybeRelocatable.fromU64(7),
+        MaybeRelocatable.fromInt(u64, 7),
         try vm.computeOp1Deductions(
             std.testing.allocator,
             Relocatable.init(0, 7),
@@ -2640,7 +2638,7 @@ test "CairoVM: computeOp1Deductions should modify res (if null) using res from d
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
-    const dst: ?MaybeRelocatable = MaybeRelocatable.fromU64(7);
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 7);
     var res: ?MaybeRelocatable = null;
 
     _ = try vm.computeOp1Deductions(
@@ -2654,7 +2652,7 @@ test "CairoVM: computeOp1Deductions should modify res (if null) using res from d
 
     // Test check
     try expectEqual(
-        MaybeRelocatable.fromU64(7),
+        MaybeRelocatable.fromInt(u64, 7),
         res.?,
     );
 }
@@ -2668,7 +2666,7 @@ test "CairoVM: computeOp1Deductions should return CairoVMError error if deduceMe
     instr.opcode = .AssertEq;
     instr.res_logic = .Op1;
 
-    const op0: ?MaybeRelocatable = MaybeRelocatable.fromU64(0);
+    const op0: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 0);
     var res: ?MaybeRelocatable = null;
 
     // Test check
@@ -2750,13 +2748,13 @@ test "CairoVM: InserDeducedOperands should insert operands if set as deduced" {
     // Test body
 
     const dst_addr = Relocatable.init(1, 0);
-    const dst_val = MaybeRelocatable{ .felt = Felt252.fromInteger(6) };
+    const dst_val = MaybeRelocatable{ .felt = Felt252.fromInt(u8, 6) };
 
     const op0_addr = Relocatable.init(1, 1);
-    const op0_val = MaybeRelocatable{ .felt = Felt252.fromInteger(2) };
+    const op0_val = MaybeRelocatable{ .felt = Felt252.two() };
 
     const op1_addr = Relocatable.init(1, 2);
-    const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
+    const op1_val = MaybeRelocatable{ .felt = Felt252.three() };
     try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{},
@@ -2803,13 +2801,13 @@ test "CairoVM: InserDeducedOperands insert operands should not be inserted if no
     // Test body
 
     const dst_addr = Relocatable.init(1, 0);
-    const dst_val = MaybeRelocatable{ .felt = Felt252.fromInteger(6) };
+    const dst_val = MaybeRelocatable{ .felt = Felt252.fromInt(u8, 6) };
 
     const op0_addr = Relocatable.init(1, 1);
-    const op0_val = MaybeRelocatable{ .felt = Felt252.fromInteger(2) };
+    const op0_val = MaybeRelocatable{ .felt = Felt252.two() };
 
     const op1_addr = Relocatable.init(1, 2);
-    const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
+    const op1_val = MaybeRelocatable{ .felt = Felt252.three() };
     try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{},
@@ -2899,10 +2897,10 @@ test "CairoVM: markAddressRangeAsAccessed should return an error if the run is n
 
 test "CairoVM: opcodeAssertions should throw UnconstrainedAssertEq error" {
     const operands = OperandsResult{
-        .dst = .{ .felt = Felt252.fromInteger(8) },
+        .dst = .{ .felt = Felt252.fromInt(u8, 8) },
         .res = null,
-        .op_0 = .{ .felt = Felt252.fromInteger(9) },
-        .op_1 = .{ .felt = Felt252.fromInteger(10) },
+        .op_0 = .{ .felt = Felt252.fromInt(u8, 9) },
+        .op_1 = .{ .felt = Felt252.fromInt(u8, 10) },
         .dst_addr = .{},
         .op_0_addr = .{},
         .op_1_addr = .{},
@@ -2935,10 +2933,10 @@ test "CairoVM: opcodeAssertions should throw UnconstrainedAssertEq error" {
 
 test "CairoVM: opcodeAssertions instructions failed - should throw DiffAssertValues error" {
     const operands = OperandsResult{
-        .dst = MaybeRelocatable.fromU64(9),
-        .res = MaybeRelocatable.fromU64(8),
-        .op_0 = MaybeRelocatable.fromU64(9),
-        .op_1 = MaybeRelocatable.fromU64(10),
+        .dst = MaybeRelocatable.fromInt(u64, 9),
+        .res = MaybeRelocatable.fromInt(u64, 8),
+        .op_0 = MaybeRelocatable.fromInt(u64, 9),
+        .op_1 = MaybeRelocatable.fromInt(u64, 10),
         .dst_addr = .{},
         .op_0_addr = .{},
         .op_1_addr = .{},
@@ -2973,8 +2971,8 @@ test "CairoVM: opcodeAssertions instructions failed relocatables - should throw 
     const operands = OperandsResult{
         .dst = MaybeRelocatable.fromSegment(1, 1),
         .res = MaybeRelocatable.fromSegment(1, 2),
-        .op_0 = MaybeRelocatable.fromU64(9),
-        .op_1 = MaybeRelocatable.fromU64(10),
+        .op_0 = MaybeRelocatable.fromInt(u64, 9),
+        .op_1 = MaybeRelocatable.fromInt(u64, 10),
         .dst_addr = .{},
         .op_0_addr = .{},
         .op_1_addr = .{},
@@ -3008,9 +3006,9 @@ test "CairoVM: opcodeAssertions instructions failed relocatables - should throw 
 test "CairoVM: opcodeAssertions inconsistent op0 - should throw CantWriteReturnPC error" {
     const operands = OperandsResult{
         .dst = MaybeRelocatable.fromSegment(0, 1),
-        .res = MaybeRelocatable.fromU64(8),
-        .op_0 = MaybeRelocatable.fromU64(9),
-        .op_1 = MaybeRelocatable.fromU64(10),
+        .res = MaybeRelocatable.fromInt(u64, 8),
+        .op_0 = MaybeRelocatable.fromInt(u64, 9),
+        .op_1 = MaybeRelocatable.fromInt(u64, 10),
         .dst_addr = .{},
         .op_0_addr = .{},
         .op_1_addr = .{},
@@ -3045,10 +3043,10 @@ test "CairoVM: opcodeAssertions inconsistent op0 - should throw CantWriteReturnP
 
 test "CairoVM: opcodeAssertions inconsistent dst - should throw CantWriteReturnFp error" {
     const operands = OperandsResult{
-        .dst = MaybeRelocatable.fromU64(8),
-        .res = MaybeRelocatable.fromU64(8),
+        .dst = MaybeRelocatable.fromInt(u64, 8),
+        .res = MaybeRelocatable.fromInt(u64, 8),
         .op_0 = MaybeRelocatable.fromSegment(0, 1),
-        .op_1 = MaybeRelocatable.fromU64(10),
+        .op_1 = MaybeRelocatable.fromInt(u64, 10),
         .dst_addr = .{},
         .op_0_addr = .{},
         .op_1_addr = .{},
@@ -3103,9 +3101,9 @@ test "CairoVM: getFeltRange for continuous memory" {
     var expected_vec = std.ArrayList(Felt252).init(std.testing.allocator);
     defer expected_vec.deinit();
 
-    try expected_vec.append(Felt252.fromInteger(2));
-    try expected_vec.append(Felt252.fromInteger(3));
-    try expected_vec.append(Felt252.fromInteger(4));
+    try expected_vec.append(Felt252.two());
+    try expected_vec.append(Felt252.three());
+    try expected_vec.append(Felt252.fromInt(u8, 4));
 
     var actual = try vm.getFeltRange(
         Relocatable.init(1, 0),
@@ -3217,10 +3215,10 @@ test "CairoVM: loadData should give the correct segment size" {
     // Prepare data to load into memory
     var data = std.ArrayList(MaybeRelocatable).init(allocator);
     defer data.deinit();
-    try data.append(MaybeRelocatable.fromU256(1));
-    try data.append(MaybeRelocatable.fromU256(2));
-    try data.append(MaybeRelocatable.fromU256(3));
-    try data.append(MaybeRelocatable.fromU256(4));
+    try data.append(MaybeRelocatable.fromInt(u8, 1));
+    try data.append(MaybeRelocatable.fromInt(u8, 2));
+    try data.append(MaybeRelocatable.fromInt(u8, 3));
+    try data.append(MaybeRelocatable.fromInt(u8, 4));
 
     // Load data into memory segment
     const actual = try vm.loadData(segment, &data);
@@ -3251,10 +3249,10 @@ test "CairoVM: loadData should resize the instruction cache with null elements i
     // Prepare data to load into memory
     var data = std.ArrayList(MaybeRelocatable).init(allocator);
     defer data.deinit();
-    try data.append(MaybeRelocatable.fromU256(1));
-    try data.append(MaybeRelocatable.fromU256(2));
-    try data.append(MaybeRelocatable.fromU256(3));
-    try data.append(MaybeRelocatable.fromU256(4));
+    try data.append(MaybeRelocatable.fromInt(u8, 1));
+    try data.append(MaybeRelocatable.fromInt(u8, 2));
+    try data.append(MaybeRelocatable.fromInt(u8, 3));
+    try data.append(MaybeRelocatable.fromInt(u8, 4));
 
     // Load data into memory segment
     const actual = try vm.loadData(segment, &data);
@@ -3286,10 +3284,10 @@ test "CairoVM: loadData should not resize the instruction cache if ptr segment i
     // Prepare data to load into memory
     var data = std.ArrayList(MaybeRelocatable).init(allocator);
     defer data.deinit();
-    try data.append(MaybeRelocatable.fromU256(1));
-    try data.append(MaybeRelocatable.fromU256(2));
-    try data.append(MaybeRelocatable.fromU256(3));
-    try data.append(MaybeRelocatable.fromU256(4));
+    try data.append(MaybeRelocatable.fromInt(u8, 1));
+    try data.append(MaybeRelocatable.fromInt(u8, 2));
+    try data.append(MaybeRelocatable.fromInt(u8, 3));
+    try data.append(MaybeRelocatable.fromInt(u8, 4));
 
     // Load data into memory segment
     const actual = try vm.loadData(segment, &data);
@@ -3425,7 +3423,7 @@ test "CairoVM: getPublicMemoryAddresses should return Cairo VM Memory error if s
     try vm.segments.memory.set(
         allocator,
         Relocatable.init(5, 4),
-        MaybeRelocatable.fromU256(0),
+        MaybeRelocatable.fromInt(u8, 0),
     );
     // Ensure proper deallocation of memory data.
     defer vm.segments.memory.deinitData(allocator);
@@ -3515,7 +3513,7 @@ test "CairoVM: getPublicMemoryAddresses should return a proper ArrayList if succ
     try vm.segments.memory.set(
         allocator,
         Relocatable.init(5, 4),
-        MaybeRelocatable.fromU256(0),
+        MaybeRelocatable.fromInt(u8, 0),
     );
     // Ensure proper deallocation of memory data.
     defer vm.segments.memory.deinitData(allocator);
@@ -3583,10 +3581,10 @@ test "CairoVM: getReturnValues should return a continuous range of memory values
     var expected = ArrayList(MaybeRelocatable).init(std.testing.allocator);
     defer expected.deinit();
 
-    try expected.append(MaybeRelocatable.fromU256(1));
-    try expected.append(MaybeRelocatable.fromU256(2));
-    try expected.append(MaybeRelocatable.fromU256(3));
-    try expected.append(MaybeRelocatable.fromU256(4));
+    try expected.append(MaybeRelocatable.fromInt(u8, 1));
+    try expected.append(MaybeRelocatable.fromInt(u8, 2));
+    try expected.append(MaybeRelocatable.fromInt(u8, 3));
+    try expected.append(MaybeRelocatable.fromInt(u8, 4));
 
     var actual = try vm.getReturnValues(4);
     defer actual.deinit();
