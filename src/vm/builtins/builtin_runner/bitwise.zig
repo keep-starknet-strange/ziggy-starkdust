@@ -190,7 +190,8 @@ pub const BitwiseBuiltinRunner = struct {
         // relative to `cells_per_instance`,
         // dictates which bitwise operation we apply to
         // the input cells
-        return MaybeRelocatable.fromU256(
+        return MaybeRelocatable.fromInt(
+            u256,
             switch (index) {
                 2 => x & y, // and
                 3 => x ^ y, // xor
@@ -813,7 +814,7 @@ test "BitwiseBuiltinRunner: should return expected result for deduceMemoryCell b
     });
 
     const address = Relocatable.init(0, 7);
-    const expected = MaybeRelocatable{ .felt = Felt252.fromInteger(8) };
+    const expected = MaybeRelocatable{ .felt = Felt252.fromInt(u8, 8) };
 
     // then
     const result = try builtin.deduceMemoryCell(address, mem);
@@ -841,7 +842,7 @@ test "BitwiseBuiltinRunner: should return expected result for deduceMemoryCell b
     });
 
     const address = Relocatable.init(0, 8);
-    const expected = MaybeRelocatable{ .felt = Felt252.fromInteger(6) };
+    const expected = MaybeRelocatable{ .felt = Felt252.fromInt(u8, 6) };
 
     // then
     const result = try builtin.deduceMemoryCell(address, mem);
@@ -869,7 +870,7 @@ test "BitwiseBuiltinRunner: should return expectededuceMemoryCell bitwise-or" {
     });
 
     const address = Relocatable.init(0, 9);
-    const expected = MaybeRelocatable{ .felt = Felt252.fromInteger(14) };
+    const expected = MaybeRelocatable{ .felt = Felt252.fromInt(u8, 14) };
 
     // then
     const result = try builtin.deduceMemoryCell(address, mem);
@@ -956,7 +957,7 @@ test "BitwiseBuiltinRunner: finalStack should return TypeMismatchNotRelocatable 
             2,
             2,
         ).subUint(@intCast(1)),
-        .{ .felt = Felt252.fromInteger(10) },
+        .{ .felt = Felt252.fromInt(u8, 10) },
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 

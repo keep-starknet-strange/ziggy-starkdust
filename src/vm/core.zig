@@ -842,11 +842,13 @@ pub const CairoVM = struct {
         switch (self.trace_context.state) {
             .enabled => |trace_enabled| {
                 for (trace_enabled.entries.items) |entry| {
-                    try self.trace_context.addRelocatedTrace(.{
-                        .pc = Felt252.fromInteger(try entry.pc.relocateAddress(relocation_table)),
-                        .ap = Felt252.fromInteger(try entry.ap.relocateAddress(relocation_table)),
-                        .fp = Felt252.fromInteger(try entry.fp.relocateAddress(relocation_table)),
-                    });
+                    try self.trace_context.addRelocatedTrace(
+                        .{
+                            .pc = Felt252.fromInt(usize, try entry.pc.relocateAddress(relocation_table)),
+                            .ap = Felt252.fromInt(usize, try entry.ap.relocateAddress(relocation_table)),
+                            .fp = Felt252.fromInt(usize, try entry.fp.relocateAddress(relocation_table)),
+                        },
+                    );
                 }
                 self.trace_relocated = true;
             },
@@ -1259,10 +1261,10 @@ pub const OperandsResult = struct {
     /// - An instance of OperandsResult with default values.
     pub fn default() Self {
         return .{
-            .dst = MaybeRelocatable.fromU64(0),
-            .res = MaybeRelocatable.fromU64(0),
-            .op_0 = MaybeRelocatable.fromU64(0),
-            .op_1 = MaybeRelocatable.fromU64(0),
+            .dst = MaybeRelocatable.fromInt(u64, 0),
+            .res = MaybeRelocatable.fromInt(u64, 0),
+            .op_0 = MaybeRelocatable.fromInt(u64, 0),
+            .op_1 = MaybeRelocatable.fromInt(u64, 0),
             .dst_addr = .{},
             .op_0_addr = .{},
             .op_1_addr = .{},
