@@ -15,11 +15,11 @@ pub const ECPoint = struct {
     y: Felt252 = Felt252.zero(),
 
     /// Adds two points on an elliptic curve.
-    /// 
+    ///
     /// # Arguments
     /// - `self` - The original point.
     /// - `point` - The point that we are adding.
-    /// 
+    ///
     /// # Returns
     /// The sum of the elliptic curve points.
     pub fn ecAdd(self: *Self, point: ECPoint) ECError!ECPoint {
@@ -38,10 +38,10 @@ pub const ECPoint = struct {
     }
 
     /// Given a point (x, y) return (x, -y).
-    /// 
+    ///
     /// # Arguments
     /// - `self` - The point.
-    /// 
+    ///
     /// # Returns
     /// The new elliptic curve point.
     pub fn ecNeg(self: *Self) ECPoint {
@@ -49,11 +49,11 @@ pub const ECPoint = struct {
     }
 
     /// Doubles a point on an elliptic curve with the equation y^2 = x^3 + alpha*x + beta.
-    /// 
+    ///
     /// # Arguments
     /// - `self` - The point.
     /// - `alpha` - The alpha parameter of the elliptic curve.
-    /// 
+    ///
     /// # Returns
     /// The doubled elliptic curve point.
     pub fn ecDouble(self: *Self, alpha: Felt252) ECError!ECPoint {
@@ -63,35 +63,35 @@ pub const ECPoint = struct {
             return ECError.YCoordinateIsZero;
         }
         const m = try self.ecDoubleSlope(alpha);
-        const x = m.pow(2).sub(self.x.mul(Felt252.fromInteger(2)));
+        const x = m.pow(2).sub(self.x.mul(Felt252.two()));
         const y = m.mul(self.x.sub(x)).sub(self.y);
         return .{ .x = x, .y = y };
     }
 
     /// Computes the slope of an elliptic curve with the equation y^2 = x^3 + alpha*x + beta, at
     /// the given point.
-    /// 
+    ///
     /// # Arguments
     /// - `self` - The point.
     /// - `alpha` - The alpha parameter of the elliptic curve.
-    /// 
+    ///
     /// # Returns
     /// The slope.
     pub fn ecDoubleSlope(self: *Self, alpha: Felt252) ECError!Felt252 {
         return try divMod(
-            self.x.pow(2).mul(Felt252.fromInteger(3)).add(alpha), 
-            self.y.mul(Felt252.fromInteger(2)),
+            self.x.pow(2).mul(Felt252.three()).add(alpha),
+            self.y.mul(Felt252.two()),
         );
     }
 
     /// Returns True if the point (x, y) is on the elliptic curve defined as
     /// y^2 = x^3 + alpha * x + beta, or False otherwise.
-    /// 
+    ///
     /// # Arguments
     /// - `self` - The point.
     /// - `alpha` - The alpha parameter of the elliptic curve.
     /// - `beta` - The beta parameter of the elliptic curve.
-    /// 
+    ///
     /// # Returns boolean.
     pub fn pointOnCurve(self: *Self, alpha: Felt252, beta: Felt252) bool {
         const lhs = self.y.pow(2);
@@ -102,11 +102,11 @@ pub const ECPoint = struct {
 
 /// Divides one field element by another.
 /// Finds a nonnegative integer 0 <= x < p such that (m * x) % p == n.
-/// 
+///
 /// # Arguments
 /// - `m` - The first felt.
 /// - `n` - The second felt.
-/// 
+///
 /// # Returns
 /// The result of the field modulo division.
 pub fn divMod(m: Felt252, n: Felt252) ECError!Felt252 {
@@ -114,22 +114,22 @@ pub fn divMod(m: Felt252, n: Felt252) ECError!Felt252 {
     return x;
 }
 
-/// Calculates the result of the elliptic curve operation P + m * Q, 
+/// Calculates the result of the elliptic curve operation P + m * Q,
 /// where P = const_partial_sum, and Q = const_doubled_point
 /// are points on the elliptic curve defined as:
 /// y^2 = x^3 + alpha * x + beta.
-/// 
+///
 /// # Arguments
 /// - `const_partial_sum` - The point P.
 /// - `const_doubled_point` - The point Q.
-/// 
+///
 /// # Returns
 /// The result of the EC operation P + m * Q.
 pub fn ecOpImpl(const_partial_sum: ECPoint, const_doubled_point: ECPoint, m: Felt252, alpha: Felt252, height: u32) ECError!ECPoint {
     var slope = m.toInteger();
     var partial_sum = const_partial_sum;
     var doubled_point = const_doubled_point;
-    
+
     for (0..height) |_| {
         if (doubled_point.x.sub(partial_sum.x).equal(Felt252.zero())) {
             return ECError.XCoordinatesAreEqual;
@@ -143,7 +143,6 @@ pub fn ecOpImpl(const_partial_sum: ECPoint, const_doubled_point: ECPoint, m: Fel
 
     return partial_sum;
 }
-
 
 /// ************************************************************
 /// *                         TESTS                            *
@@ -281,7 +280,7 @@ test "Elliptic curve math: compute_ec_op_impl_valid_a" {
         .x = Felt252.fromInteger(874739451078007766457464989774322083649278607533249481151382481072868806602),
         .y = Felt252.fromInteger(152666792071518830868575557812948353041420400780739481342941381225525861407),
     };
-    const m = Felt252.fromInteger(34);
+    const m = Felt252.fromU8(34);
     const alpha = Felt252.one();
     const height = 256;
     const actual_ec_point = try ecOpImpl(partial_sum, doubled_point, m, alpha, height);
@@ -302,7 +301,7 @@ test "Elliptic curve math: compute_ec_op_impl_valid_b" {
         .x = Felt252.fromInteger(874739451078007766457464989774322083649278607533249481151382481072868806602),
         .y = Felt252.fromInteger(152666792071518830868575557812948353041420400780739481342941381225525861407),
     };
-    const m = Felt252.fromInteger(34);
+    const m = Felt252.fromU8(34);
     const alpha = Felt252.one();
     const height = 256;
     const actual_ec_point = try ecOpImpl(partial_sum, doubled_point, m, alpha, height);
@@ -317,13 +316,13 @@ test "Elliptic curve math: compute_ec_op_impl_valid_b" {
 test "Elliptic curve math: compute_ec_op_invalid_same_x_coordinate" {
     const partial_sum = ECPoint{
         .x = Felt252.one(),
-        .y = Felt252.fromInteger(9),
+        .y = Felt252.fromU8(9),
     };
     const doubled_point = ECPoint{
         .x = Felt252.one(),
-        .y = Felt252.fromInteger(12),
+        .y = Felt252.fromU8(12),
     };
-    const m = Felt252.fromInteger(34);
+    const m = Felt252.fromU8(34);
     const alpha = Felt252.one();
     const height = 256;
     const actual_ec_point = ecOpImpl(partial_sum, doubled_point, m, alpha, height);

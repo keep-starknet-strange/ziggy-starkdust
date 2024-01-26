@@ -458,14 +458,14 @@ test "CairoRunner: relocateMemory should relocated memory properly with gaps" {
         &[_]?Felt252{
             null,
             Felt252.fromInteger(4613515612218425347),
-            Felt252.fromInteger(5),
+            Felt252.fromU8(5),
             Felt252.fromInteger(2345108766317314046),
-            Felt252.fromInteger(10),
-            Felt252.fromInteger(10),
+            Felt252.fromU8(10),
+            Felt252.fromU8(10),
             null,
             null,
             null,
-            Felt252.fromInteger(5),
+            Felt252.fromU8(5),
         },
         cairo_runner.relocated_memory.items,
     );

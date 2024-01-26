@@ -1136,8 +1136,8 @@ test "ProgramJson: parseProgramJson should parse a Cairo v0 JSON Program and con
     try expectEqual(@as(usize, 2), program.constants.count());
 
     // Test individual constant values within the program
-    try expectEqual(Felt252.fromInteger(0), program.constants.get("__main__.fib.SIZEOF_LOCALS").?);
-    try expectEqual(Felt252.fromInteger(0), program.constants.get("__main__.main.SIZEOF_LOCALS").?);
+    try expectEqual(Felt252.zero(), program.constants.get("__main__.fib.SIZEOF_LOCALS").?);
+    try expectEqual(Felt252.zero(), program.constants.get("__main__.main.SIZEOF_LOCALS").?);
 
     // Test hints collection count within shared_program_data
     try expect(program.shared_program_data.hints_collection.hints.items.len == 0);
@@ -1415,7 +1415,7 @@ test "ProgramJson: parseProgramJson with constant deserialization" {
         .pc = null,
         .type = "const",
         .value = 3,
-        .valueFelt = Felt252.fromInteger(3),
+        .valueFelt = Felt252.three(),
         .full_name = null,
         .members = null,
         .cairo_type = null,

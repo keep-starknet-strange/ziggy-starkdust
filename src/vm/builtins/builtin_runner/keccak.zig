@@ -822,7 +822,7 @@ test "KeccakBuiltinRunner: finalStack should return TypeMismatchNotRelocatable e
             2,
             2,
         ).subUint(1),
-        .{ .felt = Felt252.fromInteger(10) },
+        .{ .felt = Felt252.fromU8(10) },
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 

@@ -75,7 +75,7 @@ test "CairoVM: deduceMemoryCell builtin valid" {
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
     try expectEqual(
-        MaybeRelocatable.fromU256(8),
+        MaybeRelocatable.fromU8(8),
         (try vm.deduceMemoryCell(std.testing.allocator, Relocatable.init(
             0,
             7,
@@ -512,7 +512,7 @@ test "CairoVM: updateAp using Add for AP update with non-null operands result" {
     const allocator = std.testing.allocator;
     // Initialize operands result with a non-null result value.
     var operands = OperandsResult.default();
-    operands.res = MaybeRelocatable.fromU256(10);
+    operands.res = MaybeRelocatable.fromU8(10);
 
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -913,9 +913,9 @@ test "CairoVM: relocateTrace and trace comparison (simple use case)" {
     try vm.relocateTrace(relocation_table);
 
     const relocated_trace = TraceContext.RelocatedTraceEntry{
-        .pc = Felt252.fromInteger(1),
-        .ap = Felt252.fromInteger(4),
-        .fp = Felt252.fromInteger(4),
+        .pc = Felt252.fromU8(1),
+        .ap = Felt252.fromU8(4),
+        .fp = Felt252.fromU8(4),
     };
     const expected_relocated_trace = [_]TraceContext.RelocatedTraceEntry{relocated_trace};
     const actual_relocated_trace = try vm.getRelocatedTrace();
@@ -1046,64 +1046,64 @@ test "CairoVM: relocateTrace and trace comparison (more complex use case)" {
     // Append expected relocated entries using Felt252 values.
     // pc, ap, and fp values are appended in pairs similar to the initial entries.
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInteger(5),
-        .ap = Felt252.fromInteger(18),
-        .fp = Felt252.fromInteger(18),
+        .pc = Felt252.fromU8(5),
+        .ap = Felt252.fromU8(18),
+        .fp = Felt252.fromU8(18),
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInteger(6),
-        .ap = Felt252.fromInteger(19),
-        .fp = Felt252.fromInteger(18),
+        .pc = Felt252.fromU8(6),
+        .ap = Felt252.fromU8(19),
+        .fp = Felt252.fromU8(18),
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInteger(8),
-        .ap = Felt252.fromInteger(20),
-        .fp = Felt252.fromInteger(18),
+        .pc = Felt252.fromU8(8),
+        .ap = Felt252.fromU8(20),
+        .fp = Felt252.fromU8(18),
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInteger(1),
-        .ap = Felt252.fromInteger(22),
-        .fp = Felt252.fromInteger(22),
+        .pc = Felt252.fromU8(1),
+        .ap = Felt252.fromU8(22),
+        .fp = Felt252.fromU8(22),
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInteger(2),
-        .ap = Felt252.fromInteger(22),
-        .fp = Felt252.fromInteger(22),
+        .pc = Felt252.two(),
+        .ap = Felt252.fromU8(22),
+        .fp = Felt252.fromU8(22),
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInteger(4),
-        .ap = Felt252.fromInteger(23),
-        .fp = Felt252.fromInteger(22),
+        .pc = Felt252.fromU8(4),
+        .ap = Felt252.fromU8(23),
+        .fp = Felt252.fromU8(22),
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInteger(10),
-        .ap = Felt252.fromInteger(23),
-        .fp = Felt252.fromInteger(18),
+        .pc = Felt252.fromU8(10),
+        .ap = Felt252.fromU8(23),
+        .fp = Felt252.fromU8(18),
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInteger(12),
-        .ap = Felt252.fromInteger(24),
-        .fp = Felt252.fromInteger(18),
+        .pc = Felt252.fromU8(12),
+        .ap = Felt252.fromU8(24),
+        .fp = Felt252.fromU8(18),
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInteger(1),
-        .ap = Felt252.fromInteger(26),
-        .fp = Felt252.fromInteger(26),
+        .pc = Felt252.fromU8(1),
+        .ap = Felt252.fromU8(26),
+        .fp = Felt252.fromU8(26),
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInteger(2),
-        .ap = Felt252.fromInteger(26),
-        .fp = Felt252.fromInteger(26),
+        .pc = Felt252.two(),
+        .ap = Felt252.fromU8(26),
+        .fp = Felt252.fromU8(26),
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInteger(4),
-        .ap = Felt252.fromInteger(27),
-        .fp = Felt252.fromInteger(26),
+        .pc = Felt252.fromU8(4),
+        .ap = Felt252.fromU8(27),
+        .fp = Felt252.fromU8(26),
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInteger(14),
-        .ap = Felt252.fromInteger(27),
-        .fp = Felt252.fromInteger(18),
+        .pc = Felt252.fromU8(14),
+        .ap = Felt252.fromU8(27),
+        .fp = Felt252.fromU8(18),
     });
 
     // Assert relocated entries match the expected entries
@@ -1420,13 +1420,11 @@ test "set get value in vm memory" {
     defer vm.deinit();
 
     const address = Relocatable.init(1, 0);
-    const value = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(42));
+    const value = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromU8(42));
 
     try vm.segments.memory.setUpMemory(
         std.testing.allocator,
-        .{
-            .{ .{ 1, 0 }, .{42} },
-        },
+        .{.{ .{ 1, 0 }, .{42} }},
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
@@ -1451,8 +1449,8 @@ test "compute res op1 works" {
     vm.run_context.ap.* = Relocatable.init(1, 0);
     // Test body
 
-    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
-    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.two());
+    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.three());
 
     // Call with Op1 res logic
     const actual_res = try computeRes(
@@ -1492,8 +1490,8 @@ test "compute res add felts works" {
     vm.run_context.ap.* = Relocatable.init(1, 0);
     // Test body
 
-    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
-    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.two());
+    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.three());
 
     const actual_res = try computeRes(
         &.{
@@ -1512,7 +1510,7 @@ test "compute res add felts works" {
         value_op0,
         value_op1,
     );
-    const expected_res = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(5));
+    const expected_res = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromU8(5));
 
     // Test checks
     try expectEqual(
@@ -1535,7 +1533,7 @@ test "compute res add felt to offset works" {
     const value_op0 = Relocatable.init(1, 1);
     const op0 = MaybeRelocatable.fromRelocatable(value_op0);
 
-    const op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.three());
 
     const actual_res = try computeRes(
         &.{
@@ -1615,8 +1613,8 @@ test "compute res mul works" {
     vm.run_context.ap.* = Relocatable.init(1, 0);
     // Test body
 
-    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
-    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.two());
+    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.three());
 
     // Call with Mul res logic
     const actual_res = try computeRes(
@@ -1636,7 +1634,7 @@ test "compute res mul works" {
         value_op0,
         value_op1,
     );
-    const expected_res = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(6));
+    const expected_res = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromU8(6));
 
     // Test checks
     try expectEqual(
@@ -1696,7 +1694,7 @@ test "compute res mul fails felt and reloc" {
 
     const value_op0 = Relocatable.init(1, 0);
     const op0 = MaybeRelocatable.fromRelocatable(value_op0);
-    const op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
+    const op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.two());
 
     // Test checks
     try expectError(
@@ -1728,8 +1726,8 @@ test "compute res Unconstrained should return null" {
     vm.run_context.ap.* = Relocatable.init(1, 0);
     // Test body
 
-    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(2));
-    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInteger(3));
+    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.two());
+    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.three());
 
     // Call with unconstrained res logic
     const actual_res = try computeRes(
@@ -1783,10 +1781,10 @@ test "CairoVM: compute operands add AP" {
         .dst_addr = .{ .segment_index = 1, .offset = 0 },
         .op_0_addr = .{ .segment_index = 1, .offset = 1 },
         .op_1_addr = .{ .segment_index = 1, .offset = 2 },
-        .dst = .{ .felt = Felt252.fromInteger(5) },
-        .op_0 = .{ .felt = Felt252.fromInteger(2) },
-        .op_1 = .{ .felt = Felt252.fromInteger(3) },
-        .res = .{ .felt = Felt252.fromInteger(5) },
+        .dst = .{ .felt = Felt252.fromU8(5) },
+        .op_0 = .{ .felt = Felt252.two() },
+        .op_1 = .{ .felt = Felt252.three() },
+        .res = .{ .felt = Felt252.fromU8(5) },
         .deduced_operands = 0,
     };
 
@@ -1839,10 +1837,10 @@ test "CairoVM: compute operands mul FP" {
         .dst_addr = .{ .segment_index = 1, .offset = 0 },
         .op_0_addr = .{ .segment_index = 1, .offset = 1 },
         .op_1_addr = .{ .segment_index = 1, .offset = 2 },
-        .dst = .{ .felt = Felt252.fromInteger(6) },
-        .op_0 = .{ .felt = Felt252.fromInteger(2) },
-        .op_1 = .{ .felt = Felt252.fromInteger(3) },
-        .res = .{ .felt = Felt252.fromInteger(6) },
+        .dst = .{ .felt = Felt252.fromU8(6) },
+        .op_0 = .{ .felt = Felt252.two() },
+        .op_1 = .{ .felt = Felt252.three() },
+        .res = .{ .felt = Felt252.fromU8(6) },
         .deduced_operands = 0,
     };
 
@@ -1895,9 +1893,9 @@ test "CairoVM: compute operands JNZ" {
         .dst_addr = .{ .segment_index = 1, .offset = 1 },
         .op_0_addr = .{ .segment_index = 1, .offset = 1 },
         .op_1_addr = .{ .segment_index = 0, .offset = 1 },
-        .dst = .{ .felt = Felt252.fromInteger(4) },
-        .op_0 = .{ .felt = Felt252.fromInteger(4) },
-        .op_1 = .{ .felt = Felt252.fromInteger(4) },
+        .dst = .{ .felt = Felt252.fromU8(4) },
+        .op_0 = .{ .felt = Felt252.fromU8(4) },
+        .op_1 = .{ .felt = Felt252.fromU8(4) },
         .res = null,
         .deduced_operands = 0,
     };
@@ -2057,10 +2055,10 @@ test "memory is not leaked upon allocation failure during initialization" {
 test "updateRegisters all regular" {
     // Test setup
     const operands = OperandsResult{
-        .dst = .{ .felt = Felt252.fromInteger(11) },
-        .res = .{ .felt = Felt252.fromInteger(8) },
-        .op_0 = .{ .felt = Felt252.fromInteger(9) },
-        .op_1 = .{ .felt = Felt252.fromInteger(10) },
+        .dst = .{ .felt = Felt252.fromU8(11) },
+        .res = .{ .felt = Felt252.fromU8(8) },
+        .op_0 = .{ .felt = Felt252.fromU8(9) },
+        .op_1 = .{ .felt = Felt252.fromU8(10) },
         .dst_addr = .{},
         .op_0_addr = .{},
         .op_1_addr = .{},
@@ -2128,9 +2126,9 @@ test "updateRegisters with mixed types" {
             1,
             11,
         ) },
-        .res = .{ .felt = Felt252.fromInteger(8) },
-        .op_0 = .{ .felt = Felt252.fromInteger(9) },
-        .op_1 = .{ .felt = Felt252.fromInteger(10) },
+        .res = .{ .felt = Felt252.fromU8(8) },
+        .op_0 = .{ .felt = Felt252.fromU8(9) },
+        .op_1 = .{ .felt = Felt252.fromU8(10) },
         .dst_addr = .{},
         .op_0_addr = .{},
         .op_1_addr = .{},
@@ -2218,7 +2216,7 @@ test "CairoVM: computeOp0Deductions with a valid built in and non null deduceMem
 
     // Test check
     try expectEqual(
-        MaybeRelocatable.fromU256(8),
+        MaybeRelocatable.fromU8(8),
         try vm.computeOp0Deductions(
             std.testing.allocator,
             Relocatable.init(0, 7),
@@ -2277,11 +2275,11 @@ test "CairoVM: deduceDst should return res if AssertEq opcode" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    const res = MaybeRelocatable.fromU256(7);
+    const res = MaybeRelocatable.fromU8(7);
 
     // Test check
     try expectEqual(
-        MaybeRelocatable.fromU256(7),
+        MaybeRelocatable.fromU8(7),
         try vm.deduceDst(
             &.{
                 .off_0 = 0,
@@ -2438,7 +2436,7 @@ test "CairoVM: getRelocatable with value should return a MaybeRelocatable" {
 
     // Test check
     try expectEqual(
-        MaybeRelocatable.fromU256(5),
+        MaybeRelocatable.fromU8(5),
         (vm.getRelocatable(Relocatable.init(34, 12))).?,
     );
 }
@@ -2540,7 +2538,7 @@ test "CairoVM: getFelt should return Felt252 if available at the given address" 
 
     // Test checks
     try expectEqual(
-        Felt252.fromInteger(23),
+        Felt252.fromU8(23),
         try vm.getFelt(Relocatable.init(10, 30)),
     );
 }
@@ -2593,7 +2591,7 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceMemoryCell if n
 
     // Test check
     try expectEqual(
-        MaybeRelocatable.fromU256(8),
+        MaybeRelocatable.fromU8(8),
         try vm.computeOp1Deductions(
             std.testing.allocator,
             Relocatable.init(0, 7),
@@ -2750,13 +2748,13 @@ test "CairoVM: InserDeducedOperands should insert operands if set as deduced" {
     // Test body
 
     const dst_addr = Relocatable.init(1, 0);
-    const dst_val = MaybeRelocatable{ .felt = Felt252.fromInteger(6) };
+    const dst_val = MaybeRelocatable{ .felt = Felt252.fromU8(6) };
 
     const op0_addr = Relocatable.init(1, 1);
-    const op0_val = MaybeRelocatable{ .felt = Felt252.fromInteger(2) };
+    const op0_val = MaybeRelocatable{ .felt = Felt252.two() };
 
     const op1_addr = Relocatable.init(1, 2);
-    const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
+    const op1_val = MaybeRelocatable{ .felt = Felt252.three() };
     try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{},
@@ -2803,13 +2801,13 @@ test "CairoVM: InserDeducedOperands insert operands should not be inserted if no
     // Test body
 
     const dst_addr = Relocatable.init(1, 0);
-    const dst_val = MaybeRelocatable{ .felt = Felt252.fromInteger(6) };
+    const dst_val = MaybeRelocatable{ .felt = Felt252.fromU8(6) };
 
     const op0_addr = Relocatable.init(1, 1);
-    const op0_val = MaybeRelocatable{ .felt = Felt252.fromInteger(2) };
+    const op0_val = MaybeRelocatable{ .felt = Felt252.two() };
 
     const op1_addr = Relocatable.init(1, 2);
-    const op1_val = MaybeRelocatable{ .felt = Felt252.fromInteger(3) };
+    const op1_val = MaybeRelocatable{ .felt = Felt252.three() };
     try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{},
@@ -2899,10 +2897,10 @@ test "CairoVM: markAddressRangeAsAccessed should return an error if the run is n
 
 test "CairoVM: opcodeAssertions should throw UnconstrainedAssertEq error" {
     const operands = OperandsResult{
-        .dst = .{ .felt = Felt252.fromInteger(8) },
+        .dst = .{ .felt = Felt252.fromU8(8) },
         .res = null,
-        .op_0 = .{ .felt = Felt252.fromInteger(9) },
-        .op_1 = .{ .felt = Felt252.fromInteger(10) },
+        .op_0 = .{ .felt = Felt252.fromU8(9) },
+        .op_1 = .{ .felt = Felt252.fromU8(10) },
         .dst_addr = .{},
         .op_0_addr = .{},
         .op_1_addr = .{},
@@ -3103,9 +3101,9 @@ test "CairoVM: getFeltRange for continuous memory" {
     var expected_vec = std.ArrayList(Felt252).init(std.testing.allocator);
     defer expected_vec.deinit();
 
-    try expected_vec.append(Felt252.fromInteger(2));
-    try expected_vec.append(Felt252.fromInteger(3));
-    try expected_vec.append(Felt252.fromInteger(4));
+    try expected_vec.append(Felt252.two());
+    try expected_vec.append(Felt252.three());
+    try expected_vec.append(Felt252.fromU8(4));
 
     var actual = try vm.getFeltRange(
         Relocatable.init(1, 0),
@@ -3217,10 +3215,10 @@ test "CairoVM: loadData should give the correct segment size" {
     // Prepare data to load into memory
     var data = std.ArrayList(MaybeRelocatable).init(allocator);
     defer data.deinit();
-    try data.append(MaybeRelocatable.fromU256(1));
-    try data.append(MaybeRelocatable.fromU256(2));
-    try data.append(MaybeRelocatable.fromU256(3));
-    try data.append(MaybeRelocatable.fromU256(4));
+    try data.append(MaybeRelocatable.fromU8(1));
+    try data.append(MaybeRelocatable.fromU8(2));
+    try data.append(MaybeRelocatable.fromU8(3));
+    try data.append(MaybeRelocatable.fromU8(4));
 
     // Load data into memory segment
     const actual = try vm.loadData(segment, &data);
@@ -3251,10 +3249,10 @@ test "CairoVM: loadData should resize the instruction cache with null elements i
     // Prepare data to load into memory
     var data = std.ArrayList(MaybeRelocatable).init(allocator);
     defer data.deinit();
-    try data.append(MaybeRelocatable.fromU256(1));
-    try data.append(MaybeRelocatable.fromU256(2));
-    try data.append(MaybeRelocatable.fromU256(3));
-    try data.append(MaybeRelocatable.fromU256(4));
+    try data.append(MaybeRelocatable.fromU8(1));
+    try data.append(MaybeRelocatable.fromU8(2));
+    try data.append(MaybeRelocatable.fromU8(3));
+    try data.append(MaybeRelocatable.fromU8(4));
 
     // Load data into memory segment
     const actual = try vm.loadData(segment, &data);
@@ -3286,10 +3284,10 @@ test "CairoVM: loadData should not resize the instruction cache if ptr segment i
     // Prepare data to load into memory
     var data = std.ArrayList(MaybeRelocatable).init(allocator);
     defer data.deinit();
-    try data.append(MaybeRelocatable.fromU256(1));
-    try data.append(MaybeRelocatable.fromU256(2));
-    try data.append(MaybeRelocatable.fromU256(3));
-    try data.append(MaybeRelocatable.fromU256(4));
+    try data.append(MaybeRelocatable.fromU8(1));
+    try data.append(MaybeRelocatable.fromU8(2));
+    try data.append(MaybeRelocatable.fromU8(3));
+    try data.append(MaybeRelocatable.fromU8(4));
 
     // Load data into memory segment
     const actual = try vm.loadData(segment, &data);
@@ -3425,7 +3423,7 @@ test "CairoVM: getPublicMemoryAddresses should return Cairo VM Memory error if s
     try vm.segments.memory.set(
         allocator,
         Relocatable.init(5, 4),
-        MaybeRelocatable.fromU256(0),
+        MaybeRelocatable.fromU8(0),
     );
     // Ensure proper deallocation of memory data.
     defer vm.segments.memory.deinitData(allocator);
@@ -3515,7 +3513,7 @@ test "CairoVM: getPublicMemoryAddresses should return a proper ArrayList if succ
     try vm.segments.memory.set(
         allocator,
         Relocatable.init(5, 4),
-        MaybeRelocatable.fromU256(0),
+        MaybeRelocatable.fromU8(0),
     );
     // Ensure proper deallocation of memory data.
     defer vm.segments.memory.deinitData(allocator);
@@ -3583,10 +3581,10 @@ test "CairoVM: getReturnValues should return a continuous range of memory values
     var expected = ArrayList(MaybeRelocatable).init(std.testing.allocator);
     defer expected.deinit();
 
-    try expected.append(MaybeRelocatable.fromU256(1));
-    try expected.append(MaybeRelocatable.fromU256(2));
-    try expected.append(MaybeRelocatable.fromU256(3));
-    try expected.append(MaybeRelocatable.fromU256(4));
+    try expected.append(MaybeRelocatable.fromU8(1));
+    try expected.append(MaybeRelocatable.fromU8(2));
+    try expected.append(MaybeRelocatable.fromU8(3));
+    try expected.append(MaybeRelocatable.fromU8(4));
 
     var actual = try vm.getReturnValues(4);
     defer actual.deinit();
