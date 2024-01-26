@@ -20,17 +20,17 @@ pub const SignatureBuiltinRunner = struct {
     /// Ratio
     ratio: ?u32,
     /// Base
-    base: usize,
+    base: usize = 0,
     /// Number of cells per instance
-    cells_per_instance: u32,
+    cells_per_instance: u32 = 2,
     /// Number of input cells
-    n_input_cells: u32,
+    n_input_cells: u32 = 2,
     /// Total number of bits
-    _total_n_bits: u32,
+    total_n_bits: u32 = 252,
     /// Stop pointer
-    stop_ptr: ?usize,
+    stop_ptr: ?usize = null,
     /// Number of instances per component
-    instances_per_component: u32,
+    instances_per_component: u32 = 1,
     /// Signatures HashMap
     signatures: AutoHashMap(Relocatable, Signature),
 
@@ -52,17 +52,11 @@ pub const SignatureBuiltinRunner = struct {
         return .{
             .included = included,
             .ratio = instance_def.ratio,
-            .base = 0,
-            .cell_per_instance = 2,
-            .n_input_cells = 2,
-            ._total_n_bits = 251,
-            .stop_ptr = null,
-            .instances_per_component = 1,
             .signatures = AutoHashMap(Relocatable, Signature).init(allocator),
         };
     }
 
-    pub fn initSegments(self: *Self, segments: *MemorySegmentManager)  !void {
+    pub fn initSegments(self: *Self, segments: *MemorySegmentManager) !void {
         _ = self;
         _ = segments;
     }
@@ -70,7 +64,7 @@ pub const SignatureBuiltinRunner = struct {
     pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
         _ = self;
         var result = ArrayList(MaybeRelocatable).init(allocator);
-        errdefer result.deinit();        
+        errdefer result.deinit();
         return result;
     }
 

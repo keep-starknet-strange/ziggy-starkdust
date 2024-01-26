@@ -13,6 +13,7 @@ const ProgramJson = @import("../types/programjson.zig").ProgramJson;
 const Program = @import("../types/program.zig").Program;
 const CairoRunnerError = @import("../error.zig").CairoRunnerError;
 const RunnerError = @import("../error.zig").RunnerError;
+const MemoryError = @import("../error.zig").MemoryError;
 const trace_context = @import("../trace_context.zig");
 const RelocatedTraceEntry = trace_context.TraceContext.RelocatedTraceEntry;
 const starknet_felt = @import("../../math/fields/starknet.zig");
@@ -46,6 +47,7 @@ pub const CairoRunner = struct {
     proof_mode: bool,
     run_ended: bool = false,
     relocated_trace: []RelocatedTraceEntry = undefined,
+    relocated_memory: ArrayList(?Felt252),
 
     pub fn init(
         allocator: Allocator,
@@ -59,7 +61,8 @@ pub const CairoRunner = struct {
         return .{
             .allocator = allocator,
             .program = program,
-            .layout = switch (std.meta.stringToEnum(Case, layout) orelse return CairoRunnerError.InvalidLayout) {
+            .layout = switch (std.meta.stringToEnum(Case, layout) orelse
+                return CairoRunnerError.InvalidLayout) {
                 .plain => CairoLayout.plainInstance(),
                 .small => CairoLayout.smallInstance(),
                 .dynamic => CairoLayout.dynamicInstance(),
@@ -69,6 +72,7 @@ pub const CairoRunner = struct {
             .vm = vm,
             .function_call_stack = std.ArrayList(MaybeRelocatable).init(allocator),
             .proof_mode = proof_mode,
+            .relocated_memory = ArrayList(?Felt252).init(allocator),
         };
     }
 
@@ -193,6 +197,53 @@ pub const CairoRunner = struct {
         self.run_ended = true;
     }
 
+    /// Relocates the memory segments based on the provided relocation table.
+    /// This function iterates through each memory cell in the VM segments,
+    /// relocates the addresses, and updates the `relocated_memory` array.
+    ///
+    /// # Arguments
+    /// - `relocation_table`: A table containing relocation information for memory cells.
+    ///                       Each entry specifies the new address after relocation.
+    ///
+    /// # Returns
+    /// - `MemoryError.Relocation`: If the `relocated_memory` array is not empty,
+    ///                             indicating that relocation has already been performed.
+    ///                             Or, if any errors occur during relocation.
+    pub fn relocateMemory(self: *Self, relocation_table: []usize) !void {
+        // Check if relocation has already been performed.
+        // If `relocated_memory` is not empty, return `MemoryError.Relocation`.
+        if (!(self.relocated_memory.items.len == 0)) return MemoryError.Relocation;
+
+        // Initialize the first entry in `relocated_memory` with `null`.
+        try self.relocated_memory.append(null);
+
+        // Iterate through each memory segment in the VM.
+        for (self.vm.segments.memory.data.items, 0..) |segment, index| {
+            // Iterate through each memory cell in the segment.
+            for (segment.items, 0..) |memory_cell, segment_offset| {
+                // If the memory cell is not null (contains data).
+                if (memory_cell) |cell| {
+                    // Create a new `Relocatable` representing the relocated address.
+                    const relocated_address = try Relocatable.init(
+                        @intCast(index),
+                        segment_offset,
+                    ).relocateAddress(relocation_table);
+
+                    // Resize `relocated_memory` if needed.
+                    if (self.relocated_memory.items.len <= relocated_address) {
+                        try self.relocated_memory.resize(relocated_address + 1);
+                    }
+
+                    // Update the entry in `relocated_memory` with the relocated value of the memory cell.
+                    self.relocated_memory.items[relocated_address] = try cell.maybe_relocatable.relocateValue(relocation_table);
+                } else {
+                    // If the memory cell is null, append `null` to `relocated_memory`.
+                    try self.relocated_memory.append(null);
+                }
+            }
+        }
+    }
+
     pub fn relocate(self: *Self) !void {
         // Presuming the default case of `allow_tmp_segments` in python version
         _ = try self.vm.segments.computeEffectiveSize(false);
@@ -256,9 +307,9 @@ pub const CairoRunner = struct {
         // self.program.deinit();
         self.function_call_stack.deinit();
         self.instructions.deinit();
-        self.vm.segments.memory.deinitData(self.allocator);
         self.layout.deinit();
         self.vm.deinit();
+        self.relocated_memory.deinit();
     }
 };
 
@@ -329,7 +380,7 @@ test "CairoRunner: getBuiltinSegmentsInfo should provide builtin segment informa
     var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
     output_builtin.stop_ptr = 10;
 
-    var bitwise_builtin = BitwiseBuiltinRunner.initDefault();
+    var bitwise_builtin = BitwiseBuiltinRunner{};
     bitwise_builtin.stop_ptr = 25;
 
     // Append instances of OutputBuiltinRunner and BitwiseBuiltinRunner to the CairoRunner.
@@ -354,5 +405,68 @@ test "CairoRunner: getBuiltinSegmentsInfo should provide builtin segment informa
             .{ .segment_index = 0, .stop_pointer = 25 },
         },
         builtin_segment_info.items,
+    );
+}
+
+test "CairoRunner: relocateMemory should relocated memory properly with gaps" {
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        ProgramJson{},
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+    defer cairo_runner.deinit(); // Ensure CairoRunner resources are cleaned up.
+
+    // Create four memory segments in the VM.
+    inline for (0..4) |_| {
+        _ = try cairo_runner.vm.segments.addSegment();
+    }
+
+    // Set up memory in the VM segments with gaps.
+    try cairo_runner.vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{4613515612218425347} },
+            .{ .{ 0, 1 }, .{5} },
+            .{ .{ 0, 2 }, .{2345108766317314046} },
+            .{ .{ 1, 0 }, .{ 2, 0 } },
+            .{ .{ 1, 1 }, .{ 3, 0 } },
+            .{ .{ 1, 5 }, .{5} },
+        },
+    );
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Compute the effective size of the VM segments.
+    _ = try cairo_runner.vm.segments.computeEffectiveSize(false);
+
+    // Relocate the segments and obtain the relocation table.
+    const relocation_table = try cairo_runner.vm.segments.relocateSegments(std.testing.allocator);
+    defer std.testing.allocator.free(relocation_table);
+
+    // Call the `relocateMemory` function.
+    try cairo_runner.relocateMemory(relocation_table);
+
+    // Perform assertions to check if memory relocation is correct.
+    try expectEqualSlices(
+        ?Felt252,
+        &[_]?Felt252{
+            null,
+            Felt252.fromInteger(4613515612218425347),
+            Felt252.fromInteger(5),
+            Felt252.fromInteger(2345108766317314046),
+            Felt252.fromInteger(10),
+            Felt252.fromInteger(10),
+            null,
+            null,
+            null,
+            Felt252.fromInteger(5),
+        },
+        cairo_runner.relocated_memory.items,
     );
 }

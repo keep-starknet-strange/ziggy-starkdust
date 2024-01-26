@@ -21,7 +21,7 @@ const MemorySegmentManager = @import("./segments.zig").MemorySegmentManager;
 const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
 
 // Function that validates a memory address and returns a list of validated adresses
-pub const validation_rule = *const fn (*Memory, Relocatable) anyerror![]const Relocatable;
+pub const validation_rule = *const fn (*Memory, Relocatable) anyerror![1]Relocatable;
 
 pub const MemoryCell = struct {
     /// Represents a memory cell that holds relocation information and access status.
@@ -337,63 +337,114 @@ pub const Memory = struct {
         }
     }
 
-    // Inserts a value into the memory at the given address.
-    // # Arguments
-    // - `address` - The address to insert the value at.
-    // - `value` - The value to insert.
+    /// Retrieves data from the specified segment index.
+    ///
+    /// This function returns a reference to either the main data or temporary data based on the
+    /// provided `segment_index`. If the `segment_index` is less than 0, the temporary data is
+    /// returned; otherwise, the main data is returned.
+    ///
+    /// # Arguments
+    ///
+    /// - `segment_index`: The index of the segment for which data is to be retrieved.
+    ///
+    /// # Returns
+    ///
+    /// Returns a reference to the data in the form of `std.ArrayList(std.ArrayListUnmanaged(?MemoryCell))`.
+    pub fn getDataFromSegmentIndex(
+        self: *Self,
+        segment_index: i64,
+    ) *std.ArrayList(std.ArrayListUnmanaged(?MemoryCell)) {
+        // Return the temporary data if the segment index is less than 0; otherwise, return the main data.
+        return if (segment_index < 0) &self.temp_data else &self.data;
+    }
+
+    /// Memory management and insertion function for the Cairo Virtual Machine.
+    /// This function inserts a value into the VM memory at the specified address.
+    /// # Arguments
+    /// - `allocator`: The allocator to use for memory operations.
+    /// - `address`: The target address to insert the value.
+    /// - `value`: The value to be inserted, possibly containing relocation information.
+    /// # Returns
+    /// - `void` on successful insertion.
+    /// - `MemoryError.UnallocatedSegment` if the target segment is not allocated.
+    /// - `MemoryError.DuplicatedRelocation` if there is an attempt to overwrite existing memory.
+    /// # Safety
+    /// This function assumes proper initialization and management of the VM memory.
     pub fn set(
         self: *Self,
         allocator: Allocator,
         address: Relocatable,
         value: MaybeRelocatable,
     ) !void {
-        var data = if (address.segment_index < 0) &self.temp_data else &self.data;
-        const insert_segment_index: usize = @intCast(if (address.segment_index < 0) -(address.segment_index + 1) else address.segment_index);
+        // Retrieve the appropriate data segment based on the segment index of the given address.
+        var data = self.getDataFromSegmentIndex(address.segment_index);
+        const insert_segment_index = address.getAdjustedSegmentIndex();
 
-        if (insert_segment_index >= data.items.len) {
+        // Check if the data segment is allocated for the given segment index.
+        if (data.items.len <= insert_segment_index)
             return MemoryError.UnallocatedSegment;
-        }
 
         var data_segment = &data.items[insert_segment_index];
 
-        if (data_segment.items.len <= @as(usize, @intCast(address.offset))) {
+        // Ensure the data segment has sufficient capacity to accommodate the value at the specified offset.
+        if (data_segment.items.len <= address.offset) {
             try data_segment.appendNTimes(
                 allocator,
                 null,
-                @as(usize, @intCast(address.offset)) + 1 - data_segment.items.len,
+                address.offset + 1 - data_segment.items.len,
             );
         }
 
-        // check if existing memory, cannot overwrite
-        if (data_segment.items[@as(usize, @intCast(address.offset))] != null) {
-            if (data_segment.items[@intCast(address.offset)]) |item| {
-                if (!item.maybe_relocatable.eq(value)) {
-                    return MemoryError.DuplicatedRelocation;
-                }
-            }
+        // Check for existing memory at the specified address to avoid overwriting.
+        if (data_segment.items[address.offset]) |item| {
+            if (!item.maybe_relocatable.eq(value))
+                return MemoryError.DuplicatedRelocation;
         }
+
+        // Insert the value into the VM memory at the specified address.
         data_segment.items[address.offset] = MemoryCell.init(value);
     }
 
     /// Retrieves data at a specified address within a relocatable data structure.
     ///
+    /// This function allows you to retrieve data from a relocatable data structure at a given address.
+    /// The provided `address` is used to locate the data within the structure.
+    ///
+    /// # Arguments
     /// - `self`: The instance of the data structure.
     /// - `address`: The target address to retrieve data from.
-    /// Returns:
-    /// A `MaybeRelocatable` value if the address is valid; otherwise, returns `null`.
+    ///
+    /// # Returns
+    /// Returns a `MaybeRelocatable` value if the address is valid; otherwise, returns `null`.
+    ///
+    /// # Example
+    /// ```
+    /// const myDataStructure = // initialize your data structure here
+    /// const targetAddress = // specify the target address
+    /// const result = myDataStructure.get(targetAddress);
+    /// // Handle the result accordingly
+    /// ```
     pub fn get(self: *Self, address: Relocatable) ?MaybeRelocatable {
-        const data = if (address.segment_index < 0) &self.temp_data else &self.data;
-        const segment_index: usize = @intCast(if (address.segment_index < 0) -(address.segment_index + 1) else address.segment_index);
+        // Retrieve the data corresponding to the segment index from the data structure.
+        const data = self.getDataFromSegmentIndex(address.segment_index);
 
+        // Adjust the segment index based on the target address.
+        const segment_index = address.getAdjustedSegmentIndex();
+
+        // Check if the segment index is valid within the data structure.
         const isSegmentIndexValid = address.segment_index < data.items.len;
+
+        // Check if the offset is valid within the specified segment.
         const isOffsetValid = isSegmentIndexValid and (address.offset < data.items[segment_index].items.len);
 
-        if (!isSegmentIndexValid or !isOffsetValid) return null;
-
-        if (data.items[segment_index].items[@intCast(address.offset)]) |val| {
-            return val.maybe_relocatable;
-        }
-        return null;
+        // Return null if either the segment index or offset is not valid.
+        // Otherwise, return the maybe_relocatable value at the specified address.
+        return if (!isSegmentIndexValid or !isOffsetValid)
+            null
+        else if (data.items[segment_index].items[address.offset]) |val|
+            val.maybe_relocatable
+        else
+            null;
     }
 
     /// Retrieves a `Felt252` value from the memory at the specified relocatable address.
@@ -414,14 +465,13 @@ pub const Memory = struct {
         self: *Self,
         address: Relocatable,
     ) error{ ExpectedInteger, UnknownMemoryCell }!Felt252 {
-        if (self.get(address)) |m| {
-            return switch (m) {
+        return if (self.get(address)) |m|
+            switch (m) {
                 .felt => |fe| fe,
                 else => MemoryError.ExpectedInteger,
-            };
-        } else {
-            return MemoryError.UnknownMemoryCell;
-        }
+            }
+        else
+            MemoryError.UnknownMemoryCell;
     }
 
     /// Retrieves a `Relocatable` value from the memory at the specified relocatable address in the Cairo VM.
@@ -440,14 +490,13 @@ pub const Memory = struct {
         self: *Self,
         address: Relocatable,
     ) error{ExpectedRelocatable}!Relocatable {
-        if (self.get(address)) |m| {
-            return switch (m) {
+        return if (self.get(address)) |m|
+            switch (m) {
                 .relocatable => |rel| rel,
-                else => error.ExpectedRelocatable,
-            };
-        } else {
-            return error.ExpectedRelocatable;
-        }
+                else => MemoryError.ExpectedRelocatable,
+            }
+        else
+            MemoryError.ExpectedRelocatable;
     }
 
     // Adds a validation rule for a given segment.
@@ -471,13 +520,13 @@ pub const Memory = struct {
     /// This function assumes correct usage and does not perform bounds checking. It's the responsibility of the caller
     /// to ensure that the provided `address` is within the valid bounds of the memory segment.
     pub fn markAsAccessed(self: *Self, address: Relocatable) void {
-        const segment_index: usize = @intCast(if (address.segment_index < 0) -(address.segment_index + 1) else address.segment_index);
-        var data = if (address.segment_index < 0) &self.temp_data else &self.data;
+        const segment_index = address.getAdjustedSegmentIndex();
+        var data = self.getDataFromSegmentIndex(address.segment_index);
 
         if (segment_index < data.items.len) {
             if (address.offset < data.items[segment_index].items.len) {
-                if (data.items[segment_index].items[address.offset] != null)
-                    data.items[segment_index].items[address.offset].?.is_accessed = true;
+                if (data.items[segment_index].items[address.offset]) |*memory_cell|
+                    memory_cell.is_accessed = true;
             }
         }
     }
@@ -504,7 +553,7 @@ pub const Memory = struct {
             return MemoryError.NonZeroOffset;
         }
         // Adjust the segment index to begin at zero.
-        const segment_index: u64 = @intCast(-(src_ptr.segment_index + 1));
+        const segment_index = src_ptr.getAdjustedSegmentIndex();
         // Check for duplicated relocation rules.
         if (self.relocation_rules.contains(segment_index)) {
             return MemoryError.DuplicatedRelocation;
@@ -524,8 +573,7 @@ pub const Memory = struct {
         if (self.validation_rules.get(@intCast(address.segment_index))) |rule| {
             if (!self.validated_addresses.contains(address)) {
                 const list = try rule(self, address);
-                const firstElement = list[0];
-                try self.validated_addresses.addAddresses(&[_]Relocatable{firstElement});
+                try self.validated_addresses.addAddresses(&[_]Relocatable{list[0]});
             }
         }
     }
@@ -537,8 +585,11 @@ pub const Memory = struct {
     pub fn validateExistingMemory(self: *Self) !void {
         for (self.data.items, 0..) |row, i| {
             for (row.items, 0..) |cell, j| {
-                if (cell != null) {
-                    try self.validateMemoryCell(Relocatable.init(@intCast(i), j));
+                if (cell) |_| {
+                    try self.validateMemoryCell(Relocatable.init(
+                        @intCast(i),
+                        j,
+                    ));
                 }
             }
         }
@@ -559,13 +610,15 @@ pub const Memory = struct {
         return switch (idx < 0) {
             true => blk: {
                 const i: usize = @intCast(-(idx + 1));
-                if (i < self.temp_data.items.len) {
-                    break :blk self.temp_data.items[i].items;
-                } else {
-                    break :blk null;
-                }
+                break :blk if (i < self.temp_data.items.len)
+                    self.temp_data.items[i].items
+                else
+                    null;
             },
-            false => if (idx < self.data.items.len) self.data.items[@intCast(idx)].items else null,
+            false => if (idx < self.data.items.len)
+                self.data.items[@intCast(idx)].items
+            else
+                null,
         };
     }
 
@@ -604,8 +657,8 @@ pub const Memory = struct {
         if (self.getSegmentAtIndex(lhs.segment_index)) |ls| {
             if (r) |rs| {
                 for (0..len) |i| {
-                    const l_idx: usize = @intCast(lhs.offset + i);
-                    const r_idx: usize = @intCast(rhs.offset + i);
+                    const l_idx = lhs.offset + i;
+                    const r_idx = rhs.offset + i;
                     return switch (MemoryCell.cmp(
                         if (l_idx < ls.len) ls[l_idx] else null,
                         if (r_idx < rs.len) rs[r_idx] else null,
@@ -638,28 +691,42 @@ pub const Memory = struct {
     ///
     /// Returns `true` if segments are equal up to the specified length, otherwise `false`.
     pub fn memEq(self: *Self, lhs: Relocatable, rhs: Relocatable, len: usize) !bool {
+        // Check if the left and right addresses are the same, in which case the segments are equal.
         if (lhs.eq(rhs)) return true;
 
-        const l = if (self.getSegmentAtIndex(lhs.segment_index)) |s| blk: {
-            break :blk if (lhs.offset < s.len) s[lhs.offset..] else null;
-        } else null;
+        // Get the segment starting from the left-hand address.
+        const l = if (self.getSegmentAtIndex(lhs.segment_index)) |s|
+            // Check if the offset is within the bounds of the segment.
+            if (lhs.offset < s.len) s[lhs.offset..] else null
+        else
+            null;
 
-        const r = if (self.getSegmentAtIndex(rhs.segment_index)) |s| blk: {
-            break :blk if (rhs.offset < s.len) s[rhs.offset..] else null;
-        } else null;
+        // Get the segment starting from the right-hand address.
+        const r = if (self.getSegmentAtIndex(rhs.segment_index)) |s|
+            // Check if the offset is within the bounds of the segment.
+            if (rhs.offset < s.len) s[rhs.offset..] else null
+        else
+            null;
 
+        // If the left segment exists, perform further checks.
         if (l) |ls| {
+            // If the right segment also exists, compare the segments up to the specified length.
             if (r) |rs| {
+                // Determine the actual lengths to compare.
                 const lhs_len = @min(ls.len, len);
                 const rhs_len = @min(rs.len, len);
 
+                // Compare slices of MemoryCell items up to the specified length.
                 return switch (lhs_len == rhs_len) {
                     true => MemoryCell.eqlSlice(ls[0..lhs_len], rs[0..rhs_len]),
                     else => false,
                 };
             }
+            // If only the left segment exists, return false.
             return false;
         }
+
+        // If the left segment does not exist, return true only if the right segment is also null.
         return r == null;
     }
 
@@ -687,7 +754,7 @@ pub const Memory = struct {
     ) !std.ArrayList(?MaybeRelocatable) {
         var values = std.ArrayList(?MaybeRelocatable).init(allocator);
         for (0..size) |i| {
-            try values.append(self.get(try address.addUint(@intCast(i))));
+            try values.append(self.get(try address.addUint(i)));
         }
         return values;
     }
@@ -777,7 +844,7 @@ pub const Memory = struct {
         );
         errdefer values.deinit();
         for (0..size) |i| {
-            try values.append(try self.getFelt(try address.addUint(@intCast(i))));
+            try values.append(try self.getFelt(try address.addUint(i)));
         }
         return values;
     }
@@ -823,10 +890,7 @@ pub const Memory = struct {
         if (address.segment_index >= 0) return MaybeRelocatable.fromRelocatable(address);
 
         // Attempt to retrieve relocation rules for the given segment index.
-        return if (relocation_rules.get(@as(
-            usize,
-            @intCast(-(address.segment_index + 1)),
-        ))) |x|
+        return if (relocation_rules.get(address.getAdjustedSegmentIndex())) |x|
             // If rules exist, add the address offset according to the rules.
             MaybeRelocatable.fromRelocatable(try x.addUint(address.offset))
         else
@@ -851,10 +915,7 @@ pub const Memory = struct {
         if (address.segment_index >= 0) return address;
 
         // Try to retrieve relocation rules for the given segment index.
-        return if (self.relocation_rules.get(@as(
-            usize,
-            @intCast(-(address.segment_index + 1)),
-        ))) |x|
+        return if (self.relocation_rules.get(address.getAdjustedSegmentIndex())) |x|
             // If rules exist, add the address offset according to the rules.
             try x.addUint(address.offset)
         else
@@ -2862,6 +2923,41 @@ test "Memory: relocateValueFromMaybeRelocatable with Relocatable should use relo
         MaybeRelocatable.fromSegment(2, 7),
         try memory.relocateValueFromMaybeRelocatable(MaybeRelocatable.fromSegment(-2, 5)),
     );
+}
+
+test "Memory: getDataFromSegmentIndex should return a pointer to data if segment index is positive or null" {
+    // Create a new Memory instance using the testing allocator
+    var memory = try Memory.init(std.testing.allocator);
+    // Defer memory deallocation to ensure proper cleanup
+    defer memory.deinit();
+
+    // Obtain a reference to the main data within the Memory instance.
+    const data_pointer = &memory.data;
+
+    // Test when the segment index is positive (15), should return a pointer to the main data.
+    try expectEqual(data_pointer, memory.getDataFromSegmentIndex(15));
+
+    // Test when the segment index is the maximum positive value, should still return a pointer to the main data.
+    try expectEqual(data_pointer, memory.getDataFromSegmentIndex(std.math.maxInt(i64)));
+
+    // Test when the segment index is 0, should return a pointer to the main data.
+    try expectEqual(data_pointer, memory.getDataFromSegmentIndex(0));
+}
+
+test "Memory: getDataFromSegmentIndex should return a pointer to data_temp if segment index is negative" {
+    // Create a new Memory instance using the testing allocator
+    var memory = try Memory.init(std.testing.allocator);
+    // Defer memory deallocation to ensure proper cleanup
+    defer memory.deinit();
+
+    // Obtain a reference to the temporary data within the Memory instance.
+    const data_pointer = &memory.temp_data;
+
+    // Test when the segment index is negative (-15), should return a pointer to the temporary data.
+    try expectEqual(data_pointer, memory.getDataFromSegmentIndex(-15));
+
+    // Test when the segment index is the maximum negative value, should still return a pointer to the temporary data.
+    try expectEqual(data_pointer, memory.getDataFromSegmentIndex(-std.math.maxInt(i64)));
 }
 
 test "Memory: relocateMemory with empty relocation rules" {

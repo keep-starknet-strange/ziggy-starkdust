@@ -126,7 +126,7 @@ pub const BuiltinRunner = union(enum) {
             .RangeCheck => |range_check| range_check.deduceMemoryCell(address, memory),
             .Keccak => |*keccak| try keccak.deduceMemoryCell(allocator, address, memory),
             .Signature => |signature| signature.deduceMemoryCell(address, memory),
-            .Poseidon => |poseidon| poseidon.deduceMemoryCell(address, memory),
+            .Poseidon => |*poseidon| try poseidon.deduceMemoryCell(allocator, address, memory),
             .SegmentArena => |segment_arena| segment_arena.deduceMemoryCell(address, memory),
         };
     }
@@ -152,7 +152,7 @@ pub const BuiltinRunner = union(enum) {
             .RangeCheck => |*range_check| range_check.getMemorySegmentAddresses(),
             .Keccak => |*keccak| keccak.getMemorySegmentAddresses(),
             .Signature => .{ 0, 0 },
-            .Poseidon => .{ 0, 0 },
+            .Poseidon => |*poseidon| poseidon.getMemorySegmentAddresses(),
             .SegmentArena => .{ 0, 0 },
         };
     }

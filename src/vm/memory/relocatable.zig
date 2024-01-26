@@ -257,6 +257,23 @@ pub const Relocatable = struct {
         }
         return MemoryError.TemporarySegmentInRelocation;
     }
+
+    /// Gets the adjusted segment index for a Relocatable object.
+    ///
+    /// This function returns the adjusted segment index for a given `Relocatable` object. If the
+    /// `segment_index` is negative, it is adjusted by subtracting one and negating the result.
+    ///
+    /// # Arguments
+    /// - `self`: Pointer to the `Relocatable` object.
+    ///
+    /// # Returns
+    /// The adjusted `usize` value representing the segment index.
+    pub fn getAdjustedSegmentIndex(self: *const Self) usize {
+        return @intCast(if (self.segment_index < 0)
+            -(self.segment_index + 1)
+        else
+            self.segment_index);
+    }
 };
 // MaybeRelocatable is the type of the memory cells in the Cairo
 // VM. It can either be a Relocatable or a field element.
@@ -988,6 +1005,32 @@ test "Relocatable: relocateAddress should return a proper usize to relocate the 
     try expectEqual(
         @as(usize, 11),
         try Relocatable.init(3, 7).relocateAddress(&relocation_table),
+    );
+}
+
+test "Relocatable.getAdjustedSegmentIndex: should return the segment index if positive" {
+    try expectEqual(
+        @as(usize, 10),
+        Relocatable.init(10, 3).getAdjustedSegmentIndex(),
+    );
+    try expectEqual(
+        @as(usize, std.math.maxInt(i64)),
+        Relocatable.init(std.math.maxInt(i64), 3).getAdjustedSegmentIndex(),
+    );
+    try expectEqual(
+        @as(usize, 0),
+        Relocatable.init(0, 3).getAdjustedSegmentIndex(),
+    );
+}
+
+test "Relocatable.getAdjustedSegmentIndex: should return the opposite of the segment index + 1 if negative" {
+    try expectEqual(
+        @as(usize, 9),
+        Relocatable.init(-10, 3).getAdjustedSegmentIndex(),
+    );
+    try expectEqual(
+        @as(usize, std.math.maxInt(i64) - 1),
+        Relocatable.init(-std.math.maxInt(i64), 3).getAdjustedSegmentIndex(),
     );
 }
 
