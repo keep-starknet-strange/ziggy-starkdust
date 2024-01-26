@@ -402,22 +402,22 @@ test "Program: extractConstants should extract the constants from identifiers us
     );
 
     try expectEqual(
-        Felt252.fromInteger(8),
+        Felt252.fromInt(u8, 8),
         constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_CAPACITY_IN_WORDS").?,
     );
 
     try expectEqual(
-        Felt252.fromInteger(136),
+        Felt252.fromInt(u8, 136),
         constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_FULL_RATE_IN_BYTES").?,
     );
 
     try expectEqual(
-        Felt252.fromInteger(17),
+        Felt252.fromInt(u8, 17),
         constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_FULL_RATE_IN_WORDS").?,
     );
 
     try expectEqual(
-        Felt252.fromInteger(25),
+        Felt252.fromInt(u8, 25),
         constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_STATE_SIZE_FELTS").?,
     );
 }
