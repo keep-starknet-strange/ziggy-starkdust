@@ -26,6 +26,76 @@ const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
 const expectEqualSlices = std.testing.expectEqualSlices;
 
+/// Tracks the step resources of a cairo execution run.
+const RunResources = struct {
+    // We consider the 'default' mode of RunResources having infinite steps.
+    n_steps: ?usize = null,
+
+    pub fn consumed(self: *RunResources) bool {
+        if (self.n_steps) |n_steps| {
+            return n_steps == 0;
+        }
+
+        return false;
+    }
+
+    pub fn consumeStep(self: *RunResources) void {
+        if (self.n_steps) |n_steps| {
+            if (n_steps > 0) {
+                self.n_steps = n_steps - 1;
+            }
+        }
+    }
+};
+
+/// This interface is used in conditions where vm execution needs to be constrained by a certain amount of steps.
+/// It is primarily used in the context of Starknet and implemented by HintProcessors.
+const ResourceTracker = struct {
+    // define interface fields: ptr,vtab
+    ptr: *anyopaque, //ptr to instance
+    vtab: *const VTab, //ptr to vtab
+    const VTab = struct {
+        consumed: *const fn (ptr: *anyopaque) bool,
+        consumeStep: *const fn (ptr: *anyopaque) void,
+    };
+
+    /// Returns true if there are no resource-steps available.
+    pub fn consumed(self: ResourceTracker) bool {
+        return self.vtab.consumed(self.ptr);
+    }
+
+    /// Subtracts a single step from what is initialized as available.
+    pub fn consumeStep(self: ResourceTracker) void {
+        self.vtab.consumeStep(self.ptr);
+    }
+
+    // cast concrete implementation types/objs to interface
+    pub fn init(obj: anytype) ResourceTracker {
+        const Ptr = @TypeOf(obj);
+        const PtrInfo = @typeInfo(Ptr);
+        std.debug.assert(PtrInfo == .Pointer); // Must be a pointer
+        std.debug.assert(PtrInfo.Pointer.size == .One); // Must be a single-item pointer
+        std.debug.assert(@typeInfo(PtrInfo.Pointer.child) == .Struct); // Must point to a struct
+        const impl = struct {
+            fn consumed(ptr: *anyopaque) bool {
+                const self: Ptr = @ptrCast(@alignCast(ptr));                
+                return self.consumed();
+            }
+            fn consumeStep(ptr: *anyopaque) void {
+                const self: Ptr = @ptrCast(@alignCast(ptr));                                
+                self.consumeStep();
+            }
+        }; 
+        return .{
+            .ptr = obj,
+            .vtab = &.{
+                .consumed = impl.consumed,
+                .consumeStep = impl.consumeStep,
+            },
+        };
+    }
+};
+
 const BuiltinInfo = struct { segment_index: usize, stop_pointer: usize };
 
 pub const CairoRunner = struct {
@@ -312,6 +382,48 @@ pub const CairoRunner = struct {
         self.relocated_memory.deinit();
     }
 };
+
+
+test "RunResources: consumed and consumeStep" {
+    // given
+    const steps = 5;
+    var run_resources = RunResources{ .n_steps = steps };
+    var tracker = ResourceTracker.init(&run_resources);
+
+    // Test initial state (not consumed)
+    try expect(!tracker.consumed());
+
+    // Consume a step and test
+    tracker.consumeStep();
+    try expect(run_resources.n_steps.? == steps - 1);
+
+    // Consume remaining steps and test for consumed state
+    var ran_steps: u32 = 0;
+    while (!tracker.consumed()) : (ran_steps += 1) {
+        tracker.consumeStep();
+    }
+    try expect(tracker.consumed());
+    try expect(ran_steps == 4);
+    try expect(run_resources.n_steps.? == 0);
+}
+
+test "RunResources: with unlimited steps" {
+    // given
+    var run_resources = RunResources{};
+
+    // default case has null for n_steps
+    try std.testing.expectEqual(null,run_resources.n_steps);
+
+    var tracker = ResourceTracker.init(&run_resources);
+
+    // Test that it's never consumed
+    try std.testing.expect(!tracker.consumed());
+
+    // Even after consuming steps, it should not be consumed
+    tracker.consumeStep();
+    tracker.consumeStep();
+    try std.testing.expect(!tracker.consumed());
+}
 
 test "CairoRunner: getBuiltinSegmentsInfo with segment info empty should return an empty vector" {
     // Create a CairoRunner instance for testing.
