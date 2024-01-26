@@ -28,9 +28,14 @@ const expectEqualSlices = std.testing.expectEqualSlices;
 
 /// Tracks the step resources of a cairo execution run.
 const RunResources = struct {
+    const Self = @This();    
     // We consider the 'default' mode of RunResources having infinite steps.
     n_steps: ?usize = null,
 
+    pub fn init(n_steps: usize) Self {
+        return .{.n_steps = n_steps};
+    }
+    
     pub fn consumed(self: *RunResources) bool {
         if (self.n_steps) |n_steps| {
             return n_steps == 0;
@@ -51,6 +56,8 @@ const RunResources = struct {
 /// This interface is used in conditions where vm execution needs to be constrained by a certain amount of steps.
 /// It is primarily used in the context of Starknet and implemented by HintProcessors.
 const ResourceTracker = struct {
+    const Self = @This();
+    
     // define interface fields: ptr,vtab
     ptr: *anyopaque, //ptr to instance
     vtab: *const VTab, //ptr to vtab
@@ -60,17 +67,17 @@ const ResourceTracker = struct {
     };
 
     /// Returns true if there are no resource-steps available.
-    pub fn consumed(self: ResourceTracker) bool {
+    pub fn consumed(self: Self) bool {
         return self.vtab.consumed(self.ptr);
     }
 
     /// Subtracts a single step from what is initialized as available.
-    pub fn consumeStep(self: ResourceTracker) void {
+    pub fn consumeStep(self: Self) void {
         self.vtab.consumeStep(self.ptr);
     }
 
     // cast concrete implementation types/objs to interface
-    pub fn init(obj: anytype) ResourceTracker {
+    pub fn init(obj: anytype) Self {
         const Ptr = @TypeOf(obj);
         const PtrInfo = @typeInfo(Ptr);
         std.debug.assert(PtrInfo == .Pointer); // Must be a pointer
