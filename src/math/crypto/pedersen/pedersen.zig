@@ -63,13 +63,16 @@ pub fn pedersenHash(x: Felt252, y: Felt252) Felt252 {
 test "pedersen-hash" {
     //   Test case ported from:
     //   https://github.com/starkware-libs/crypto-cpp/blob/95864fbe11d5287e345432dbe1e80dea3c35fc58/src/starkware/crypto/ffi/crypto_lib_test.go
-    const in1 = Felt252.fromInteger(
+    const in1 = Felt252.fromInt(
+        u256,
         0x03d937c035c878245caf64531a5756109c53068da139362728feb561405371cb,
     );
-    const in2 = Felt252.fromInteger(
+    const in2 = Felt252.fromInt(
+        u256,
         0x0208a0a10250e382e1e4bbe2880906c2791bf6275695e02fbbc6aeff9cd8b31a,
     );
-    const expected_hash = Felt252.fromInteger(
+    const expected_hash = Felt252.fromInt(
+        u256,
         0x030e480bed5fe53fa909cc0f8c4d99b8f9f2c016be4c41e13a4848797979c662,
     );
 

@@ -439,15 +439,20 @@ pub const MemorySegmentManager = struct {
     /// Parameters:
     /// - `self`: Pointer to the structure containing memory information.
     /// - `builtin_count`: Number of built-in segments.
+    /// - `has_output_builtin`: Boolean flag indication the presence of output builtin.
     ///
     /// Returns:
     /// Result containing the total memory holes or an error of type `MemoryError`.
-    pub fn getMemoryHoles(self: *Self, builtin_count: usize) MemoryError!usize {
+    pub fn getMemoryHoles(
+        self: *Self,
+        builtin_count: usize,
+        has_output_builtin: bool,
+    ) MemoryError!usize {
         // Initialize variable to store the total memory holes
         var memory_holes: usize = 0;
 
         // Calculate the start and end indices for built-in segments
-        const builtin_segments_start = 1;
+        const builtin_segments_start: usize = if (has_output_builtin) 2 else 1;
         const builtin_segments_end = builtin_segments_start + builtin_count;
 
         // Iterate through each segment in the memory data
@@ -608,9 +613,9 @@ test "set get integer value in segment memory" {
         -1,
         0,
     );
-    const value_1 = MaybeRelocatable.fromFelt(Felt252.fromInteger(42));
+    const value_1 = MaybeRelocatable.fromFelt(Felt252.fromInt(u8, 42));
 
-    const value_2 = MaybeRelocatable.fromFelt(Felt252.fromInteger(84));
+    const value_2 = MaybeRelocatable.fromFelt(Felt252.fromInt(u8, 84));
 
     try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
@@ -1105,7 +1110,7 @@ test "MemorySegmentManager: loadData with one element" {
 
     var data = std.ArrayList(MaybeRelocatable).init(allocator);
     defer data.deinit();
-    try data.append(MaybeRelocatable.fromU256(4));
+    try data.append(MaybeRelocatable.fromInt(u8, 4));
 
     _ = try memory_segment_manager.addSegment();
 
@@ -1118,7 +1123,7 @@ test "MemorySegmentManager: loadData with one element" {
 
     try expectEqual(Relocatable.init(0, 1), actual);
     try expectEqual(
-        MaybeRelocatable.fromU256(4),
+        MaybeRelocatable.fromInt(u8, 4),
         (memory_segment_manager.memory.get(Relocatable.init(0, 0))).?,
     );
 }
@@ -1131,9 +1136,9 @@ test "MemorySegmentManager: loadData with three elements" {
 
     var data = std.ArrayList(MaybeRelocatable).init(allocator);
     defer data.deinit();
-    try data.append(MaybeRelocatable.fromU256(4));
-    try data.append(MaybeRelocatable.fromU256(5));
-    try data.append(MaybeRelocatable.fromU256(6));
+    try data.append(MaybeRelocatable.fromInt(u8, 4));
+    try data.append(MaybeRelocatable.fromInt(u8, 5));
+    try data.append(MaybeRelocatable.fromInt(u8, 6));
 
     _ = try memory_segment_manager.addSegment();
 
@@ -1146,15 +1151,15 @@ test "MemorySegmentManager: loadData with three elements" {
 
     try expectEqual(Relocatable.init(0, 3), actual);
     try expectEqual(
-        MaybeRelocatable.fromU256(4),
+        MaybeRelocatable.fromInt(u8, 4),
         (memory_segment_manager.memory.get(Relocatable.init(0, 0))).?,
     );
     try expectEqual(
-        MaybeRelocatable.fromU256(5),
+        MaybeRelocatable.fromInt(u8, 5),
         (memory_segment_manager.memory.get(Relocatable.init(0, 1))).?,
     );
     try expectEqual(
-        MaybeRelocatable.fromU256(6),
+        MaybeRelocatable.fromInt(u8, 6),
         (memory_segment_manager.memory.get(Relocatable.init(0, 2))).?,
     );
 }
@@ -1211,7 +1216,7 @@ test "MemorySegmentManager: getPublicMemoryAddresses with correct segment offset
     try memory_segment_manager.memory.set(
         allocator,
         Relocatable.init(5, 4),
-        MaybeRelocatable.fromU256(0),
+        MaybeRelocatable.fromInt(u8, 0),
     );
     defer memory_segment_manager.memory.deinitData(allocator);
 
@@ -1308,7 +1313,7 @@ test "MemorySegmentManager: getPublicMemoryAddresses with incorrect segment offs
     try memory_segment_manager.memory.set(
         allocator,
         Relocatable.init(5, 4),
-        MaybeRelocatable.fromU256(0),
+        MaybeRelocatable.fromInt(u8, 0),
     );
     defer memory_segment_manager.memory.deinitData(allocator);
 
@@ -1349,9 +1354,9 @@ test "MemorySegmentManager: writeArg with apply modulo" {
     defer data.deinit();
 
     // Add MaybeRelocatable values to data array
-    try data.append(MaybeRelocatable.fromU256(11));
-    try data.append(MaybeRelocatable.fromU256(12));
-    try data.append(MaybeRelocatable.fromU256(3618502788666131213697322783095070105623107215331596699973092056135872020482));
+    try data.append(MaybeRelocatable.fromInt(u256, 11));
+    try data.append(MaybeRelocatable.fromInt(u256, 12));
+    try data.append(MaybeRelocatable.fromInt(u256, 3618502788666131213697322783095070105623107215331596699973092056135872020482));
 
     // Add segments to the memory segment manager
     for (0..2) |_| {
@@ -1370,9 +1375,9 @@ test "MemorySegmentManager: writeArg with apply modulo" {
     var expected_data = std.ArrayList(?MemoryCell).init(std.testing.allocator);
     defer expected_data.deinit();
 
-    try expected_data.append(MemoryCell.init(MaybeRelocatable.fromU256(11)));
-    try expected_data.append(MemoryCell.init(MaybeRelocatable.fromU256(12)));
-    try expected_data.append(MemoryCell.init(MaybeRelocatable.fromU256(1)));
+    try expected_data.append(MemoryCell.init(MaybeRelocatable.fromInt(u256, 11)));
+    try expected_data.append(MemoryCell.init(MaybeRelocatable.fromInt(u256, 12)));
+    try expected_data.append(MemoryCell.init(MaybeRelocatable.fromInt(u8, 1)));
 
     // Perform assertions
     try expectEqual(
@@ -1478,7 +1483,7 @@ test "MemorySegmentManager: getMemoryHoles with missing segment used sizes" {
 
     try expectError(
         MemoryError.MissingSegmentUsedSizes,
-        memory_segment_manager.getMemoryHoles(0),
+        memory_segment_manager.getMemoryHoles(0, false),
     );
 }
 
@@ -1505,7 +1510,7 @@ test "MemorySegmentManager: getMemoryHoles with out of address offset that is bi
 
     try expectError(
         MemoryError.SegmentHasMoreAccessedAddressesThanSize,
-        memory_segment_manager.getMemoryHoles(0),
+        memory_segment_manager.getMemoryHoles(0, false),
     );
 }
 
@@ -1517,14 +1522,14 @@ test "MemorySegmentManager: getMemoryHoles that is empty should return 0" {
 
     try expectEqual(
         @as(usize, 0),
-        try memory_segment_manager.getMemoryHoles(0),
+        try memory_segment_manager.getMemoryHoles(0, false),
     );
 
     try memory_segment_manager.segment_used_sizes.put(0, 4);
 
     try expectEqual(
         @as(usize, 0),
-        try memory_segment_manager.getMemoryHoles(0),
+        try memory_segment_manager.getMemoryHoles(0, false),
     );
 }
 
@@ -1556,7 +1561,7 @@ test "MemorySegmentManager: getMemoryHoles with two memory holes" {
 
     try expectEqual(
         @as(usize, 2),
-        try memory_segment_manager.getMemoryHoles(0),
+        try memory_segment_manager.getMemoryHoles(0, false),
     );
 }
 
@@ -1591,7 +1596,7 @@ test "MemorySegmentManager: getMemoryHoles with seven memory holes" {
 
     try expectEqual(
         @as(usize, 7),
-        try memory_segment_manager.getMemoryHoles(0),
+        try memory_segment_manager.getMemoryHoles(0, false),
     );
 }
 
@@ -1624,11 +1629,11 @@ test "MemorySegmentManager: genArg with a big int value should pass the value th
     defer memory_segment_manager.deinit();
 
     // Create a MaybeRelocatable value from a U256 big int value (1234) for testing.
-    var maybe_relocatable = MaybeRelocatable.fromU256(1234);
+    var maybe_relocatable = MaybeRelocatable.fromInt(u256, 1234);
 
     // Test that the genArg function passes the MaybeRelocatable value through.
     try expectEqual(
-        MaybeRelocatable.fromU256(1234),
+        MaybeRelocatable.fromInt(u256, 1234),
         try memory_segment_manager.genArg(MaybeRelocatable, &maybe_relocatable),
     );
 }
@@ -1648,10 +1653,10 @@ test "MemorySegmentManager: genArg with a vector of MaybeRelocatable should writ
     defer vec.deinit();
 
     // Append various MaybeRelocatable values to the vector for testing purposes.
-    try vec.append(MaybeRelocatable.fromU256(0));
-    try vec.append(MaybeRelocatable.fromU256(1));
-    try vec.append(MaybeRelocatable.fromU256(2));
-    try vec.append(MaybeRelocatable.fromU256(3));
+    try vec.append(MaybeRelocatable.fromInt(u8, 0));
+    try vec.append(MaybeRelocatable.fromInt(u8, 1));
+    try vec.append(MaybeRelocatable.fromInt(u8, 2));
+    try vec.append(MaybeRelocatable.fromInt(u256, 3));
     try vec.append(MaybeRelocatable.fromSegment(0, 0));
     try vec.append(MaybeRelocatable.fromSegment(0, 1));
     try vec.append(MaybeRelocatable.fromSegment(0, 2));
