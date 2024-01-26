@@ -36,7 +36,7 @@ const RunResources = struct {
         return .{.n_steps = n_steps};
     }
     
-    pub fn consumed(self: *RunResources) bool {
+    pub fn consumed(self: *Self) bool {
         if (self.n_steps) |n_steps| {
             return n_steps == 0;
         }
@@ -44,7 +44,7 @@ const RunResources = struct {
         return false;
     }
 
-    pub fn consumeStep(self: *RunResources) void {
+    pub fn consumeStep(self: *Self) void {
         if (self.n_steps) |n_steps| {
             if (n_steps > 0) {
                 self.n_steps = n_steps - 1;
