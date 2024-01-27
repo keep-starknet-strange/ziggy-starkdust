@@ -16,13 +16,13 @@ pub const HintReference = struct {
     /// First offset value within the hint reference.
     offset1: OffsetValue,
     /// Second offset value within the hint reference.
-    offset2: ?OffsetValue,
+    offset2: ?OffsetValue = .{ .value = 0 },
     /// Flag indicating dereference within the hint reference.
-    dereference: bool,
+    dereference: bool = true,
     /// Ap tracking data associated with the hint reference (optional, defaults to null).
-    ap_tracking_data: ?ApTracking,
+    ap_tracking_data: ?ApTracking = null,
     /// Cairo type information related to the hint reference (optional, defaults to null).
-    cairo_type: ?[]const u8,
+    cairo_type: ?[]const u8 = null,
 
     /// Initializes a hint reference with specified offsets and dereference flags.
     ///
@@ -41,8 +41,6 @@ pub const HintReference = struct {
             .offset1 = .{ .reference = .{ .FP, offset1, inner_dereference } },
             .offset2 = .{ .value = offset2 },
             .dereference = dereference,
-            .ap_tracking_data = null,
-            .cairo_type = null,
         };
     }
 
@@ -51,13 +49,7 @@ pub const HintReference = struct {
     /// Params:
     ///   - `offset1`: First offset value for the hint reference.
     pub fn initSimple(offset1: i32) Self {
-        return .{
-            .offset1 = .{ .reference = .{ .FP, offset1, false } },
-            .offset2 = .{ .value = 0 },
-            .dereference = true,
-            .ap_tracking_data = null,
-            .cairo_type = null,
-        };
+        return .{ .offset1 = .{ .reference = .{ .FP, offset1, false } } };
     }
 };
 
