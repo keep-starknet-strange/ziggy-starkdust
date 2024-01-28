@@ -292,7 +292,7 @@ pub const CairoVM = struct {
         };
 
         // Then, we decode the instruction.
-        const instruction = try instructions.decode(encoded_instruction_u64);
+        const instruction = try decoder.decodeInstructions(encoded_instruction_u64);
 
         // ************************************************************
         // *                    EXECUTE                               *
