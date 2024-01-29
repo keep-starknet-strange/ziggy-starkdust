@@ -91,7 +91,7 @@ pub const PoseidonBuiltinRunner = struct {
 
     pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
         var result = ArrayList(MaybeRelocatable).init(allocator);
-        
+
         if (self.included) {
             try result.append(MaybeRelocatable.fromSegment(
                 @intCast(self.base),
@@ -287,7 +287,7 @@ test "PoseidonBuiltinRunner: finalStack should return TypeMismatchNotRelocatable
             2,
             2,
         ).subUint(1),
-        .{ .felt = Felt252.fromInteger(10) },
+        .{ .felt = Felt252.fromInt(u8, 10) },
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 

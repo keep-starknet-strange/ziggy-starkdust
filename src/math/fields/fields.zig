@@ -2,10 +2,8 @@ const std = @import("std");
 const builtin = @import("builtin");
 const ArrayList = std.ArrayList;
 
-pub fn Field(
-    comptime F: type,
-    comptime mod: u256,
-) type {
+/// Represents a finite field element.
+pub fn Field(comptime F: type, comptime mod: u256) type {
     return struct {
         const Self = @This();
 
@@ -26,12 +24,14 @@ pub fn Field(
         /// The smallest value that can be represented by this integer type.
         pub const Min = Self.zero();
         /// The largest value that can be represented by this integer type.
-        pub const Max: Self = .{ .fe = .{
-            std.math.maxInt(u64),
-            std.math.maxInt(u64),
-            std.math.maxInt(u64),
-            std.math.maxInt(u64),
-        } };
+        pub const Max: Self = .{
+            .fe = .{
+                std.math.maxInt(u64),
+                std.math.maxInt(u64),
+                std.math.maxInt(u64),
+                std.math.maxInt(u64),
+            },
+        };
 
         const base_zero = val: {
             var bz: F.MontgomeryDomainFieldElement = undefined;
@@ -43,72 +43,105 @@ pub fn Field(
         };
 
         const base_one = val: {
-            const bo: F.MontgomeryDomainFieldElement = [4]u64{
-                18446744073709551585,
-                18446744073709551615,
-                18446744073709551615,
-                576460752303422960,
+            break :val .{
+                .fe = [4]u64{
+                    18446744073709551585,
+                    18446744073709551615,
+                    18446744073709551615,
+                    576460752303422960,
+                },
             };
-            break :val .{ .fe = bo };
         };
 
         pub const base_two = val: {
-            const bt: F.MontgomeryDomainFieldElement = [4]u64{
-                18446744073709551553,
-                18446744073709551615,
-                18446744073709551615,
-                576460752303422416,
+            break :val .{
+                .fe = [4]u64{
+                    18446744073709551553,
+                    18446744073709551615,
+                    18446744073709551615,
+                    576460752303422416,
+                },
             };
-            break :val .{ .fe = bt };
         };
 
         pub const base_three = val: {
-            const bt: F.MontgomeryDomainFieldElement = [4]u64{
-                18446744073709551521,
-                18446744073709551615,
-                18446744073709551615,
-                576460752303421872,
+            break :val .{
+                .fe = [4]u64{
+                    18446744073709551521,
+                    18446744073709551615,
+                    18446744073709551615,
+                    576460752303421872,
+                },
             };
-            break :val .{ .fe = bt };
         };
 
         fe: F.MontgomeryDomainFieldElement,
 
         /// Mask to apply to the highest limb to get the correct number of bits.
         pub fn mask(bits: usize) u64 {
-            if (bits == 0) {
-                return 0;
-            }
-            const _bits = @mod(bits, 64);
-            if (_bits == 0) {
-                return std.math.maxInt(u64);
-            } else {
-                return std.math.shl(u64, 1, _bits) - 1;
-            }
+            return switch (bits) {
+                0 => 0,
+                else => switch (@mod(bits, 64)) {
+                    0 => std.math.maxInt(u64),
+                    else => |b| std.math.shl(u64, 1, b) - 1,
+                },
+            };
         }
 
-        /// Create a field element from an integer in Montgomery representation.
+        /// Creates a `Field` element from an integer of type `T`. The resulting field element is
+        /// in Montgomery form. This function handles conversion for integers of various sizes,
+        /// ensuring compatibility with the defined finite field (`Field`) and its modulo value.
         ///
-        /// This function converts an integer to a field element in Montgomery form.
-        pub fn fromInteger(num: u256) Self {
-            var lbe: [BytesSize]u8 = [_]u8{0} ** BytesSize;
-            std.mem.writeInt(
-                u256,
-                lbe[0..],
-                num % Modulo,
-                .little,
-            );
-
-            var nonMont: F.NonMontgomeryDomainFieldElement = undefined;
-            F.fromBytes(
-                &nonMont,
-                lbe,
-            );
+        /// # Arguments:
+        /// - `T`: The type of the integer value.
+        /// - `num`: The integer value to create the `Field` element from.
+        ///
+        /// # Returns:
+        /// A new `Field` element in Montgomery form representing the converted integer.
+        pub fn fromInt(comptime T: type, num: T) Self {
             var mont: F.MontgomeryDomainFieldElement = undefined;
-            F.toMontgomery(
-                &mont,
-                nonMont,
-            );
+            std.debug.assert(num >= 0);
+            switch (@typeInfo(T).Int.bits) {
+                0...63 => F.toMontgomery(&mont, [_]u64{ @intCast(num), 0, 0, 0 }),
+                64 => F.toMontgomery(&mont, [_]u64{ num, 0, 0, 0 }),
+                65...128 => F.toMontgomery(
+                    &mont,
+                    [_]u64{
+                        @truncate(
+                            @mod(
+                                num,
+                                @as(u128, @intCast(std.math.maxInt(u64))) + 1,
+                            ),
+                        ),
+                        @truncate(
+                            @divTrunc(
+                                num,
+                                @as(u128, @intCast(std.math.maxInt(u64))) + 1,
+                            ),
+                        ),
+                        0,
+                        0,
+                    },
+                ),
+                else => {
+                    var lbe: [BytesSize]u8 = [_]u8{0} ** BytesSize;
+                    std.mem.writeInt(
+                        u256,
+                        lbe[0..],
+                        num % Modulo,
+                        .little,
+                    );
+                    var nonMont: F.NonMontgomeryDomainFieldElement = undefined;
+                    F.fromBytes(
+                        &nonMont,
+                        lbe,
+                    );
+                    F.toMontgomery(
+                        &mont,
+                        nonMont,
+                    );
+                },
+            }
 
             return .{ .fe = mont };
         }
@@ -142,28 +175,28 @@ pub fn Field(
         /// Get the field element representing zero.
         ///
         /// Returns a field element with a value of zero.
-        pub fn zero() Self {
+        pub inline fn zero() Self {
             return base_zero;
         }
 
         /// Get the field element representing one.
         ///
         /// Returns a field element with a value of one.
-        pub fn one() Self {
+        pub inline fn one() Self {
             return base_one;
         }
 
         /// Get the field element representing two.
         ///
         /// Returns a field element with a value of two.
-        pub fn two() Self {
+        pub inline fn two() Self {
             return base_two;
         }
 
         /// Get the field element representing three.
         ///
         /// Returns a field element with a value of three.
-        pub fn three() Self {
+        pub inline fn three() Self {
             return base_three;
         }
 
@@ -503,7 +536,7 @@ pub fn Field(
                 t = t + Modulo;
             }
 
-            return Self.fromInteger(@intCast(t));
+            return Self.fromInt(u256, @intCast(t));
         }
 
         /// Divide one field element by another.
@@ -586,7 +619,7 @@ pub fn Field(
             // p, -1 otherwise.
             const ls = a.pow((Modulo - 1) / 2);
 
-            const modulo_minus_one = comptime fromInteger(Modulo - 1);
+            const modulo_minus_one = comptime fromInt(u256, Modulo - 1);
             if (ls.equal(modulo_minus_one)) {
                 return -1;
             } else if (ls.isZero()) {

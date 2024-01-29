@@ -12,6 +12,8 @@ pub const CairoVMError = error{
     InstructionFetchingFailed,
     /// Error in converting the encoded instruction to a u64.
     InstructionEncodingError,
+    /// Non Zero High Bit in Instruction
+    InstructionNonZeroHighBit,
     /// TODO, this error type is never used. ResLogic constants parsing related?
     ParseResLogicError,
     /// Occurs when values of different types are subtracted.
@@ -43,6 +45,18 @@ pub const CairoVMError = error{
     CantWriteReturnFp,
     /// Inconsistent auto deduction
     InconsistentAutoDeduction,
+    /// Invalid PC update
+    InvalidPcUpdate,
+    /// Invalid Op1 Reg
+    InvalidOp1Reg,
+    /// Invalid Instruction Encoding
+    InvalidInstructionEncoding,
+    /// Invalid Res Logic
+    InvalidResLogic,
+    /// Invalid Ap Update
+    InvalidApUpdate,
+    /// Invalid Opcode
+    InvalidOpcode,
 };
 
 /// Represents different error conditions that are memory-related.
