@@ -3659,6 +3659,42 @@ test "CairoVM: verifyAutoDeductionsForAddr throws InconsistentAutoDeduction" {
     try expectError(CairoVMError.InconsistentAutoDeduction, vm.verifyAutoDeductionsForAddr(allocator, Relocatable.init(2, 2), &builtin));
 }
 
+test "CairoVM: decode current instruction" {
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 0 }, .{1488298941505110016} }, // 0x14A7800080008000
+    });
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    const result = try vm.decodeCurrentInstruction();
+    try expectEqual(Instruction.initDefault(), result);
+}
+
+test "CairoVM: decode current instruction expected integer" {
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 0 }, .{ "112233445566778899", 16 } },
+    });
+
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    try expectError(MemoryError.ExpectedInteger, vm.decodeCurrentInstruction());
+}
+
+test "CairoVM: decode current instruction invalid encoding" {
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{.{ .{ 0, 0 }, .{std.math.maxInt(u64) + 1} }});
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    try expectError(CairoVMError.InvalidInstructionEncoding, vm.decodeCurrentInstruction());
+}
+
 test "CairoVM: verifyAutoDeductions for bitwise builtin runner" {
     const allocator = std.testing.allocator;
 
