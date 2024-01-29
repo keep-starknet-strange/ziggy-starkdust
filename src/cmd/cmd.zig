@@ -145,6 +145,7 @@ var app = &cli.App{
                         &enable_trace,
                         &program_option,
                         &output_trace,
+                        &output_memory,
                     },
                     // Action to be executed for the subcommand.
                     .target = .{ .action = .{ .exec = execute } },

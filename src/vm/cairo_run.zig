@@ -63,9 +63,11 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
     try runner.endRun();
     // TODO readReturnValues necessary for builtins
 
-    if (config.output_trace) |trace_path| {
+    if (config.output_trace != null or config.output_memory != null) {
         try runner.relocate();
+    }
 
+    if (config.output_trace) |trace_path| {
         const trace_file = try std.fs.cwd().createFile(trace_path, .{});
         defer trace_file.close();
 
@@ -73,14 +75,13 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
         try writeEncodedTrace(runner.relocated_trace, &trace_writer);
     }
 
-    // blocked until memory relocation is implemented
-    // if (config.output_memory) |mem_path| {
-    //     const mem_file = try std.fs.cwd().createFile(mem_path, .{});
-    //     defer mem_file.close();
+    if (config.output_memory) |mem_path| {
+        const mem_file = try std.fs.cwd().createFile(mem_path, .{});
+        defer mem_file.close();
 
-    //     var mem_writer = mem_file.writer();
-    //     try writeEncodedMemory(runner.relocated_trace, &mem_writer);
-    // }
+        var mem_writer = mem_file.writer();
+        try writeEncodedMemory(runner.relocated_memory.items, &mem_writer);
+    }
 }
 
 const expect = std.testing.expect;
