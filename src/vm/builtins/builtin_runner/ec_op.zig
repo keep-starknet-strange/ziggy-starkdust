@@ -124,12 +124,27 @@ pub const EcOpBuiltinRunner = struct {
         return result;
     }
 
+    /// Deduces the `MemoryCell`, where deduction in the case of EC OP
+    /// is the result of the elliptic curve operation P + m * Q,
+    /// where P = const_partial_sum, and Q = const_doubled_point
+    /// are points on the elliptic curve defined as:
+    /// y^2 = x^3 + alpha * x + beta.
+    ///
+    /// # Parameters
+    ///
+    /// - `address`: The target address for deducing the `MemoryCell`.
+    /// - `memory`: A pointer to the `Memory` containing the memory segments.
+    ///
+    /// # Returns
+    ///
+    /// A `MaybeRelocatable` containing the deduced `MemoryCell`, or `null` if the address
+    /// corresponds to an input cell, or an error code if any issues occur during the process.
     pub fn deduceMemoryCell(self: *Self, allocator: Allocator, address: Relocatable, memory: *Memory) !?MaybeRelocatable {
         const index = address.offset % self.cells_per_instance;
         if ((index != OUTPUT_INDICES[0]) and (index != OUTPUT_INDICES[1])) return error.NotOutputCell;
 
         const instance = Relocatable.init(address.segment_index, address.offset - index);
-        const x_addr = try instance.addFelt(Felt252.fromInteger(self.n_input_cells));
+        const x_addr = try instance.addFelt(Felt252.fromInt(u256, self.n_input_cells));
 
         if (self.cache.get(address)) |value| {
             return MaybeRelocatable.fromFelt(value);
@@ -140,7 +155,7 @@ pub const EcOpBuiltinRunner = struct {
 
         // All input cells should be filled, and be integer values.
         for (0..self.n_input_cells) |i| {
-            if (memory.get(try instance.addFelt(Felt252.fromInteger(i)))) |cell| {
+            if (memory.get(try instance.addFelt(Felt252.fromInt(u256, i)))) |cell| {
                 const felt = try cell.tryIntoFelt();
                 try input_cells.append(felt);
             }
@@ -549,7 +564,7 @@ test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory valid" {
         },
     );
 
-    const expected = Felt252.fromInteger(3598390311618116577316045819420613574162151407434885460365915347732568210029);
+    const expected = Felt252.fromInt(u256, 3598390311618116577316045819420613574162151407434885460365915347732568210029);
     const actual = try builtin.deduceMemoryCell(std.testing.allocator, Relocatable.new(3, 6), vm.segments.memory);
 
     try expectEqual(
