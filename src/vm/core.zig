@@ -24,6 +24,8 @@ const Instruction = instructions.Instruction;
 const Opcode = instructions.Opcode;
 const Error = @import("./error.zig");
 
+const decoder = @import("../vm/decoding/decoder.zig");
+
 /// Represents the Cairo VM.
 pub const CairoVM = struct {
     const Self = @This();
@@ -290,7 +292,7 @@ pub const CairoVM = struct {
         };
 
         // Then, we decode the instruction.
-        const instruction = try instructions.decode(encoded_instruction_u64);
+        const instruction = try decoder.decodeInstructions(encoded_instruction_u64);
 
         // ************************************************************
         // *                    EXECUTE                               *
@@ -842,11 +844,13 @@ pub const CairoVM = struct {
         switch (self.trace_context.state) {
             .enabled => |trace_enabled| {
                 for (trace_enabled.entries.items) |entry| {
-                    try self.trace_context.addRelocatedTrace(.{
-                        .pc = Felt252.fromInteger(try entry.pc.relocateAddress(relocation_table)),
-                        .ap = Felt252.fromInteger(try entry.ap.relocateAddress(relocation_table)),
-                        .fp = Felt252.fromInteger(try entry.fp.relocateAddress(relocation_table)),
-                    });
+                    try self.trace_context.addRelocatedTrace(
+                        .{
+                            .pc = Felt252.fromInt(usize, try entry.pc.relocateAddress(relocation_table)),
+                            .ap = Felt252.fromInt(usize, try entry.ap.relocateAddress(relocation_table)),
+                            .fp = Felt252.fromInt(usize, try entry.fp.relocateAddress(relocation_table)),
+                        },
+                    );
                 }
                 self.trace_relocated = true;
             },
@@ -1163,6 +1167,24 @@ pub const CairoVM = struct {
     pub fn getFeltRange(self: *Self, address: Relocatable, size: usize) !std.ArrayList(Felt252) {
         return self.segments.memory.getFeltRange(address, size);
     }
+
+    /// Decodes the current instruction at the program counter (PC) of the Cairo VM.
+    ///
+    /// # Returns
+    ///
+    ///  Returns the decoded instruction at the current PC.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the instruction encoding is invalid.
+    pub fn decodeCurrentInstruction(self: *const Self) !Instruction {
+        const felt = try self.segments.memory.getFelt(self.run_context.getPC());
+
+        const instruction = felt.tryIntoU64() catch {
+            return CairoVMError.InvalidInstructionEncoding;
+        };
+        return decoder.decodeInstructions(instruction);
+    }
 };
 
 /// Compute the result operand for a given instruction on op 0 and op 1.
@@ -1259,10 +1281,10 @@ pub const OperandsResult = struct {
     /// - An instance of OperandsResult with default values.
     pub fn default() Self {
         return .{
-            .dst = MaybeRelocatable.fromU64(0),
-            .res = MaybeRelocatable.fromU64(0),
-            .op_0 = MaybeRelocatable.fromU64(0),
-            .op_1 = MaybeRelocatable.fromU64(0),
+            .dst = MaybeRelocatable.fromInt(u64, 0),
+            .res = MaybeRelocatable.fromInt(u64, 0),
+            .op_0 = MaybeRelocatable.fromInt(u64, 0),
+            .op_1 = MaybeRelocatable.fromInt(u64, 0),
             .dst_addr = .{},
             .op_0_addr = .{},
             .op_1_addr = .{},

@@ -19,6 +19,7 @@ pub const vm = struct {
     pub usingnamespace @import("vm/types/diluted_pool_instance_def.zig");
     pub usingnamespace @import("vm/types/cpu_instance_def.zig");
     pub usingnamespace @import("vm/types/layout.zig");
+    pub usingnamespace @import("vm/decoding/decoder.zig");
 };
 
 pub const math = struct {

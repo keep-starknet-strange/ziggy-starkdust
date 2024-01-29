@@ -436,7 +436,7 @@ pub const ProgramJson = struct {
         errdefer parsed_data.deinit();
 
         for (self.data.?) |instruction| {
-            try parsed_data.append(MaybeRelocatable.fromU256(try std.fmt.parseInt(
+            try parsed_data.append(MaybeRelocatable.fromInt(u256, try std.fmt.parseInt(
                 u256,
                 instruction[2..],
                 16,
@@ -1044,12 +1044,12 @@ test "ProgramJson: parseFromString should return a parsed ProgramJson instance f
 
     // Initialize an array list to hold the expected data using MaybeRelocatable type.
     const expected_data_vec = [_]MaybeRelocatable{
-        MaybeRelocatable.fromU256(5189976364521848832),
-        MaybeRelocatable.fromU256(1000),
-        MaybeRelocatable.fromU256(5189976364521848832),
-        MaybeRelocatable.fromU256(2000),
-        MaybeRelocatable.fromU256(5201798304953696256),
-        MaybeRelocatable.fromU256(2345108766317314046),
+        MaybeRelocatable.fromInt(u256, 5189976364521848832),
+        MaybeRelocatable.fromInt(u256, 1000),
+        MaybeRelocatable.fromInt(u256, 5189976364521848832),
+        MaybeRelocatable.fromInt(u256, 2000),
+        MaybeRelocatable.fromInt(u256, 5201798304953696256),
+        MaybeRelocatable.fromInt(u256, 2345108766317314046),
     };
 
     // Compare the items in the expected and parsed data arrays.
@@ -1136,8 +1136,8 @@ test "ProgramJson: parseProgramJson should parse a Cairo v0 JSON Program and con
     try expectEqual(@as(usize, 2), program.constants.count());
 
     // Test individual constant values within the program
-    try expectEqual(Felt252.fromInteger(0), program.constants.get("__main__.fib.SIZEOF_LOCALS").?);
-    try expectEqual(Felt252.fromInteger(0), program.constants.get("__main__.main.SIZEOF_LOCALS").?);
+    try expectEqual(Felt252.zero(), program.constants.get("__main__.fib.SIZEOF_LOCALS").?);
+    try expectEqual(Felt252.zero(), program.constants.get("__main__.main.SIZEOF_LOCALS").?);
 
     // Test hints collection count within shared_program_data
     try expect(program.shared_program_data.hints_collection.hints.items.len == 0);
@@ -1270,12 +1270,12 @@ test "ProgramJson: parseProgramJson should parse a valid manually compiled progr
 
     // Define an array of expected MaybeRelocatable values
     const expected_data_vec = [_]MaybeRelocatable{
-        MaybeRelocatable.fromU256(5189976364521848832),
-        MaybeRelocatable.fromU256(1000),
-        MaybeRelocatable.fromU256(5189976364521848832),
-        MaybeRelocatable.fromU256(2000),
-        MaybeRelocatable.fromU256(5201798304953696256),
-        MaybeRelocatable.fromU256(2345108766317314046),
+        MaybeRelocatable.fromInt(u256, 5189976364521848832),
+        MaybeRelocatable.fromInt(u256, 1000),
+        MaybeRelocatable.fromInt(u256, 5189976364521848832),
+        MaybeRelocatable.fromInt(u256, 2000),
+        MaybeRelocatable.fromInt(u256, 5201798304953696256),
+        MaybeRelocatable.fromInt(u256, 2345108766317314046),
     };
 
     // Expect equality between the expected MaybeRelocatable values and the parsed program data items
@@ -1319,12 +1319,12 @@ test "ProgramJson: parseProgramJson should parse a valid manually compiled progr
 
     // Define an array of expected MaybeRelocatable values
     const expected_data_vec = [_]MaybeRelocatable{
-        MaybeRelocatable.fromU256(5189976364521848832),
-        MaybeRelocatable.fromU256(1000),
-        MaybeRelocatable.fromU256(5189976364521848832),
-        MaybeRelocatable.fromU256(2000),
-        MaybeRelocatable.fromU256(5201798304953696256),
-        MaybeRelocatable.fromU256(2345108766317314046),
+        MaybeRelocatable.fromInt(u256, 5189976364521848832),
+        MaybeRelocatable.fromInt(u256, 1000),
+        MaybeRelocatable.fromInt(u256, 5189976364521848832),
+        MaybeRelocatable.fromInt(u256, 2000),
+        MaybeRelocatable.fromInt(u256, 5201798304953696256),
+        MaybeRelocatable.fromInt(u256, 2345108766317314046),
     };
 
     // Expect equality between the expected MaybeRelocatable values and the parsed program data items
@@ -1415,7 +1415,7 @@ test "ProgramJson: parseProgramJson with constant deserialization" {
         .pc = null,
         .type = "const",
         .value = 3,
-        .valueFelt = Felt252.fromInteger(3),
+        .valueFelt = Felt252.three(),
         .full_name = null,
         .members = null,
         .cairo_type = null,
@@ -1435,7 +1435,7 @@ test "ProgramJson: parseProgramJson with constant deserialization" {
         .pc = null,
         .type = "const",
         .value = 340282366920938463463374607431768211456,
-        .valueFelt = Felt252.fromInteger(340282366920938463463374607431768211456),
+        .valueFelt = Felt252.fromInt(u256, 340282366920938463463374607431768211456),
         .full_name = null,
         .members = null,
         .cairo_type = null,

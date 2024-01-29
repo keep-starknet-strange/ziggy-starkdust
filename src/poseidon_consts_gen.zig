@@ -114,7 +114,7 @@ fn parseNumbersToFieldElement(allocator: Allocator, keys: [][3]u256) ![][3]Felt2
 
     for (keys, 0..) |key, idx| {
         for (key, 0..) |k, idy| {
-            result[idx][idy] = Felt252.fromInteger(k);
+            result[idx][idy] = Felt252.fromInt(u256, k);
         }
     }
 
