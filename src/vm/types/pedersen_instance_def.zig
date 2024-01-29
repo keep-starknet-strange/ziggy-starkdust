@@ -1,9 +1,9 @@
 const std = @import("std");
+const expectEqual = std.testing.expectEqual;
 
 const ManagedBigInt = std.math.big.int.Managed;
 const Limb = std.math.big.Limb;
 const Allocator = std.mem.Allocator;
-const expectEqual = std.testing.expectEqual;
 const expect = std.testing.expect;
 
 /// Each hash consists of 3 cells (two inputs and one output).
@@ -31,24 +31,50 @@ pub const PedersenInstanceDef = struct {
     /// If None, the upper bound is 2^element_bits.
     hash_limit: u256 = PRIME,
 
+    /// Initializes a Pedersen Instance Definition with the specified ratio and repetitions.
+    ///
+    /// # Parameters
+    ///
+    /// - `ratio`: The ratio to associate with the instance.
+    /// - `repetitions`: The number of components for optimization.
+    ///
+    /// # Returns
+    ///
+    /// A Pedersen Instance Definition with the specified ratio and repetitions.
     pub fn init(ratio: ?u32, repetitions: u32) Self {
-        return .{
-            .ratio = ratio,
-            .repetitions = repetitions,
-            .element_height = 256,
-            .element_bits = 252,
-            .n_inputs = 2,
-            .hash_limit = PRIME,
-        };
+        return .{ .ratio = ratio, .repetitions = repetitions };
     }
 
+    /// Retrieves the number of cells per built-in Pedersen hash operation.
+    ///
+    /// # Parameters
+    ///
+    /// - `self`: Pointer to the Pedersen Instance Definition.
+    ///
+    /// # Returns
+    ///
+    /// The number of cells per built-in Pedersen hash operation.
+    pub fn cellsPerBuiltin(_: *const Self) u32 {
+        return CELLS_PER_HASH;
+    }
+
+    /// Retrieves the range check units per built-in Pedersen hash operation.
+    ///
+    /// # Parameters
+    ///
+    /// - `self`: Pointer to the Pedersen Instance Definition.
+    ///
+    /// # Returns
+    ///
+    /// The number of range check units per built-in Pedersen hash operation.
     pub fn rangeCheckPerBuiltin(_: *const Self) u32 {
         return 0;
     }
 };
 
 test "PedersenInstanceDef: default implementation" {
-    const builtin_instance = PedersenInstanceDef{
+    // Define the expected PedersenInstanceDef with default values.
+    const expected_instance = PedersenInstanceDef{
         .ratio = 8,
         .repetitions = 4,
         .element_height = 256,
@@ -56,17 +82,17 @@ test "PedersenInstanceDef: default implementation" {
         .n_inputs = 2,
         .hash_limit = PRIME,
     };
-    const default = PedersenInstanceDef{};
-    try expectEqual(builtin_instance.ratio, default.ratio);
-    try expectEqual(builtin_instance.repetitions, default.repetitions);
-    try expectEqual(builtin_instance.element_height, default.element_height);
-    try expectEqual(builtin_instance.element_bits, default.element_bits);
-    try expectEqual(builtin_instance.n_inputs, default.n_inputs);
-    try expectEqual(builtin_instance.hash_limit, default.hash_limit);
+
+    // Initialize a default PedersenInstanceDef.
+    const default_instance = PedersenInstanceDef{};
+
+    // Ensure that the default instance matches the expected instance.
+    try expectEqual(expected_instance, default_instance);
 }
 
 test "PedersenInstanceDef: init implementation" {
-    const builtin_instance = PedersenInstanceDef{
+    // Define the expected PedersenInstanceDef with specific values.
+    const expected_instance = PedersenInstanceDef{
         .ratio = 10,
         .repetitions = 2,
         .element_height = 256,
@@ -74,16 +100,32 @@ test "PedersenInstanceDef: init implementation" {
         .n_inputs = 2,
         .hash_limit = PRIME,
     };
-    const pederesen_init = PedersenInstanceDef.init(10, 2);
-    try expectEqual(builtin_instance.ratio, pederesen_init.ratio);
-    try expectEqual(builtin_instance.repetitions, pederesen_init.repetitions);
-    try expectEqual(builtin_instance.element_height, pederesen_init.element_height);
-    try expectEqual(builtin_instance.element_bits, pederesen_init.element_bits);
-    try expectEqual(builtin_instance.n_inputs, pederesen_init.n_inputs);
-    try expectEqual(builtin_instance.hash_limit, pederesen_init.hash_limit);
+
+    // Initialize a new PedersenInstanceDef using the init function with specific values.
+    const initialized_instance = PedersenInstanceDef.init(10, 2);
+
+    // Ensure that the initialized instance matches the expected instance.
+    try expectEqual(expected_instance, initialized_instance);
 }
 
-test "PedersenInstanceDef: rangeCheckPerBuiltin implementation" {
+test "PedersenInstanceDef: cellsPerBuiltin should return the number of cells per hash" {
+    // Initialize a default PedersenInstanceDef.
     const builtin_instance = PedersenInstanceDef{};
-    try expectEqual(builtin_instance.rangeCheckPerBuiltin(), 0);
+
+    // Call the cellsPerBuiltin method and ensure it returns the expected number of cells.
+    try expectEqual(
+        @as(u32, 3),
+        builtin_instance.cellsPerBuiltin(),
+    );
+}
+
+test "PedersenInstanceDef: rangeCheckPerBuiltin should return zero" {
+    // Initialize a default PedersenInstanceDef.
+    const builtin_instance = PedersenInstanceDef{};
+
+    // Call the rangeCheckPerBuiltin method and ensure it returns zero.
+    try expectEqual(
+        @as(u32, 0),
+        builtin_instance.rangeCheckPerBuiltin(),
+    );
 }

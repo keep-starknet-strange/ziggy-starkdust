@@ -76,8 +76,8 @@ pub const BuiltinsInstanceDef = struct {
         return .{
             .output = true,
             .pedersen = PedersenInstanceDef{},
-            .range_check = RangeCheckInstanceDef.init(),
-            .ecdsa = EcdsaInstanceDef.initDefault(),
+            .range_check = RangeCheckInstanceDef{},
+            .ecdsa = EcdsaInstanceDef{},
             .bitwise = null,
             .ec_op = null,
             .keccak = null,
@@ -94,12 +94,12 @@ pub const BuiltinsInstanceDef = struct {
         return .{
             .output = true,
             .pedersen = PedersenInstanceDef.init(256, 1),
-            .range_check = RangeCheckInstanceDef.init(),
+            .range_check = RangeCheckInstanceDef{},
             .ecdsa = EcdsaInstanceDef.init(2048),
             .bitwise = BitwiseInstanceDef.init(16),
-            .ec_op = EcOpInstanceDef.from(1024),
+            .ec_op = EcOpInstanceDef.init(1024),
             .keccak = KeccakInstanceDef.init(2048, state_rep_keccak),
-            .poseidon = PoseidonInstanceDef.from(256),
+            .poseidon = PoseidonInstanceDef.init(256),
         };
     }
 
@@ -108,10 +108,10 @@ pub const BuiltinsInstanceDef = struct {
         return .{
             .output = true,
             .pedersen = PedersenInstanceDef.init(null, 4),
-            .range_check = RangeCheckInstanceDef.from(null, 8),
+            .range_check = RangeCheckInstanceDef.init(null, 8),
             .ecdsa = EcdsaInstanceDef.init(null),
             .bitwise = BitwiseInstanceDef.init(null),
-            .ec_op = EcOpInstanceDef.from(null),
+            .ec_op = EcOpInstanceDef.init(null),
             .keccak = null,
             .poseidon = null,
         };
@@ -156,11 +156,6 @@ test "BuiltinsInstanceDef: builtins small" {
             .output = true,
             .pedersen = .{
                 .ratio = 8,
-                .repetitions = 4,
-                .element_height = 256,
-                .element_bits = 252,
-                .n_inputs = 2,
-                .hash_limit = 3618502788666131213697322783095070105623107215331596699973092056135872020481,
             },
             .range_check = .{
                 .ratio = 8,
@@ -195,11 +190,7 @@ test "BuiltinsInstanceDef: builtins all Cairo" {
             ?PedersenInstanceDef,
             .{
                 .ratio = 256,
-                .repetitions = 1,
-                .element_height = 256,
-                .element_bits = 252,
-                .n_inputs = 2,
-                .hash_limit = 3618502788666131213697322783095070105623107215331596699973092056135872020481,
+				.repetitions = 1,
             },
         ),
         actual.pedersen,
@@ -253,12 +244,12 @@ test "BuiltinsInstanceDef: builtins all Cairo" {
     );
     try expectEqual(
         @as(u32, 16),
-        actual.keccak.?._instance_per_component,
+        actual.keccak.?.instance_per_component,
     );
     try expectEqualSlices(
         u32,
         state_rep_keccak_expected.items,
-        actual.keccak.?._state_rep.items,
+        actual.keccak.?.state_rep.items,
     );
 
     try expectEqual(
@@ -276,11 +267,6 @@ test "BuiltinsInstanceDef: builtins dynamic" {
             .output = true,
             .pedersen = .{
                 .ratio = null,
-                .repetitions = 4,
-                .element_height = 256,
-                .element_bits = 252,
-                .n_inputs = 2,
-                .hash_limit = 3618502788666131213697322783095070105623107215331596699973092056135872020481,
             },
             .range_check = .{
                 .ratio = null,

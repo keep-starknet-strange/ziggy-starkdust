@@ -78,7 +78,7 @@ pub const CairoLayout = struct {
             .memory_units_per_step = 8,
             .diluted_pool_instance_def = null,
             .n_trace_columns = 8,
-            .cpu_instance_def = CpuInstanceDef.init(),
+            .cpu_instance_def = CpuInstanceDef{},
         };
     }
 
@@ -104,7 +104,7 @@ pub const CairoLayout = struct {
             .memory_units_per_step = 8,
             .diluted_pool_instance_def = null,
             .n_trace_columns = 25,
-            .cpu_instance_def = CpuInstanceDef.init(),
+            .cpu_instance_def = CpuInstanceDef{},
         };
     }
 
@@ -134,9 +134,9 @@ pub const CairoLayout = struct {
             .builtins = try BuiltinsInstanceDef.allCairo(allocator),
             .public_memory_fraction = 8,
             .memory_units_per_step = 8,
-            .diluted_pool_instance_def = DilutedPoolInstanceDef.init(),
+            .diluted_pool_instance_def = DilutedPoolInstanceDef{},
             .n_trace_columns = 11,
-            .cpu_instance_def = CpuInstanceDef.init(),
+            .cpu_instance_def = CpuInstanceDef{},
         };
     }
 
@@ -162,9 +162,9 @@ pub const CairoLayout = struct {
             .builtins = BuiltinsInstanceDef.dynamic(),
             .public_memory_fraction = 8,
             .memory_units_per_step = 8,
-            .diluted_pool_instance_def = DilutedPoolInstanceDef.init(),
+            .diluted_pool_instance_def = DilutedPoolInstanceDef{},
             .n_trace_columns = 73,
-            .cpu_instance_def = CpuInstanceDef.init(),
+            .cpu_instance_def = CpuInstanceDef{},
         };
     }
 
@@ -198,6 +198,7 @@ pub const CairoLayout = struct {
         // If it does we include it's initialized builtin runner in the builtin_runners array.
         for (program_builtins) |builtin| {
             const case = std.meta.stringToEnum(BuiltinName, builtin) orelse return RunnerError.BuiltinNotInLayout;
+
             if (!self.containsBuiltin(case)) return RunnerError.BuiltinNotInLayout;
 
             switch (case) {
@@ -209,13 +210,13 @@ pub const CairoLayout = struct {
                     // try builtin_runners.append(BuiltinRunner{ .Pedersen = HashBuiltinRunner.initDefault() });
                 },
                 .range_check => {
-                    // try builtin_runners.append(BuiltinRunner{ .RangeCheck = RangeCheckBuiltinRunner.initDefault()} );
+                    try builtin_runners.append(BuiltinRunner{ .RangeCheck = RangeCheckBuiltinRunner{} });
                 },
                 .ecdsa => {
                     // try builtin_runners.append(BuiltinRunner{ .Signature = SignatureBuiltinRunner.initDefault() });
                 },
                 .bitwise => {
-                    try builtin_runners.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.initDefault() });
+                    try builtin_runners.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner{} });
                 },
                 .ec_op => {
                     // try builtin_runners.append(BuiltinRunner{ .EcOp = EcOpBuiltinRunner.initDefault() });
@@ -234,17 +235,17 @@ pub const CairoLayout = struct {
     }
 
     pub fn containsBuiltin(self: Self, builtin: BuiltinName) bool {
-        switch (builtin) {
-            .output => return self.builtins.output,
-            .pedersen => return self.builtins.pedersen != null,
-            .range_check => return self.builtins.range_check != null,
-            .ecdsa => return self.builtins.ecdsa != null,
-            .bitwise => return self.builtins.bitwise != null,
-            .ec_op => return self.builtins.ec_op != null,
-            .keccak => return self.builtins.keccak != null,
-            .poseidon => return self.builtins.poseidon != null,
-            .segment_arena => return false,
-        }
+        return switch (builtin) {
+            .output => self.builtins.output,
+            .pedersen => self.builtins.pedersen != null,
+            .range_check => self.builtins.range_check != null,
+            .ecdsa => self.builtins.ecdsa != null,
+            .bitwise => self.builtins.bitwise != null,
+            .ec_op => self.builtins.ec_op != null,
+            .keccak => self.builtins.keccak != null,
+            .poseidon => self.builtins.poseidon != null,
+            .segment_arena => false,
+        };
     }
 
     /// Deinitializes resources held by the layout's built-in instances.
@@ -298,11 +299,6 @@ test "CairoLayout: smallInstance" {
                 .output = true,
                 .pedersen = .{
                     .ratio = 8,
-                    .repetitions = 4,
-                    .element_height = 256,
-                    .element_bits = 252,
-                    .n_inputs = 2,
-                    .hash_limit = 3618502788666131213697322783095070105623107215331596699973092056135872020481,
                 },
                 .range_check = .{
                     .ratio = 8,
@@ -388,11 +384,7 @@ test "CairoLayout: allCairoInstance" {
             ?PedersenInstanceDef,
             .{
                 .ratio = 256,
-                .repetitions = 1,
-                .element_height = 256,
-                .element_bits = 252,
-                .n_inputs = 2,
-                .hash_limit = 3618502788666131213697322783095070105623107215331596699973092056135872020481,
+				.repetitions = 1
             },
         ),
         actual.builtins.pedersen,
@@ -446,12 +438,12 @@ test "CairoLayout: allCairoInstance" {
     );
     try expectEqual(
         @as(u32, 16),
-        actual.builtins.keccak.?._instance_per_component,
+        actual.builtins.keccak.?.instance_per_component,
     );
     try expectEqualSlices(
         u32,
         state_rep_keccak_expected.items,
-        actual.builtins.keccak.?._state_rep.items,
+        actual.builtins.keccak.?.state_rep.items,
     );
 
     try expectEqual(
@@ -473,11 +465,6 @@ test "CairoLayout: dynamicInstance" {
                 .output = true,
                 .pedersen = .{
                     .ratio = null,
-                    .repetitions = 4,
-                    .element_height = 256,
-                    .element_bits = 252,
-                    .n_inputs = 2,
-                    .hash_limit = 3618502788666131213697322783095070105623107215331596699973092056135872020481,
                 },
                 .range_check = .{
                     .ratio = null,

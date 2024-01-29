@@ -6,17 +6,16 @@ pub const CpuInstanceDef = struct {
     const Self = @This();
 
     /// Ensures each 'call' instruction returns, even if the called function is malicious.
-    safe_call: bool,
-
-    /// Initializes a new `CpuInstanceDef` structure with default values.
-    pub fn init() Self {
-        return .{ .safe_call = true };
-    }
+    safe_call: bool = true,
 };
 
-test "CpuInstanceDef: init should initialize CpuInstanceDef properly" {
-    try expectEqual(
-        CpuInstanceDef{ .safe_call = true },
-        CpuInstanceDef.init(),
-    );
+test "CpuInstanceDef: default initialization should be correct with `safe_call` set to true" {
+    // Define the expected CpuInstanceDef with `safe_call` set to true.
+    const expected_instance = CpuInstanceDef{ .safe_call = true };
+
+    // Initialize a new CpuInstanceDef with the default initialization.
+    const initialized_instance = CpuInstanceDef{};
+
+    // Ensure that the initialized instance is equal to the expected instance.
+    try expectEqual(expected_instance, initialized_instance);
 }

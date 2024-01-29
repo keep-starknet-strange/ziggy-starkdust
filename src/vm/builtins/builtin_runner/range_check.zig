@@ -19,29 +19,30 @@ const RunnerError = Error.RunnerError;
 
 const N_PARTS: u64 = 8;
 const INNER_RC_BOUND_SHIFT: u64 = 16;
+const BOUND = Felt252.one().saturating_shl(16 * N_PARTS);
 
 /// Range check built-in runner
 pub const RangeCheckBuiltinRunner = struct {
     const Self = @This();
 
     /// Ratio
-    ratio: ?u32,
+    ratio: ?u32 = 8,
     /// Base
-    base: usize,
+    base: usize = 0,
     /// Stop pointer
-    stop_ptr: ?usize,
+    stop_ptr: ?usize = null,
     /// Number of cells per instance
-    cells_per_instance: u32,
+    cells_per_instance: u32 = CELLS_PER_RANGE_CHECK,
     /// Number of input cells
-    n_input_cells: u32,
+    n_input_cells: u32 = CELLS_PER_RANGE_CHECK,
     /// Felt252 field element bound
-    _bound: ?Felt252,
+    bound: ?Felt252 = if (N_PARTS != 0 and BOUND.isZero()) null else BOUND,
     /// Included boolean flag
-    included: bool,
+    included: bool = true,
     /// Number of parts
-    n_parts: u32,
+    n_parts: u32 = N_PARTS,
     /// Number of instances per component
-    instances_per_component: u32,
+    instances_per_component: u32 = 1,
 
     /// Create a new RangeCheckBuiltinRunner instance.
     ///
@@ -63,18 +64,11 @@ pub const RangeCheckBuiltinRunner = struct {
         included: bool,
     ) Self {
         const bound: Felt252 = Felt252.one().saturating_shl(16 * n_parts);
-        const _bound: ?Felt252 = if (n_parts != 0 and bound.isZero()) null else bound;
-
         return .{
             .ratio = ratio,
-            .base = 0,
-            .stop_ptr = null,
-            .cells_per_instance = CELLS_PER_RANGE_CHECK,
-            .n_input_cells = CELLS_PER_RANGE_CHECK,
-            ._bound = _bound,
+            .bound = if (n_parts != 0 and bound.isZero()) null else bound,
             .included = included,
             .n_parts = n_parts,
-            .instances_per_component = 1,
         };
     }
 
@@ -159,7 +153,7 @@ pub const RangeCheckBuiltinRunner = struct {
     ///
     /// # Returns
     /// A tuple of `usize` and `?usize` addresses.
-    pub fn getMemorySegmentAddresses(self: *Self) std.meta.Tuple(&.{
+    pub fn getMemorySegmentAddresses(self: *const Self) std.meta.Tuple(&.{
         usize,
         ?usize,
     }) {
@@ -283,18 +277,19 @@ pub const RangeCheckBuiltinRunner = struct {
 ///
 /// An `ArrayList(Relocatable)` containing the rules address
 /// verification fails.
-pub fn rangeCheckValidationRule(memory: *Memory, address: Relocatable) MemoryError![]const Relocatable {
+pub fn rangeCheckValidationRule(memory: *Memory, address: Relocatable) MemoryError![1]Relocatable {
     const num = memory.getFelt(address) catch |err| switch (err) {
         error.UnknownMemoryCell => return MemoryError.RangeCheckGetError,
         error.ExpectedInteger => return MemoryError.RangecheckNonInt,
     };
 
     if (num.numBits() <= N_PARTS * INNER_RC_BOUND_SHIFT) {
-        return &[_]Relocatable{address};
+        return .{address};
     } else {
         return MemoryError.RangeCheckNumberOutOfBounds;
     }
 }
+
 test "initialize segments for range check" {
 
     // given
@@ -409,9 +404,12 @@ test "Range Check: validation rule should return Relocatable in array successful
     try mem.memory.set(std.testing.allocator, relo, MaybeRelocatable.fromFelt(Felt252.zero()));
     defer mem.memory.deinitData(std.testing.allocator);
 
-    const result = try rangeCheckValidationRule(mem.memory, relo);
     // assert
-    try std.testing.expectEqual(relo, result[0]);
+    try std.testing.expectEqualSlices(
+        Relocatable,
+        &[_]Relocatable{relo},
+        (try rangeCheckValidationRule(mem.memory, relo))[0..],
+    );
 }
 
 test "Range Check: validation rule should return erorr out of bounds" {
@@ -424,7 +422,11 @@ test "Range Check: validation rule should return erorr out of bounds" {
     _ = try seg;
 
     const relo = Relocatable.init(0, 1);
-    try mem.memory.set(std.testing.allocator, relo, MaybeRelocatable.fromFelt(Felt252.fromInteger(10).neg()));
+    try mem.memory.set(
+        std.testing.allocator,
+        relo,
+        MaybeRelocatable.fromFelt(Felt252.fromInt(u8, 10).neg()),
+    );
     defer mem.memory.deinitData(std.testing.allocator);
 
     const result = rangeCheckValidationRule(mem.memory, relo);

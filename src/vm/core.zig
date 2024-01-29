@@ -22,6 +22,9 @@ const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const HashBuiltinRunner = @import("./builtins/builtin_runner/hash.zig").HashBuiltinRunner;
 const Instruction = instructions.Instruction;
 const Opcode = instructions.Opcode;
+const Error = @import("./error.zig");
+
+const decoder = @import("../vm/decoding/decoder.zig");
 
 /// Represents the Cairo VM.
 pub const CairoVM = struct {
@@ -49,9 +52,13 @@ pub const CairoVM = struct {
     current_step: usize,
     /// Rc limits
     rc_limits: ?struct { i16, i16 },
+    /// Relocation table
+    relocation_table: ?std.ArrayList(usize),
     /// ArrayList containing instructions. May hold null elements.
     /// Used as an instruction cache within the CairoVM instance.
     instruction_cache: ArrayList(?Instruction),
+
+    relocated_memory: ?std.AutoHashMap(u32, Felt252),
 
     // ************************************************************
     // *             MEMORY ALLOCATION AND DEALLOCATION           *
@@ -95,7 +102,9 @@ pub const CairoVM = struct {
             .trace_relocated = false,
             .current_step = 0,
             .rc_limits = null,
+            .relocation_table = null,
             .instruction_cache = instruction_cache,
+            .relocated_memory = null,
         };
     }
 
@@ -112,10 +121,20 @@ pub const CairoVM = struct {
         self.segments.deinit();
         // Deallocate the run context.
         self.run_context.deinit();
-        // Deallocate trace
+        // Deallocate trace context.
         self.trace_context.deinit();
-        // Deallocate built-in runners
+        // Loop through the built-in runners and deallocate their resources.
+        for (self.builtin_runners.items) |*builtin| {
+            switch (builtin.*) {
+                .Keccak => |*keccak| keccak.deinit(),
+                else => {},
+            }
+        }
+        // Deallocate built-in runners.
         self.builtin_runners.deinit();
+        if (self.relocation_table) |r| {
+            r.deinit();
+        }
         // Deallocate instruction cache
         self.instruction_cache.deinit();
     }
@@ -182,14 +201,11 @@ pub const CairoVM = struct {
 
     pub fn insertInMemory(
         self: *Self,
+        allocator: Allocator,
         address: Relocatable,
         value: MaybeRelocatable,
-    ) error{ InvalidMemoryAddress, MemoryOutOfBounds }!void {
-        _ = value;
-        _ = address;
-        _ = self;
-
-        // TODO: complete the implementation once set method is completed in Memory
+    ) !void {
+        try self.segments.memory.set(allocator, address, value);
     }
 
     /// Retrieves the used size of a memory segment by its index, if available; otherwise, returns null.
@@ -276,7 +292,7 @@ pub const CairoVM = struct {
         };
 
         // Then, we decode the instruction.
-        const instruction = try instructions.decode(encoded_instruction_u64);
+        const instruction = try decoder.decodeInstructions(encoded_instruction_u64);
 
         // ************************************************************
         // *                    EXECUTE                               *
@@ -493,6 +509,64 @@ pub const CairoVM = struct {
         }
     }
 
+    /// Verifies the auto deductions for all memory cells managed by the VM's builtins.
+    ///
+    /// This function iterates over all builtins and their corresponding memory segments.
+    /// For each memory cell, it attempts to deduce the value using the builtin's logic.
+    /// If the deduced value does not match the actual value in memory, an error is returned.
+    ///
+    /// ## Arguments
+    /// - `allocator`: The allocator instance to use for memory operations.
+    ///
+    /// ## Returns
+    /// - `void`: Returns nothing on success.
+    /// - `CairoVMError.InconsistentAutoDeduction`: Returns an error if a deduced value does not match the memory.
+    pub fn verifyAutoDeductions(self: *const Self, allocator: Allocator) !void {
+        for (self.builtin_runners.items) |*builtin| {
+            const segment_index = builtin.base();
+            const segment = self.segments.memory.data.items[segment_index];
+            for (segment.items, 0..) |value, offset| {
+                if (value == null) continue;
+                const addr = Relocatable.init(@as(i64, @intCast(segment_index)), offset);
+                const deduced_memory_cell = try builtin.deduceMemoryCell(allocator, addr, self.segments.memory) orelse continue;
+                if (!deduced_memory_cell.eq(value.?.maybe_relocatable)) {
+                    return CairoVMError.InconsistentAutoDeduction;
+                }
+            }
+        }
+    }
+
+    /// Verifies the auto deductions for a given memory address.
+    ///
+    /// This function checks if the value deduced by the builtin matches the current value
+    /// at the given address in the VM's memory. If they do not match, it returns an error
+    /// indicating an inconsistent auto deduction.
+    ///
+    /// ## Arguments
+    /// - `allocator`: The allocator instance to use for memory operations.
+    /// - `addr`: The memory address to verify.
+    /// - `builtin`: The BuiltinRunner instance used for deducing the memory cell.
+    ///
+    /// ## Returns
+    /// - `void`: Returns nothing on success.
+    /// - `CairoVMError.InconsistentAutoDeduction`: Returns an error if the deduced value does not match the memory.
+    pub fn verifyAutoDeductionsForAddr(
+        self: *const Self,
+        allocator: Allocator,
+        addr: Relocatable,
+        builtin: *BuiltinRunner,
+    ) !void {
+        const value = try builtin.deduceMemoryCell(
+            allocator,
+            addr,
+            self.segments.memory,
+        ) orelse return;
+        const current_value = self.segments.memory.get(addr) orelse return;
+        if (!value.eq(current_value)) {
+            return CairoVMError.InconsistentAutoDeduction;
+        }
+    }
+
     /// Attempts to deduce `op0` and `res` for an instruction, given `dst` and `op1`.
     ///
     /// # Arguments
@@ -520,7 +594,7 @@ pub const CairoVM = struct {
                 const op1_val = op1.* orelse return .{ .op_0 = null, .res = null };
                 if ((inst.res_logic == .Add)) {
                     return .{
-                        .op_0 = try subOperands(dst_val, op1_val),
+                        .op_0 = try dst_val.sub(op1_val),
                         .res = dst_val,
                     };
                 } else if (dst_val.isFelt() and op1_val.isFelt() and !op1_val.felt.isZero()) {
@@ -706,7 +780,7 @@ pub const CairoVM = struct {
         allocator: Allocator,
         address: Relocatable,
     ) CairoVMError!?MaybeRelocatable {
-        for (self.builtin_runners.items) |builtin_item| {
+        for (self.builtin_runners.items) |*builtin_item| {
             if (@as(
                 u64,
                 @intCast(builtin_item.base()),
@@ -721,6 +795,26 @@ pub const CairoVM = struct {
             }
         }
         return null;
+    }
+
+    /// Performs all relocation operations
+    ///
+    /// The relocation process:
+    ///
+    ///    1. Compute the sizes of each memory segment.
+    ///    2. Build an array that contains the first relocated address of each segment.
+    ///    3. Creates the relocated memory transforming the original memory by using the array built in 2.
+    ///    4. Creates the relocated trace transforming the original trace by using the array built in 2.
+    ///
+    pub fn relocate(self: *Self, allocator: Allocator, allow_tmp_segments: bool) !void {
+        _ = try self.segments.computeEffectiveSize(allow_tmp_segments);
+
+        const relocation_table = try self.segments.relocateSegments(allocator);
+
+        const relocated_memory = try self.segments.relocateMemory(relocation_table, allocator);
+
+        try self.relocateTrace(relocation_table);
+        self.relocated_memory = relocated_memory;
     }
 
     /// Relocates the trace within the Cairo VM, updating relocatable registers to numbered ones.
@@ -750,11 +844,13 @@ pub const CairoVM = struct {
         switch (self.trace_context.state) {
             .enabled => |trace_enabled| {
                 for (trace_enabled.entries.items) |entry| {
-                    try self.trace_context.addRelocatedTrace(.{
-                        .pc = Felt252.fromInteger(try entry.pc.relocateAddress(relocation_table)),
-                        .ap = Felt252.fromInteger(try entry.ap.relocateAddress(relocation_table)),
-                        .fp = Felt252.fromInteger(try entry.fp.relocateAddress(relocation_table)),
-                    });
+                    try self.trace_context.addRelocatedTrace(
+                        .{
+                            .pc = Felt252.fromInt(usize, try entry.pc.relocateAddress(relocation_table)),
+                            .ap = Felt252.fromInt(usize, try entry.ap.relocateAddress(relocation_table)),
+                            .fp = Felt252.fromInt(usize, try entry.fp.relocateAddress(relocation_table)),
+                        },
+                    );
                 }
                 self.trace_relocated = true;
             },
@@ -797,6 +893,47 @@ pub const CairoVM = struct {
         for (0..len) |i| {
             self.segments.memory.markAsAccessed(try base.addUint(@intCast(i)));
         }
+    }
+
+    /// Adds a relocation rule to the Cairo VM's memory, enabling the redirection of temporary data to a specified destination.
+    ///
+    /// # Arguments
+    ///
+    /// - `src_ptr`: The source Relocatable pointer representing the temporary segment to be relocated.
+    /// - `dst_ptr`: The destination Relocatable pointer where the temporary segment will be redirected.
+    ///
+    /// # Safety
+    ///
+    /// This function assumes correct usage and may result in memory relocations. It's crucial to ensure that both source and destination pointers are valid and within the boundaries of the memory segments.
+    ///
+    /// # Returns
+    ///
+    /// - This function returns an error if the relocation fails due to invalid conditions.
+    pub fn addRelocationRule(
+        self: *Self,
+        src_ptr: Relocatable,
+        dst_ptr: Relocatable,
+    ) !void {
+        try self.segments.memory.addRelocationRule(src_ptr, dst_ptr);
+    }
+
+    /// Retrieves the addresses of memory cells in the public memory based on segment offsets.
+    ///
+    /// Retrieves a list of addresses constituting the public memory. It utilizes the relocation table
+    /// (`self.relocation_table`) and the `self.segments.getPublicMemoryAddresses()` method. This method
+    /// ensures that the public memory addresses are retrieved based on the relocated segments.
+    ///
+    /// Returns a list of memory cell addresses that comprise the public memory. If the relocation table
+    /// is not available, it throws `MemoryError.UnrelocatedMemory`. If an error occurs during the
+    /// retrieval process, it throws `CairoVMError.Memory`.
+    pub fn getPublicMemoryAddresses(self: *Self) !std.ArrayList(std.meta.Tuple(&.{ usize, usize })) {
+        // Check if the relocation table is available
+        if (self.relocation_table) |r| {
+            // Retrieve the public memory addresses using the relocation table
+            return self.segments.getPublicMemoryAddresses(&r) catch CairoVMError.Memory;
+        }
+        // Throw an error if the relocation table is not available
+        return MemoryError.UnrelocatedMemory;
     }
 
     /// Loads data into the memory managed by CairoVM.
@@ -1030,6 +1167,24 @@ pub const CairoVM = struct {
     pub fn getFeltRange(self: *Self, address: Relocatable, size: usize) !std.ArrayList(Felt252) {
         return self.segments.memory.getFeltRange(address, size);
     }
+
+    /// Decodes the current instruction at the program counter (PC) of the Cairo VM.
+    ///
+    /// # Returns
+    ///
+    ///  Returns the decoded instruction at the current PC.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the instruction encoding is invalid.
+    pub fn decodeCurrentInstruction(self: *const Self) !Instruction {
+        const felt = try self.segments.memory.getFelt(self.run_context.getPC());
+
+        const instruction = felt.tryIntoU64() catch {
+            return CairoVMError.InvalidInstructionEncoding;
+        };
+        return decoder.decodeInstructions(instruction);
+    }
 };
 
 /// Compute the result operand for a given instruction on op 0 and op 1.
@@ -1046,90 +1201,9 @@ pub fn computeRes(
 ) !?MaybeRelocatable {
     return switch (instruction.res_logic) {
         .Op1 => op_1,
-        .Add => try addOperands(op_0, op_1),
-        .Mul => try mulOperands(op_0, op_1),
+        .Add => try op_0.add(op_1),
+        .Mul => try op_0.mul(op_1),
         .Unconstrained => null,
-    };
-}
-
-/// Add two operands which can either be a "relocatable" or a "felt".
-/// The operation is allowed between:
-/// 1. A felt and another felt.
-/// 2. A felt and a relocatable.
-/// Adding two relocatables is forbidden.
-/// # Arguments
-/// - `op_0`: The operand 0.
-/// - `op_1`: The operand 1.
-/// # Returns
-/// - `MaybeRelocatable`: The result of the operation or an error.
-pub fn addOperands(
-    op_0: MaybeRelocatable,
-    op_1: MaybeRelocatable,
-) !MaybeRelocatable {
-    // Both operands are relocatables, operation forbidden
-    if (op_0.isRelocatable() and op_1.isRelocatable()) {
-        return error.AddRelocToRelocForbidden;
-    }
-
-    // One of the operands is relocatable, the other is felt
-    if (op_0.isRelocatable() or op_1.isRelocatable()) {
-        // Determine which operand is relocatable and which one is felt
-        const reloc_op = if (op_0.isRelocatable()) op_0 else op_1;
-        const felt_op = if (op_0.isRelocatable()) op_1 else op_0;
-
-        var reloc = try reloc_op.tryIntoRelocatable();
-
-        // Add the felt to the relocatable's offset
-        try reloc.addFeltInPlace(try felt_op.tryIntoFelt());
-
-        return MaybeRelocatable.fromRelocatable(reloc);
-    }
-
-    // Add the felts and return as a new felt wrapped in a relocatable
-    return MaybeRelocatable.fromFelt((try op_0.tryIntoFelt()).add(
-        try op_1.tryIntoFelt(),
-    ));
-}
-
-/// Compute the product of two operands op 0 and op 1.
-/// # Arguments
-/// - `op_0`: The operand 0.
-/// - `op_1`: The operand 1.
-/// # Returns
-/// - `MaybeRelocatable`: The result of the operation or an error.
-pub fn mulOperands(
-    op_0: MaybeRelocatable,
-    op_1: MaybeRelocatable,
-) CairoVMError!MaybeRelocatable {
-    // At least one of the operands is relocatable
-    if (op_0.isRelocatable() or op_1.isRelocatable()) {
-        return CairoVMError.MulRelocForbidden;
-    }
-
-    // Multiply the felts and return as a new felt wrapped in a relocatable
-    return MaybeRelocatable.fromFelt(
-        (try op_0.tryIntoFelt()).mul(try op_1.tryIntoFelt()),
-    );
-}
-
-/// Subtracts a `MaybeRelocatable` from this one and returns the new value.
-///
-/// Only values of the same type may be subtracted. Specifically, attempting to
-/// subtract a `.felt` with a `.relocatable` will result in an error.
-pub fn subOperands(self: MaybeRelocatable, other: MaybeRelocatable) !MaybeRelocatable {
-    return switch (self) {
-        .felt => |self_value| switch (other) {
-            .felt => |other_value| return MaybeRelocatable.fromFelt(
-                self_value.sub(other_value),
-            ),
-            .relocatable => error.TypeMismatchNotFelt,
-        },
-        .relocatable => |self_value| switch (other) {
-            .felt => error.TypeMismatchNotFelt,
-            .relocatable => |other_value| return MaybeRelocatable.fromRelocatable(
-                try self_value.sub(other_value),
-            ),
-        },
     };
 }
 
@@ -1157,7 +1231,7 @@ pub fn deduceOp1(
         },
         .Add => if (dst.* != null and op0.* != null) {
             return .{
-                .op_1 = try subOperands(dst.*.?, op0.*.?),
+                .op_1 = try dst.*.?.sub(op0.*.?),
                 .res = dst.*.?,
             };
         },
@@ -1207,10 +1281,10 @@ pub const OperandsResult = struct {
     /// - An instance of OperandsResult with default values.
     pub fn default() Self {
         return .{
-            .dst = MaybeRelocatable.fromU64(0),
-            .res = MaybeRelocatable.fromU64(0),
-            .op_0 = MaybeRelocatable.fromU64(0),
-            .op_1 = MaybeRelocatable.fromU64(0),
+            .dst = MaybeRelocatable.fromInt(u64, 0),
+            .res = MaybeRelocatable.fromInt(u64, 0),
+            .op_0 = MaybeRelocatable.fromInt(u64, 0),
+            .op_1 = MaybeRelocatable.fromInt(u64, 0),
             .dst_addr = .{},
             .op_0_addr = .{},
             .op_1_addr = .{},

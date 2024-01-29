@@ -12,6 +12,8 @@ pub const CairoVMError = error{
     InstructionFetchingFailed,
     /// Error in converting the encoded instruction to a u64.
     InstructionEncodingError,
+    /// Non Zero High Bit in Instruction
+    InstructionNonZeroHighBit,
     /// TODO, this error type is never used. ResLogic constants parsing related?
     ParseResLogicError,
     /// Occurs when values of different types are subtracted.
@@ -31,14 +33,30 @@ pub const CairoVMError = error{
     FailedToComputeOp0,
     /// Signifies that the execution run has not finished.
     RunNotFinished,
+    /// Represents errors related to memory management and access within the Cairo VM.
+    Memory,
     /// Res.UNCONSTRAINED cannot be used with Opcode.ASSERT_EQ
     UnconstrainedResAssertEq,
     /// Different result and destination operands values for Opcode.ASSERT_EQ
     DiffAssertValues,
-    /// Cannot return Program Counter
+    /// Cannot return ProgramJson Counter
     CantWriteReturnPc,
     /// Cannot return Frame Pointer
     CantWriteReturnFp,
+    /// Inconsistent auto deduction
+    InconsistentAutoDeduction,
+    /// Invalid PC update
+    InvalidPcUpdate,
+    /// Invalid Op1 Reg
+    InvalidOp1Reg,
+    /// Invalid Instruction Encoding
+    InvalidInstructionEncoding,
+    /// Invalid Res Logic
+    InvalidResLogic,
+    /// Invalid Ap Update
+    InvalidApUpdate,
+    /// Invalid Opcode
+    InvalidOpcode,
 };
 
 /// Represents different error conditions that are memory-related.
@@ -63,6 +81,10 @@ pub const MemoryError = error{
     GetRangeMemoryGap,
     /// Math error
     Math,
+    /// Represents errors related to unrelocated memory segments and associated operations.
+    UnrelocatedMemory,
+    /// Represents errors related to malformed or inconsistent public memory segments.
+    MalformedPublicMemory,
     /// Represents a situation where a segment has more accessed addresses than its size.
     SegmentHasMoreAccessedAddressesThanSize,
     /// Represents an error when there's a failure to retrieve return values from memory.
@@ -77,10 +99,14 @@ pub const MemoryError = error{
     UnknownMemoryCell,
     /// This memory cell doesn't contain an integer
     ExpectedInteger,
+    /// This memory cell doesn't contain a relocatable value.
+    ExpectedRelocatable,
     /// Error encountered during the WriteArg operation.
     WriteArg,
     /// Occurs if the VM's current step count is less than the minimum required steps for a builtin operation.
     InsufficientAllocatedCellsErrorMinStepNotReached,
+    /// Invalid type encountered during the GenArg operation.
+    GenArgInvalidType,
 };
 
 /// Represents the error conditions that are related to the `CairoRunner`.
@@ -108,6 +134,7 @@ pub const RunnerError = error{
     BuiltinNotInLayout,
     /// Integer value exceeds a power of two.
     IntegerBiggerThanPowerOfTwo,
+    /// Memory-related errors in the built-in runners.
     Memory,
 };
 
@@ -121,9 +148,11 @@ pub const MathError = error{
     RelocatableSubUsizeNegOffset,
     /// Value is too large to be coerced to a u64.
     ValueTooLarge,
+    /// Error indicating subtraction with overflow.
     SubWithOverflow,
     /// Error indicating that the addition operation on the Relocatable offset exceeds the maximum limit.
     RelocatableAdditionOffsetExceeded,
+    RelocatableMul,
 };
 
 /// Represents different error conditions that occur in trace relocation
@@ -136,4 +165,24 @@ pub const TraceError = error{
     NoRelocationFound,
     /// Raised when trying to get relocated trace when trace hasn't been relocated
     TraceNotRelocated,
+};
+
+/// Represents errors occurring during program execution.
+pub const ProgramError = error{
+    /// I/O errors
+    IO,
+    /// Errors in JSON parsing
+    Parse,
+    /// Indicates that the specified entrypoint was not found
+    EntrypointNotFound,
+    /// Indicates that a constant lacks a value
+    ConstWithoutValue,
+    /// Indicates a deviation from an expected prime value
+    PrimeDiffers,
+    /// Indicates the inability to build a StrippedProgram due to the absence of a main program entry
+    StrippedProgramNoMain,
+    /// Indicates an invalid hint PC value greater than or equal to the program length
+    InvalidHintPc,
+    /// Indicates an unsupported or unimplemented builtin encountered within the program.
+    UnsupportedBuiltin,
 };

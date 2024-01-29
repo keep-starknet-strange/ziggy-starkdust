@@ -7,6 +7,7 @@ const CairoVM = @import("./core.zig").CairoVM;
 const Config = @import("./config.zig").Config;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const Program = @import("./types/program.zig").Program;
+const ProgramJson = @import("./types/programjson.zig").ProgramJson;
 
 const trace_context = @import("./trace_context.zig");
 const RelocatedTraceEntry = trace_context.TraceContext.RelocatedTraceEntry;
@@ -51,7 +52,7 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
         config,
     );
 
-    const parsed_program = try Program.parseFromFile(allocator, config.filename);
+    const parsed_program = try ProgramJson.parseFromFile(allocator, config.filename);
     const instructions = try parsed_program.value.readData(allocator);
     defer parsed_program.deinit();
 
@@ -62,9 +63,11 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
     try runner.endRun();
     // TODO readReturnValues necessary for builtins
 
-    if (config.output_trace) |trace_path| {
+    if (config.output_trace != null or config.output_memory != null) {
         try runner.relocate();
+    }
 
+    if (config.output_trace) |trace_path| {
         const trace_file = try std.fs.cwd().createFile(trace_path, .{});
         defer trace_file.close();
 
@@ -72,14 +75,13 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
         try writeEncodedTrace(runner.relocated_trace, &trace_writer);
     }
 
-    // blocked until memory relocation is implemented
-    // if (config.output_memory) |mem_path| {
-    //     const mem_file = try std.fs.cwd().createFile(mem_path, .{});
-    //     defer mem_file.close();
+    if (config.output_memory) |mem_path| {
+        const mem_file = try std.fs.cwd().createFile(mem_path, .{});
+        defer mem_file.close();
 
-    //     var mem_writer = mem_file.writer();
-    //     try writeEncodedMemory(runner.relocated_trace, &mem_writer);
-    // }
+        var mem_writer = mem_file.writer();
+        try writeEncodedMemory(runner.relocated_memory.items, &mem_writer);
+    }
 }
 
 const expect = std.testing.expect;
@@ -130,7 +132,7 @@ test "EncodedMemory: can round trip from valid memory binary" {
 
         const value = std.mem.readInt(u256, &value_buf, .little);
 
-        try relocated_memory.insert(idx, Felt252.fromInteger(value));
+        try relocated_memory.insert(idx, Felt252.fromInt(u256, value));
     }
 
     // now we have the shape of a bonafide relocated memory,
@@ -160,110 +162,4 @@ test "EncodedMemory: can round trip from valid memory binary" {
 
     try std.testing.expectEqualSlices(u8, expected_file_bytes.items, actual_bytes.items);
     try tmp.dir.deleteFile(tmp_file_name);
-}
-
-test "Fibonacci: can evaluate without runtime error" {
-
-    // Given
-    const allocator = std.testing.allocator;
-    var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
-    const path = try std.os.realpath("cairo_programs/fibonacci.json", &buffer);
-
-    var parsed_program = try Program.parseFromFile(allocator, path);
-    defer parsed_program.deinit();
-
-    const instructions = try parsed_program.value.readData(allocator);
-
-    const vm = try CairoVM.init(
-        allocator,
-        .{},
-    );
-
-    // when
-    var runner = try CairoRunner.init(
-        allocator,
-        parsed_program.value,
-        "plain",
-        instructions,
-        vm,
-        false,
-    );
-    defer runner.deinit();
-    const end = try runner.setupExecutionState();
-    errdefer std.debug.print("failed on step: {}\n", .{runner.vm.current_step});
-
-    // then
-    try runner.runUntilPC(end);
-    try runner.endRun();
-}
-
-test "Factorial: can evaluate without runtime error" {
-
-    // Given
-    const allocator = std.testing.allocator;
-    var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
-    const path = try std.os.realpath("cairo_programs/factorial.json", &buffer);
-
-    var parsed_program = try Program.parseFromFile(allocator, path);
-    defer parsed_program.deinit();
-
-    const instructions = try parsed_program.value.readData(allocator);
-
-    const vm = try CairoVM.init(
-        allocator,
-        .{},
-    );
-
-    // when
-    var runner = try CairoRunner.init(
-        allocator,
-        parsed_program.value,
-        "plain",
-        instructions,
-        vm,
-        false,
-    );
-    defer runner.deinit();
-    const end = try runner.setupExecutionState();
-    errdefer std.debug.print("failed on step: {}\n", .{runner.vm.current_step});
-
-    // then
-    try runner.runUntilPC(end);
-    try runner.endRun();
-}
-
-test "Bitwise builtin test: can evaluate without runtime error" {
-
-    // Given
-    const allocator = std.testing.allocator;
-    var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
-    const path = try std.os.realpath("cairo_programs/bitwise_builtin_test.json", &buffer);
-
-    var parsed_program = try Program.parseFromFile(allocator, path);
-    defer parsed_program.deinit();
-
-    const instructions = try parsed_program.value.readData(allocator);
-
-    const vm = try CairoVM.init(
-        allocator,
-        .{},
-    );
-
-    // when
-    var runner = try CairoRunner.init(
-        allocator,
-        parsed_program.value,
-        "all_cairo",
-        instructions,
-        vm,
-        false,
-    );
-    defer runner.deinit();
-    const end = try runner.setupExecutionState();
-
-    errdefer std.debug.print("failed on step: {}\n", .{runner.vm.current_step});
-
-    // then
-    try runner.runUntilPC(end);
-    try runner.endRun();
 }

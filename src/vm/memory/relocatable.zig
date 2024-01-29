@@ -32,7 +32,7 @@ pub const Relocatable = struct {
             .offset = offset,
         };
     }
-    
+
     // Creates a new Relocatable.
     // # Arguments
     // - segment_index - The index of the memory segment.
@@ -213,7 +213,7 @@ pub const Relocatable = struct {
     pub fn addFelt(self: Self, other: Felt252) MathError!Self {
         return .{
             .segment_index = self.segment_index,
-            .offset = try Felt252.fromInteger(@intCast(self.offset)).add(other).tryIntoU64(),
+            .offset = try Felt252.fromInt(u64, self.offset).add(other).tryIntoU64(),
         };
     }
 
@@ -222,7 +222,7 @@ pub const Relocatable = struct {
     /// - self: Pointer to the Relocatable object to modify.
     /// - other: The felt to add to `self.offset`.
     pub fn addFeltInPlace(self: *Self, other: Felt252) !void {
-        self.offset = try Felt252.fromInteger(@intCast(self.offset)).add(other).tryIntoU64();
+        self.offset = try Felt252.fromInt(u64, self.offset).add(other).tryIntoU64();
     }
 
     /// Performs additions if other contains a Felt value, fails otherwise.
@@ -257,9 +257,30 @@ pub const Relocatable = struct {
         }
         return MemoryError.TemporarySegmentInRelocation;
     }
+
+    /// Gets the adjusted segment index for a Relocatable object.
+    ///
+    /// This function returns the adjusted segment index for a given `Relocatable` object. If the
+    /// `segment_index` is negative, it is adjusted by subtracting one and negating the result.
+    ///
+    /// # Arguments
+    /// - `self`: Pointer to the `Relocatable` object.
+    ///
+    /// # Returns
+    /// The adjusted `usize` value representing the segment index.
+    pub fn getAdjustedSegmentIndex(self: *const Self) usize {
+        return @intCast(if (self.segment_index < 0)
+            -(self.segment_index + 1)
+        else
+            self.segment_index);
+    }
 };
-// MaybeRelocatable is the type of the memory cells in the Cairo
-// VM. It can either be a Relocatable or a field element.
+
+/// `MaybeRelocatable` is a versatile type representing memory cells in the Cairo VM.
+///
+/// It can hold either a `Relocatable` or a field element (`Felt252`).
+///
+/// This union provides powerful functionality for handling both relocated and non-relocated values seamlessly.
 pub const MaybeRelocatable = union(enum) {
     const Self = @This();
 
@@ -277,9 +298,9 @@ pub const MaybeRelocatable = union(enum) {
     /// ## Returns:
     ///   * `true` if the two instances are equal.
     ///   * `false` otherwise.
-    pub fn eq(self: Self, other: Self) bool {
+    pub fn eq(self: *const Self, other: Self) bool {
         // Switch on the type of `self`
-        return switch (self) {
+        return switch (self.*) {
             // If `self` is of type `relocatable`
             .relocatable => |self_value| switch (other) {
                 // Compare the `relocatable` values if both `self` and `other` are `relocatable`
@@ -305,9 +326,9 @@ pub const MaybeRelocatable = union(enum) {
     /// ## Returns:
     ///   * `true` if self is less than other
     ///   * `false` otherwise.
-    pub fn lt(self: Self, other: Self) bool {
+    pub fn lt(self: *const Self, other: Self) bool {
         // Switch on the type of `self`
-        return switch (self) {
+        return switch (self.*) {
             // If `self` is of type `relocatable`
             .relocatable => |self_value| switch (other) {
                 // Compare the `relocatable` values if both `self` and `other` are `relocatable`
@@ -333,9 +354,9 @@ pub const MaybeRelocatable = union(enum) {
     /// ## Returns:
     ///   * `true` if self is less than or equal to other
     ///   * `false` otherwise.
-    pub fn le(self: Self, other: Self) bool {
+    pub fn le(self: *const Self, other: Self) bool {
         // Switch on the type of `self`
-        return switch (self) {
+        return switch (self.*) {
             // If `self` is of type `relocatable`
             .relocatable => |self_value| switch (other) {
                 // Compare the `relocatable` values if both `self` and `other` are `relocatable`
@@ -361,9 +382,9 @@ pub const MaybeRelocatable = union(enum) {
     /// ## Returns:
     ///   * `true` if self is greater than other
     ///   * `false` otherwise.
-    pub fn gt(self: Self, other: Self) bool {
+    pub fn gt(self: *const Self, other: Self) bool {
         // Switch on the type of `self`
-        return switch (self) {
+        return switch (self.*) {
             // If `self` is of type `relocatable`
             .relocatable => |self_value| switch (other) {
                 // Compare the `relocatable` values if both `self` and `other` are `relocatable`
@@ -389,9 +410,9 @@ pub const MaybeRelocatable = union(enum) {
     /// ## Returns:
     ///   * `true` if self is greater than other
     ///   * `false` otherwise.
-    pub fn ge(self: Self, other: Self) bool {
+    pub fn ge(self: *const Self, other: Self) bool {
         // Switch on the type of `self`
-        return switch (self) {
+        return switch (self.*) {
             // If `self` is of type `relocatable`
             .relocatable => |self_value| switch (other) {
                 // Compare the `relocatable` values if both `self` and `other` are `relocatable`
@@ -424,9 +445,9 @@ pub const MaybeRelocatable = union(enum) {
     /// and `.eq` if they are equal based on their `segment_index` and `offset` values.
     ///
     /// Returns `MathError.IncompatibleComparisonTypes` if the comparison involves incompatible types.
-    pub fn cmp(self: Self, other: Self) std.math.Order {
+    pub fn cmp(self: *const Self, other: Self) std.math.Order {
         // Compare the `self` variant type against `other`
-        return switch (self) {
+        return switch (self.*) {
             // If `self` is of type `relocatable`
             .relocatable => |self_value| switch (other) {
                 // If `other` is also `relocatable`, compare the `relocatable` values
@@ -447,8 +468,8 @@ pub const MaybeRelocatable = union(enum) {
     /// Return the value of the MaybeRelocatable as a felt or error.
     /// # Returns
     /// The value of the MaybeRelocatable as a Relocatable felt or error.
-    pub fn tryIntoFelt(self: Self) CairoVMError!Felt252 {
-        return switch (self) {
+    pub fn tryIntoFelt(self: *const Self) CairoVMError!Felt252 {
+        return switch (self.*) {
             .relocatable => CairoVMError.TypeMismatchNotFelt,
             .felt => |felt| felt,
         };
@@ -457,11 +478,11 @@ pub const MaybeRelocatable = union(enum) {
     /// Return the value of the MaybeRelocatable as a felt or error.
     /// # Returns
     /// The value of the MaybeRelocatable as a Relocatable felt or error.
-    pub fn tryIntoU64(self: Self) error{
+    pub fn tryIntoU64(self: *const Self) error{
         TypeMismatchNotFelt,
         ValueTooLarge,
     }!u64 {
-        return switch (self) {
+        return switch (self.*) {
             .relocatable => CairoVMError.TypeMismatchNotFelt,
             .felt => |felt| felt.tryIntoU64(),
         };
@@ -470,8 +491,8 @@ pub const MaybeRelocatable = union(enum) {
     /// Return the value of the MaybeRelocatable as a Relocatable.
     /// # Returns
     /// The value of the MaybeRelocatable as a Relocatable.
-    pub fn tryIntoRelocatable(self: Self) CairoVMError!Relocatable {
-        return switch (self) {
+    pub fn tryIntoRelocatable(self: *const Self) CairoVMError!Relocatable {
+        return switch (self.*) {
             .relocatable => |relocatable| relocatable,
             .felt => CairoVMError.TypeMismatchNotRelocatable,
         };
@@ -480,8 +501,8 @@ pub const MaybeRelocatable = union(enum) {
     /// Whether the MaybeRelocatable is zero or not.
     /// # Returns
     /// true if the MaybeRelocatable is zero, false otherwise.
-    pub fn isZero(self: Self) bool {
-        return switch (self) {
+    pub fn isZero(self: *const Self) bool {
+        return switch (self.*) {
             .relocatable => false,
             .felt => |felt| felt.isZero(),
         };
@@ -490,8 +511,8 @@ pub const MaybeRelocatable = union(enum) {
     /// Whether the MaybeRelocatable is a relocatable or not.
     /// # Returns
     /// true if the MaybeRelocatable is a relocatable, false otherwise.
-    pub fn isRelocatable(self: MaybeRelocatable) bool {
-        return std.meta.activeTag(self) == .relocatable;
+    pub fn isRelocatable(self: *const MaybeRelocatable) bool {
+        return std.meta.activeTag(self.*) == .relocatable;
     }
 
     /// Returns whether the MaybeRelocatable is a felt or not.
@@ -515,9 +536,9 @@ pub const MaybeRelocatable = union(enum) {
     /// # Returns:
     ///   * A new MaybeRelocatable value after the addition operation.
     ///   * An error in case of type mismatch or specific math errors.
-    pub fn add(self: Self, other: Self) MathError!Self {
+    pub fn add(self: *const Self, other: Self) MathError!Self {
         // Switch on the type of `self`
-        return switch (self) {
+        return switch (self.*) {
             // If `self` is of type `relocatable`
             .relocatable => |self_value| switch (other) {
                 // If `other` is also `relocatable`, addition is not supported, return an error
@@ -547,9 +568,9 @@ pub const MaybeRelocatable = union(enum) {
     /// # Returns:
     ///   * A new MaybeRelocatable value after the subtraction operation.
     ///   * An error in case of type mismatch or specific math errors.
-    pub fn sub(self: Self, other: Self) !Self {
+    pub fn sub(self: *const Self, other: Self) !Self {
         // Switch on the type of `self`
-        return switch (self) {
+        return switch (self.*) {
             // If `self` is of type `relocatable`
             .relocatable => |self_value| switch (other) {
                 // If `other` is also `relocatable`, call `sub` method on `self_value`
@@ -563,6 +584,32 @@ pub const MaybeRelocatable = union(enum) {
                 .felt => |fe| .{ .felt = self_value.sub(fe) },
                 // If `other` is `relocatable`, return an error as subtraction is not supported
                 .relocatable => MathError.SubRelocatableFromInt,
+            },
+        };
+    }
+
+    /// Multiplies two MaybeRelocatable values.
+    ///
+    /// This method performs multiplication between two MaybeRelocatable instances, either Felt252 or Felt.
+    /// It returns an error if either operand is Relocatable.
+    ///
+    /// # Arguments:
+    ///   * self: The first MaybeRelocatable value.
+    ///   * other: The second MaybeRelocatable value to multiply with `self`.
+    ///
+    /// # Returns:
+    ///   * A new MaybeRelocatable value after the multiplication operation.
+    ///   * An error in case either operand is Relocatable.
+    pub fn mul(self: *const Self, other: Self) !Self {
+        return switch (self.*) {
+            // If `self` is of type `relocatable`
+            .relocatable => MathError.RelocatableMul,
+            // If `self` is of type `felt`
+            .felt => |self_value| switch (other) {
+                // If `other` is also `relocatable`, multiplication is not supported, return an error
+                .relocatable => MathError.RelocatableMul,
+                // If `other` is `felt`, call `mul` method on `self_value`
+                .felt => |fe| .{ .felt = self_value.mul(fe) },
             },
         };
     }
@@ -585,7 +632,7 @@ pub const MaybeRelocatable = union(enum) {
     pub fn relocateValue(self: *const Self, relocation_table: []usize) MemoryError!Felt252 {
         return switch (self.*) {
             .felt => |fe| fe,
-            .relocatable => |r| Felt252.fromInteger(try r.relocateAddress(relocation_table)),
+            .relocatable => |r| Felt252.fromInt(u256, try r.relocateAddress(relocation_table)),
         };
     }
 
@@ -607,22 +654,14 @@ pub const MaybeRelocatable = union(enum) {
         return .{ .felt = felt };
     }
 
-    /// Creates a new MaybeRelocatable from a u256.
+    /// Creates a new `MaybeRelocatable` from an integer value, considering the type `T`.
     /// # Arguments
-    /// - value - The u64 to create the MaybeRelocatable from.
+    /// - `T`: The type of the integer value.
+    /// - `value`: The integer value to create the `MaybeRelocatable` from.
     /// # Returns
-    /// A new MaybeRelocatable.
-    pub fn fromU256(value: u256) Self {
-        return .{ .felt = Felt252.fromInteger(value) };
-    }
-
-    /// Creates a new MaybeRelocatable from a u64.
-    /// # Arguments
-    /// - value - The u64 to create the MaybeRelocatable from.
-    /// # Returns
-    /// A new MaybeRelocatable.
-    pub fn fromU64(value: u64) Self {
-        return fromU256(@intCast(value));
+    /// A new `MaybeRelocatable` holding the converted field element (`Felt252`).
+    pub fn fromInt(comptime T: type, value: T) Self {
+        return .{ .felt = Felt252.fromInt(T, value) };
     }
 
     /// Creates a new MaybeRelocatable from a segment index and an offset.
@@ -776,7 +815,7 @@ test "Relocatable: addUintInPlace should increase offset" {
 
 test "Relocatable: addFeltInPlace should increase offset" {
     var relocatable = Relocatable.init(2, 8);
-    try relocatable.addFeltInPlace(Felt252.fromInteger(1000000000000000));
+    try relocatable.addFeltInPlace(Felt252.fromInt(u256, 1000000000000000));
     try expectEqual(
         Relocatable.init(2, 1000000000000008),
         relocatable,
@@ -785,7 +824,7 @@ test "Relocatable: addFeltInPlace should increase offset" {
 
 test "Relocatable: addMaybeRelocatableInplace should increase offset if other is Felt" {
     var relocatable = Relocatable.init(2, 8);
-    try relocatable.addMaybeRelocatableInplace(MaybeRelocatable{ .felt = Felt252.fromInteger(1000000000000000) });
+    try relocatable.addMaybeRelocatableInplace(MaybeRelocatable{ .felt = Felt252.fromInt(u256, 1000000000000000) });
     try expectEqual(
         Relocatable.init(2, 1000000000000008),
         relocatable,
@@ -901,35 +940,35 @@ test "Relocatable: cmpt should return .gt if self segment > other segment" {
 test "Relocatable: addFelt should add a relocatable and a Felt252" {
     try expectEqual(
         Relocatable{ .segment_index = 2, .offset = 54 },
-        try Relocatable.init(2, 44).addFelt(Felt252.fromInteger(10)),
+        try Relocatable.init(2, 44).addFelt(Felt252.fromInt(u8, 10)),
     );
 }
 
 test "Relocatable: addFelt should return an error if number after offset addition is too large" {
     try expectError(
         MathError.ValueTooLarge,
-        Relocatable.init(2, 44).addFelt(Felt252.fromInteger(std.math.maxInt(u256))),
+        Relocatable.init(2, 44).addFelt(Felt252.fromInt(u256, std.math.maxInt(u256))),
     );
 }
 
 test "Relocatable: subFelt should subtract a Felt252 from a relocatable" {
     try expectEqual(
         Relocatable{ .segment_index = 2, .offset = 34 },
-        try Relocatable.init(2, 44).subFelt(Felt252.fromInteger(10)),
+        try Relocatable.init(2, 44).subFelt(Felt252.fromInt(u8, 10)),
     );
 }
 
 test "Relocatable: subFelt should return an error if relocatable cannot be coerced to u64" {
     try expectError(
         MathError.ValueTooLarge,
-        Relocatable.init(2, 44).subFelt(Felt252.fromInteger(std.math.maxInt(u256))),
+        Relocatable.init(2, 44).subFelt(Felt252.fromInt(u256, std.math.maxInt(u256))),
     );
 }
 
 test "Relocatable: subFelt should return an error if relocatable offset is smaller than Felt252" {
     try expectError(
         MathError.RelocatableSubUsizeNegOffset,
-        Relocatable.init(2, 7).subFelt(Felt252.fromInteger(10)),
+        Relocatable.init(2, 7).subFelt(Felt252.fromInt(u8, 10)),
     );
 }
 
@@ -965,6 +1004,32 @@ test "Relocatable: relocateAddress should return a proper usize to relocate the 
     );
 }
 
+test "Relocatable.getAdjustedSegmentIndex: should return the segment index if positive" {
+    try expectEqual(
+        @as(usize, 10),
+        Relocatable.init(10, 3).getAdjustedSegmentIndex(),
+    );
+    try expectEqual(
+        @as(usize, std.math.maxInt(i64)),
+        Relocatable.init(std.math.maxInt(i64), 3).getAdjustedSegmentIndex(),
+    );
+    try expectEqual(
+        @as(usize, 0),
+        Relocatable.init(0, 3).getAdjustedSegmentIndex(),
+    );
+}
+
+test "Relocatable.getAdjustedSegmentIndex: should return the opposite of the segment index + 1 if negative" {
+    try expectEqual(
+        @as(usize, 9),
+        Relocatable.init(-10, 3).getAdjustedSegmentIndex(),
+    );
+    try expectEqual(
+        @as(usize, std.math.maxInt(i64) - 1),
+        Relocatable.init(-std.math.maxInt(i64), 3).getAdjustedSegmentIndex(),
+    );
+}
+
 test "MaybeRelocatable: eq should return true if two MaybeRelocatable are the same (Relocatable)" {
     const maybeRelocatable1 = MaybeRelocatable.fromSegment(0, 10);
     const maybeRelocatable2 = MaybeRelocatable.fromSegment(0, 10);
@@ -972,16 +1037,16 @@ test "MaybeRelocatable: eq should return true if two MaybeRelocatable are the sa
 }
 
 test "MaybeRelocatable: eq should return true if two MaybeRelocatable are the same (Felt)" {
-    const maybeRelocatable1 = MaybeRelocatable.fromU256(10);
-    const maybeRelocatable2 = MaybeRelocatable.fromU256(10);
+    const maybeRelocatable1 = MaybeRelocatable.fromInt(u8, 10);
+    const maybeRelocatable2 = MaybeRelocatable.fromInt(u8, 10);
     try expect(maybeRelocatable1.eq(maybeRelocatable2));
 }
 
 test "MaybeRelocatable: eq should return false if two MaybeRelocatable are not the same " {
     const maybeRelocatable1 = MaybeRelocatable.fromSegment(0, 10);
     const maybeRelocatable2 = MaybeRelocatable.fromSegment(1, 10);
-    const maybeRelocatable3 = MaybeRelocatable.fromU256(10);
-    const maybeRelocatable4 = MaybeRelocatable.fromU256(100);
+    const maybeRelocatable3 = MaybeRelocatable.fromInt(u8, 10);
+    const maybeRelocatable4 = MaybeRelocatable.fromInt(u8, 100);
     try expect(!maybeRelocatable1.eq(maybeRelocatable2));
     try expect(!maybeRelocatable1.eq(maybeRelocatable3));
     try expect(!maybeRelocatable3.eq(maybeRelocatable2));
@@ -1042,46 +1107,46 @@ test "MaybeRelocatable: ge should work properly if two MaybeRelocatable are of s
 
 test "MaybeRelocatable: lt should work properly if two MaybeRelocatable are of same type (Felt)" {
     // 1 == 2
-    try expect(!MaybeRelocatable.fromU256(1).lt(MaybeRelocatable.fromU256(1)));
+    try expect(!MaybeRelocatable.fromInt(u8, 1).lt(MaybeRelocatable.fromInt(u8, 1)));
 
     // 1 < 2
-    try expect(MaybeRelocatable.fromU256(1).lt(MaybeRelocatable.fromU256(2)));
+    try expect(MaybeRelocatable.fromInt(u8, 1).lt(MaybeRelocatable.fromInt(u8, 2)));
 
     // 1 > 2
-    try expect(!MaybeRelocatable.fromU256(2).lt(MaybeRelocatable.fromU256(1)));
+    try expect(!MaybeRelocatable.fromInt(u8, 2).lt(MaybeRelocatable.fromInt(u8, 1)));
 }
 
 test "MaybeRelocatable: le should work properly if two MaybeRelocatable are of same type (Felt)" {
     // 1 == 2
-    try expect(MaybeRelocatable.fromU256(1).le(MaybeRelocatable.fromU256(1)));
+    try expect(MaybeRelocatable.fromInt(u8, 1).le(MaybeRelocatable.fromInt(u8, 1)));
 
     // 1 < 2
-    try expect(MaybeRelocatable.fromU256(1).le(MaybeRelocatable.fromU256(2)));
+    try expect(MaybeRelocatable.fromInt(u8, 1).le(MaybeRelocatable.fromInt(u8, 2)));
 
     // 1 > 2
-    try expect(!MaybeRelocatable.fromU256(2).le(MaybeRelocatable.fromU256(1)));
+    try expect(!MaybeRelocatable.fromInt(u8, 2).le(MaybeRelocatable.fromInt(u8, 1)));
 }
 
 test "MaybeRelocatable: gt should work properly if two MaybeRelocatable are of same type (Felt)" {
     // 1 == 2
-    try expect(!MaybeRelocatable.fromU256(1).gt(MaybeRelocatable.fromU256(1)));
+    try expect(!MaybeRelocatable.fromInt(u8, 1).gt(MaybeRelocatable.fromInt(u8, 1)));
 
     // 1 < 2
-    try expect(!MaybeRelocatable.fromU256(1).gt(MaybeRelocatable.fromU256(2)));
+    try expect(!MaybeRelocatable.fromInt(u8, 1).gt(MaybeRelocatable.fromInt(u8, 2)));
 
     // 1 > 2
-    try expect(MaybeRelocatable.fromU256(2).gt(MaybeRelocatable.fromU256(1)));
+    try expect(MaybeRelocatable.fromInt(u8, 2).gt(MaybeRelocatable.fromInt(u8, 1)));
 }
 
 test "MaybeRelocatable: ge should work properly if two MaybeRelocatable are of same type (Felt)" {
     // 1 == 2
-    try expect(MaybeRelocatable.fromU256(1).ge(MaybeRelocatable.fromU256(1)));
+    try expect(MaybeRelocatable.fromInt(u8, 1).ge(MaybeRelocatable.fromInt(u8, 1)));
 
     // 1 < 2
-    try expect(!MaybeRelocatable.fromU256(1).ge(MaybeRelocatable.fromU256(2)));
+    try expect(!MaybeRelocatable.fromInt(u8, 1).ge(MaybeRelocatable.fromInt(u8, 2)));
 
     // 1 > 2
-    try expect(MaybeRelocatable.fromU256(2).ge(MaybeRelocatable.fromU256(1)));
+    try expect(MaybeRelocatable.fromInt(u8, 2).ge(MaybeRelocatable.fromInt(u8, 1)));
 }
 
 test "MaybeRelocatable: cmp should return proper order results for Relocatable comparisons" {
@@ -1110,46 +1175,46 @@ test "MaybeRelocatable: cmp should return proper order results for Relocatable c
 test "MaybeRelocatable: cmp should return Felt252 > Relocatable" {
     try expectEqual(
         std.math.Order.lt,
-        MaybeRelocatable.fromSegment(4, 10).cmp(MaybeRelocatable.fromU256(4)),
+        MaybeRelocatable.fromSegment(4, 10).cmp(MaybeRelocatable.fromInt(u8, 4)),
     );
     try expectEqual(
         std.math.Order.gt,
-        MaybeRelocatable.fromU256(4).cmp(MaybeRelocatable.fromSegment(4, 10)),
+        MaybeRelocatable.fromInt(u8, 4).cmp(MaybeRelocatable.fromSegment(4, 10)),
     );
 }
 
 test "MaybeRelocatable: cmp should return proper order results for Felt252 comparisons" {
     try expectEqual(
         std.math.Order.lt,
-        MaybeRelocatable.fromU256(10).cmp(MaybeRelocatable.fromU256(343535)),
+        MaybeRelocatable.fromInt(u8, 10).cmp(MaybeRelocatable.fromInt(u256, 343535)),
     );
     try expectEqual(
         std.math.Order.lt,
-        MaybeRelocatable.fromU256(433).cmp(MaybeRelocatable.fromU256(343535)),
+        MaybeRelocatable.fromInt(u256, 433).cmp(MaybeRelocatable.fromInt(u256, 343535)),
     );
     try expectEqual(
         std.math.Order.gt,
-        MaybeRelocatable.fromU256(543636535).cmp(MaybeRelocatable.fromU256(434)),
+        MaybeRelocatable.fromInt(u256, 543636535).cmp(MaybeRelocatable.fromInt(u256, 434)),
     );
     try expectEqual(
         std.math.Order.gt,
-        MaybeRelocatable.fromU256(std.math.maxInt(u256)).cmp(MaybeRelocatable.fromU256(21313)),
+        MaybeRelocatable.fromInt(u256, std.math.maxInt(u256)).cmp(MaybeRelocatable.fromInt(u256, 21313)),
     );
     try expectEqual(
         std.math.Order.eq,
-        MaybeRelocatable.fromU256(10).cmp(MaybeRelocatable.fromU256(10)),
+        MaybeRelocatable.fromInt(u8, 10).cmp(MaybeRelocatable.fromInt(u8, 10)),
     );
     try expectEqual(
         std.math.Order.eq,
-        MaybeRelocatable.fromU256(1).cmp(MaybeRelocatable.fromU256(1)),
+        MaybeRelocatable.fromInt(u8, 1).cmp(MaybeRelocatable.fromInt(u8, 1)),
     );
     try expectEqual(
         std.math.Order.eq,
-        MaybeRelocatable.fromU256(0).cmp(MaybeRelocatable.fromU256(0)),
+        MaybeRelocatable.fromInt(u8, 0).cmp(MaybeRelocatable.fromInt(u8, 0)),
     );
     try expectEqual(
         std.math.Order.eq,
-        MaybeRelocatable.fromU256(10).cmp(MaybeRelocatable.fromU256(10 + STARKNET_PRIME)),
+        MaybeRelocatable.fromInt(u8, 10).cmp(MaybeRelocatable.fromInt(u256, 10 + STARKNET_PRIME)),
     );
 }
 
@@ -1162,7 +1227,7 @@ test "MaybeRelocatable: tryIntoRelocatable should return Relocatable if MaybeRel
 }
 
 test "MaybeRelocatable: tryIntoRelocatable should return an error if MaybeRelocatable is Felt" {
-    var maybeRelocatable = MaybeRelocatable.fromU256(10);
+    var maybeRelocatable = MaybeRelocatable.fromInt(u8, 10);
     try expectError(
         CairoVMError.TypeMismatchNotRelocatable,
         maybeRelocatable.tryIntoRelocatable(),
@@ -1175,12 +1240,12 @@ test "MaybeRelocatable: isZero should return false if MaybeRelocatable is Reloca
 }
 
 test "MaybeRelocatable: isZero should return false if MaybeRelocatable is non Zero felt" {
-    var maybeRelocatable = MaybeRelocatable.fromU256(10);
+    var maybeRelocatable = MaybeRelocatable.fromInt(u8, 10);
     try expect(!maybeRelocatable.isZero());
 }
 
 test "MaybeRelocatable: isZero should return true if MaybeRelocatable is Zero felt" {
-    var maybeRelocatable = MaybeRelocatable.fromU256(0);
+    var maybeRelocatable = MaybeRelocatable.fromInt(u8, 0);
     try expect(maybeRelocatable.isZero());
 }
 
@@ -1190,12 +1255,12 @@ test "MaybeRelocatable: isRelocatable should return true if MaybeRelocatable is 
 }
 
 test "MaybeRelocatable: isRelocatable should return false if MaybeRelocatable is felt" {
-    var maybeRelocatable = MaybeRelocatable.fromU256(10);
+    var maybeRelocatable = MaybeRelocatable.fromInt(u8, 10);
     try expect(!maybeRelocatable.isRelocatable());
 }
 
 test "MaybeRelocatable: isFelt should return true if MaybeRelocatable is Felt" {
-    var maybeRelocatable = MaybeRelocatable.fromU256(10);
+    var maybeRelocatable = MaybeRelocatable.fromInt(u8, 10);
     try expect(maybeRelocatable.isFelt());
 }
 
@@ -1205,8 +1270,8 @@ test "MaybeRelocatable: isFelt should return false if MaybeRelocatable is Reloca
 }
 
 test "MaybeRelocatable: tryIntoFelt should return Felt if MaybeRelocatable is Felt" {
-    var maybeRelocatable = MaybeRelocatable.fromU256(10);
-    try expectEqual(Felt252.fromInteger(10), try maybeRelocatable.tryIntoFelt());
+    var maybeRelocatable = MaybeRelocatable.fromInt(u8, 10);
+    try expectEqual(Felt252.fromInt(u8, 10), try maybeRelocatable.tryIntoFelt());
 }
 
 test "MaybeRelocatable: tryIntoFelt should return an error if MaybeRelocatable is Relocatable" {
@@ -1215,7 +1280,7 @@ test "MaybeRelocatable: tryIntoFelt should return an error if MaybeRelocatable i
 }
 
 test "MaybeRelocatable: tryIntoU64 should return a u64 if MaybeRelocatable is Felt" {
-    var maybeRelocatable = MaybeRelocatable.fromU256(10);
+    var maybeRelocatable = MaybeRelocatable.fromInt(u8, 10);
     try expectEqual(@as(u64, @intCast(10)), try maybeRelocatable.tryIntoU64());
 }
 
@@ -1225,13 +1290,13 @@ test "MaybeRelocatable: tryIntoU64 should return an error if MaybeRelocatable is
 }
 
 test "MaybeRelocatable: tryIntoU64 should return an error if MaybeRelocatable Felt cannot be coerced to u64" {
-    var maybeRelocatable = MaybeRelocatable.fromU256(std.math.maxInt(u64) + 1);
+    var maybeRelocatable = MaybeRelocatable.fromInt(u256, std.math.maxInt(u64) + 1);
     try expectError(MathError.ValueTooLarge, maybeRelocatable.tryIntoU64());
 }
 
 test "MaybeRelocatable: any comparision should return false if other MaybeRelocatable is of different variant 1" {
     const maybeRelocatable1 = MaybeRelocatable.fromSegment(0, 10);
-    const maybeRelocatable2 = MaybeRelocatable.fromU256(10);
+    const maybeRelocatable2 = MaybeRelocatable.fromInt(u8, 10);
 
     try expect(!maybeRelocatable1.lt(maybeRelocatable2));
     try expect(!maybeRelocatable1.le(maybeRelocatable2));
@@ -1240,7 +1305,7 @@ test "MaybeRelocatable: any comparision should return false if other MaybeReloca
 }
 
 test "MaybeRelocatable: any comparision should return false if other MaybeRelocatable is of different variant 2" {
-    const maybeRelocatable1 = MaybeRelocatable.fromU256(10);
+    const maybeRelocatable1 = MaybeRelocatable.fromInt(u8, 10);
     const maybeRelocatable2 = MaybeRelocatable.fromSegment(0, 10);
 
     try expect(!maybeRelocatable1.lt(maybeRelocatable2));
@@ -1259,21 +1324,21 @@ test "MaybeRelocatable: add between two relocatable should return a Math error" 
 test "MaybeRelocatable: add between a Relocatable and a Felt252 should return a proper MaybeRelocatable" {
     try expectEqual(
         MaybeRelocatable.fromSegment(0, 20),
-        try MaybeRelocatable.fromSegment(0, 10).add(MaybeRelocatable.fromU256(10)),
+        try MaybeRelocatable.fromSegment(0, 10).add(MaybeRelocatable.fromInt(u8, 10)),
     );
 }
 
 test "MaybeRelocatable: add between two Felt252 should return a proper MaybeRelocatable" {
     try expectEqual(
-        MaybeRelocatable.fromU256(20),
-        try MaybeRelocatable.fromU256(10).add(MaybeRelocatable.fromU256(10)),
+        MaybeRelocatable.fromInt(u256, 20),
+        try MaybeRelocatable.fromInt(u8, 10).add(MaybeRelocatable.fromInt(u8, 10)),
     );
 }
 
 test "MaybeRelocatable: add between a Felt252 and a Relocatable should return a proper MaybeRelocatable" {
     try expectEqual(
         MaybeRelocatable.fromSegment(0, 20),
-        try MaybeRelocatable.fromU256(10).add(MaybeRelocatable.fromSegment(0, 10)),
+        try MaybeRelocatable.fromInt(u8, 10).add(MaybeRelocatable.fromSegment(0, 10)),
     );
 }
 
@@ -1294,29 +1359,29 @@ test "MaybeRelocatable: sub between two Relocatable with different segment index
 test "MaybeRelocatable: sub between a Relocatable and a Felt252 should return a proper MaybeRelocatable" {
     try expectEqual(
         MaybeRelocatable.fromSegment(0, 10),
-        try MaybeRelocatable.fromSegment(0, 20).sub(MaybeRelocatable.fromU256(10)),
+        try MaybeRelocatable.fromSegment(0, 20).sub(MaybeRelocatable.fromInt(u8, 10)),
     );
 }
 
 test "MaybeRelocatable: sub between two Felt252 should return a proper MaybeRelocatable" {
     try expectEqual(
-        MaybeRelocatable.fromU256(0),
-        try MaybeRelocatable.fromU256(20).sub(MaybeRelocatable.fromU256(20)),
+        MaybeRelocatable.fromInt(u8, 0),
+        try MaybeRelocatable.fromInt(u256, 20).sub(MaybeRelocatable.fromInt(u256, 20)),
     );
 }
 
 test "MaybeRelocatable: sub between a Felt252 and a Relocatable should return a Math Error" {
     try expectError(
         MathError.SubRelocatableFromInt,
-        MaybeRelocatable.fromU256(20).sub(MaybeRelocatable.fromSegment(0, 10)),
+        MaybeRelocatable.fromInt(u256, 20).sub(MaybeRelocatable.fromSegment(0, 10)),
     );
 }
 
 test "MaybeRelocatable: relocateValue should return Felt252 if self argument is Felt252" {
     var relocation_table = [_]usize{ 1, 2, 3, 4 };
-    var mr = MaybeRelocatable.fromU256(10);
+    var mr = MaybeRelocatable.fromInt(u8, 10);
     try expectEqual(
-        Felt252.fromInteger(10),
+        Felt252.fromInt(u8, 10),
         try mr.relocateValue(&relocation_table),
     );
 }
@@ -1325,7 +1390,7 @@ test "MaybeRelocatable: relocateValue with a relocatable value" {
     var relocation_table = [_]usize{ 1, 2, 5 };
     var mr = MaybeRelocatable.fromSegment(2, 7);
     try expectEqual(
-        Felt252.fromInteger(12),
+        Felt252.fromInt(u8, 12),
         try mr.relocateValue(&relocation_table),
     );
 }
@@ -1357,21 +1422,92 @@ test "fromRelocatable: should create a MaybeRelocatable from a Relocatable" {
 
 test "fromFelt: should create a MaybeRelocatable from a Felt" {
     try expectEqual(
-        MaybeRelocatable.fromU256(10),
-        MaybeRelocatable.fromFelt(Felt252.fromInteger(10)),
+        MaybeRelocatable.fromInt(u8, 10),
+        MaybeRelocatable.fromFelt(Felt252.fromInt(u8, 10)),
     );
 }
 
 test "MaybeRelocatable.fromU256: should create a MaybeRelocatable from a u256" {
     try expectEqual(
-        MaybeRelocatable.fromU256(1000000),
-        MaybeRelocatable.fromU256(@intCast(1000000)),
+        MaybeRelocatable.fromInt(u256, 1000000),
+        MaybeRelocatable.fromInt(u256, @intCast(1000000)),
     );
 }
 
 test "MaybeRelocatable.fromU64: should create a MaybeRelocatable from a u64" {
     try expectEqual(
-        MaybeRelocatable.fromU256(45),
-        MaybeRelocatable.fromU64(@intCast(45)),
+        MaybeRelocatable.fromInt(u256, 45),
+        MaybeRelocatable.fromInt(u64, @intCast(45)),
+    );
+}
+
+test "MaybeRelocatable.mul: should return an error if lhs is Relocatable" {
+    // Test Case 1
+    // Try to perform multiplication with Relocatable value on the left-hand side.
+    try expectError(
+        MathError.RelocatableMul,
+        MaybeRelocatable.fromSegment(
+            0,
+            1,
+        ).mul(MaybeRelocatable.fromInt(u256, 45)),
+    );
+
+    // Test Case 2
+    // Try to perform multiplication with two Relocatable values.
+    try expectError(
+        MathError.RelocatableMul,
+        MaybeRelocatable.fromSegment(
+            0,
+            1,
+        ).mul(MaybeRelocatable.fromSegment(
+            0,
+            1,
+        )),
+    );
+}
+
+test "MaybeRelocatable.mul: should return an error if rhs is Relocatable" {
+    // Test Case
+    // Try to perform multiplication with Relocatable value on the right-hand side.
+    try expectError(
+        MathError.RelocatableMul,
+        MaybeRelocatable.fromInt(u256, 45).mul(MaybeRelocatable.fromSegment(
+            0,
+            1,
+        )),
+    );
+}
+
+test "MaybeRelocatable.mul: should return Felt multiplication operation if both lhs and rhs are Felt252" {
+    // Test Case 1
+    // Perform multiplication with two Felt values (10 and 5).
+    const result1 = (try MaybeRelocatable.fromInt(u8, 10).mul(
+        MaybeRelocatable.fromInt(u8, 5),
+    ));
+    // Expectation: Result should be equal to 0x32.
+    try expectEqual(
+        @as(
+            u256,
+            0x32,
+        ),
+        (try result1.tryIntoFelt()).toInteger(),
+    );
+
+    // Test Case 2
+    // Perform multiplication with two large Felt values.
+    const result2 = (try MaybeRelocatable.fromInt(
+        u256,
+        std.math.maxInt(u256),
+    ).mul(
+        MaybeRelocatable.fromInt(u8, 2),
+    ));
+
+    // Expectation: Result should be equal to 0x7fffffffffffbd0ffffffffffffffffffffffffffffffffffffffffffffffbf.
+    try expectEqual(
+        @as(
+            u256,
+            0x7fffffffffffbd0ffffffffffffffffffffffffffffffffffffffffffffffbf,
+        ),
+        (try result2.tryIntoFelt()).toInteger(),
     );
 }
