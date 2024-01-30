@@ -14,6 +14,13 @@ const ReferenceManager = @import("./programjson.zig").ReferenceManager;
 const OffsetValue = @import("./programjson.zig").OffsetValue;
 const Reference = @import("./programjson.zig").Reference;
 const HintReference = @import("../../hint_processor/hint_processor_def.zig").HintReference;
+const ProgramError = @import("../error.zig").ProgramError;
+
+const expect = std.testing.expect;
+const expectEqual = std.testing.expectEqual;
+const expectError = std.testing.expectError;
+const expectEqualStrings = std.testing.expectEqualStrings;
+const expectEqualSlices = std.testing.expectEqualSlices;
 
 /// Represents a range of hints corresponding to a PC.
 ///
@@ -165,12 +172,53 @@ pub const Program = struct {
     ///
     /// # Returns:
     ///   - A new instance of `Program`.
-    pub fn init(allocator: Allocator) Self {
+    pub fn initDefault(allocator: Allocator) Self {
         return .{
             .shared_program_data = SharedProgramData.init(allocator),
             .constants = std.StringHashMap(Felt252).init(allocator),
             .builtins = std.ArrayList(BuiltinName).init(allocator),
         };
+    }
+
+    /// Extracts constants from a provided `std.StringHashMap(Identifier)` and returns them
+    /// as a new `std.StringHashMap(Felt252)` instance.
+    ///
+    /// # Params:
+    ///   - `identifiers`: The map containing identifiers, including constants.
+    ///   - `allocator`: The allocator used to initialize the resulting `std.StringHashMap(Felt252)`.
+    ///
+    /// # Returns:
+    ///   - A new `std.StringHashMap(Felt252)` instance containing extracted constants.
+    ///   - Returns an error of type `ProgramError` if there's an issue processing constants.
+    pub fn extractConstants(
+        identifiers: std.StringHashMap(Identifier),
+        allocator: Allocator,
+    ) !std.StringHashMap(Felt252) {
+        // Initialize the resulting map to store constants.
+        var constants = std.StringHashMap(Felt252).init(allocator);
+        // Deinitialize the map in case of an error.
+        errdefer constants.deinit();
+
+        // Initialize an iterator over identifiers.
+        var it = identifiers.iterator();
+
+        // Iterate through each identifier.
+        while (it.next()) |kv| {
+            // Check if the identifier represents a constant.
+            if (kv.value_ptr.*.type) |value| {
+                // Check if the constant is explicitly marked as "const".
+                if (std.mem.eql(u8, value, "const")) {
+                    // Try to insert the constant into the result map.
+                    try constants.put(
+                        kv.key_ptr.*,
+                        Felt252.fromSignedInteger(kv.value_ptr.*.value orelse return ProgramError.ConstWithoutValue),
+                    );
+                }
+            }
+        }
+
+        // Return the successfully extracted constants.
+        return constants;
     }
 
     /// Retrieves a list of references from a given reference manager.
@@ -228,3 +276,148 @@ pub const Program = struct {
         self.builtins.deinit();
     }
 };
+
+test "Program: extractConstants should extract the constants from identifiers" {
+    // Initialize a map to store identifiers.
+    var identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    // Defer deinitialization to ensure cleanup.
+    defer identifiers.deinit();
+
+    // Try to insert a function identifier into the map.
+    try identifiers.put(
+        "__main__.main",
+        .{
+            .pc = 0,
+            .type = "function",
+        },
+    );
+
+    // Try to insert a constant identifier into the map.
+    try identifiers.put(
+        "__main__.main.SIZEOF_LOCALS",
+        .{
+            .type = "const",
+            .value = 0,
+        },
+    );
+
+    // Try to extract constants from the identifiers using the `extractConstants` function.
+    var constants = try Program.extractConstants(identifiers, std.testing.allocator);
+    // Defer deinitialization of the constants to ensure cleanup.
+    defer constants.deinit();
+
+    // Check if the number of extracted constants is equal to 1.
+    try expectEqual(@as(usize, 1), constants.count());
+
+    // Check if the extracted constant value matches the expected value.
+    try expectEqual(Felt252.zero(), constants.get("__main__.main.SIZEOF_LOCALS").?);
+}
+
+test "Program: extractConstants should extract the constants from identifiers using large values" {
+    // Initialize a map to store identifiers.
+    var identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    // Defer deinitialization to ensure cleanup.
+    defer identifiers.deinit();
+
+    // Try to insert a constant identifier representing the SIZEOF_LOCALS.
+    try identifiers.put(
+        "starkware.cairo.common.alloc.alloc.SIZEOF_LOCALS",
+        .{
+            .type = "const",
+            .value = 0,
+        },
+    );
+
+    // Try to insert a constant identifier representing ALL_ONES with a large negative value.
+    try identifiers.put(
+        "starkware.cairo.common.bitwise.ALL_ONES",
+        .{
+            .type = "const",
+            .value = -106710729501573572985208420194530329073740042555888586719234,
+        },
+    );
+
+    // Try to insert constants representing KECCAK_CAPACITY_IN_WORDS.
+    try identifiers.put(
+        "starkware.cairo.common.cairo_keccak.keccak.KECCAK_CAPACITY_IN_WORDS",
+        .{
+            .type = "const",
+            .value = 8,
+        },
+    );
+
+    // Try to insert constants representing KECCAK_FULL_RATE_IN_BYTES.
+    try identifiers.put(
+        "starkware.cairo.common.cairo_keccak.keccak.KECCAK_FULL_RATE_IN_BYTES",
+        .{
+            .type = "const",
+            .value = 136,
+        },
+    );
+
+    // Try to insert constants representing KECCAK_FULL_RATE_IN_WORDS.
+    try identifiers.put(
+        "starkware.cairo.common.cairo_keccak.keccak.KECCAK_FULL_RATE_IN_WORDS",
+        .{
+            .type = "const",
+            .value = 17,
+        },
+    );
+
+    // Try to insert constants representing KECCAK_STATE_SIZE_FELTS.
+    try identifiers.put(
+        "starkware.cairo.common.cairo_keccak.keccak.KECCAK_STATE_SIZE_FELTS",
+        .{
+            .type = "const",
+            .value = 25,
+        },
+    );
+
+    // Try to insert an alias representing Uint256.
+    try identifiers.put(
+        "starkware.cairo.common.cairo_keccak.keccak.Uint256",
+        .{
+            .type = "alias",
+            .destination = "starkware.cairo.common.uint256.Uint256",
+        },
+    );
+
+    // Try to extract constants from the identifiers using the `extractConstants` function.
+    var constants = try Program.extractConstants(identifiers, std.testing.allocator);
+    // Defer deinitialization of the constants to ensure cleanup.
+    defer constants.deinit();
+
+    // Check if the number of extracted constants is equal to 6.
+    try expectEqual(@as(usize, 6), constants.count());
+
+    // Check if the extracted constant values match the expected values.
+    try expectEqual(
+        Felt252.zero(),
+        constants.get("starkware.cairo.common.alloc.alloc.SIZEOF_LOCALS").?,
+    );
+
+    try expectEqual(
+        Felt252.fromSignedInteger(-106710729501573572985208420194530329073740042555888586719234),
+        constants.get("starkware.cairo.common.bitwise.ALL_ONES").?,
+    );
+
+    try expectEqual(
+        Felt252.fromInt(u8, 8),
+        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_CAPACITY_IN_WORDS").?,
+    );
+
+    try expectEqual(
+        Felt252.fromInt(u8, 136),
+        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_FULL_RATE_IN_BYTES").?,
+    );
+
+    try expectEqual(
+        Felt252.fromInt(u8, 17),
+        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_FULL_RATE_IN_WORDS").?,
+    );
+
+    try expectEqual(
+        Felt252.fromInt(u8, 25),
+        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_STATE_SIZE_FELTS").?,
+    );
+}
