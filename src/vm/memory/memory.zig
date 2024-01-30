@@ -29,7 +29,7 @@ pub const MemoryCell = struct {
     /// The index or relocation information of the memory segment.
     maybe_relocatable: MaybeRelocatable,
     /// Indicates whether the MemoryCell has been accessed.
-    is_accessed: bool,
+    is_accessed: bool = false,
 
     /// Creates a new MemoryCell.
     ///
@@ -37,13 +37,8 @@ pub const MemoryCell = struct {
     /// - `maybe_relocatable`: The index or relocation information of the memory segment.
     /// # Returns
     /// A new MemoryCell.
-    pub fn init(
-        maybe_relocatable: MaybeRelocatable,
-    ) Self {
-        return .{
-            .maybe_relocatable = maybe_relocatable,
-            .is_accessed = false,
-        };
+    pub fn init(maybe_relocatable: MaybeRelocatable) Self {
+        return .{ .maybe_relocatable = maybe_relocatable };
     }
 
     /// Checks equality between two MemoryCell instances.

@@ -8,6 +8,7 @@ const starknet_felt = @import("../math/fields/starknet.zig");
 const segments = @import("memory/segments.zig");
 const memory = @import("memory/memory.zig");
 const MemoryCell = memory.MemoryCell;
+const Memory = memory.Memory;
 const relocatable = @import("memory/relocatable.zig");
 const MaybeRelocatable = relocatable.MaybeRelocatable;
 const Relocatable = relocatable.Relocatable;
@@ -87,7 +88,7 @@ test "update pc regular no imm" {
     // Test setup
     const allocator = std.testing.allocator;
 
-    const operands = OperandsResult.default();
+    const operands = OperandsResult{};
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -124,7 +125,7 @@ test "update pc regular no imm" {
 test "update pc regular with imm" {
     // Test setup
     const allocator = std.testing.allocator;
-    const operands = OperandsResult.default();
+    const operands = OperandsResult{};
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -161,7 +162,7 @@ test "update pc regular with imm" {
 test "update pc jump with operands res null" {
     // Test setup
     const allocator = std.testing.allocator;
-    var operands = OperandsResult.default();
+    var operands = OperandsResult{};
     operands.res = null;
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -192,7 +193,7 @@ test "update pc jump with operands res null" {
 test "update pc jump with operands res not relocatable" {
     // Test setup
     const allocator = std.testing.allocator;
-    var operands = OperandsResult.default();
+    var operands = OperandsResult{};
     operands.res = MaybeRelocatable.fromInt(u64, 0);
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -223,7 +224,7 @@ test "update pc jump with operands res not relocatable" {
 test "update pc jump with operands res relocatable" {
     // Test setup
     const allocator = std.testing.allocator;
-    var operands = OperandsResult.default();
+    var operands = OperandsResult{};
     operands.res = MaybeRelocatable.fromRelocatable(Relocatable.init(
         0,
         42,
@@ -264,7 +265,7 @@ test "update pc jump with operands res relocatable" {
 test "update pc jump rel with operands res null" {
     // Test setup
     const allocator = std.testing.allocator;
-    var operands = OperandsResult.default();
+    var operands = OperandsResult{};
     operands.res = null;
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -295,7 +296,7 @@ test "update pc jump rel with operands res null" {
 test "update pc jump rel with operands res not felt" {
     // Test setup
     const allocator = std.testing.allocator;
-    var operands = OperandsResult.default();
+    var operands = OperandsResult{};
     operands.res = MaybeRelocatable.fromRelocatable(Relocatable.init(
         0,
         42,
@@ -329,7 +330,7 @@ test "update pc jump rel with operands res not felt" {
 test "update pc jump rel with operands res felt" {
     // Test setup
     const allocator = std.testing.allocator;
-    var operands = OperandsResult.default();
+    var operands = OperandsResult{};
     operands.res = MaybeRelocatable.fromInt(u64, 42);
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -367,7 +368,7 @@ test "update pc jump rel with operands res felt" {
 test "update pc update jnz with operands dst zero" {
     // Test setup
     const allocator = std.testing.allocator;
-    var operands = OperandsResult.default();
+    var operands = OperandsResult{};
     operands.dst = MaybeRelocatable.fromInt(u64, 0);
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -405,7 +406,7 @@ test "update pc update jnz with operands dst zero" {
 test "update pc update jnz with operands dst not zero op1 not felt" {
     // Test setup
     const allocator = std.testing.allocator;
-    var operands = OperandsResult.default();
+    var operands = OperandsResult{};
     operands.dst = MaybeRelocatable.fromInt(u64, 1);
     operands.op_1 = MaybeRelocatable.fromRelocatable(Relocatable.init(
         0,
@@ -440,7 +441,7 @@ test "update pc update jnz with operands dst not zero op1 not felt" {
 test "update pc update jnz with operands dst not zero op1 felt" {
     // Test setup
     const allocator = std.testing.allocator;
-    var operands = OperandsResult.default();
+    var operands = OperandsResult{};
     operands.dst = MaybeRelocatable.fromInt(u64, 1);
     operands.op_1 = MaybeRelocatable.fromInt(u64, 42);
     // Create a new VM instance.
@@ -479,7 +480,7 @@ test "update pc update jnz with operands dst not zero op1 felt" {
 test "CairoVM: updateAp using Add for AP update with null operands res" {
     // Test setup
     const allocator = std.testing.allocator;
-    var operands = OperandsResult.default();
+    var operands = OperandsResult{};
     operands.res = null; // Simulate unconstrained res
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -511,7 +512,7 @@ test "CairoVM: updateAp using Add for AP update with non-null operands result" {
     // Create an allocator for testing purposes.
     const allocator = std.testing.allocator;
     // Initialize operands result with a non-null result value.
-    var operands = OperandsResult.default();
+    var operands = OperandsResult{};
     operands.res = MaybeRelocatable.fromInt(u8, 10);
 
     // Create a new VM instance.
@@ -547,7 +548,7 @@ test "CairoVM: updateAp using Add for AP update with non-null operands result" {
 test "CairoVM: updateAp using Add1 for AP update" {
     // Test setup
     const allocator = std.testing.allocator;
-    const operands = OperandsResult.default();
+    const operands = OperandsResult{};
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -585,7 +586,7 @@ test "CairoVM: updateAp using Add1 for AP update" {
 test "update ap add2" {
     // Test setup
     const allocator = std.testing.allocator;
-    const operands = OperandsResult.default();
+    const operands = OperandsResult{};
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -623,7 +624,7 @@ test "update ap add2" {
 test "update fp appplus2" {
     // Test setup
     const allocator = std.testing.allocator;
-    const operands = OperandsResult.default();
+    const operands = OperandsResult{};
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
@@ -661,7 +662,7 @@ test "update fp appplus2" {
 test "update fp dst relocatable" {
     // Test setup
     const allocator = std.testing.allocator;
-    var operands = OperandsResult.default();
+    var operands = OperandsResult{};
     operands.dst = MaybeRelocatable.fromRelocatable(Relocatable.init(
         0,
         42,
@@ -703,7 +704,7 @@ test "update fp dst relocatable" {
 test "update fp dst felt" {
     // Test setup
     const allocator = std.testing.allocator;
-    var operands = OperandsResult.default();
+    var operands = OperandsResult{};
     operands.dst = MaybeRelocatable.fromInt(u64, 42);
     // Create a new VM instance.
     var vm = try CairoVM.init(allocator, .{});
@@ -2708,7 +2709,7 @@ test "CairoVM: core utility function for testing test" {
 
 test "CairoVM: OperandsResult set " {
     // Test setup
-    var operands = OperandsResult.default();
+    var operands = OperandsResult{};
     operands.setDst(true);
 
     // Test body
@@ -2717,7 +2718,7 @@ test "CairoVM: OperandsResult set " {
 
 test "CairoVM: OperandsResult set Op1" {
     // Test setup
-    var operands = OperandsResult.default();
+    var operands = OperandsResult{};
     operands.setOp0(true);
     operands.setOp1(true);
     operands.setDst(true);
@@ -2728,7 +2729,7 @@ test "CairoVM: OperandsResult set Op1" {
 
 test "CairoVM: OperandsResult deduced set and was functionality" {
     // Test setup
-    var operands = OperandsResult.default();
+    var operands = OperandsResult{};
     operands.setOp1(true);
 
     // Test body
@@ -2761,7 +2762,7 @@ test "CairoVM: InserDeducedOperands should insert operands if set as deduced" {
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    var test_operands = OperandsResult.default();
+    var test_operands = OperandsResult{};
     test_operands.dst_addr = dst_addr;
     test_operands.op_0_addr = op0_addr;
     test_operands.op_1_addr = op1_addr;
@@ -2814,7 +2815,7 @@ test "CairoVM: InserDeducedOperands insert operands should not be inserted if no
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    var test_operands = OperandsResult.default();
+    var test_operands = OperandsResult{};
     test_operands.dst_addr = dst_addr;
     test_operands.op_0_addr = op0_addr;
     test_operands.op_1_addr = op1_addr;
@@ -3784,4 +3785,343 @@ test "CairoVM: verifyAutoDeductions for keccak builtin runner" {
     const result = try vm.verifyAutoDeductions(allocator);
 
     try expectEqual(void, @TypeOf(result));
+}
+
+test "CairoVM: runInstruction without any insertion in the memory" {
+    // Program used:
+    // %builtins output
+    // from starkware.cairo.common.serialize import serialize_word
+    // func main{output_ptr: felt*}():
+    //    let a = 1
+    //    serialize_word(a)
+    //    let b = 17 * a
+    //    serialize_word(b)
+    //    return()
+    // end
+    // Relocated Trace:
+    // [TraceEntry(pc=5, ap=18, fp=18),
+    //  TraceEntry(pc=6, ap=19, fp=18),
+    //  TraceEntry(pc=8, ap=20, fp=18),
+    //  TraceEntry(pc=1, ap=22, fp=22),
+    //  TraceEntry(pc=2, ap=22, fp=22),
+    //  TraceEntry(pc=4, ap=23, fp=22),
+    // TraceEntry(pc=10, ap=23, fp=18),
+
+    // Initialize CairoVM instance and defer its cleanup.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    // Set up memory with predefined data for the VM.
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{4612671182993129469} },
+            .{ .{ 0, 1 }, .{5198983563776393216} },
+            .{ .{ 0, 2 }, .{5198983563776393216} },
+            .{ .{ 0, 3 }, .{2345108766317314046} },
+            .{ .{ 0, 4 }, .{5191102247248822272} },
+            .{ .{ 0, 5 }, .{5189976364521848832} },
+            .{ .{ 0, 6 }, .{1} },
+            .{ .{ 0, 7 }, .{1226245742482522112} },
+            .{ .{ 0, 8 }, .{3618502788666131213697322783095070105623107215331596699973092056135872020474} },
+            .{ .{ 0, 9 }, .{5189976364521848832} },
+            .{ .{ 0, 10 }, .{17} },
+            .{ .{ 0, 11 }, .{1226245742482522112} },
+            .{ .{ 0, 12 }, .{3618502788666131213697322783095070105623107215331596699973092056135872020470} },
+            .{ .{ 0, 13 }, .{2345108766317314046} },
+            .{ .{ 1, 0 }, .{ 2, 0 } },
+            .{ .{ 1, 1 }, .{ 3, 0 } },
+            .{ .{ 1, 2 }, .{ 4, 0 } },
+            .{ .{ 1, 3 }, .{ 2, 0 } },
+            .{ .{ 1, 4 }, .{1} },
+            .{ .{ 1, 5 }, .{ 1, 3 } },
+            .{ .{ 1, 6 }, .{ 0, 9 } },
+            .{ .{ 1, 7 }, .{ 2, 1 } },
+            .{ .{ 1, 8 }, .{17} },
+            .{ .{ 1, 9 }, .{ 1, 3 } },
+            .{ .{ 1, 10 }, .{ 0, 13 } },
+            .{ .{ 1, 11 }, .{ 2, 2 } },
+            .{ .{ 2, 0 }, .{1} },
+            .{ .{ 2, 1 }, .{17} },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Mark all cells in memory as accessed except for one specific cell.
+    for (vm.segments.memory.data.items) |*d| {
+        for (d.items) |*cell| {
+            cell.*.?.is_accessed = true;
+        }
+    }
+    vm.segments.memory.data.items[1].items[1].?.is_accessed = false;
+
+    // Add two memory segments to the VM.
+    _ = try vm.addMemorySegment();
+    _ = try vm.addMemorySegment();
+
+    // Set relocation limits and initial register values.
+    vm.rc_limits = .{ 32764, 32769 };
+    vm.run_context.pc.* = Relocatable.init(0, 13);
+    vm.run_context.ap.* = Relocatable.init(1, 12);
+    vm.run_context.fp.* = Relocatable.init(1, 3);
+
+    // Ensure that the specific cell marked as not accessed is indeed not accessed.
+    try expect(!vm.segments.memory.data.items[1].items[1].?.is_accessed);
+
+    // Ensure the current step counter is initialized to zero.
+    try expectEqual(@as(usize, 0), vm.current_step);
+
+    // Execute a specific instruction with predefined properties.
+    try vm.runInstruction(
+        std.testing.allocator,
+        &.{
+            .off_0 = -2,
+            .off_1 = -1,
+            .off_2 = -1,
+            .dst_reg = .FP,
+            .op_0_reg = .FP,
+            .op_1_addr = .FP,
+            .res_logic = .Op1,
+            .pc_update = .Jump,
+            .ap_update = .Regular,
+            .fp_update = .Dst,
+            .opcode = .Ret,
+        },
+    );
+
+    // Ensure that relocation limits are correctly updated.
+    try expectEqual(
+        @as(?struct { isize, isize }, .{ 32764, 32769 }),
+        vm.rc_limits,
+    );
+
+    // Ensure that registers are updated as expected after the instruction execution.
+    try expectEqual(Relocatable.init(4, 0), vm.run_context.pc.*);
+    try expectEqual(Relocatable.init(1, 12), vm.run_context.ap.*);
+    try expectEqual(Relocatable.init(1, 0), vm.run_context.fp.*);
+
+    // Ensure the current step counter is incremented.
+    try expectEqual(@as(usize, 1), vm.current_step);
+
+    // Initialize an expected memory instance with the same data as the VM's memory.
+    var expected_memory = try Memory.init(std.testing.allocator);
+    defer expected_memory.deinit();
+
+    // Set a value into the memory.
+    try expected_memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{4612671182993129469} },
+            .{ .{ 0, 1 }, .{5198983563776393216} },
+            .{ .{ 0, 2 }, .{5198983563776393216} },
+            .{ .{ 0, 3 }, .{2345108766317314046} },
+            .{ .{ 0, 4 }, .{5191102247248822272} },
+            .{ .{ 0, 5 }, .{5189976364521848832} },
+            .{ .{ 0, 6 }, .{1} },
+            .{ .{ 0, 7 }, .{1226245742482522112} },
+            .{ .{ 0, 8 }, .{3618502788666131213697322783095070105623107215331596699973092056135872020474} },
+            .{ .{ 0, 9 }, .{5189976364521848832} },
+            .{ .{ 0, 10 }, .{17} },
+            .{ .{ 0, 11 }, .{1226245742482522112} },
+            .{ .{ 0, 12 }, .{3618502788666131213697322783095070105623107215331596699973092056135872020470} },
+            .{ .{ 0, 13 }, .{2345108766317314046} },
+            .{ .{ 1, 0 }, .{ 2, 0 } },
+            .{ .{ 1, 1 }, .{ 3, 0 } },
+            .{ .{ 1, 2 }, .{ 4, 0 } },
+            .{ .{ 1, 3 }, .{ 2, 0 } },
+            .{ .{ 1, 4 }, .{1} },
+            .{ .{ 1, 5 }, .{ 1, 3 } },
+            .{ .{ 1, 6 }, .{ 0, 9 } },
+            .{ .{ 1, 7 }, .{ 2, 1 } },
+            .{ .{ 1, 8 }, .{17} },
+            .{ .{ 1, 9 }, .{ 1, 3 } },
+            .{ .{ 1, 10 }, .{ 0, 13 } },
+            .{ .{ 1, 11 }, .{ 2, 2 } },
+            .{ .{ 2, 0 }, .{1} },
+            .{ .{ 2, 1 }, .{17} },
+        },
+    );
+    defer expected_memory.deinitData(std.testing.allocator);
+
+    // Mark all cells in the expected memory as accessed.
+    for (expected_memory.data.items) |*d| {
+        for (d.items) |*cell| {
+            cell.*.?.is_accessed = true;
+        }
+    }
+
+    // Compare each cell in VM's memory with the corresponding cell in the expected memory.
+    for (vm.segments.memory.data.items, 0..) |d, i| {
+        for (d.items, 0..) |cell, j| {
+            try expect(cell.?.eql(expected_memory.data.items[i].items[j].?));
+        }
+    }
+}
+
+test "CairoVM: runInstruction with Op0 being deduced" {
+    // Program used:
+    // %builtins output
+    // from starkware.cairo.common.serialize import serialize_word
+    // func main{output_ptr: felt*}():
+    //    let a = 1
+    //    serialize_word(a)
+    //    let b = 17 * a
+    //    serialize_word(b)
+    //    return()
+    // end
+    // Relocated Trace:
+    // [TraceEntry(pc=5, ap=18, fp=18),
+    //  TraceEntry(pc=6, ap=19, fp=18),
+    //  TraceEntry(pc=8, ap=20, fp=18),
+    //  TraceEntry(pc=1, ap=22, fp=22),
+    //  TraceEntry(pc=2, ap=22, fp=22),
+    //  TraceEntry(pc=4, ap=23, fp=22),
+    // TraceEntry(pc=10, ap=23, fp=18),
+
+    // Initialize CairoVM instance and defer its cleanup.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+
+    // Set up memory with predefined data for the VM.
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{4612671182993129469} },
+            .{ .{ 0, 1 }, .{5198983563776393216} },
+            .{ .{ 0, 2 }, .{1} },
+            .{ .{ 0, 3 }, .{2345108766317314046} },
+            .{ .{ 0, 4 }, .{5191102247248822272} },
+            .{ .{ 0, 5 }, .{5189976364521848832} },
+            .{ .{ 0, 6 }, .{1} },
+            .{ .{ 0, 7 }, .{1226245742482522112} },
+            .{ .{ 0, 8 }, .{3618502788666131213697322783095070105623107215331596699973092056135872020474} },
+            .{ .{ 0, 9 }, .{5189976364521848832} },
+            .{ .{ 0, 10 }, .{17} },
+            .{ .{ 0, 11 }, .{1226245742482522112} },
+            .{ .{ 0, 12 }, .{3618502788666131213697322783095070105623107215331596699973092056135872020470} },
+            .{ .{ 0, 13 }, .{2345108766317314046} },
+            .{ .{ 1, 0 }, .{ 2, 0 } },
+            .{ .{ 1, 1 }, .{ 3, 0 } },
+            .{ .{ 1, 2 }, .{ 4, 0 } },
+            .{ .{ 1, 3 }, .{ 2, 0 } },
+            .{ .{ 1, 4 }, .{1} },
+            .{ .{ 1, 5 }, .{ 1, 3 } },
+            .{ .{ 1, 6 }, .{ 0, 9 } },
+            .{ .{ 1, 7 }, .{ 2, 1 } },
+            .{ .{ 1, 8 }, .{17} },
+            .{ .{ 2, 0 }, .{1} },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Mark all cells in memory as accessed except for one specific cell.
+    for (vm.segments.memory.data.items) |*d| {
+        for (d.items) |*cell| {
+            cell.*.?.is_accessed = true;
+        }
+    }
+    // Mark a specific cell as not accessed.
+    vm.segments.memory.data.items[1].items[1].?.is_accessed = false;
+
+    // Add two memory segments to the VM.
+    _ = try vm.addMemorySegment();
+    _ = try vm.addMemorySegment();
+
+    // Set relocation limits and initial register values.
+    vm.rc_limits = .{ 32764, 32769 };
+    vm.run_context.pc.* = Relocatable.init(0, 11);
+    vm.run_context.ap.* = Relocatable.init(1, 9);
+    vm.run_context.fp.* = Relocatable.init(1, 3);
+
+    // Ensure that the specific cell marked as not accessed is indeed not accessed.
+    try expect(!vm.segments.memory.data.items[1].items[1].?.is_accessed);
+
+    // Ensure the current step counter is initialized to zero.
+    try expectEqual(@as(usize, 0), vm.current_step);
+
+    // Execute a specific instruction with Op0 being deduced.
+    try vm.runInstruction(
+        std.testing.allocator,
+        &.{
+            .off_0 = 0,
+            .off_1 = 1,
+            .off_2 = 1,
+            .dst_reg = .AP,
+            .op_0_reg = .AP,
+            .op_1_addr = .Imm,
+            .res_logic = .Op1,
+            .pc_update = .JumpRel,
+            .ap_update = .Add2,
+            .fp_update = .APPlus2,
+            .opcode = .Call,
+        },
+    );
+
+    // Ensure that relocation limits are correctly updated.
+    try expectEqual(
+        @as(?struct { isize, isize }, .{ 32764, 32769 }),
+        vm.rc_limits,
+    );
+
+    // Ensure that registers are updated as expected after the instruction execution.
+    try expectEqual(Relocatable.init(0, 0), vm.run_context.pc.*);
+    try expectEqual(Relocatable.init(1, 11), vm.run_context.ap.*);
+    try expectEqual(Relocatable.init(1, 11), vm.run_context.fp.*);
+
+    // Ensure the current step counter is incremented.
+    try expectEqual(@as(usize, 1), vm.current_step);
+
+    // Initialize an expected memory instance.
+    var expected_memory = try Memory.init(std.testing.allocator);
+    defer expected_memory.deinit();
+
+    // Set a value into the memory.
+    try expected_memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{4612671182993129469} },
+            .{ .{ 0, 1 }, .{5198983563776393216} },
+            .{ .{ 0, 2 }, .{1} },
+            .{ .{ 0, 3 }, .{2345108766317314046} },
+            .{ .{ 0, 4 }, .{5191102247248822272} },
+            .{ .{ 0, 5 }, .{5189976364521848832} },
+            .{ .{ 0, 6 }, .{1} },
+            .{ .{ 0, 7 }, .{1226245742482522112} },
+            .{ .{ 0, 8 }, .{3618502788666131213697322783095070105623107215331596699973092056135872020474} },
+            .{ .{ 0, 9 }, .{5189976364521848832} },
+            .{ .{ 0, 10 }, .{17} },
+            .{ .{ 0, 11 }, .{1226245742482522112} },
+            .{ .{ 0, 12 }, .{3618502788666131213697322783095070105623107215331596699973092056135872020470} },
+            .{ .{ 0, 13 }, .{2345108766317314046} },
+            .{ .{ 1, 0 }, .{ 2, 0 } },
+            .{ .{ 1, 1 }, .{ 3, 0 } },
+            .{ .{ 1, 2 }, .{ 4, 0 } },
+            .{ .{ 1, 3 }, .{ 2, 0 } },
+            .{ .{ 1, 4 }, .{1} },
+            .{ .{ 1, 5 }, .{ 1, 3 } },
+            .{ .{ 1, 6 }, .{ 0, 9 } },
+            .{ .{ 1, 7 }, .{ 2, 1 } },
+            .{ .{ 1, 8 }, .{17} },
+            .{ .{ 1, 9 }, .{ 1, 3 } },
+            .{ .{ 1, 10 }, .{ 0, 13 } },
+            .{ .{ 2, 0 }, .{1} },
+        },
+    );
+    defer expected_memory.deinitData(std.testing.allocator);
+
+    // Mark all cells in the expected memory as accessed.
+    for (expected_memory.data.items) |*d| {
+        for (d.items) |*cell| {
+            cell.*.?.is_accessed = true;
+        }
+    }
+    // Mark a specific cell in the expected memory as not accessed.
+    expected_memory.data.items[1].items[1].?.is_accessed = false;
+
+    // Compare each cell in VM's memory with the corresponding cell in the expected memory.
+    for (vm.segments.memory.data.items, 0..) |d, i| {
+        for (d.items, 0..) |cell, j| {
+            try expect(cell.?.eql(expected_memory.data.items[i].items[j].?));
+        }
+    }
 }
