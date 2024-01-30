@@ -167,7 +167,7 @@ pub const CairoRunner = struct {
         try self.initBuiltins(&self.vm);
         try self.initSegments(null);
         const end = try self.initMainEntrypoint();
-        self.initVM();
+        try self.initVM();
         return end;
     }
 
@@ -204,7 +204,7 @@ pub const CairoRunner = struct {
     /// - `entrypoint:` The address, relative to the program segment, where execution begins.
     pub fn initState(self: *Self, entrypoint: usize) !void {
         self.initial_pc = self.program_base;
-        self.initial_pc.addUintInPlace(entrypoint);
+        self.initial_pc.?.addUintInPlace(entrypoint);
 
         _ = try self.vm.segments.loadData(
             self.allocator,
@@ -232,7 +232,7 @@ pub const CairoRunner = struct {
         try self.function_call_stack.append(MaybeRelocatable.fromRelocatable(end));
 
         self.initial_fp = self.execution_base;
-        self.initial_fp.addUintInPlace(@as(u64, self.function_call_stack.items.len));
+        self.initial_fp.?.addUintInPlace(@as(u64, self.function_call_stack.items.len));
         self.initial_ap = self.initial_fp;
 
         self.final_pc = &end;
