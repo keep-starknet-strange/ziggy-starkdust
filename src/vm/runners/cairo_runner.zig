@@ -163,7 +163,7 @@ pub const CairoRunner = struct {
         vm.builtin_runners = try CairoLayout.setUpBuiltinRunners(
             self.layout,
             self.allocator,
-            self.proof_mode,
+            self.isProofMode(),
             self.program.builtins.?,
         );
     }
