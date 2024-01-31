@@ -19,6 +19,7 @@ const ProgramError = @import("../error.zig").ProgramError;
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
+const expectEqualDeep = std.testing.expectEqualDeep;
 const expectEqualStrings = std.testing.expectEqualStrings;
 const expectEqualSlices = std.testing.expectEqualSlices;
 
@@ -47,11 +48,11 @@ pub const HintsCollection = struct {
         std.hash_map.default_max_load_percentage,
     ),
 
-    /// Initializes a new HintsCollection.
+    /// Initializes a new HintsCollection with default values.
     ///
     /// # Params:
     ///   - `allocator`: The allocator used to initialize the collection.
-    pub fn init(allocator: Allocator) Self {
+    pub fn initDefault(allocator: Allocator) Self {
         return .{
             .hints = std.ArrayList(HintParams).init(allocator),
             .hints_ranges = std.AutoHashMap(
@@ -135,7 +136,7 @@ pub const SharedProgramData = struct {
     pub fn init(allocator: Allocator) Self {
         return .{
             .data = std.ArrayList(MaybeRelocatable).init(allocator),
-            .hints_collection = HintsCollection.init(allocator),
+            .hints_collection = HintsCollection.initDefault(allocator),
             .main = null,
             .start = null,
             .end = null,
@@ -203,6 +204,51 @@ pub const Program = struct {
     /// Stores the list of built-in names.
     builtins: std.ArrayList(BuiltinName),
 
+    /// Initializes a new `Program` instance with provided parameters.
+    ///
+    /// # Parameters
+    /// - `allocator`: The allocator used to initialize the program.
+    /// - `builtins`: List of built-in names.
+    /// - `data`: List of `MaybeRelocatable` items.
+    /// - `main`: The main entry point for the program (optional, defaults to `null`).
+    /// - `hints`: Map of offsets to `HintParams` lists (unused, included for autofix compatibility).
+    /// - `reference_manager`: The `ReferenceManager` instance.
+    /// - `identifiers`: Map of identifiers to `Identifier` instances.
+    /// - `error_message_attributes`: List of `Attribute` items for error messages.
+    /// - `instruction_locations`: Map of `usize` to `InstructionLocation` (optional, defaults to `null`).
+    ///
+    /// # Returns
+    /// A new `Program` instance initialized with the provided parameters.
+    pub fn init(
+        allocator: Allocator,
+        builtins: std.ArrayList(BuiltinName),
+        data: std.ArrayList(MaybeRelocatable),
+        main: ?usize,
+        hints: std.AutoHashMap(usize, std.ArrayList(HintParams)),
+        reference_manager: ReferenceManager,
+        identifiers: std.StringHashMap(Identifier),
+        error_message_attributes: std.ArrayList(Attribute),
+        instruction_locations: ?std.StringHashMap(InstructionLocation),
+    ) !Self {
+        _ = hints; // autofix
+
+        return .{
+            .shared_program_data = .{
+                .data = data,
+                .hints_collection = HintsCollection.initDefault(allocator),
+                .main = main,
+                .start = null,
+                .end = null,
+                .error_message_attributes = error_message_attributes,
+                .instruction_locations = instruction_locations,
+                .identifiers = identifiers,
+                .reference_manager = try reference_manager.getReferenceList(allocator),
+            },
+            .constants = try Self.extractConstants(identifiers, allocator),
+            .builtins = builtins,
+        };
+    }
+
     /// Initializes a new `Program` instance.
     ///
     /// # Params:
@@ -249,7 +295,7 @@ pub const Program = struct {
                     // Try to insert the constant into the result map.
                     try constants.put(
                         kv.key_ptr.*,
-                        Felt252.fromSignedInteger(kv.value_ptr.*.value orelse return ProgramError.ConstWithoutValue),
+                        kv.value_ptr.*.valueFelt orelse return ProgramError.ConstWithoutValue,
                     );
                 }
             }
@@ -335,7 +381,7 @@ test "Program: extractConstants should extract the constants from identifiers" {
         "__main__.main.SIZEOF_LOCALS",
         .{
             .type = "const",
-            .value = 0,
+            .valueFelt = Felt252.zero(),
         },
     );
 
@@ -362,7 +408,7 @@ test "Program: extractConstants should extract the constants from identifiers us
         "starkware.cairo.common.alloc.alloc.SIZEOF_LOCALS",
         .{
             .type = "const",
-            .value = 0,
+            .valueFelt = Felt252.zero(),
         },
     );
 
@@ -371,7 +417,7 @@ test "Program: extractConstants should extract the constants from identifiers us
         "starkware.cairo.common.bitwise.ALL_ONES",
         .{
             .type = "const",
-            .value = -106710729501573572985208420194530329073740042555888586719234,
+            .valueFelt = Felt252.fromInt(u256, 106710729501573572985208420194530329073740042555888586719234).neg(),
         },
     );
 
@@ -380,7 +426,7 @@ test "Program: extractConstants should extract the constants from identifiers us
         "starkware.cairo.common.cairo_keccak.keccak.KECCAK_CAPACITY_IN_WORDS",
         .{
             .type = "const",
-            .value = 8,
+            .valueFelt = Felt252.fromInt(u8, 8),
         },
     );
 
@@ -389,7 +435,7 @@ test "Program: extractConstants should extract the constants from identifiers us
         "starkware.cairo.common.cairo_keccak.keccak.KECCAK_FULL_RATE_IN_BYTES",
         .{
             .type = "const",
-            .value = 136,
+            .valueFelt = Felt252.fromInt(u8, 136),
         },
     );
 
@@ -398,7 +444,7 @@ test "Program: extractConstants should extract the constants from identifiers us
         "starkware.cairo.common.cairo_keccak.keccak.KECCAK_FULL_RATE_IN_WORDS",
         .{
             .type = "const",
-            .value = 17,
+            .valueFelt = Felt252.fromInt(u8, 17),
         },
     );
 
@@ -407,7 +453,7 @@ test "Program: extractConstants should extract the constants from identifiers us
         "starkware.cairo.common.cairo_keccak.keccak.KECCAK_STATE_SIZE_FELTS",
         .{
             .type = "const",
-            .value = 25,
+            .valueFelt = Felt252.fromInt(u8, 25),
         },
     );
 
@@ -430,32 +476,152 @@ test "Program: extractConstants should extract the constants from identifiers us
 
     // Check if the extracted constant values match the expected values.
     try expectEqual(
-        Felt252.zero(),
-        constants.get("starkware.cairo.common.alloc.alloc.SIZEOF_LOCALS").?,
+        @as(u256, 0),
+        constants.get("starkware.cairo.common.alloc.alloc.SIZEOF_LOCALS").?.toInteger(),
     );
 
     try expectEqual(
-        Felt252.fromSignedInteger(-106710729501573572985208420194530329073740042555888586719234),
+        Felt252.fromInt(u256, 106710729501573572985208420194530329073740042555888586719234).neg(),
         constants.get("starkware.cairo.common.bitwise.ALL_ONES").?,
     );
 
     try expectEqual(
-        Felt252.fromInt(u8, 8),
-        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_CAPACITY_IN_WORDS").?,
+        @as(u256, 8),
+        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_CAPACITY_IN_WORDS").?.toInteger(),
     );
 
     try expectEqual(
-        Felt252.fromInt(u8, 136),
-        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_FULL_RATE_IN_BYTES").?,
+        @as(u256, 136),
+        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_FULL_RATE_IN_BYTES").?.toInteger(),
     );
 
     try expectEqual(
-        Felt252.fromInt(u8, 17),
-        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_FULL_RATE_IN_WORDS").?,
+        @as(u256, 17),
+        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_FULL_RATE_IN_WORDS").?.toInteger(),
     );
 
     try expectEqual(
-        Felt252.fromInt(u8, 25),
-        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_STATE_SIZE_FELTS").?,
+        @as(u256, 25),
+        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_STATE_SIZE_FELTS").?.toInteger(),
     );
+}
+
+test "Program: init function should init a basic program" {
+    // Initialize the reference manager, builtins, hints, identifiers, and error message attributes.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, std.ArrayList(HintParams)).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a list of MaybeRelocatable items.
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 1000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 2000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5201798304953696256));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize a Program instance using the init function.
+    var program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        null,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
+    );
+
+    // Defer the deinitialization of the program to free allocated memory after the test case.
+    defer program.deinit(std.testing.allocator);
+
+    // Assertions to validate the initialized program state.
+    try expectEqual(@as(usize, 0), program.builtins.items.len);
+    try expectEqual(@as(usize, 0), program.constants.count());
+    try expectEqualSlices(MaybeRelocatable, data.items, program.shared_program_data.data.items);
+    try expectEqual(@as(?usize, null), program.shared_program_data.main);
+    try expectEqualDeep(identifiers, program.shared_program_data.identifiers);
+    try expectEqual(
+        @as(usize, 0),
+        program.shared_program_data.hints_collection.hints.items.len,
+    );
+    try expectEqual(
+        @as(usize, 0),
+        program.shared_program_data.hints_collection.hints_ranges.count(),
+    );
+}
+
+test "Program: init function should init a program with identifiers" {
+    // Initialize the reference manager, builtins, hints, and error message attributes.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, std.ArrayList(HintParams)).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a list of MaybeRelocatable items.
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 1000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 2000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5201798304953696256));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize a StringHashMap for identifiers.
+    var identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+
+    // Add identifiers to the StringHashMap.
+    try identifiers.put(
+        "__main__.main",
+        .{
+            .pc = 0,
+            .type = "function",
+        },
+    );
+
+    try identifiers.put(
+        "__main__.main.SIZEOF_LOCALS",
+        .{
+            .type = "const",
+            .valueFelt = Felt252.zero(),
+        },
+    );
+
+    // Initialize a Program instance using the init function.
+    var program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        null, // Main entry point (null for this test case).
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null, // Instruction locations (null for this test case).
+    );
+
+    // Defer the deinitialization of the program to free allocated memory after the test case.
+    defer program.deinit(std.testing.allocator);
+
+    // Assertions to validate the initialized program state.
+    try expectEqual(@as(usize, 0), program.builtins.items.len);
+    try expectEqualSlices(MaybeRelocatable, data.items, program.shared_program_data.data.items);
+    try expectEqual(@as(?usize, null), program.shared_program_data.main);
+    try expectEqualDeep(identifiers, program.shared_program_data.identifiers);
+    try expectEqual(
+        @as(usize, 0),
+        program.shared_program_data.hints_collection.hints.items.len,
+    );
+    try expectEqual(
+        @as(usize, 0),
+        program.shared_program_data.hints_collection.hints_ranges.count(),
+    );
+
+    // Additional assertions for programs with identifiers.
+    try expectEqual(@as(usize, 1), program.constants.count());
+    try expectEqual(Felt252.zero(), program.constants.get("__main__.main.SIZEOF_LOCALS").?);
 }
