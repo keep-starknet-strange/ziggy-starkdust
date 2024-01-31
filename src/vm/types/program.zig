@@ -364,6 +364,20 @@ pub const Program = struct {
         return self.shared_program_data.identifiers.get(key);
     }
 
+    /// Retrieves the length of the list of `MaybeRelocatable` items within the shared program data.
+    ///
+    /// This function returns the number of elements in the list of `MaybeRelocatable` items, providing
+    /// information about the amount of shared program data present in the program instance.
+    ///
+    /// # Params:
+    ///   - `self`: A pointer to the `Program` instance.
+    ///
+    /// # Returns:
+    ///   - The number of elements in the list of `MaybeRelocatable` items.
+    pub fn dataLen(self: *Self) usize {
+        return self.shared_program_data.data.items.len;
+    }
+
     /// Deinitializes the `Program` instance, freeing allocated memory.
     ///
     /// # Params:
@@ -567,6 +581,43 @@ test "Program: init function should init a basic program" {
         @as(usize, 0),
         program.shared_program_data.hints_collection.hints_ranges.count(),
     );
+}
+
+test "Program: init function should init a basic program (data length function)" {
+    // Initialize the reference manager, builtins, hints, identifiers, and error message attributes.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, std.ArrayList(HintParams)).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a list of MaybeRelocatable items.
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 1000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 2000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5201798304953696256));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize a Program instance using the init function.
+    var program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        null, // Main entry point (null for this test case).
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null, // Instruction locations (null for this test case).
+    );
+
+    // Defer the deinitialization of the program to free allocated memory after the test case.
+    defer program.deinit(std.testing.allocator);
+
+    // Ensure that the `dataLen` function returns the expected length of the shared program data.
+    try expectEqual(@as(usize, 6), program.dataLen());
 }
 
 test "Program: init function should init a program with identifiers" {
