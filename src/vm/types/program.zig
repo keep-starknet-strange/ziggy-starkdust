@@ -625,3 +625,55 @@ test "Program: init function should init a program with identifiers" {
     try expectEqual(@as(usize, 1), program.constants.count());
     try expectEqual(Felt252.zero(), program.constants.get("__main__.main.SIZEOF_LOCALS").?);
 }
+
+test "Program: init function should init a program with builtins" {
+    // Initialize the reference manager, hints, error message attributes, and identifiers.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, std.ArrayList(HintParams)).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+
+    // Initialize a list of MaybeRelocatable items.
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 1000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 2000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5201798304953696256));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize a list of builtins.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.range_check);
+    try builtins.append(BuiltinName.bitwise);
+
+    // Initialize a Program instance using the init function.
+    var program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        null, // Main entry point (null for this test case).
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null, // Instruction locations (null for this test case).
+    );
+
+    // Defer the deinitialization of the program to free allocated memory after the test case.
+    defer program.deinit(std.testing.allocator);
+
+    // Assertions to validate the initialized program state.
+    try expectEqualSlices(BuiltinName, builtins.items, program.builtins.items);
+    try expectEqualSlices(MaybeRelocatable, data.items, program.shared_program_data.data.items);
+    try expectEqual(@as(?usize, null), program.shared_program_data.main);
+    try expectEqualDeep(identifiers, program.shared_program_data.identifiers);
+    try expectEqual(
+        @as(usize, 0),
+        program.shared_program_data.hints_collection.hints.items.len,
+    );
+    try expectEqual(
+        @as(usize, 0),
+        program.shared_program_data.hints_collection.hints_ranges.count(),
+    );
+}
