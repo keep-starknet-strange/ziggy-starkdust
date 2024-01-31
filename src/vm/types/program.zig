@@ -350,6 +350,20 @@ pub const Program = struct {
         return self.shared_program_data.instruction_locations.?.get(key);
     }
 
+    /// Retrieves an identifier from the program's shared data based on the provided key.
+    ///
+    /// This function looks up the identifier map within the shared program data using the provided key.
+    /// If the key is found, the corresponding `Identifier` instance is returned; otherwise, `null` is returned.
+    ///
+    /// # Params:
+    ///   - `key`: A byte slice representing the key to retrieve the identifier.
+    ///
+    /// # Returns:
+    ///   - An optional `Identifier` corresponding to the provided key, if found; otherwise, `null`.
+    pub fn getIdentifier(self: *Self, key: []const u8) ?Identifier {
+        return self.shared_program_data.identifiers.get(key);
+    }
+
     /// Deinitializes the `Program` instance, freeing allocated memory.
     ///
     /// # Params:
@@ -624,6 +638,79 @@ test "Program: init function should init a program with identifiers" {
     // Additional assertions for programs with identifiers.
     try expectEqual(@as(usize, 1), program.constants.count());
     try expectEqual(Felt252.zero(), program.constants.get("__main__.main.SIZEOF_LOCALS").?);
+}
+
+test "Program: init function should init a program with identifiers (get identifiers)" {
+    // Initialize the reference manager, builtins, hints, and error message attributes.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, std.ArrayList(HintParams)).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a list of MaybeRelocatable items.
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 1000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 2000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5201798304953696256));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize a StringHashMap for identifiers.
+    var identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+
+    // Add identifiers to the StringHashMap.
+    try identifiers.put(
+        "__main__.main",
+        .{
+            .pc = 0,
+            .type = "function",
+        },
+    );
+
+    try identifiers.put(
+        "__main__.main.SIZEOF_LOCALS",
+        .{
+            .type = "const",
+            .valueFelt = Felt252.zero(),
+        },
+    );
+
+    // Initialize a Program instance using the init function.
+    var program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        null, // Main entry point (null for this test case).
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null, // Instruction locations (null for this test case).
+    );
+
+    // Defer the deinitialization of the program to free allocated memory after the test case.
+    defer program.deinit(std.testing.allocator);
+
+    // Test: Verify that identifiers added to the program match those in the initial StringHashMap.
+
+    // Expect the identifier "__main__.main" to match between the program and the initial StringHashMap.
+    try expectEqual(
+        identifiers.get("__main__.main"),
+        program.getIdentifier("__main__.main"),
+    );
+
+    // Expect the identifier "__main__.main.SIZEOF_LOCALS" to match between the program and the initial StringHashMap.
+    try expectEqual(
+        identifiers.get("__main__.main.SIZEOF_LOCALS"),
+        program.getIdentifier("__main__.main.SIZEOF_LOCALS"),
+    );
+
+    // Expect the identifier "missing" to be null in both the program and the initial StringHashMap.
+    try expectEqual(
+        identifiers.get("missing"),
+        program.getIdentifier("missing"),
+    );
 }
 
 test "Program: init function should init a program with builtins" {
