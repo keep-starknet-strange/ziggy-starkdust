@@ -1,4 +1,5 @@
 const std = @import("std");
+const Register = @import("../vm/instructions.zig").Register;
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -113,6 +114,74 @@ pub fn takeCastFirstArg(input: []const u8) !CastArgs {
     };
 }
 
+/// Parses the offset properly.
+///
+/// This function takes a byte array `input` and attempts to parse the offset enclosed within parentheses.
+/// The offset can be a positive or negative integer. If the parsing is successful, it returns the parsed offset
+/// as an `i32`. Otherwise, it returns a `DeserializationError.CastDeserialization`.
+///
+/// # Parameters
+/// - `input`: A byte array containing the offset to be parsed.
+///
+/// # Returns
+/// The parsed offset as an `i32`.
+/// An error of type `DeserializationError.CastDeserialization` in case of failed parsing.
+pub fn parseOffset(input: []const u8) !i32 {
+    // Check for empty input
+    if (std.mem.eql(u8, input, "")) {
+        return 0;
+    }
+
+    var sign: i32 = 1;
+    var index_after_sign: usize = 0;
+
+    // Iterate over the input to find the end of whitespaces and determine the sign
+    for (input, 0..) |c, i| {
+        // Searching end of whitespaces
+        if (c != 32) {
+            // Modify index after the sign
+            index_after_sign = i + 1;
+            // Minus sign (no change for plus sign)
+            if (c == 45) sign = -1;
+            break;
+        }
+    }
+
+    // Extract content without the sign
+    const without_sign = std.mem.trim(u8, input[index_after_sign..], " ");
+    // Trim parentheses from both sides
+    const without_parenthesis = std.mem.trimRight(
+        u8,
+        std.mem.trimLeft(u8, without_sign, "("),
+        ")",
+    );
+
+    // Parse the offset and apply the sign
+    return sign * try std.fmt.parseInt(i32, without_parenthesis, 10);
+}
+
+/// Parses a register from a byte array.
+///
+/// This function takes a byte array `input` and attempts to identify and parse a register
+/// representation within it. It recognizes registers such as "ap" and "fp". If a valid register
+/// is found, it returns the corresponding `Register` enum variant; otherwise, it returns `null`.
+///
+/// # Parameters
+/// - `input`: A byte array where a register needs to be parsed.
+///
+/// # Returns
+/// A `Register` enum variant if a valid register is found; otherwise, returns `null`.
+pub fn parseRegister(input: []const u8) ?Register {
+    // Check for the presence of "ap" in the input
+    if (std.mem.indexOf(u8, input, "ap")) |_| return .AP;
+
+    // Check for the presence of "fp" in the input
+    if (std.mem.indexOf(u8, input, "fp")) |_| return .FP;
+
+    // If no valid register is found, return `null`
+    return null;
+}
+
 test "outerBrackets: should check if the input has outer brackets" {
     // Test case where input has both outer brackets '[...]' and nested brackets '(...)'
     const deref_value = outerBrackets("[cast([fp])]");
@@ -225,4 +294,35 @@ test "takeCastFirstArg: should extract the two arguments of cast" {
         DeserializationError.CastDeserialization,
         takeCastFirstArg("n"),
     );
+}
+
+test "parseOffset: should correctly parse positive and negative offsets" {
+    // Test case: Should correctly parse a negative offset with parentheses
+    try expectEqual(@as(i32, -1), try parseOffset(" + (-1)"));
+
+    // Test case: Should correctly parse a positive offset
+    try expectEqual(@as(i32, 1), try parseOffset(" + 1"));
+
+    // Test case: Should correctly parse a negative offset without parentheses
+    try expectEqual(@as(i32, -1), try parseOffset(" - 1"));
+
+    // Test case: Should handle an empty input, resulting in offset 0
+    try expectEqual(@as(i32, 0), try parseOffset(""));
+
+    // Test case: Should correctly parse a negative offset with a leading plus sign
+    try expectEqual(@as(i32, -3), try parseOffset("+ (-3)"));
+}
+
+test "parseRegister: should correctly identify and parse registers" {
+    // Test case: Register "fp" is present in the input
+    try expectEqual(Register.FP, parseRegister("fp + (-1)"));
+
+    // Test case: Register "ap" is present in the input
+    try expectEqual(Register.AP, parseRegister("ap + (-1)"));
+
+    // Test case: Register "fp" is present in the input with a different offset
+    try expectEqual(Register.FP, parseRegister("fp + (-3)"));
+
+    // Test case: Register "ap" is present in the input with a different offset
+    try expectEqual(Register.AP, parseRegister("ap + (-9)"));
 }
