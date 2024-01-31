@@ -20,10 +20,10 @@ const insertAtIndex = @import("../../../utils/testing.zig").insertAtIndex;
 const RunnerError = Error.RunnerError;
 const Tuple = std.meta.Tuple;
 
-const EC_POINTS = [_]Tuple(&.{ usize, usize }){
-    @as(std.meta.Tuple(&.{ usize, usize }), .{ 0, 1 }),
-    @as(std.meta.Tuple(&.{ usize, usize }), .{ 2, 3 }),
-    @as(std.meta.Tuple(&.{ usize, usize }), .{ 5, 6 }),
+const EC_POINTS = [_]Tuple(&.{EC.ECPoint}){
+    @as(std.meta.Tuple(&.{EC.ECPoint}), .{EC.ECPoint{ .x = Felt252.zero(), .y = Felt252.one() }}),
+    @as(std.meta.Tuple(&.{EC.ECPoint}), .{EC.ECPoint{ .x = Felt252.two(), .y = Felt252.three() }}),
+    @as(std.meta.Tuple(&.{EC.ECPoint}), .{EC.ECPoint{ .x = Felt252.fromInt(u8, 5), .y = Felt252.fromInt(u8, 6) }}),
 };
 const OUTPUT_INDICES = EC_POINTS[2];
 
@@ -141,7 +141,8 @@ pub const EcOpBuiltinRunner = struct {
     /// corresponds to an input cell, or an error code if any issues occur during the process.
     pub fn deduceMemoryCell(self: *Self, allocator: Allocator, address: Relocatable, memory: *Memory) !?MaybeRelocatable {
         const index = address.offset % self.cells_per_instance;
-        if ((index != OUTPUT_INDICES[0]) and (index != OUTPUT_INDICES[1])) return error.NotOutputCell;
+        const indexFelt = Felt252.fromInt(u64, index);
+        if ((!indexFelt.equal(OUTPUT_INDICES[0].x)) and (!indexFelt.equal(OUTPUT_INDICES[0].y))) return error.NotOutputCell;
 
         const instance = Relocatable.init(address.segment_index, address.offset - index);
         const x_addr = try instance.addFelt(Felt252.fromInt(u256, self.n_input_cells));
@@ -162,8 +163,8 @@ pub const EcOpBuiltinRunner = struct {
         }
 
         for (EC_POINTS[0..2]) |pair| {
-            const x = input_cells.items[pair[0]];
-            const y = input_cells.items[pair[1]];
+            const x = input_cells.items[try pair[0].x.tryIntoU64()];
+            const y = input_cells.items[try pair[0].y.tryIntoU64()];
             var point = EC.ECPoint{ .x = x, .y = y };
             if (!point.pointOnCurve(EC.ALPHA, EC.BETA)) return error.PointNotOnCurve;
         }
