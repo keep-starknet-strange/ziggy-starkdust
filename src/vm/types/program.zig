@@ -115,11 +115,11 @@ pub const SharedProgramData = struct {
     /// Collection of hints.
     hints_collection: HintsCollection,
     /// Program's main entry point (optional, defaults to `null`).
-    main: ?usize,
+    main: ?usize = null,
     /// Start of the program (optional, defaults to `null`).
-    start: ?usize,
+    start: ?usize = null,
     /// End of the program (optional, defaults to `null`).
-    end: ?usize,
+    end: ?usize = null,
     /// List of error message attributes.
     error_message_attributes: std.ArrayList(Attribute),
     /// Map of `usize` to `InstructionLocation`.
@@ -137,9 +137,6 @@ pub const SharedProgramData = struct {
         return .{
             .data = std.ArrayList(MaybeRelocatable).init(allocator),
             .hints_collection = HintsCollection.initDefault(allocator),
-            .main = null,
-            .start = null,
-            .end = null,
             .error_message_attributes = std.ArrayList(Attribute).init(allocator),
             .instruction_locations = std.AutoHashMap(
                 usize,
@@ -237,8 +234,6 @@ pub const Program = struct {
                 .data = data,
                 .hints_collection = HintsCollection.initDefault(allocator),
                 .main = main,
-                .start = null,
-                .end = null,
                 .error_message_attributes = error_message_attributes,
                 .instruction_locations = instruction_locations,
                 .identifiers = identifiers,
@@ -909,5 +904,63 @@ test "Program: init function should init a program with builtins" {
     try expectEqual(
         @as(usize, 2),
         program.builtinsLen(),
+    );
+}
+
+test "Program: init a new program with invalid identifiers should return an error" {
+    // Initialize the reference manager, builtins, hints, and error message attributes.
+    var reference_manager = ReferenceManager.init(std.testing.allocator);
+    defer reference_manager.deinit();
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    defer builtins.deinit();
+    var hints = std.AutoHashMap(usize, std.ArrayList(HintParams)).init(std.testing.allocator);
+    defer hints.deinit();
+    var error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+    defer error_message_attributes.deinit();
+
+    // Initialize a list of MaybeRelocatable items.
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    defer data.deinit();
+
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 1000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 2000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5201798304953696256));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize a StringHashMap for identifiers.
+    var identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    defer identifiers.deinit();
+
+    // Add identifiers to the StringHashMap.
+    try identifiers.put(
+        "__main__.main",
+        .{
+            .pc = 0,
+            .type = "function",
+        },
+    );
+
+    try identifiers.put(
+        "__main__.main.SIZEOF_LOCALS",
+        .{
+            .type = "const",
+        },
+    );
+
+    try expectError(
+        ProgramError.ConstWithoutValue,
+        Program.init(
+            std.testing.allocator,
+            builtins,
+            data,
+            null, // Main entry point (null for this test case).
+            hints,
+            reference_manager,
+            identifiers,
+            error_message_attributes,
+            null, // Instruction locations (null for this test case).
+        ),
     );
 }
