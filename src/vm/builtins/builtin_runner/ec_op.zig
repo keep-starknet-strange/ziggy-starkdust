@@ -96,7 +96,7 @@ pub const EcOpBuiltinRunner = struct {
     /// # Modifies
     /// - `self`: Updates the `base` value to the new segment's index.
     pub fn initSegments(self: *Self, segments: *MemorySegmentManager) !void {
-        self.base = (try segments.addSegment()).segment_index;
+        self.base = @intCast((try segments.addSegment()).segment_index);
     }
 
     /// Initializes and returns an `ArrayList` of `MaybeRelocatable` values.
