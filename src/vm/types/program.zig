@@ -389,6 +389,16 @@ pub const Program = struct {
         return self.shared_program_data.data.items.len;
     }
 
+    /// Retrieves the number of built-ins in the program.
+    ///
+    /// This method returns the length of the list of built-in names stored in the program instance.
+    ///
+    /// # Returns:
+    ///   - The number of built-ins in the program.
+    pub fn builtinsLen(self: *Self) usize {
+        return self.builtins.items.len;
+    }
+
     /// Deinitializes the `Program` instance, freeing allocated memory.
     ///
     /// # Params:
@@ -894,5 +904,10 @@ test "Program: init function should init a program with builtins" {
     try expectEqual(
         @as(usize, 0),
         program.shared_program_data.hints_collection.hints_ranges.count(),
+    );
+    // Validate that the number of built-ins in the program matches the expected count.
+    try expectEqual(
+        @as(usize, 2),
+        program.builtinsLen(),
     );
 }
