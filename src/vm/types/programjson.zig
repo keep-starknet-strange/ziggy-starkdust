@@ -63,17 +63,10 @@ pub const OffsetValue = union(enum) {
 pub const ApTracking = struct {
     const Self = @This();
     /// Indicates register state deducibility (increases by 1 after an unknown change).
-    group: usize,
+    group: usize = 0,
     /// Reflects Ap register changes within the same `group`.
-    offset: usize,
-
-    /// Initializes a new `ApTracking` instance.
-    ///
-    /// Returns:
-    ///     A new `ApTracking` instance with `group` and `offset` set to 0.
-    pub fn init() Self {
-        return .{ .group = 0, .offset = 0 };
-    }
+    offset: usize = 0,
+   
 };
 
 /// Represents tracking data for references considering various program flows.
