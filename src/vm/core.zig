@@ -43,22 +43,22 @@ pub const CairoVM = struct {
     /// The memory segment manager.
     segments: *segments.MemorySegmentManager,
     /// Whether the run is finished or not.
-    is_run_finished: bool,
+    is_run_finished: bool = false,
     /// VM trace
     trace_context: TraceContext,
     /// Whether the trace has been relocated
-    trace_relocated: bool,
+    trace_relocated: bool = false,
     /// Current Step
-    current_step: usize,
+    current_step: usize = 0,
     /// Rc limits
-    rc_limits: ?struct { i16, i16 },
+    rc_limits: ?struct { isize, isize } = null,
     /// Relocation table
-    relocation_table: ?std.ArrayList(usize),
+    relocation_table: ?std.ArrayList(usize) = null,
     /// ArrayList containing instructions. May hold null elements.
     /// Used as an instruction cache within the CairoVM instance.
     instruction_cache: ArrayList(?Instruction),
 
-    relocated_memory: ?std.AutoHashMap(u32, Felt252),
+    relocated_memory: ?std.AutoHashMap(u32, Felt252) = null,
 
     // ************************************************************
     // *             MEMORY ALLOCATION AND DEALLOCATION           *
@@ -97,14 +97,8 @@ pub const CairoVM = struct {
             .run_context = run_context,
             .builtin_runners = builtin_runners,
             .segments = memory_segment_manager,
-            .is_run_finished = false,
             .trace_context = trace_context,
-            .trace_relocated = false,
-            .current_step = 0,
-            .rc_limits = null,
-            .relocation_table = null,
             .instruction_cache = instruction_cache,
-            .relocated_memory = null,
         };
     }
 
@@ -316,42 +310,75 @@ pub const CairoVM = struct {
         }
     }
 
-    /// Run a specific instruction.
-    // # Arguments
-    /// - `instruction`: The instruction to run.
+    /// Runs a specific instruction in the Cairo VM.
+    ///
+    /// This function executes a single instruction in the Cairo VM by fetching, decoding, and
+    /// executing the instruction. It updates the VM's registers, traces the instruction (if
+    /// tracing is enabled), computes and inserts operands into memory, and marks memory accesses.
+    ///
+    /// # Parameters
+    ///
+    /// - `self`: A mutable reference to the CairoVM instance.
+    /// - `allocator`: The allocator used for memory operations.
+    /// - `instruction`: A pointer to the instruction to run.
+    ///
+    /// # Errors
+    ///
+    /// This function may return an error of type `CairoVMError.InstructionEncodingError` if there
+    /// is an issue with encoding or decoding the instruction.
+    ///
+    /// # Safety
+    ///
+    /// This function assumes proper initialization of the CairoVM instance and must be called in
+    /// a controlled environment to ensure the correct execution of instructions and memory operations.
     pub fn runInstruction(
         self: *Self,
         allocator: Allocator,
-        instruction: *const instructions.Instruction,
+        instruction: *const Instruction,
     ) !void {
+        // Check if tracing is disabled and log the current state if not.
         if (!build_options.trace_disable) {
-            try self.trace_context.traceInstruction(.{
-                .pc = self.run_context.pc.*,
-                .ap = self.run_context.ap.*,
-                .fp = self.run_context.fp.*,
-            });
+            try self.trace_context.traceInstruction(
+                .{
+                    .pc = self.run_context.pc.*,
+                    .ap = self.run_context.ap.*,
+                    .fp = self.run_context.fp.*,
+                },
+            );
         }
 
+        // Compute operands for the instruction.
         const operands_result = try self.computeOperands(allocator, instruction);
+
+        // Insert deduced operands into memory.
         try self.insertDeducedOperands(allocator, operands_result);
 
+        // Update registers based on the instruction and operands.
         try self.updateRegisters(
             instruction,
             operands_result,
         );
 
+        // Constants for offset bit manipulation.
         const OFFSET_BITS: u32 = 16;
-        const off_0 = if (instruction.off_0 < 0) 0 else instruction.off_0 + (@as(i16, 1) << (OFFSET_BITS - 1));
-        const off_1 = if (instruction.off_1 < 0) 0 else instruction.off_1 + (@as(i16, 1) << (OFFSET_BITS - 1));
-        const off_2 = if (instruction.off_2 < 0) 0 else instruction.off_2 + (@as(i16, 1) << (OFFSET_BITS - 1));
+        const off_0 = instruction.off_0 + (@as(isize, 1) << (OFFSET_BITS - 1));
+        const off_1 = instruction.off_1 + (@as(isize, 1) << (OFFSET_BITS - 1));
+        const off_2 = instruction.off_2 + (@as(isize, 1) << (OFFSET_BITS - 1));
 
+        // Calculate and update relocation limits.
         const limits = self.rc_limits orelse .{ off_0, off_0 };
-        self.rc_limits = .{ @min(limits[0], off_0, off_1, off_2), @max(limits[1], off_0, off_1, off_2) };
 
+        self.rc_limits = .{
+            @min(limits[0], off_0, off_1, off_2),
+            @max(limits[1], off_0, off_1, off_2),
+        };
+
+        // Mark memory accesses for the instruction.
         self.segments.memory.markAsAccessed(operands_result.dst_addr);
         self.segments.memory.markAsAccessed(operands_result.op_0_addr);
         self.segments.memory.markAsAccessed(operands_result.op_1_addr);
 
+        // Increment the current step counter.
         self.current_step += 1;
     }
 
@@ -372,10 +399,10 @@ pub const CairoVM = struct {
     pub fn computeOperands(
         self: *Self,
         allocator: Allocator,
-        instruction: *const instructions.Instruction,
+        instruction: *const Instruction,
     ) !OperandsResult {
         // Create a default OperandsResult to store the computed operands.
-        var op_res = OperandsResult.default();
+        var op_res = OperandsResult{};
         op_res.res = null;
 
         // Compute the destination address of the instruction.
@@ -462,7 +489,7 @@ pub const CairoVM = struct {
         self: *Self,
         allocator: Allocator,
         op_0_addr: Relocatable,
-        instruction: *const instructions.Instruction,
+        instruction: *const Instruction,
         dst: *const ?MaybeRelocatable,
         op1: *const ?MaybeRelocatable,
     ) !MaybeRelocatable {
@@ -494,7 +521,7 @@ pub const CairoVM = struct {
         allocator: Allocator,
         op1_addr: Relocatable,
         res: *?MaybeRelocatable,
-        instruction: *const instructions.Instruction,
+        instruction: *const Instruction,
         dst_op: *const ?MaybeRelocatable,
         op0: *const ?MaybeRelocatable,
     ) !MaybeRelocatable {
@@ -578,7 +605,7 @@ pub const CairoVM = struct {
     /// - `Tuple`: A tuple containing the deduced `op0` and `res`.
     pub fn deduceOp0(
         self: *Self,
-        inst: *const instructions.Instruction,
+        inst: *const Instruction,
         dst: *const ?MaybeRelocatable,
         op1: *const ?MaybeRelocatable,
     ) !Op0Result {
@@ -617,7 +644,7 @@ pub const CairoVM = struct {
     /// - `operands`: The operands of the instruction.
     pub fn updatePc(
         self: *Self,
-        instruction: *const instructions.Instruction,
+        instruction: *const Instruction,
         operands: OperandsResult,
     ) !void {
         switch (instruction.pc_update) {
@@ -665,7 +692,7 @@ pub const CairoVM = struct {
     /// - `operands`: The operands of the instruction.
     pub fn updateAp(
         self: *Self,
-        instruction: *const instructions.Instruction,
+        instruction: *const Instruction,
         operands: OperandsResult,
     ) !void {
         switch (instruction.ap_update) {
@@ -694,7 +721,7 @@ pub const CairoVM = struct {
     /// - `operands`: The operands of the instruction.
     pub fn updateFp(
         self: *Self,
-        instruction: *const instructions.Instruction,
+        instruction: *const Instruction,
         operands: OperandsResult,
     ) !void {
         switch (instruction.fp_update) {
@@ -709,7 +736,7 @@ pub const CairoVM = struct {
                     .relocatable => |rel| {
                         // Update the FP.
                         // FP = DST.
-                        self.run_context.fp.* = rel;
+                        self.run_context.fp.* = Relocatable.init(1, rel.offset);
                     },
                     .felt => |f| {
                         // Update the FP.
@@ -735,7 +762,7 @@ pub const CairoVM = struct {
     /// - Returns `void` on success, an error on failure.
     pub fn updateRegisters(
         self: *Self,
-        instruction: *const instructions.Instruction,
+        instruction: *const Instruction,
         operands: OperandsResult,
     ) !void {
         try self.updateFp(instruction, operands);
@@ -1217,7 +1244,7 @@ pub fn computeRes(
 /// # Returns
 /// - `Tuple`: A tuple containing the deduced `op1` and `res`.
 pub fn deduceOp1(
-    inst: *const instructions.Instruction,
+    inst: *const Instruction,
     dst: *const ?MaybeRelocatable,
     op0: *const ?MaybeRelocatable,
 ) !Op1Result {
@@ -1258,39 +1285,21 @@ pub const OperandsResult = struct {
     const Self = @This();
 
     /// The destination operand value.
-    dst: MaybeRelocatable,
+    dst: MaybeRelocatable = MaybeRelocatable.fromFelt(Felt252.zero()),
     /// The result operand value.
-    res: ?MaybeRelocatable,
+    res: ?MaybeRelocatable = MaybeRelocatable.fromFelt(Felt252.zero()),
     /// The first operand value.
-    op_0: MaybeRelocatable,
+    op_0: MaybeRelocatable = MaybeRelocatable.fromFelt(Felt252.zero()),
     /// The second operand value.
-    op_1: MaybeRelocatable,
+    op_1: MaybeRelocatable = MaybeRelocatable.fromFelt(Felt252.zero()),
     /// The relocatable address of the destination operand.
-    dst_addr: Relocatable,
+    dst_addr: Relocatable = .{},
     /// The relocatable address of the first operand.
-    op_0_addr: Relocatable,
+    op_0_addr: Relocatable = .{},
     /// The relocatable address of the second operand.
-    op_1_addr: Relocatable,
+    op_1_addr: Relocatable = .{},
     /// Indicator for deduced operands.
-    deduced_operands: u8,
-
-    /// Returns a default instance of the OperandsResult struct with initial values set to zero.
-    ///
-    /// # Returns
-    ///
-    /// - An instance of OperandsResult with default values.
-    pub fn default() Self {
-        return .{
-            .dst = MaybeRelocatable.fromInt(u64, 0),
-            .res = MaybeRelocatable.fromInt(u64, 0),
-            .op_0 = MaybeRelocatable.fromInt(u64, 0),
-            .op_1 = MaybeRelocatable.fromInt(u64, 0),
-            .dst_addr = .{},
-            .op_0_addr = .{},
-            .op_1_addr = .{},
-            .deduced_operands = 0,
-        };
-    }
+    deduced_operands: u8 = 0,
 
     /// Sets the flag indicating the destination operand was deduced.
     ///

@@ -152,6 +152,10 @@ pub const MathError = error{
     SubWithOverflow,
     /// Error indicating that the addition operation on the Relocatable offset exceeds the maximum limit.
     RelocatableAdditionOffsetExceeded,
+    /// Error indicating that a point is not on the elliptic curve.
+    PointNotOnCurve,
+    /// Cell is not output cell
+    NotOutputCell,
     RelocatableMul,
 };
 
@@ -185,4 +189,5 @@ pub const ProgramError = error{
     InvalidHintPc,
     /// Indicates an unsupported or unimplemented builtin encountered within the program.
     UnsupportedBuiltin,
+    EmptyVecAlreadyFiltered,
 };
