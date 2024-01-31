@@ -364,6 +364,17 @@ pub const Program = struct {
         return self.shared_program_data.identifiers.get(key);
     }
 
+    /// Retrieves an iterator for the identifiers stored in the program's shared data.
+    ///
+    /// This method returns an iterator for the `std.StringHashMap(Identifier)` containing
+    /// identifiers within the shared program data.
+    ///
+    /// # Returns:
+    ///   - An iterator for the identifiers stored in the program's shared data.
+    pub fn iteratorIdentifier(self: *Self) std.StringHashMap(Identifier).Iterator {
+        return self.shared_program_data.identifiers.iterator();
+    }
+
     /// Retrieves the length of the list of `MaybeRelocatable` items within the shared program data.
     ///
     /// This function returns the number of elements in the list of `MaybeRelocatable` items, providing
@@ -762,6 +773,76 @@ test "Program: init function should init a program with identifiers (get identif
         identifiers.get("missing"),
         program.getIdentifier("missing"),
     );
+}
+
+test "Program: iteratorIdentifier should return an iterator over identifiers" {
+    // Initialize the reference manager, builtins, hints, and error message attributes.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, std.ArrayList(HintParams)).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a list of MaybeRelocatable items.
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 1000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 2000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5201798304953696256));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize a StringHashMap for identifiers.
+    var identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+
+    // Add identifiers to the StringHashMap.
+    try identifiers.put(
+        "__main__.main",
+        .{
+            .pc = 0,
+            .type = "function",
+        },
+    );
+
+    try identifiers.put(
+        "__main__.main.SIZEOF_LOCALS",
+        .{
+            .type = "const",
+            .valueFelt = Felt252.zero(),
+        },
+    );
+
+    // Initialize a Program instance using the init function.
+    var program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        null, // Main entry point (null for this test case).
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null, // Instruction locations (null for this test case).
+    );
+
+    // Defer the deinitialization of the program to free allocated memory after the test case.
+    defer program.deinit(std.testing.allocator);
+
+    // Ensure that the iterator returned by program.iteratorIdentifier() is equal to identifiers.iterator().
+    try expectEqualDeep(identifiers.iterator(), program.iteratorIdentifier());
+
+    // Initialize iterators for both the StringHashMap and the Program.
+    var program_it = program.iteratorIdentifier();
+    var it = identifiers.iterator();
+
+    // Ensure that the size of the iterators match.
+    try expectEqual(@as(usize, 2), program_it.hm.size);
+
+    // Iterate through both iterators simultaneously and ensure key-value pairs match.
+    while (it.next()) |kv| {
+        const program_kv = program_it.next().?;
+        try expectEqual(kv.key_ptr.*, program_kv.key_ptr.*);
+        try expectEqual(kv.value_ptr.*, program_kv.value_ptr.*);
+    }
 }
 
 test "Program: init function should init a program with builtins" {
