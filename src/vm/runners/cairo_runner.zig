@@ -28,14 +28,14 @@ const expectEqualSlices = std.testing.expectEqualSlices;
 
 /// Tracks the step resources of a cairo execution run.
 const RunResources = struct {
-    const Self = @This();    
+    const Self = @This();
     // We consider the 'default' mode of RunResources having infinite steps.
     n_steps: ?usize = null,
 
     pub fn init(n_steps: usize) Self {
-        return .{.n_steps = n_steps};
+        return .{ .n_steps = n_steps };
     }
-    
+
     pub fn consumed(self: *Self) bool {
         if (self.n_steps) |n_steps| {
             return n_steps == 0;
@@ -57,7 +57,7 @@ const RunResources = struct {
 /// It is primarily used in the context of Starknet and implemented by HintProcessors.
 const ResourceTracker = struct {
     const Self = @This();
-    
+
     // define interface fields: ptr,vtab
     ptr: *anyopaque, //ptr to instance
     vtab: *const VTab, //ptr to vtab
@@ -85,14 +85,14 @@ const ResourceTracker = struct {
         std.debug.assert(@typeInfo(PtrInfo.Pointer.child) == .Struct); // Must point to a struct
         const impl = struct {
             fn consumed(ptr: *anyopaque) bool {
-                const self: Ptr = @ptrCast(@alignCast(ptr));                
+                const self: Ptr = @ptrCast(@alignCast(ptr));
                 return self.consumed();
             }
             fn consumeStep(ptr: *anyopaque) void {
-                const self: Ptr = @ptrCast(@alignCast(ptr));                                
+                const self: Ptr = @ptrCast(@alignCast(ptr));
                 self.consumeStep();
             }
-        }; 
+        };
         return .{
             .ptr = obj,
             .vtab = &.{
@@ -102,6 +102,8 @@ const ResourceTracker = struct {
         };
     }
 };
+
+pub const RunnerMode = enum { execution_mode, proof_mode_canonical, proof_mode_cairo1 };
 
 const BuiltinInfo = struct { segment_index: usize, stop_pointer: usize };
 
@@ -121,7 +123,7 @@ pub const CairoRunner = struct {
     function_call_stack: std.ArrayList(MaybeRelocatable),
     entrypoint_name: []const u8 = "main",
     layout: CairoLayout,
-    proof_mode: bool,
+    proof_mode: RunnerMode,
     run_ended: bool = false,
     relocated_trace: []RelocatedTraceEntry = undefined,
     relocated_memory: ArrayList(?Felt252),
@@ -148,9 +150,13 @@ pub const CairoRunner = struct {
             .instructions = instructions,
             .vm = vm,
             .function_call_stack = std.ArrayList(MaybeRelocatable).init(allocator),
-            .proof_mode = proof_mode,
+            .proof_mode = if (proof_mode) RunnerMode.proof_mode_canonical else RunnerMode.execution_mode,
             .relocated_memory = ArrayList(?Felt252).init(allocator),
         };
+    }
+
+    pub fn isProofMode(self: *Self) bool {
+        return self.proof_mode == .proof_mode_canonical or self.proof_mode == .proof_mode_cairo1;
     }
 
     pub fn initBuiltins(self: *Self, vm: *CairoVM) !void {
@@ -390,7 +396,6 @@ pub const CairoRunner = struct {
     }
 };
 
-
 test "RunResources: consumed and consumeStep" {
     // given
     const steps = 5;
@@ -419,7 +424,7 @@ test "RunResources: with unlimited steps" {
     var run_resources = RunResources{};
 
     // default case has null for n_steps
-    try std.testing.expectEqual(null,run_resources.n_steps);
+    try std.testing.expectEqual(null, run_resources.n_steps);
 
     var tracker = ResourceTracker.init(&run_resources);
 
