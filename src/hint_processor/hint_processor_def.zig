@@ -38,7 +38,6 @@ pub const HintProcessorData = struct {
         return .{
             .allocator = allocator,
             .code = code,
-            .ap_tracking = ApTracking{}, 
             .ids_data = ids_data,  
         };
     }
@@ -115,15 +114,14 @@ pub fn getIdsData(allocator: Allocator, reference_ids: StringHashMap(usize), ref
         const path  = ref_id_entry.key_ptr.*;
         const ref_id = ref_id_entry.value_ptr.*;
 
-        var name_iterator = std.mem.splitBackwards(u8, path, @as([]const u8, "."));
+        if (ref_id >= references.len) return CairoVMError.Unexpected;        
+
+        var name_iterator = std.mem.splitBackwardsSequence(u8, path, ".");
         
         const name = name_iterator.next() orelse return CairoVMError.Unexpected;
-
-        if (ref_id >= references.len) return CairoVMError.Unexpected;
         const ref_hint = references[ref_id];
 
         try ids_data.put(name, ref_hint);
-        
     }
 
     return ids_data;
