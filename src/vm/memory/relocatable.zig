@@ -48,10 +48,7 @@ pub const Relocatable = struct {
     /// - other: The other Relocatable to compare to.
     /// # Returns
     /// `true` if they are equal, `false` otherwise.
-    pub fn eq(
-        self: Self,
-        other: Self,
-    ) bool {
+    pub fn eq(self: Self, other: Self) bool {
         return self.segment_index == other.segment_index and self.offset == other.offset;
     }
 
@@ -60,11 +57,10 @@ pub const Relocatable = struct {
     /// - other: The other Relocatable to compare to.
     /// # Returns
     /// `true` if self is less than other, `false` otherwise.
-    pub fn lt(
-        self: Self,
-        other: Self,
-    ) bool {
-        return self.segment_index < other.segment_index or (self.segment_index == other.segment_index and self.offset < other.offset);
+    pub fn lt(self: Self, other: Self) bool {
+        return self.segment_index < other.segment_index or
+            (self.segment_index == other.segment_index and
+            self.offset < other.offset);
     }
 
     /// Determines if this Relocatable is less than or equal to another.
@@ -72,11 +68,9 @@ pub const Relocatable = struct {
     /// - other: The other Relocatable to compare to.
     /// # Returns
     /// `true` if self is less than or equal to other, `false` otherwise.
-    pub fn le(
-        self: Self,
-        other: Self,
-    ) bool {
-        return self.segment_index < other.segment_index or (self.segment_index == other.segment_index and self.offset <= other.offset);
+    pub fn le(self: Self, other: Self) bool {
+        return self.segment_index < other.segment_index or
+            (self.segment_index == other.segment_index and self.offset <= other.offset);
     }
 
     /// Determines if this Relocatable is greater than another.
@@ -84,11 +78,9 @@ pub const Relocatable = struct {
     /// - other: The other Relocatable to compare to.
     /// # Returns
     /// `true` if self is greater than other, `false` otherwise.
-    pub fn gt(
-        self: Self,
-        other: Self,
-    ) bool {
-        return self.segment_index > other.segment_index or (self.segment_index == other.segment_index and self.offset > other.offset);
+    pub fn gt(self: Self, other: Self) bool {
+        return self.segment_index > other.segment_index or
+            (self.segment_index == other.segment_index and self.offset > other.offset);
     }
 
     /// Determines if this Relocatable is greater than or equal to another.
@@ -96,11 +88,9 @@ pub const Relocatable = struct {
     /// - other: The other Relocatable to compare to.
     /// # Returns
     /// `true` if self is greater than or equal to other, `false` otherwise.
-    pub fn ge(
-        self: Self,
-        other: Self,
-    ) bool {
-        return self.segment_index > other.segment_index or (self.segment_index == other.segment_index and self.offset >= other.offset);
+    pub fn ge(self: Self, other: Self) bool {
+        return self.segment_index > other.segment_index or
+            (self.segment_index == other.segment_index and self.offset >= other.offset);
     }
 
     /// Compares this Relocatable with another.
@@ -150,10 +140,7 @@ pub const Relocatable = struct {
     /// - other: The u64 to substract.
     /// # Returns
     /// A new Relocatable.
-    pub fn subUint(
-        self: Self,
-        other: u64,
-    ) MathError!Self {
+    pub fn subUint(self: Self, other: u64) MathError!Self {
         if (self.offset < other) return MathError.RelocatableSubUsizeNegOffset;
 
         return .{
@@ -167,10 +154,7 @@ pub const Relocatable = struct {
     /// - other: The u64 to add.
     /// # Returns
     /// A new Relocatable.
-    pub fn addUint(
-        self: Self,
-        other: u64,
-    ) !Self {
+    pub fn addUint(self: Self, other: u64) !Self {
         const offset = @addWithOverflow(self.offset, other);
         if (offset[1] != 0) return MathError.RelocatableAdditionOffsetExceeded;
         return .{
@@ -193,11 +177,11 @@ pub const Relocatable = struct {
     /// - other: The i64 to add.
     /// # Returns
     /// A new Relocatable.
-    pub fn addInt(
-        self: Self,
-        other: i64,
-    ) !Self {
-        return if (other < 0) self.subUint(@intCast(-other)) else self.addUint(@intCast(other));
+    pub fn addInt(self: Self, other: i64) !Self {
+        return if (other < 0)
+            self.subUint(@intCast(-other))
+        else
+            self.addUint(@intCast(other));
     }
 
     /// Adds a Felt252 value to this Relocatable.
@@ -253,7 +237,7 @@ pub const Relocatable = struct {
             if (relocation_table.len <= self.segment_index) {
                 return MemoryError.Relocation;
             }
-            return @intCast(relocation_table[@intCast(self.segment_index)] + self.offset);
+            return relocation_table[@intCast(self.segment_index)] + self.offset;
         }
         return MemoryError.TemporarySegmentInRelocation;
     }
