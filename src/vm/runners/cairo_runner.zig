@@ -266,7 +266,7 @@ pub const CairoRunner = struct {
                 try self.initState(try (if (self.program.getStartPc()) |start| start else RunnerError.NoProgramStart), &stack_prefix);
             } else {
                 unreachable;
-                // TODO: research and add with Cairo1 proof mode
+                // TODO: add with Cairo1 proof mode
             }
 
             self.initial_fp = try self.execution_base.addUint(target_offset);
