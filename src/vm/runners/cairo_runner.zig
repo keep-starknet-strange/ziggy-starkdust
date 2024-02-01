@@ -123,7 +123,7 @@ pub const CairoRunner = struct {
     // function_call_stack: std.ArrayList(MaybeRelocatable),
     entrypoint_name: []const u8 = "main",
     layout: CairoLayout,
-    proof_mode: RunnerMode,
+    runner_mode: RunnerMode,
     run_ended: bool = false,
     execution_public_memory: ?std.ArrayList(usize) = null,
     relocated_trace: []RelocatedTraceEntry = undefined,
@@ -150,13 +150,13 @@ pub const CairoRunner = struct {
             },
             .instructions = instructions,
             .vm = vm,
-            .proof_mode = if (proof_mode) RunnerMode.proof_mode_canonical else RunnerMode.execution_mode,
+            .runner_mode = if (proof_mode) RunnerMode.proof_mode_canonical else RunnerMode.execution_mode,
             .relocated_memory = ArrayList(?Felt252).init(allocator),
         };
     }
 
     pub fn isProofMode(self: *Self) bool {
-        return self.proof_mode == .proof_mode_canonical or self.proof_mode == .proof_mode_cairo1;
+        return self.runner_mode == .proof_mode_canonical or self.runner_mode == .proof_mode_cairo1;
     }
 
     pub fn initBuiltins(self: *Self, vm: *CairoVM) !void {
@@ -250,7 +250,7 @@ pub const CairoRunner = struct {
         if (self.isProofMode()) {
             const target_offset = 2;
 
-            if (self.proof_mode == .proof_mode_canonical) {
+            if (self.runner_mode == .proof_mode_canonical) {
                 var stack_prefix = try std.ArrayList(MaybeRelocatable).initCapacity(self.allocator, 2 + stack.items.len);
                 defer stack_prefix.deinit();
 
