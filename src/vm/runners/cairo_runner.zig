@@ -248,7 +248,7 @@ pub const CairoRunner = struct {
         }
 
         if (self.isProofMode()) {
-            const target_offset = 2;
+            var target_offset: usize = 2;
 
             if (self.runner_mode == .proof_mode_canonical) {
                 var stack_prefix = try std.ArrayList(MaybeRelocatable).initCapacity(self.allocator, 2 + stack.items.len);
@@ -265,8 +265,14 @@ pub const CairoRunner = struct {
 
                 try self.initState(try (if (self.program.getStartPc()) |start| start else RunnerError.NoProgramStart), &stack_prefix);
             } else {
-                unreachable;
-                // TODO: add with Cairo1 proof mode
+                target_offset = stack.items.len + 2;
+
+                const return_fp = try self.vm.segments.addSegment();
+                const end = try self.vm.segments.addSegment();
+                try stack.append(MaybeRelocatable.fromRelocatable(return_fp));
+                try stack.append(MaybeRelocatable.fromRelocatable(end));
+
+                try self.initState(try if (self.program.getStartPc()) |start| start else RunnerError.NoProgramStart, &stack);
             }
 
             self.initial_fp = try self.execution_base.addUint(target_offset);
