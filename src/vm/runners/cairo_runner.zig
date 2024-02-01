@@ -120,11 +120,12 @@ pub const CairoRunner = struct {
     initial_fp: Relocatable = undefined,
     final_pc: *Relocatable = undefined,
     instructions: std.ArrayList(MaybeRelocatable),
-    function_call_stack: std.ArrayList(MaybeRelocatable),
+    // function_call_stack: std.ArrayList(MaybeRelocatable),
     entrypoint_name: []const u8 = "main",
     layout: CairoLayout,
     proof_mode: RunnerMode,
     run_ended: bool = false,
+    execution_public_memory: ?std.ArrayList(usize) = null,
     relocated_trace: []RelocatedTraceEntry = undefined,
     relocated_memory: ArrayList(?Felt252),
 
@@ -149,7 +150,6 @@ pub const CairoRunner = struct {
             },
             .instructions = instructions,
             .vm = vm,
-            .function_call_stack = std.ArrayList(MaybeRelocatable).init(allocator),
             .proof_mode = if (proof_mode) RunnerMode.proof_mode_canonical else RunnerMode.execution_mode,
             .relocated_memory = ArrayList(?Felt252).init(allocator),
         };
@@ -196,7 +196,7 @@ pub const CairoRunner = struct {
     /// Loads the function call stack to the execution segment.
     /// # Arguments
     /// - `entrypoint:` The address, relative to the program segment, where execution begins.
-    pub fn initState(self: *Self, entrypoint: usize) !void {
+    pub fn initState(self: *Self, entrypoint: usize, stack: *std.ArrayList(MaybeRelocatable)) !void {
         self.initial_pc = self.program_base;
         self.initial_pc.addUintInPlace(entrypoint);
 
@@ -209,11 +209,11 @@ pub const CairoRunner = struct {
         _ = try self.vm.segments.loadData(
             self.allocator,
             self.execution_base,
-            &self.function_call_stack,
+            stack,
         );
     }
 
-    pub fn initFunctionEntrypoint(self: *Self, entrypoint: usize, return_fp: Relocatable) !Relocatable {
+    pub fn initFunctionEntrypoint(self: *Self, entrypoint: usize, return_fp: Relocatable, stack: *std.ArrayList(MaybeRelocatable)) !Relocatable {
         var end = try self.vm.segments.addSegment();
 
         // per 6.1 of cairo whitepaper
@@ -222,28 +222,59 @@ pub const CairoRunner = struct {
         // but to situate the functionality with Cairo's read-only memory,
         // the frame pointer register is used to point to the current frame in the stack
         // the runner sets the return fp and establishes the end address that execution treats as the endpoint.
-        try self.function_call_stack.append(MaybeRelocatable.fromRelocatable(return_fp));
-        try self.function_call_stack.append(MaybeRelocatable.fromRelocatable(end));
+        try stack.append(MaybeRelocatable.fromRelocatable(return_fp));
+        try stack.append(MaybeRelocatable.fromRelocatable(end));
 
         self.initial_fp = self.execution_base;
-        self.initial_fp.addUintInPlace(@as(u64, self.function_call_stack.items.len));
+        self.initial_fp.addUintInPlace(@as(u64, stack.items.len));
         self.initial_ap = self.initial_fp;
 
         self.final_pc = &end;
-        try self.initState(entrypoint);
+        try self.initState(entrypoint, stack);
         return end;
     }
 
     /// Initializes runner state for execution of a program from the `main()` entrypoint.
     pub fn initMainEntrypoint(self: *Self) !Relocatable {
+        var stack = std.ArrayList(MaybeRelocatable).init(self.allocator);
+        defer stack.deinit();
+
         for (self.vm.builtin_runners.items) |*builtin_runner| {
             const builtin_stack = try builtin_runner.initialStack(self.allocator);
             defer builtin_stack.deinit();
             for (builtin_stack.items) |item| {
-                try self.function_call_stack.append(item);
+                try stack.append(item);
             }
         }
-        // TODO handle the case where we are running in proof mode
+
+        if (self.isProofMode()) {
+            const target_offset = 2;
+
+            if (self.proof_mode == .proof_mode_canonical) {
+                var stack_prefix = try std.ArrayList(MaybeRelocatable).initCapacity(self.allocator, 2 + stack.items.len);
+                defer stack_prefix.deinit();
+
+                try stack_prefix.append(MaybeRelocatable.fromRelocatable(try self.execution_base.addUint(target_offset)));
+                try stack_prefix.appendSlice(stack.items);
+
+                var execution_public_memory = try std.ArrayList(usize).initCapacity(self.allocator, stack_prefix.items.len);
+                for (0..stack_prefix.items.len) |v| {
+                    try execution_public_memory.append(v);
+                }
+                self.execution_public_memory = execution_public_memory;
+
+                try self.initState(try (if (self.program.getStartPc()) |start| start else RunnerError.NoProgramStart), &stack_prefix);
+            } else {
+                unreachable;
+                // TODO: research and add with Cairo1 proof mode
+            }
+
+            self.initial_fp = try self.execution_base.addUint(target_offset);
+            self.initial_ap = self.initial_fp;
+
+            return self.program_base.addUint(try if (self.program.getEndPc()) |end| end else RunnerError.NoProgramEnd);
+        }
+
         const return_fp = try self.vm.segments.addSegment();
         // Buffer for concatenation
         var buffer: [100]u8 = undefined;
@@ -251,10 +282,15 @@ pub const CairoRunner = struct {
         // Concatenate strings
         const full_entrypoint_name = try std.fmt.bufPrint(&buffer, "__main__.{s}", .{self.entrypoint_name});
 
-        const main_offset: usize = self.program.identifiers.?.map.get(full_entrypoint_name).?.pc orelse 0;
+        if (self.program.identifiers) |identifiers| {
+            if (identifiers.map.get(full_entrypoint_name)) |identifier| {
+                if (identifier.pc) |pc| {
+                    return self.initFunctionEntrypoint(pc, return_fp, &stack);
+                }
+            }
+        }
 
-        const end = try self.initFunctionEntrypoint(main_offset, return_fp);
-        return end;
+        return RunnerError.MissingMain;
     }
 
     pub fn initVM(self: *Self) void {
@@ -388,13 +424,61 @@ pub const CairoRunner = struct {
         // currently handling the deinit of the json.Parsed(ProgramJson) outside of constructor
         // otherwise the runner would always assume json in its interface
         // self.program.deinit();
-        self.function_call_stack.deinit();
+
+        if (self.execution_public_memory) |execution_public_memory| execution_public_memory.deinit();
+
         self.instructions.deinit();
         self.layout.deinit();
         self.vm.deinit();
         self.relocated_memory.deinit();
     }
 };
+
+test "CairoRunner: initMainEntrypoint no main" {
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        ProgramJson{},
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+    defer cairo_runner.deinit();
+
+    // Add an OutputBuiltinRunner to the CairoRunner without setting the stop pointer.
+    try cairo_runner.vm.builtin_runners.append(.{ .Output = OutputBuiltinRunner.initDefault(std.testing.allocator) });
+
+    if (cairo_runner.initMainEntrypoint()) |_| {
+        return error.ExpectedError;
+    } else |_| {}
+}
+
+test "CairoRunner: initMainEntrypoint" {
+    return error.SkipZigTest;
+    // var cairo_runner = try CairoRunner.init(
+    //     std.testing.allocator,
+    //     ProgramJson{},
+    //     "all_cairo",
+    //     ArrayList(MaybeRelocatable).init(std.testing.allocator),
+    //     try CairoVM.init(
+    //         std.testing.allocator,
+    //         .{},
+    //     ),
+    //     false,
+    // );
+    // defer cairo_runner.deinit();
+
+    // // TODO: cannot use test because we cant initialize default main with ProgramJSON
+
+    // cairo_runner.program_base = Relocatable.init(0, 0);
+    // cairo_runner.execution_base = Relocatable.init(0, 0);
+    // const return_pc = try cairo_runner.initMainEntrypoint();
+
+    // try expectEqual(Relocatable.init(1, 0), return_pc);
+}
 
 test "RunResources: consumed and consumeStep" {
     // given
