@@ -34,9 +34,10 @@ pub fn writeEncodedTrace(relocated_trace: []const RelocatedTraceEntry, dest: *st
 /// - `dest`: The destination file that the memory is to be written.
 pub fn writeEncodedMemory(relocated_memory: []?Felt252, dest: *std.fs.File.Writer) !void {
     for (relocated_memory, 0..) |memory_cell, i| {
-        if (memory_cell == null) continue;
-        try dest.writeInt(u64, i, .little);
-        try dest.writeInt(u256, memory_cell.?.toInteger(), .little);
+        if (memory_cell) |cell| {
+            try dest.writeInt(u64, i, .little);
+            try dest.writeInt(u256, cell.toInteger(), .little);
+        }
     }
 }
 
