@@ -366,7 +366,12 @@ pub fn Field(comptime F: type, comptime mod: u256) type {
             );
             return .{ .fe = ret };
         }
-
+        pub fn mod(
+            self: Self,
+            other: Self,
+        ) Self {
+            return Self.fromInt(u256, @mod(self.toInteger(), other.toInteger()));
+        }
         /// Multiply two field elements.
         ///
         /// Multiplies the current field element by another field element.
@@ -475,7 +480,7 @@ pub fn Field(comptime F: type, comptime mod: u256) type {
 
         pub fn modInverse(operand: Self, modulus: Self) Self {
             const extended_gcd = Self.extendedGCD(operand, modulus);
-            std.crypto.sign.ecdsa.EcdsaP256Sha3_256
+
             if (extended_gcd.gcd != Self.one()) {
                 unreachable;
             }

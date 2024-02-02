@@ -68,7 +68,9 @@ pub fn sign(private_key: Felt252, message: Felt252, k: Felt252) !ExtendedSignatu
         return SignError.InvalidK;
     }
 
-    const k_inv = k.modInverse(&EC_ORDER);
+    const k_inv = k.modInverse(EC_ORDER);
+    const result = r.mul(private_key).mod(EC_ORDER);
+    const s = result.add(message);
 
     return .{
         .r = private_key,
