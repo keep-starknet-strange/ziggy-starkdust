@@ -150,7 +150,7 @@ pub const CairoRunner = struct {
             },
             .instructions = instructions,
             .vm = vm,
-            .runner_mode = if (proof_mode) RunnerMode.proof_mode_canonical else RunnerMode.execution_mode,
+            .runner_mode = if (proof_mode) .proof_mode_canonical else .execution_mode,
             .relocated_memory = ArrayList(?Felt252).init(allocator),
         };
     }
@@ -263,7 +263,7 @@ pub const CairoRunner = struct {
                 }
                 self.execution_public_memory = execution_public_memory;
 
-                try self.initState(try (if (self.program.getStartPc()) |start| start else RunnerError.NoProgramStart), &stack_prefix);
+                try self.initState(try (self.program.getStartPc() orelse RunnerError.NoProgramStart), &stack_prefix);
             } else {
                 target_offset = stack.items.len + 2;
 
@@ -272,13 +272,13 @@ pub const CairoRunner = struct {
                 try stack.append(MaybeRelocatable.fromRelocatable(return_fp));
                 try stack.append(MaybeRelocatable.fromRelocatable(end));
 
-                try self.initState(try if (self.program.getStartPc()) |start| start else RunnerError.NoProgramStart, &stack);
+                try self.initState(try (self.program.getStartPc() orelse RunnerError.NoProgramStart), &stack);
             }
 
             self.initial_fp = try self.execution_base.addUint(target_offset);
             self.initial_ap = self.initial_fp;
 
-            return self.program_base.addUint(try if (self.program.getEndPc()) |end| end else RunnerError.NoProgramEnd);
+            return self.program_base.addUint(try (self.program.getEndPc() orelse RunnerError.NoProgramEnd));
         }
 
         const return_fp = try self.vm.segments.addSegment();
