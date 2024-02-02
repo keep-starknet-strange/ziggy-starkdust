@@ -1,7 +1,6 @@
 const std = @import("std");
 const builtin = @import("builtin");
 const ArrayList = std.ArrayList;
-
 /// Represents a finite field element.
 pub fn Field(comptime F: type, comptime mod: u256) type {
     return struct {
@@ -432,6 +431,62 @@ pub fn Field(comptime F: type, comptime mod: u256) type {
         /// Determines if the current field element is equal to one.
         pub fn isOne(self: Self) bool {
             return self.equal(one());
+        }
+
+        pub const ExtendedGCD = struct {
+            gcd: Self,
+            y: Self,
+            x: Self,
+        };
+
+        fn calculateGCD(q: Self, r: [2]Self) [2]Self {
+            std.mem.swap(Self, &r[0], &r[1]);
+            r[0] = r[0].sub(q.mul(r[1]));
+            return r;
+        }
+
+        pub fn extendedGCD(self: Self, other: Self) ExtendedGCD {
+            var s = [2]Self{ Self.zero(), Self.one() };
+            var t = [2]Self{ Self.one(), Self.zero() };
+            var r = [2]Self{ other, self };
+
+            while (!r[0].isZero()) {
+                const q = try r[1].div(r[0]);
+
+                r = Self.calculateGCD(q, r);
+                s = Self.calculateGCD(q, s);
+                t = Self.calculateGCD(q, t);
+            }
+
+            if (r[1].ge(Self.zero())) {
+                return .{
+                    .gcd = r[1],
+                    .x = s[1],
+                    .y = t[1],
+                };
+            } else {
+                return .{
+                    .gcd = Self.zero().sub(r[1]),
+                    .x = Self.zero().sub(s[1]),
+                    .y = Self.zero().sub(t[1]),
+                };
+            }
+        }
+
+        pub fn modInverse(operand: Self, modulus: Self) Self {
+            const extended_gcd = Self.extendedGCD(operand, modulus);
+            std.crypto.sign.ecdsa.EcdsaP256Sha3_256
+            if (extended_gcd.gcd != Self.one()) {
+                unreachable;
+            }
+
+            const result = if (extended_gcd.x.lt(Self.zero())) {
+                return extended_gcd.x.add(modulus);
+            } else {
+                return extended_gcd.x;
+            };
+
+            return result;
         }
 
         /// Calculate the square of a field element.

@@ -19,6 +19,15 @@ pub const ProjectivePoint = struct {
         };
     }
 
+    fn identity() Self {
+        return .{
+            .x = Felt252.zero(),
+            .y = Felt252.zero(),
+            .z = Felt252.one(),
+            .infinity = true,
+        };
+    }
+
     pub fn doubleAssign(self: *Self) void {
         if (self.infinity) {
             return;
@@ -36,6 +45,60 @@ pub const ProjectivePoint = struct {
             .x = u.mul(w),
             .y = t.mul(v.sub(w)).sub(Felt252.two().mul(uy).mul(uy)),
             .z = u.mul(u).mul(u),
+            .infinity = self.infinity,
+        };
+    }
+
+    pub fn mulByBits(self: Self, rhs: [@bitSizeOf(u256)]bool) Self {
+        var product = ProjectivePoint.identity();
+
+        for (1..@bitSizeOf(u256)) |idx| {
+            product.doubleAssign();
+            if (rhs[@bitSizeOf(u256) - idx]) {
+                product.addAssign(self);
+            }
+        }
+        return product;
+    }
+
+    fn addAssign(self: *Self, rhs: ProjectivePoint) void {
+        if (rhs.infinity) {
+            return;
+        }
+
+        if (self.infinity) {
+            self.* = rhs;
+            return;
+        }
+
+        const u0 = self.x.mul(rhs.z);
+        const u1 = rhs.x.mul(self.z);
+        if (u0.equal(u1)) {
+            self.doubleAssign();
+            return;
+        }
+
+        const t0 = self.y.mul(rhs.z);
+        const t1 = rhs.y.mul(self.z);
+        const t = t0.sub(t1);
+
+        const u = u0.sub(u1);
+        const u2 = u.mul(u);
+
+        const v = self.z.mul(rhs.z);
+
+        // t * t * v - u2 * (u0 + u1);
+        const w = t.mul(t.mul(v)).sub(u2.mul(u0.add(u1)));
+        const u3 = u.mul(u2);
+
+        const x = u.mul(w);
+        const y = t.mul(u0.mul(u2).sub(w)).sub(t0.mul(u3));
+        const z = u3.mul(v);
+
+        self.* = .{
+            .x = x,
+            .y = y,
+            .z = z,
             .infinity = self.infinity,
         };
     }
