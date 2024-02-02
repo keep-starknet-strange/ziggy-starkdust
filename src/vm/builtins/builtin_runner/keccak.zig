@@ -116,7 +116,6 @@ pub const KeccakBuiltinRunner = struct {
                 @intCast(self.base),
                 0,
             ));
-            return result;
         }
         return result;
     }

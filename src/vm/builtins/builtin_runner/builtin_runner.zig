@@ -50,15 +50,8 @@ pub const BuiltinRunner = union(enum) {
     /// The base value as a `usize`.
     pub fn base(self: *const Self) usize {
         return switch (self.*) {
-            .Bitwise => |*bitwise| bitwise.base,
-            .EcOp => |*ec| ec.base,
-            .Hash => |*hash| hash.base,
-            .Output => |*output| output.base,
-            .RangeCheck => |*range_check| range_check.base,
-            .Keccak => |*keccak| keccak.base,
-            .Signature => |*signature| signature.base,
-            .Poseidon => |*poseidon| poseidon.base,
-            .SegmentArena => |*segment_arena| @as(usize, @intCast(segment_arena.base.segment_index)),
+            .SegmentArena => |*segment_arena| @intCast(segment_arena.base.segment_index),
+            inline else => |*case| case.base,
         };
     }
 
@@ -69,15 +62,7 @@ pub const BuiltinRunner = union(enum) {
     /// - `segments`: A pointer to the MemorySegmentManager managing memory segments.
     pub fn initSegments(self: *Self, segments: *MemorySegmentManager) !void {
         switch (self.*) {
-            .Bitwise => |*bitwise| try bitwise.initSegments(segments),
-            .EcOp => |*ec| try ec.initSegments(segments),
-            .Hash => |*hash| try hash.initSegments(segments),
-            .Output => |*output| try output.initSegments(segments),
-            .RangeCheck => |*range_check| try range_check.initSegments(segments),
-            .Keccak => |*keccak| try keccak.initSegments(segments),
-            .Signature => |*signature| try signature.initSegments(segments),
-            .Poseidon => |*poseidon| try poseidon.initSegments(segments),
-            .SegmentArena => |*segment_arena| try segment_arena.initSegments(segments),
+            inline else => |*case| try case.initSegments(segments),
         }
     }
 
@@ -88,15 +73,7 @@ pub const BuiltinRunner = union(enum) {
     ///  - `allocator`: The allocator to initialize the ArrayList.
     pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
         return switch (self.*) {
-            .Bitwise => |*bitwise| try bitwise.initialStack(allocator),
-            .EcOp => |*ec| try ec.initialStack(allocator),
-            .Hash => |*hash| try hash.initialStack(allocator),
-            .Output => |*output| try output.initialStack(allocator),
-            .RangeCheck => |*range_check| try range_check.initialStack(allocator),
-            .Keccak => |*keccak| try keccak.initialStack(allocator),
-            .Signature => |*signature| try signature.initialStack(allocator),
-            .Poseidon => |*poseidon| try poseidon.initialStack(allocator),
-            .SegmentArena => |*segment_arena| try segment_arena.initialStack(allocator),
+            inline else => |*case| try case.initialStack(allocator),
         };
     }
 
@@ -119,15 +96,12 @@ pub const BuiltinRunner = union(enum) {
         memory: *Memory,
     ) !?MaybeRelocatable {
         return switch (self.*) {
-            .Bitwise => |bitwise| try bitwise.deduceMemoryCell(address, memory),
             .EcOp => |*ec| try ec.deduceMemoryCell(allocator, address, memory),
-            .Hash => |*hash| try hash.deduceMemoryCell(address, memory),
-            .Output => |output| output.deduceMemoryCell(address, memory),
-            .RangeCheck => |range_check| range_check.deduceMemoryCell(address, memory),
             .Keccak => |*keccak| try keccak.deduceMemoryCell(allocator, address, memory),
-            .Signature => |signature| signature.deduceMemoryCell(address, memory),
             .Poseidon => |*poseidon| try poseidon.deduceMemoryCell(allocator, address, memory),
-            .SegmentArena => |segment_arena| segment_arena.deduceMemoryCell(address, memory),
+            .Bitwise => |bitwise| try bitwise.deduceMemoryCell(address, memory),
+            .Hash => |*hash| try hash.deduceMemoryCell(address, memory),
+            inline else => |*case| case.deduceMemoryCell(address, memory),
         };
     }
 
@@ -145,15 +119,8 @@ pub const BuiltinRunner = union(enum) {
     pub fn getMemorySegmentAddresses(self: *Self) Tuple(&.{ usize, ?usize }) {
         // TODO: fill-in missing builtins when implemented
         return switch (self.*) {
-            .Bitwise => |*bitwise| bitwise.getMemorySegmentAddresses(),
-            .EcOp => |*ec| ec.getMemorySegmentAddresses(),
-            .Hash => |*hash| hash.getMemorySegmentAddresses(),
-            .Output => |*output| output.getMemorySegmentAddresses(),
-            .RangeCheck => |*range_check| range_check.getMemorySegmentAddresses(),
-            .Keccak => |*keccak| keccak.getMemorySegmentAddresses(),
-            .Signature => .{ 0, 0 },
-            .Poseidon => |*poseidon| poseidon.getMemorySegmentAddresses(),
-            .SegmentArena => .{ 0, 0 },
+            .Signature, .SegmentArena => .{ 0, 0 },
+            inline else => |*case| case.getMemorySegmentAddresses(),
         };
     }
 };
