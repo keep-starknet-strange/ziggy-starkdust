@@ -57,6 +57,8 @@ pub const CairoVMError = error{
     InvalidApUpdate,
     /// Invalid Opcode
     InvalidOpcode,
+    /// Unexpected Failure
+    Unexpected,
 };
 
 /// Represents different error conditions that are memory-related.
