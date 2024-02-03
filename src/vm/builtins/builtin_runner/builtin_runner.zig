@@ -168,14 +168,8 @@ pub const BuiltinRunner = union(enum) {
     /// A `usize` representing the number of instances per component for the built-in runner.
     pub fn getInstancesPerComponent(self: *Self) u32 {
         return switch (self.*) {
-            .Bitwise => |*bitwise| bitwise.instances_per_component,
-            .EcOp => |*ec| ec.instances_per_component,
-            .Hash => |*hash| hash.instances_per_component,
-            .RangeCheck => |*range_check| range_check.instances_per_component,
-            .Keccak => |*keccak| keccak.instances_per_component,
-            .Signature => |*signature| signature.instances_per_component,
-            .Poseidon => |*poseidon| poseidon.instances_per_component,
             .SegmentArena, .Output => 1,
+            inline else => |*builtin| builtin.instances_per_component,
         };
     }
 };
