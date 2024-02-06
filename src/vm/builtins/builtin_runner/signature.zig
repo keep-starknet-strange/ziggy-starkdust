@@ -95,7 +95,7 @@ pub const SignatureBuiltinRunner = struct {
         errdefer result.deinit();
 
         if (self.included) {
-            result.append(MaybeRelocatable.fromInt(usize, self.base));
+            try result.append(MaybeRelocatable.fromInt(usize, self.base));
         }
 
         return result;
