@@ -9,6 +9,8 @@ const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
 const ecdsa_instance_def = @import("../../types/ecdsa_instance_def.zig");
 const verify = @import("../../../math/crypto/signatures.zig").verify;
 
+const CairoVM = @import("../../core.zig").CairoVM;
+
 const MemoryError = @import("../../../vm/error.zig").MemoryError;
 const MathError = @import("../../../vm/error.zig").MathError;
 const RunnerError = @import("../../../vm/error.zig").RunnerError;
@@ -95,7 +97,7 @@ pub const SignatureBuiltinRunner = struct {
         errdefer result.deinit();
 
         if (self.included) {
-            try result.append(MaybeRelocatable.fromInt(usize, self.base));
+            try result.append(MaybeRelocatable.fromRelocatable(Relocatable.new(@intCast(self.base), 0)));
         }
 
         return result;
@@ -252,8 +254,6 @@ test "Signature: get used instances" {
 }
 
 test "Signature: final stack" {
-    const CairoVM = @import("../../core.zig").CairoVM;
-
     // default
     var def = ecdsa_instance_def.EcdsaInstanceDef.init(512);
 
@@ -287,8 +287,6 @@ test "Signature: final stack" {
 }
 
 test "Signature: final stack error stop pointer" {
-    const CairoVM = @import("../../core.zig").CairoVM;
-
     // default
     var def = ecdsa_instance_def.EcdsaInstanceDef.init(512);
 
@@ -322,8 +320,6 @@ test "Signature: final stack error stop pointer" {
 }
 
 test "Signature: final stack error non relocatable" {
-    const CairoVM = @import("../../core.zig").CairoVM;
-
     // default
     var def = ecdsa_instance_def.EcdsaInstanceDef.init(512);
 
@@ -352,6 +348,172 @@ test "Signature: final stack error non relocatable" {
 
     try std.testing.expectEqual(
         RunnerError.NoStopPointer,
+        builtin.finalStack(vm.segments, pointer),
+    );
+}
+
+// TODO: implement tests after implementing vm functions/builtin functions
+// get_memory_accesses_missing_segment_used_sizes(
+// get memory access empty
+// get memory access
+
+test "Signature: get used cells empty" {
+    // default
+    var def = ecdsa_instance_def.EcdsaInstanceDef.init(512);
+
+    var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.segment_used_sizes.put(0, 0);
+
+    try std.testing.expectEqual(
+        0,
+        builtin.getUsedCells(vm.segments),
+    );
+}
+
+test "Signature: get used cells" {
+    // default
+    var def = ecdsa_instance_def.EcdsaInstanceDef.init(512);
+
+    var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.segment_used_sizes.put(0, 4);
+
+    try std.testing.expectEqual(
+        4,
+        builtin.getUsedCells(vm.segments),
+    );
+}
+
+test "Signature: getInitialStackForRangeCheckWithBase" {
+    var def = ecdsa_instance_def.EcdsaInstanceDef.init(512);
+
+    var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
+
+    builtin.base = 1;
+
+    const initial_stack = try builtin.initialStack(std.testing.allocator);
+    defer initial_stack.deinit();
+
+    try std.testing.expect(initial_stack.items[0].eq(
+        MaybeRelocatable.fromRelocatable(Relocatable.new(@intCast(builtin.base), 0)),
+    ));
+}
+
+test "Signature: initial stack not included test" {
+    var def = ecdsa_instance_def.EcdsaInstanceDef.init(512);
+
+    var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, false);
+
+    const initial_stack = try builtin.initialStack(std.testing.allocator);
+    defer initial_stack.deinit();
+
+    try std.testing.expectEqual(0, initial_stack.items.len);
+}
+
+test "Signature: deduce memory cell" {
+    var def = ecdsa_instance_def.EcdsaInstanceDef.init(512);
+
+    var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
+
+    var memory = try Memory.init(std.testing.allocator);
+    defer memory.deinit();
+
+    const result = builtin.deduceMemoryCell(Relocatable.new(0, 5), memory);
+
+    try std.testing.expectEqual(null, result);
+}
+
+test "Signature: ratio" {
+    var def = ecdsa_instance_def.EcdsaInstanceDef.init(512);
+
+    const builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
+
+    try std.testing.expectEqual(512, builtin.ratio);
+}
+
+test "Signature: base" {
+    var def = ecdsa_instance_def.EcdsaInstanceDef.init(512);
+
+    const builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
+
+    try std.testing.expectEqual(0, builtin.base);
+}
+
+test "Signature: get memory segment addresses" {
+    var def = ecdsa_instance_def.EcdsaInstanceDef.init(512);
+
+    const builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
+
+    try std.testing.expectEqual(.{ 0, null }, builtin.getMemorySegmentAddresses());
+}
+// TODO: implement when vm methods are implemented
+// test "Signature: get used cells and allocated size insufficient allocated" {
+
+test "Signature: final stack invalid stop pointer" {
+    // default
+    var def = ecdsa_instance_def.EcdsaInstanceDef.init(512);
+
+    var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{ 1, 0 } },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    const pointer = Relocatable.new(0, 1);
+
+    try std.testing.expectEqual(
+        RunnerError.InvalidStopPointerIndex,
+        builtin.finalStack(vm.segments, pointer),
+    );
+}
+
+test "Signature: final stack no used insances" {
+    // default
+    var def = ecdsa_instance_def.EcdsaInstanceDef.init(512);
+
+    var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{ 0, 0 } },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    const pointer = Relocatable.new(0, 1);
+
+    try std.testing.expectEqual(
+        MemoryError.MissingSegmentUsedSizes,
         builtin.finalStack(vm.segments, pointer),
     );
 }
