@@ -565,7 +565,7 @@ pub const Memory = struct {
     pub fn validateMemoryCell(self: *Self, address: Relocatable) !void {
         if (self.validation_rules.get(@intCast(address.segment_index))) |rule| {
             if (!self.validated_addresses.contains(address)) {
-                const list = try rule(self, address);
+                const list = try rule(self.allocator, self, address);
                 defer list.deinit();
                 try self.validated_addresses.addAddresses(list.items);
             }

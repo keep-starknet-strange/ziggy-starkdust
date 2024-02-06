@@ -151,7 +151,7 @@ pub const BuiltinRunner = union(enum) {
             .Output => |*output| output.getMemorySegmentAddresses(),
             .RangeCheck => |*range_check| range_check.getMemorySegmentAddresses(),
             .Keccak => |*keccak| keccak.getMemorySegmentAddresses(),
-            .Signature => .{ 0, 0 },
+            .Signature => |*signature| signature.getMemorySegmentAddresses(),
             .Poseidon => |*poseidon| poseidon.getMemorySegmentAddresses(),
             .SegmentArena => .{ 0, 0 },
         };

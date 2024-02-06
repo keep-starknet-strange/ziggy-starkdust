@@ -52,7 +52,7 @@ pub const ProjectivePoint = struct {
     pub fn mulByBits(self: Self, rhs: [@bitSizeOf(u256)]bool) Self {
         var product = ProjectivePoint.identity();
 
-        for (1..@bitSizeOf(u256)) |idx| {
+        for (1..@bitSizeOf(u256) + 1) |idx| {
             product.doubleAssign();
             if (rhs[@bitSizeOf(u256) - idx]) {
                 product.addAssign(self);
@@ -71,9 +71,9 @@ pub const ProjectivePoint = struct {
             return;
         }
 
-        const u0 = self.x.mul(rhs.z);
-        const u1 = rhs.x.mul(self.z);
-        if (u0.equal(u1)) {
+        const u_0 = self.x.mul(rhs.z);
+        const u_1 = rhs.x.mul(self.z);
+        if (u_0.equal(u_1)) {
             self.doubleAssign();
             return;
         }
@@ -82,18 +82,18 @@ pub const ProjectivePoint = struct {
         const t1 = rhs.y.mul(self.z);
         const t = t0.sub(t1);
 
-        const u = u0.sub(u1);
-        const u2 = u.mul(u);
+        const u = u_0.sub(u_1);
+        const u_2 = u.mul(u);
 
         const v = self.z.mul(rhs.z);
 
         // t * t * v - u2 * (u0 + u1);
-        const w = t.mul(t.mul(v)).sub(u2.mul(u0.add(u1)));
-        const u3 = u.mul(u2);
+        const w = t.mul(t.mul(v)).sub(u_2.mul(u_0.add(u_1)));
+        const u_3 = u.mul(u_2);
 
         const x = u.mul(w);
-        const y = t.mul(u0.mul(u2).sub(w)).sub(t0.mul(u3));
-        const z = u3.mul(v);
+        const y = t.mul(u_0.mul(u_2).sub(w)).sub(t0.mul(u_3));
+        const z = u_3.mul(v);
 
         self.* = .{
             .x = x,
@@ -159,8 +159,26 @@ pub const AffinePoint = struct {
     y: Felt252,
     infinity: bool,
 
-    // TODO: think about from_x method, dont implemented right now, because need to implemented
-    // sqrt method for Felt252
+    pub fn add(self: Self, other: Self) Self {
+        var cp = self;
+        var cp_other = other;
+
+        Self.addAssign(&cp, &cp_other);
+        return cp;
+    }
+
+    pub fn sub(self: Self, other: Self) Self {
+        var cp = self;
+        Self.subAssign(&cp, other);
+        return cp;
+    }
+
+    pub fn subAssign(self: *Self, rhs: Self) void {
+        var rhs_copy = rhs;
+
+        rhs_copy.y = rhs_copy.y.neg();
+        self.addAssign(&rhs_copy);
+    }
 
     pub fn addAssign(self: *Self, rhs: *AffinePoint) void {
         if (rhs.infinity) {
@@ -205,7 +223,17 @@ pub const AffinePoint = struct {
         self.x = result_x;
     }
 
-    pub fn fromProjectivePoint(p: *ProjectivePoint) Self {
+    pub fn fromX(x: Felt252) Self {
+        const y_squared = x.mul(x).mul(x).add(ALPHA.mul(x)).add(BETA);
+
+        return .{
+            .x = x,
+            .y = if (y_squared.sqrt()) |y| y else @panic("not found sqrt"),
+            .infinity = false,
+        };
+    }
+
+    pub fn fromProjectivePoint(p: ProjectivePoint) Self {
         // always one, that is why we can unwrap, unreachable will not happen
         const zinv = if (p.z.inv()) |zinv| zinv else unreachable;
 

@@ -116,6 +116,8 @@ pub const MemoryError = error{
     // Signature hint is missing for ECDSA builtin at address.
     // Add it using 'ecdsa_builtin.add_signature'.
     SignatureNotFound,
+    // Invalid signature
+    InvalidSignature,
 };
 
 /// Represents the error conditions that are related to the `CairoRunner`.
@@ -200,4 +202,12 @@ pub const ProgramError = error{
     /// Indicates an unsupported or unimplemented builtin encountered within the program.
     UnsupportedBuiltin,
     EmptyVecAlreadyFiltered,
+};
+
+// Represents errors occuring during ECDSA verify
+pub const VerifyError = error{
+    InvalidPublicKey,
+    InvalidMessageHash,
+    InvalidR,
+    InvalidS,
 };

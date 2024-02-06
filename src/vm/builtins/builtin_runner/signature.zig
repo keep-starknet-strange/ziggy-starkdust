@@ -3,12 +3,15 @@ const Signature = @import("../../../math/crypto/signatures.zig").Signature;
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
 const Memory = @import("../../memory/memory.zig").Memory;
-const MemoryError = @import("../../../vm/error.zig").MemoryError;
-const MathError = @import("../../../vm/error.zig").MathError;
 const validation_rule = @import("../../memory/memory.zig").validation_rule;
 const MemorySegmentManager = @import("../../memory/segments.zig").MemorySegmentManager;
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
 const ecdsa_instance_def = @import("../../types/ecdsa_instance_def.zig");
+const verify = @import("../../../math/crypto/signatures.zig").verify;
+
+const MemoryError = @import("../../../vm/error.zig").MemoryError;
+const MathError = @import("../../../vm/error.zig").MathError;
+const RunnerError = @import("../../../vm/error.zig").RunnerError;
 
 const AutoHashMap = std.AutoHashMap;
 const ArrayList = std.ArrayList;
@@ -76,7 +79,7 @@ pub const SignatureBuiltinRunner = struct {
         };
     }
 
-    pub fn addSignature(self: *Self, relocatable: Relocatable, rs: std.meta.Tuple(&.{ Felt252, Felt252 })) !void {
+    pub fn addSignature(self: *Self, relocatable: Relocatable, rs: struct { Felt252, Felt252 }) !void {
         try self.signatures.put(relocatable, .{
             .r = rs[0],
             .s = rs[1],
@@ -104,43 +107,38 @@ pub const SignatureBuiltinRunner = struct {
 
     fn validationRule(self: *Self, allocator: Allocator, memory: *Memory, addr: Relocatable) anyerror!std.ArrayList(Relocatable) {
         const cell_index = @mod(addr.offset, @as(u64, @intCast(self.cells_per_instance)));
-        var result = std.ArrayList(Relocatable).init(allocator);
-        var pubkey_addr: Relocatable = undefined;
-        var message_addr: Relocatable = undefined;
+        const result = std.ArrayList(Relocatable).init(allocator);
 
-        if (cell_index == 0) {
-            pubkey_addr = addr;
-            message_addr = try addr.addUint(1);
-        } else if (cell_index == 1) {
-            if (addr.subUint(1)) |prev_addr| {
-                pubkey_addr = prev_addr;
-                message_addr = addr;
-            } else |_| {
-                return result;
-            }
-        } else {
+        const pubkey_message_addr = switch (cell_index) {
+            0 => .{ addr, try addr.addUint(1) },
+            1 => if (addr.subUint(1)) |prev_addr|
+                .{ prev_addr, addr }
+            else
+                return result,
+            else => return result,
+        };
+
+        const pubkey = memory.getFelt(pubkey_message_addr[0]) catch if (cell_index == 1) return result else return MemoryError.PubKeyNonInt;
+        const msg = memory.getFelt(pubkey_message_addr[1]) catch if (cell_index == 0) return result else return MemoryError.MsgNonInt;
+
+        const signature = self.signatures.get(pubkey_message_addr[0]) catch return MemoryError.SignatureNotFound;
+
+        if (verify(pubkey, msg, signature.r, signature.s) catch return MemoryError.InvalidSignature) {
             return result;
         }
 
-        if (memory.getFelt(pubkey_addr)) |pubkey| {
-            if (memory.getFelt(message)) |msg| {
-                const signature = try if (self.signatures.get(pubkey_addr)) |sig| sig else MemoryError.SignatureNotFound;
-            } else |_| {
-                if (cell_index == 0) {
-                    return result;
-                }
-                return MemoryError.MsgNonInt;
-            }
-        } else |_| {
-            if (cell_index == 1) {
-                return result;
-            }
-
-            return MemoryError.PubKeyNonInt;
-        }
-        const pubkey = try memory.getFelt();
+        return MemoryError.InvalidSignature;
     }
 
+    /// Creates Validation Rule in Memory
+    ///
+    /// # Parameters
+    ///
+    /// - `memory`: A `Memory` pointer of validation rules segment index.
+    ///
+    /// # Modifies
+    ///
+    /// - `memory`: Adds validation rule to `memory`.
     pub fn addValidationRule(self: *Self, memory: *Memory) void {
         memory.addValidationRule(self.base, SelfValidationRuleClosure(self, &self.validationRule));
     }
@@ -155,4 +153,205 @@ pub const SignatureBuiltinRunner = struct {
         _ = self;
         return null;
     }
+
+    pub fn ratio(self: *const Self) ?u32 {
+        return self.ratio;
+    }
+
+    pub fn getMemorySegmentAddresses(self: *const Self) struct { usize, ?usize } {
+        return .{ self.base, self.stop_ptr };
+    }
+
+    pub fn getUsedCells(self: *const Self, segments: *MemorySegmentManager) MemoryError!usize {
+        return segments.getSegmentUsedSize(@intCast(self.base)) orelse return MemoryError.MissingSegmentUsedSizes;
+    }
+
+    pub fn getUsedInstances(self: *const Self, segments: *MemorySegmentManager) !usize {
+        return std.math.divCeil(
+            usize,
+            try self.getUsedCells(segments),
+            @intCast(self.cells_per_instance),
+        );
+    }
+
+    pub fn finalStack(
+        self: *Self,
+        segments: *MemorySegmentManager,
+        pointer: Relocatable,
+    ) !Relocatable {
+        if (self.included) {
+            const stop_pointer_addr = pointer.subUint(1) catch return RunnerError.NoStopPointer;
+
+            const stop_pointer = segments.memory.getRelocatable(stop_pointer_addr) catch return RunnerError.NoStopPointer;
+
+            if (@as(i64, @intCast(self.base)) != stop_pointer.segment_index) {
+                return RunnerError.InvalidStopPointerIndex;
+            }
+
+            const stop_ptr = stop_pointer.offset;
+            const num_instances = try self.getUsedInstances(segments);
+
+            const used = num_instances * @as(usize, @intCast(self.cells_per_instance));
+
+            if (stop_ptr != used) {
+                return RunnerError.InvalidStopPointer;
+            }
+
+            self.stop_ptr = stop_ptr;
+            return stop_pointer_addr;
+        } else {
+            self.stop_ptr = 0;
+            return pointer;
+        }
+    }
 };
+
+test "Signature: Used Cells" {
+    var def = ecdsa_instance_def.EcdsaInstanceDef.init(10);
+
+    var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
+
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+
+    try memory_segment_manager.segment_used_sizes.put(0, 1);
+
+    try std.testing.expectEqual(
+        @as(usize, @intCast(1)),
+        try builtin.getUsedCells(memory_segment_manager),
+    );
+}
+
+test "Signature: initialize segments" {
+    var def = ecdsa_instance_def.EcdsaInstanceDef.init(10);
+
+    var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
+
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+
+    try builtin.initSegments(memory_segment_manager);
+
+    try std.testing.expectEqual(0, builtin.base);
+}
+
+test "Signature: get used instances" {
+    var def = ecdsa_instance_def.EcdsaInstanceDef.init(10);
+
+    var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
+
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    defer memory_segment_manager.deinit();
+
+    try memory_segment_manager.segment_used_sizes.put(0, 1);
+
+    try std.testing.expectEqual(
+        1,
+        try builtin.getUsedInstances(memory_segment_manager),
+    );
+}
+
+test "Signature: final stack" {
+    const CairoVM = @import("../../core.zig").CairoVM;
+
+    // default
+    var def = ecdsa_instance_def.EcdsaInstanceDef.init(512);
+
+    var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{ 0, 0 } },
+            .{ .{ 0, 1 }, .{ 0, 1 } },
+            .{ .{ 2, 0 }, .{ 0, 0 } },
+            .{ .{ 2, 1 }, .{ 0, 0 } },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    try vm.segments.segment_used_sizes.put(0, 0);
+
+    const pointer = Relocatable.new(2, 2);
+
+    try std.testing.expectEqual(
+        Relocatable.new(2, 1),
+        try builtin.finalStack(vm.segments, pointer),
+    );
+}
+
+test "Signature: final stack error stop pointer" {
+    const CairoVM = @import("../../core.zig").CairoVM;
+
+    // default
+    var def = ecdsa_instance_def.EcdsaInstanceDef.init(512);
+
+    var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{ 0, 0 } },
+            .{ .{ 0, 1 }, .{ 0, 1 } },
+            .{ .{ 2, 0 }, .{ 0, 0 } },
+            .{ .{ 2, 1 }, .{ 0, 0 } },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    try vm.segments.segment_used_sizes.put(0, 998);
+
+    const pointer = Relocatable.new(2, 2);
+
+    try std.testing.expectEqual(
+        RunnerError.InvalidStopPointer,
+        builtin.finalStack(vm.segments, pointer),
+    );
+}
+
+test "Signature: final stack error non relocatable" {
+    const CairoVM = @import("../../core.zig").CairoVM;
+
+    // default
+    var def = ecdsa_instance_def.EcdsaInstanceDef.init(512);
+
+    var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{ 0, 0 } },
+            .{ .{ 0, 1 }, .{ 0, 1 } },
+            .{ .{ 2, 0 }, .{ 0, 0 } },
+            .{ .{ 2, 1 }, .{2} },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    try vm.segments.segment_used_sizes.put(0, 0);
+
+    const pointer = Relocatable.new(2, 2);
+
+    try std.testing.expectEqual(
+        RunnerError.NoStopPointer,
+        builtin.finalStack(vm.segments, pointer),
+    );
+}

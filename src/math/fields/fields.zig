@@ -1,17 +1,25 @@
 const std = @import("std");
 const builtin = @import("builtin");
 const ArrayList = std.ArrayList;
+
+const tonelliShanks = @import("./helper.zig").tonelliShanks;
+const extendedGCD = @import("./helper.zig").extendedGCD;
+
+pub const ModSqrtError = error{
+    InvalidInput,
+};
+
 /// Represents a finite field element.
-pub fn Field(comptime F: type, comptime mod: u256) type {
+pub fn Field(comptime F: type, comptime modulo: u256) type {
     return struct {
         const Self = @This();
 
         /// Number of bits needed to represent a field element with the given modulo.
-        pub const BitSize = @bitSizeOf(u256) - @clz(mod);
+        pub const BitSize = @bitSizeOf(u256) - @clz(modulo);
         /// Number of bytes required to store a field element.
         pub const BytesSize = @sizeOf(u256);
         /// The modulo value representing the finite field.
-        pub const Modulo = mod;
+        pub const Modulo = modulo;
         /// Half of the modulo value (Modulo - 1) divided by 2.
         pub const QMinOneDiv2 = (Modulo - 1) / 2;
         /// The number of bits in each limb (typically 64 for u64).
@@ -351,6 +359,21 @@ pub fn Field(comptime F: type, comptime mod: u256) type {
             return .{ .fe = ret };
         }
 
+        /// Calculating mod sqrt
+        /// TODO: add precomution?
+        pub fn sqrt(
+            elem: Self,
+        ) ?Self {
+            const a = elem.toInteger();
+
+            const v = tonelliShanks(@intCast(a), @intCast(modulo));
+            if (v[2] == true) {
+                return Self.fromInt(u256, @intCast(v[0]));
+            }
+
+            return null;
+        }
+
         /// Subtract one field element from another.
         ///
         /// Subtracts another field element from the current field element.
@@ -366,12 +389,28 @@ pub fn Field(comptime F: type, comptime mod: u256) type {
             );
             return .{ .fe = ret };
         }
+
         pub fn mod(
             self: Self,
             other: Self,
         ) Self {
             return Self.fromInt(u256, @mod(self.toInteger(), other.toInteger()));
         }
+
+        // multiply two field elements and return the result modulo the modulus
+        // support overflowed multiplication
+        pub fn mulModFloor(
+            self: Self,
+            other: Self,
+            modulus: Self,
+        ) Self {
+            const s: u512 = @intCast(self.toInteger());
+            const o: u512 = @intCast(other.toInteger());
+            const m: u512 = @intCast(modulus.toInteger());
+
+            return Self.fromInt(u256, @intCast((s * o) % m));
+        }
+
         /// Multiply two field elements.
         ///
         /// Multiplies the current field element by another field element.
@@ -438,60 +477,19 @@ pub fn Field(comptime F: type, comptime mod: u256) type {
             return self.equal(one());
         }
 
-        pub const ExtendedGCD = struct {
-            gcd: Self,
-            y: Self,
-            x: Self,
-        };
+        pub fn modInverse(operand: Self, modulus: Self) !Self {
+            const ext = extendedGCD(@bitCast(operand.toInteger()), @bitCast(modulus.toInteger()));
 
-        fn calculateGCD(q: Self, r: [2]Self) [2]Self {
-            std.mem.swap(Self, &r[0], &r[1]);
-            r[0] = r[0].sub(q.mul(r[1]));
-            return r;
-        }
-
-        pub fn extendedGCD(self: Self, other: Self) ExtendedGCD {
-            var s = [2]Self{ Self.zero(), Self.one() };
-            var t = [2]Self{ Self.one(), Self.zero() };
-            var r = [2]Self{ other, self };
-
-            while (!r[0].isZero()) {
-                const q = try r[1].div(r[0]);
-
-                r = Self.calculateGCD(q, r);
-                s = Self.calculateGCD(q, s);
-                t = Self.calculateGCD(q, t);
+            if (ext.gcd != 1) {
+                @panic("GCD must be one");
             }
 
-            if (r[1].ge(Self.zero())) {
-                return .{
-                    .gcd = r[1],
-                    .x = s[1],
-                    .y = t[1],
-                };
-            } else {
-                return .{
-                    .gcd = Self.zero().sub(r[1]),
-                    .x = Self.zero().sub(s[1]),
-                    .y = Self.zero().sub(t[1]),
-                };
-            }
-        }
+            const result = if (ext.x < 0)
+                ext.x + @as(i256, @bitCast(modulus.toInteger()))
+            else
+                ext.x;
 
-        pub fn modInverse(operand: Self, modulus: Self) Self {
-            const extended_gcd = Self.extendedGCD(operand, modulus);
-
-            if (extended_gcd.gcd != Self.one()) {
-                unreachable;
-            }
-
-            const result = if (extended_gcd.x.lt(Self.zero())) {
-                return extended_gcd.x.add(modulus);
-            } else {
-                return extended_gcd.x;
-            };
-
-            return result;
+            return Self.fromInt(u256, @bitCast(result));
         }
 
         /// Calculate the square of a field element.
@@ -534,6 +532,11 @@ pub fn Field(comptime F: type, comptime mod: u256) type {
                 base = base.mul(base);
             }
             return res;
+        }
+
+        /// Bitand operation
+        pub fn bitAnd(self: Self, other: Self) Self {
+            return Self.fromInt(u256, self.toInteger() & other.toInteger());
         }
 
         /// Batch inversion of multiple field elements.
