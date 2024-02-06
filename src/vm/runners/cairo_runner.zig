@@ -20,6 +20,7 @@ const starknet_felt = @import("../../math/fields/starknet.zig");
 const Felt252 = starknet_felt.Felt252;
 const OutputBuiltinRunner = @import("../builtins/builtin_runner/output.zig").OutputBuiltinRunner;
 const BitwiseBuiltinRunner = @import("../builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
+const ExecutionScopes = @import("../types/execution_scopes.zig").ExecutionScopes;
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -28,14 +29,14 @@ const expectEqualSlices = std.testing.expectEqualSlices;
 
 /// Tracks the step resources of a cairo execution run.
 const RunResources = struct {
-    const Self = @This();    
+    const Self = @This();
     // We consider the 'default' mode of RunResources having infinite steps.
     n_steps: ?usize = null,
 
     pub fn init(n_steps: usize) Self {
-        return .{.n_steps = n_steps};
+        return .{ .n_steps = n_steps };
     }
-    
+
     pub fn consumed(self: *Self) bool {
         if (self.n_steps) |n_steps| {
             return n_steps == 0;
@@ -57,7 +58,7 @@ const RunResources = struct {
 /// It is primarily used in the context of Starknet and implemented by HintProcessors.
 const ResourceTracker = struct {
     const Self = @This();
-    
+
     // define interface fields: ptr,vtab
     ptr: *anyopaque, //ptr to instance
     vtab: *const VTab, //ptr to vtab
@@ -85,14 +86,14 @@ const ResourceTracker = struct {
         std.debug.assert(@typeInfo(PtrInfo.Pointer.child) == .Struct); // Must point to a struct
         const impl = struct {
             fn consumed(ptr: *anyopaque) bool {
-                const self: Ptr = @ptrCast(@alignCast(ptr));                
+                const self: Ptr = @ptrCast(@alignCast(ptr));
                 return self.consumed();
             }
             fn consumeStep(ptr: *anyopaque) void {
-                const self: Ptr = @ptrCast(@alignCast(ptr));                                
+                const self: Ptr = @ptrCast(@alignCast(ptr));
                 self.consumeStep();
             }
-        }; 
+        };
         return .{
             .ptr = obj,
             .vtab = &.{
@@ -125,6 +126,7 @@ pub const CairoRunner = struct {
     run_ended: bool = false,
     relocated_trace: []RelocatedTraceEntry = undefined,
     relocated_memory: ArrayList(?Felt252),
+    execution_scopes: ExecutionScopes = undefined,
 
     pub fn init(
         allocator: Allocator,
@@ -390,7 +392,6 @@ pub const CairoRunner = struct {
     }
 };
 
-
 test "RunResources: consumed and consumeStep" {
     // given
     const steps = 5;
@@ -419,7 +420,7 @@ test "RunResources: with unlimited steps" {
     var run_resources = RunResources{};
 
     // default case has null for n_steps
-    try std.testing.expectEqual(null,run_resources.n_steps);
+    try std.testing.expectEqual(null, run_resources.n_steps);
 
     var tracker = ResourceTracker.init(&run_resources);
 
