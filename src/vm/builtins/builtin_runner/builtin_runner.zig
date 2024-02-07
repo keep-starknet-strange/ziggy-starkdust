@@ -18,6 +18,33 @@ const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatabl
 const Memory = @import("../../memory/memory.zig").Memory;
 const ArrayList = std.ArrayList;
 
+/// The name of the output builtin.
+pub const OUTPUT_BUILTIN_NAME = "output_builtin";
+
+/// The name of the Pedersen hash builtin.
+pub const HASH_BUILTIN_NAME = "pedersen_builtin";
+
+/// The name of the range check builtin.
+pub const RANGE_CHECK_BUILTIN_NAME = "range_check_builtin";
+
+/// The name of the ECDSA signature verification builtin.
+pub const SIGNATURE_BUILTIN_NAME = "ecdsa_builtin";
+
+/// The name of the bitwise operations builtin.
+pub const BITWISE_BUILTIN_NAME = "bitwise_builtin";
+
+/// The name of the elliptic curve operations builtin.
+pub const EC_OP_BUILTIN_NAME = "ec_op_builtin";
+
+/// The name of the Keccak hash builtin.
+pub const KECCAK_BUILTIN_NAME = "keccak_builtin";
+
+/// The name of the Poseidon hash builtin.
+pub const POSEIDON_BUILTIN_NAME = "poseidon_builtin";
+
+/// The name of the segment arena builtin.
+pub const SEGMENT_ARENA_BUILTIN_NAME = "segment_arena_builtin";
+
 /// Built-in runner
 pub const BuiltinRunner = union(enum) {
     const Self = @This();
@@ -122,5 +149,46 @@ pub const BuiltinRunner = union(enum) {
             .Signature, .SegmentArena => .{ 0, 0 },
             inline else => |*case| case.getMemorySegmentAddresses(),
         };
+    }
+
+    /// Gets the name of the built-in runner.
+    ///
+    /// This function returns the name associated with the specific type of built-in runner.
+    ///
+    /// # Returns
+    ///
+    /// A null-terminated byte slice representing the name of the built-in runner.
+    pub fn name(self: *Self) []const u8 {
+        return switch (self.*) {
+            .Bitwise => BITWISE_BUILTIN_NAME,
+            .EcOp => EC_OP_BUILTIN_NAME,
+            .Hash => HASH_BUILTIN_NAME,
+            .Output => OUTPUT_BUILTIN_NAME,
+            .RangeCheck => RANGE_CHECK_BUILTIN_NAME,
+            .Keccak => KECCAK_BUILTIN_NAME,
+            .Signature => SIGNATURE_BUILTIN_NAME,
+            .Poseidon => POSEIDON_BUILTIN_NAME,
+            .SegmentArena => SEGMENT_ARENA_BUILTIN_NAME,
+        };
+    }
+
+    /// Adds a validation rule to the built-in runner for memory validation.
+    ///
+    /// This method is used to add a validation rule specific to the type of built-in runner.
+    /// For certain built-ins, like the Range Check built-in, additional memory validation rules may
+    /// be necessary to ensure proper execution.
+    ///
+    /// # Arguments
+    ///
+    /// - `memory`: A pointer to the Memory manager for the current context.
+    ///
+    /// # Errors
+    ///
+    /// An error is returned if adding the validation rule fails.
+    pub fn addValidationRule(self: *Self, memory: *Memory) !void {
+        switch (self.*) {
+            .RangeCheck => |*range_check| try range_check.addValidationRule(memory),
+            else => {},
+        }
     }
 };
