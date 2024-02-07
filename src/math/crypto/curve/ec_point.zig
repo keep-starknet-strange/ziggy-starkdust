@@ -7,8 +7,8 @@ const BETA = @import("./curve_params.zig").BETA;
 pub const ProjectivePoint = struct {
     const Self = @This();
 
-    x: Felt252,
-    y: Felt252,
+    x: Felt252 = Felt252.zero(),
+    y: Felt252 = Felt252.zero(),
     z: Felt252 = Felt252.one(),
     infinity: bool = false,
 
@@ -21,9 +21,6 @@ pub const ProjectivePoint = struct {
 
     fn identity() Self {
         return .{
-            .x = Felt252.zero(),
-            .y = Felt252.zero(),
-            .z = Felt252.one(),
             .infinity = true,
         };
     }
@@ -52,7 +49,7 @@ pub const ProjectivePoint = struct {
     pub fn mulByBits(self: Self, rhs: [@bitSizeOf(u256)]bool) Self {
         var product = ProjectivePoint.identity();
 
-        for (1..@bitSizeOf(u256) + 1) |idx| {
+        inline for (1..@bitSizeOf(u256) + 1) |idx| {
             product.doubleAssign();
             if (rhs[@bitSizeOf(u256) - idx]) {
                 product.addAssign(self);
@@ -91,14 +88,10 @@ pub const ProjectivePoint = struct {
         const w = t.mul(t.mul(v)).sub(u_2.mul(u_0.add(u_1)));
         const u_3 = u.mul(u_2);
 
-        const x = u.mul(w);
-        const y = t.mul(u_0.mul(u_2).sub(w)).sub(t0.mul(u_3));
-        const z = u_3.mul(v);
-
         self.* = .{
-            .x = x,
-            .y = y,
-            .z = z,
+            .x = u.mul(w),
+            .y = t.mul(u_0.mul(u_2).sub(w)).sub(t0.mul(u_3)),
+            .z = u_3.mul(v),
             .infinity = self.infinity,
         };
     }
@@ -169,7 +162,7 @@ pub const AffinePoint = struct {
 
     pub fn sub(self: Self, other: Self) Self {
         var cp = self;
-        Self.subAssign(&cp, other);
+        cp.subAssign(other);
         return cp;
     }
 
@@ -223,12 +216,12 @@ pub const AffinePoint = struct {
         self.x = result_x;
     }
 
-    pub fn fromX(x: Felt252) Self {
+    pub fn fromX(x: Felt252) error{SqrtNotExist}!Self {
         const y_squared = x.mul(x).mul(x).add(ALPHA.mul(x)).add(BETA);
 
         return .{
             .x = x,
-            .y = if (y_squared.sqrt()) |y| y else @panic("not found sqrt"),
+            .y = if (y_squared.sqrt()) |y| y else return error.SqrtNotExist,
             .infinity = false,
         };
     }

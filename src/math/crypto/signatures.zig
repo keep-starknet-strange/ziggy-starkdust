@@ -117,7 +117,7 @@ pub fn verify(
         return VerifyError.InvalidS;
     }
 
-    const full_public_key = AffinePoint.fromX(public_key);
+    const full_public_key = try AffinePoint.fromX(public_key);
 
     const w = try s.modInverse(EC_ORDER);
     if (w.equal(Felt252.zero()) or w.ge(ELEMENT_UPPER_BOUND)) {

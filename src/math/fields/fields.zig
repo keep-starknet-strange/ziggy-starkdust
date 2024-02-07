@@ -367,7 +367,7 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             const a = elem.toInteger();
 
             const v = tonelliShanks(@intCast(a), @intCast(modulo));
-            if (v[2] == true) {
+            if (v[2]) {
                 return Self.fromInt(u256, @intCast(v[0]));
             }
 
