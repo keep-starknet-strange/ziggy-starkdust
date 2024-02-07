@@ -155,7 +155,7 @@ pub const BuiltinRunner = union(enum) {
             .Signature => |*signature| signature.getMemorySegmentAddresses(),
             .Poseidon => |*poseidon| poseidon.getMemorySegmentAddresses(),
             .SegmentArena => .{ 0, 0 },
-            inline else => |*case| case.getMemorySegmentAddresses(),
+            // inline else => |*case| case.getMemorySegmentAddresses(),
         };
     }
 
