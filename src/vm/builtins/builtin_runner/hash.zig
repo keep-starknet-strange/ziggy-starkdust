@@ -107,7 +107,6 @@ pub const HashBuiltinRunner = struct {
                     0,
                 ),
             });
-            return result;
         }
         return result;
     }

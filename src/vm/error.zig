@@ -138,6 +138,14 @@ pub const RunnerError = error{
     IntegerBiggerThanPowerOfTwo,
     /// Memory-related errors in the built-in runners.
     Memory,
+    /// Raised when attempting to access the program counter (PC) when it is not available.
+    NoPC,
+    /// Raised when attempting to access the allocation pointer (AP) when it is not available.
+    NoAP,
+    /// Raised when attempting to access the function pointer (FP) when it is not available.
+    NoFP,
+    /// Raised when there are errors related to memory validation in Cairo runner.
+    MemoryValidationError,
 };
 
 /// Represents different error conditions that occur during mathematical operations.
