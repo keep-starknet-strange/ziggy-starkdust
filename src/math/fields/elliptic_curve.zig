@@ -1,21 +1,44 @@
 const std = @import("std");
 
+/// Enum representing possible errors for elliptic curve operations.
 pub const ECError = error{
+    /// Error indicating division by zero.
     DivisionByZero,
+    /// Error indicating that x-coordinates are equal.
     XCoordinatesAreEqual,
+    /// Error indicating that the y-coordinate is zero.
     YCoordinateIsZero,
 };
 
 const Felt252 = @import("./starknet.zig").Felt252;
 
+/// Constant representing the alpha value in the elliptic curve.
 pub const ALPHA = Felt252.one();
+
+/// Constant representing the beta value in the elliptic curve.
 pub const BETA = Felt252.fromInt(u256, 3141592653589793238462643383279502884197169399375105820974944592307816406665);
 
 /// A type that represents a point (x,y) on an elliptic curve.
 pub const ECPoint = struct {
     const Self = @This();
+
+    /// x-coordinate of the elliptic curve point.
     x: Felt252 = Felt252.zero(),
+
+    /// y-coordinate of the elliptic curve point.
     y: Felt252 = Felt252.zero(),
+
+    /// Initializes an `ECPoint` with the specified x and y coordinates.
+    ///
+    /// # Parameters
+    /// - `x`: The x-coordinate of the point.
+    /// - `y`: The y-coordinate of the point.
+    ///
+    /// # Returns
+    /// An initialized `ECPoint` with the provided coordinates.
+    pub fn init(x: Felt252, y: Felt252) Self {
+        return .{ .x = x, .y = y };
+    }
 
     /// Adds two points on an elliptic curve.
     ///
@@ -96,7 +119,7 @@ pub const ECPoint = struct {
     /// - `beta` - The beta parameter of the elliptic curve.
     ///
     /// # Returns boolean.
-    pub fn pointOnCurve(self: *Self, alpha: Felt252, beta: Felt252) bool {
+    pub fn pointOnCurve(self: *const Self, alpha: Felt252, beta: Felt252) bool {
         const lhs = self.y.pow(2);
         const rhs = self.x.pow(3).add(self.x.mul(alpha).add(beta));
         return lhs.equal(rhs);
@@ -113,8 +136,7 @@ pub const ECPoint = struct {
 /// # Returns
 /// The result of the field modulo division.
 pub fn divMod(m: Felt252, n: Felt252) ECError!Felt252 {
-    const x = try m.div(n);
-    return x;
+    return try m.div(n);
 }
 
 /// Calculates the result of the elliptic curve operation P + m * Q,

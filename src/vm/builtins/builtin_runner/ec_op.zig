@@ -1,5 +1,6 @@
 const std = @import("std");
 const ec_op_instance_def = @import("../../types/ec_op_instance_def.zig");
+const EcOpInstanceDef = ec_op_instance_def.EcOpInstanceDef;
 const relocatable = @import("../../memory/relocatable.zig");
 const CoreVM = @import("../../../vm/core.zig");
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
@@ -20,11 +21,14 @@ const insertAtIndex = @import("../../../utils/testing.zig").insertAtIndex;
 const RunnerError = Error.RunnerError;
 const Tuple = std.meta.Tuple;
 
-const EC_POINTS = [_]Tuple(&.{EC.ECPoint}){
-    @as(std.meta.Tuple(&.{EC.ECPoint}), .{EC.ECPoint{ .x = Felt252.zero(), .y = Felt252.one() }}),
-    @as(std.meta.Tuple(&.{EC.ECPoint}), .{EC.ECPoint{ .x = Felt252.two(), .y = Felt252.three() }}),
-    @as(std.meta.Tuple(&.{EC.ECPoint}), .{EC.ECPoint{ .x = Felt252.fromInt(u8, 5), .y = Felt252.fromInt(u8, 6) }}),
+/// Array of `ECPoint` instances representing points on an elliptic curve.
+const EC_POINTS = [_]EC.ECPoint{
+    .{ .x = Felt252.zero(), .y = Felt252.one() },
+    .{ .x = Felt252.two(), .y = Felt252.three() },
+    .{ .x = Felt252.fromInt(u8, 5), .y = Felt252.fromInt(u8, 6) },
 };
+
+/// Output indices referencing the third point in the `EC_POINTS` array.
 const OUTPUT_INDICES = EC_POINTS[2];
 
 /// EC Operation built-in runner
@@ -34,19 +38,19 @@ pub const EcOpBuiltinRunner = struct {
     /// Ratio
     ratio: ?u32,
     /// Base
-    base: usize,
+    base: usize = 0,
     /// Number of cells per instance
-    cells_per_instance: u32,
+    cells_per_instance: u32 = ec_op_instance_def.CELLS_PER_EC_OP,
     /// Number of input cells
-    n_input_cells: u32,
+    n_input_cells: u32 = ec_op_instance_def.INPUT_CELLS_PER_EC_OP,
     /// Built-in EC Operation instance
-    ec_op_builtin: ec_op_instance_def.EcOpInstanceDef,
+    ec_op_builtin: EcOpInstanceDef,
     /// Stop pointer
-    stop_ptr: ?usize,
+    stop_ptr: ?usize = null,
     /// Included boolean flag
     included: bool,
     /// Number of instance per component
-    instances_per_component: u32,
+    instances_per_component: u32 = 1,
     /// Cache
     cache: AutoHashMap(Relocatable, Felt252),
 
@@ -66,24 +70,19 @@ pub const EcOpBuiltinRunner = struct {
     /// A new `EcOpBuiltinRunner` instance.
     pub fn init(
         allocator: Allocator,
-        instance_def: ec_op_instance_def.EcOpInstanceDef,
+        instance_def: EcOpInstanceDef,
         included: bool,
     ) Self {
         return .{
             .ratio = instance_def.ratio,
-            .base = 0,
-            .n_input_cells = ec_op_instance_def.INPUT_CELLS_PER_EC_OP,
-            .cells_per_instance = ec_op_instance_def.CELLS_PER_EC_OP,
             .ec_op_builtin = instance_def,
-            .stop_ptr = null,
             .included = included,
-            .instances_per_component = 1,
             .cache = AutoHashMap(Relocatable, Felt252).init(allocator),
         };
     }
 
     pub fn initDefault(allocator: Allocator) Self {
-        return Self.init(allocator, &@as(ec_op_instance_def.EcOpInstanceDef, .{}), true);
+        return Self.init(allocator, .{}, true);
     }
 
     /// Initializes memory segments and sets the base value for the EC OP runner.
@@ -113,13 +112,10 @@ pub const EcOpBuiltinRunner = struct {
     pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
         var result = ArrayList(MaybeRelocatable).init(allocator);
         if (self.included) {
-            try result.append(.{
-                .relocatable = Relocatable.new(
-                    @intCast(self.base),
-                    0,
-                ),
-            });
-            return result;
+            try result.append(MaybeRelocatable.fromSegment(
+                @intCast(self.base),
+                0,
+            ));
         }
         return result;
     }
@@ -142,9 +138,13 @@ pub const EcOpBuiltinRunner = struct {
     pub fn deduceMemoryCell(self: *Self, allocator: Allocator, address: Relocatable, memory: *Memory) !?MaybeRelocatable {
         const index = address.offset % self.cells_per_instance;
         const indexFelt = Felt252.fromInt(u64, index);
-        if ((!indexFelt.equal(OUTPUT_INDICES[0].x)) and (!indexFelt.equal(OUTPUT_INDICES[0].y))) return error.NotOutputCell;
+        if ((!indexFelt.equal(OUTPUT_INDICES.x)) and (!indexFelt.equal(OUTPUT_INDICES.y)))
+            return error.NotOutputCell;
 
-        const instance = Relocatable.init(address.segment_index, address.offset - index);
+        const instance = Relocatable.init(
+            address.segment_index,
+            address.offset - index,
+        );
         const x_addr = try instance.addFelt(Felt252.fromInt(u256, self.n_input_cells));
 
         if (self.cache.get(address)) |value| {
@@ -163,32 +163,28 @@ pub const EcOpBuiltinRunner = struct {
         }
 
         for (EC_POINTS[0..2]) |pair| {
-            const x = input_cells.items[try pair[0].x.tryIntoU64()];
-            const y = input_cells.items[try pair[0].y.tryIntoU64()];
-            var point = EC.ECPoint{ .x = x, .y = y };
-            if (!point.pointOnCurve(EC.ALPHA, EC.BETA)) return error.PointNotOnCurve;
+            if (!EC.ECPoint.init(
+                input_cells.items[try pair.x.tryIntoU64()],
+                input_cells.items[try pair.y.tryIntoU64()],
+            ).pointOnCurve(EC.ALPHA, EC.BETA))
+                return error.PointNotOnCurve;
         }
 
         const height = 256;
 
-        const partial_sum = EC.ECPoint{
-            .x = input_cells.items[0],
-            .y = input_cells.items[1],
-        };
-
-        const doubled_point = EC.ECPoint{
-            .x = input_cells.items[2],
-            .y = input_cells.items[3],
-        };
-
-        const result = try EC.ecOpImpl(partial_sum, doubled_point, input_cells.items[4], EC.ALPHA, height);
+        const result = try EC.ecOpImpl(
+            EC.ECPoint.init(input_cells.items[0], input_cells.items[1]),
+            EC.ECPoint.init(input_cells.items[2], input_cells.items[3]),
+            input_cells.items[4],
+            EC.ALPHA,
+            height,
+        );
         try self.cache.put(x_addr, result.x);
         try self.cache.put(try x_addr.addFelt(Felt252.one()), result.x);
 
-        return switch (index - self.n_input_cells) {
-            0 => MaybeRelocatable.fromFelt(result.x),
-            else => MaybeRelocatable.fromFelt(result.y),
-        };
+        return MaybeRelocatable.fromFelt(
+            if ((index - self.n_input_cells) == 0) result.x else result.y,
+        );
     }
 
     /// Get the number of used cells associated with this EC OP runner.
@@ -245,10 +241,9 @@ pub const EcOpBuiltinRunner = struct {
         ) orelse MemoryError.MissingSegmentUsedSizes);
         var result = ArrayList(Relocatable).init(allocator);
         for (0..segment_size) |i| {
-            try result.append(.{
-                .segment_index = @intCast(self.base),
-                .offset = i,
-            });
+            try result.append(
+                Relocatable.init(@intCast(self.base), i),
+            );
         }
         return result;
     }
@@ -261,10 +256,7 @@ pub const EcOpBuiltinRunner = struct {
     /// # Returns
     /// A tuple of `usize` and `?usize` addresses.
     pub fn getMemorySegmentAddresses(self: *Self) std.meta.Tuple(&.{ usize, ?usize }) {
-        return .{
-            self.base,
-            self.stop_ptr,
-        };
+        return .{ self.base, self.stop_ptr };
     }
 
     /// Calculate the final stack.
@@ -294,12 +286,9 @@ pub const EcOpBuiltinRunner = struct {
             }
             const stop_ptr = stop_pointer.offset;
 
-            if (stop_ptr != try self.getUsedInstances(segments) * @as(
-                usize,
-                @intCast(self.cells_per_instance),
-            )) {
+            if (stop_ptr != try self.getUsedInstances(segments) * self.cells_per_instance)
                 return RunnerError.InvalidStopPointer;
-            }
+
             self.stop_ptr = stop_ptr;
             return stop_pointer_addr;
         }
@@ -319,10 +308,26 @@ pub const EcOpBuiltinRunner = struct {
 // ************************************************************
 const expectError = std.testing.expectError;
 const expectEqual = std.testing.expectEqual;
+const expect = std.testing.expect;
 const expectEqualSlices = std.testing.expectEqualSlices;
 
+test "ECOPBuiltinRunner: initDefault should init an instance with default values" {
+    var builtin = EcOpBuiltinRunner.initDefault(std.testing.allocator);
+    defer builtin.deinit();
+
+    try expectEqual(@as(u32, 256), builtin.ratio);
+    try expectEqual(@as(usize, 0), builtin.base);
+    try expectEqual(@as(u32, 7), builtin.cells_per_instance);
+    try expectEqual(@as(u32, 5), builtin.n_input_cells);
+    try expectEqual(EcOpInstanceDef{}, builtin.ec_op_builtin);
+    try expectEqual(@as(?usize, null), builtin.stop_ptr);
+    try expect(builtin.included);
+    try expectEqual(@as(u32, 1), builtin.instances_per_component);
+    try expectEqual(@as(usize, 0), builtin.cache.count());
+}
+
 test "ECOPBuiltinRunner: assert that the number of instances used by the builtin is correct" {
-    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+    const instance_def = EcOpInstanceDef{
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
@@ -341,7 +346,7 @@ test "ECOPBuiltinRunner: assert that the number of instances used by the builtin
 }
 
 test "ECOPBuiltinRunner: final stack success" {
-    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+    const instance_def = EcOpInstanceDef{
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
@@ -383,7 +388,7 @@ test "ECOPBuiltinRunner: final stack success" {
 }
 
 test "ECOPBuiltinRunner: final stack error stop pointer" {
-    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+    const instance_def = EcOpInstanceDef{
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
@@ -425,7 +430,7 @@ test "ECOPBuiltinRunner: final stack error stop pointer" {
 }
 
 test "ECOPBuiltinRunner: final stack error when not included" {
-    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+    const instance_def = EcOpInstanceDef{
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, false);
@@ -467,7 +472,7 @@ test "ECOPBuiltinRunner: final stack error when not included" {
 }
 
 test "ECOPBuiltinRunner: final stack error non relocatable" {
-    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+    const instance_def = EcOpInstanceDef{
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
@@ -528,7 +533,7 @@ test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory valid" {
     //        return()
     //        end
 
-    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+    const instance_def = EcOpInstanceDef{
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
@@ -575,7 +580,7 @@ test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory valid" {
 }
 
 test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory unfilled input cells" {
-    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+    const instance_def = EcOpInstanceDef{
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
@@ -617,7 +622,7 @@ test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory unfilled inp
 }
 
 test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory addr not an output cell" {
-    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+    const instance_def = EcOpInstanceDef{
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
@@ -659,7 +664,7 @@ test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory addr not an 
 }
 
 test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory non integer input" {
-    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+    const instance_def = EcOpInstanceDef{
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
@@ -701,7 +706,7 @@ test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory non integer 
 }
 
 test "ECOPBuiltinRunner: get memory segment addresses" {
-    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+    const instance_def = EcOpInstanceDef{
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
@@ -713,7 +718,7 @@ test "ECOPBuiltinRunner: get memory segment addresses" {
 }
 
 test "ECOPBuiltinRunner: get memory accesses missing segment used sizes" {
-    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+    const instance_def = EcOpInstanceDef{
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
@@ -733,7 +738,7 @@ test "ECOPBuiltinRunner: get memory accesses missing segment used sizes" {
 }
 
 test "ECOPBuiltinRunner: get memory accesses empty" {
-    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+    const instance_def = EcOpInstanceDef{
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
@@ -753,7 +758,7 @@ test "ECOPBuiltinRunner: get memory accesses empty" {
 }
 
 test "ECOPBuiltinRunner: get memory accesses" {
-    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+    const instance_def = EcOpInstanceDef{
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
@@ -780,7 +785,7 @@ test "ECOPBuiltinRunner: get memory accesses" {
 }
 
 test "ECOPBuiltinRunner: get used cells missing segment used sizes" {
-    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+    const instance_def = EcOpInstanceDef{
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
@@ -796,7 +801,7 @@ test "ECOPBuiltinRunner: get used cells missing segment used sizes" {
 }
 
 test "ECOPBuiltinRunner: get used cells empty" {
-    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+    const instance_def = EcOpInstanceDef{
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
@@ -814,7 +819,7 @@ test "ECOPBuiltinRunner: get used cells empty" {
 }
 
 test "ECOPBuiltinRunner: get used cells and allocated size test" {
-    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+    const instance_def = EcOpInstanceDef{
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);
@@ -833,7 +838,7 @@ test "ECOPBuiltinRunner: get used cells and allocated size test" {
 }
 
 test "ECOPBuiltinRunner: get used cells success" {
-    const instance_def = ec_op_instance_def.EcOpInstanceDef{
+    const instance_def = EcOpInstanceDef{
         .ratio = 10,
     };
     var builtin = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true);

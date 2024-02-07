@@ -327,6 +327,35 @@ pub const CairoVM = struct {
     /// This function may return an error of type `CairoVMError.InstructionEncodingError` if there
     /// is an issue with encoding or decoding the instruction.
     ///
+    /// # Tracing
+    ///
+    /// If tracing is not disabled, this function logs the current state, including program counter (`pc`),
+    /// argument pointer (`ap`), and frame pointer (`fp`) to the trace context before executing the instruction.
+    ///
+    /// # Operations
+    ///
+    /// ## Memory Operations
+    ///
+    /// - Computes operands for the instruction using the `computeOperands` function.
+    /// - Inserts deduced operands into memory using the `insertDeducedOperands` function.
+    /// - Performs opcode-specific assertions on operands using the `opcodeAssertions` function.
+    ///
+    /// ## Register Updates
+    ///
+    /// - Updates registers based on the instruction and operands using the `updateRegisters` function.
+    ///
+    /// ## Relocation Limits
+    ///
+    /// - Calculates and updates relocation limits based on the instruction's offset fields.
+    ///
+    /// ## Memory Access Marking
+    ///
+    /// - Marks memory accesses for the instruction's destination and operands.
+    ///
+    /// ## Step Counter
+    ///
+    /// - Increments the current step counter after executing the instruction.
+    ///
     /// # Safety
     ///
     /// This function assumes proper initialization of the CairoVM instance and must be called in
@@ -352,6 +381,9 @@ pub const CairoVM = struct {
 
         // Insert deduced operands into memory.
         try self.insertDeducedOperands(allocator, operands_result);
+
+        // Perform opcode-specific assertions on operands using the `opcodeAssertions` function.
+        try self.opcodeAssertions(instruction, operands_result);
 
         // Update registers based on the instruction and operands.
         try self.updateRegisters(
@@ -1136,11 +1168,35 @@ pub const CairoVM = struct {
     }
 
     /// Performs opcode-specific assertions on the operands of an instruction.
+    ///
     /// # Arguments
+    ///
+    /// - `self`: A pointer to the CairoVM instance.
     /// - `instruction`: A pointer to the instruction being asserted.
     /// - `operands`: The result of the operands computation.
+    ///
     /// # Errors
+    ///
     /// - Returns an error if an assertion fails.
+    ///
+    /// # Opcode Assertions
+    ///
+    /// This function performs opcode-specific assertions based on the opcode of the given instruction.
+    ///
+    /// - For the `AssertEq` opcode, it asserts that the result and destination operands are equal.
+    ///   Returns `CairoVMError.DiffAssertValues` if the assertion fails or `CairoVMError.UnconstrainedResAssertEq`
+    ///   if the result operand is unconstrained.
+    ///
+    /// - For the `Call` opcode, it asserts that operand 0 is the return program counter (PC) and that the destination
+    ///   operand is the frame pointer (FP). Returns `CairoVMError.CantWriteReturnPc` if the assertion on operand 0 fails
+    ///   or `CairoVMError.CantWriteReturnFp` if the assertion on the destination operand fails.
+    ///
+    /// - No assertions are performed for other opcodes.
+    ///
+    /// # Safety
+    ///
+    /// This function assumes proper initialization of the CairoVM instance and must be called in
+    /// a controlled environment to ensure the correct execution of instructions and memory operations.
     pub fn opcodeAssertions(self: *Self, instruction: *const Instruction, operands: OperandsResult) !void {
         // Switch on the opcode to perform the appropriate assertion.
         switch (instruction.opcode) {
