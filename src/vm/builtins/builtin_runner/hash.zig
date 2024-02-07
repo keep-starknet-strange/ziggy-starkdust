@@ -107,7 +107,6 @@ pub const HashBuiltinRunner = struct {
                     0,
                 ),
             });
-            return result;
         }
         return result;
     }
@@ -503,7 +502,6 @@ test "HashBuiltinRunner: deduce memory cell pedersen for preset memory already c
     const memory_segment_manager = try Segments.MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
-
 
     try memory_segment_manager.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 0, 3 }, .{32} },
