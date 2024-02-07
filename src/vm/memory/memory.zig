@@ -29,7 +29,7 @@ pub const MemoryCell = struct {
     /// The index or relocation information of the memory segment.
     maybe_relocatable: MaybeRelocatable,
     /// Indicates whether the MemoryCell has been accessed.
-    is_accessed: bool,
+    is_accessed: bool = false,
 
     /// Creates a new MemoryCell.
     ///
@@ -37,13 +37,8 @@ pub const MemoryCell = struct {
     /// - `maybe_relocatable`: The index or relocation information of the memory segment.
     /// # Returns
     /// A new MemoryCell.
-    pub fn init(
-        maybe_relocatable: MaybeRelocatable,
-    ) Self {
-        return .{
-            .maybe_relocatable = maybe_relocatable,
-            .is_accessed = false,
-        };
+    pub fn init(maybe_relocatable: MaybeRelocatable) Self {
+        return .{ .maybe_relocatable = maybe_relocatable };
     }
 
     /// Checks equality between two MemoryCell instances.
@@ -223,10 +218,8 @@ pub const AddressSet = struct {
     /// An error if the addition fails.
     pub fn addAddresses(self: *Self, addresses: []const Relocatable) !void {
         for (addresses) |address| {
-            if (address.segment_index < 0) {
-                continue;
-            }
-            try self.set.put(address, true);
+            if (address.segment_index >= 0)
+                try self.set.put(address, true);
         }
     }
 
@@ -753,6 +746,7 @@ pub const Memory = struct {
         size: usize,
     ) !std.ArrayList(?MaybeRelocatable) {
         var values = std.ArrayList(?MaybeRelocatable).init(allocator);
+        errdefer values.deinit();
         for (0..size) |i| {
             try values.append(self.get(try address.addUint(i)));
         }
@@ -809,7 +803,7 @@ pub const Memory = struct {
         );
         errdefer values.deinit();
         for (0..size) |i| {
-            if (self.get(try address.addUint(@intCast(i)))) |elem| {
+            if (self.get(try address.addUint(i))) |elem| {
                 try values.append(elem);
             } else {
                 return MemoryError.GetRangeMemoryGap;
@@ -1065,7 +1059,7 @@ pub const Memory = struct {
                 try self.set(
                     allocator,
                     Relocatable.init(row[0][0], row[0][1]),
-                    .{ .felt = Felt252.fromInt(u256, row[1][0]) },
+                    MaybeRelocatable.fromInt(u256, row[1][0]),
                 );
             } else {
                 switch (@typeInfo(@TypeOf(row[1][0]))) {
@@ -1073,17 +1067,17 @@ pub const Memory = struct {
                         try self.set(
                             allocator,
                             Relocatable.init(row[0][0], row[0][1]),
-                            .{ .relocatable = Relocatable.init(
+                            MaybeRelocatable.fromSegment(
                                 try std.fmt.parseUnsigned(i64, row[1][0], 10),
                                 row[1][1],
-                            ) },
+                            ),
                         );
                     },
                     else => {
                         try self.set(
                             allocator,
                             Relocatable.init(row[0][0], row[0][1]),
-                            .{ .relocatable = Relocatable.init(row[1][0], row[1][1]) },
+                            MaybeRelocatable.fromSegment(row[1][0], row[1][1]),
                         );
                     },
                 }
