@@ -73,3 +73,9 @@ jobs:
           zig version
           make build-integration-test
           ./zig-out/bin/integration_test
+
+      - name: Run benchmarks
+        run: |
+          zig version
+          make build-compare-benchmarks
+          ./zig-out/bin/compare_benchmarks

@@ -78,6 +78,13 @@ make build-integration-test
 ./zig-out/bin/integration_test
 ```
 
+Run all benchmarks and compare:
+```bash
+make build-compare-benchmarks
+./zig-out/bin/compare_benchmarks
+```
+
+
 Run all unit tests with test summary:
 
 ```bash
