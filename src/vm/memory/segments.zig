@@ -108,17 +108,17 @@ pub const MemorySegmentManager = struct {
         self.allocator.destroy(self);
     }
 
-    // ************************************************************
-    // *                        METHODS                           *
-    // ************************************************************
-
-    // Adds a memory segment and returns the first address of the new segment.
+    /// Adds a memory segment and returns the first address of the new segment.
+    ///
+    /// This function is responsible for adding a new memory segment to the
+    /// MemorySegmentManager. It increments the number of segments and appends
+    /// an uninitialized ArrayListUnmanaged to the memory data.
+    ///
+    /// # Returns
+    /// Returns a Relocatable structure representing the first address of the new segment.
     pub fn addSegment(self: *Self) !Relocatable {
         // Create the relocatable address for the new segment.
-        const relocatable_address = Relocatable{
-            .segment_index = self.memory.num_segments,
-            .offset = 0,
-        };
+        const relocatable_address = .{ .segment_index = self.memory.num_segments };
 
         // Increment the number of segments.
         self.memory.num_segments += 1;
@@ -127,19 +127,21 @@ pub const MemorySegmentManager = struct {
         return relocatable_address;
     }
 
-    // Adds a temporary memory segment and returns the first address of the new segment.
+    /// Adds a temporary memory segment and returns the first address of the new segment.
+    ///
+    /// This function is similar to `addSegment`, but it specifically adds a temporary
+    /// memory segment. It increments the number of temporary segments and appends
+    /// an uninitialized ArrayListUnmanaged to the temporary memory data.
+    ///
+    /// # Returns
+    /// Returns a Relocatable structure representing the first address of the new temporary segment.
     pub fn addTempSegment(self: *Self) !Relocatable {
         // Increment the number of temporary segments.
         self.memory.num_temp_segments += 1;
 
-        // Create the relocatable address for the new segment.
-        const relocatable_address = Relocatable{
-            .segment_index = -@as(i64, @intCast(self.memory.num_temp_segments)),
-            .offset = 0,
-        };
         try self.memory.temp_data.append(std.ArrayListUnmanaged(?MemoryCell){});
 
-        return relocatable_address;
+        return .{ .segment_index = -@as(i64, @intCast(self.memory.num_temp_segments)) };
     }
 
     /// Retrieves the size of a memory segment by its index if available, else returns null.
@@ -150,7 +152,7 @@ pub const MemorySegmentManager = struct {
     /// # Returns
     /// A `u32` representing the size of the segment or null if not computed.
     pub fn getSegmentUsedSize(self: *Self, index: u32) ?u32 {
-        return self.segment_used_sizes.get(index) orelse null;
+        return self.segment_used_sizes.get(index);
     }
 
     /// Retrieves the size of a memory segment by its index if available, else computes it.

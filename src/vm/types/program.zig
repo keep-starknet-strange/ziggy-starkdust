@@ -19,6 +19,7 @@ const ProgramError = @import("../error.zig").ProgramError;
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
+const expectEqualDeep = std.testing.expectEqualDeep;
 const expectEqualStrings = std.testing.expectEqualStrings;
 const expectEqualSlices = std.testing.expectEqualSlices;
 
@@ -47,11 +48,11 @@ pub const HintsCollection = struct {
         std.hash_map.default_max_load_percentage,
     ),
 
-    /// Initializes a new HintsCollection.
+    /// Initializes a new HintsCollection with default values.
     ///
     /// # Params:
     ///   - `allocator`: The allocator used to initialize the collection.
-    pub fn init(allocator: Allocator) Self {
+    pub fn initDefault(allocator: Allocator) Self {
         return .{
             .hints = std.ArrayList(HintParams).init(allocator),
             .hints_ranges = std.AutoHashMap(
@@ -114,11 +115,11 @@ pub const SharedProgramData = struct {
     /// Collection of hints.
     hints_collection: HintsCollection,
     /// Program's main entry point (optional, defaults to `null`).
-    main: ?usize,
+    main: ?usize = null,
     /// Start of the program (optional, defaults to `null`).
-    start: ?usize,
+    start: ?usize = null,
     /// End of the program (optional, defaults to `null`).
-    end: ?usize,
+    end: ?usize = null,
     /// List of error message attributes.
     error_message_attributes: std.ArrayList(Attribute),
     /// Map of `usize` to `InstructionLocation`.
@@ -135,10 +136,7 @@ pub const SharedProgramData = struct {
     pub fn init(allocator: Allocator) Self {
         return .{
             .data = std.ArrayList(MaybeRelocatable).init(allocator),
-            .hints_collection = HintsCollection.init(allocator),
-            .main = null,
-            .start = null,
-            .end = null,
+            .hints_collection = HintsCollection.initDefault(allocator),
             .error_message_attributes = std.ArrayList(Attribute).init(allocator),
             .instruction_locations = std.AutoHashMap(
                 usize,
@@ -203,6 +201,49 @@ pub const Program = struct {
     /// Stores the list of built-in names.
     builtins: std.ArrayList(BuiltinName),
 
+    /// Initializes a new `Program` instance with provided parameters.
+    ///
+    /// # Parameters
+    /// - `allocator`: The allocator used to initialize the program.
+    /// - `builtins`: List of built-in names.
+    /// - `data`: List of `MaybeRelocatable` items.
+    /// - `main`: The main entry point for the program (optional, defaults to `null`).
+    /// - `hints`: Map of offsets to `HintParams` lists (unused, included for autofix compatibility).
+    /// - `reference_manager`: The `ReferenceManager` instance.
+    /// - `identifiers`: Map of identifiers to `Identifier` instances.
+    /// - `error_message_attributes`: List of `Attribute` items for error messages.
+    /// - `instruction_locations`: Map of `usize` to `InstructionLocation` (optional, defaults to `null`).
+    ///
+    /// # Returns
+    /// A new `Program` instance initialized with the provided parameters.
+    pub fn init(
+        allocator: Allocator,
+        builtins: std.ArrayList(BuiltinName),
+        data: std.ArrayList(MaybeRelocatable),
+        main: ?usize,
+        hints: std.AutoHashMap(usize, std.ArrayList(HintParams)),
+        reference_manager: ReferenceManager,
+        identifiers: std.StringHashMap(Identifier),
+        error_message_attributes: std.ArrayList(Attribute),
+        instruction_locations: ?std.StringHashMap(InstructionLocation),
+    ) !Self {
+        _ = hints; // autofix
+
+        return .{
+            .shared_program_data = .{
+                .data = data,
+                .hints_collection = HintsCollection.initDefault(allocator),
+                .main = main,
+                .error_message_attributes = error_message_attributes,
+                .instruction_locations = instruction_locations,
+                .identifiers = identifiers,
+                .reference_manager = try reference_manager.getReferenceList(allocator),
+            },
+            .constants = try Self.extractConstants(identifiers, allocator),
+            .builtins = builtins,
+        };
+    }
+
     /// Initializes a new `Program` instance.
     ///
     /// # Params:
@@ -249,7 +290,7 @@ pub const Program = struct {
                     // Try to insert the constant into the result map.
                     try constants.put(
                         kv.key_ptr.*,
-                        Felt252.fromSignedInteger(kv.value_ptr.*.value orelse return ProgramError.ConstWithoutValue),
+                        kv.value_ptr.*.valueFelt orelse return ProgramError.ConstWithoutValue,
                     );
                 }
             }
@@ -304,6 +345,55 @@ pub const Program = struct {
         return self.shared_program_data.instruction_locations.?.get(key);
     }
 
+    /// Retrieves an identifier from the program's shared data based on the provided key.
+    ///
+    /// This function looks up the identifier map within the shared program data using the provided key.
+    /// If the key is found, the corresponding `Identifier` instance is returned; otherwise, `null` is returned.
+    ///
+    /// # Params:
+    ///   - `key`: A byte slice representing the key to retrieve the identifier.
+    ///
+    /// # Returns:
+    ///   - An optional `Identifier` corresponding to the provided key, if found; otherwise, `null`.
+    pub fn getIdentifier(self: *Self, key: []const u8) ?Identifier {
+        return self.shared_program_data.identifiers.get(key);
+    }
+
+    /// Retrieves an iterator for the identifiers stored in the program's shared data.
+    ///
+    /// This method returns an iterator for the `std.StringHashMap(Identifier)` containing
+    /// identifiers within the shared program data.
+    ///
+    /// # Returns:
+    ///   - An iterator for the identifiers stored in the program's shared data.
+    pub fn iteratorIdentifier(self: *Self) std.StringHashMap(Identifier).Iterator {
+        return self.shared_program_data.identifiers.iterator();
+    }
+
+    /// Retrieves the length of the list of `MaybeRelocatable` items within the shared program data.
+    ///
+    /// This function returns the number of elements in the list of `MaybeRelocatable` items, providing
+    /// information about the amount of shared program data present in the program instance.
+    ///
+    /// # Params:
+    ///   - `self`: A pointer to the `Program` instance.
+    ///
+    /// # Returns:
+    ///   - The number of elements in the list of `MaybeRelocatable` items.
+    pub fn dataLen(self: *Self) usize {
+        return self.shared_program_data.data.items.len;
+    }
+
+    /// Retrieves the number of built-ins in the program.
+    ///
+    /// This method returns the length of the list of built-in names stored in the program instance.
+    ///
+    /// # Returns:
+    ///   - The number of built-ins in the program.
+    pub fn builtinsLen(self: *Self) usize {
+        return self.builtins.items.len;
+    }
+
     /// Deinitializes the `Program` instance, freeing allocated memory.
     ///
     /// # Params:
@@ -335,7 +425,7 @@ test "Program: extractConstants should extract the constants from identifiers" {
         "__main__.main.SIZEOF_LOCALS",
         .{
             .type = "const",
-            .value = 0,
+            .valueFelt = Felt252.zero(),
         },
     );
 
@@ -362,7 +452,7 @@ test "Program: extractConstants should extract the constants from identifiers us
         "starkware.cairo.common.alloc.alloc.SIZEOF_LOCALS",
         .{
             .type = "const",
-            .value = 0,
+            .valueFelt = Felt252.zero(),
         },
     );
 
@@ -371,7 +461,7 @@ test "Program: extractConstants should extract the constants from identifiers us
         "starkware.cairo.common.bitwise.ALL_ONES",
         .{
             .type = "const",
-            .value = -106710729501573572985208420194530329073740042555888586719234,
+            .valueFelt = Felt252.fromInt(u256, 106710729501573572985208420194530329073740042555888586719234).neg(),
         },
     );
 
@@ -380,7 +470,7 @@ test "Program: extractConstants should extract the constants from identifiers us
         "starkware.cairo.common.cairo_keccak.keccak.KECCAK_CAPACITY_IN_WORDS",
         .{
             .type = "const",
-            .value = 8,
+            .valueFelt = Felt252.fromInt(u8, 8),
         },
     );
 
@@ -389,7 +479,7 @@ test "Program: extractConstants should extract the constants from identifiers us
         "starkware.cairo.common.cairo_keccak.keccak.KECCAK_FULL_RATE_IN_BYTES",
         .{
             .type = "const",
-            .value = 136,
+            .valueFelt = Felt252.fromInt(u8, 136),
         },
     );
 
@@ -398,7 +488,7 @@ test "Program: extractConstants should extract the constants from identifiers us
         "starkware.cairo.common.cairo_keccak.keccak.KECCAK_FULL_RATE_IN_WORDS",
         .{
             .type = "const",
-            .value = 17,
+            .valueFelt = Felt252.fromInt(u8, 17),
         },
     );
 
@@ -407,7 +497,7 @@ test "Program: extractConstants should extract the constants from identifiers us
         "starkware.cairo.common.cairo_keccak.keccak.KECCAK_STATE_SIZE_FELTS",
         .{
             .type = "const",
-            .value = 25,
+            .valueFelt = Felt252.fromInt(u8, 25),
         },
     );
 
@@ -430,32 +520,447 @@ test "Program: extractConstants should extract the constants from identifiers us
 
     // Check if the extracted constant values match the expected values.
     try expectEqual(
-        Felt252.zero(),
-        constants.get("starkware.cairo.common.alloc.alloc.SIZEOF_LOCALS").?,
+        @as(u256, 0),
+        constants.get("starkware.cairo.common.alloc.alloc.SIZEOF_LOCALS").?.toInteger(),
     );
 
     try expectEqual(
-        Felt252.fromSignedInteger(-106710729501573572985208420194530329073740042555888586719234),
+        Felt252.fromInt(u256, 106710729501573572985208420194530329073740042555888586719234).neg(),
         constants.get("starkware.cairo.common.bitwise.ALL_ONES").?,
     );
 
     try expectEqual(
-        Felt252.fromInt(u8, 8),
-        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_CAPACITY_IN_WORDS").?,
+        @as(u256, 8),
+        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_CAPACITY_IN_WORDS").?.toInteger(),
     );
 
     try expectEqual(
-        Felt252.fromInt(u8, 136),
-        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_FULL_RATE_IN_BYTES").?,
+        @as(u256, 136),
+        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_FULL_RATE_IN_BYTES").?.toInteger(),
     );
 
     try expectEqual(
-        Felt252.fromInt(u8, 17),
-        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_FULL_RATE_IN_WORDS").?,
+        @as(u256, 17),
+        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_FULL_RATE_IN_WORDS").?.toInteger(),
     );
 
     try expectEqual(
-        Felt252.fromInt(u8, 25),
-        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_STATE_SIZE_FELTS").?,
+        @as(u256, 25),
+        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_STATE_SIZE_FELTS").?.toInteger(),
+    );
+}
+
+test "Program: init function should init a basic program" {
+    // Initialize the reference manager, builtins, hints, identifiers, and error message attributes.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, std.ArrayList(HintParams)).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a list of MaybeRelocatable items.
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 1000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 2000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5201798304953696256));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize a Program instance using the init function.
+    var program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        null,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
+    );
+
+    // Defer the deinitialization of the program to free allocated memory after the test case.
+    defer program.deinit(std.testing.allocator);
+
+    // Assertions to validate the initialized program state.
+    try expectEqual(@as(usize, 0), program.builtins.items.len);
+    try expectEqual(@as(usize, 0), program.constants.count());
+    try expectEqualSlices(MaybeRelocatable, data.items, program.shared_program_data.data.items);
+    try expectEqual(@as(?usize, null), program.shared_program_data.main);
+    try expectEqualDeep(identifiers, program.shared_program_data.identifiers);
+    try expectEqual(
+        @as(usize, 0),
+        program.shared_program_data.hints_collection.hints.items.len,
+    );
+    try expectEqual(
+        @as(usize, 0),
+        program.shared_program_data.hints_collection.hints_ranges.count(),
+    );
+}
+
+test "Program: init function should init a basic program (data length function)" {
+    // Initialize the reference manager, builtins, hints, identifiers, and error message attributes.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, std.ArrayList(HintParams)).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a list of MaybeRelocatable items.
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 1000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 2000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5201798304953696256));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize a Program instance using the init function.
+    var program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        null, // Main entry point (null for this test case).
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null, // Instruction locations (null for this test case).
+    );
+
+    // Defer the deinitialization of the program to free allocated memory after the test case.
+    defer program.deinit(std.testing.allocator);
+
+    // Ensure that the `dataLen` function returns the expected length of the shared program data.
+    try expectEqual(@as(usize, 6), program.dataLen());
+}
+
+test "Program: init function should init a program with identifiers" {
+    // Initialize the reference manager, builtins, hints, and error message attributes.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, std.ArrayList(HintParams)).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a list of MaybeRelocatable items.
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 1000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 2000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5201798304953696256));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize a StringHashMap for identifiers.
+    var identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+
+    // Add identifiers to the StringHashMap.
+    try identifiers.put(
+        "__main__.main",
+        .{
+            .pc = 0,
+            .type = "function",
+        },
+    );
+
+    try identifiers.put(
+        "__main__.main.SIZEOF_LOCALS",
+        .{
+            .type = "const",
+            .valueFelt = Felt252.zero(),
+        },
+    );
+
+    // Initialize a Program instance using the init function.
+    var program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        null, // Main entry point (null for this test case).
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null, // Instruction locations (null for this test case).
+    );
+
+    // Defer the deinitialization of the program to free allocated memory after the test case.
+    defer program.deinit(std.testing.allocator);
+
+    // Assertions to validate the initialized program state.
+    try expectEqual(@as(usize, 0), program.builtins.items.len);
+    try expectEqualSlices(MaybeRelocatable, data.items, program.shared_program_data.data.items);
+    try expectEqual(@as(?usize, null), program.shared_program_data.main);
+    try expectEqualDeep(identifiers, program.shared_program_data.identifiers);
+    try expectEqual(
+        @as(usize, 0),
+        program.shared_program_data.hints_collection.hints.items.len,
+    );
+    try expectEqual(
+        @as(usize, 0),
+        program.shared_program_data.hints_collection.hints_ranges.count(),
+    );
+
+    // Additional assertions for programs with identifiers.
+    try expectEqual(@as(usize, 1), program.constants.count());
+    try expectEqual(Felt252.zero(), program.constants.get("__main__.main.SIZEOF_LOCALS").?);
+}
+
+test "Program: init function should init a program with identifiers (get identifiers)" {
+    // Initialize the reference manager, builtins, hints, and error message attributes.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, std.ArrayList(HintParams)).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a list of MaybeRelocatable items.
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 1000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 2000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5201798304953696256));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize a StringHashMap for identifiers.
+    var identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+
+    // Add identifiers to the StringHashMap.
+    try identifiers.put(
+        "__main__.main",
+        .{
+            .pc = 0,
+            .type = "function",
+        },
+    );
+
+    try identifiers.put(
+        "__main__.main.SIZEOF_LOCALS",
+        .{
+            .type = "const",
+            .valueFelt = Felt252.zero(),
+        },
+    );
+
+    // Initialize a Program instance using the init function.
+    var program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        null, // Main entry point (null for this test case).
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null, // Instruction locations (null for this test case).
+    );
+
+    // Defer the deinitialization of the program to free allocated memory after the test case.
+    defer program.deinit(std.testing.allocator);
+
+    // Test: Verify that identifiers added to the program match those in the initial StringHashMap.
+
+    // Expect the identifier "__main__.main" to match between the program and the initial StringHashMap.
+    try expectEqual(
+        identifiers.get("__main__.main"),
+        program.getIdentifier("__main__.main"),
+    );
+
+    // Expect the identifier "__main__.main.SIZEOF_LOCALS" to match between the program and the initial StringHashMap.
+    try expectEqual(
+        identifiers.get("__main__.main.SIZEOF_LOCALS"),
+        program.getIdentifier("__main__.main.SIZEOF_LOCALS"),
+    );
+
+    // Expect the identifier "missing" to be null in both the program and the initial StringHashMap.
+    try expectEqual(
+        identifiers.get("missing"),
+        program.getIdentifier("missing"),
+    );
+}
+
+test "Program: iteratorIdentifier should return an iterator over identifiers" {
+    // Initialize the reference manager, builtins, hints, and error message attributes.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, std.ArrayList(HintParams)).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a list of MaybeRelocatable items.
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 1000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 2000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5201798304953696256));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize a StringHashMap for identifiers.
+    var identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+
+    // Add identifiers to the StringHashMap.
+    try identifiers.put(
+        "__main__.main",
+        .{
+            .pc = 0,
+            .type = "function",
+        },
+    );
+
+    try identifiers.put(
+        "__main__.main.SIZEOF_LOCALS",
+        .{
+            .type = "const",
+            .valueFelt = Felt252.zero(),
+        },
+    );
+
+    // Initialize a Program instance using the init function.
+    var program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        null, // Main entry point (null for this test case).
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null, // Instruction locations (null for this test case).
+    );
+
+    // Defer the deinitialization of the program to free allocated memory after the test case.
+    defer program.deinit(std.testing.allocator);
+
+    // Ensure that the iterator returned by program.iteratorIdentifier() is equal to identifiers.iterator().
+    try expectEqualDeep(identifiers.iterator(), program.iteratorIdentifier());
+
+    // Initialize iterators for both the StringHashMap and the Program.
+    var program_it = program.iteratorIdentifier();
+    var it = identifiers.iterator();
+
+    // Ensure that the size of the iterators match.
+    try expectEqual(@as(usize, 2), program_it.hm.size);
+
+    // Iterate through both iterators simultaneously and ensure key-value pairs match.
+    while (it.next()) |kv| {
+        const program_kv = program_it.next().?;
+        try expectEqual(kv.key_ptr.*, program_kv.key_ptr.*);
+        try expectEqual(kv.value_ptr.*, program_kv.value_ptr.*);
+    }
+}
+
+test "Program: init function should init a program with builtins" {
+    // Initialize the reference manager, hints, error message attributes, and identifiers.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, std.ArrayList(HintParams)).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+
+    // Initialize a list of MaybeRelocatable items.
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 1000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 2000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5201798304953696256));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize a list of builtins.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.range_check);
+    try builtins.append(BuiltinName.bitwise);
+
+    // Initialize a Program instance using the init function.
+    var program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        null, // Main entry point (null for this test case).
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null, // Instruction locations (null for this test case).
+    );
+
+    // Defer the deinitialization of the program to free allocated memory after the test case.
+    defer program.deinit(std.testing.allocator);
+
+    // Assertions to validate the initialized program state.
+    try expectEqualSlices(BuiltinName, builtins.items, program.builtins.items);
+    try expectEqualSlices(MaybeRelocatable, data.items, program.shared_program_data.data.items);
+    try expectEqual(@as(?usize, null), program.shared_program_data.main);
+    try expectEqualDeep(identifiers, program.shared_program_data.identifiers);
+    try expectEqual(
+        @as(usize, 0),
+        program.shared_program_data.hints_collection.hints.items.len,
+    );
+    try expectEqual(
+        @as(usize, 0),
+        program.shared_program_data.hints_collection.hints_ranges.count(),
+    );
+    // Validate that the number of built-ins in the program matches the expected count.
+    try expectEqual(
+        @as(usize, 2),
+        program.builtinsLen(),
+    );
+}
+
+test "Program: init a new program with invalid identifiers should return an error" {
+    // Initialize the reference manager, builtins, hints, and error message attributes.
+    var reference_manager = ReferenceManager.init(std.testing.allocator);
+    defer reference_manager.deinit();
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    defer builtins.deinit();
+    var hints = std.AutoHashMap(usize, std.ArrayList(HintParams)).init(std.testing.allocator);
+    defer hints.deinit();
+    var error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+    defer error_message_attributes.deinit();
+
+    // Initialize a list of MaybeRelocatable items.
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    defer data.deinit();
+
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 1000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 2000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5201798304953696256));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize a StringHashMap for identifiers.
+    var identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    defer identifiers.deinit();
+
+    // Add identifiers to the StringHashMap.
+    try identifiers.put(
+        "__main__.main",
+        .{
+            .pc = 0,
+            .type = "function",
+        },
+    );
+
+    try identifiers.put(
+        "__main__.main.SIZEOF_LOCALS",
+        .{
+            .type = "const",
+        },
+    );
+
+    try expectError(
+        ProgramError.ConstWithoutValue,
+        Program.init(
+            std.testing.allocator,
+            builtins,
+            data,
+            null, // Main entry point (null for this test case).
+            hints,
+            reference_manager,
+            identifiers,
+            error_message_attributes,
+            null, // Instruction locations (null for this test case).
+        ),
     );
 }

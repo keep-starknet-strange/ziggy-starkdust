@@ -248,9 +248,9 @@ pub const Memory = struct {
     /// ArrayList storing temporary data in the memory, indexed by Relocatable addresses.
     temp_data: std.ArrayList(std.ArrayListUnmanaged(?MemoryCell)),
     /// Number of segments currently present in the memory.
-    num_segments: u32,
+    num_segments: u32 = 0,
     /// Number of temporary segments in the memory.
-    num_temp_segments: u32,
+    num_temp_segments: u32 = 0,
     /// Hash map tracking validated addresses to ensure they have been properly validated.
     /// Consideration: Possible merge with `data` for optimization; benchmarking recommended.
     validated_addresses: AddressSet,
@@ -283,12 +283,10 @@ pub const Memory = struct {
     pub fn init(allocator: Allocator) !*Self {
         const memory = try allocator.create(Self);
 
-        memory.* = Self{
+        memory.* = .{
             .allocator = allocator,
             .data = std.ArrayList(std.ArrayListUnmanaged(?MemoryCell)).init(allocator),
             .temp_data = std.ArrayList(std.ArrayListUnmanaged(?MemoryCell)).init(allocator),
-            .num_segments = 0,
-            .num_temp_segments = 0,
             .validated_addresses = AddressSet.init(allocator),
             .relocation_rules = std.AutoHashMap(
                 u64,
@@ -1358,7 +1356,7 @@ test "Memory: set where number of segments is less than segment index should ret
         MemoryError.UnallocatedSegment,
         segments.memory.set(
             allocator,
-            Relocatable.new(3, 1),
+            Relocatable.init(3, 1),
             .{ .felt = Felt252.three() },
         ),
     );

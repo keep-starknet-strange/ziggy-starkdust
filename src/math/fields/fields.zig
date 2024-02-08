@@ -146,32 +146,6 @@ pub fn Field(comptime F: type, comptime mod: u256) type {
             return .{ .fe = mont };
         }
 
-        /// Create a field element from a signed integer in Montgomery representation.
-        ///
-        /// This function converts a signed integer to a field element in Montgomery form.
-        pub fn fromSignedInteger(num: i256) Self {
-            var lbe: [BytesSize]u8 = [_]u8{0} ** BytesSize;
-            std.mem.writeInt(
-                i256,
-                lbe[0..],
-                @mod(num, Modulo),
-                .little,
-            );
-
-            var nonMont: F.NonMontgomeryDomainFieldElement = undefined;
-            F.fromBytes(
-                &nonMont,
-                lbe,
-            );
-            var mont: F.MontgomeryDomainFieldElement = undefined;
-            F.toMontgomery(
-                &mont,
-                nonMont,
-            );
-
-            return .{ .fe = mont };
-        }
-
         /// Get the field element representing zero.
         ///
         /// Returns a field element with a value of zero.

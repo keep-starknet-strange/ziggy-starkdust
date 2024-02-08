@@ -10,6 +10,7 @@ const Register = @import("../instructions.zig").Register;
 const Program = @import("./program.zig").Program;
 const HintsCollection = @import("./program.zig").HintsCollection;
 const SharedProgramData = @import("./program.zig").SharedProgramData;
+const HintReference = @import("../../hint_processor/hint_processor_def.zig").HintReference;
 const PRIME_STR = @import("../../math/fields/starknet.zig").PRIME_STR;
 
 /// Represents a singly linked list structure specialized for storing Instructions.
@@ -179,6 +180,11 @@ pub const InstructionLocation = struct {
 ///
 /// This instruction translates to '[ap] = [ap - 1] * 2, ap++',
 /// setting 'ap' to the calculated value of 10.
+///
+/// ## Warning:
+///
+/// This type is valid for a program in Json format uniquely
+/// (before deserialization of the value which is stored as a string here)
 pub const Reference = struct {
     /// Tracking data for the register associated with the reference.
     ap_tracking_data: ApTracking,
@@ -188,6 +194,50 @@ pub const Reference = struct {
     value: []const u8,
 };
 
+/// Represents the structure defining a memory address.
+///
+/// This structure includes offset values, a dereference flag, and the value type.
+pub const ValueAddress = struct {
+    /// First offset value associated with the memory address.
+    offset1: OffsetValue,
+    /// Second offset value associated with the memory address.
+    offset2: OffsetValue,
+    /// Indicates whether the memory address is dereferenced.
+    dereference: bool,
+    /// Type of the value stored at the memory address.
+    value_type: []const u8,
+};
+
+/// Represents a reference to a memory address defined for a specific program location (pc).
+///
+/// This structure defines a reference tied to a program counter (pc), holding a value
+/// and tracking data for register (ap_tracking_data).
+///
+/// It may have multiple definition sites (locations) and is associated with a code element responsible for its creation.
+///
+/// For example,
+///
+/// Defines a reference 'x' to the Ap register tied to the current instruction.
+///
+/// [ap] = 5, ap++;
+///
+/// As 'ap' incremented, the reference evaluates to (ap - 1) instead of 'ap'.
+///
+/// [ap] = [x] * 2, ap++;
+///
+/// This instruction translates to '[ap] = [ap - 1] * 2, ap++',
+/// setting 'ap' to the calculated value of 10.
+///
+/// Represents a reference after deserialization where `value` is a `ValueAddress` structure
+pub const ReferenceProgram = struct {
+    /// Tracking data for the register associated with the reference.
+    ap_tracking_data: ApTracking,
+    /// Program counter (pc) tied to the reference (optional, defaults to null).
+    pc: ?usize,
+    /// Value/address of the reference.
+    value_address: ValueAddress,
+};
+
 /// Represents a manager for references to memory addresses defined for specific program locations (pcs).
 ///
 /// This structure maintains a list of references (`references`)
@@ -195,14 +245,40 @@ pub const ReferenceManager = struct {
     const Self = @This();
 
     /// List of references managed by the `ReferenceManager`.
-    references: std.ArrayList(Reference),
+    references: std.ArrayList(ReferenceProgram),
 
     /// Initializes a new `ReferenceManager` instance.
     ///
     /// # Params:
     ///   - `allocator`: The allocator used to initialize the instance.
     pub fn init(allocator: Allocator) Self {
-        return .{ .references = std.ArrayList(Reference).init(allocator) };
+        return .{ .references = std.ArrayList(ReferenceProgram).init(allocator) };
+    }
+
+    pub fn getReferenceList(self: *const Self, allocator: Allocator) !std.ArrayList(HintReference) {
+        var result = std.ArrayList(HintReference).init(allocator);
+        errdefer result.deinit();
+
+        for (self.references.items) |ref| {
+            const ap_tracking_data = switch (ref.value_address.offset1) {
+                .reference => |r| if (r[0] == .AP) ref.ap_tracking_data else null,
+                else => switch (ref.value_address.offset2) {
+                    .reference => |r| if (r[0] == .AP) ref.ap_tracking_data else null,
+                    else => null,
+                },
+            };
+            try result.append(
+                .{
+                    .offset1 = ref.value_address.offset1,
+                    .offset2 = ref.value_address.offset2,
+                    .dereference = ref.value_address.dereference,
+                    .ap_tracking_data = ap_tracking_data,
+                    .cairo_type = ref.value_address.value_type,
+                },
+            );
+        }
+
+        return result;
     }
 
     /// Deinitializes the `ReferenceManager`, freeing allocated memory.
@@ -495,7 +571,13 @@ pub const ProgramJson = struct {
                     try constants.put(
                         key,
                         // Convert the value to Felt252 and add it to the hashmap.
-                        if (value.value) |v| Felt252.fromSignedInteger(v) else return ProgramError.ConstWithoutValue,
+                        if (value.value) |v|
+                            if (v < 0)
+                                Felt252.fromInt(u256, @intCast(-v)).neg()
+                            else
+                                Felt252.fromInt(u256, @intCast(v))
+                        else
+                            return ProgramError.ConstWithoutValue,
                     );
                 }
             }
@@ -556,7 +638,10 @@ pub const ProgramJson = struct {
             var val = value;
             // If the identifier has a numeric value, convert it to Felt252 and update the valueFelt field.
             if (val.value) |v| {
-                val.valueFelt = Felt252.fromSignedInteger(v);
+                val.valueFelt = if (v < 0)
+                    Felt252.fromInt(u256, @intCast(-v)).neg()
+                else
+                    Felt252.fromInt(u256, @intCast(v));
             }
             // Put the identifier and its metadata into the hashmap.
             try identifiers.put(key, val);
@@ -763,7 +848,7 @@ pub const ProgramJson = struct {
             if (max_hint_pc >= self.data.?.len) return ProgramError.InvalidHintPc;
 
             // Initialize a new HintsCollection.
-            var hints_collection = HintsCollection.init(allocator);
+            var hints_collection = HintsCollection.initDefault(allocator);
             errdefer hints_collection.deinit();
 
             // Iterate over the hints map to populate the HintsCollection.
@@ -793,7 +878,7 @@ pub const ProgramJson = struct {
         }
 
         // Return an empty HintsCollection if there are no valid hints.
-        return HintsCollection.init(allocator);
+        return HintsCollection.initDefault(allocator);
     }
 };
 
@@ -1551,7 +1636,10 @@ test "ProgramJson: parseProgramJson with constant deserialization" {
         .pc = null,
         .type = "const",
         .value = -3618502788666131213697322783095070105623107215331596699973092056135872020481,
-        .valueFelt = Felt252.fromSignedInteger(-3618502788666131213697322783095070105623107215331596699973092056135872020481),
+        .valueFelt = Felt252.fromInt(
+            u256,
+            3618502788666131213697322783095070105623107215331596699973092056135872020481,
+        ).neg(),
         .full_name = null,
         .members = null,
         .cairo_type = null,
@@ -1571,7 +1659,10 @@ test "ProgramJson: parseProgramJson with constant deserialization" {
         .pc = null,
         .type = "const",
         .value = -106710729501573572985208420194530329073740042555888586719234,
-        .valueFelt = Felt252.fromSignedInteger(-106710729501573572985208420194530329073740042555888586719234),
+        .valueFelt = Felt252.fromInt(
+            u256,
+            106710729501573572985208420194530329073740042555888586719234,
+        ).neg(),
         .full_name = null,
         .members = null,
         .cairo_type = null,
