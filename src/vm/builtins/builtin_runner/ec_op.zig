@@ -111,6 +111,7 @@ pub const EcOpBuiltinRunner = struct {
     /// An `ArrayList` of `MaybeRelocatable` values.
     pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
         var result = ArrayList(MaybeRelocatable).init(allocator);
+        errdefer result.deinit();
         if (self.included) {
             try result.append(MaybeRelocatable.fromSegment(
                 @intCast(self.base),
@@ -198,7 +199,9 @@ pub const EcOpBuiltinRunner = struct {
     /// The number of used cells as a `u32`, or `MemoryError.MissingSegmentUsedSizes` if
     /// the size is not available.
     pub fn getUsedCells(self: *Self, segments: *MemorySegmentManager) !u32 {
-        return segments.getSegmentUsedSize(@intCast(self.base)) orelse MemoryError.MissingSegmentUsedSizes;
+        return segments.getSegmentUsedSize(
+            @intCast(self.base),
+        ) orelse MemoryError.MissingSegmentUsedSizes;
     }
 
     /// Calculates the number of used instances for the EC OP runner.
