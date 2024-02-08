@@ -1,4 +1,4 @@
-.PHONY: deps deps-macos cargo-deps build_cairo_vm_cli build-compare-benchmarks $(CAIRO_VM_CLI) \
+.PHONY: deps deps-macos build build_cairo_vm_cli build-compare-benchmarks $(CAIRO_VM_CLI) \
 
 CAIRO_VM_CLI:=cairo-vm/target/release/cairo-vm-cli
 
@@ -10,18 +10,15 @@ build_cairo_vm_cli: | $(CAIRO_VM_CLI)
 # TODO: change BENCH_DIR to cairo_programs/benchmarks
 BENCH_DIR=cairo_programs/test_benchmarks
 
-cargo-deps:
-	cargo install --version 1.14.0 hyperfine
-
 # Creates a pyenv and installs cairo-lang
-deps: cargo-deps
+deps:
 	pyenv install  -s 3.9.15
 	PYENV_VERSION=3.9.15 python -m venv cairo-vm-env
 	. cairo-vm-env/bin/activate ; \
 	pip install -r requirements.txt ; \
 
 # Creates a pyenv and installs cairo-lang
-deps-macos: cargo-deps
+deps-macos:
 	brew install gmp pyenv
 	pyenv install -s 3.9.15
 	PYENV_VERSION=3.9.15 python -m venv cairo-vm-env
@@ -55,15 +52,14 @@ build-and-run-poseidon-consts-gen:
 	./zig-out/bin/poseidon_consts_gen
 	@zig fmt ./src/math/crypto/poseidon/gen/constants.zig
 
-build-compare-benchmarks: build_cairo_vm_cli
+build-compare-benchmarks: build_cairo_vm_cli build
 	@for file in $$(ls $(BENCH_DIR) | grep .cairo | sed -E 's/\.cairo//'); do \
-		echo "Compiling $$file program..." \
-		cairo-compile --cairo_path="$(BENCH_DIR)" $(BENCH_DIR)/$$file.cairo --output $(BENCH_DIR)/$$file.json \
+		set -e; \
+		export PATH=$$PATH:$$(pwd)/zig-out/bin; \
 		echo "Running $$file benchmark"; \
-		export PATH="$$(pyenv root)/shims:$$PATH"; \
 		hyperfine \
 			-n "cairo-vm (Rust)" "$(CAIRO_VM_CLI) $(BENCH_DIR)/$$file.json --proof_mode --memory_file /dev/null --trace_file /dev/null --layout all_cairo" \
-			-n "cairo-vm (Zig)" "/Users/aniket.p/Blockchain/Development/starknet/ziggy-starkdust/zig-out/bin/ziggy-starkdust execute --filename $(BENCH_DIR)/$$file.json --enable-trace=true --output-memory=/dev/null --output-trace=/dev/null --layout all_cairo"; \
+			-n "cairo-vm (Zig)" "ziggy-starkdust execute --filename $(BENCH_DIR)/$$file.json --enable-trace=true --output-memory=/dev/null --output-trace=/dev/null --layout all_cairo"; \
 	done
 
 clean:

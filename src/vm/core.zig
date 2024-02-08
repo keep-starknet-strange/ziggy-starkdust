@@ -255,18 +255,18 @@ pub const CairoVM = struct {
     pub fn step(self: *Self, allocator: Allocator) !void {
         // TODO: Run hints.
 
-        std.log.debug(
-            "Running instruction at pc: {}\n",
-            .{self.run_context.pc.*},
-        );
-        std.log.debug(
-            "Running instruction, ap: {}\n",
-            .{self.run_context.ap.*},
-        );
-        std.log.debug(
-            "Running instruction, fp: {}\n",
-            .{self.run_context.fp.*},
-        );
+        // std.log.debug(
+        //     "Running instruction at pc: {}\n",
+        //     .{self.run_context.pc.*},
+        // );
+        // std.log.debug(
+        //     "Running instruction, ap: {}\n",
+        //     .{self.run_context.ap.*},
+        // );
+        // std.log.debug(
+        //     "Running instruction, fp: {}\n",
+        //     .{self.run_context.fp.*},
+        // );
 
         // ************************************************************
         // *                    FETCH                                 *

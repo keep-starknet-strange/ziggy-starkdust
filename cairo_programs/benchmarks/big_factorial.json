@@ -22,7 +22,7 @@
         "0x48527fff7ffd8000",
         "0x208b7fff7fff7ffe",
         "0x480680017fff8000",
-        "0x7d0",
+        "0x1e8480",
         "0x1104800180018000",
         "0x800000000000010fffffffffffffffffffffffffffffffffffffffffffffff3",
         "0x208b7fff7fff7ffe"
@@ -117,7 +117,7 @@
                     "end_col": 15,
                     "end_line": 3,
                     "input_file": {
-                        "filename": "cairo_programs/test_benchmarks/big_factorial.cairo"
+                        "filename": "cairo_programs/benchmarks/big_factorial.cairo"
                     },
                     "start_col": 9,
                     "start_line": 3
@@ -143,7 +143,7 @@
                     "end_col": 7,
                     "end_line": 3,
                     "input_file": {
-                        "filename": "cairo_programs/test_benchmarks/big_factorial.cairo"
+                        "filename": "cairo_programs/benchmarks/big_factorial.cairo"
                     },
                     "start_col": 5,
                     "start_line": 3
@@ -169,14 +169,14 @@
                     "end_col": 17,
                     "end_line": 2,
                     "input_file": {
-                        "filename": "cairo_programs/test_benchmarks/big_factorial.cairo"
+                        "filename": "cairo_programs/benchmarks/big_factorial.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 18,
                             "end_line": 4,
                             "input_file": {
-                                "filename": "cairo_programs/test_benchmarks/big_factorial.cairo"
+                                "filename": "cairo_programs/benchmarks/big_factorial.cairo"
                             },
                             "start_col": 17,
                             "start_line": 4
@@ -207,7 +207,7 @@
                     "end_col": 21,
                     "end_line": 4,
                     "input_file": {
-                        "filename": "cairo_programs/test_benchmarks/big_factorial.cairo"
+                        "filename": "cairo_programs/benchmarks/big_factorial.cairo"
                     },
                     "start_col": 9,
                     "start_line": 4
@@ -233,7 +233,7 @@
                     "end_col": 30,
                     "end_line": 6,
                     "input_file": {
-                        "filename": "cairo_programs/test_benchmarks/big_factorial.cairo"
+                        "filename": "cairo_programs/benchmarks/big_factorial.cairo"
                     },
                     "start_col": 25,
                     "start_line": 6
@@ -259,7 +259,7 @@
                     "end_col": 31,
                     "end_line": 6,
                     "input_file": {
-                        "filename": "cairo_programs/test_benchmarks/big_factorial.cairo"
+                        "filename": "cairo_programs/benchmarks/big_factorial.cairo"
                     },
                     "start_col": 15,
                     "start_line": 6
@@ -286,7 +286,7 @@
                     "end_col": 18,
                     "end_line": 7,
                     "input_file": {
-                        "filename": "cairo_programs/test_benchmarks/big_factorial.cairo"
+                        "filename": "cairo_programs/benchmarks/big_factorial.cairo"
                     },
                     "start_col": 13,
                     "start_line": 7
@@ -313,7 +313,7 @@
                     "end_col": 21,
                     "end_line": 7,
                     "input_file": {
-                        "filename": "cairo_programs/test_benchmarks/big_factorial.cairo"
+                        "filename": "cairo_programs/benchmarks/big_factorial.cairo"
                     },
                     "start_col": 5,
                     "start_line": 7
@@ -333,10 +333,10 @@
                 },
                 "hints": [],
                 "inst": {
-                    "end_col": 19,
+                    "end_col": 22,
                     "end_line": 11,
                     "input_file": {
-                        "filename": "cairo_programs/test_benchmarks/big_factorial.cairo"
+                        "filename": "cairo_programs/benchmarks/big_factorial.cairo"
                     },
                     "start_col": 15,
                     "start_line": 11
@@ -356,10 +356,10 @@
                 },
                 "hints": [],
                 "inst": {
-                    "end_col": 20,
+                    "end_col": 23,
                     "end_line": 11,
                     "input_file": {
-                        "filename": "cairo_programs/test_benchmarks/big_factorial.cairo"
+                        "filename": "cairo_programs/benchmarks/big_factorial.cairo"
                     },
                     "start_col": 5,
                     "start_line": 11
@@ -382,7 +382,7 @@
                     "end_col": 15,
                     "end_line": 12,
                     "input_file": {
-                        "filename": "cairo_programs/test_benchmarks/big_factorial.cairo"
+                        "filename": "cairo_programs/benchmarks/big_factorial.cairo"
                     },
                     "start_col": 5,
                     "start_line": 12

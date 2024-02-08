@@ -22,7 +22,7 @@
         "0x48527fff7ffd8000",
         "0x208b7fff7fff7ffe",
         "0x480680017fff8000",
-        "0x7d0",
+        "0xc8",
         "0x1104800180018000",
         "0x800000000000010fffffffffffffffffffffffffffffffffffffffffffffff3",
         "0x208b7fff7fff7ffe"
@@ -333,7 +333,7 @@
                 },
                 "hints": [],
                 "inst": {
-                    "end_col": 19,
+                    "end_col": 18,
                     "end_line": 11,
                     "input_file": {
                         "filename": "cairo_programs/test_benchmarks/big_factorial.cairo"
@@ -356,7 +356,7 @@
                 },
                 "hints": [],
                 "inst": {
-                    "end_col": 20,
+                    "end_col": 19,
                     "end_line": 11,
                     "input_file": {
                         "filename": "cairo_programs/test_benchmarks/big_factorial.cairo"
