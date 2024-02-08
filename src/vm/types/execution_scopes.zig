@@ -3,6 +3,7 @@ const ArrayList = std.ArrayList;
 const Allocator = std.mem.Allocator;
 
 const HintType = union(enum) {
+    // TODO: Add missing types
     Felt252,
     u64,
 };
