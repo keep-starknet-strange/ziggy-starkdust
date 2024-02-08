@@ -130,24 +130,24 @@ const TraceEnabled = struct {
                 allocator,
                 build_options.trace_initial_capacity,
             ),
-            .relocated_trace_entries = try ArrayList(TraceContext.RelocatedTraceEntry).initCapacity(allocator, build_options.trace_initial_capacity),
+            .relocated_trace_entries = try ArrayList(TraceContext.RelocatedTraceEntry).initCapacity(
+                allocator,
+                build_options.trace_initial_capacity,
+            ),
         };
     }
 
     fn deinit(self: *State) void {
-        const this = &self.enabled;
-        this.entries.deinit();
-        this.relocated_trace_entries.deinit();
+        self.enabled.entries.deinit();
+        self.enabled.relocated_trace_entries.deinit();
     }
 
     fn traceInstruction(self: *State, entry: TraceContext.Entry) !void {
-        const this = &self.enabled;
-        try this.entries.append(entry);
+        try self.enabled.entries.append(entry);
     }
 
     fn addRelocatedTrace(self: *State, entry: TraceContext.RelocatedTraceEntry) !void {
-        const this = &self.enabled;
-        try this.relocated_trace_entries.append(entry);
+        try self.enabled.relocated_trace_entries.append(entry);
     }
 };
 

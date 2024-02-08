@@ -187,7 +187,11 @@ pub const Instruction = struct {
     /// # Returns
     /// `true` if the instruction is a CALL instruction; otherwise, `false`.
     pub fn isCallInstruction(self: *const Self) bool {
-        return self.res_logic == .Op1 and (self.pc_update == .Jump or self.pc_update == .JumpRel) and self.ap_update == .Add2 and self.fp_update == .APPlus2 and self.opcode == .Call;
+        return self.res_logic == .Op1 and
+            (self.pc_update == .Jump or self.pc_update == .JumpRel) and
+            self.ap_update == .Add2 and
+            self.fp_update == .APPlus2 and
+            self.opcode == .Call;
     }
 };
 

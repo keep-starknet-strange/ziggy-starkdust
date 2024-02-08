@@ -106,7 +106,6 @@ pub const RangeCheckBuiltinRunner = struct {
                     0,
                 ),
             });
-            return result;
         }
         return result;
     }
@@ -234,7 +233,10 @@ pub const RangeCheckBuiltinRunner = struct {
             return null;
         }
         const rc_segment = memory.data.items[self.base];
-        var rc_bounds = if (rc_segment.capacity > 0) [_]usize{ std.math.maxInt(usize), std.math.minInt(usize) } else return null;
+        var rc_bounds = if (rc_segment.capacity > 0)
+            [_]usize{ std.math.maxInt(usize), std.math.minInt(usize) }
+        else
+            return null;
 
         for (rc_segment.items) |cell| {
             var cellFelt = cell.?.maybe_relocatable.tryIntoFelt() catch null;
