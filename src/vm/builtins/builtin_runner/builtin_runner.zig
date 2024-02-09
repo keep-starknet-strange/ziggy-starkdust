@@ -146,8 +146,16 @@ pub const BuiltinRunner = union(enum) {
     pub fn getMemorySegmentAddresses(self: *Self) Tuple(&.{ usize, ?usize }) {
         // TODO: fill-in missing builtins when implemented
         return switch (self.*) {
-            .Signature, .SegmentArena => .{ 0, 0 },
-            inline else => |*case| case.getMemorySegmentAddresses(),
+            .Bitwise => |*bitwise| bitwise.getMemorySegmentAddresses(),
+            .EcOp => |*ec| ec.getMemorySegmentAddresses(),
+            .Hash => |*hash| hash.getMemorySegmentAddresses(),
+            .Output => |*output| output.getMemorySegmentAddresses(),
+            .RangeCheck => |*range_check| range_check.getMemorySegmentAddresses(),
+            .Keccak => |*keccak| keccak.getMemorySegmentAddresses(),
+            .Signature => |*signature| signature.getMemorySegmentAddresses(),
+            .Poseidon => |*poseidon| poseidon.getMemorySegmentAddresses(),
+            .SegmentArena => .{ 0, 0 },
+            // inline else => |*case| case.getMemorySegmentAddresses(),
         };
     }
 

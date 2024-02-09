@@ -109,6 +109,15 @@ pub const MemoryError = error{
     InsufficientAllocatedCellsErrorMinStepNotReached,
     /// Invalid type encountered during the GenArg operation.
     GenArgInvalidType,
+    // ECDSA builtin: Expected public key at address to be an integer
+    PubKeyNonInt,
+    // ECDSA builtin: Expected message hash at address to be an integer
+    MsgNonInt,
+    // Signature hint is missing for ECDSA builtin at address.
+    // Add it using 'ecdsa_builtin.add_signature'.
+    SignatureNotFound,
+    // Invalid signature
+    InvalidSignature,
 };
 
 /// Represents the error conditions that are related to the `CairoRunner`.
@@ -167,6 +176,7 @@ pub const MathError = error{
     /// Cell is not output cell
     NotOutputCell,
     RelocatableMul,
+    ByteConversionError,
 };
 
 /// Represents different error conditions that occur in trace relocation
@@ -200,4 +210,12 @@ pub const ProgramError = error{
     /// Indicates an unsupported or unimplemented builtin encountered within the program.
     UnsupportedBuiltin,
     EmptyVecAlreadyFiltered,
+};
+
+// Represents errors occuring during ECDSA verify
+pub const VerifyError = error{
+    InvalidPublicKey,
+    InvalidMessageHash,
+    InvalidR,
+    InvalidS,
 };
