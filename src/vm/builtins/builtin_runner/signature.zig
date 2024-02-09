@@ -103,10 +103,6 @@ pub const SignatureBuiltinRunner = struct {
         return result;
     }
 
-    pub fn base(self: *Self) usize {
-        return self.base;
-    }
-
     fn validationRule(self: *Self, allocator: Allocator, memory: *Memory, addr: Relocatable) anyerror!std.ArrayList(Relocatable) {
         const cell_index = @mod(addr.offset, @as(u64, @intCast(self.cells_per_instance)));
         const result = std.ArrayList(Relocatable).init(allocator);
@@ -154,10 +150,6 @@ pub const SignatureBuiltinRunner = struct {
         _ = address;
         _ = self;
         return null;
-    }
-
-    pub fn ratio(self: *const Self) ?u32 {
-        return self.ratio;
     }
 
     pub fn getMemorySegmentAddresses(self: *const Self) struct { usize, ?usize } {
