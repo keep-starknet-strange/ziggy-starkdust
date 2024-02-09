@@ -97,7 +97,7 @@ pub const SignatureBuiltinRunner = struct {
         errdefer result.deinit();
 
         if (self.included) {
-            try result.append(MaybeRelocatable.fromRelocatable(Relocatable.new(@intCast(self.base), 0)));
+            try result.append(MaybeRelocatable.fromRelocatable(Relocatable.init(@intCast(self.base), 0)));
         }
 
         return result;
@@ -270,10 +270,10 @@ test "Signature: final stack" {
 
     try vm.segments.segment_used_sizes.put(0, 0);
 
-    const pointer = Relocatable.new(2, 2);
+    const pointer = Relocatable.init(2, 2);
 
     try std.testing.expectEqual(
-        Relocatable.new(2, 1),
+        Relocatable.init(2, 1),
         try builtin.finalStack(vm.segments, pointer),
     );
 }
@@ -303,7 +303,7 @@ test "Signature: final stack error stop pointer" {
 
     try vm.segments.segment_used_sizes.put(0, 998);
 
-    const pointer = Relocatable.new(2, 2);
+    const pointer = Relocatable.init(2, 2);
 
     try std.testing.expectEqual(
         RunnerError.InvalidStopPointer,
@@ -336,7 +336,7 @@ test "Signature: final stack error non relocatable" {
 
     try vm.segments.segment_used_sizes.put(0, 0);
 
-    const pointer = Relocatable.new(2, 2);
+    const pointer = Relocatable.init(2, 2);
 
     try std.testing.expectEqual(
         RunnerError.NoStopPointer,
@@ -400,7 +400,7 @@ test "Signature: getInitialStackForRangeCheckWithBase" {
     defer initial_stack.deinit();
 
     try std.testing.expect(initial_stack.items[0].eq(
-        MaybeRelocatable.fromRelocatable(Relocatable.new(@intCast(builtin.base), 0)),
+        MaybeRelocatable.fromRelocatable(Relocatable.init(@intCast(builtin.base), 0)),
     ));
 }
 
@@ -423,7 +423,7 @@ test "Signature: deduce memory cell" {
     var memory = try Memory.init(std.testing.allocator);
     defer memory.deinit();
 
-    const result = builtin.deduceMemoryCell(Relocatable.new(0, 5), memory);
+    const result = builtin.deduceMemoryCell(Relocatable.init(0, 5), memory);
 
     try std.testing.expectEqual(null, result);
 }
@@ -474,7 +474,7 @@ test "Signature: final stack invalid stop pointer" {
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    const pointer = Relocatable.new(0, 1);
+    const pointer = Relocatable.init(0, 1);
 
     try std.testing.expectEqual(
         RunnerError.InvalidStopPointerIndex,
@@ -502,7 +502,7 @@ test "Signature: final stack no used insances" {
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    const pointer = Relocatable.new(0, 1);
+    const pointer = Relocatable.init(0, 1);
 
     try std.testing.expectEqual(
         MemoryError.MissingSegmentUsedSizes,
