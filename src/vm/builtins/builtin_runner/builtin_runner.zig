@@ -159,6 +159,22 @@ pub const BuiltinRunner = union(enum) {
         };
     }
 
+    /// Retrieves the number of instances per component for the built-in runner.
+    ///
+    /// This function returns the number of instances per component for the specific type of
+    /// built-in runner. Each built-in runner may have a different number of instances per
+    /// component based on its configuration and purpose.
+    ///
+    /// # Returns
+    ///
+    /// A `usize` representing the number of instances per component for the built-in runner.
+    pub fn getInstancesPerComponent(self: *Self) u32 {
+        return switch (self.*) {
+            .SegmentArena, .Output => 1,
+            inline else => |*builtin| builtin.instances_per_component,
+        };
+    }
+
     /// Gets the name of the built-in runner.
     ///
     /// This function returns the name associated with the specific type of built-in runner.
