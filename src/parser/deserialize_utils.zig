@@ -18,7 +18,7 @@ pub const ParseOptResult = struct { extracted_content: []const u8, is_parsed: bo
 pub const CastArgs = struct { first: []const u8, rest: []const u8 };
 
 /// Represents the result of parsing a register from a byte array.
-pub const ParseRegisterResult = struct { []const u8, ?Register };
+pub const ParseRegisterResult = struct { remaining_input: []const u8, register: ?Register };
 
 pub const ParseOffsetResult = struct { []const u8, i32 };
 
@@ -209,13 +209,15 @@ pub fn parseOffset(input: []const u8) !ParseOffsetResult {
 /// if a valid register is found; otherwise, returns `null`.
 pub fn parseRegister(input: []const u8) ParseRegisterResult {
     // Check for the presence of "ap" in the input
-    if (std.mem.indexOf(u8, input, "ap")) |idx| return .{ input[idx + 2 ..], .AP };
+    if (std.mem.indexOf(u8, input, "ap")) |idx|
+        return .{ .remaining_input = input[idx + 2 ..], .register = .AP };
 
     // Check for the presence of "fp" in the input
-    if (std.mem.indexOf(u8, input, "fp")) |idx| return .{ input[idx + 2 ..], .FP };
+    if (std.mem.indexOf(u8, input, "fp")) |idx|
+        return .{ .remaining_input = input[idx + 2 ..], .register = .FP };
 
     // If no valid register is found, return `null`
-    return .{ input, null };
+    return .{ .remaining_input = input, .register = null };
 }
 
 /// Parses a register and its offset from a byte array.
@@ -234,8 +236,8 @@ pub fn parseRegister(input: []const u8) ParseRegisterResult {
 /// A `RegisterOffsetResult` containing the parsed register and its offset, or an error if parsing fails.
 pub fn parseRegisterAndOffset(input: []const u8) !RegisterOffsetResult {
     const register = parseRegister(input);
-    const offset = try parseOffset(register[0]);
-    return .{ offset[0], register[1], offset[1] };
+    const offset = try parseOffset(register.remaining_input);
+    return .{ offset[0], register.register, offset[1] };
 }
 
 /// Parses the inner dereference expression from a byte array.
@@ -490,18 +492,33 @@ test "parseOffset: should correctly parse positive and negative offsets" {
 
 test "parseRegister: should correctly identify and parse registers" {
     // Test case: Register "fp" is present in the input
-    try expectEqualDeep(ParseRegisterResult{ " + (-1)", .FP }, parseRegister("fp + (-1)"));
+    try expectEqualDeep(
+        ParseRegisterResult{ .remaining_input = " + (-1)", .register = .FP },
+        parseRegister("fp + (-1)"),
+    );
 
     // Test case: Register "ap" is present in the input
-    try expectEqualDeep(ParseRegisterResult{ " + (-1)", .AP }, parseRegister("ap + (-1)"));
+    try expectEqualDeep(
+        ParseRegisterResult{ .remaining_input = " + (-1)", .register = .AP },
+        parseRegister("ap + (-1)"),
+    );
 
     // Test case: Register "fp" is present in the input with a different offset
-    try expectEqualDeep(ParseRegisterResult{ " + (-3)", .FP }, parseRegister("fp + (-3)"));
+    try expectEqualDeep(
+        ParseRegisterResult{ .remaining_input = " + (-3)", .register = .FP },
+        parseRegister("fp + (-3)"),
+    );
 
     // Test case: Register "ap" is present in the input with a different offset
-    try expectEqualDeep(ParseRegisterResult{ " + (-9)", .AP }, parseRegister("ap + (-9)"));
+    try expectEqualDeep(
+        ParseRegisterResult{ .remaining_input = " + (-9)", .register = .AP },
+        parseRegister("ap + (-9)"),
+    );
 
-    try expectEqualDeep(ParseRegisterResult{ " - 0 + (-1)", .AP }, parseRegister("ap - 0 + (-1)"));
+    try expectEqualDeep(
+        ParseRegisterResult{ .remaining_input = " - 0 + (-1)", .register = .AP },
+        parseRegister("ap - 0 + (-1)"),
+    );
 }
 
 test "parseRegisterAndOffset: should correctly identify and parse register and offset" {
