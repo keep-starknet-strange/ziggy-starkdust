@@ -20,7 +20,7 @@ pub const CastArgs = struct { first: []const u8, rest: []const u8 };
 /// Represents the result of parsing a register from a byte array.
 pub const ParseRegisterResult = struct { remaining_input: []const u8, register: ?Register };
 
-pub const ParseOffsetResult = struct { []const u8, i32 };
+pub const ParseOffsetResult = struct { remaining_input: []const u8, offset: i32 };
 
 /// Represents the result of parsing the inner dereference expression.
 pub const OffsetValueResult = struct { []const u8, OffsetValue };
@@ -145,7 +145,7 @@ pub fn takeCastFirstArg(input: []const u8) !CastArgs {
 pub fn parseOffset(input: []const u8) !ParseOffsetResult {
     // Check for empty input
     if (std.mem.eql(u8, input, "")) {
-        return .{ "", 0 };
+        return .{ .remaining_input = "", .offset = 0 };
     }
 
     var sign: i32 = 1;
@@ -189,8 +189,8 @@ pub fn parseOffset(input: []const u8) !ParseOffsetResult {
 
     // Parse the offset and apply the sign
     return .{
-        without_sign[idx_next_whitespace..],
-        sign * try std.fmt.parseInt(i32, without_parenthesis, 10),
+        .remaining_input = without_sign[idx_next_whitespace..],
+        .offset = sign * try std.fmt.parseInt(i32, without_parenthesis, 10),
     };
 }
 
@@ -237,7 +237,7 @@ pub fn parseRegister(input: []const u8) ParseRegisterResult {
 pub fn parseRegisterAndOffset(input: []const u8) !RegisterOffsetResult {
     const register = parseRegister(input);
     const offset = try parseOffset(register.remaining_input);
-    return .{ offset[0], register.register, offset[1] };
+    return .{ offset.remaining_input, register.register, offset.offset };
 }
 
 /// Parses the inner dereference expression from a byte array.
@@ -470,24 +470,45 @@ test "takeCastFirstArg: should extract the two arguments of cast" {
 
 test "parseOffset: should correctly parse positive and negative offsets" {
     // Test case: Should correctly parse a negative offset with parentheses
-    try expectEqualDeep(ParseOffsetResult{ "", -1 }, try parseOffset(" + (-1)"));
+    try expectEqualDeep(
+        ParseOffsetResult{ .remaining_input = "", .offset = -1 },
+        try parseOffset(" + (-1)"),
+    );
 
     // Test case: Should correctly parse a positive offset
-    try expectEqualDeep(ParseOffsetResult{ "", 1 }, try parseOffset(" + 1"));
+    try expectEqualDeep(
+        ParseOffsetResult{ .remaining_input = "", .offset = 1 },
+        try parseOffset(" + 1"),
+    );
 
     // Test case: Should correctly parse a negative offset without parentheses
-    try expectEqualDeep(ParseOffsetResult{ "", -1 }, try parseOffset(" - 1"));
+    try expectEqualDeep(
+        ParseOffsetResult{ .remaining_input = "", .offset = -1 },
+        try parseOffset(" - 1"),
+    );
 
     // Test case: Should handle an empty input, resulting in offset 0
-    try expectEqualDeep(ParseOffsetResult{ "", 0 }, try parseOffset(""));
+    try expectEqualDeep(
+        ParseOffsetResult{ .remaining_input = "", .offset = 0 },
+        try parseOffset(""),
+    );
 
     // Test case: Should correctly parse a negative offset with a leading plus sign
-    try expectEqualDeep(ParseOffsetResult{ "", -3 }, try parseOffset("+ (-3)"));
+    try expectEqualDeep(
+        ParseOffsetResult{ .remaining_input = "", .offset = -3 },
+        try parseOffset("+ (-3)"),
+    );
 
     // Test case: Should correctly parse a positive offset without parentheses.
-    try expectEqualDeep(ParseOffsetResult{ "", 825323 }, try parseOffset("825323"));
+    try expectEqualDeep(
+        ParseOffsetResult{ .remaining_input = "", .offset = 825323 },
+        try parseOffset("825323"),
+    );
 
-    try expectEqualDeep(ParseOffsetResult{ " + (-1)", 0 }, try parseOffset(" - 0 + (-1)"));
+    try expectEqualDeep(
+        ParseOffsetResult{ .remaining_input = " + (-1)", .offset = 0 },
+        try parseOffset(" - 0 + (-1)"),
+    );
 }
 
 test "parseRegister: should correctly identify and parse registers" {
