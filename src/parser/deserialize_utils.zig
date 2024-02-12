@@ -1,19 +1,35 @@
 const std = @import("std");
+const Allocator = std.mem.Allocator;
 const Register = @import("../vm/instructions.zig").Register;
+const OffsetValue = @import("../vm/types/programjson.zig").OffsetValue;
+const ValueAddress = @import("../vm/types/programjson.zig").ValueAddress;
+const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
 const expectEqualStrings = std.testing.expectEqualStrings;
-
-/// Represents the error that can occur during deserialization
-pub const DeserializationError = error{CastDeserialization};
+const expectEqualDeep = std.testing.expectEqualDeep;
 
 /// Represents the result of parsing brackets within a byte array.
 pub const ParseOptResult = std.meta.Tuple(&.{ []const u8, bool });
 
 /// Represents the result of parsing the first argument of a 'cast' expression.
 pub const CastArgs = std.meta.Tuple(&.{ []const u8, []const u8 });
+
+/// Represents the result of parsing a register from a byte array.
+pub const ParseRegisterResult = std.meta.Tuple(&.{ []const u8, ?Register });
+
+pub const ParseOffsetResult = std.meta.Tuple(&.{ []const u8, i32 });
+
+/// Represents the result of parsing the inner dereference expression.
+pub const OffsetValueResult = std.meta.Tuple(&.{ []const u8, OffsetValue });
+
+/// Represents the result of parsing a register and its offset from a byte array.
+pub const RegisterOffsetResult = std.meta.Tuple(&.{ []const u8, ?Register, i32 });
+
+/// Represents the error that can occur during deserialization.
+pub const DeserializationError = error{CastDeserialization};
 
 /// Parses the outermost brackets within a byte array.
 ///
@@ -126,10 +142,10 @@ pub fn takeCastFirstArg(input: []const u8) !CastArgs {
 /// # Returns
 /// The parsed offset as an `i32`.
 /// An error of type `DeserializationError.CastDeserialization` in case of failed parsing.
-pub fn parseOffset(input: []const u8) !i32 {
+pub fn parseOffset(input: []const u8) !ParseOffsetResult {
     // Check for empty input
     if (std.mem.eql(u8, input, "")) {
-        return 0;
+        return .{ "", 0 };
     }
 
     var sign: i32 = 1;
@@ -139,47 +155,245 @@ pub fn parseOffset(input: []const u8) !i32 {
     for (input, 0..) |c, i| {
         // Searching end of whitespaces
         if (c != 32) {
-            // Modify index after the sign
-            index_after_sign = i + 1;
             // Minus sign (no change for plus sign)
-            if (c == 45) sign = -1;
+            if (c == 45 or c == 43) {
+                index_after_sign = i + 1;
+                if (c == 45) sign = -1;
+            }
+
             break;
         }
     }
 
     // Extract content without the sign
-    const without_sign = std.mem.trim(u8, input[index_after_sign..], " ");
+    const without_sign = std.mem.trim(
+        u8,
+        input[index_after_sign..],
+        " ",
+    );
+
+    const idx_next_whitespace = std.mem.indexOf(u8, without_sign, " ") orelse
+        without_sign.len;
+
     // Trim parentheses from both sides
     const without_parenthesis = std.mem.trimRight(
         u8,
-        std.mem.trimLeft(u8, without_sign, "("),
+        std.mem.trimLeft(u8, without_sign[0..idx_next_whitespace], "("),
         ")",
     );
 
+    // std.debug.print("tutututututu = {any}\n", .{idx_next_whitespace});
+    // std.debug.print("without_sign = {s}\n", .{without_sign});
+    // std.debug.print("without_sign[idx_next_whitespace..] = {s}\n", .{without_sign[idx_next_whitespace..]});
+    // std.debug.print("without_parenthesis = {s}\n", .{without_parenthesis});
+
     // Parse the offset and apply the sign
-    return sign * try std.fmt.parseInt(i32, without_parenthesis, 10);
+    return .{
+        without_sign[idx_next_whitespace..],
+        sign * try std.fmt.parseInt(i32, without_parenthesis, 10),
+    };
 }
 
 /// Parses a register from a byte array.
 ///
 /// This function takes a byte array `input` and attempts to identify and parse a register
 /// representation within it. It recognizes registers such as "ap" and "fp". If a valid register
-/// is found, it returns the corresponding `Register` enum variant; otherwise, it returns `null`.
+/// is found, it returns the corresponding `Register` enum variant along with the remaining input;
+/// otherwise, it returns `null`.
 ///
 /// # Parameters
 /// - `input`: A byte array where a register needs to be parsed.
 ///
 /// # Returns
-/// A `Register` enum variant if a valid register is found; otherwise, returns `null`.
-pub fn parseRegister(input: []const u8) ?Register {
+/// A `ParseRegisterResult` struct containing a `Register` enum variant and the remaining input
+/// if a valid register is found; otherwise, returns `null`.
+pub fn parseRegister(input: []const u8) ParseRegisterResult {
     // Check for the presence of "ap" in the input
-    if (std.mem.indexOf(u8, input, "ap")) |_| return .AP;
+    if (std.mem.indexOf(u8, input, "ap")) |idx| return .{ input[idx + 2 ..], .AP };
 
     // Check for the presence of "fp" in the input
-    if (std.mem.indexOf(u8, input, "fp")) |_| return .FP;
+    if (std.mem.indexOf(u8, input, "fp")) |idx| return .{ input[idx + 2 ..], .FP };
 
     // If no valid register is found, return `null`
-    return null;
+    return .{ input, null };
+}
+
+/// Parses a register and its offset from a byte array.
+///
+/// This function takes a byte array `input` and attempts to identify and parse a register
+/// representation along with its offset within it. It first parses the register using the
+/// `parseRegister` function, and then attempts to parse the offset using the `parseOffset`
+/// function. If both parsing operations succeed, it returns a `RegisterOffsetResult` containing
+/// the parsed register and its offset; otherwise, it propagates any errors encountered during
+/// parsing.
+///
+/// # Parameters
+/// - `input`: A byte array where a register and its offset need to be parsed.
+///
+/// # Returns
+/// A `RegisterOffsetResult` containing the parsed register and its offset, or an error if parsing fails.
+pub fn parseRegisterAndOffset(input: []const u8) !RegisterOffsetResult {
+    const register = parseRegister(input);
+    const offset = try parseOffset(register[0]);
+    return .{ offset[0], register[1], offset[1] };
+}
+
+/// Parses the inner dereference expression from a byte array.
+///
+/// This function takes a byte array `input` representing an inner dereference expression,
+/// such as `[fp + 1]`, and parses it into its components. It extracts the register and offset
+/// using the `parseRegisterAndOffset` function and returns an `OffsetValueResult`
+/// containing the remaining input and the parsed offset value or reference.
+///
+/// # Parameters
+/// - `input`: A byte array representing the inner dereference expression.
+///
+/// # Returns
+/// An `OffsetValueResult` containing the remaining input and the parsed offset value or reference.
+pub fn innerDereference(input: []const u8) !OffsetValueResult {
+    // Check if input is an empty string
+    if (std.mem.eql(u8, input, "")) {
+        return .{ "", .{ .value = 0 } };
+    }
+
+    // Find the last occurrence of ']' character
+    const last_bracket = std.mem.lastIndexOfScalar(u8, input, 0x5D) orelse input.len;
+
+    // Trim whitespace and '[' characters from the left side of the input
+    const without_brackets = std.mem.trimLeft(
+        u8,
+        input[0..last_bracket], // Trim input up to the last ']'
+        "[",
+    );
+
+    // Check if the input is the same after removing brackets and whitespace
+    if (std.mem.eql(u8, input, without_brackets)) return error.noInnerDereference;
+
+    // Extract the register and offset from the input
+    const register_and_offset = try parseRegisterAndOffset(without_brackets);
+
+    // Trim whitespace and ']' characters from the left side of the remaining input
+    const rem = std.mem.trimLeft(u8, input[last_bracket..], "]");
+
+    // Determine if the parsed register is valid and create the appropriate offset value or reference
+    const offset_value: OffsetValue = if (register_and_offset[1]) |r|
+        // Create a reference
+        .{ .reference = .{ r, register_and_offset[2], true } }
+    else
+        // Create a simple offset value
+        .{ .value = register_and_offset[2] };
+
+    // Return the remaining input and the offset value or reference
+    return .{ rem, offset_value };
+}
+
+/// Parses a byte array to determine if it contains a dereference expression.
+///
+/// This function takes a byte array `input` representing a potential dereference expression,
+/// such as "fp + 1", and attempts to parse it into its components. It extracts the register
+/// and offset using the `parseRegisterAndOffset` function and returns a `OffsetValueResult`
+/// containing the remaining input and the parsed offset value or reference, without considering
+/// inner dereference expressions.
+///
+/// # Parameters
+/// - `input`: A byte array representing a potential dereference expression.
+///
+/// # Returns
+/// A `OffsetValueResult` containing the remaining input and the parsed offset value or reference,
+/// without considering inner dereference expressions.
+pub fn noInnerDereference(input: []const u8) !OffsetValueResult {
+    // Extract the register and offset from the input
+    const register_and_offset = try parseRegisterAndOffset(input);
+
+    // Determine if the parsed register is valid and create the appropriate offset value or reference
+    const offset_value: OffsetValue = if (register_and_offset[1]) |r|
+        // Create a reference
+        .{ .reference = .{ r, register_and_offset[2], false } }
+    else
+        // Create a simple offset value
+        .{ .value = register_and_offset[2] };
+
+    // Return the remaining input and the offset value or reference
+    return .{ register_and_offset[0], offset_value };
+}
+
+pub fn parseValue(input: []const u8, allocator: Allocator) !ValueAddress {
+    const without_brackets = outerBrackets(input);
+    const first_arg = try takeCastFirstArg(without_brackets[0]);
+    const first_offset_value = innerDereference(first_arg[0]) catch
+        noInnerDereference(first_arg[0]) catch
+        null;
+    const second_offset_value = if (first_offset_value) |ov|
+        innerDereference(ov[0]) catch
+            noInnerDereference(ov[0]) catch
+            null
+    else
+        null;
+
+    std.debug.print("first_arg[0] = {s}\n", .{first_arg[0]});
+    std.debug.print("first_offset_value = {any}\n", .{first_offset_value});
+
+    const star_index = std.mem.indexOf(u8, first_arg[1], "*") orelse 0;
+
+    const indirection_level = first_arg[1][star_index..];
+    const struct_ = first_arg[1][0..star_index];
+
+    const type_ = if (indirection_level.len > 1) blk: {
+        const t = try std.mem.concat(
+            allocator,
+            u8,
+            &[_][]const u8{ struct_, indirection_level[1..] },
+        );
+        errdefer allocator.free(t);
+
+        break :blk t;
+    } else struct_;
+
+    const first_offset: OffsetValue = if (first_offset_value) |ov| ov[1] else .{ .value = 0 };
+    const second_offset: OffsetValue = if (second_offset_value) |ov| ov[1] else .{ .value = 0 };
+
+    // std.debug.print("first_offset = {any}\n", .{first_offset});
+    // std.debug.print("second_offset = {any}\n", .{second_offset});
+
+    const offsets: std.meta.Tuple(&.{ OffsetValue, OffsetValue }) = if (std.mem.eql(u8, struct_, "felt") and indirection_level.len == 0)
+        .{
+            switch (first_offset) {
+                .immediate => |imm| .{ .immediate = imm },
+                .value => |val| .{ .immediate = if (val < 0)
+                    Felt252.fromInt(u32, @intCast(-val)).neg()
+                else
+                    Felt252.fromInt(u32, @intCast(val)) },
+                .reference => |ref| .{ .reference = ref },
+            },
+            switch (second_offset) {
+                .immediate => |imm| .{ .immediate = imm },
+                .value => |val| .{ .immediate = if (val < 0)
+                    Felt252.fromInt(u32, @intCast(-val)).neg()
+                else
+                    Felt252.fromInt(u32, @intCast(val)) },
+                .reference => |ref| .{ .reference = ref },
+            },
+        }
+    else
+        .{ first_offset, second_offset };
+
+    // std.debug.print("offsets = {any}\n", .{offsets});
+    // std.debug.print(
+    //     "tititititititi = {any}\n",
+    //     .{ValueAddress{
+    //         .offset1 = offsets[0],
+    //         .offset2 = offsets[1],
+    //         .dereference = without_brackets[1],
+    //         .value_type = type_,
+    //     }},
+    // );
+
+    return .{
+        .offset1 = offsets[0],
+        .offset2 = offsets[1],
+        .dereference = without_brackets[1],
+        .value_type = type_,
+    };
 }
 
 test "outerBrackets: should check if the input has outer brackets" {
@@ -298,31 +512,152 @@ test "takeCastFirstArg: should extract the two arguments of cast" {
 
 test "parseOffset: should correctly parse positive and negative offsets" {
     // Test case: Should correctly parse a negative offset with parentheses
-    try expectEqual(@as(i32, -1), try parseOffset(" + (-1)"));
+    try expectEqualDeep(ParseOffsetResult{ "", -1 }, try parseOffset(" + (-1)"));
 
     // Test case: Should correctly parse a positive offset
-    try expectEqual(@as(i32, 1), try parseOffset(" + 1"));
+    try expectEqualDeep(ParseOffsetResult{ "", 1 }, try parseOffset(" + 1"));
 
     // Test case: Should correctly parse a negative offset without parentheses
-    try expectEqual(@as(i32, -1), try parseOffset(" - 1"));
+    try expectEqualDeep(ParseOffsetResult{ "", -1 }, try parseOffset(" - 1"));
 
     // Test case: Should handle an empty input, resulting in offset 0
-    try expectEqual(@as(i32, 0), try parseOffset(""));
+    try expectEqualDeep(ParseOffsetResult{ "", 0 }, try parseOffset(""));
 
     // Test case: Should correctly parse a negative offset with a leading plus sign
-    try expectEqual(@as(i32, -3), try parseOffset("+ (-3)"));
+    try expectEqualDeep(ParseOffsetResult{ "", -3 }, try parseOffset("+ (-3)"));
+
+    // Test case: Should correctly parse a positive offset without parentheses.
+    try expectEqualDeep(ParseOffsetResult{ "", 825323 }, try parseOffset("825323"));
+
+    try expectEqualDeep(ParseOffsetResult{ " + (-1)", 0 }, try parseOffset(" - 0 + (-1)"));
 }
 
 test "parseRegister: should correctly identify and parse registers" {
     // Test case: Register "fp" is present in the input
-    try expectEqual(Register.FP, parseRegister("fp + (-1)"));
+    try expectEqualDeep(ParseRegisterResult{ " + (-1)", .FP }, parseRegister("fp + (-1)"));
 
     // Test case: Register "ap" is present in the input
-    try expectEqual(Register.AP, parseRegister("ap + (-1)"));
+    try expectEqualDeep(ParseRegisterResult{ " + (-1)", .AP }, parseRegister("ap + (-1)"));
 
     // Test case: Register "fp" is present in the input with a different offset
-    try expectEqual(Register.FP, parseRegister("fp + (-3)"));
+    try expectEqualDeep(ParseRegisterResult{ " + (-3)", .FP }, parseRegister("fp + (-3)"));
 
     // Test case: Register "ap" is present in the input with a different offset
-    try expectEqual(Register.AP, parseRegister("ap + (-9)"));
+    try expectEqualDeep(ParseRegisterResult{ " + (-9)", .AP }, parseRegister("ap + (-9)"));
+
+    try expectEqualDeep(ParseRegisterResult{ " - 0 + (-1)", .AP }, parseRegister("ap - 0 + (-1)"));
+}
+
+test "parseRegisterAndOffset: should correctly identify and parse register and offset" {
+    // Test case: Register "fp" is present in the input with an offset of 1
+    try expectEqualDeep(RegisterOffsetResult{ "", .FP, 1 }, parseRegisterAndOffset("fp + 1"));
+
+    // Test case: Register "ap" is present in the input with an offset of -1
+    try expectEqualDeep(RegisterOffsetResult{ "", .AP, -1 }, parseRegisterAndOffset("ap + (-1)"));
+
+    // Test case: No register is present in the input with an offset of 2
+    try expectEqualDeep(RegisterOffsetResult{ "", null, 2 }, parseRegisterAndOffset(" + 2"));
+
+    // Test case: No register is present in the input with an offset of 825323.
+    try expectEqualDeep(RegisterOffsetResult{ "", null, 825323 }, try parseRegisterAndOffset("825323"));
+
+    try expectEqualDeep(
+        RegisterOffsetResult{ " + (-1)", .AP, 0 },
+        try parseRegisterAndOffset("ap - 0 + (-1)"),
+    );
+
+    // std.debug.print("finiiiiiiii = {any}\n", .{try parseRegisterAndOffset("ap - 0 + (-1)")});
+}
+
+test "innerDereference: should correctly identify and parse OffsetValue" {
+    // Test case: Inner dereference expression "[fp + (-1)] + 2"
+    try expectEqualDeep(
+        OffsetValueResult{ " + 2", .{ .reference = .{ .FP, -1, true } } },
+        try innerDereference("[fp + (-1)] + 2"),
+    );
+
+    // Test case: Inner dereference expression "[ap + (-2)] + 9223372036854775808"
+    try expectEqualDeep(
+        OffsetValueResult{ " + 9223372036854775808", .{ .reference = .{ .AP, -2, true } } },
+        try innerDereference("[ap + (-2)] + 9223372036854775808"),
+    );
+
+    // Test case: Inner dereference expression ""
+    try expectEqualDeep(
+        OffsetValueResult{ "", .{ .value = 0 } },
+        try innerDereference(""),
+    );
+
+    // Test case: Inner dereference expression without brackets
+    try expectError(
+        error.noInnerDereference,
+        innerDereference("ap + 2"),
+    );
+}
+
+test "noInnerDereference: should correctly identify and parse OffsetValue with no inner" {
+    // Test case: Dereference expression "ap + 3" with no inner dereference
+    try expectEqualDeep(
+        OffsetValueResult{ "", .{ .reference = .{ .AP, 3, false } } },
+        try noInnerDereference("ap + 3"),
+    );
+
+    // Test case: No register is present in the input with an offset of 2
+    try expectEqualDeep(
+        OffsetValueResult{ "", .{ .value = 2 } },
+        try noInnerDereference(" + 2"),
+    );
+
+    try expectEqualDeep(
+        OffsetValueResult{ " + (-1)", .{ .reference = .{ .AP, 0, false } } },
+        try noInnerDereference("ap - 0 + (-1)"),
+    );
+}
+
+test "parseValue: with inner dereference" {
+    try expectEqualDeep(
+        ValueAddress{
+            .offset1 = .{ .reference = .{ .FP, -1, true } },
+            .offset2 = .{ .value = 2 },
+            .dereference = true,
+            .value_type = "felt",
+        },
+        try parseValue("[cast([fp + (-1)] + 2, felt*)]", std.testing.allocator),
+    );
+}
+
+test "parseValue: with no inner dereference" {
+    try expectEqualDeep(
+        ValueAddress{
+            .offset1 = .{ .reference = .{ .AP, 2, false } },
+            .offset2 = .{ .value = 0 },
+            .dereference = false,
+            .value_type = "felt",
+        },
+        try parseValue("cast(ap + 2, felt*)", std.testing.allocator),
+    );
+}
+
+test "parseValue: with no register" {
+    try expectEqualDeep(
+        ValueAddress{
+            .offset1 = .{ .value = 825323 },
+            .offset2 = .{ .value = 0 },
+            .dereference = false,
+            .value_type = "felt",
+        },
+        try parseValue("cast(825323, felt*)", std.testing.allocator),
+    );
+}
+
+test "parseValue: with no inner dereference and two offsets" {
+    try expectEqualDeep(
+        ValueAddress{
+            .offset1 = .{ .reference = .{ .AP, 0, false } },
+            .offset2 = .{ .value = -1 },
+            .dereference = true,
+            .value_type = "felt",
+        },
+        try parseValue("[cast(ap - 0 + (-1), felt*)]", std.testing.allocator),
+    );
 }
