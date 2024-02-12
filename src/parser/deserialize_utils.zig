@@ -23,7 +23,7 @@ pub const ParseRegisterResult = struct { remaining_input: []const u8, register: 
 pub const ParseOffsetResult = struct { remaining_input: []const u8, offset: i32 };
 
 /// Represents the result of parsing the inner dereference expression.
-pub const OffsetValueResult = struct { []const u8, OffsetValue };
+pub const OffsetValueResult = struct { remaining_input: []const u8, offset_value: OffsetValue };
 
 /// Represents the result of parsing a register and its offset from a byte array.
 pub const RegisterOffsetResult = struct { []const u8, ?Register, i32 };
@@ -255,7 +255,7 @@ pub fn parseRegisterAndOffset(input: []const u8) !RegisterOffsetResult {
 pub fn innerDereference(input: []const u8) !OffsetValueResult {
     // Check if input is an empty string
     if (std.mem.eql(u8, input, "")) {
-        return .{ "", .{ .value = 0 } };
+        return .{ .remaining_input = "", .offset_value = .{ .value = 0 } };
     }
 
     // Find the first occurrence of ']' character
@@ -286,7 +286,7 @@ pub fn innerDereference(input: []const u8) !OffsetValueResult {
         .{ .value = register_and_offset[2] };
 
     // Return the remaining input and the offset value or reference
-    return .{ rem, offset_value };
+    return .{ .remaining_input = rem, .offset_value = offset_value };
 }
 
 /// Parses a byte array to determine if it contains a dereference expression.
@@ -316,7 +316,7 @@ pub fn noInnerDereference(input: []const u8) !OffsetValueResult {
         .{ .value = register_and_offset[2] };
 
     // Return the remaining input and the offset value or reference
-    return .{ register_and_offset[0], offset_value };
+    return .{ .remaining_input = register_and_offset[0], .offset_value = offset_value };
 }
 
 pub fn parseValue(input: []const u8, allocator: Allocator) !ValueAddress {
@@ -326,8 +326,8 @@ pub fn parseValue(input: []const u8, allocator: Allocator) !ValueAddress {
         noInnerDereference(first_arg.first) catch
         null;
     const second_offset_value = if (first_offset_value) |ov|
-        innerDereference(ov[0]) catch
-            noInnerDereference(ov[0]) catch
+        innerDereference(ov.remaining_input) catch
+            noInnerDereference(ov.remaining_input) catch
             null
     else
         null;
@@ -348,8 +348,8 @@ pub fn parseValue(input: []const u8, allocator: Allocator) !ValueAddress {
         break :blk t;
     } else struct_;
 
-    const first_offset: OffsetValue = if (first_offset_value) |ov| ov[1] else .{ .value = 0 };
-    const second_offset: OffsetValue = if (second_offset_value) |ov| ov[1] else .{ .value = 0 };
+    const first_offset: OffsetValue = if (first_offset_value) |ov| ov.offset_value else .{ .value = 0 };
+    const second_offset: OffsetValue = if (second_offset_value) |ov| ov.offset_value else .{ .value = 0 };
 
     const offsets: std.meta.Tuple(&.{ OffsetValue, OffsetValue }) = if (std.mem.eql(u8, struct_, "felt") and indirection_level.len == 0)
         .{
@@ -566,19 +566,28 @@ test "parseRegisterAndOffset: should correctly identify and parse register and o
 test "innerDereference: should correctly identify and parse OffsetValue" {
     // Test case: Inner dereference expression "[fp + (-1)] + 2"
     try expectEqualDeep(
-        OffsetValueResult{ " + 2", .{ .reference = .{ .FP, -1, true } } },
+        OffsetValueResult{
+            .remaining_input = " + 2",
+            .offset_value = .{ .reference = .{ .FP, -1, true } },
+        },
         try innerDereference("[fp + (-1)] + 2"),
     );
 
     // Test case: Inner dereference expression "[ap + (-2)] + 9223372036854775808"
     try expectEqualDeep(
-        OffsetValueResult{ " + 9223372036854775808", .{ .reference = .{ .AP, -2, true } } },
+        OffsetValueResult{
+            .remaining_input = " + 9223372036854775808",
+            .offset_value = .{ .reference = .{ .AP, -2, true } },
+        },
         try innerDereference("[ap + (-2)] + 9223372036854775808"),
     );
 
     // Test case: Inner dereference expression ""
     try expectEqualDeep(
-        OffsetValueResult{ "", .{ .value = 0 } },
+        OffsetValueResult{
+            .remaining_input = "",
+            .offset_value = .{ .value = 0 },
+        },
         try innerDereference(""),
     );
 
@@ -589,7 +598,10 @@ test "innerDereference: should correctly identify and parse OffsetValue" {
     );
 
     try expectEqualDeep(
-        OffsetValueResult{ " + [fp + 1]", .{ .reference = .{ .AP, 0, true } } },
+        OffsetValueResult{
+            .remaining_input = " + [fp + 1]",
+            .offset_value = .{ .reference = .{ .AP, 0, true } },
+        },
         try innerDereference("[ap] + [fp + 1]"),
     );
 }
@@ -597,18 +609,27 @@ test "innerDereference: should correctly identify and parse OffsetValue" {
 test "noInnerDereference: should correctly identify and parse OffsetValue with no inner" {
     // Test case: Dereference expression "ap + 3" with no inner dereference
     try expectEqualDeep(
-        OffsetValueResult{ "", .{ .reference = .{ .AP, 3, false } } },
+        OffsetValueResult{
+            .remaining_input = "",
+            .offset_value = .{ .reference = .{ .AP, 3, false } },
+        },
         try noInnerDereference("ap + 3"),
     );
 
     // Test case: No register is present in the input with an offset of 2
     try expectEqualDeep(
-        OffsetValueResult{ "", .{ .value = 2 } },
+        OffsetValueResult{
+            .remaining_input = "",
+            .offset_value = .{ .value = 2 },
+        },
         try noInnerDereference(" + 2"),
     );
 
     try expectEqualDeep(
-        OffsetValueResult{ " + (-1)", .{ .reference = .{ .AP, 0, false } } },
+        OffsetValueResult{
+            .remaining_input = " + (-1)",
+            .offset_value = .{ .reference = .{ .AP, 0, false } },
+        },
         try noInnerDereference("ap - 0 + (-1)"),
     );
 }
