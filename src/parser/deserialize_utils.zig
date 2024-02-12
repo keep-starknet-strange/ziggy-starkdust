@@ -12,21 +12,61 @@ const expectEqualStrings = std.testing.expectEqualStrings;
 const expectEqualDeep = std.testing.expectEqualDeep;
 
 /// Represents the result of parsing brackets within a byte array.
-pub const ParseOptResult = struct { extracted_content: []const u8, is_parsed: bool };
+pub const ParseOptResult = struct {
+    /// The content extracted within the brackets.
+    extracted_content: []const u8,
+
+    /// Indicates whether the brackets were parsed or not.
+    is_parsed: bool,
+};
 
 /// Represents the result of parsing the first argument of a 'cast' expression.
-pub const CastArgs = struct { first: []const u8, rest: []const u8 };
+pub const CastArgs = struct {
+    /// The first argument of the 'cast' expression.
+    first: []const u8,
+
+    /// The remaining arguments of the 'cast' expression.
+    rest: []const u8,
+};
 
 /// Represents the result of parsing a register from a byte array.
-pub const ParseRegisterResult = struct { remaining_input: []const u8, register: ?Register };
+pub const ParseRegisterResult = struct {
+    /// The remaining input after parsing the register.
+    remaining_input: []const u8,
 
-pub const ParseOffsetResult = struct { remaining_input: []const u8, offset: i32 };
+    /// The parsed register, if exists.
+    register: ?Register,
+};
+
+/// Represents the result of parsing an offset from a byte array.
+pub const ParseOffsetResult = struct {
+    /// The remaining input after parsing the offset.
+    remaining_input: []const u8,
+
+    /// The parsed offset value.
+    offset: i32,
+};
 
 /// Represents the result of parsing the inner dereference expression.
-pub const OffsetValueResult = struct { remaining_input: []const u8, offset_value: OffsetValue };
+pub const OffsetValueResult = struct {
+    /// The remaining input after parsing the inner dereference expression.
+    remaining_input: []const u8,
+
+    /// The parsed offset value.
+    offset_value: OffsetValue,
+};
 
 /// Represents the result of parsing a register and its offset from a byte array.
-pub const RegisterOffsetResult = struct { remaining_input: []const u8, register: ?Register, offset: i32 };
+pub const RegisterOffsetResult = struct {
+    /// The remaining input after parsing the register and its offset.
+    remaining_input: []const u8,
+
+    /// The parsed register, if exists.
+    register: ?Register,
+
+    /// The parsed offset value.
+    offset: i32,
+};
 
 /// Represents the error that can occur during deserialization.
 pub const DeserializationError = error{CastDeserialization};
@@ -172,6 +212,7 @@ pub fn parseOffset(input: []const u8) !ParseOffsetResult {
         " ",
     );
 
+    // Find the index of the next whitespace or use the length of the remaining input
     const idx_next_whitespace = std.mem.indexOf(u8, without_sign, " ") orelse
         without_sign.len;
 
@@ -182,18 +223,12 @@ pub fn parseOffset(input: []const u8) !ParseOffsetResult {
         ")",
     );
 
-    // std.debug.print("tutututututu = {any}\n", .{idx_next_whitespace});
-    // std.debug.print("without_sign = {s}\n", .{without_sign});
-    // std.debug.print("without_sign[idx_next_whitespace..] = {s}\n", .{without_sign[idx_next_whitespace..]});
-    // std.debug.print("without_parenthesis = {s}\n", .{without_parenthesis});
-
     // Parse the offset and apply the sign
     return .{
         .remaining_input = without_sign[idx_next_whitespace..],
         .offset = sign * try std.fmt.parseInt(i32, without_parenthesis, 10),
     };
 }
-
 /// Parses a register from a byte array.
 ///
 /// This function takes a byte array `input` and attempts to identify and parse a register
@@ -235,12 +270,17 @@ pub fn parseRegister(input: []const u8) ParseRegisterResult {
 /// # Returns
 /// A `RegisterOffsetResult` containing the parsed register and its offset, or an error if parsing fails.
 pub fn parseRegisterAndOffset(input: []const u8) !RegisterOffsetResult {
-    const register = parseRegister(input);
-    const offset = try parseOffset(register.remaining_input);
+    // Parse the register from the input byte array
+    const reg = parseRegister(input);
+
+    // Parse the offset from the remaining input after parsing the register
+    const off = try parseOffset(reg.remaining_input);
+
+    // Return the result containing the remaining input, parsed register, and offset
     return .{
-        .remaining_input = offset.remaining_input,
-        .register = register.register,
-        .offset = offset.offset,
+        .remaining_input = off.remaining_input,
+        .register = reg.register,
+        .offset = off.offset,
     };
 }
 
@@ -323,12 +363,41 @@ pub fn noInnerDereference(input: []const u8) !OffsetValueResult {
     return .{ .remaining_input = register_and_offset.remaining_input, .offset_value = offset_value };
 }
 
+/// Parses a value from a byte array, taking into account potential levels of indirection and offsets.
+///
+/// This function takes a byte array `input` representing a value expression and an `Allocator` for memory allocation.
+///
+/// It starts by removing outer brackets from the input using the `outerBrackets` function, then extracts the first argument from a possible cast using the `takeCastFirstArg` function.
+///
+/// It parses the first inner dereference expression using the `innerDereference` function, or defaults to no dereference if no inner dereference is present.
+///
+/// Similarly, it parses the second inner dereference expression or defaults to no dereference if not present.
+///
+/// Then, it determines the indirection level and struct name based on the presence of the '*' character.
+///
+/// If the struct name is followed by indirection level information, it concatenates them into a single type string.
+///
+/// Finally, it constructs and returns a `ValueAddress` containing the parsed offsets, dereference status, and type information.
+///
+/// # Parameters
+/// - `input`: A byte array representing the value expression to parse.
+/// - `allocator`: An allocator to allocate memory for intermediate data structures.
+///
+/// # Returns
+/// A `ValueAddress` containing information about the parsed value, including offsets, dereference status, and type.
 pub fn parseValue(input: []const u8, allocator: Allocator) !ValueAddress {
+    // Remove outer brackets from the input
     const without_brackets = outerBrackets(input);
-    const first_arg = try takeCastFirstArg(without_brackets.extracted_content);
-    const first_offset_value = innerDereference(first_arg.first) catch
-        noInnerDereference(first_arg.first) catch
+
+    // Extract first argument of a possible cast
+    const arg_casting = try takeCastFirstArg(without_brackets.extracted_content);
+
+    // Parse first inner dereference expression or default to no dereference
+    const first_offset_value = innerDereference(arg_casting.first) catch
+        noInnerDereference(arg_casting.first) catch
         null;
+
+    // Parse second inner dereference expression or default to no dereference
     const second_offset_value = if (first_offset_value) |ov|
         innerDereference(ov.remaining_input) catch
             noInnerDereference(ov.remaining_input) catch
@@ -336,52 +405,70 @@ pub fn parseValue(input: []const u8, allocator: Allocator) !ValueAddress {
     else
         null;
 
-    const star_index = std.mem.indexOf(u8, first_arg.rest, "*") orelse first_arg.rest.len;
+    // Find the index of the '*' character, or use the length of the remaining input
+    const star_index = std.mem.indexOf(u8, arg_casting.rest, "*") orelse arg_casting.rest.len;
 
-    const indirection_level = first_arg.rest[star_index..];
-    const struct_ = first_arg.rest[0..star_index];
+    // Determine the indirection level
+    const indirection_level = arg_casting.rest[star_index..];
+    // Extract the struct name
+    const struct_ = arg_casting.rest[0..star_index];
 
-    const type_ = if (indirection_level.len > 1) blk: {
-        const t = try std.mem.concat(
-            allocator,
-            u8,
-            &[_][]const u8{ struct_, indirection_level[1..] },
-        );
-        errdefer allocator.free(t);
+    // Determine the type based on the presence of indirection level information
+    const type_ = try std.mem.concat(
+        allocator,
+        u8,
+        &[_][]const u8{ struct_, if (indirection_level.len > 1) indirection_level[1..] else "" },
+    );
+    // Free memory allocated for the concatenated type
+    errdefer allocator.free(type_);
 
-        break :blk t;
-    } else struct_;
-
+    // Parse the first offset value or default to immediate value 0
     const first_offset: OffsetValue = if (first_offset_value) |ov| ov.offset_value else .{ .value = 0 };
+    // Parse the second offset value or default to immediate value 0
     const second_offset: OffsetValue = if (second_offset_value) |ov| ov.offset_value else .{ .value = 0 };
 
+    // Determine the offsets tuple based on the struct type and indirection level
     const offsets: std.meta.Tuple(&.{ OffsetValue, OffsetValue }) = if (std.mem.eql(u8, struct_, "felt") and indirection_level.len == 0)
         .{
             switch (first_offset) {
+                // Immediate value offset
                 .immediate => |imm| .{ .immediate = imm },
-                .value => |val| .{ .immediate = if (val < 0)
-                    Felt252.fromInt(u32, @intCast(-val)).neg()
-                else
-                    Felt252.fromInt(u32, @intCast(val)) },
+                .value => |val| .{
+                    .immediate = if (val < 0)
+                        // Negative value offset
+                        Felt252.fromInt(u32, @intCast(-val)).neg()
+                    else
+                        // Positive value offset
+                        Felt252.fromInt(u32, @intCast(val)),
+                },
+                // Reference offset
                 .reference => |ref| .{ .reference = ref },
             },
             switch (second_offset) {
+                // Immediate value offset
                 .immediate => |imm| .{ .immediate = imm },
-                .value => |val| .{ .immediate = if (val < 0)
-                    Felt252.fromInt(u32, @intCast(-val)).neg()
-                else
-                    Felt252.fromInt(u32, @intCast(val)) },
+                .value => |val| .{
+                    .immediate = if (val < 0)
+                        // Negative value offset
+                        Felt252.fromInt(u32, @intCast(-val)).neg()
+                    else
+                        // Positive value offset
+                        Felt252.fromInt(u32, @intCast(val)),
+                },
+                // Reference offset
                 .reference => |ref| .{ .reference = ref },
             },
         }
     else
+        // Default to provided offsets
         .{ first_offset, second_offset };
 
+    // Return a ValueAddress containing parsed value information
     return .{
-        .offset1 = offsets[0],
-        .offset2 = offsets[1],
-        .dereference = without_brackets.is_parsed,
-        .value_type = type_,
+        .offset1 = offsets[0], // First offset value
+        .offset2 = offsets[1], // Second offset value
+        .dereference = without_brackets.is_parsed, // Dereference status
+        .value_type = type_, // Type information
     };
 }
 
@@ -548,17 +635,30 @@ test "parseRegister: should correctly identify and parse registers" {
 
 test "parseRegisterAndOffset: should correctly identify and parse register and offset" {
     // Test case: Register "fp" is present in the input with an offset of 1
-    try expectEqualDeep(RegisterOffsetResult{ .remaining_input = "", .register = .FP, .offset = 1 }, parseRegisterAndOffset("fp + 1"));
+    try expectEqualDeep(
+        RegisterOffsetResult{ .remaining_input = "", .register = .FP, .offset = 1 },
+        parseRegisterAndOffset("fp + 1"),
+    );
 
     // Test case: Register "ap" is present in the input with an offset of -1
-    try expectEqualDeep(RegisterOffsetResult{ .remaining_input = "", .register = .AP, .offset = -1 }, parseRegisterAndOffset("ap + (-1)"));
+    try expectEqualDeep(
+        RegisterOffsetResult{ .remaining_input = "", .register = .AP, .offset = -1 },
+        parseRegisterAndOffset("ap + (-1)"),
+    );
 
     // Test case: No register is present in the input with an offset of 2
-    try expectEqualDeep(RegisterOffsetResult{ .remaining_input = "", .register = null, .offset = 2 }, parseRegisterAndOffset(" + 2"));
+    try expectEqualDeep(
+        RegisterOffsetResult{ .remaining_input = "", .register = null, .offset = 2 },
+        parseRegisterAndOffset(" + 2"),
+    );
 
     // Test case: No register is present in the input with an offset of 825323.
-    try expectEqualDeep(RegisterOffsetResult{ .remaining_input = "", .register = null, .offset = 825323 }, try parseRegisterAndOffset("825323"));
+    try expectEqualDeep(
+        RegisterOffsetResult{ .remaining_input = "", .register = null, .offset = 825323 },
+        try parseRegisterAndOffset("825323"),
+    );
 
+    // Test case: Register "ap" is present in the input with an offset of -1, with extra spacing
     try expectEqualDeep(
         RegisterOffsetResult{ .remaining_input = " + (-1)", .register = .AP, .offset = 0 },
         try parseRegisterAndOffset("ap - 0 + (-1)"),
@@ -599,6 +699,7 @@ test "innerDereference: should correctly identify and parse OffsetValue" {
         innerDereference("ap + 2"),
     );
 
+    // Test case: Inner dereference expression with multiple references
     try expectEqualDeep(
         OffsetValueResult{
             .remaining_input = " + [fp + 1]",
@@ -627,6 +728,7 @@ test "noInnerDereference: should correctly identify and parse OffsetValue with n
         try noInnerDereference(" + 2"),
     );
 
+    // Test case: Dereference expression "ap - 0 + (-1)" with no inner dereference
     try expectEqualDeep(
         OffsetValueResult{
             .remaining_input = " + (-1)",
@@ -637,6 +739,10 @@ test "noInnerDereference: should correctly identify and parse OffsetValue with n
 }
 
 test "parseValue: with inner dereference" {
+    const res = try parseValue("[cast([fp + (-1)] + 2, felt*)]", std.testing.allocator);
+
+    defer std.testing.allocator.free(res.value_type);
+
     try expectEqualDeep(
         ValueAddress{
             .offset1 = .{ .reference = .{ .FP, -1, true } },
@@ -644,11 +750,15 @@ test "parseValue: with inner dereference" {
             .dereference = true,
             .value_type = "felt",
         },
-        try parseValue("[cast([fp + (-1)] + 2, felt*)]", std.testing.allocator),
+        res,
     );
 }
 
 test "parseValue: with no inner dereference" {
+    const res = try parseValue("cast(ap + 2, felt*)", std.testing.allocator);
+
+    defer std.testing.allocator.free(res.value_type);
+
     try expectEqualDeep(
         ValueAddress{
             .offset1 = .{ .reference = .{ .AP, 2, false } },
@@ -656,11 +766,15 @@ test "parseValue: with no inner dereference" {
             .dereference = false,
             .value_type = "felt",
         },
-        try parseValue("cast(ap + 2, felt*)", std.testing.allocator),
+        res,
     );
 }
 
 test "parseValue: with no register" {
+    const res = try parseValue("cast(825323, felt*)", std.testing.allocator);
+
+    defer std.testing.allocator.free(res.value_type);
+
     try expectEqualDeep(
         ValueAddress{
             .offset1 = .{ .value = 825323 },
@@ -668,11 +782,15 @@ test "parseValue: with no register" {
             .dereference = false,
             .value_type = "felt",
         },
-        try parseValue("cast(825323, felt*)", std.testing.allocator),
+        res,
     );
 }
 
 test "parseValue: with no inner dereference and two offsets" {
+    const res = try parseValue("[cast(ap - 0 + (-1), felt*)]", std.testing.allocator);
+
+    defer std.testing.allocator.free(res.value_type);
+
     try expectEqualDeep(
         ValueAddress{
             .offset1 = .{ .reference = .{ .AP, 0, false } },
@@ -680,11 +798,15 @@ test "parseValue: with no inner dereference and two offsets" {
             .dereference = true,
             .value_type = "felt",
         },
-        try parseValue("[cast(ap - 0 + (-1), felt*)]", std.testing.allocator),
+        res,
     );
 }
 
 test "parseValue: with inner dereference and offset" {
+    const res = try parseValue("[cast([ap] + 1, __main__.felt*)]", std.testing.allocator);
+
+    defer std.testing.allocator.free(res.value_type);
+
     try expectEqualDeep(
         ValueAddress{
             .offset1 = .{ .reference = .{ .AP, 0, true } },
@@ -692,11 +814,15 @@ test "parseValue: with inner dereference and offset" {
             .dereference = true,
             .value_type = "__main__.felt",
         },
-        try parseValue("[cast([ap] + 1, __main__.felt*)]", std.testing.allocator),
+        res,
     );
 }
 
 test "parseValue: with inner dereference and immediate" {
+    const res = try parseValue("[cast([ap] + 1, felt)]", std.testing.allocator);
+
+    defer std.testing.allocator.free(res.value_type);
+
     try expectEqualDeep(
         ValueAddress{
             .offset1 = .{ .reference = .{ .AP, 0, true } },
@@ -704,11 +830,15 @@ test "parseValue: with inner dereference and immediate" {
             .dereference = true,
             .value_type = "felt",
         },
-        try parseValue("[cast([ap] + 1, felt)]", std.testing.allocator),
+        res,
     );
 }
 
 test "parseValue: with inner dereference to pointer" {
+    const res = try parseValue("[cast([ap + 1] + 1, felt*)]", std.testing.allocator);
+
+    defer std.testing.allocator.free(res.value_type);
+
     try expectEqualDeep(
         ValueAddress{
             .offset1 = .{ .reference = .{ .AP, 1, true } },
@@ -716,11 +846,15 @@ test "parseValue: with inner dereference to pointer" {
             .dereference = true,
             .value_type = "felt",
         },
-        try parseValue("[cast([ap + 1] + 1, felt*)]", std.testing.allocator),
+        res,
     );
 }
 
 test "parseValue: with 2 inner dereference" {
+    const res = try parseValue("[cast([ap] + [fp + 1], __main__.felt*)]", std.testing.allocator);
+
+    defer std.testing.allocator.free(res.value_type);
+
     try expectEqualDeep(
         ValueAddress{
             .offset1 = .{ .reference = .{ .AP, 0, true } },
@@ -728,11 +862,15 @@ test "parseValue: with 2 inner dereference" {
             .dereference = true,
             .value_type = "__main__.felt",
         },
-        try parseValue("[cast([ap] + [fp + 1], __main__.felt*)]", std.testing.allocator),
+        res,
     );
 }
 
 test "parseValue: with 2 inner dereferences" {
+    const res = try parseValue("[cast([ap + 1] + [fp + 1], __main__.felt*)]", std.testing.allocator);
+
+    defer std.testing.allocator.free(res.value_type);
+
     try expectEqualDeep(
         ValueAddress{
             .offset1 = .{ .reference = .{ .AP, 1, true } },
@@ -740,11 +878,15 @@ test "parseValue: with 2 inner dereferences" {
             .dereference = true,
             .value_type = "__main__.felt",
         },
-        try parseValue("[cast([ap + 1] + [fp + 1], __main__.felt*)]", std.testing.allocator),
+        res,
     );
 }
 
 test "parseValue: with no reference" {
+    const res = try parseValue("cast(825323, felt)", std.testing.allocator);
+
+    defer std.testing.allocator.free(res.value_type);
+
     try expectEqualDeep(
         ValueAddress{
             .offset1 = .{ .immediate = Felt252.fromInt(u32, 825323) },
@@ -752,11 +894,15 @@ test "parseValue: with no reference" {
             .dereference = false,
             .value_type = "felt",
         },
-        try parseValue("cast(825323, felt)", std.testing.allocator),
+        res,
     );
 }
 
 test "parseValue: with one reference" {
+    const res = try parseValue("[cast([ap] + 1, starkware.cairo.common.cairo_secp.ec.EcPoint*)]", std.testing.allocator);
+
+    defer std.testing.allocator.free(res.value_type);
+
     try expectEqualDeep(
         ValueAddress{
             .offset1 = .{ .reference = .{ .AP, 0, true } },
@@ -764,7 +910,7 @@ test "parseValue: with one reference" {
             .dereference = true,
             .value_type = "starkware.cairo.common.cairo_secp.ec.EcPoint",
         },
-        try parseValue("[cast([ap] + 1, starkware.cairo.common.cairo_secp.ec.EcPoint*)]", std.testing.allocator),
+        res,
     );
 }
 
@@ -785,6 +931,10 @@ test "parseValue: with double reference" {
 }
 
 test "parseValue: to felt with double reference" {
+    const res = try parseValue("[cast([ap] + [ap], felt)]", std.testing.allocator);
+
+    defer std.testing.allocator.free(res.value_type);
+
     try expectEqualDeep(
         ValueAddress{
             .offset1 = .{ .reference = .{ .AP, 0, true } },
@@ -792,11 +942,15 @@ test "parseValue: to felt with double reference" {
             .dereference = true,
             .value_type = "felt",
         },
-        try parseValue("[cast([ap] + [ap], felt)]", std.testing.allocator),
+        res,
     );
 }
 
 test "parseValue: to felt with double reference and offset" {
+    const res = try parseValue("[cast([ap + 1] + [ap + 2], felt)]", std.testing.allocator);
+
+    defer std.testing.allocator.free(res.value_type);
+
     try expectEqualDeep(
         ValueAddress{
             .offset1 = .{ .reference = .{ .AP, 1, true } },
@@ -804,6 +958,6 @@ test "parseValue: to felt with double reference and offset" {
             .dereference = true,
             .value_type = "felt",
         },
-        try parseValue("[cast([ap + 1] + [ap + 2], felt)]", std.testing.allocator),
+        res,
     );
 }
