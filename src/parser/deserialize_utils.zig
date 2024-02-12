@@ -26,7 +26,7 @@ pub const ParseOffsetResult = struct { remaining_input: []const u8, offset: i32 
 pub const OffsetValueResult = struct { remaining_input: []const u8, offset_value: OffsetValue };
 
 /// Represents the result of parsing a register and its offset from a byte array.
-pub const RegisterOffsetResult = struct { []const u8, ?Register, i32 };
+pub const RegisterOffsetResult = struct { remaining_input: []const u8, register: ?Register, offset: i32 };
 
 /// Represents the error that can occur during deserialization.
 pub const DeserializationError = error{CastDeserialization};
@@ -237,7 +237,11 @@ pub fn parseRegister(input: []const u8) ParseRegisterResult {
 pub fn parseRegisterAndOffset(input: []const u8) !RegisterOffsetResult {
     const register = parseRegister(input);
     const offset = try parseOffset(register.remaining_input);
-    return .{ offset.remaining_input, register.register, offset.offset };
+    return .{
+        .remaining_input = offset.remaining_input,
+        .register = register.register,
+        .offset = offset.offset,
+    };
 }
 
 /// Parses the inner dereference expression from a byte array.
@@ -278,12 +282,12 @@ pub fn innerDereference(input: []const u8) !OffsetValueResult {
     const rem = std.mem.trimLeft(u8, input[last_bracket..], "]");
 
     // Determine if the parsed register is valid and create the appropriate offset value or reference
-    const offset_value: OffsetValue = if (register_and_offset[1]) |r|
+    const offset_value: OffsetValue = if (register_and_offset.register) |r|
         // Create a reference
-        .{ .reference = .{ r, register_and_offset[2], true } }
+        .{ .reference = .{ r, register_and_offset.offset, true } }
     else
         // Create a simple offset value
-        .{ .value = register_and_offset[2] };
+        .{ .value = register_and_offset.offset };
 
     // Return the remaining input and the offset value or reference
     return .{ .remaining_input = rem, .offset_value = offset_value };
@@ -308,15 +312,15 @@ pub fn noInnerDereference(input: []const u8) !OffsetValueResult {
     const register_and_offset = try parseRegisterAndOffset(input);
 
     // Determine if the parsed register is valid and create the appropriate offset value or reference
-    const offset_value: OffsetValue = if (register_and_offset[1]) |r|
+    const offset_value: OffsetValue = if (register_and_offset.register) |r|
         // Create a reference
-        .{ .reference = .{ r, register_and_offset[2], false } }
+        .{ .reference = .{ r, register_and_offset.offset, false } }
     else
         // Create a simple offset value
-        .{ .value = register_and_offset[2] };
+        .{ .value = register_and_offset.offset };
 
     // Return the remaining input and the offset value or reference
-    return .{ .remaining_input = register_and_offset[0], .offset_value = offset_value };
+    return .{ .remaining_input = register_and_offset.remaining_input, .offset_value = offset_value };
 }
 
 pub fn parseValue(input: []const u8, allocator: Allocator) !ValueAddress {
@@ -544,23 +548,21 @@ test "parseRegister: should correctly identify and parse registers" {
 
 test "parseRegisterAndOffset: should correctly identify and parse register and offset" {
     // Test case: Register "fp" is present in the input with an offset of 1
-    try expectEqualDeep(RegisterOffsetResult{ "", .FP, 1 }, parseRegisterAndOffset("fp + 1"));
+    try expectEqualDeep(RegisterOffsetResult{ .remaining_input = "", .register = .FP, .offset = 1 }, parseRegisterAndOffset("fp + 1"));
 
     // Test case: Register "ap" is present in the input with an offset of -1
-    try expectEqualDeep(RegisterOffsetResult{ "", .AP, -1 }, parseRegisterAndOffset("ap + (-1)"));
+    try expectEqualDeep(RegisterOffsetResult{ .remaining_input = "", .register = .AP, .offset = -1 }, parseRegisterAndOffset("ap + (-1)"));
 
     // Test case: No register is present in the input with an offset of 2
-    try expectEqualDeep(RegisterOffsetResult{ "", null, 2 }, parseRegisterAndOffset(" + 2"));
+    try expectEqualDeep(RegisterOffsetResult{ .remaining_input = "", .register = null, .offset = 2 }, parseRegisterAndOffset(" + 2"));
 
     // Test case: No register is present in the input with an offset of 825323.
-    try expectEqualDeep(RegisterOffsetResult{ "", null, 825323 }, try parseRegisterAndOffset("825323"));
+    try expectEqualDeep(RegisterOffsetResult{ .remaining_input = "", .register = null, .offset = 825323 }, try parseRegisterAndOffset("825323"));
 
     try expectEqualDeep(
-        RegisterOffsetResult{ " + (-1)", .AP, 0 },
+        RegisterOffsetResult{ .remaining_input = " + (-1)", .register = .AP, .offset = 0 },
         try parseRegisterAndOffset("ap - 0 + (-1)"),
     );
-
-    // std.debug.print("finiiiiiiii = {any}\n", .{try parseRegisterAndOffset("ap - 0 + (-1)")});
 }
 
 test "innerDereference: should correctly identify and parse OffsetValue" {
