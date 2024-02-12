@@ -12,21 +12,21 @@ const expectEqualStrings = std.testing.expectEqualStrings;
 const expectEqualDeep = std.testing.expectEqualDeep;
 
 /// Represents the result of parsing brackets within a byte array.
-pub const ParseOptResult = std.meta.Tuple(&.{ []const u8, bool });
+pub const ParseOptResult = struct { extracted_content: []const u8, is_parsed: bool };
 
 /// Represents the result of parsing the first argument of a 'cast' expression.
-pub const CastArgs = std.meta.Tuple(&.{ []const u8, []const u8 });
+pub const CastArgs = struct { []const u8, []const u8 };
 
 /// Represents the result of parsing a register from a byte array.
-pub const ParseRegisterResult = std.meta.Tuple(&.{ []const u8, ?Register });
+pub const ParseRegisterResult = struct { []const u8, ?Register };
 
-pub const ParseOffsetResult = std.meta.Tuple(&.{ []const u8, i32 });
+pub const ParseOffsetResult = struct { []const u8, i32 };
 
 /// Represents the result of parsing the inner dereference expression.
-pub const OffsetValueResult = std.meta.Tuple(&.{ []const u8, OffsetValue });
+pub const OffsetValueResult = struct { []const u8, OffsetValue };
 
 /// Represents the result of parsing a register and its offset from a byte array.
-pub const RegisterOffsetResult = std.meta.Tuple(&.{ []const u8, ?Register, i32 });
+pub const RegisterOffsetResult = struct { []const u8, ?Register, i32 };
 
 /// Represents the error that can occur during deserialization.
 pub const DeserializationError = error{CastDeserialization};
@@ -57,16 +57,16 @@ pub fn outerBrackets(input: []const u8) ParseOptResult {
     // Empty string ("") case
     if (std.mem.eql(u8, input, ""))
         // No brackets found, return the original input with a false boolean value
-        return .{ input, false };
+        return .{ .extracted_content = input, .is_parsed = false };
 
     // Refine the check to ensure that the match is the beginning and end of the string
     if (std.mem.eql(u8, it_in.first(), "") and std.mem.eql(u8, it_out.first(), "")) {
         // Return a tuple containing the content within the outer brackets and true
-        return .{ input[it_in.index.?..it_out.index.?], true };
+        return .{ .extracted_content = input[it_in.index.?..it_out.index.?], .is_parsed = true };
     }
 
     // If the above conditions are not met, return the original input with a false boolean value
-    return .{ input, false };
+    return .{ .extracted_content = input, .is_parsed = false };
 }
 
 /// Takes the content of a `cast` expression from a byte array.
@@ -319,7 +319,7 @@ pub fn noInnerDereference(input: []const u8) !OffsetValueResult {
 
 pub fn parseValue(input: []const u8, allocator: Allocator) !ValueAddress {
     const without_brackets = outerBrackets(input);
-    const first_arg = try takeCastFirstArg(without_brackets[0]);
+    const first_arg = try takeCastFirstArg(without_brackets.extracted_content);
     const first_offset_value = innerDereference(first_arg[0]) catch
         noInnerDereference(first_arg[0]) catch
         null;
@@ -374,47 +374,35 @@ pub fn parseValue(input: []const u8, allocator: Allocator) !ValueAddress {
     return .{
         .offset1 = offsets[0],
         .offset2 = offsets[1],
-        .dereference = without_brackets[1],
+        .dereference = without_brackets.is_parsed,
         .value_type = type_,
     };
 }
 
 test "outerBrackets: should check if the input has outer brackets" {
-    // Test case where input has both outer brackets '[...]' and nested brackets '(...)'
-    const deref_value = outerBrackets("[cast([fp])]");
-
     // Check if the content within the outer brackets is extracted correctly
-    try expectEqualStrings("cast([fp])", deref_value[0]);
-
-    // Check if the boolean indicating successful parsing is true
-    try expect(deref_value[1]);
-
-    // Test case where input has nested brackets but no outer brackets
-    const ref_value = outerBrackets("cast([fp])");
+    try expectEqualDeep(
+        ParseOptResult{ .extracted_content = "cast([fp])", .is_parsed = true },
+        outerBrackets("[cast([fp])]"),
+    );
 
     // Check if the function returns the input itself as no outer brackets are present
-    try expectEqualStrings("cast([fp])", ref_value[0]);
-
-    // Check if the boolean indicating successful parsing is false
-    try expect(!ref_value[1]);
-
-    // Test case where input is an empty string
-    const empty_value = outerBrackets("");
+    try expectEqualDeep(
+        ParseOptResult{ .extracted_content = "cast([fp])", .is_parsed = false },
+        outerBrackets("cast([fp])"),
+    );
 
     // Check if the function returns an empty string as there are no brackets
-    try expectEqualStrings("", empty_value[0]);
+    try expectEqualDeep(
+        ParseOptResult{ .extracted_content = "", .is_parsed = false },
+        outerBrackets(""),
+    );
 
-    // Check if the boolean indicating successful parsing is false for an empty string
-    try expect(!empty_value[1]);
-
-    // Test case where input contains only empty brackets '[]'
-    const only_brackets_value = outerBrackets("[]");
-
-    // Check if the function returns an empty string as there is nothing inside the brackets
-    try expectEqualStrings("", only_brackets_value[0]);
-
-    // Check if the boolean indicating successful parsing is true for empty brackets
-    try expect(only_brackets_value[1]);
+    // Check if the function returns an empty string as there are no brackets
+    try expectEqualDeep(
+        ParseOptResult{ .extracted_content = "", .is_parsed = true },
+        outerBrackets("[]"),
+    );
 }
 
 test "takeCast: should extract the part inside cast and parenthesis" {
