@@ -15,7 +15,7 @@ const expectEqualDeep = std.testing.expectEqualDeep;
 pub const ParseOptResult = struct { extracted_content: []const u8, is_parsed: bool };
 
 /// Represents the result of parsing the first argument of a 'cast' expression.
-pub const CastArgs = struct { []const u8, []const u8 };
+pub const CastArgs = struct { first: []const u8, rest: []const u8 };
 
 /// Represents the result of parsing a register from a byte array.
 pub const ParseRegisterResult = struct { []const u8, ?Register };
@@ -125,8 +125,8 @@ pub fn takeCastFirstArg(input: []const u8) !CastArgs {
 
     // Return a tuple containing the trimmed content of the first and remaining arguments.
     return .{
-        std.mem.trim(u8, it.first(), " "),
-        std.mem.trim(u8, it.rest(), " "),
+        .first = std.mem.trim(u8, it.first(), " "),
+        .rest = std.mem.trim(u8, it.rest(), " "),
     };
 }
 
@@ -320,8 +320,8 @@ pub fn noInnerDereference(input: []const u8) !OffsetValueResult {
 pub fn parseValue(input: []const u8, allocator: Allocator) !ValueAddress {
     const without_brackets = outerBrackets(input);
     const first_arg = try takeCastFirstArg(without_brackets.extracted_content);
-    const first_offset_value = innerDereference(first_arg[0]) catch
-        noInnerDereference(first_arg[0]) catch
+    const first_offset_value = innerDereference(first_arg.first) catch
+        noInnerDereference(first_arg.first) catch
         null;
     const second_offset_value = if (first_offset_value) |ov|
         innerDereference(ov[0]) catch
@@ -330,10 +330,10 @@ pub fn parseValue(input: []const u8, allocator: Allocator) !ValueAddress {
     else
         null;
 
-    const star_index = std.mem.indexOf(u8, first_arg[1], "*") orelse first_arg[1].len;
+    const star_index = std.mem.indexOf(u8, first_arg.rest, "*") orelse first_arg.rest.len;
 
-    const indirection_level = first_arg[1][star_index..];
-    const struct_ = first_arg[1][0..star_index];
+    const indirection_level = first_arg.rest[star_index..];
+    const struct_ = first_arg.rest[0..star_index];
 
     const type_ = if (indirection_level.len > 1) blk: {
         const t = try std.mem.concat(
@@ -445,33 +445,18 @@ test "takeCast: should extract the part inside cast and parenthesis" {
 
 test "takeCastFirstArg: should extract the two arguments of cast" {
     // Test case 1: Valid 'cast' expression with two arguments.
-    const res = try takeCastFirstArg("cast([fp + (-1)], felt*)");
-
-    // Check if the first argument is extracted correctly.
-    try expectEqualStrings(
-        "[fp + (-1)]",
-        res[0],
-    );
-
-    // Check if the second argument is extracted correctly.
-    try expectEqualStrings(
-        "felt*",
-        res[1],
+    try expectEqualDeep(
+        CastArgs{ .first = "[fp + (-1)]", .rest = "felt*" },
+        try takeCastFirstArg("cast([fp + (-1)], felt*)"),
     );
 
     // Test case 2: Valid 'cast' expression with complex expressions as arguments.
-    const res1 = try takeCastFirstArg("cast(([ap + (-53)] + [ap + (-52)] + [ap + (-51)] - [[ap + (-43)] + 68]) * (-1809251394333065606848661391547535052811553607665798349986546028067936010240), felt)");
-
-    // Check if the first argument is extracted correctly.
-    try expectEqualStrings(
-        "([ap + (-53)] + [ap + (-52)] + [ap + (-51)] - [[ap + (-43)] + 68]) * (-1809251394333065606848661391547535052811553607665798349986546028067936010240)",
-        res1[0],
-    );
-
-    // Check if the second argument is extracted correctly.
-    try expectEqualStrings(
-        "felt",
-        res1[1],
+    try expectEqualDeep(
+        CastArgs{
+            .first = "([ap + (-53)] + [ap + (-52)] + [ap + (-51)] - [[ap + (-43)] + 68]) * (-1809251394333065606848661391547535052811553607665798349986546028067936010240)",
+            .rest = "felt",
+        },
+        try takeCastFirstArg("cast(([ap + (-53)] + [ap + (-52)] + [ap + (-51)] - [[ap + (-43)] + 68]) * (-1809251394333065606848661391547535052811553607665798349986546028067936010240), felt)"),
     );
 
     // Test case 3: Invalid 'cast' expression with insufficient arguments.
