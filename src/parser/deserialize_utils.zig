@@ -256,8 +256,8 @@ pub fn innerDereference(input: []const u8) !OffsetValueResult {
         return .{ "", .{ .value = 0 } };
     }
 
-    // Find the last occurrence of ']' character
-    const last_bracket = std.mem.lastIndexOfScalar(u8, input, 0x5D) orelse input.len;
+    // Find the first occurrence of ']' character
+    const last_bracket = std.mem.indexOf(u8, input, "]") orelse input.len;
 
     // Trim whitespace and '[' characters from the left side of the input
     const without_brackets = std.mem.trimLeft(
@@ -330,10 +330,7 @@ pub fn parseValue(input: []const u8, allocator: Allocator) !ValueAddress {
     else
         null;
 
-    std.debug.print("first_arg[0] = {s}\n", .{first_arg[0]});
-    std.debug.print("first_offset_value = {any}\n", .{first_offset_value});
-
-    const star_index = std.mem.indexOf(u8, first_arg[1], "*") orelse 0;
+    const star_index = std.mem.indexOf(u8, first_arg[1], "*") orelse first_arg[1].len;
 
     const indirection_level = first_arg[1][star_index..];
     const struct_ = first_arg[1][0..star_index];
@@ -351,9 +348,6 @@ pub fn parseValue(input: []const u8, allocator: Allocator) !ValueAddress {
 
     const first_offset: OffsetValue = if (first_offset_value) |ov| ov[1] else .{ .value = 0 };
     const second_offset: OffsetValue = if (second_offset_value) |ov| ov[1] else .{ .value = 0 };
-
-    // std.debug.print("first_offset = {any}\n", .{first_offset});
-    // std.debug.print("second_offset = {any}\n", .{second_offset});
 
     const offsets: std.meta.Tuple(&.{ OffsetValue, OffsetValue }) = if (std.mem.eql(u8, struct_, "felt") and indirection_level.len == 0)
         .{
@@ -376,17 +370,6 @@ pub fn parseValue(input: []const u8, allocator: Allocator) !ValueAddress {
         }
     else
         .{ first_offset, second_offset };
-
-    // std.debug.print("offsets = {any}\n", .{offsets});
-    // std.debug.print(
-    //     "tititititititi = {any}\n",
-    //     .{ValueAddress{
-    //         .offset1 = offsets[0],
-    //         .offset2 = offsets[1],
-    //         .dereference = without_brackets[1],
-    //         .value_type = type_,
-    //     }},
-    // );
 
     return .{
         .offset1 = offsets[0],
@@ -593,6 +576,11 @@ test "innerDereference: should correctly identify and parse OffsetValue" {
         error.noInnerDereference,
         innerDereference("ap + 2"),
     );
+
+    try expectEqualDeep(
+        OffsetValueResult{ " + [fp + 1]", .{ .reference = .{ .AP, 0, true } } },
+        try innerDereference("[ap] + [fp + 1]"),
+    );
 }
 
 test "noInnerDereference: should correctly identify and parse OffsetValue with no inner" {
@@ -659,5 +647,129 @@ test "parseValue: with no inner dereference and two offsets" {
             .value_type = "felt",
         },
         try parseValue("[cast(ap - 0 + (-1), felt*)]", std.testing.allocator),
+    );
+}
+
+test "parseValue: with inner dereference and offset" {
+    try expectEqualDeep(
+        ValueAddress{
+            .offset1 = .{ .reference = .{ .AP, 0, true } },
+            .offset2 = .{ .value = 1 },
+            .dereference = true,
+            .value_type = "__main__.felt",
+        },
+        try parseValue("[cast([ap] + 1, __main__.felt*)]", std.testing.allocator),
+    );
+}
+
+test "parseValue: with inner dereference and immediate" {
+    try expectEqualDeep(
+        ValueAddress{
+            .offset1 = .{ .reference = .{ .AP, 0, true } },
+            .offset2 = .{ .immediate = Felt252.one() },
+            .dereference = true,
+            .value_type = "felt",
+        },
+        try parseValue("[cast([ap] + 1, felt)]", std.testing.allocator),
+    );
+}
+
+test "parseValue: with inner dereference to pointer" {
+    try expectEqualDeep(
+        ValueAddress{
+            .offset1 = .{ .reference = .{ .AP, 1, true } },
+            .offset2 = .{ .value = 1 },
+            .dereference = true,
+            .value_type = "felt",
+        },
+        try parseValue("[cast([ap + 1] + 1, felt*)]", std.testing.allocator),
+    );
+}
+
+test "parseValue: with 2 inner dereference" {
+    try expectEqualDeep(
+        ValueAddress{
+            .offset1 = .{ .reference = .{ .AP, 0, true } },
+            .offset2 = .{ .reference = .{ .FP, 1, true } },
+            .dereference = true,
+            .value_type = "__main__.felt",
+        },
+        try parseValue("[cast([ap] + [fp + 1], __main__.felt*)]", std.testing.allocator),
+    );
+}
+
+test "parseValue: with 2 inner dereferences" {
+    try expectEqualDeep(
+        ValueAddress{
+            .offset1 = .{ .reference = .{ .AP, 1, true } },
+            .offset2 = .{ .reference = .{ .FP, 1, true } },
+            .dereference = true,
+            .value_type = "__main__.felt",
+        },
+        try parseValue("[cast([ap + 1] + [fp + 1], __main__.felt*)]", std.testing.allocator),
+    );
+}
+
+test "parseValue: with no reference" {
+    try expectEqualDeep(
+        ValueAddress{
+            .offset1 = .{ .immediate = Felt252.fromInt(u32, 825323) },
+            .offset2 = .{ .immediate = Felt252.zero() },
+            .dereference = false,
+            .value_type = "felt",
+        },
+        try parseValue("cast(825323, felt)", std.testing.allocator),
+    );
+}
+
+test "parseValue: with one reference" {
+    try expectEqualDeep(
+        ValueAddress{
+            .offset1 = .{ .reference = .{ .AP, 0, true } },
+            .offset2 = .{ .value = 1 },
+            .dereference = true,
+            .value_type = "starkware.cairo.common.cairo_secp.ec.EcPoint",
+        },
+        try parseValue("[cast([ap] + 1, starkware.cairo.common.cairo_secp.ec.EcPoint*)]", std.testing.allocator),
+    );
+}
+
+test "parseValue: with double reference" {
+    const res = try parseValue("[cast([ap] + 1, starkware.cairo.common.cairo_secp.ec.EcPoint**)]", std.testing.allocator);
+
+    defer std.testing.allocator.free(res.value_type);
+
+    try expectEqualDeep(
+        ValueAddress{
+            .offset1 = .{ .reference = .{ .AP, 0, true } },
+            .offset2 = .{ .value = 1 },
+            .dereference = true,
+            .value_type = "starkware.cairo.common.cairo_secp.ec.EcPoint*",
+        },
+        res,
+    );
+}
+
+test "parseValue: to felt with double reference" {
+    try expectEqualDeep(
+        ValueAddress{
+            .offset1 = .{ .reference = .{ .AP, 0, true } },
+            .offset2 = .{ .reference = .{ .AP, 0, true } },
+            .dereference = true,
+            .value_type = "felt",
+        },
+        try parseValue("[cast([ap] + [ap], felt)]", std.testing.allocator),
+    );
+}
+
+test "parseValue: to felt with double reference and offset" {
+    try expectEqualDeep(
+        ValueAddress{
+            .offset1 = .{ .reference = .{ .AP, 1, true } },
+            .offset2 = .{ .reference = .{ .AP, 2, true } },
+            .dereference = true,
+            .value_type = "felt",
+        },
+        try parseValue("[cast([ap + 1] + [ap + 2], felt)]", std.testing.allocator),
     );
 }
