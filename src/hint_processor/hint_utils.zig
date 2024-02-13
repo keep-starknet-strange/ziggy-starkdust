@@ -2,20 +2,32 @@ const std = @import("std");
 
 const ApTracking = @import("../vm/types/programjson.zig").ApTracking;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
-const HintReference = @import("./hint_processor_def.zig").HintReference;
+const HintReference = @import("hint_processor_def.zig").HintReference;
 const CoreVM = @import("../vm/core.zig");
 const OffsetValue = @import("../vm/types/programjson.zig");
 const CairoVM = CoreVM.CairoVM;
-const relocatable = @import("../vm/memory/relocatable.zig");
-const MaybeRelocatable = relocatable.MaybeRelocatable;
-const Relocatable = relocatable.Relocatable;
+const MaybeRelocatable = @import("../vm/memory/relocatable.zig").MaybeRelocatable;
+const Relocatable = @import("../vm/memory/relocatable.zig").Relocatable;
+const Allocator = std.mem.Allocator;
 
 pub const IdsManager = struct {
     const Self = @This();
 
-    References: std.AutoHashMap([]const u8, HintReference),
-    HintApTracking: ApTracking,
-    AccessibleScopes: []const []const u8,
+    reference: std.AutoHashMap([]const u8, HintReference),
+    hint_ap_tracking: ApTracking,
+    accessible_scopes: []const []const u8,
+
+    pub fn init(allocator: Allocator, hint_ap_tracking: ApTracking, accessible_scopes: []const []const u8) !*Self {
+        return .{
+            .reference = std.AutoHashMap([]const u8, HintReference).init(allocator),
+            .hint_ap_tracking = hint_ap_tracking,
+            .acessible_scopes = accessible_scopes,
+        };
+    }
+
+    pub fn deinit(self: *Self) void {
+        self.reference.deinit();
+    }
 
     pub fn getFelt(self: *Self, name: []const u8, vm: *CairoVM) !Felt252 {
         const val = try self.get(name, vm);
@@ -29,6 +41,21 @@ pub const IdsManager = struct {
                 return val;
             }
         }
+        return error.ErrUnknownIdentifier;
+    }
+
+    /// Insert a value into the memory of the VM at the address of the given name.
+    pub fn insert(self: *Self, allocator: Allocator, name: []const u8, value: MaybeRelocatable, vm: *CairoVM) !void {
+        const addr = try self.getAddr(name, value);
+
+        try vm.segments.memory.set(allocator, addr, value);
+    }
+
+    pub fn getAddr(self: *Self, name: []const u8, vm: *CairoVM) !Relocatable {
+        if (self.References.get(name)) |reference| {
+            return getAddressFromReference(reference, self.HintApTracking, vm);
+        }
+
         return error.ErrUnknownIdentifier;
     }
 };

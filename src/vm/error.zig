@@ -59,6 +59,11 @@ pub const CairoVMError = error{
     InvalidOpcode,
     /// Unexpected Failure
     Unexpected,
+    /// Expected range_check builtin to be present
+    NoRangeCheckBuiltin,
+    /// getBuiltin by name, if not exist error
+    NotFoundBuiltin,
+    ReferenceNotFound,
 };
 
 /// Represents different error conditions that are memory-related.
@@ -218,4 +223,10 @@ pub const VerifyError = error{
     InvalidMessageHash,
     InvalidR,
     InvalidS,
+};
+
+pub const HintError = error{
+    AssertNNValueOutOfRange,
+    ValueOutsideValidRange,
+    AssertNotZero,
 };

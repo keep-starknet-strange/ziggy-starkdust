@@ -4,15 +4,15 @@ const Tuple = std.meta.Tuple;
 
 const MemorySegmentManager = @import("../../memory/segments.zig").MemorySegmentManager;
 
-const BitwiseBuiltinRunner = @import("./bitwise.zig").BitwiseBuiltinRunner;
-const EcOpBuiltinRunner = @import("./ec_op.zig").EcOpBuiltinRunner;
-const HashBuiltinRunner = @import("./hash.zig").HashBuiltinRunner;
-const KeccakBuiltinRunner = @import("./keccak.zig").KeccakBuiltinRunner;
-const OutputBuiltinRunner = @import("./output.zig").OutputBuiltinRunner;
-const PoseidonBuiltinRunner = @import("./poseidon.zig").PoseidonBuiltinRunner;
-const RangeCheckBuiltinRunner = @import("./range_check.zig").RangeCheckBuiltinRunner;
-const SegmentArenaBuiltinRunner = @import("./segment_arena.zig").SegmentArenaBuiltinRunner;
-const SignatureBuiltinRunner = @import("./signature.zig").SignatureBuiltinRunner;
+pub const BitwiseBuiltinRunner = @import("./bitwise.zig").BitwiseBuiltinRunner;
+pub const EcOpBuiltinRunner = @import("./ec_op.zig").EcOpBuiltinRunner;
+pub const HashBuiltinRunner = @import("./hash.zig").HashBuiltinRunner;
+pub const KeccakBuiltinRunner = @import("./keccak.zig").KeccakBuiltinRunner;
+pub const OutputBuiltinRunner = @import("./output.zig").OutputBuiltinRunner;
+pub const PoseidonBuiltinRunner = @import("./poseidon.zig").PoseidonBuiltinRunner;
+pub const RangeCheckBuiltinRunner = @import("./range_check.zig").RangeCheckBuiltinRunner;
+pub const SegmentArenaBuiltinRunner = @import("./segment_arena.zig").SegmentArenaBuiltinRunner;
+pub const SignatureBuiltinRunner = @import("./signature.zig").SignatureBuiltinRunner;
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
 const Memory = @import("../../memory/memory.zig").Memory;
@@ -45,8 +45,29 @@ pub const POSEIDON_BUILTIN_NAME = "poseidon_builtin";
 /// The name of the segment arena builtin.
 pub const SEGMENT_ARENA_BUILTIN_NAME = "segment_arena_builtin";
 
+pub const BuiltinName = enum {
+    /// Bitwise built-in runner for bitwise operations.
+    Bitwise,
+    /// EC Operation built-in runner for elliptic curve operations.
+    EcOp,
+    /// Hash built-in runner for hash operations.
+    Hash,
+    /// Output built-in runner for output operations.
+    Output,
+    /// Range Check built-in runner for range check operations.
+    RangeCheck,
+    /// Keccak built-in runner for Keccak operations.
+    Keccak,
+    /// Signature built-in runner for signature operations.
+    Signature,
+    /// Poseidon built-in runner for Poseidon operations.
+    Poseidon,
+    /// Segment Arena built-in runner for segment arena operations.
+    SegmentArena,
+};
+
 /// Built-in runner
-pub const BuiltinRunner = union(enum) {
+pub const BuiltinRunner = union(BuiltinName) {
     const Self = @This();
 
     /// Bitwise built-in runner for bitwise operations.

@@ -2,11 +2,15 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 const StringHashMap = std.StringHashMap;
-
+const programjson = @import("../vm/types/programjson.zig");
 const CairoVMError = @import("../vm/error.zig").CairoVMError;
-const OffsetValue = @import("../vm/types/programjson.zig").OffsetValue;
-const ApTracking = @import("../vm/types/programjson.zig").ApTracking;
-const Reference = @import("../vm/types/programjson.zig").Reference;
+const OffsetValue = programjson.OffsetValue;
+const ApTracking = programjson.ApTracking;
+const Reference = programjson.Reference;
+const IdsManager = @import("hint_utils.zig").IdsManager;
+const HintParams = programjson.HintParams;
+const ReferenceManager = programjson.ReferenceManager;
+const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -19,31 +23,15 @@ const expectEqualStrings = std.testing.expectEqualStrings;
 pub const HintProcessorData = struct {
     const Self = @This();
 
-    allocator: Allocator,
     /// Code string that is mapped by the processor to a corresponding implementation
     code: []const u8,
-    /// Default ApTracking is initialized with group = 0 and offset = 0
-    ap_tracking: ApTracking = ApTracking{},
-    /// Maps a normalized reference name to its hint reference information
-    ids_data: std.StringHashMap(HintReference),
-    
+    ids: IdsManager,
 
-    /// Initializes a unit of hint processor data with specified code and constructed id data mappings.
-    ///
-    /// # Params
-    ///   - `allocator`: The allocator that shares scope with the operating HintProcessor.
-    ///   - `code`: Code string that the HintProcessor dispatches to execution logic.
-    ///   - `ids_data`: A mapping from a normalized reference name to its `HintReference`, see `getIdsData` in this file for logic.
-    pub fn initDefault(allocator: Allocator, code: []const u8, ids_data: StringHashMap(HintReference)) Self {
+    pub fn init(code: []const u8, ids: IdsManager) Self {
         return .{
-            .allocator = allocator,
             .code = code,
-            .ids_data = ids_data,  
+            .ids = ids,
         };
-    }
-
-    pub fn deinit(self: *Self) void {
-        self.ids_data.deinit();
     }
 };
 
@@ -111,13 +99,13 @@ pub fn getIdsData(allocator: Allocator, reference_ids: StringHashMap(usize), ref
 
     var ref_id_it = reference_ids.iterator();
     while (ref_id_it.next()) |ref_id_entry| {
-        const path  = ref_id_entry.key_ptr.*;
+        const path = ref_id_entry.key_ptr.*;
         const ref_id = ref_id_entry.value_ptr.*;
 
-        if (ref_id >= references.len) return CairoVMError.Unexpected;        
+        if (ref_id >= references.len) return CairoVMError.Unexpected;
 
         var name_iterator = std.mem.splitBackwardsSequence(u8, path, ".");
-        
+
         const name = name_iterator.next() orelse return CairoVMError.Unexpected;
         const ref_hint = references[ref_id];
 
@@ -127,6 +115,25 @@ pub fn getIdsData(allocator: Allocator, reference_ids: StringHashMap(usize), ref
     return ids_data;
 }
 
+pub const CairoVMHintProcessor = struct {
+    const Self = @This();
+    pub fn compileHint(self: *Self, allocator: Allocator, hint_params: *HintParams, reference_manager: *ReferenceManager) !HintProcessorData {
+        var references = StringHashMap(HintReference).init(allocator);
+
+        if (hint_params.flow_tracking_data.reference_ids) |ref_ids| {
+            while (ref_ids.map.iterator().next()) |ref_id| {
+                if (ref_id.value_ptr.* >= reference_manager.references.items.len) {
+                    return CairoVMError.ReferenceNotFound;
+                }
+
+                const name = std.mem.splitScalar(u8, ref_id.key_ptr.*, '.').first();
+                // parse hint reference using lib
+                // references.put(name, )
+            }
+        }
+        // for (hint_params.flow_tracking_data.reference_ids)
+    }
+};
 
 test "HintReference: init should return a proper HintReference instance" {
     try expectEqual(
@@ -172,10 +179,10 @@ test "HintProcessorData: initDefault returns a proper HintProcessorData instance
     // add hint reference structs
     try references.append(HintReference.initSimple(10));
     try references.append(HintReference.initSimple(20));
-    
+
     // then
     const code: []const u8 = "memory[ap] = segments.add()";
-    
+
     const ids_data = try getIdsData(allocator, reference_ids, references.items);
 
     var hp_data = HintProcessorData.initDefault(allocator, code, ids_data);
@@ -185,7 +192,6 @@ test "HintProcessorData: initDefault returns a proper HintProcessorData instance
     try expectEqual(@as(usize, 0), hp_data.ap_tracking.offset);
     try expectEqualStrings(code, hp_data.code);
 }
-
 
 test "getIdsData: should map (ref name x ref id) x (ref data) as (ref name x ref data)" {
     // Given
@@ -205,14 +211,13 @@ test "getIdsData: should map (ref name x ref id) x (ref data) as (ref name x ref
     // add hint reference structs
     try references.append(HintReference.initSimple(10));
     try references.append(HintReference.initSimple(20));
-    
+
     // then
     var ids_data = try getIdsData(allocator, reference_ids, references.items);
     defer ids_data.deinit();
 
     try expectEqual(ids_data.get("high").?.offset1.reference, .{ .FP, 10, false });
     try expectEqual(ids_data.get("low").?.offset1.reference, .{ .FP, 20, false });
-
 }
 
 test "getIdsData: should throw Unexpected when there is no ref data corresponding to ref ids mapping" {
@@ -232,7 +237,7 @@ test "getIdsData: should throw Unexpected when there is no ref data correspondin
 
     // add hint reference structs
     try references.append(HintReference.initSimple(10));
-    
+
     // then
     try expectError(
         CairoVMError.Unexpected,
