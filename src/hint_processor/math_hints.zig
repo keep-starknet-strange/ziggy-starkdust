@@ -11,7 +11,7 @@ const IdsManager = @import("./hint_utils.zig").IdsManager;
 //     assert_integer(ids.a)
 //     assert 0 <= ids.a % PRIME < range_check_builtin.bound, f'a = {ids.a} is out of range.'
 // %}
-fn assert_nn(ids: IdsManager, vm: *CairoVM) !void {
+fn assertNn(ids: IdsManager, vm: *CairoVM) !void {
     const a = try ids.getFelt("a", vm);
     for (vm.builtin_runners.items) |*builtin| {
         switch (builtin.*) {

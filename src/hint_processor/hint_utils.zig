@@ -19,8 +19,7 @@ pub const IdsManager = struct {
 
     pub fn getFelt(self: *Self, name: []const u8, vm: *CairoVM) !Felt252 {
         const val = try self.get(name, vm);
-        const felt = try vm.getFelt(val);
-        return felt;
+        return try vm.getFelt(val);
     }
 
     pub fn get(self: *Self, name: []const u8, vm: *CairoVM) !?*MaybeRelocatable {
@@ -38,11 +37,9 @@ pub fn getValueFromReference(reference: *HintReference, ap_tracking: ApTracking,
     if (@typeInfo(reference.offset1) == .immediate) {
         return MaybeRelocatable.fromFelt(Felt252.fromInt(reference.offset1.immediate));
     }
-    const addr = getAddressFromReference(reference, ap_tracking, vm);
-    if (addr) |address| {
+    if (getAddressFromReference(reference, ap_tracking, vm)) |address| {
         if (reference.dereference) {
-            const val = vm.segments.memory.get(address);
-            if (val) |value| {
+            if (vm.segments.memory.get(address)) |value| {
                 return value;
             }
         } else {
@@ -62,13 +59,11 @@ pub fn getAddressFromReference(reference: *HintReference, ap_tracking: ApTrackin
             .reference => {
                 const offset2 = getOffsetValueReference(reference.offset2, reference.ap_tracking_data, ap_tracking, vm) catch return null;
                 if (offset2) |*offset2_val| {
-                    const res = offset1_rel.AddMaybeRelocatable(offset2_val) catch return null;
-                    return res;
+                    return offset1_rel.AddMaybeRelocatable(offset2_val) catch null;
                 }
             },
             .value => {
-                const res = offset1_rel.AddInt(reference.offset2.Value) catch return null;
-                return res;
+                return offset1_rel.AddInt(reference.offset2.Value) catch null;
             },
             else => {},
         }
@@ -82,8 +77,7 @@ pub fn getOffsetValueReference(offset_value: OffsetValue, ref_ap_tracking: ApTra
     switch (offset_value.reference.Register) {
         .FP => base_addr = vm.run_context.fp,
         .AP => {
-            const res = applyApTrackingCorrection(vm.run_context.ap, ref_ap_tracking, hint_ap_tracking);
-            if (res) |addr| {
+            if (applyApTrackingCorrection(vm.run_context.ap, ref_ap_tracking, hint_ap_tracking)) |addr| {
                 base_addr = addr;
             } else {
                 ok = false;
@@ -91,11 +85,9 @@ pub fn getOffsetValueReference(offset_value: OffsetValue, ref_ap_tracking: ApTra
         },
     }
     if (ok) {
-        const res = try base_addr.addUint(offset_value.value);
-        if (res) |addr| {
+        if (try base_addr.addUint(offset_value.value)) |addr| {
             if (offset_value.dereference) {
-                const val = vm.segments.memory.get(addr);
-                if (val) |value| {
+                if (vm.segments.memory.get(addr)) |value| {
                     return value;
                 }
             } else {
