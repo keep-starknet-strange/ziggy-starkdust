@@ -109,6 +109,15 @@ pub const MemoryError = error{
     InsufficientAllocatedCellsErrorMinStepNotReached,
     /// Invalid type encountered during the GenArg operation.
     GenArgInvalidType,
+    // ECDSA builtin: Expected public key at address to be an integer
+    PubKeyNonInt,
+    // ECDSA builtin: Expected message hash at address to be an integer
+    MsgNonInt,
+    // Signature hint is missing for ECDSA builtin at address.
+    // Add it using 'ecdsa_builtin.add_signature'.
+    SignatureNotFound,
+    // Invalid signature
+    InvalidSignature,
 };
 
 /// Represents the error conditions that are related to the `CairoRunner`.
@@ -138,6 +147,14 @@ pub const RunnerError = error{
     IntegerBiggerThanPowerOfTwo,
     /// Memory-related errors in the built-in runners.
     Memory,
+    /// Raised when attempting to access the program counter (PC) when it is not available.
+    NoPC,
+    /// Raised when attempting to access the allocation pointer (AP) when it is not available.
+    NoAP,
+    /// Raised when attempting to access the function pointer (FP) when it is not available.
+    NoFP,
+    /// Raised when there are errors related to memory validation in Cairo runner.
+    MemoryValidationError,
 };
 
 /// Represents different error conditions that occur during mathematical operations.
@@ -159,6 +176,7 @@ pub const MathError = error{
     /// Cell is not output cell
     NotOutputCell,
     RelocatableMul,
+    ByteConversionError,
 };
 
 /// Represents different error conditions that occur in trace relocation
@@ -192,4 +210,12 @@ pub const ProgramError = error{
     /// Indicates an unsupported or unimplemented builtin encountered within the program.
     UnsupportedBuiltin,
     EmptyVecAlreadyFiltered,
+};
+
+// Represents errors occuring during ECDSA verify
+pub const VerifyError = error{
+    InvalidPublicKey,
+    InvalidMessageHash,
+    InvalidR,
+    InvalidS,
 };
