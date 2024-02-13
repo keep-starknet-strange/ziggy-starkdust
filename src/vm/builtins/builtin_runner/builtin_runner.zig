@@ -146,8 +146,32 @@ pub const BuiltinRunner = union(enum) {
     pub fn getMemorySegmentAddresses(self: *Self) Tuple(&.{ usize, ?usize }) {
         // TODO: fill-in missing builtins when implemented
         return switch (self.*) {
-            .Signature, .SegmentArena => .{ 0, 0 },
-            inline else => |*case| case.getMemorySegmentAddresses(),
+            .Bitwise => |*bitwise| bitwise.getMemorySegmentAddresses(),
+            .EcOp => |*ec| ec.getMemorySegmentAddresses(),
+            .Hash => |*hash| hash.getMemorySegmentAddresses(),
+            .Output => |*output| output.getMemorySegmentAddresses(),
+            .RangeCheck => |*range_check| range_check.getMemorySegmentAddresses(),
+            .Keccak => |*keccak| keccak.getMemorySegmentAddresses(),
+            .Signature => |*signature| signature.getMemorySegmentAddresses(),
+            .Poseidon => |*poseidon| poseidon.getMemorySegmentAddresses(),
+            .SegmentArena => .{ 0, 0 },
+            // inline else => |*case| case.getMemorySegmentAddresses(),
+        };
+    }
+
+    /// Retrieves the number of instances per component for the built-in runner.
+    ///
+    /// This function returns the number of instances per component for the specific type of
+    /// built-in runner. Each built-in runner may have a different number of instances per
+    /// component based on its configuration and purpose.
+    ///
+    /// # Returns
+    ///
+    /// A `usize` representing the number of instances per component for the built-in runner.
+    pub fn getInstancesPerComponent(self: *Self) u32 {
+        return switch (self.*) {
+            .SegmentArena, .Output => 1,
+            inline else => |*builtin| builtin.instances_per_component,
         };
     }
 
