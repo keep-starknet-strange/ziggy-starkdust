@@ -735,8 +735,7 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
         /// `true` if `self` is less than or equal to `other`, `false` otherwise.
         pub fn le(self: Self, other: Self) bool {
             return switch (self.cmp(other)) {
-                .lt => true,
-                .eq => true,
+                .lt, .eq => true,
                 else => false,
             };
         }
@@ -766,8 +765,7 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
         /// `true` if `self` is greater than or equal to `other`, `false` otherwise.
         pub fn ge(self: Self, other: Self) bool {
             return switch (self.cmp(other)) {
-                .gt => true,
-                .eq => true,
+                .gt, .eq => true,
                 else => false,
             };
         }
