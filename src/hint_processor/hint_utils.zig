@@ -72,29 +72,26 @@ pub fn getAddressFromReference(reference: *HintReference, ap_tracking: ApTrackin
 }
 
 pub fn getOffsetValueReference(offset_value: OffsetValue, ref_ap_tracking: ApTracking, hint_ap_tracking: ApTracking, vm: *CairoVM) ?*MaybeRelocatable {
-    var base_addr: Relocatable = undefined;
-    var ok: bool = true;
+    var base_addr: ?Relocatable = null;
     switch (offset_value.reference.Register) {
         .FP => base_addr = vm.run_context.fp,
         .AP => {
             if (applyApTrackingCorrection(vm.run_context.ap, ref_ap_tracking, hint_ap_tracking)) |addr| {
                 base_addr = addr;
-            } else {
-                ok = false;
-            }
+            } else return null;
         },
     }
-    if (ok) {
-        if (try base_addr.addUint(offset_value.value)) |addr| {
-            if (offset_value.dereference) {
-                if (vm.segments.memory.get(addr)) |value| {
-                    return value;
-                }
-            } else {
-                return MaybeRelocatable.fromRelocatable(addr);
+
+    if (try base_addr.addUint(offset_value.value)) |addr| {
+        if (offset_value.dereference) {
+            if (vm.segments.memory.get(addr)) |value| {
+                return value;
             }
+        } else {
+            return MaybeRelocatable.fromRelocatable(addr);
         }
     }
+
     return null;
 }
 
