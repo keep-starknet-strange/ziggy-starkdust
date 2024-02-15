@@ -3,7 +3,7 @@
 set -e
 source ../cairo-vm-env/bin/activate
 
-BENCH_DIR=../cairo_programs/test_benchmarks
+BENCH_DIR=../cairo_programs/benchmarks
 export PATH=$PATH:$(pwd)/../zig-out/bin:$(pwd)/../cairo-vm/target/release/
 
 for file in $(ls ${BENCH_DIR} | grep .cairo | sed -E 's/\.cairo//'); do
