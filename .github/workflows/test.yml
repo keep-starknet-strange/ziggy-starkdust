@@ -22,17 +22,8 @@ jobs:
         with:
           toolchain: stable
 
-      - name: Install cargo-binstall
-        uses: cargo-bins/cargo-binstall@main
-    
-      - name: Install Hyperfine
-        run: cargo binstall -y hyperfine
-    
       - name: Build
         run: make build
-
-      - name: Run benchmarks
-        run: make build-compare-benchmarks
 
   lint:
     runs-on: ubuntu-latest

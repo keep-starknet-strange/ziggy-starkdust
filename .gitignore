@@ -15,6 +15,7 @@ zig-out/
 /docgen_tmp/
 docsite/
 cairo-vm-env
+cairo-vm
 
 # Misc
 .vscode/
