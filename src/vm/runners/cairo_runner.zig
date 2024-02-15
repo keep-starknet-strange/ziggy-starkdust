@@ -20,7 +20,9 @@ const starknet_felt = @import("../../math/fields/starknet.zig");
 const Felt252 = starknet_felt.Felt252;
 const OutputBuiltinRunner = @import("../builtins/builtin_runner/output.zig").OutputBuiltinRunner;
 const BitwiseBuiltinRunner = @import("../builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
+const ExecutionScopes = @import("../types/execution_scopes.zig").ExecutionScopes;
 const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
+
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -126,6 +128,7 @@ pub const CairoRunner = struct {
     run_ended: bool = false,
     relocated_trace: []RelocatedTraceEntry = undefined,
     relocated_memory: ArrayList(?Felt252),
+    execution_scopes: ExecutionScopes = undefined,
 
     pub fn init(
         allocator: Allocator,
