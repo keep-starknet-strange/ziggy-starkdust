@@ -1,8 +1,19 @@
 // code ported from starknet-curve:
 // https://github.com/xJonathanLEI/starknet-rs/blob/0857bd6cd3bd34cbb06708f0a185757044171d8d/starknet-curve/src/ec_point.rs
+const std = @import("std");
 const Felt252 = @import("../../fields/starknet.zig").Felt252;
-const ALPHA = @import("./curve_params.zig").ALPHA;
-const BETA = @import("./curve_params.zig").BETA;
+pub const ALPHA = @import("./curve_params.zig").ALPHA;
+pub const BETA = @import("./curve_params.zig").BETA;
+
+/// Enum representing possible errors for elliptic curve operations.
+pub const ECError = error{
+    /// Error indicating division by zero.
+    DivisionByZero,
+    /// Error indicating that x-coordinates are equal.
+    XCoordinatesAreEqual,
+    /// Error indicating that the y-coordinate is zero.
+    YCoordinateIsZero,
+};
 
 pub const ProjectivePoint = struct {
     const Self = @This();
@@ -152,6 +163,18 @@ pub const AffinePoint = struct {
     y: Felt252,
     infinity: bool,
 
+    /// Initializes an `AffinePoint` with the specified x and y coordinates.
+    ///
+    /// # Parameters
+    /// - `x`: The x-coordinate of the point.
+    /// - `y`: The y-coordinate of the point.
+    ///
+    /// # Returns
+    /// An initialized `ECPoint` with the provided coordinates.
+    pub fn init(x: Felt252, y: Felt252, infinity: bool) Self {
+        return .{ .x = x, .y = y, .infinity = infinity };
+    }
+
     pub fn add(self: Self, other: Self) Self {
         var cp = self;
         var cp_other = other;
@@ -236,4 +259,126 @@ pub const AffinePoint = struct {
             .infinity = false,
         };
     }
+
+    /// Doubles a point on an elliptic curve with the equation y^2 = x^3 + alpha*x + beta.
+    ///
+    /// # Arguments
+    /// - `self` - The point.
+    /// - `alpha` - The alpha parameter of the elliptic curve.
+    ///
+    /// # Returns
+    /// The doubled elliptic curve point.
+    pub fn ecDouble(self: *Self, alpha: Felt252) ECError!AffinePoint {
+
+        // Assumes the point is given in affine form (x, y) and has y != 0.
+        if (self.y.equal(Felt252.zero())) {
+            return ECError.YCoordinateIsZero;
+        }
+        const m = try self.ecDoubleSlope(alpha);
+        const x = m.pow(2).sub(self.x.mul(Felt252.two()));
+        const y = m.mul(self.x.sub(x)).sub(self.y);
+        return .{ .x = x, .y = y, .infinity = self.infinity };
+    }
+
+    /// Computes the slope of an elliptic curve with the equation y^2 = x^3 + alpha*x + beta, at
+    /// the given point.
+    ///
+    /// # Arguments
+    /// - `self` - The point.
+    /// - `alpha` - The alpha parameter of the elliptic curve.
+    ///
+    /// # Returns
+    /// The slope.
+    pub fn ecDoubleSlope(self: *Self, alpha: Felt252) ECError!Felt252 {
+        return try divMod(
+            self.x.pow(2).mul(Felt252.three()).add(alpha),
+            self.y.mul(Felt252.two()),
+        );
+    }
+
+    /// Returns True if the point (x, y) is on the elliptic curve defined as
+    /// y^2 = x^3 + alpha * x + beta, or False otherwise.
+    ///
+    /// # Arguments
+    /// - `self` - The point.
+    /// - `alpha` - The alpha parameter of the elliptic curve.
+    /// - `beta` - The beta parameter of the elliptic curve.
+    ///
+    /// # Returns boolean.
+    pub fn pointOnCurve(self: *const Self, alpha: Felt252, beta: Felt252) bool {
+        const lhs = self.y.pow(2);
+        const rhs = self.x.pow(3).add(self.x.mul(alpha).add(beta));
+        return lhs.equal(rhs);
+    }
 };
+
+/// Divides one field element by another.
+/// Finds a nonnegative integer 0 <= x < p such that (m * x) % p == n.
+///
+/// # Arguments
+/// - `m` - The first felt.
+/// - `n` - The second felt.
+///
+/// # Returns
+/// The result of the field modulo division.
+pub fn divMod(m: Felt252, n: Felt252) ECError!Felt252 {
+    return try m.div(n);
+}
+
+/// Calculates the result of the elliptic curve operation P + m * Q,
+/// where P = const_partial_sum, and Q = const_doubled_point
+/// are points on the elliptic curve defined as:
+/// y^2 = x^3 + alpha * x + beta.
+///
+/// # Arguments
+/// - `const_partial_sum` - The point P.
+/// - `const_doubled_point` - The point Q.
+///
+/// # Returns
+/// The result of the EC operation P + m * Q.
+pub fn ecOpImpl(const_partial_sum: AffinePoint, const_doubled_point: AffinePoint, m: Felt252, alpha: Felt252, height: u32) ECError!AffinePoint {
+    var slope = m.toInteger();
+    var partial_sum = const_partial_sum;
+    var doubled_point = const_doubled_point;
+
+    for (0..height) |_| {
+        if (doubled_point.x.sub(partial_sum.x).equal(Felt252.zero())) {
+            return ECError.XCoordinatesAreEqual;
+        }
+        if (slope & 1 != 0) {
+            //     partial_sum = try partial_sum.add(doubled_point);
+            partial_sum = partial_sum.add(doubled_point);
+        }
+        doubled_point = try doubled_point.ecDouble(alpha);
+        slope = slope >> 1;
+    }
+
+    return partial_sum;
+}
+
+/// ************************************************************
+/// *                         TESTS                            *
+/// ************************************************************
+const expect = std.testing.expect;
+const expectEqual = std.testing.expectEqual;
+const expectError = std.testing.expectError;
+
+test "Elliptic curve math: compute double slope for valid point A" {
+    const x = Felt252.fromInt(u256, 3143372541908290873737380228370996772020829254218248561772745122290262847573);
+    const y = Felt252.fromInt(u256, 1721586982687138486000069852568887984211460575851774005637537867145702861131);
+    const alpha = Felt252.one();
+    var to_double = AffinePoint{ .x = x, .y = y, .infinity = false };
+    const actual_slope = try to_double.ecDoubleSlope(alpha);
+    const expected_slope = Felt252.fromInt(u256, 3601388548860259779932034493250169083811722919049731683411013070523752439691);
+    try expectEqual(expected_slope, actual_slope);
+}
+
+test "Elliptic curve math: compute double slope for valid point B" {
+    const x = Felt252.fromInt(u256, 1937407885261715145522756206040455121546447384489085099828343908348117672673);
+    const y = Felt252.fromInt(u256, 2010355627224183802477187221870580930152258042445852905639855522404179702985);
+    const alpha = Felt252.one();
+    var to_double = AffinePoint{ .x = x, .y = y, .infinity = false };
+    const actual_slope = try to_double.ecDoubleSlope(alpha);
+    const expected_slope = Felt252.fromInt(u256, 2904750555256547440469454488220756360634457312540595732507835416669695939476);
+    try expectEqual(expected_slope, actual_slope);
+}
