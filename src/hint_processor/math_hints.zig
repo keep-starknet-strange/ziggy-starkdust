@@ -1,26 +1,22 @@
 const std = @import("std");
 
+const RangeCheckBuiltinRunner = @import("../vm/builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
 const CoreVM = @import("../vm/core.zig");
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const SIGNED_FELT_MAX = @import("../math/fields/fields.zig").SIGNED_FELT_MAX;
-const HintError = @import("../vm/error.zig").HintError;
 const MaybeRelocatable = @import("../vm/memory/relocatable.zig").MaybeRelocatable;
+const Relocatable = @import("../vm/memory/relocatable.zig").Relocatable;
 const CairoVM = CoreVM.CairoVM;
-const IdsManager = @import("hint_utils.zig").IdsManager;
+const hint_utils = @import("hint_utils.zig");
+const HintProcessor = @import("hint_processor_def.zig").CairoVMHintProcessor;
+const HintData = @import("hint_processor_def.zig").HintData;
+const HintReference = @import("hint_processor_def.zig").HintReference;
+const hint_codes = @import("builtin_hint_codes.zig");
+const Allocator = std.mem.Allocator;
+const ApTracking = @import("../vm/types/programjson.zig").ApTracking;
 
-// // Implements hint: memory[ap] = 0 if 0 <= (ids.a % PRIME) < range_check_builtin.bound else 1
-// pub fn isNN(
-//     ids: IdsManager,
-//     vm: *CairoVM,
-// ) !void {
-//     const a = try ids.getFelt("a", vm);
-//     const range_check = try vm.getRangeCheckBuiltin();
-//     _ = a;
-
-//     //Main logic (assert a is not negative and within the expected range)
-//     const value = if (range_check.bound) |bound| bound else Felt252.zero();
-//     // insert_value_into_ap(vm, value)
-// }
+const HintError = @import("../vm/error.zig").HintError;
+const CairoVMError = @import("../vm/error.zig").CairoVMError;
 
 //Implements hint:
 // %{
@@ -28,8 +24,17 @@ const IdsManager = @import("hint_utils.zig").IdsManager;
 //     assert_integer(ids.a)
 //     assert 0 <= ids.a % PRIME < range_check_builtin.bound, f'a = {ids.a} is out of range.'
 // %}
-fn assertNN(ids: IdsManager, vm: *CairoVM) !void {
-    const a = try ids.getFelt("a", vm);
+pub fn assertNN(
+    vm: *CairoVM,
+    ids_data: std.StringHashMap(HintReference),
+    ap_tracking: ApTracking,
+) !void {
+    const a = try hint_utils.getIntegerFromVarName(
+        "a",
+        vm,
+        ids_data,
+        ap_tracking,
+    );
 
     const range_check = try vm.getRangeCheckBuiltin();
 
@@ -40,8 +45,8 @@ fn assertNN(ids: IdsManager, vm: *CairoVM) !void {
     }
 }
 
-pub fn isPositive(ids: IdsManager, vm: *CairoVM) !void {
-    const value = try ids.getFelt("value", vm);
+pub fn isPositive(allocator: Allocator, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {
+    const value = try hint_utils.getIntegerFromVarName("value", vm, ids_data, ap_tracking);
     const range_check = try vm.getRangeCheckBuiltin();
 
     const signed_value = value.toSignedInt();
@@ -52,9 +57,9 @@ pub fn isPositive(ids: IdsManager, vm: *CairoVM) !void {
         }
     }
 
-    try ids.insert("is_positive", MaybeRelocatable.fromFelt(
+    try hint_utils.insertValueFromVarName(allocator, "is_positive", MaybeRelocatable.fromFelt(
         if (signed_value.positive) Felt252.one() else Felt252.zero(),
-    ), vm);
+    ), vm, ids_data, ap_tracking);
 }
 
 // Implements hint:from starkware.cairo.common.math.cairo
@@ -66,18 +71,26 @@ pub fn isPositive(ids: IdsManager, vm: *CairoVM) !void {
 //
 // %}
 
-pub fn assertNonZero(ids: IdsManager, vm: *CairoVM) !void {
-    const value = try ids.getFelt("value", vm);
+pub fn assertNonZero(
+    vm: *CairoVM,
+    ids_data: std.StringHashMap(HintReference),
+    ap_tracking: ApTracking,
+) !void {
+    const value = try hint_utils.getIntegerFromVarName("value", vm, ids_data, ap_tracking);
 
     if (value.isZero()) return HintError.AssertNotZero;
 }
 
-pub fn verifyEcdsaSignature(ids: IdsManager, vm: *CairoVM) !void {
-    const r = try ids.getFelt("signature_r", vm);
+pub fn verifyEcdsaSignature(
+    vm: *CairoVM,
+    ids_data: std.StringHashMap(HintReference),
+    ap_tracking: ApTracking,
+) !void {
+    const r = try hint_utils.getIntegerFromVarName("signature_r", vm, ids_data, ap_tracking);
 
-    const s = try ids.getFelt("signature_s", vm);
+    const s = try hint_utils.getIntegerFromVarName("signature_s", vm, ids_data, ap_tracking);
 
-    const ecdsa_ptr = try ids.getAddr("ecdsa_ptr", vm);
+    const ecdsa_ptr = try hint_utils.getPtrFromVarName("ecdsa_ptr", vm, ids_data, ap_tracking);
 
     const builtin_runner = try vm.getBuiltinRunner(.Signature);
 
@@ -100,51 +113,378 @@ pub fn verifyEcdsaSignature(ids: IdsManager, vm: *CairoVM) !void {
 //		    ids.y = sqrt(div_mod(x, 3, FIELD_PRIME), FIELD_PRIME)
 //
 // %}
-pub fn isQuadResidue(allcator: Allocator, ids: IdsManager, vm: *VirtualMachine) !void {
-	const x = try ids.getFelt("x", vm);
-    if (x.isZero() or x.isOne()) {
-        try ids.insert(allocator, "y", MaybeRelocatable.fromFelt(x), vm);
-    } else if (x.pow(SIGNED_FELT_MAX).equal(Felt252.one())) {
-        try ids.insert(allocator, "y", MaybeRelocatable.fromFelt(x.sqrt().?), vm);
-    } else {
-        try ids.insert(allocator, "y", MaybeRelocatable.fromFelt(try x.div(Felt252.fromInt(u8, 3))), vm);
+// pub fn isQuadResidue(allcator: Allocator, ids: IdsManager, vm: *VirtualMachine) !void {
+// 	const x = try ids.getFelt("x", vm);
+//     if (x.isZero() or x.isOne()) {
+//         try ids.insert(allocator, "y", MaybeRelocatable.fromFelt(x), vm);
+//     } else if (x.pow(SIGNED_FELT_MAX).equal(Felt252.one())) {
+//         try ids.insert(allocator, "y", MaybeRelocatable.fromFelt(x.sqrt().?), vm);
+//     } else {
+//         try ids.insert(allocator, "y", MaybeRelocatable.fromFelt(try x.div(Felt252.fromInt(u8, 3))), vm);
 
-    }
-	f x.IsZero() || x.IsOne() {
-		ids.Insert("y", NewMaybeRelocatableFelt(x), vm)
+//     }
+// 	f x.IsZero() || x.IsOne() {
+// 		ids.Insert("y", NewMaybeRelocatableFelt(x), vm)
 
-	} else if x.Pow(SignedFeltMaxValue()) == FeltOne() {
-		num := x.Sqrt()
-		ids.Insert("y", NewMaybeRelocatableFelt(num), vm)
+// 	} else if x.Pow(SignedFeltMaxValue()) == FeltOne() {
+// 		num := x.Sqrt()
+// 		ids.Insert("y", NewMaybeRelocatableFelt(num), vm)
 
-	} else {
-		num := (x.Div(lambdaworks.FeltFromUint64(3))).Sqrt()
-		ids.Insert("y", NewMaybeRelocatableFelt(num), vm)
-	}
-	return nil
-}
+// 	} else {
+// 		num := (x.Div(lambdaworks.FeltFromUint64(3))).Sqrt()
+// 		ids.Insert("y", NewMaybeRelocatableFelt(num), vm)
+// 	}
+// 	return nil
+// }
 
 // importing testing utils for tests
 const testing_utils = @import("testing_utils.zig");
 
-test "MathHint: isPositive true" {
+test "MathHints: isPositive false" {
     var vm = try CairoVM.init(
         std.testing.allocator,
         .{},
     );
     defer vm.deinit();
-    try vm.segments.addSegment();
 
-    var manager = try testing_utils.setupIdsForTest(std.testing.allocator, .{}, vm);
+    try vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner{} });
+    _ = try vm.addMemorySegment();
 
-    // try vm.segments.memory.setUpMemory(
-    //     std.testing.allocator,
-    //     .{
-    //         .{ .{ 0, 0 }, .{ 0, 0 } },
-    //     },
-    // );
-    // defer vm.segments.memory.deinitData(std.testing.allocator);
+    defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    // IdsManager.init(kj)
+    var ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{
+        .{
+            .name = "value",
+            .elems = &.{
+                MaybeRelocatable.fromFelt(Felt252.zero().sub(Felt252.one())),
+            },
+        },
+        .{
+            .name = "is_positive",
+            .elems = &.{
+                null,
+            },
+        },
+    }, &vm);
+    defer ids_data.deinit();
 
+    const hint_processor: HintProcessor = .{};
+    var hint_data = HintData.init(hint_codes.IS_POSITIVE, ids_data, .{});
+
+    try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
+
+    const is_positive = try hint_utils.getIntegerFromVarName("is_positive", &vm, ids_data, .{});
+
+    try std.testing.expectEqual(Felt252.zero(), is_positive);
+}
+
+test "MathHints: isPositive true" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner{} });
+    _ = try vm.addMemorySegment();
+
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    var ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{
+        .{
+            .name = "value",
+            .elems = &.{
+                MaybeRelocatable.fromFelt(Felt252.fromInt(u32, 17)),
+            },
+        },
+        .{
+            .name = "is_positive",
+            .elems = &.{
+                null,
+            },
+        },
+    }, &vm);
+    defer ids_data.deinit();
+
+    const hint_processor: HintProcessor = .{};
+    var hint_data = HintData.init(hint_codes.IS_POSITIVE, ids_data, .{});
+
+    try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
+
+    const is_positive = try hint_utils.getIntegerFromVarName("is_positive", &vm, ids_data, .{});
+
+    try std.testing.expectEqual(Felt252.one(), is_positive);
+}
+
+test "MathHints: assertNN hint ok" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner{} });
+
+    _ = try vm.addMemorySegment();
+
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    var ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{
+        .{
+            .name = "a",
+            .elems = &.{
+                MaybeRelocatable.fromFelt(Felt252.fromInt(u32, 17)),
+            },
+        },
+    }, &vm);
+    defer ids_data.deinit();
+
+    const hint_processor: HintProcessor = .{};
+    var hint_data = HintData.init(
+        hint_codes.ASSERT_NN,
+        ids_data,
+        .{},
+    );
+
+    try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
+}
+
+test "MathHints: assertNN invalid" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner{} });
+
+    _ = try vm.addMemorySegment();
+
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    var ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{
+        .{
+            .name = "a",
+            .elems = &.{
+                MaybeRelocatable.fromFelt(Felt252.fromSignedInt(i32, -1)),
+            },
+        },
+    }, &vm);
+    defer ids_data.deinit();
+
+    const hint_processor: HintProcessor = .{};
+    var hint_data = HintData.init(
+        hint_codes.ASSERT_NN,
+        ids_data,
+        .{},
+    );
+
+    try std.testing.expectError(
+        HintError.AssertNNValueOutOfRange,
+        hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined),
+    );
+}
+
+test "MathHints: assertNN incorrect ids" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner{} });
+
+    _ = try vm.addMemorySegment();
+
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    var ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{
+        .{
+            .name = "incorrect_id",
+            .elems = &.{
+                MaybeRelocatable.fromFelt(Felt252.fromSignedInt(i32, -1)),
+            },
+        },
+    }, &vm);
+    defer ids_data.deinit();
+
+    const hint_processor: HintProcessor = .{};
+    var hint_data = HintData.init(
+        hint_codes.ASSERT_NN,
+        ids_data,
+        .{},
+    );
+
+    try std.testing.expectError(
+        HintError.UnknownIdentifier,
+        hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined),
+    );
+}
+
+test "MathHints: assertNN a is not integer" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner{} });
+
+    _ = try vm.addMemorySegment();
+
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    var ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{
+        .{
+            .name = "a",
+            .elems = &.{
+                MaybeRelocatable.fromRelocatable(Relocatable.init(10, 10)),
+            },
+        },
+    }, &vm);
+    defer ids_data.deinit();
+
+    const hint_processor: HintProcessor = .{};
+    var hint_data = HintData.init(
+        hint_codes.ASSERT_NN,
+        ids_data,
+        .{},
+    );
+
+    try std.testing.expectError(
+        HintError.IdentifierNotInteger,
+        hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined),
+    );
+}
+
+test "MathHints: assertNN no range check builtin" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    _ = try vm.addMemorySegment();
+
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    var ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{
+        .{
+            .name = "a",
+            .elems = &.{
+                MaybeRelocatable.fromFelt(Felt252.fromInt(u32, 1)),
+            },
+        },
+    }, &vm);
+    defer ids_data.deinit();
+
+    const hint_processor: HintProcessor = .{};
+    var hint_data = HintData.init(
+        hint_codes.ASSERT_NN,
+        ids_data,
+        .{},
+    );
+
+    try std.testing.expectError(
+        CairoVMError.NoRangeCheckBuiltin,
+        hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined),
+    );
+}
+
+test "MathHints: assertNN reference is not in memory" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    _ = try vm.addMemorySegment();
+
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    var ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{
+        .{
+            .name = "a",
+            .elems = &.{
+                null,
+            },
+        },
+    }, &vm);
+    defer ids_data.deinit();
+
+    const hint_processor: HintProcessor = .{};
+    var hint_data = HintData.init(
+        hint_codes.ASSERT_NN,
+        ids_data,
+        .{},
+    );
+
+    try std.testing.expectError(
+        HintError.IdentifierNotInteger,
+        hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined),
+    );
+}
+test "MathHints: assertNotZero true" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    _ = try vm.addMemorySegment();
+
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    var ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{
+        .{
+            .name = "value",
+            .elems = &.{
+                MaybeRelocatable.fromFelt(Felt252.fromInt(u32, 17)),
+            },
+        },
+    }, &vm);
+    defer ids_data.deinit();
+
+    const hint_processor: HintProcessor = .{};
+    var hint_data = HintData.init(
+        hint_codes.ASSERT_NOT_ZERO,
+        ids_data,
+        .{},
+    );
+
+    try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
+}
+
+test "MathHints: assertNotZero false" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    _ = try vm.addMemorySegment();
+
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    var ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{
+        .{
+            .name = "value",
+            .elems = &.{
+                MaybeRelocatable.fromFelt(Felt252.zero()),
+            },
+        },
+    }, &vm);
+    defer ids_data.deinit();
+
+    const hint_processor: HintProcessor = .{};
+    var hint_data = HintData.init(
+        hint_codes.ASSERT_NOT_ZERO,
+        ids_data,
+        .{},
+    );
+
+    try std.testing.expectError(
+        HintError.AssertNotZero,
+        hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined),
+    );
 }

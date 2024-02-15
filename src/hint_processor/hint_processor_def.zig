@@ -3,14 +3,22 @@ const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 const StringHashMap = std.StringHashMap;
 const programjson = @import("../vm/types/programjson.zig");
+const CairoVM = @import("../vm/core.zig").CairoVM;
 const CairoVMError = @import("../vm/error.zig").CairoVMError;
 const OffsetValue = programjson.OffsetValue;
 const ApTracking = programjson.ApTracking;
 const Reference = programjson.Reference;
-const IdsManager = @import("hint_utils.zig").IdsManager;
+const ReferenceProgram = programjson.ReferenceProgram;
 const HintParams = programjson.HintParams;
 const ReferenceManager = programjson.ReferenceManager;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
+const ExecutionScopes = @import("../vm/types/execution_scopes.zig").ExecutionScopes;
+
+/// import hint code
+const hint_codes = @import("builtin_hint_codes.zig");
+const math_hints = @import("math_hints.zig");
+
+const deserialize_utils = @import("../parser/deserialize_utils.zig");
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -20,18 +28,24 @@ const expectEqualStrings = std.testing.expectEqualStrings;
 /// Represents a 'compiled' hint.
 ///
 /// This structure the return type for the `compileHint` method in the HintProcessor interface
-pub const HintProcessorData = struct {
+pub const HintData = struct {
     const Self = @This();
 
     /// Code string that is mapped by the processor to a corresponding implementation
     code: []const u8,
-    ids: IdsManager,
+    ids_data: std.StringHashMap(HintReference),
+    ap_tracking: ApTracking,
 
-    pub fn init(code: []const u8, ids: IdsManager) Self {
+    pub fn init(code: []const u8, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) Self {
         return .{
             .code = code,
-            .ids = ids,
+            .ids_data = ids_data,
+            .ap_tracking = ap_tracking,
         };
+    }
+
+    pub fn deinit(self: *Self) void {
+        self.ids_data.deinit();
     }
 };
 
@@ -44,7 +58,7 @@ pub const HintReference = struct {
     /// First offset value within the hint reference.
     offset1: OffsetValue,
     /// Second offset value within the hint reference.
-    offset2: ?OffsetValue = .{ .value = 0 },
+    offset2: OffsetValue = .{ .value = 0 },
     /// Flag indicating dereference within the hint reference.
     dereference: bool = true,
     /// Ap tracking data associated with the hint reference (optional, defaults to null).
@@ -117,21 +131,30 @@ pub fn getIdsData(allocator: Allocator, reference_ids: StringHashMap(usize), ref
 
 pub const CairoVMHintProcessor = struct {
     const Self = @This();
-    pub fn compileHint(self: *Self, allocator: Allocator, hint_params: *HintParams, reference_manager: *ReferenceManager) !HintProcessorData {
-        var references = StringHashMap(HintReference).init(allocator);
 
-        if (hint_params.flow_tracking_data.reference_ids) |ref_ids| {
-            while (ref_ids.map.iterator().next()) |ref_id| {
-                if (ref_id.value_ptr.* >= reference_manager.references.items.len) {
-                    return CairoVMError.ReferenceNotFound;
-                }
+    pub fn compileHint(_: *Self, allocator: Allocator, hint_params: *HintParams, references: []HintReference) !HintData {
+        const ids_data = try getIdsData(allocator, hint_params.flow_tracking_data.reference_ids, references);
+        errdefer ids_data.deinit();
 
-                const name = std.mem.splitScalar(u8, ref_id.key_ptr.*, '.').first();
-                // parse hint reference using lib
-                // references.put(name, )
-            }
+        return .{
+            .code = hint_params.code,
+            // .ids = try IdsManager.init(ids_data, hint_params.flow_tracking_data.ap_tracking, hint_params.accessible_scopes),
+        };
+    }
+
+    pub fn executeHint(_: *const Self, allocator: Allocator, vm: *CairoVM, hint_data: *HintData, constants: std.StringHashMap(Felt252), exec_scopes: ExecutionScopes) !void {
+        _ = exec_scopes; // autofix
+        _ = constants; // autofix
+
+        if (std.mem.eql(u8, hint_codes.ASSERT_NN, hint_data.code)) {
+            try math_hints.assertNN(vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.VERIFY_ECDSA_SIGNATURE, hint_data.code)) {
+            try math_hints.verifyEcdsaSignature(vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.IS_POSITIVE, hint_data.code)) {
+            try math_hints.isPositive(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.ASSERT_NOT_ZERO, hint_data.code)) {
+            try math_hints.assertNonZero(vm, hint_data.ids_data, hint_data.ap_tracking);
         }
-        // for (hint_params.flow_tracking_data.reference_ids)
     }
 };
 
@@ -185,7 +208,11 @@ test "HintProcessorData: initDefault returns a proper HintProcessorData instance
 
     const ids_data = try getIdsData(allocator, reference_ids, references.items);
 
-    var hp_data = HintProcessorData.initDefault(allocator, code, ids_data);
+    var hp_data = HintData.init(
+        code,
+        ids_data,
+        .{},
+    );
     defer hp_data.deinit();
 
     try expectEqual(@as(usize, 0), hp_data.ap_tracking.group);

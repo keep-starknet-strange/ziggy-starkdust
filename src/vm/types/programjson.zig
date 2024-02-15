@@ -7,11 +7,12 @@ const Relocatable = @import("../memory/relocatable.zig").Relocatable;
 const ProgramError = @import("../error.zig").ProgramError;
 const Felt252 = @import("../../math/fields/starknet.zig").Felt252;
 const Register = @import("../instructions.zig").Register;
-const Program = @import("./program.zig").Program;
-const HintsCollection = @import("./program.zig").HintsCollection;
-const SharedProgramData = @import("./program.zig").SharedProgramData;
+const Program = @import("program.zig").Program;
+const HintsCollection = @import("program.zig").HintsCollection;
+const SharedProgramData = @import("program.zig").SharedProgramData;
 const HintReference = @import("../../hint_processor/hint_processor_def.zig").HintReference;
 const PRIME_STR = @import("../../math/fields/starknet.zig").PRIME_STR;
+const HashMapWithArray = @import("../../hint_processor/hint_utils.zig").HashMapWithArray;
 
 /// Represents a singly linked list structure specialized for storing Instructions.
 pub const InstructionLinkedList = std.SinglyLinkedList(Instruction);
@@ -67,7 +68,6 @@ pub const ApTracking = struct {
     group: usize = 0,
     /// Reflects Ap register changes within the same `group`.
     offset: usize = 0,
-   
 };
 
 /// Represents tracking data for references considering various program flows.
@@ -81,7 +81,7 @@ const FlowTrackingData = struct {
     ///
     /// If populated, this field stores reference identifiers related to different program flows.
     /// It defaults to null if no references are present.
-    reference_ids: ?json.ArrayHashMap(usize) = null,
+    reference_ids: ?json.ArrayHashMap(usize),
 };
 
 /// Represents an attribute with associated metadata and tracking data.
@@ -468,11 +468,13 @@ pub const ProgramJson = struct {
             defer allocator.free(e.*);
         }
 
+        var hints_collection = try self.getHintsCollections(allocator);
+
         // Construct and return a `Program` instance.
         return .{
             .shared_program_data = .{
                 .data = try self.readData(allocator),
-                .hints_collection = try self.getHintsCollections(allocator),
+                .hints_collection = hints_collection,
                 .main = entrypoint_pc[1],
                 .start = self.getStartPc(),
                 .end = self.getEndPc(),
@@ -484,6 +486,7 @@ pub const ProgramJson = struct {
                     &self.reference_manager.?.references.?,
                 ),
             },
+            .hints = try hints_collection.intoHashMap(allocator),
             .constants = try self.getConstants(allocator),
             .builtins = try self.getBuiltins(allocator),
         };
@@ -1447,7 +1450,7 @@ test "ProgramJson: parseProgramJson should parse a valid manually compiled progr
                 },
                 .flow_tracking_data = .{
                     .ap_tracking = .{ .group = 0, .offset = 0 },
-                    .reference_ids = json.ArrayHashMap(usize){},
+                    .reference_ids = .{},
                 },
             },
         },
@@ -1464,7 +1467,7 @@ test "ProgramJson: parseProgramJson should parse a valid manually compiled progr
                 },
                 .flow_tracking_data = .{
                     .ap_tracking = .{ .group = 5, .offset = 0 },
-                    .reference_ids = json.ArrayHashMap(usize){},
+                    .reference_ids = .{},
                 },
             },
         },
@@ -1553,7 +1556,7 @@ test "ProgramJson: parseProgramJson should parse a valid manually compiled progr
                 },
                 .flow_tracking_data = .{
                     .ap_tracking = .{ .group = 0, .offset = 0 },
-                    .reference_ids = json.ArrayHashMap(usize){},
+                    .reference_ids = .{},
                 },
             },
         },
@@ -1570,7 +1573,7 @@ test "ProgramJson: parseProgramJson should parse a valid manually compiled progr
                 },
                 .flow_tracking_data = .{
                     .ap_tracking = .{ .group = 5, .offset = 0 },
-                    .reference_ids = json.ArrayHashMap(usize){},
+                    .reference_ids = .{},
                 },
             },
         },
@@ -1797,7 +1800,7 @@ test "ProgramJson: parseFromString should deserialize attributes properly" {
             .value = "SafeUint256: addition overflow",
             .flow_tracking_data = .{
                 .ap_tracking = .{ .group = 14, .offset = 35 },
-                .reference_ids = null,
+                .reference_ids = .{},
             },
         },
         .{
@@ -1807,7 +1810,7 @@ test "ProgramJson: parseFromString should deserialize attributes properly" {
             .value = "SafeUint256: subtraction overflow",
             .flow_tracking_data = .{
                 .ap_tracking = .{ .group = 15, .offset = 60 },
-                .reference_ids = null,
+                .reference_ids = .{},
             },
         },
     };
@@ -1920,7 +1923,7 @@ test "ProgramJson: parseFromString should deserialize instruction locations with
             },
             .flow_tracking_data = .{
                 .ap_tracking = .{ .group = 0, .offset = 0 },
-                .reference_ids = null,
+                .reference_ids = .{},
             },
             .hints = &[_]HintLocation{},
             .inst = .{
@@ -1945,7 +1948,7 @@ test "ProgramJson: parseFromString should deserialize instruction locations with
             },
             .flow_tracking_data = .{
                 .ap_tracking = .{ .group = 1, .offset = 1 },
-                .reference_ids = null,
+                .reference_ids = .{},
             },
             .hints = &[_]HintLocation{},
             .inst = .{

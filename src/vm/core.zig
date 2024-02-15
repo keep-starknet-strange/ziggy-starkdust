@@ -197,9 +197,9 @@ pub const CairoVM = struct {
 
     /// Gets builtin runner by name
     /// if not exist return not found builtin error
-    pub fn getBuiltinRunner(self: *Self, name: BuiltinName) !BuiltinRunner {
-        for (self.builtin_runners.items) |runner| {
-            if (runner == name) {
+    pub fn getBuiltinRunner(self: *Self, name: BuiltinName) !*BuiltinRunner {
+        for (self.builtin_runners.items) |*runner| {
+            if (@intFromEnum(runner.*) == @intFromEnum(name)) {
                 return runner;
             }
         }
@@ -1158,7 +1158,7 @@ pub const CairoVM = struct {
     pub fn getRangeCheckBuiltin(
         self: *Self,
     ) CairoVMError!*builtin_runner.RangeCheckBuiltinRunner {
-        for (self.builtin_runners.items) |runner| {
+        for (self.builtin_runners.items) |*runner| {
             switch (runner.*) {
                 .RangeCheck => |*rc| {
                     return rc;
@@ -1166,6 +1166,7 @@ pub const CairoVM = struct {
                 else => {},
             }
         }
+
         return CairoVMError.NoRangeCheckBuiltin;
     }
 

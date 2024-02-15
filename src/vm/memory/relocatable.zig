@@ -200,6 +200,13 @@ pub const Relocatable = struct {
         try self.addFeltInPlace(try other.tryIntoFelt());
     }
 
+    pub fn addMaybeRelocatable(self: *const Self, other: MaybeRelocatable) !Self {
+        var cp = self.*;
+
+        try cp.addMaybeRelocatableInplace(other);
+        return cp;
+    }
+
     /// Calculates the relocated address based on the provided relocation_table.
     ///
     /// This function determines the relocated memory address corresponding to the `Relocatable`
@@ -255,6 +262,18 @@ pub const MaybeRelocatable = union(enum) {
     relocatable: Relocatable,
     felt: Felt252,
 
+    pub fn getFelt(self: *const Self) ?Felt252 {
+        switch (self.*) {
+            .felt => |felt| return felt,
+            else => return null,
+        }
+    }
+    pub fn getRelocatable(self: *const Self) ?Relocatable {
+        switch (self.*) {
+            .relocatable => |rel| return rel,
+            else => return null,
+        }
+    }
     /// Determines if two `MaybeRelocatable` instances are equal.
     ///
     /// This method compares the variant type and the contained value. If both the variant

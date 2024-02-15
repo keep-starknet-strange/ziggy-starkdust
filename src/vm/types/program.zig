@@ -200,6 +200,8 @@ pub const Program = struct {
     constants: std.StringHashMap(Felt252),
     /// Stores the list of built-in names.
     builtins: std.ArrayList(BuiltinName),
+    /// Stores a hash map of hint params
+    hints: std.AutoHashMap(usize, []const HintParams),
 
     /// Initializes a new `Program` instance with provided parameters.
     ///
@@ -221,14 +223,12 @@ pub const Program = struct {
         builtins: std.ArrayList(BuiltinName),
         data: std.ArrayList(MaybeRelocatable),
         main: ?usize,
-        hints: std.AutoHashMap(usize, std.ArrayList(HintParams)),
+        hints: std.AutoHashMap(usize, []const HintParams),
         reference_manager: ReferenceManager,
         identifiers: std.StringHashMap(Identifier),
         error_message_attributes: std.ArrayList(Attribute),
         instruction_locations: ?std.StringHashMap(InstructionLocation),
     ) !Self {
-        _ = hints; // autofix
-
         return .{
             .shared_program_data = .{
                 .data = data,
@@ -241,6 +241,7 @@ pub const Program = struct {
             },
             .constants = try Self.extractConstants(identifiers, allocator),
             .builtins = builtins,
+            .hints = hints,
         };
     }
 
@@ -316,7 +317,6 @@ pub const Program = struct {
             const ref = reference_manager.*[i];
             try res.append(.{
                 .offset1 = .{ .value = @intCast(ref.ap_tracking_data.offset) },
-                .offset2 = null,
                 .dereference = false,
                 .ap_tracking_data = ref.ap_tracking_data,
                 .cairo_type = "felt",
@@ -402,6 +402,7 @@ pub const Program = struct {
         self.shared_program_data.deinit(allocator);
         self.constants.deinit();
         self.builtins.deinit();
+        self.hints.deinit();
     }
 };
 
@@ -554,7 +555,7 @@ test "Program: init function should init a basic program" {
     // Initialize the reference manager, builtins, hints, identifiers, and error message attributes.
     const reference_manager = ReferenceManager.init(std.testing.allocator);
     const builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
-    const hints = std.AutoHashMap(usize, std.ArrayList(HintParams)).init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
     const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
     const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
 
@@ -603,7 +604,7 @@ test "Program: init function should init a basic program (data length function)"
     // Initialize the reference manager, builtins, hints, identifiers, and error message attributes.
     const reference_manager = ReferenceManager.init(std.testing.allocator);
     const builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
-    const hints = std.AutoHashMap(usize, std.ArrayList(HintParams)).init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
     const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
     const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
 
@@ -640,7 +641,7 @@ test "Program: init function should init a program with identifiers" {
     // Initialize the reference manager, builtins, hints, and error message attributes.
     const reference_manager = ReferenceManager.init(std.testing.allocator);
     const builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
-    const hints = std.AutoHashMap(usize, std.ArrayList(HintParams)).init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
     const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
 
     // Initialize a list of MaybeRelocatable items.
@@ -711,7 +712,7 @@ test "Program: init function should init a program with identifiers (get identif
     // Initialize the reference manager, builtins, hints, and error message attributes.
     const reference_manager = ReferenceManager.init(std.testing.allocator);
     const builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
-    const hints = std.AutoHashMap(usize, std.ArrayList(HintParams)).init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
     const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
 
     // Initialize a list of MaybeRelocatable items.
@@ -784,7 +785,7 @@ test "Program: iteratorIdentifier should return an iterator over identifiers" {
     // Initialize the reference manager, builtins, hints, and error message attributes.
     const reference_manager = ReferenceManager.init(std.testing.allocator);
     const builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
-    const hints = std.AutoHashMap(usize, std.ArrayList(HintParams)).init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
     const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
 
     // Initialize a list of MaybeRelocatable items.
@@ -853,7 +854,7 @@ test "Program: iteratorIdentifier should return an iterator over identifiers" {
 test "Program: init function should init a program with builtins" {
     // Initialize the reference manager, hints, error message attributes, and identifiers.
     const reference_manager = ReferenceManager.init(std.testing.allocator);
-    const hints = std.AutoHashMap(usize, std.ArrayList(HintParams)).init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
     const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
     const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
 
@@ -913,7 +914,7 @@ test "Program: init a new program with invalid identifiers should return an erro
     defer reference_manager.deinit();
     var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
     defer builtins.deinit();
-    var hints = std.AutoHashMap(usize, std.ArrayList(HintParams)).init(std.testing.allocator);
+    var hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
     defer hints.deinit();
     var error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
     defer error_message_attributes.deinit();

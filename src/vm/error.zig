@@ -229,4 +229,12 @@ pub const HintError = error{
     AssertNNValueOutOfRange,
     ValueOutsideValidRange,
     AssertNotZero,
+    // expected an integer
+    IdentifierNotInteger,
+    IdentifierNotRelocatable,
+    // unknown identifier in ids
+    UnknownIdentifier,
+    UnknownIdentifierInternal,
+    WrongIdentifierTypeInternal,
+    Memory,
 };

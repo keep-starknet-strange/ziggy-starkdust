@@ -3,6 +3,9 @@ const json = std.json;
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 
+const HintData = @import("../../hint_processor/hint_processor_def.zig").HintData;
+const HashMapWithArray = @import("../../hint_processor/hint_utils.zig").HashMapWithArray;
+const HintProcessor = @import("../../hint_processor/hint_processor_def.zig").CairoVMHintProcessor;
 const BuiltinRunner = @import("../builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
 const Config = @import("../config.zig").Config;
 const CairoVM = @import("../core.zig").CairoVM;
@@ -22,7 +25,6 @@ const OutputBuiltinRunner = @import("../builtins/builtin_runner/output.zig").Out
 const BitwiseBuiltinRunner = @import("../builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
 const ExecutionScopes = @import("../types/execution_scopes.zig").ExecutionScopes;
 const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
-
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -294,7 +296,34 @@ pub const CairoRunner = struct {
         self.vm.segments.memory.validateExistingMemory() catch return RunnerError.MemoryValidationError;
     }
 
+    pub fn getHintDataMap(self: *Self, hint_processor: HintProcessor, program: *Program) !HashMapWithArray(usize, HintData) {
+        const result = HashMapWithArray(usize, HintData).init(self.allocator);
+        errdefer result.deinit();
+
+        while (program.hints.iterator().next()) |item| {
+            const pc = item.key_ptr.*;
+            const hints_params = item.value_ptr.*;
+            const hint_datas = try std.ArrayList(HintData).initCapacity(self.allocator, hints_params.items.len);
+            errdefer hint_datas.deinit();
+
+            for (hints_params.items) |hint_param| {
+                try hint_datas.append(
+                    try hint_processor.compileHint(self.allocator, hint_param, program.shared_program_data.reference_manager.items),
+                );
+            }
+
+            try result.put(pc, hint_datas);
+        }
+
+        return result;
+    }
+
     pub fn runUntilPC(self: *Self, end: Relocatable) !void {
+        // const program = try self.program.parseProgramJson(self.allocator, "__start__");
+        // defer program.deinit(self.allocator);
+
+        // const hint_data_map = try self.getHintDataMap(hint_processor, program);
+
         while (!end.eq(self.vm.run_context.pc.*)) {
             try self.vm.step(self.allocator);
         }

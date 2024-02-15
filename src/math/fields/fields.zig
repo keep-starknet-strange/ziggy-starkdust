@@ -603,6 +603,14 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
                 &other.fe,
             );
         }
+
+        pub fn fromSignedInt(comptime T: type, signed: T) Self {
+            if (signed < 0) {
+                return Self.fromInt(u256, STARKNET_PRIME - @as(u256, @intCast(@abs(signed))));
+            }
+
+            return Self.fromInt(T, signed);
+        }
         // converting felt to abs value with sign
         pub fn toSignedInt(self: Self) struct { positive: bool, abs: u256 } {
             const val = self.toInteger();
