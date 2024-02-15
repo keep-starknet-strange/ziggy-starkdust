@@ -27,7 +27,7 @@ deps-macos:
 build:
 	@zig build
 
-build-optimize: 
+build-optimize:
 	@zig build -Doptimize=ReleaseFast
 
 test:
