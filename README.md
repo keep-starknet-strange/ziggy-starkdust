@@ -112,11 +112,6 @@ In order to compile programs you need to install the cairo-lang package.
 
 Running the  `make deps` (or the `make deps-macos`  if you are runnning in MacOS) command will create a virtual environment with all the required dependencies.
 
-You can then activate this environment by running
- ```bash
-. cairo-vm-env/bin/activate
-```
-
 Run the complete benchmark suite with Make:
 
 ```bash
