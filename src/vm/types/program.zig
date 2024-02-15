@@ -32,13 +32,15 @@ pub const HintRange = struct {
     length: usize,
 };
 
+pub const Hints = std.ArrayList(HintParams);
+
 /// Represents a collection of hints.
 ///
 /// This structure contains a list of `HintParams` and a map of `HintRange` corresponding to a `Relocatable`.
 pub const HintsCollection = struct {
     const Self = @This();
     /// List of HintParams.
-    hints: std.ArrayList(HintParams),
+    hints: Hints,
     /// Map of Relocatable to HintRange.
     hints_ranges: std.HashMap(
         Relocatable,
@@ -51,7 +53,57 @@ pub const HintsCollection = struct {
     ///
     /// # Params:
     ///   - `allocator`: The allocator used to initialize the collection.
-    pub fn init(allocator: Allocator) Self {
+    pub fn init(allocator: Allocator, hints: std.AutoHashMap(usize, Hints), program_length: usize, extensive_hints: bool) !Self {
+        var max_hint_pc = 0;
+        var total_hints_len = 0;
+        var it = hints.iterator();
+        while (it.next()) |kv| {
+            max_hint_pc = std.math.max(max_hint_pc, kv.key_ptr.*);
+            total_hints_len += kv.value_ptr.items.len;
+        }
+
+        if (max_hint_pc == 0 or total_hints_len == 0) {
+            return Self.initDefault(allocator);
+        }
+
+        if (max_hint_pc >= program_length) {
+            return ProgramError.InvalidHintPc;
+        }
+
+        var hints_values = try std.ArrayList(HintParams).initCapacity(allocator, total_hints_len);
+        var hints_ranges_non_ext: ?std.ArrayList(std.meta.Tuple(.{ usize, usize })) = null;
+        var hints_ranges_ext: ?std.AutoHashMap(Relocatable, std.meta.Tuple(.{ usize, usize })) = null;
+
+        if (extensive_hints) {
+            hints_ranges_ext = std.AutoHashMap(Relocatable, std.meta.Tuple(.{ usize, usize })).init(allocator);
+        } else {
+            hints_ranges_non_ext = std.ArrayList(std.meta.Tuple(.{ usize, usize })).init(allocator);
+        }
+
+        it = hints.iterator();
+        while (it.next()) |kv| {
+            if (kv.value_ptr.*.items.len > 0) {
+                const range = .{ hints_values.items.len, kv.value_ptr.items.len };
+                if (extensive_hints) {
+                    try hints_ranges_ext.?.put(Relocatable.new(0, kv.key_ptr.*), range);
+                    try hints_values.appendSlice(kv.value_ptr.items);
+                } else {
+                    try hints_ranges_non_ext.?.append(range);
+                }
+            }
+        }
+
+        // return Self {
+        //     .hints = hints_values,
+        //     .hint_ranges = hint
+        // }
+    }
+
+    /// Initializes a new default HintsCollection.
+    ///
+    /// # Params:
+    ///   - `allocator`: The allocator used to initialize the collection.
+    pub fn initDefault(allocator: Allocator) Self {
         return .{
             .hints = std.ArrayList(HintParams).init(allocator),
             .hints_ranges = std.AutoHashMap(
