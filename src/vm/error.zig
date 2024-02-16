@@ -134,6 +134,12 @@ pub const RunnerError = error{
     /// Raised when underflow occurs (i.e., subtracting 1 from 0),
     /// or when it fails to get a value for the computed address.
     NoStopPointer,
+    // Running in a proof mode, but no __start__ label found, try compiling with proof mode
+    NoProgramStart,
+    // Running in a proof mode, but on __end__ label found, try compiling with proof mode
+    NoProgramEnd,
+    // Missing main()
+    MissingMain,
     /// Invalid stop pointer index occured in calculation of the final stack.
     /// Raised when the current vm step
     InvalidStopPointerIndex,
