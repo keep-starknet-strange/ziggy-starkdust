@@ -83,8 +83,7 @@ pub const RangeCheckBuiltinRunner = struct {
     /// # Modifies
     /// - `self`: Updates the `base` value to the new segment's index.
     pub fn initSegments(self: *Self, segments: *MemorySegmentManager) !void {
-        const seg = try segments.addSegment();
-        self.base = @intCast(seg.segment_index);
+        self.base = @intCast((try segments.addSegment()).segment_index);
     }
 
     /// Initializes and returns an `ArrayList` of `MaybeRelocatable` values.
@@ -99,6 +98,7 @@ pub const RangeCheckBuiltinRunner = struct {
     /// An `ArrayList` of `MaybeRelocatable` values.
     pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
         var result = ArrayList(MaybeRelocatable).init(allocator);
+        errdefer result.deinit();
         if (self.included) {
             try result.append(.{
                 .relocatable = Relocatable.init(
@@ -152,14 +152,8 @@ pub const RangeCheckBuiltinRunner = struct {
     ///
     /// # Returns
     /// A tuple of `usize` and `?usize` addresses.
-    pub fn getMemorySegmentAddresses(self: *const Self) std.meta.Tuple(&.{
-        usize,
-        ?usize,
-    }) {
-        return .{
-            self.base,
-            self.stop_ptr,
-        };
+    pub fn getMemorySegmentAddresses(self: *const Self) std.meta.Tuple(&.{ usize, ?usize }) {
+        return .{ self.base, self.stop_ptr };
     }
 
     /// Calculate the final stack.

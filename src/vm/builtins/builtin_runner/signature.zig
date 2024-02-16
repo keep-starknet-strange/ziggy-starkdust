@@ -120,12 +120,16 @@ pub const SignatureBuiltinRunner = struct {
             else => return result,
         };
 
-        const pubkey = memory.getFelt(pubkey_message_addr[0]) catch if (cell_index == 1) return result else return MemoryError.PubKeyNonInt;
-        const msg = memory.getFelt(pubkey_message_addr[1]) catch if (cell_index == 0) return result else return MemoryError.MsgNonInt;
+        const pubkey = memory.getFelt(pubkey_message_addr[0]) catch
+            return if (cell_index == 1) result else MemoryError.PubKeyNonInt;
+        const msg = memory.getFelt(pubkey_message_addr[1]) catch
+            return if (cell_index == 0) result else MemoryError.MsgNonInt;
 
         const signature = self.signatures.get(pubkey_message_addr[0]) catch return MemoryError.SignatureNotFound;
 
-        if (verify(pubkey, msg, signature.r, signature.s) catch return MemoryError.InvalidSignature) {
+        if (verify(pubkey, msg, signature.r, signature.s) catch
+            return MemoryError.InvalidSignature)
+        {
             return result;
         }
 
@@ -180,20 +184,19 @@ pub const SignatureBuiltinRunner = struct {
         if (self.included) {
             const stop_pointer_addr = pointer.subUint(1) catch return RunnerError.NoStopPointer;
 
-            const stop_pointer = segments.memory.getRelocatable(stop_pointer_addr) catch return RunnerError.NoStopPointer;
+            const stop_pointer = segments.memory.getRelocatable(stop_pointer_addr) catch
+                return RunnerError.NoStopPointer;
 
-            if (@as(i64, @intCast(self.base)) != stop_pointer.segment_index) {
+            if (self.base != stop_pointer.segment_index)
                 return RunnerError.InvalidStopPointerIndex;
-            }
 
             const stop_ptr = stop_pointer.offset;
             const num_instances = try self.getUsedInstances(segments);
 
             const used = num_instances * @as(usize, @intCast(self.cells_per_instance));
 
-            if (stop_ptr != used) {
+            if (stop_ptr != used)
                 return RunnerError.InvalidStopPointer;
-            }
 
             self.stop_ptr = stop_ptr;
             return stop_pointer_addr;
