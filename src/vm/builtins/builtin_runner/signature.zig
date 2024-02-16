@@ -81,6 +81,10 @@ pub const SignatureBuiltinRunner = struct {
         };
     }
 
+    pub fn deinit(self: *Self) void {
+        self.signatures.deinit();
+    }
+
     pub fn addSignature(self: *Self, relocatable: Relocatable, rs: struct { Felt252, Felt252 }) !void {
         try self.signatures.put(relocatable, .{
             .r = rs[0],

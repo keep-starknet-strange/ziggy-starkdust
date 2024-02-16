@@ -74,9 +74,11 @@ pub fn getPtrFromVarName(
 ) !Relocatable {
     const reference = try getReferenceFromVarName(var_name, ids_data);
 
-    return hint_processor_utils.getPtrFromReference(reference, ap_tracking, vm) catch |err| switch (err) {
-        HintError.WrongIdentifierTypeInternal => HintError.IdentifierNotRelocatable,
-        else => HintError.UnknownIdentifier,
+    return hint_processor_utils.getPtrFromReference(reference, ap_tracking, vm) catch |err| {
+        switch (err) {
+            HintError.WrongIdentifierTypeInternal => return HintError.IdentifierNotRelocatable,
+            else => return HintError.UnknownIdentifier,
+        }
     };
 }
 

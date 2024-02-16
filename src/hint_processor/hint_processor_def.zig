@@ -154,6 +154,10 @@ pub const CairoVMHintProcessor = struct {
             try math_hints.isPositive(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.ASSERT_NOT_ZERO, hint_data.code)) {
             try math_hints.assertNonZero(vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.IS_QUAD_RESIDUE, hint_data.code)) {
+            try math_hints.isQuadResidue(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SQRT, hint_data.code)) {
+            try math_hints.sqrt(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         }
     }
 };

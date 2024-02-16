@@ -1,6 +1,5 @@
 const std = @import("std");
 
-const RangeCheckBuiltinRunner = @import("../vm/builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
 const CoreVM = @import("../vm/core.zig");
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const SIGNED_FELT_MAX = @import("../math/fields/fields.zig").SIGNED_FELT_MAX;
@@ -113,32 +112,99 @@ pub fn verifyEcdsaSignature(
 //		    ids.y = sqrt(div_mod(x, 3, FIELD_PRIME), FIELD_PRIME)
 //
 // %}
-// pub fn isQuadResidue(allcator: Allocator, ids: IdsManager, vm: *VirtualMachine) !void {
-// 	const x = try ids.getFelt("x", vm);
-//     if (x.isZero() or x.isOne()) {
-//         try ids.insert(allocator, "y", MaybeRelocatable.fromFelt(x), vm);
-//     } else if (x.pow(SIGNED_FELT_MAX).equal(Felt252.one())) {
-//         try ids.insert(allocator, "y", MaybeRelocatable.fromFelt(x.sqrt().?), vm);
-//     } else {
-//         try ids.insert(allocator, "y", MaybeRelocatable.fromFelt(try x.div(Felt252.fromInt(u8, 3))), vm);
+pub fn isQuadResidue(
+    allocator: Allocator,
+    vm: *CairoVM,
+    ids_data: std.StringHashMap(HintReference),
+    ap_tracking: ApTracking,
+) !void {
+    _ = ap_tracking; // autofix
+    _ = vm; // autofix
+    _ = ids_data; // autofix
+    _ = allocator; // autofix
 
-//     }
-// 	f x.IsZero() || x.IsOne() {
-// 		ids.Insert("y", NewMaybeRelocatableFelt(x), vm)
+    // const x = try hint_utils.getIntegerFromVarName("x", vm, ids_data, ap_tracking);
 
-// 	} else if x.Pow(SignedFeltMaxValue()) == FeltOne() {
-// 		num := x.Sqrt()
-// 		ids.Insert("y", NewMaybeRelocatableFelt(num), vm)
+    // if (x.isZero() or x.isOne()) {
+    //     try hint_utils.insertValueFromVarName(allocator, "y", MaybeRelocatable.fromFelt(x), vm, ids_data, ap_tracking);
+    // } else if (x.pow(Felt252.Max.div(Felt252.two()) catch unreachable).eq(Felt252.one()))) {
+    //     try hint_utils.insertValueFromVarName(allocator, "y", x.sqrt() catch Felt252.zero(), vm, ids_data, ap_tracking);
+    // } else {
+    //     try hint_utils.insertValueFromVarName(allocator, "y", x.div(Felt252.three()).sqrt() catch Felt252.zero(), vm, ids_data, ap_tracking);
+    // }
+}
 
-// 	} else {
-// 		num := (x.Div(lambdaworks.FeltFromUint64(3))).Sqrt()
-// 		ids.Insert("y", NewMaybeRelocatableFelt(num), vm)
-// 	}
-// 	return nil
-// }
+//Implements hint: from starkware.cairo.lang.vm.relocatable import RelocatableValue
+//        both_ints = isinstance(ids.a, int) and isinstance(ids.b, int)
+//        both_relocatable = (
+//            isinstance(ids.a, RelocatableValue) and isinstance(ids.b, RelocatableValue) and
+//            ids.a.segment_index == ids.b.segment_index)
+//        assert both_ints or both_relocatable, \
+//            f'assert_not_equal failed: non-comparable values: {ids.a}, {ids.b}.'
+//        assert (ids.a - ids.b) % PRIME != 0, f'assert_not_equal failed: {ids.a} = {ids.b}.'
+pub fn assertNotEqual(
+    vm: *CairoVM,
+    ids_data: std.StringHashMap(HintReference),
+    ap_tracking: ApTracking,
+) !void {
+    const maybe_rel_a = try hint_utils.getMaybeRelocatableFromVarName("a", vm, ids_data, ap_tracking);
+    const maybe_rel_b = try hint_utils.getMaybeRelocatableFromVarName("b", vm, ids_data, ap_tracking);
+
+    if (!maybe_rel_a.eq(maybe_rel_b)) {
+        return HintError.AssertNotEqualFail;
+    }
+}
+
+fn isqrt(n: u256) !u256 {
+    var x = n;
+    var y = (n + 1) >> @as(u32, 1);
+
+    while (y < x) {
+        x = y;
+        y = (@divFloor(n, x) + x) >> @as(u32, 1);
+    }
+
+    if (!(std.math.pow(u256, x, 2) <= n and n < std.math.pow(u256, x + 1, 2))) {
+        return error.FailedToGetSqrt;
+    }
+
+    return x;
+}
+
+//Implements hint: from starkware.python.math_utils import isqrt
+//        value = ids.value % PRIME
+//        assert value < 2 ** 250, f"value={value} is outside of the range [0, 2**250)."
+//        assert 2 ** 250 < PRIME
+//        ids.root = isqrt(value)
+pub fn sqrt(
+    allocator: Allocator,
+    vm: *CairoVM,
+    ids_data: std.StringHashMap(HintReference),
+    ap_tracking: ApTracking,
+) !void {
+    const mod_value = try hint_utils.getIntegerFromVarName("value", vm, ids_data, ap_tracking);
+
+    if (mod_value.gt(Felt252.two().pow(250))) {
+        return HintError.ValueOutside250BitRange;
+    }
+
+    const root = Felt252.fromInt(u256, isqrt(mod_value.toInteger()) catch unreachable);
+
+    try hint_utils.insertValueFromVarName(
+        allocator,
+        "root",
+        MaybeRelocatable.fromFelt(root),
+        vm,
+        ids_data,
+        ap_tracking,
+    );
+}
 
 // importing testing utils for tests
 const testing_utils = @import("testing_utils.zig");
+const RangeCheckBuiltinRunner = @import("../vm/builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
+const SignatureBuiltinRunner = @import("../vm/builtins/builtin_runner/signature.zig").SignatureBuiltinRunner;
+const EcdsaInstanceDef = @import("../vm/types/ecdsa_instance_def.zig").EcdsaInstanceDef;
 
 test "MathHints: isPositive false" {
     var vm = try CairoVM.init(
@@ -487,4 +553,127 @@ test "MathHints: assertNotZero false" {
         HintError.AssertNotZero,
         hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined),
     );
+}
+
+test "MathHints: verifyEcdsaSignature valid" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    var def = EcdsaInstanceDef.init(2048);
+    try vm.builtin_runners.append(.{
+        .Signature = SignatureBuiltinRunner.init(std.testing.allocator, &def, true),
+    });
+
+    _ = try vm.addMemorySegment();
+    _ = try vm.addMemorySegment();
+
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    vm.run_context.fp.* = Relocatable.init(1, 3);
+    var ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{
+        .{
+            .name = "signature_r",
+            .elems = &.{
+                MaybeRelocatable.fromFelt(Felt252.fromInt(u256, 3086480810278599376317923499561306189851900463386393948998357832163236918254)),
+            },
+        },
+        .{
+            .name = "signature_s",
+            .elems = &.{
+                MaybeRelocatable.fromFelt(Felt252.fromInt(u256, 598673427589502599949712887611119751108407514580626464031881322743364689811)),
+            },
+        },
+        .{
+            .name = "ecdsa_ptr",
+            .elems = &.{
+                MaybeRelocatable.fromRelocatable(Relocatable.init(0, 0)),
+            },
+        },
+    }, &vm);
+    defer ids_data.deinit();
+
+    const hint_processor: HintProcessor = .{};
+    var hint_data = HintData.init(
+        hint_codes.VERIFY_ECDSA_SIGNATURE,
+        ids_data,
+        .{},
+    );
+
+    try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
+}
+
+test "MathHints: sqrt invalid negative number" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    _ = try vm.addMemorySegment();
+
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    var ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{
+        .{
+            .name = "value",
+            .elems = &.{
+                MaybeRelocatable.fromFelt(Felt252.fromSignedInt(i32, -81)),
+            },
+        },
+        .{
+            .name = "root",
+            .elems = &.{
+                null,
+            },
+        },
+    }, &vm);
+    defer ids_data.deinit();
+
+    const hint_processor: HintProcessor = .{};
+    var hint_data = HintData.init(hint_codes.SQRT, ids_data, .{});
+
+    try std.testing.expectError(
+        HintError.ValueOutside250BitRange,
+        hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined),
+    );
+}
+
+test "MathHints: sqrt valid" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    _ = try vm.addMemorySegment();
+
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    var ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{
+        .{
+            .name = "value",
+            .elems = &.{
+                MaybeRelocatable.fromFelt(Felt252.fromInt(u32, 9)),
+            },
+        },
+        .{
+            .name = "root",
+            .elems = &.{
+                null,
+            },
+        },
+    }, &vm);
+    defer ids_data.deinit();
+
+    const hint_processor: HintProcessor = .{};
+    var hint_data = HintData.init(hint_codes.SQRT, ids_data, .{});
+
+    try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
+
+    const root = try hint_utils.getIntegerFromVarName("root", &vm, ids_data, .{});
+
+    try std.testing.expectEqual(Felt252.three(), root);
 }

@@ -14,7 +14,12 @@ pub fn setupIdsForTest(allocator: std.mem.Allocator, data: []const struct { name
     var base_addr = vm.run_context.getFP();
 
     for (data) |d| {
-        try result.put(d.name, HintReference.init(@intCast(current_offset), 0, false, true));
+        try result.put(d.name, .{
+            .dereference = true,
+            .offset1 = .{
+                .reference = .{ .FP, @intCast(current_offset), false },
+            },
+        });
         // update current offset
         current_offset = current_offset + d.elems.len;
 

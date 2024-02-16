@@ -123,6 +123,7 @@ pub const CairoVM = struct {
         for (self.builtin_runners.items) |*builtin| {
             switch (builtin.*) {
                 .Keccak => |*keccak| keccak.deinit(),
+                .Signature => |*signature| signature.deinit(),
                 else => {},
             }
         }
@@ -179,8 +180,8 @@ pub const CairoVM = struct {
     pub fn getRelocatable(
         self: *Self,
         address: Relocatable,
-    ) ?MaybeRelocatable {
-        return self.segments.memory.get(address);
+    ) !Relocatable {
+        return self.segments.memory.getRelocatable(address);
     }
 
     /// Gets a reference to the list of built-in runners in the Cairo VM.

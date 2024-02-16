@@ -43,11 +43,11 @@ pub fn getIntegerFromReference(
 }
 
 ///Returns the Relocatable value stored in the given ids variable
-pub fn getPtrFromReference(reference: HintReference, ap_tracking: ApTracking, vm: *CairoVM) !Relocatable {
-    const var_addr = if (computeAddrFromReference(reference, ap_tracking, vm)) |addr| addr else return HintError.UnknownIdentifier;
+pub fn getPtrFromReference(hint_reference: HintReference, ap_tracking: ApTracking, vm: *CairoVM) !Relocatable {
+    const var_addr = if (computeAddrFromReference(hint_reference, ap_tracking, vm)) |addr| addr else return HintError.UnknownIdentifierInternal;
 
-    if (reference.dereference) {
-        return vm.segments.memory.getRelocatable(var_addr) catch HintError.WrongIdentifierTypeInternal;
+    if (hint_reference.dereference) {
+        return vm.getRelocatable(var_addr) catch HintError.WrongIdentifierTypeInternal;
     } else return var_addr;
 }
 

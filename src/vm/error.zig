@@ -237,4 +237,7 @@ pub const HintError = error{
     UnknownIdentifierInternal,
     WrongIdentifierTypeInternal,
     Memory,
+
+    ValueOutside250BitRange,
+    AssertNotEqualFail,
 };
