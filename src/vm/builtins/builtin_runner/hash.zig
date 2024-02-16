@@ -262,6 +262,11 @@ pub const HashBuiltinRunner = struct {
 
         return (MaybeRelocatable.fromFelt(pedersen_result));
     }
+
+    /// Frees the resources owned by this instance of `HashBuiltinRunner`.
+    pub fn deinit(self: *Self) void {
+        self.verified_addresses.deinit();
+    }
 };
 
 test "HashBuiltinRunner: initialStack should return an empty array list if included is false" {

@@ -228,7 +228,7 @@ pub const RangeCheckBuiltinRunner = struct {
     /// # Returns
     ///
     /// - An `Array`containing the min and max of range check.
-    pub fn getRangeCheckUsage(self: *Self, memory: *Memory) ?std.meta.Tuple(&.{ usize, usize }) {
+    pub fn getRangeCheckUsage(self: *const Self, memory: *Memory) ?std.meta.Tuple(&.{ usize, usize }) {
         if (memory.data.capacity == 0) {
             return null;
         }
