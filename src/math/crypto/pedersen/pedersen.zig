@@ -54,7 +54,7 @@ pub fn pedersenHash(x: Felt252, y: Felt252) Felt252 {
     addPoints(&acc, y_bits[248..252], CURVE_CONSTS_P3[0..]); // Add b_high * P4
 
     // Convert to affine
-    const result = AffinePoint.fromProjectivePoint(&acc);
+    const result = AffinePoint.fromProjectivePoint(acc);
 
     // Return x-coordinate
     return result.x;
