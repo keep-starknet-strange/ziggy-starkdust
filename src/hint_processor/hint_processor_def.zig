@@ -132,13 +132,14 @@ pub fn getIdsData(allocator: Allocator, reference_ids: StringHashMap(usize), ref
 pub const CairoVMHintProcessor = struct {
     const Self = @This();
 
-    pub fn compileHint(_: *Self, allocator: Allocator, hint_params: *HintParams, references: []HintReference) !HintData {
-        const ids_data = try getIdsData(allocator, hint_params.flow_tracking_data.reference_ids, references);
+    pub fn compileHint(_: *Self, allocator: Allocator, hint_code: []const u8, ap_tracking: ApTracking, reference_ids: StringHashMap(usize), references: []HintReference) !HintData {
+        const ids_data = try getIdsData(allocator, reference_ids, references);
         errdefer ids_data.deinit();
 
         return .{
-            .code = hint_params.code,
-            // .ids = try IdsManager.init(ids_data, hint_params.flow_tracking_data.ap_tracking, hint_params.accessible_scopes),
+            .code = hint_code,
+            .ap_tracking = ap_tracking,
+            .ids_data = ids_data,
         };
     }
 

@@ -1,5 +1,7 @@
 /// Represents different error conditions that occur in the Cairo VM.
 pub const CairoVMError = error{
+    // Failed to compile hint
+    CompileHintFail,
     /// Adding two relocatables is forbidden.
     AddRelocToRelocForbidden,
     /// Memory access is out of bounds.
