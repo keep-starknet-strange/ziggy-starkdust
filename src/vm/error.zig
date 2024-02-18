@@ -256,4 +256,6 @@ pub const HintError = error{
 
     NonLeFelt252,
     ArcTooBig,
+
+    VariableNotInScopeError,
 };

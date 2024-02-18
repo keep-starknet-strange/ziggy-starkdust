@@ -326,6 +326,22 @@ pub fn assertLeFelt(
     try vm.insertInMemory(allocator, try range_check_ptr.addInt(2), MaybeRelocatable.fromFelt(Felt252.fromInt(u256, qr1[1])));
     try vm.insertInMemory(allocator, try range_check_ptr.addInt(3), MaybeRelocatable.fromFelt(Felt252.fromInt(u256, qr1[0])));
 }
+
+// "memory[ap] = 1 if excluded != 0 else 0"
+pub fn assertLeFeltExcluded0(
+    allocator: Allocator,
+    vm: *CairoVM,
+    exec_scopes: *const ExecutionScopes,
+) !void {
+    const excluded = try exec_scopes.getFelt("excluded");
+
+    if (!excluded.isZero()) {
+        try hint_utils.insertValueIntoAp(allocator, vm, MaybeRelocatable.fromFelt(Felt252.one()));
+    } else {
+        try hint_utils.insertValueIntoAp(allocator, vm, MaybeRelocatable.fromFelt(Felt252.zero()));
+    }
+}
+
 // importing testing utils for tests
 const testing_utils = @import("testing_utils.zig");
 const RangeCheckBuiltinRunner = @import("../vm/builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;

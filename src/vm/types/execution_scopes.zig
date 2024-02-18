@@ -2,6 +2,7 @@ const std = @import("std");
 const ArrayList = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const Felt252 = @import("../../math/fields/starknet.zig").Felt252;
+const HintError = @import("../error.zig").HintError;
 
 const HintType = union(enum) {
     // TODO: Add missing types
@@ -37,6 +38,18 @@ pub const ExecutionScopes = struct {
 
     pub fn exitScope(self: *Self) void {
         self.data.pop();
+    }
+
+    ///Returns the value in the current execution scope that matches the name and is of the given generic type
+    pub fn get(self: *const Self, name: []const u8) !HintType {
+        return if (self.getLocalVariableMut()) |variable| variable.get(name) orelse HintError.VariableNotInScopeError or HintError.VariableNotInScopeError;
+    }
+
+    pub fn getFelt(self: *const Self, name: []const u8) !Felt252 {
+        return switch (try self.get(name)) {
+            .felt => |f| f,
+            else => HintError.VariableNotInScopeError,
+        };
     }
 
     ///Returns a dictionary containing the variables present in the current scope

@@ -138,7 +138,7 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
                     std.mem.writeInt(
                         u256,
                         lbe[0..],
-                        num % Modulo,
+                        @as(u256, @intCast(num)) % Modulo,
                         .little,
                     );
                     var nonMont: F.NonMontgomeryDomainFieldElement = undefined;
@@ -606,11 +606,12 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
 
         pub fn fromSignedInt(comptime T: type, signed: T) Self {
             if (signed < 0) {
-                return Self.fromInt(u256, STARKNET_PRIME - @as(u256, @intCast(@abs(signed))));
+                return Self.fromInt(T, -signed).neg();
             }
 
-            return Self.fromInt(T, signed);
+            return Self.fromInt(i256, signed);
         }
+
         // converting felt to abs value with sign
         pub fn toSignedInt(self: Self) struct { positive: bool, abs: u256 } {
             const val = self.toInteger();
