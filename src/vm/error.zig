@@ -258,4 +258,6 @@ pub const HintError = error{
     ArcTooBig,
 
     VariableNotInScopeError,
+
+    ExcludedNot2,
 };

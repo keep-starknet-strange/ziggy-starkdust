@@ -342,6 +342,28 @@ pub fn assertLeFeltExcluded0(
     }
 }
 
+pub fn assertLeFeltExcluded1(
+    allocator: Allocator,
+    vm: *CairoVM,
+    exec_scopes: *ExecutionScopes,
+) !void {
+    const excluded = try exec_scopes.getFelt("excluded");
+
+    if (!excluded.isOne()) {
+        try hint_utils.insertValueIntoAp(allocator, vm, Felt252.one());
+    } else {
+        try hint_utils.insertValueIntoAp(allocator, vm, Felt252.zero());
+    }
+}
+
+pub fn assertLeFeltExcluded2(exec_scopes: *ExecutionScopes) !void {
+    const excluded = try exec_scopes.getFelt("excluded");
+
+    if (excluded != Felt252.fromInt(u256, 2)) {
+        return HintError.ExcludedNot2;
+    }
+}
+
 // importing testing utils for tests
 const testing_utils = @import("testing_utils.zig");
 const RangeCheckBuiltinRunner = @import("../vm/builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
