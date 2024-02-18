@@ -79,26 +79,19 @@ pub const PoseidonBuiltinRunner = struct {
         self.base = @intCast((try segments.addSegment()).segment_index);
     }
 
-    pub fn getMemorySegmentAddresses(self: *const Self) std.meta.Tuple(&.{
-        usize,
-        ?usize,
-    }) {
-        return .{
-            self.base,
-            self.stop_ptr,
-        };
+    pub fn getMemorySegmentAddresses(self: *const Self) std.meta.Tuple(&.{ usize, ?usize }) {
+        return .{ self.base, self.stop_ptr };
     }
 
     pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
         var result = ArrayList(MaybeRelocatable).init(allocator);
-
+        errdefer result.deinit();
         if (self.included) {
             try result.append(MaybeRelocatable.fromSegment(
                 @intCast(self.base),
                 0,
             ));
         }
-
         return result;
     }
 

@@ -81,11 +81,7 @@ pub const HashBuiltinRunner = struct {
     /// - `self`: Updates the `base` value to the new segment's index.
     pub fn initSegments(self: *Self, segments: *MemorySegmentManager) !void {
         // `segments.addSegment()` always returns a positive index
-        const seg = try segments.addSegment();
-        self.base = @as(
-            usize,
-            @intCast(seg.segment_index),
-        );
+        self.base = @intCast((try segments.addSegment()).segment_index);
     }
 
     /// Initializes and returns an `ArrayList` of `MaybeRelocatable` values.
@@ -100,6 +96,7 @@ pub const HashBuiltinRunner = struct {
     /// An `ArrayList` of `MaybeRelocatable` values.
     pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
         var result = ArrayList(MaybeRelocatable).init(allocator);
+        errdefer result.deinit();
         if (self.included) {
             try result.append(.{
                 .relocatable = Relocatable.init(
@@ -135,10 +132,7 @@ pub const HashBuiltinRunner = struct {
     /// # Returns
     /// A tuple of `usize` and `?usize` addresses.
     pub fn getMemorySegmentAddresses(self: *Self) std.meta.Tuple(&.{ usize, ?usize }) {
-        return .{
-            self.base,
-            self.stop_ptr,
-        };
+        return .{ self.base, self.stop_ptr };
     }
 
     /// Calculates the number of used instances for the Hash runner.
@@ -261,6 +255,11 @@ pub const HashBuiltinRunner = struct {
         try self.verified_addresses.insert(address.offset, true);
 
         return (MaybeRelocatable.fromFelt(pedersen_result));
+    }
+
+    /// Frees the resources owned by this instance of `HashBuiltinRunner`.
+    pub fn deinit(self: *Self) void {
+        self.verified_addresses.deinit();
     }
 };
 
