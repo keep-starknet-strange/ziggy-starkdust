@@ -41,14 +41,8 @@ pub fn decodeInstructions(encoded_instr: u64) !Instruction {
     const OFF2_OFF: u64 = 32;
     const OFFX_MASK: u64 = 0xFFFF;
 
-    if (encoded_instr & HIGH_BIT != 0) {
+    if (encoded_instr & HIGH_BIT != 0)
         return CairoVMError.InstructionNonZeroHighBit;
-    }
-
-    // Grab offsets and convert them from little endian format.
-    const off0 = try decodeOffset(encoded_instr >> OFF0_OFF & OFFX_MASK);
-    const off1 = try decodeOffset(encoded_instr >> OFF1_OFF & OFFX_MASK);
-    const off2 = try decodeOffset(encoded_instr >> OFF2_OFF & OFFX_MASK);
 
     // Grab flags
     const flags = encoded_instr >> FLAGS_OFFSET;
@@ -63,82 +57,71 @@ pub fn decodeInstructions(encoded_instr: u64) !Instruction {
     const ap_update_num = (flags & AP_UPDATE_MASK) >> AP_UPDATE_OFF;
     const opcode_num = (flags & OPCODE_MASK) >> OPCODE_OFF;
 
-    // Match each flag to its corresponding enum value
-    const dst_register: Register = switch (dst_reg_num) {
-        1 => Register.FP,
-        else => Register.AP,
-    };
-
-    const op0_register: Register = switch (op0_reg_num) {
-        1 => Register.FP,
-        else => Register.AP,
-    };
-
-    const op1_addr = switch (op1_src_num) {
-        0 => Op1Src.Op0,
-        1 => Op1Src.Imm,
-        2 => Op1Src.FP,
-        4 => Op1Src.AP,
-        else => return CairoVMError.InvalidOp1Reg,
-    };
-
-    const pc_update = switch (pc_update_num) {
-        0 => PcUpdate.Regular,
-        1 => PcUpdate.Jump,
-        2 => PcUpdate.JumpRel,
-        4 => PcUpdate.Jnz,
+    const pc_update: PcUpdate = switch (pc_update_num) {
+        0 => .Regular,
+        1 => .Jump,
+        2 => .JumpRel,
+        4 => .Jnz,
         else => return CairoVMError.InvalidPcUpdate,
     };
 
-    const res = switch (res_logic_num) {
-        0 => if (pc_update == PcUpdate.Jnz) ResLogic.Unconstrained else ResLogic.Op1,
-        1 => ResLogic.Add,
-        2 => ResLogic.Mul,
-        else => return CairoVMError.InvalidResLogic,
-    };
-
-    const opcode = switch (opcode_num) {
-        0 => Opcode.NOp,
-        1 => Opcode.Call,
-        2 => Opcode.Ret,
-        4 => Opcode.AssertEq,
+    const opcode: Opcode = switch (opcode_num) {
+        0 => .NOp,
+        1 => .Call,
+        2 => .Ret,
+        4 => .AssertEq,
         else => return CairoVMError.InvalidOpcode,
     };
 
-    const ap_update = switch (ap_update_num) {
-        0 => if (opcode == Opcode.Call) ApUpdate.Add2 else ApUpdate.Regular,
-        1 => ApUpdate.Add,
-        2 => ApUpdate.Add1,
-        else => return CairoVMError.InvalidApUpdate,
-    };
-
-    const fp_update = switch (opcode) {
-        Opcode.Call => FpUpdate.APPlus2,
-        Opcode.Ret => FpUpdate.Dst,
-        else => FpUpdate.Regular,
-    };
-
-    return Instruction{
-        .off_0 = off0,
-        .off_1 = off1,
-        .off_2 = off2,
-        .dst_reg = dst_register,
-        .op_0_reg = op0_register,
-        .op_1_addr = op1_addr,
-        .res_logic = res,
+    return .{
+        .off_0 = try decodeOffset(encoded_instr >> OFF0_OFF & OFFX_MASK),
+        .off_1 = try decodeOffset(encoded_instr >> OFF1_OFF & OFFX_MASK),
+        .off_2 = try decodeOffset(encoded_instr >> OFF2_OFF & OFFX_MASK),
+        .dst_reg = switch (dst_reg_num) {
+            1 => .FP,
+            else => .AP,
+        },
+        .op_0_reg = switch (op0_reg_num) {
+            1 => .FP,
+            else => .AP,
+        },
+        .op_1_addr = switch (op1_src_num) {
+            0 => .Op0,
+            1 => .Imm,
+            2 => .FP,
+            4 => .AP,
+            else => return CairoVMError.InvalidOp1Reg,
+        },
+        .res_logic = switch (res_logic_num) {
+            0 => if (pc_update == .Jnz) .Unconstrained else .Op1,
+            1 => .Add,
+            2 => .Mul,
+            else => return CairoVMError.InvalidResLogic,
+        },
         .pc_update = pc_update,
-        .ap_update = ap_update,
-        .fp_update = fp_update,
+        .ap_update = switch (ap_update_num) {
+            0 => if (opcode == .Call) .Add2 else .Regular,
+            1 => .Add,
+            2 => .Add1,
+            else => return CairoVMError.InvalidApUpdate,
+        },
+        .fp_update = switch (opcode) {
+            .Call => .APPlus2,
+            .Ret => .Dst,
+            else => .Regular,
+        },
         .opcode = opcode,
     };
 }
 
 pub fn decodeOffset(offset: u64) !i16 {
     var vectorized_offset: [8]u8 = std.mem.toBytes(offset);
-    const offset_16b_encoded = std.mem.readInt(u16, vectorized_offset[0..2], std.builtin.Endian.little);
-    const complement_const: u16 = 0x8000;
-    const result = @subWithOverflow(offset_16b_encoded, complement_const);
-    return @as(i16, @bitCast(result[0]));
+    return @bitCast(
+        @subWithOverflow(
+            std.mem.readInt(u16, vectorized_offset[0..2], std.builtin.Endian.little),
+            0x8000,
+        )[0],
+    );
 }
 
 test "decodeInstructions: non-zero high bit" {

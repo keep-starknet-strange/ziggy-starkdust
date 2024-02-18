@@ -78,6 +78,12 @@ make build-integration-test
 ./zig-out/bin/integration_test
 ```
 
+Run all benchmarks and compare:
+```bash
+make build-compare-benchmarks
+```
+
+
 Run all unit tests with test summary:
 
 ```bash
@@ -97,6 +103,21 @@ our tests are wrapped in another test call within `src/tests.zig`.
 In order to compare two memory files or trace files, use the following command: 
 
 `vbindiff cairo_programs/expected_fibonacci.trace cairo_programs/fibonacci.trace`
+
+## 📊 Benchmarks
+
+### Installing benchmark dependencies
+
+In order to compile programs you need to install the cairo-lang package.
+
+Running the  `make deps` (or the `make deps-macos`  if you are runnning in MacOS) command will create a virtual environment with all the required dependencies.
+
+Run the complete benchmark suite with Make:
+
+```bash
+make build-compare-benchmarks
+```
+
 
 ### 🔒 Security
 
@@ -119,6 +140,7 @@ You can see the current scorecard for this project [here](https://securityscorec
 - Some cryptographic primitive code generation has been done using the amazing [fiat-crypto](https://github.com/mit-plv/fiat-crypto) by [mit-plv](https://github.com/mit-plv).
 - [sig](https://github.com/Syndica/sig) has been a great source of inspiration for the project structure and the way to use Zig.
 - [nektro](https://github.com/nektro/) for the [zig-time](https://github.com/nektro/zig-time) library.
+- The Cairo files used in this project are sourced from the [Cairo VM in Rust](https://github.com/lambdaclass/cairo-vm) by [lambdaclass](https://lambdaclass.com/).
 
 ## ⚡ Why Zig?
 

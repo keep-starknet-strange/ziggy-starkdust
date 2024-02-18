@@ -106,6 +106,8 @@ const ResourceTracker = struct {
     }
 };
 
+pub const RunnerMode = enum { execution_mode, proof_mode_canonical, proof_mode_cairo1 };
+
 const BuiltinInfo = struct { segment_index: usize, stop_pointer: usize };
 
 pub const CairoRunner = struct {
@@ -121,11 +123,12 @@ pub const CairoRunner = struct {
     initial_fp: ?Relocatable = null,
     final_pc: *Relocatable = undefined,
     instructions: std.ArrayList(MaybeRelocatable),
-    function_call_stack: std.ArrayList(MaybeRelocatable),
+    // function_call_stack: std.ArrayList(MaybeRelocatable),
     entrypoint_name: []const u8 = "main",
     layout: CairoLayout,
-    proof_mode: bool,
+    runner_mode: RunnerMode,
     run_ended: bool = false,
+    execution_public_memory: ?std.ArrayList(usize) = null,
     relocated_trace: []RelocatedTraceEntry = undefined,
     relocated_memory: ArrayList(?Felt252),
     execution_scopes: ExecutionScopes = undefined,
@@ -151,17 +154,20 @@ pub const CairoRunner = struct {
             },
             .instructions = instructions,
             .vm = vm,
-            .function_call_stack = std.ArrayList(MaybeRelocatable).init(allocator),
-            .proof_mode = proof_mode,
+            .runner_mode = if (proof_mode) .proof_mode_canonical else .execution_mode,
             .relocated_memory = ArrayList(?Felt252).init(allocator),
         };
+    }
+
+    pub fn isProofMode(self: *Self) bool {
+        return self.runner_mode == .proof_mode_canonical or self.runner_mode == .proof_mode_cairo1;
     }
 
     pub fn initBuiltins(self: *Self, vm: *CairoVM) !void {
         vm.builtin_runners = try CairoLayout.setUpBuiltinRunners(
             self.layout,
             self.allocator,
-            self.proof_mode,
+            self.isProofMode(),
             self.program.builtins.?,
         );
     }
@@ -205,7 +211,7 @@ pub const CairoRunner = struct {
     /// Loads the function call stack to the execution segment.
     /// # Arguments
     /// - `entrypoint:` The address, relative to the program segment, where execution begins.
-    pub fn initState(self: *Self, entrypoint: usize) !void {
+    pub fn initState(self: *Self, entrypoint: usize, stack: *std.ArrayList(MaybeRelocatable)) !void {
         self.initial_pc = self.program_base;
         self.initial_pc.?.addUintInPlace(entrypoint);
 
@@ -218,11 +224,11 @@ pub const CairoRunner = struct {
         _ = try self.vm.segments.loadData(
             self.allocator,
             self.execution_base,
-            &self.function_call_stack,
+            stack,
         );
     }
 
-    pub fn initFunctionEntrypoint(self: *Self, entrypoint: usize, return_fp: Relocatable) !Relocatable {
+    pub fn initFunctionEntrypoint(self: *Self, entrypoint: usize, return_fp: Relocatable, stack: *std.ArrayList(MaybeRelocatable)) !Relocatable {
         var end = try self.vm.segments.addSegment();
 
         // per 6.1 of cairo whitepaper
@@ -231,28 +237,65 @@ pub const CairoRunner = struct {
         // but to situate the functionality with Cairo's read-only memory,
         // the frame pointer register is used to point to the current frame in the stack
         // the runner sets the return fp and establishes the end address that execution treats as the endpoint.
-        try self.function_call_stack.append(MaybeRelocatable.fromRelocatable(return_fp));
-        try self.function_call_stack.append(MaybeRelocatable.fromRelocatable(end));
+        try stack.append(MaybeRelocatable.fromRelocatable(return_fp));
+        try stack.append(MaybeRelocatable.fromRelocatable(end));
 
         self.initial_fp = self.execution_base;
-        self.initial_fp.?.addUintInPlace(@as(u64, self.function_call_stack.items.len));
+        self.initial_fp.?.addUintInPlace(@as(u64, stack.items.len));
         self.initial_ap = self.initial_fp;
 
         self.final_pc = &end;
-        try self.initState(entrypoint);
+        try self.initState(entrypoint, stack);
         return end;
     }
 
     /// Initializes runner state for execution of a program from the `main()` entrypoint.
     pub fn initMainEntrypoint(self: *Self) !Relocatable {
+        var stack = std.ArrayList(MaybeRelocatable).init(self.allocator);
+        defer stack.deinit();
+
         for (self.vm.builtin_runners.items) |*builtin_runner| {
             const builtin_stack = try builtin_runner.initialStack(self.allocator);
             defer builtin_stack.deinit();
             for (builtin_stack.items) |item| {
-                try self.function_call_stack.append(item);
+                try stack.append(item);
             }
         }
-        // TODO handle the case where we are running in proof mode
+
+        if (self.isProofMode()) {
+            var target_offset: usize = 2;
+
+            if (self.runner_mode == .proof_mode_canonical) {
+                var stack_prefix = try std.ArrayList(MaybeRelocatable).initCapacity(self.allocator, 2 + stack.items.len);
+                defer stack_prefix.deinit();
+
+                try stack_prefix.append(MaybeRelocatable.fromRelocatable(try self.execution_base.addUint(target_offset)));
+                try stack_prefix.appendSlice(stack.items);
+
+                var execution_public_memory = try std.ArrayList(usize).initCapacity(self.allocator, stack_prefix.items.len);
+                for (0..stack_prefix.items.len) |v| {
+                    try execution_public_memory.append(v);
+                }
+                self.execution_public_memory = execution_public_memory;
+
+                try self.initState(try (self.program.getStartPc() orelse RunnerError.NoProgramStart), &stack_prefix);
+            } else {
+                target_offset = stack.items.len + 2;
+
+                const return_fp = try self.vm.segments.addSegment();
+                const end = try self.vm.segments.addSegment();
+                try stack.append(MaybeRelocatable.fromRelocatable(return_fp));
+                try stack.append(MaybeRelocatable.fromRelocatable(end));
+
+                try self.initState(try (self.program.getStartPc() orelse RunnerError.NoProgramStart), &stack);
+            }
+
+            self.initial_fp = try self.execution_base.addUint(target_offset);
+            self.initial_ap = self.initial_fp;
+
+            return self.program_base.addUint(try (self.program.getEndPc() orelse RunnerError.NoProgramEnd));
+        }
+
         const return_fp = try self.vm.segments.addSegment();
         // Buffer for concatenation
         var buffer: [100]u8 = undefined;
@@ -260,10 +303,15 @@ pub const CairoRunner = struct {
         // Concatenate strings
         const full_entrypoint_name = try std.fmt.bufPrint(&buffer, "__main__.{s}", .{self.entrypoint_name});
 
-        const main_offset: usize = self.program.identifiers.?.map.get(full_entrypoint_name).?.pc orelse 0;
+        if (self.program.identifiers) |identifiers| {
+            if (identifiers.map.get(full_entrypoint_name)) |identifier| {
+                if (identifier.pc) |pc| {
+                    return self.initFunctionEntrypoint(pc, return_fp, &stack);
+                }
+            }
+        }
 
-        const end = try self.initFunctionEntrypoint(main_offset, return_fp);
-        return end;
+        return RunnerError.MissingMain;
     }
 
     /// Initializes the runner's virtual machine (VM) state for execution.
@@ -419,7 +467,9 @@ pub const CairoRunner = struct {
         // currently handling the deinit of the json.Parsed(ProgramJson) outside of constructor
         // otherwise the runner would always assume json in its interface
         // self.program.deinit();
-        self.function_call_stack.deinit();
+
+        if (self.execution_public_memory) |execution_public_memory| execution_public_memory.deinit();
+
         self.instructions.deinit();
         self.layout.deinit();
         self.vm.deinit();
@@ -427,12 +477,36 @@ pub const CairoRunner = struct {
     }
 };
 
+test "CairoRunner: initMainEntrypoint no main" {
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        ProgramJson{},
+        "all_cairo",
+         ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+    
+    defer cairo_runner.deinit();
+
+    // Add an OutputBuiltinRunner to the CairoRunner without setting the stop pointer.
+    try cairo_runner.vm.builtin_runners.append(.{ .Output = OutputBuiltinRunner.initDefault(std.testing.allocator) });
+
+    if (cairo_runner.initMainEntrypoint()) |_| {
+        return error.ExpectedError;
+    } else |_| {}
+}
+
 test "CairoRunner: initVM should initialize the VM properly with no builtins" {
     // Initialize a CairoRunner with an empty program, "plain" layout, and empty instructions.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
         ProgramJson{},
         "plain",
+
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
             std.testing.allocator,
@@ -440,6 +514,7 @@ test "CairoRunner: initVM should initialize the VM properly with no builtins" {
         ),
         false,
     );
+
     // Defer the deinitialization of the CairoRunner to ensure proper cleanup.
     defer cairo_runner.deinit();
 
@@ -468,6 +543,7 @@ test "CairoRunner: initVM should initialize the VM properly with no builtins" {
         cairo_runner.vm.run_context.fp.*,
     );
 }
+
 
 test "CairoRunner: initVM should initialize the VM properly with Range Check builtin" {
     // Initialize a CairoRunner with an empty program, "plain" layout, and empty instructions.
