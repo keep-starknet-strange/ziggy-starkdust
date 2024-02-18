@@ -44,11 +44,12 @@ pub fn getIntegerFromReference(
 
 ///Returns the Relocatable value stored in the given ids variable
 pub fn getPtrFromReference(hint_reference: HintReference, ap_tracking: ApTracking, vm: *CairoVM) !Relocatable {
-    const var_addr = if (computeAddrFromReference(hint_reference, ap_tracking, vm)) |addr| addr else return HintError.UnknownIdentifierInternal;
+    const var_addr = computeAddrFromReference(hint_reference, ap_tracking, vm) orelse return HintError.UnknownIdentifierInternal;
 
-    if (hint_reference.dereference) {
-        return vm.getRelocatable(var_addr) catch HintError.WrongIdentifierTypeInternal;
-    } else return var_addr;
+    return if (hint_reference.dereference)
+        vm.getRelocatable(var_addr) catch HintError.WrongIdentifierTypeInternal
+    else
+        var_addr;
 }
 
 pub fn applyApTrackingCorrection(addr: Relocatable, ref_ap_tracking: ApTracking, hint_ap_tracking: ApTracking) ?Relocatable {
@@ -90,20 +91,17 @@ pub fn getOffsetValueReference(
 ///Computes the memory address of the ids variable indicated by the HintReference as a [Relocatable]
 pub fn computeAddrFromReference(hint_reference: HintReference, hint_ap_tracking: ApTracking, vm: *CairoVM) ?Relocatable {
     const offset1 = switch (hint_reference.offset1) {
-        .reference => getOffsetValueReference(vm, hint_reference, hint_ap_tracking, hint_reference.offset1).?.getRelocatable().?,
+        .reference => getOffsetValueReference(vm, hint_reference, hint_ap_tracking, hint_reference.offset1).?.tryIntoRelocatable() catch unreachable,
         else => return null,
     };
 
-    switch (hint_reference.offset2) {
-        .reference => {
-            const value = getOffsetValueReference(vm, hint_reference, hint_ap_tracking, hint_reference.offset2).?.getFelt().?;
+    return switch (hint_reference.offset2) {
+        .reference => offset1.addFelt(getOffsetValueReference(vm, hint_reference, hint_ap_tracking, hint_reference.offset2).?.tryIntoFelt() catch unreachable) catch unreachable,
 
-            return offset1.addFelt(value) catch unreachable;
-        },
+        .value => |val| offset1.addInt(val) catch unreachable,
 
-        .value => |val| return offset1.addInt(val) catch unreachable,
-        else => return null,
-    }
+        else => null,
+    };
 }
 
 ///Returns the value given by a reference as [MaybeRelocatable]
@@ -119,9 +117,11 @@ pub fn getMaybeRelocatableFromReference(
     }
 
     //Then calculate address
-    if (computeAddrFromReference(hint_reference, ap_tracking, vm)) |var_addr| {
-        if (hint_reference.dereference) {
-            return vm.segments.memory.get(var_addr);
-        } else return MaybeRelocatable.fromRelocatable(var_addr);
-    } else return null;
+    return if (computeAddrFromReference(hint_reference, ap_tracking, vm)) |var_addr|
+        if (hint_reference.dereference)
+            vm.segments.memory.get(var_addr)
+        else
+            MaybeRelocatable.fromRelocatable(var_addr)
+    else
+        null;
 }

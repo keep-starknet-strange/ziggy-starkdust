@@ -319,11 +319,6 @@ pub const CairoRunner = struct {
     }
 
     pub fn runUntilPC(self: *Self, end: Relocatable) !void {
-        // const program = try self.program.parseProgramJson(self.allocator, "__start__");
-        // defer program.deinit(self.allocator);
-
-        // const hint_data_map = try self.getHintDataMap(hint_processor, program);
-
         while (!end.eq(self.vm.run_context.pc.*)) {
             try self.vm.step(self.allocator);
         }

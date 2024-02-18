@@ -13,36 +13,6 @@ const Allocator = std.mem.Allocator;
 const HintError = @import("../vm/error.zig").HintError;
 const hint_processor_utils = @import("hint_processor_utils.zig");
 
-pub fn HashMapWithArray(comptime K: type, V: type) type {
-    return struct {
-        const Self = @This();
-
-        map: std.AutoHashMap(K, std.ArrayList(V)),
-
-        pub fn init(allocator: Allocator) Self {
-            return .{
-                .map = std.AutoHashMap(K, std.ArrayList(V)).init(allocator),
-            };
-        }
-
-        pub fn get(self: *Self, k: K) ?std.ArrayList(V) {
-            return self.map.get(k);
-        }
-
-        pub fn put(self: *Self, k: K, v: std.ArrayList(V)) !void {
-            try self.map.put(k, v);
-        }
-
-        pub fn deinit(self: *Self) void {
-            var iterator = self.map.valueIterator();
-            while (iterator.next()) |v| {
-                v.deinit();
-            }
-            self.map.deinit();
-        }
-    };
-}
-
 //Inserts value into the address of the given ids variable
 pub fn insertValueFromVarName(
     allocator: Allocator,
@@ -74,11 +44,10 @@ pub fn getPtrFromVarName(
 ) !Relocatable {
     const reference = try getReferenceFromVarName(var_name, ids_data);
 
-    return hint_processor_utils.getPtrFromReference(reference, ap_tracking, vm) catch |err| {
+    return hint_processor_utils.getPtrFromReference(reference, ap_tracking, vm) catch |err|
         switch (err) {
-            HintError.WrongIdentifierTypeInternal => return HintError.IdentifierNotRelocatable,
-            else => return HintError.UnknownIdentifier,
-        }
+        HintError.WrongIdentifierTypeInternal => HintError.IdentifierNotRelocatable,
+        else => HintError.UnknownIdentifier,
     };
 }
 
@@ -86,7 +55,7 @@ pub fn getReferenceFromVarName(
     var_name: []const u8,
     ids_data: std.StringHashMap(HintReference),
 ) !HintReference {
-    return if (ids_data.get(var_name)) |d| d else HintError.UnknownIdentifier;
+    return ids_data.get(var_name) orelse HintError.UnknownIdentifier;
 }
 
 //Gets the address, as a MaybeRelocatable of the variable given by the ids name
@@ -135,14 +104,12 @@ pub fn getValueFromReference(reference: HintReference, ap_tracking: ApTracking, 
 
     if (try hint_processor_utils.getPtrFromReference(reference, ap_tracking, vm)) |address| {
         if (reference.dereference) {
-            const val = vm.segments.memory.get(address);
-            if (val) |value| {
-                return value;
-            }
+            return vm.segments.memory.get(address);
         } else {
             return MaybeRelocatable.fromRelocatable(address);
         }
     }
+
     return null;
 }
 
@@ -154,16 +121,6 @@ pub fn getMaybeRelocatableFromVarName(
     ap_tracking: ApTracking,
 ) !MaybeRelocatable {
     const reference = try getReferenceFromVarName(var_name, ids_data);
-    return if (hint_processor_utils.getMaybeRelocatableFromReference(vm, reference, ap_tracking)) |v| v else HintError.UnknownIdentifier;
-}
 
-// pub fn getConstantFromVarName(
-//     var_name: []const u8,
-//     constants:  std.StringHashMap(Felt252),
-// ) !Felt252 {
-//     constants
-//         .iter()
-//         .find(|(k, _)| k.rsplit('.').next() == Some(var_name))
-//         .map(|(_, n)| n)
-//         .ok_or_else(|| HintError::MissingConstant(Box::new(var_name)))
-// }
+    return hint_processor_utils.getMaybeRelocatableFromReference(vm, reference, ap_tracking) orelse HintError.UnknownIdentifier;
+}

@@ -182,6 +182,7 @@ pub const MathError = error{
     NotOutputCell,
     RelocatableMul,
     ByteConversionError,
+    DividedByZero,
 };
 
 /// Represents different error conditions that occur in trace relocation
@@ -240,4 +241,11 @@ pub const HintError = error{
 
     ValueOutside250BitRange,
     AssertNotEqualFail,
+    // Div out of range
+    OutOfValidRange,
+
+    MissingConstant,
+
+    NonLeFelt252,
+    ArcTooBig,
 };

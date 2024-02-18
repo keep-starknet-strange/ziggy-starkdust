@@ -142,10 +142,7 @@ pub const CairoVMHintProcessor = struct {
         };
     }
 
-    pub fn executeHint(_: *const Self, allocator: Allocator, vm: *CairoVM, hint_data: *HintData, constants: std.StringHashMap(Felt252), exec_scopes: ExecutionScopes) !void {
-        _ = exec_scopes; // autofix
-        _ = constants; // autofix
-
+    pub fn executeHint(_: *const Self, allocator: Allocator, vm: *CairoVM, hint_data: *HintData, constants: *std.StringHashMap(Felt252), exec_scopes: *ExecutionScopes) !void {
         if (std.mem.eql(u8, hint_codes.ASSERT_NN, hint_data.code)) {
             try math_hints.assertNN(vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.VERIFY_ECDSA_SIGNATURE, hint_data.code)) {
@@ -158,6 +155,10 @@ pub const CairoVMHintProcessor = struct {
             try math_hints.isQuadResidue(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.SQRT, hint_data.code)) {
             try math_hints.sqrt(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.UNSIGNED_DIV_REM, hint_data.code)) {
+            try math_hints.unsignedDivRem(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.ASSERT_LE_FELT, hint_data.code)) {
+            try math_hints.assertLeFelt(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking, constants);
         }
     }
 };

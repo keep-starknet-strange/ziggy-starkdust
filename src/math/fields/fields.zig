@@ -9,7 +9,7 @@ pub const ModSqrtError = error{
     InvalidInput,
 };
 
-const STARKNET_PRIME: u256 = @import("../../math/fields/constants.zig").STARKNET_PRIME;
+pub const STARKNET_PRIME: u256 = @import("../../math/fields/constants.zig").STARKNET_PRIME;
 pub const SIGNED_FELT_MAX: u256 = STARKNET_PRIME >> @as(u32, 1);
 
 /// Represents a finite field element.
