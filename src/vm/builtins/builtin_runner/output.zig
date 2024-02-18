@@ -131,7 +131,6 @@ pub const OutputBuiltinRunner = struct {
                 @intCast(self.base),
                 0,
             ));
-            return result;
         }
         return result;
     }

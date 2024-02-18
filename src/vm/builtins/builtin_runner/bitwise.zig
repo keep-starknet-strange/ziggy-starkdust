@@ -227,14 +227,8 @@ pub const BitwiseBuiltinRunner = struct {
     ///
     /// # Returns
     /// A tuple of `usize` and `?usize` addresses.
-    pub fn getMemorySegmentAddresses(self: *const Self) Tuple(&.{
-        usize,
-        ?usize,
-    }) {
-        return .{
-            self.base,
-            self.stop_ptr,
-        };
+    pub fn getMemorySegmentAddresses(self: *const Self) Tuple(&.{ usize, ?usize }) {
+        return .{ self.base, self.stop_ptr };
     }
 
     /// Calculates the number of used instances for the BitwiseBuiltinRunner.
