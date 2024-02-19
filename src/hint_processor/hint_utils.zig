@@ -1,103 +1,126 @@
 const std = @import("std");
 
+const Register = @import("../vm/instructions.zig").Register;
 const ApTracking = @import("../vm/types/programjson.zig").ApTracking;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
-const HintReference = @import("./hint_processor_def.zig").HintReference;
+const HintReference = @import("hint_processor_def.zig").HintReference;
 const CoreVM = @import("../vm/core.zig");
-const OffsetValue = @import("../vm/types/programjson.zig");
+const OffsetValue = @import("../vm/types/programjson.zig").OffsetValue;
 const CairoVM = CoreVM.CairoVM;
-const relocatable = @import("../vm/memory/relocatable.zig");
-const MaybeRelocatable = relocatable.MaybeRelocatable;
-const Relocatable = relocatable.Relocatable;
+const MaybeRelocatable = @import("../vm/memory/relocatable.zig").MaybeRelocatable;
+const Relocatable = @import("../vm/memory/relocatable.zig").Relocatable;
+const Allocator = std.mem.Allocator;
+const HintError = @import("../vm/error.zig").HintError;
+const hint_processor_utils = @import("hint_processor_utils.zig");
 
-pub const IdsManager = struct {
-    const Self = @This();
+//Inserts value into the address of the given ids variable
+pub fn insertValueFromVarName(
+    allocator: Allocator,
+    var_name: []const u8,
+    value: MaybeRelocatable,
+    vm: *CairoVM,
+    ids_data: std.StringHashMap(HintReference),
+    ap_tracking: ApTracking,
+) !void {
+    const var_address = try getRelocatableFromVarName(var_name, vm, ids_data, ap_tracking);
+    try vm.segments.memory.set(allocator, var_address, value);
+}
 
-    References: std.AutoHashMap([]const u8, HintReference),
-    HintApTracking: ApTracking,
-    AccessibleScopes: []const []const u8,
+//Inserts value into ap
+pub fn insertValueIntoAp(
+    allocator: Allocator,
+    vm: *CairoVM,
+    value: MaybeRelocatable,
+) !void {
+    try vm.segments.memory.set(allocator, vm.run_context.getAP(), value);
+}
 
-    pub fn getFelt(self: *Self, name: []const u8, vm: *CairoVM) !Felt252 {
-        const val = try self.get(name, vm);
-        return try vm.getFelt(val);
-    }
+//Returns the Relocatable value stored in the given ids variable
+pub fn getPtrFromVarName(
+    var_name: []const u8,
+    vm: *CairoVM,
+    ids_data: std.StringHashMap(HintReference),
+    ap_tracking: ApTracking,
+) !Relocatable {
+    const reference = try getReferenceFromVarName(var_name, ids_data);
 
-    pub fn get(self: *Self, name: []const u8, vm: *CairoVM) !?*MaybeRelocatable {
-        if (self.References.get(name)) |reference| {
-            if (getValueFromReference(reference, self.HintApTracking, vm)) |val| {
-                return val;
-            }
-        }
-        return error.ErrUnknownIdentifier;
-    }
-};
+    return hint_processor_utils.getPtrFromReference(reference, ap_tracking, vm) catch |err|
+        switch (err) {
+        HintError.WrongIdentifierTypeInternal => HintError.IdentifierNotRelocatable,
+        else => HintError.UnknownIdentifier,
+    };
+}
 
-pub fn getValueFromReference(reference: *HintReference, ap_tracking: ApTracking, vm: *CairoVM) ?*MaybeRelocatable {
+pub fn getReferenceFromVarName(
+    var_name: []const u8,
+    ids_data: std.StringHashMap(HintReference),
+) !HintReference {
+    return ids_data.get(var_name) orelse HintError.UnknownIdentifier;
+}
+
+//Gets the address, as a MaybeRelocatable of the variable given by the ids name
+pub fn getAddressFromVarName(
+    var_name: []const u8,
+    vm: *CairoVM,
+    ids_data: std.StringHashMap(HintReference),
+    ap_tracking: ApTracking,
+) !MaybeRelocatable {
+    return MaybeRelocatable.fromRelocatable(try getRelocatableFromVarName(var_name, vm, ids_data, ap_tracking));
+}
+
+//Gets the address, as a Relocatable of the variable given by the ids name
+pub fn getRelocatableFromVarName(
+    var_name: []const u8,
+    vm: *CairoVM,
+    ids_data: std.StringHashMap(HintReference),
+    ap_tracking: ApTracking,
+) !Relocatable {
+    return if (ids_data.get(var_name)) |x| if (hint_processor_utils.computeAddrFromReference(x, ap_tracking, vm)) |v| v else HintError.UnknownIdentifier else HintError.UnknownIdentifier;
+}
+
+//Gets the value of a variable name.
+//If the value is an MaybeRelocatable::Int(Bigint) return &Bigint
+//else raises Err
+pub fn getIntegerFromVarName(
+    var_name: []const u8,
+    vm: *CairoVM,
+    ids_data: std.StringHashMap(HintReference),
+    ap_tracking: ApTracking,
+) !Felt252 {
+    const reference = try getReferenceFromVarName(var_name, ids_data);
+
+    return hint_processor_utils.getIntegerFromReference(vm, reference, ap_tracking) catch |err| switch (err) {
+        HintError.WrongIdentifierTypeInternal => HintError.IdentifierNotInteger,
+        else => HintError.UnknownIdentifier,
+    };
+}
+
+pub fn getValueFromReference(reference: HintReference, ap_tracking: ApTracking, vm: *CairoVM) !?MaybeRelocatable {
     // Handle the case of immediate
-    if (@typeInfo(reference.offset1) == .immediate) {
-        return MaybeRelocatable.fromFelt(Felt252.fromInt(reference.offset1.immediate));
+    switch (reference.offset1) {
+        .immediate => |val| return MaybeRelocatable.fromFelt(val),
+        else => {},
     }
-    if (getAddressFromReference(reference, ap_tracking, vm)) |address| {
+
+    if (try hint_processor_utils.getPtrFromReference(reference, ap_tracking, vm)) |address| {
         if (reference.dereference) {
-            if (vm.segments.memory.get(address)) |value| {
-                return value;
-            }
+            return vm.segments.memory.get(address);
         } else {
             return MaybeRelocatable.fromRelocatable(address);
         }
     }
-    return null;
-}
-
-pub fn getAddressFromReference(reference: *HintReference, ap_tracking: ApTracking, vm: *CairoVM) !?Relocatable {
-    if (@typeInfo(reference.offset1) != .reference) {
-        return null;
-    }
-    const offset1 = getOffsetValueReference(reference.offset1, reference.ap_tracking_data, ap_tracking, vm) catch return null;
-    if (offset1) |*offset1_rel| {
-        switch (reference.offset2) {
-            .reference => {
-                const offset2 = getOffsetValueReference(reference.offset2, reference.ap_tracking_data, ap_tracking, vm) catch return null;
-                if (offset2) |*offset2_val| {
-                    return offset1_rel.AddMaybeRelocatable(offset2_val) catch null;
-                }
-            },
-            .value => {
-                return offset1_rel.AddInt(reference.offset2.Value) catch null;
-            },
-            else => {},
-        }
-    }
-    return null;
-}
-
-pub fn getOffsetValueReference(offset_value: OffsetValue, ref_ap_tracking: ApTracking, hint_ap_tracking: ApTracking, vm: *CairoVM) ?*MaybeRelocatable {
-    var base_addr: ?Relocatable = null;
-    switch (offset_value.reference.Register) {
-        .FP => base_addr = vm.run_context.fp,
-        .AP => {
-            if (applyApTrackingCorrection(vm.run_context.ap, ref_ap_tracking, hint_ap_tracking)) |addr| {
-                base_addr = addr;
-            } else return null;
-        },
-    }
-
-    if (try base_addr.addUint(offset_value.value)) |addr| {
-        if (offset_value.dereference) {
-            if (vm.segments.memory.get(addr)) |value| {
-                return value;
-            }
-        } else {
-            return MaybeRelocatable.fromRelocatable(addr);
-        }
-    }
 
     return null;
 }
 
-pub fn applyApTrackingCorrection(addr: Relocatable, ref_ap_tracking: ApTracking, hint_ap_tracking: ApTracking) ?Relocatable {
-    if (ref_ap_tracking.group == hint_ap_tracking.group) {
-        return try addr.subUint(hint_ap_tracking.offset - ref_ap_tracking.offset);
-    }
-    return null;
+//Gets the value of a variable name as a MaybeRelocatable
+pub fn getMaybeRelocatableFromVarName(
+    var_name: []const u8,
+    vm: *CairoVM,
+    ids_data: std.StringHashMap(HintReference),
+    ap_tracking: ApTracking,
+) !MaybeRelocatable {
+    const reference = try getReferenceFromVarName(var_name, ids_data);
+
+    return hint_processor_utils.getMaybeRelocatableFromReference(vm, reference, ap_tracking) orelse HintError.UnknownIdentifier;
 }

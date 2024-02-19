@@ -2416,8 +2416,8 @@ test "CairoVM: getRelocatable without value raises error" {
     defer vm.deinit();
 
     // Test check
-    try expectEqual(
-        @as(?MaybeRelocatable, null),
+    try expectError(
+        error.ExpectedRelocatable,
         vm.getRelocatable(Relocatable.init(0, 0)),
     );
 }
@@ -2430,15 +2430,15 @@ test "CairoVM: getRelocatable with value should return a MaybeRelocatable" {
     try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
-            .{ .{ 34, 12 }, .{5} },
+            .{ .{ 34, 12 }, .{ 5, 5 } },
         },
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     // Test check
     try expectEqual(
-        MaybeRelocatable.fromInt(u8, 5),
-        (vm.getRelocatable(Relocatable.init(34, 12))).?,
+        Relocatable.init(5, 5),
+        try (vm.getRelocatable(Relocatable.init(34, 12))),
     );
 }
 

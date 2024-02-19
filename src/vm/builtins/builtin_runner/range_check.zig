@@ -19,7 +19,8 @@ const RunnerError = Error.RunnerError;
 
 const N_PARTS: u64 = 8;
 const INNER_RC_BOUND_SHIFT: u64 = 16;
-const BOUND = Felt252.one().saturating_shl(16 * N_PARTS);
+// const BOUND = Felt252.one().saturating_shl(16 * N_PARTS);
+const BOUND = Felt252.two().pow(16 * N_PARTS);
 
 /// Range check built-in runner
 pub const RangeCheckBuiltinRunner = struct {

@@ -9,6 +9,9 @@ pub const ModSqrtError = error{
     InvalidInput,
 };
 
+pub const STARKNET_PRIME: u256 = @import("../../math/fields/constants.zig").STARKNET_PRIME;
+pub const SIGNED_FELT_MAX: u256 = STARKNET_PRIME >> @as(u32, 1);
+
 /// Represents a finite field element.
 pub fn Field(comptime F: type, comptime modulo: u256) type {
     return struct {
@@ -135,7 +138,7 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
                     std.mem.writeInt(
                         u256,
                         lbe[0..],
-                        num % Modulo,
+                        @as(u256, @intCast(num)) % Modulo,
                         .little,
                     );
                     var nonMont: F.NonMontgomeryDomainFieldElement = undefined;
@@ -601,6 +604,29 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             );
         }
 
+        pub fn fromSignedInt(comptime T: type, signed: T) Self {
+            if (signed < 0) {
+                return Self.fromInt(T, -signed).neg();
+            }
+
+            return Self.fromInt(i256, signed);
+        }
+
+        // converting felt to abs value with sign
+        pub fn toSignedInt(self: Self) struct { positive: bool, abs: u256 } {
+            const val = self.toInteger();
+            if (val > SIGNED_FELT_MAX) {
+                return .{
+                    .positive = false,
+                    .abs = STARKNET_PRIME - val,
+                };
+            }
+
+            return .{
+                .positive = true,
+                .abs = val,
+            };
+        }
         /// Convert the field element to a u256 integer.
         ///
         /// Converts the field element to a u256 integer.

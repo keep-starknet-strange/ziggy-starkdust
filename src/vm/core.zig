@@ -17,7 +17,9 @@ const TraceError = @import("error.zig").TraceError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
-const BuiltinRunner = @import("./builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
+const builtin_runner = @import("builtins/builtin_runner/builtin_runner.zig");
+const BuiltinRunner = builtin_runner.BuiltinRunner;
+const BuiltinName = builtin_runner.BuiltinName;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const HashBuiltinRunner = @import("./builtins/builtin_runner/hash.zig").HashBuiltinRunner;
 const Instruction = instructions.Instruction;
@@ -121,6 +123,7 @@ pub const CairoVM = struct {
         for (self.builtin_runners.items) |*builtin| {
             switch (builtin.*) {
                 .Keccak => |*keccak| keccak.deinit(),
+                .Signature => |*signature| signature.deinit(),
                 else => {},
             }
         }
@@ -177,8 +180,8 @@ pub const CairoVM = struct {
     pub fn getRelocatable(
         self: *Self,
         address: Relocatable,
-    ) ?MaybeRelocatable {
-        return self.segments.memory.get(address);
+    ) !Relocatable {
+        return self.segments.memory.getRelocatable(address);
     }
 
     /// Gets a reference to the list of built-in runners in the Cairo VM.
@@ -191,6 +194,18 @@ pub const CairoVM = struct {
     /// A mutable reference to the list of built-in runners.
     pub fn getBuiltinRunners(self: *Self) *ArrayList(BuiltinRunner) {
         return &self.builtin_runners;
+    }
+
+    /// Gets builtin runner by name
+    /// if not exist return not found builtin error
+    pub fn getBuiltinRunner(self: *Self, name: BuiltinName) !*BuiltinRunner {
+        for (self.builtin_runners.items) |*runner| {
+            if (@intFromEnum(runner.*) == @intFromEnum(name)) {
+                return runner;
+            }
+        }
+
+        return CairoVMError.NotFoundBuiltin;
     }
 
     pub fn insertInMemory(
@@ -1139,6 +1154,21 @@ pub const CairoVM = struct {
             address,
             size,
         );
+    }
+
+    pub fn getRangeCheckBuiltin(
+        self: *Self,
+    ) CairoVMError!*builtin_runner.RangeCheckBuiltinRunner {
+        for (self.builtin_runners.items) |*runner| {
+            switch (runner.*) {
+                .RangeCheck => |*rc| {
+                    return rc;
+                },
+                else => {},
+            }
+        }
+
+        return CairoVMError.NoRangeCheckBuiltin;
     }
 
     /// Retrieves a continuous range of memory values starting from a specified address within the Cairo VM's memory segment.

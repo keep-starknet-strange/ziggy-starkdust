@@ -1,5 +1,7 @@
 /// Represents different error conditions that occur in the Cairo VM.
 pub const CairoVMError = error{
+    // Failed to compile hint
+    CompileHintFail,
     /// Adding two relocatables is forbidden.
     AddRelocToRelocForbidden,
     /// Memory access is out of bounds.
@@ -59,6 +61,11 @@ pub const CairoVMError = error{
     InvalidOpcode,
     /// Unexpected Failure
     Unexpected,
+    /// Expected range_check builtin to be present
+    NoRangeCheckBuiltin,
+    /// getBuiltin by name, if not exist error
+    NotFoundBuiltin,
+    ReferenceNotFound,
 };
 
 /// Represents different error conditions that are memory-related.
@@ -183,6 +190,7 @@ pub const MathError = error{
     NotOutputCell,
     RelocatableMul,
     ByteConversionError,
+    DividedByZero,
 };
 
 /// Represents different error conditions that occur in trace relocation
@@ -224,4 +232,32 @@ pub const VerifyError = error{
     InvalidMessageHash,
     InvalidR,
     InvalidS,
+};
+
+pub const HintError = error{
+    AssertNNValueOutOfRange,
+    ValueOutsideValidRange,
+    AssertNotZero,
+    // expected an integer
+    IdentifierNotInteger,
+    IdentifierNotRelocatable,
+    // unknown identifier in ids
+    UnknownIdentifier,
+    UnknownIdentifierInternal,
+    WrongIdentifierTypeInternal,
+    Memory,
+
+    ValueOutside250BitRange,
+    AssertNotEqualFail,
+    // Div out of range
+    OutOfValidRange,
+
+    MissingConstant,
+
+    NonLeFelt252,
+    ArcTooBig,
+
+    VariableNotInScopeError,
+
+    ExcludedNot2,
 };
