@@ -3,6 +3,9 @@ const json = std.json;
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 
+const HintData = @import("../../hint_processor/hint_processor_def.zig").HintData;
+const HintReference = @import("../../hint_processor/hint_processor_def.zig").HintReference;
+const HintProcessor = @import("../../hint_processor/hint_processor_def.zig").CairoVMHintProcessor;
 const BuiltinRunner = @import("../builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
 const Config = @import("../config.zig").Config;
 const CairoVM = @import("../core.zig").CairoVM;
@@ -12,6 +15,7 @@ const MaybeRelocatable = @import("../memory/relocatable.zig").MaybeRelocatable;
 const ProgramJson = @import("../types/programjson.zig").ProgramJson;
 const Program = @import("../types/program.zig").Program;
 const CairoRunnerError = @import("../error.zig").CairoRunnerError;
+const CairoVMError = @import("../error.zig").CairoVMError;
 const RunnerError = @import("../error.zig").RunnerError;
 const MemoryError = @import("../error.zig").MemoryError;
 const trace_context = @import("../trace_context.zig");
@@ -22,7 +26,6 @@ const OutputBuiltinRunner = @import("../builtins/builtin_runner/output.zig").Out
 const BitwiseBuiltinRunner = @import("../builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
 const ExecutionScopes = @import("../types/execution_scopes.zig").ExecutionScopes;
 const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
-
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -342,6 +345,21 @@ pub const CairoRunner = struct {
         self.vm.segments.memory.validateExistingMemory() catch return RunnerError.MemoryValidationError;
     }
 
+    /// Gets the data used by the HintProcessor to execute each hint
+    pub fn getHintData(self: *Self, hint_processor: HintProcessor, references: []HintReference) !std.ArrayList(HintData) {
+        var result = std.ArrayList(HintData).init(self.allocator);
+        errdefer result.deinit();
+
+        const hints_collection = try self.program.getHintsCollections(self.allocator);
+        for (hints_collection.hints.items) |hint| {
+            try result.append(
+                try (hint_processor.compileHint(self.allocator, hint.code, hint.flow_tracking_data.ap_tracking, hint.flow_tracking_data.reference_ids, references) catch CairoVMError.CompileHintFail),
+            );
+        }
+
+        return result;
+    }
+
     pub fn runUntilPC(self: *Self, end: Relocatable) !void {
         while (!end.eq(self.vm.run_context.pc.*)) {
             try self.vm.step(self.allocator);
@@ -482,14 +500,14 @@ test "CairoRunner: initMainEntrypoint no main" {
         std.testing.allocator,
         ProgramJson{},
         "all_cairo",
-         ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
             std.testing.allocator,
             .{},
         ),
         false,
     );
-    
+
     defer cairo_runner.deinit();
 
     // Add an OutputBuiltinRunner to the CairoRunner without setting the stop pointer.
@@ -543,7 +561,6 @@ test "CairoRunner: initVM should initialize the VM properly with no builtins" {
         cairo_runner.vm.run_context.fp.*,
     );
 }
-
 
 test "CairoRunner: initVM should initialize the VM properly with Range Check builtin" {
     // Initialize a CairoRunner with an empty program, "plain" layout, and empty instructions.
