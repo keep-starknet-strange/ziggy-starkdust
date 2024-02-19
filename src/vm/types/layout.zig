@@ -382,10 +382,7 @@ test "CairoLayout: allCairoInstance" {
     try expectEqual(
         @as(
             ?PedersenInstanceDef,
-            .{
-                .ratio = 256,
-				.repetitions = 1
-            },
+            .{ .ratio = 256, .repetitions = 1 },
         ),
         actual.builtins.pedersen,
     );
