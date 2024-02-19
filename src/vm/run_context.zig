@@ -56,8 +56,8 @@ pub const RunContext = struct {
             .fp = fp,
         };
         run_context.pc.* = .{};
-        run_context.ap.* = .{};
-        run_context.fp.* = .{};
+        run_context.ap.* = Relocatable.init(1, 0);
+        run_context.fp.* = Relocatable.init(1, 0);
 
         return run_context;
     }

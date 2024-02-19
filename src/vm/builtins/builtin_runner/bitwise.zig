@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const bitwise_instance_def = @import("../../types/bitwise_instance_def.zig");
+const BitwiseInstanceDef = @import("../../types/bitwise_instance_def.zig").BitwiseInstanceDef;
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const Segments = @import("../../memory/segments.zig");
 const Error = @import("../../error.zig");
@@ -24,7 +25,7 @@ pub const BitwiseError = error{
     InvalidAddressForBitwise,
 };
 
-const BITWISE_INSTANCE_DEF = bitwise_instance_def.BitwiseInstanceDef{};
+const BITWISE_INSTANCE_DEF = BitwiseInstanceDef{};
 
 /// Bitwise built-in runner
 pub const BitwiseBuiltinRunner = struct {
@@ -40,7 +41,7 @@ pub const BitwiseBuiltinRunner = struct {
     /// The rest of the cells are considered output.
     n_input_cells: u32 = bitwise_instance_def.INPUT_CELLS_PER_BITWISE,
     /// Built-in bitwise instance
-    bitwise_builtin: bitwise_instance_def.BitwiseInstanceDef = BITWISE_INSTANCE_DEF,
+    bitwise_builtin: BitwiseInstanceDef = BITWISE_INSTANCE_DEF,
     /// Stop pointer
     stop_ptr: ?usize = null,
     /// Included boolean flag
@@ -62,7 +63,7 @@ pub const BitwiseBuiltinRunner = struct {
     ///
     /// A new `BitwiseBuiltinRunner` instance.
     pub fn init(
-        instance_def: *const bitwise_instance_def.BitwiseInstanceDef,
+        instance_def: *const BitwiseInstanceDef,
         included: bool,
     ) Self {
         return .{
@@ -270,6 +271,7 @@ pub const BitwiseBuiltinRunner = struct {
             @intCast(self.base),
         ) orelse MemoryError.MissingSegmentUsedSizes);
         var result = ArrayList(Relocatable).init(allocator);
+        errdefer result.deinit();
         for (0..segment_size) |i| {
             try result.append(.{
                 .segment_index = @intCast(self.base),
@@ -407,7 +409,7 @@ test "BitwiseBuiltinRunner: initialStack should return an empty array list if in
     defer expected.deinit();
 
     // given a builtin when not included
-    var default: bitwise_instance_def.BitwiseInstanceDef = .{};
+    var default: BitwiseInstanceDef = .{};
     var builtin = BitwiseBuiltinRunner.init(&default, false);
 
     // then
@@ -876,7 +878,7 @@ test "BitwiseBuiltinRunner: should return expectededuceMemoryCell bitwise-or" {
 
 test "BitwiseBuiltinRunner: finalStack should return relocatable pointer if not included" {
     // given
-    var default: bitwise_instance_def.BitwiseInstanceDef = .{};
+    var default: BitwiseInstanceDef = .{};
     var builtin = BitwiseBuiltinRunner.init(&default, false);
 
     // when

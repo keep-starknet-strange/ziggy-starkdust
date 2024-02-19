@@ -12,6 +12,7 @@ pub fn setupIdsForTest(allocator: std.mem.Allocator, data: []const struct { name
 
     var current_offset: usize = 0;
     var base_addr = vm.run_context.getFP();
+    _ = try vm.addMemorySegment();
 
     for (data) |d| {
         try result.put(d.name, .{

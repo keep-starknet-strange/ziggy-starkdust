@@ -3,22 +3,30 @@ const Allocator = std.mem.Allocator;
 const Tuple = std.meta.Tuple;
 
 const MemorySegmentManager = @import("../../memory/segments.zig").MemorySegmentManager;
-
-pub const BitwiseBuiltinRunner = @import("./bitwise.zig").BitwiseBuiltinRunner;
-pub const EcOpBuiltinRunner = @import("./ec_op.zig").EcOpBuiltinRunner;
-pub const HashBuiltinRunner = @import("./hash.zig").HashBuiltinRunner;
-pub const KeccakBuiltinRunner = @import("./keccak.zig").KeccakBuiltinRunner;
-pub const OutputBuiltinRunner = @import("./output.zig").OutputBuiltinRunner;
-pub const PoseidonBuiltinRunner = @import("./poseidon.zig").PoseidonBuiltinRunner;
-pub const RangeCheckBuiltinRunner = @import("./range_check.zig").RangeCheckBuiltinRunner;
-pub const SegmentArenaBuiltinRunner = @import("./segment_arena.zig").SegmentArenaBuiltinRunner;
-pub const SignatureBuiltinRunner = @import("./signature.zig").SignatureBuiltinRunner;
+const CairoVM = @import("../../../vm/core.zig").CairoVM;
+const MemoryError = @import("../../../vm/error.zig").MemoryError;
+const BitwiseBuiltinRunner = @import("./bitwise.zig").BitwiseBuiltinRunner;
+const EcOpBuiltinRunner = @import("./ec_op.zig").EcOpBuiltinRunner;
+const HashBuiltinRunner = @import("./hash.zig").HashBuiltinRunner;
+const KeccakBuiltinRunner = @import("./keccak.zig").KeccakBuiltinRunner;
+const OutputBuiltinRunner = @import("./output.zig").OutputBuiltinRunner;
+const PoseidonBuiltinRunner = @import("./poseidon.zig").PoseidonBuiltinRunner;
+const RangeCheckBuiltinRunner = @import("./range_check.zig").RangeCheckBuiltinRunner;
+const SegmentArenaBuiltinRunner = @import("./segment_arena.zig").SegmentArenaBuiltinRunner;
+const SignatureBuiltinRunner = @import("./signature.zig").SignatureBuiltinRunner;
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
 const Memory = @import("../../memory/memory.zig").Memory;
 const KeccakInstanceDef = @import("../../types/keccak_instance_def.zig").KeccakInstanceDef;
+const EcdsaInstanceDef = @import("../../types/ecdsa_instance_def.zig").EcdsaInstanceDef;
+const BitwiseInstanceDef = @import("../../types/bitwise_instance_def.zig").BitwiseInstanceDef;
 
 const ArrayList = std.ArrayList;
+
+const expectError = std.testing.expectError;
+const expectEqual = std.testing.expectEqual;
+const expect = std.testing.expect;
+const expectEqualSlices = std.testing.expectEqualSlices;
 
 /// The name of the output builtin.
 pub const OUTPUT_BUILTIN_NAME = "output_builtin";
@@ -69,6 +77,40 @@ pub const BuiltinRunner = union(enum) {
     Poseidon: PoseidonBuiltinRunner,
     /// Segment Arena built-in runner for segment arena operations.
     SegmentArena: SegmentArenaBuiltinRunner,
+
+    /// Performs final stack operations based on the type of built-in runner.
+    ///
+    /// This function performs final stack operations based on the type of built-in runner. It takes
+    /// the memory segments and a relocatable pointer as arguments and returns the final stack pointer
+    /// after performing the necessary operations.
+    ///
+    /// # Arguments
+    ///
+    /// * `segments` - A pointer to the memory segment manager.
+    /// * `pointer` - A relocatable pointer representing the current stack pointer.
+    ///
+    /// # Returns
+    ///
+    /// The final stack pointer after performing the necessary operations.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if any error occurs during the final stack operations.
+    ///
+    /// # Remarks
+    ///
+    /// This function is part of the built-in runner union and is used to perform final stack operations
+    /// based on the specific type of built-in runner.
+    pub fn finalStack(
+        self: *Self,
+        segments: *MemorySegmentManager,
+        pointer: Relocatable,
+    ) !Relocatable {
+        return switch (self.*) {
+            .SegmentArena => Relocatable{},
+            inline else => |*builtin| builtin.finalStack(segments, pointer),
+        };
+    }
 
     /// Get the base value of the built-in runner.
     ///
@@ -167,6 +209,56 @@ pub const BuiltinRunner = union(enum) {
             .Hash => |*hash| try hash.deduceMemoryCell(address, memory),
             inline else => |*builtin| builtin.deduceMemoryCell(address, memory),
         };
+    }
+
+    /// Retrieves memory accesses for a built-in runner.
+    ///
+    /// This function returns a list of memory accesses for a built-in runner, represented
+    /// as an `ArrayList` of `Relocatable` objects.
+    ///
+    /// # Parameters
+    ///
+    /// - `allocator`: Allocator to allocate memory for the result ArrayList.
+    /// - `vm`: Pointer to the CairoVM containing memory segments information.
+    ///
+    /// # Returns
+    ///
+    /// An ArrayList of Relocatable objects representing memory accesses.
+    ///
+    /// # Errors
+    ///
+    /// - `MemoryError.MissingSegmentUsedSizes`: Indicates missing segment used sizes in the CairoVM.
+    pub fn getMemoryAccesses(
+        self: *Self,
+        allocator: Allocator,
+        vm: *CairoVM,
+    ) !ArrayList(Relocatable) {
+        // Initialize the result ArrayList
+        var result = ArrayList(Relocatable).init(allocator);
+        // Defer deallocation of the result ArrayList if error
+        errdefer result.deinit();
+
+        // Switch based on the type of built-in runner
+        switch (self.*) {
+            // If the built-in runner is of type SegmentArena, return an empty result
+            .SegmentArena => return result,
+            // For other types of built-in runners
+            else => |builtin| {
+                // Get the base address of the built-in runner
+                const b = builtin.base();
+                // Get the segment size from CairoVM for the given base address
+                const segment_size = vm.segments.getSegmentSize(@intCast(b)) orelse
+                    return MemoryError.MissingSegmentUsedSizes;
+
+                // Iterate through each memory access index within the segment size
+                for (0..segment_size) |i| {
+                    // Initialize a Relocatable object and append it to the result ArrayList
+                    try result.append(Relocatable.init(@intCast(b), i));
+                }
+                // Return the ArrayList containing memory accesses
+                return result;
+            },
+        }
     }
 
     /// Retrieves the memory segment addresses associated with the built-in runner.
@@ -294,10 +386,6 @@ pub const BuiltinRunner = union(enum) {
     }
 };
 
-const expectError = std.testing.expectError;
-const expectEqual = std.testing.expectEqual;
-const expect = std.testing.expect;
-
 test "BuiltinRunner: ratio method" {
     // Initialize a BuiltinRunner for bitwise operations.
     const bitwise_builtin: BuiltinRunner = .{ .Bitwise = .{} };
@@ -419,4 +507,112 @@ test "BuiltinRunner: cellsPerInstance method" {
     // Test the cellsPerInstance method for keccak_builtin.
     // We expect the number of cells per instance to be 2048.
     try expectEqual(@as(u32, 16), keccak_builtin.cellsPerInstance());
+}
+
+test "BuiltinRunner: finalStack" {
+    // Initialize Cairo VM
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    // Initialize ArrayList for built-in runners
+    var builtins = ArrayList(BuiltinRunner).init(std.testing.allocator);
+    defer builtins.deinit();
+
+    // Initialize various built-in runners
+    var keccak_instance_def = try KeccakInstanceDef.initDefault(std.testing.allocator);
+    var ecdsa_instance_def = EcdsaInstanceDef.init(512);
+    var bitwise_instance_def: BitwiseInstanceDef = .{};
+
+    try builtins.append(.{ .Bitwise = BitwiseBuiltinRunner.init(&bitwise_instance_def, false) });
+    try builtins.append(.{ .Hash = HashBuiltinRunner.init(std.testing.allocator, 1, false) });
+    try builtins.append(.{ .Output = OutputBuiltinRunner.init(std.testing.allocator, false) });
+    try builtins.append(.{ .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, false) });
+    try builtins.append(.{ .Keccak = KeccakBuiltinRunner.init(std.testing.allocator, &keccak_instance_def, false) });
+    try builtins.append(.{ .Signature = SignatureBuiltinRunner.init(std.testing.allocator, &ecdsa_instance_def, false) });
+
+    // Iterate through each built-in runner and test its `finalStack` function
+    for (builtins.items) |*builtin| {
+        // Run the built-in runner and verify final stack pointer
+        try expectEqual(
+            vm.run_context.ap.*, // Current stack pointer
+            builtin.finalStack(vm.segments, vm.run_context.ap.*), // Final stack pointer after running the built-in runner
+        );
+
+        // Deinitialize the built-in runner
+        defer builtin.deinit();
+    }
+}
+
+test "BuiltinRunner: getMemoryAccesses with missing segment used sizes" {
+    // Initialize Cairo VM
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    // Ensure Cairo VM is properly deallocated at the end of the test
+    defer vm.deinit();
+
+    // Initialize a BuiltinRunner instance with Bitwise runner
+    var builtin: BuiltinRunner = .{ .Bitwise = .{} };
+
+    // Expecting an error of type MemoryError.MissingSegmentUsedSizes
+    try expectError(
+        MemoryError.MissingSegmentUsedSizes,
+        builtin.getMemoryAccesses(std.testing.allocator, &vm),
+    );
+}
+
+test "BuiltinRunner: getMemoryAccesses with empty access" {
+    // Initialize Cairo VM
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    // Ensure Cairo VM is properly deallocated at the end of the test
+    defer vm.deinit();
+
+    // Set segment used sizes to simulate empty memory access
+    try vm.segments.segment_used_sizes.put(0, 0);
+
+    // Initialize a BuiltinRunner instance with Bitwise runner
+    var builtin: BuiltinRunner = .{ .Bitwise = .{} };
+
+    // Retrieve memory accesses from the built-in runner
+    var actual = try builtin.getMemoryAccesses(std.testing.allocator, &vm);
+    // Ensure actual result is deallocated at the end of the test
+    defer actual.deinit();
+
+    // Expecting the actual memory accesses to be empty
+    try expect(actual.items.len == 0);
+}
+
+test "BuiltinRunner: getMemoryAccesses with real data" {
+    // Initialize Cairo VM
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    // Ensure Cairo VM is properly deallocated at the end of the test
+    defer vm.deinit();
+
+    // Set segment used sizes to simulate real memory access data
+    try vm.segments.segment_used_sizes.put(0, 4);
+
+    // Initialize a BuiltinRunner instance with Bitwise runner
+    var builtin: BuiltinRunner = .{ .Bitwise = .{} };
+
+    // Retrieve memory accesses from the built-in runner
+    var actual = try builtin.getMemoryAccesses(std.testing.allocator, &vm);
+    defer actual.deinit();
+
+    // Create an ArrayList to hold the expected memory accesses
+    var expected = ArrayList(Relocatable).init(std.testing.allocator);
+    defer expected.deinit();
+    try expected.append(Relocatable.init(0, 0));
+    try expected.append(Relocatable.init(0, 1));
+    try expected.append(Relocatable.init(0, 2));
+    try expected.append(Relocatable.init(0, 3));
+
+    // Verify that the actual memory accesses match the expected memory accesses
+    try expectEqualSlices(Relocatable, expected.items, actual.items);
 }

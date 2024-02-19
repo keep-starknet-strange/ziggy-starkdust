@@ -149,9 +149,8 @@ pub const PoseidonBuiltinRunner = struct {
         const stop_pointer_addr = pointer.subUint(1) catch return RunnerError.NoStopPointer;
 
         // Retrieve the stop pointer value from memory and convert it into a Relocatable pointer.
-        const stop_pointer = (segments.memory.get(stop_pointer_addr) orelse
-            return RunnerError.NoStopPointer).tryIntoRelocatable() catch
-            return RunnerError.NoStopPointer;
+    const stop_pointer = segments.memory.getRelocatable(stop_pointer_addr) catch
+        return RunnerError.NoStopPointer;
 
         // Verify if the base index of the runner matches the segment index of the stop pointer.
         if (self.base != stop_pointer.segment_index) return RunnerError.InvalidStopPointerIndex;
