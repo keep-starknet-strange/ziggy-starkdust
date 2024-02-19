@@ -26,6 +26,7 @@ pub fn getConstantFromVarName(
 
     return HintError.MissingConstant;
 }
+
 //Inserts value into the address of the given ids variable
 pub fn insertValueFromVarName(
     allocator: Allocator,

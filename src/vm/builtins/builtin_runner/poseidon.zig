@@ -14,6 +14,7 @@ const Program = @import("../../types/program.zig").Program;
 const ProgramJSON = @import("../../types/programjson.zig");
 const CairoVM = @import("../../core.zig").CairoVM;
 const CairoRunner = @import("../../runners/cairo_runner.zig").CairoRunner;
+const BuiltinRunner = @import("./builtin_runner.zig").BuiltinRunner;
 
 const AutoHashMap = std.AutoHashMap;
 const ArrayList = std.ArrayList;
@@ -63,11 +64,7 @@ pub const PoseidonBuiltinRunner = struct {
     /// # Returns
     ///
     /// A new `PoseidonBuiltinRunner` instance.
-    pub fn init(
-        allocator: Allocator,
-        ratio: ?u32,
-        included: bool,
-    ) Self {
+    pub fn init(allocator: Allocator, ratio: ?u32, included: bool) Self {
         return .{
             .ratio = ratio,
             .included = included,
@@ -75,10 +72,34 @@ pub const PoseidonBuiltinRunner = struct {
         };
     }
 
+    /// Initializes memory segments for the PoseidonBuiltinRunner.
+    ///
+    /// This function initializes memory segments for the PoseidonBuiltinRunner instance.
+    /// It adds a new memory segment via the provided `segments` argument.
+    ///
+    /// # Arguments
+    ///
+    /// - `segments`: A pointer to the `MemorySegmentManager` to add a new segment.
+    ///
+    /// # Errors
+    ///
+    /// This function returns an error if adding a new segment fails.
+    ///
+    /// # Safety
+    ///
+    /// This function operates on memory segments and may cause undefined behavior if used incorrectly.
     pub fn initSegments(self: *Self, segments: *MemorySegmentManager) !void {
         self.base = @intCast((try segments.addSegment()).segment_index);
     }
 
+    /// Retrieves memory segment addresses for the PoseidonBuiltinRunner.
+    ///
+    /// This function returns a tuple containing the base address and stop pointer of memory segments
+    /// used by the PoseidonBuiltinRunner instance.
+    ///
+    /// # Returns
+    ///
+    /// A tuple containing the base address and stop pointer of memory segments.
     pub fn getMemorySegmentAddresses(self: *const Self) std.meta.Tuple(&.{ usize, ?usize }) {
         return .{ self.base, self.stop_ptr };
     }
@@ -99,49 +120,50 @@ pub const PoseidonBuiltinRunner = struct {
         self.cache.deinit();
     }
 
-    /// Calculate the final stack.
+    /// Calculate the final stack pointer.
     ///
     /// This function calculates the final stack pointer for the Poseidon runner, based on the provided `segments`, `pointer`, and `self` settings. If the runner is included,
     /// it verifies the stop pointer for consistency and sets it. Otherwise, it sets the stop pointer to zero.
     ///
     /// # Parameters
     ///
+    /// - `self`: A pointer to the `PoseidonBuiltinRunner` instance.
     /// - `segments`: A pointer to the `MemorySegmentManager` for segment management.
     /// - `pointer`: A `Relocatable` pointer to the current stack pointer.
     ///
     /// # Returns
     ///
-    /// A `Relocatable` pointer to the final stack pointer, or an error code if the
-    /// verification fails.
+    /// A `Relocatable` pointer to the final stack pointer, or an error code if the verification fails.
     pub fn finalStack(
         self: *Self,
         segments: *MemorySegmentManager,
         pointer: Relocatable,
     ) !Relocatable {
-        if (self.included) {
-            const stop_pointer_addr = pointer.subUint(1) catch return RunnerError.NoStopPointer;
-            const stop_pointer = try (segments.memory.get(stop_pointer_addr) orelse return RunnerError.NoStopPointer).tryIntoRelocatable();
-
-            if (@as(
-                i64,
-                @intCast(self.base),
-            ) != stop_pointer.segment_index) {
-                return RunnerError.InvalidStopPointerIndex;
-            }
-
-            const stop_ptr = stop_pointer.offset;
-            if (stop_ptr != try self.getUsedInstances(segments) * @as(
-                usize,
-                @intCast(self.cells_per_instance),
-            )) {
-                return RunnerError.InvalidStopPointer;
-            }
-            self.stop_ptr = stop_ptr;
-            return stop_pointer_addr;
+        // Check if the runner is included. If not, set stop pointer to zero and return pointer.
+        if (!self.included) {
+            self.stop_ptr = 0;
+            return pointer;
         }
 
-        self.stop_ptr = 0;
-        return pointer;
+        // Calculate the address of the stop pointer and handle potential errors.
+        const stop_pointer_addr = pointer.subUint(1) catch return RunnerError.NoStopPointer;
+
+        // Retrieve the stop pointer value from memory and convert it into a Relocatable pointer.
+        const stop_pointer = (segments.memory.get(stop_pointer_addr) orelse
+            return RunnerError.NoStopPointer).tryIntoRelocatable() catch
+            return RunnerError.NoStopPointer;
+
+        // Verify if the base index of the runner matches the segment index of the stop pointer.
+        if (self.base != stop_pointer.segment_index) return RunnerError.InvalidStopPointerIndex;
+
+        // Calculate the expected stop pointer value based on the number of used instances.
+        const stop_ptr = stop_pointer.offset;
+        if (stop_ptr != try self.getUsedInstances(segments) * self.cells_per_instance)
+            return RunnerError.InvalidStopPointer;
+
+        // Set the stop pointer and return the address of the stop pointer.
+        self.stop_ptr = stop_ptr;
+        return stop_pointer_addr;
     }
 
     /// Get the number of used cells associated with this Poseidon runner.
@@ -160,225 +182,343 @@ pub const PoseidonBuiltinRunner = struct {
         ) orelse MemoryError.MissingSegmentUsedSizes;
     }
 
+    /// Retrieves the number of used instances by the PoseidonBuiltinRunner.
+    ///
+    /// This function calculates and returns the number of used instances by the PoseidonBuiltinRunner
+    /// based on the number of used cells in memory segments.
+    ///
+    /// # Arguments
+    ///
+    /// - `segments`: A pointer to the `MemorySegmentManager` containing memory segments.
+    ///
+    /// # Returns
+    ///
+    /// The number of used instances calculated based on the number of used cells.
+    ///
+    /// # Errors
+    ///
+    /// This function returns an error if retrieving the number of used cells fails.
     pub fn getUsedInstances(self: *Self, segments: *MemorySegmentManager) !usize {
         return std.math.divCeil(
             usize,
             try self.getUsedCells(segments),
-            @intCast(self.cells_per_instance),
+            self.cells_per_instance,
         );
     }
 
+    /// Deduce the memory cell.
+    ///
+    /// This function deduces the memory cell for the Poseidon runner based on the provided `address` and `memory` settings. It calculates the index of the memory cell, checks if it's an input cell,
+    /// retrieves or computes the cell value, and caches it for future access.
+    ///
+    /// # Parameters
+    ///
+    /// - `self`: A pointer to the `PoseidonBuiltinRunner` instance.
+    /// - `allocator`: An allocator for initializing data structures.
+    /// - `address`: A `Relocatable` pointer to the memory cell address.
+    /// - `memory`: A pointer to the `Memory` instance for accessing memory data.
+    ///
+    /// # Returns
+    ///
+    /// A `MaybeRelocatable` instance representing the deduced memory cell, or `null` if the cell could not be deduced.
     pub fn deduceMemoryCell(
         self: *Self,
         allocator: Allocator,
         address: Relocatable,
         memory: *Memory,
     ) !?MaybeRelocatable {
+        // Calculate the index of the memory cell.
         const index = @mod(
-            @as(
-                usize,
-                @intCast(address.offset),
-            ),
-            @as(
-                usize,
-                @intCast(self.cells_per_instance),
-            ),
+            @as(usize, @intCast(address.offset)),
+            @as(usize, @intCast(self.cells_per_instance)),
         );
 
-        if (index < self.n_input_cells) {
-            return null;
-        }
+        // Check if the index corresponds to an input cell, if so, return null.
+        if (index < self.n_input_cells) return null;
 
+        // Check if the cell value is already cached, if so, return it.
         if (self.cache.get(address)) |felt| return .{ .felt = felt };
 
+        // Calculate the addresses for the first input cell and first output cell.
         const first_input_addr = try address.subUint(index);
         const first_output_addr = try first_input_addr.addUint(self.n_input_cells);
 
+        // Initialize an array list to store input cell values.
         var input_felts = try ArrayList(Felt252).initCapacity(allocator, self.n_input_cells);
         defer input_felts.deinit();
 
-        for (0..@as(
-            usize,
-            @intCast(self.n_input_cells),
-        )) |i| {
-            const num = (memory.get(try first_input_addr.addUint(i)) orelse return null).tryIntoFelt() catch {
-                return RunnerError.BuiltinExpectedInteger;
-            };
-
-            try input_felts.append(num);
+        // Iterate over input cells, retrieve their values, and append them to the array list.
+        for (0..self.n_input_cells) |i| {
+            const val = memory.get(try first_input_addr.addUint(i)) orelse return null;
+            try input_felts.append(val.tryIntoFelt() catch
+                return RunnerError.BuiltinExpectedInteger);
         }
 
-        // self.n_input_cells always is size of 3, so we can use like that
+        // Perform Poseidon permutation computation on the input cells.
         poseidonPermuteComp(input_felts.items[0..3]);
+        // Iterate over input cells and cache their computed values.
         for (0..self.n_input_cells, input_felts.items) |i, elem| {
             try self.cache.put(try first_output_addr.addUint(i), elem);
         }
 
+        // Return the cached value for the specified memory cell address.
         return .{ .felt = self.cache.get(address).? };
     }
 };
 
-test "PoseidonBuiltinRunner: finalStack InvalidStopPointerError" {
-    var builtin = PoseidonBuiltinRunner.init(
-        std.testing.allocator,
-        10,
-        true,
-    );
+test "PoseidonBuiltinRunner: getUsedInstances should return number of cells" {
+    // Initialize PoseidonBuiltinRunner and MemorySegmentManager instances.
+    var builtin = PoseidonBuiltinRunner.init(std.testing.allocator, 10, true);
     defer builtin.deinit();
-
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    builtin.base = 22;
+    // Set number of used cells in segment 0 of memory_segment_manager to 1.
+    try memory_segment_manager.segment_used_sizes.put(0, 1);
 
-    _ = try memory_segment_manager.addSegment();
-    _ = try memory_segment_manager.addSegment();
-    _ = try memory_segment_manager.addSegment();
+    // Test if getUsedInstances returns expected number of used instances.
+    try expectEqual(@as(usize, 1), try builtin.getUsedInstances(memory_segment_manager));
+}
 
-    try memory_segment_manager.memory.set(
-        std.testing.allocator,
-        try Relocatable.init(
-            2,
-            2,
-        ).subUint(1),
-        .{ .relocatable = Relocatable.init(
-            22,
-            18,
-        ) },
-    );
-    defer memory_segment_manager.memory.deinitData(std.testing.allocator);
+test "PoseidonBuiltinRunner: getUsedInstances expected error MissingSegmentUsedSizes" {
+    // Initialize a PoseidonBuiltinRunner instance named `builtin` with a ratio of 10 and included set to true.
+    var builtin = PoseidonBuiltinRunner.init(std.testing.allocator, 10, true);
+    // Ensure proper deallocation of resources when the test scope ends.
+    defer builtin.deinit();
 
-    try memory_segment_manager.segment_used_sizes.put(22, 1999);
+    // Initialize a MemorySegmentManager instance named `memory_segment_manager`.
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    // Ensure proper deallocation of resources when the test scope ends.
+    defer memory_segment_manager.deinit();
 
+    // Test if an error of type MemoryError.MissingSegmentUsedSizes is raised when calling the getUsedInstances method of `builtin` with `memory_segment_manager`.
     try expectError(
-        RunnerError.InvalidStopPointer,
-        builtin.finalStack(
-            memory_segment_manager,
-            Relocatable.init(2, 2),
-        ),
+        MemoryError.MissingSegmentUsedSizes,
+        builtin.getUsedInstances(memory_segment_manager),
     );
 }
 
-test "PoseidonBuiltinRunner: finalStack should return TypeMismatchNotRelocatable error if data in memory at the given stop pointer address is not Relocatable" {
-    var builtin = PoseidonBuiltinRunner.init(
-        std.testing.allocator,
-        10,
-        true,
-    );
+test "PoseidonBuiltinRunner: getUsedInstances for BuiltinRunner enum" {
+    // Initialize a BuiltinRunner enum instance with PoseidonBuiltinRunner as its variant.
+    var builtin: BuiltinRunner = .{ .Poseidon = PoseidonBuiltinRunner.init(std.testing.allocator, 10, true) };
+    // Ensure proper deallocation of resources when the test scope ends.
     defer builtin.deinit();
 
+    // Initialize a MemorySegmentManager instance.
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    // Ensure proper deallocation of resources when the test scope ends.
     defer memory_segment_manager.deinit();
 
-    _ = try memory_segment_manager.addSegment();
-    _ = try memory_segment_manager.addSegment();
-    _ = try memory_segment_manager.addSegment();
+    // Set the number of used cells in segment 0 of memory_segment_manager to 1.
+    try memory_segment_manager.segment_used_sizes.put(0, 1);
 
-    try memory_segment_manager.memory.set(
+    // Test if getUsedInstances returns the expected number of used instances.
+    try expectEqual(@as(usize, 1), try builtin.getUsedInstances(memory_segment_manager));
+}
+
+test "PoseidonBuiltinRunner: finalStack InvalidStopPointerError" {
+    // Initialize a PoseidonBuiltinRunner instance named `builtin` with a ratio of 10 and included set to true.
+    var builtin = PoseidonBuiltinRunner.init(std.testing.allocator, 10, true);
+    // Ensure proper deallocation of resources when the test scope ends.
+    defer builtin.deinit();
+
+    // Initialize a MemorySegmentManager instance named `memory_segment_manager`.
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    // Ensure proper deallocation of resources when the test scope ends.
+    defer memory_segment_manager.deinit();
+
+    // Set the base pointer of `builtin` to 22.
+    builtin.base = 22;
+
+    // Set up memory for `memory_segment_manager`.
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
-        try Relocatable.init(
-            2,
-            2,
-        ).subUint(1),
-        .{ .felt = Felt252.fromInt(u8, 10) },
+        .{.{ .{ 2, 1 }, .{ 22, 18 } }},
     );
+    // Ensure proper deallocation of memory data when the test scope ends.
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
+    // Set the number of used cells in segment 22 of `memory_segment_manager` to 1999.
+    try memory_segment_manager.segment_used_sizes.put(22, 1999);
+
+    // Test if an InvalidStopPointer error is raised when calling the finalStack method of `builtin`.
     try expectError(
-        CairoVMError.TypeMismatchNotRelocatable,
-        builtin.finalStack(
-            memory_segment_manager,
-            Relocatable.init(2, 2),
-        ),
+        RunnerError.InvalidStopPointer,
+        builtin.finalStack(memory_segment_manager, Relocatable.init(2, 2)),
     );
 }
 
 test "PoseidonBuiltinRunner: finalStack" {
-    var builtin = PoseidonBuiltinRunner.init(
-        std.testing.allocator,
-        10,
-        true,
-    );
+    // Initialize a PoseidonBuiltinRunner instance named `builtin` with a ratio of 10 and included set to true.
+    var builtin = PoseidonBuiltinRunner.init(std.testing.allocator, 10, true);
+    // Ensure proper deallocation of resources when the test scope ends.
     defer builtin.deinit();
 
+    // Initialize a MemorySegmentManager instance named `memory_segment_manager`.
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    // Ensure proper deallocation of resources when the test scope ends.
     defer memory_segment_manager.deinit();
 
-    _ = try memory_segment_manager.addSegment();
-    _ = try memory_segment_manager.addSegment();
-    _ = try memory_segment_manager.addSegment();
-    _ = try memory_segment_manager.addSegment();
-
+    // Set the number of used cells in segment 0 of `memory_segment_manager` to 0.
     try memory_segment_manager.segment_used_sizes.put(0, 0);
 
-    try memory_segment_manager.memory.set(
+    // Set up memory for `memory_segment_manager`.
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
-        Relocatable.init(2, 1),
-        .{ .relocatable = Relocatable.init(0, 0) },
+        .{.{ .{ 2, 1 }, .{ 0, 0 } }},
     );
+    // Ensure proper deallocation of memory data when the test scope ends.
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
+    // Test if the finalStack method of `builtin` returns the expected Relocatable instance.
     try expectEqual(
         Relocatable.init(2, 1),
         try builtin.finalStack(memory_segment_manager, Relocatable.init(2, 2)),
     );
 }
 
-test "PoseidonBuiltinRunner: deduceMemoryCell missing input cells no error" {
-    var builtin = PoseidonBuiltinRunner.init(
-        std.testing.allocator,
-        10,
-        true,
-    );
+test "PoseidonBuiltinRunner: finalStack with multiple segments" {
+    // Initialize a PoseidonBuiltinRunner instance named `builtin` with a ratio of 10 and included set to true.
+    var builtin = PoseidonBuiltinRunner.init(std.testing.allocator, 10, true);
+    // Ensure proper deallocation of resources when the test scope ends.
     defer builtin.deinit();
 
-    var mem = try Memory.init(std.testing.allocator);
-    defer mem.deinit();
+    // Initialize a MemorySegmentManager instance named `memory_segment_manager`.
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    // Ensure proper deallocation of resources when the test scope ends.
+    defer memory_segment_manager.deinit();
 
-    try mem.setUpMemory(
+    // Set the number of used cells in segment 0 of `memory_segment_manager` to 0.
+    try memory_segment_manager.segment_used_sizes.put(0, 0);
+
+    // Set up memory for `memory_segment_manager`.
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
-        .{.{ .{ 0, 0 }, .{ 1, 2 } }},
+        .{
+            .{ .{ 0, 0 }, .{ 0, 0 } },
+            .{ .{ 0, 1 }, .{ 0, 1 } },
+            .{ .{ 2, 0 }, .{ 0, 0 } },
+            .{ .{ 2, 1 }, .{ 0, 0 } },
+        },
     );
-    defer mem.deinitData(std.testing.allocator);
+    // Ensure proper deallocation of memory data when the test scope ends.
+    defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
+    // Set the number of used cells in segment 0 of `memory_segment_manager` to 0.
+    try memory_segment_manager.segment_used_sizes.put(0, 0);
+
+    // Test if the finalStack method of `builtin` returns the expected Relocatable instance.
     try expectEqual(
-        @as(?MaybeRelocatable, null),
-        try builtin.deduceMemoryCell(std.testing.allocator, Relocatable.init(0, 0), mem),
+        Relocatable.init(2, 1),
+        try builtin.finalStack(memory_segment_manager, Relocatable.init(2, 2)),
+    );
+}
+
+test "PoseidonBuiltinRunner: finalStack when not included" {
+    // Initialize a PoseidonBuiltinRunner instance named `builtin` with a ratio of 10 and included set to false.
+    var builtin = PoseidonBuiltinRunner.init(std.testing.allocator, 10, false);
+    // Ensure proper deallocation of resources when the test scope ends.
+    defer builtin.deinit();
+
+    // Initialize a MemorySegmentManager instance named `memory_segment_manager`.
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    // Ensure proper deallocation of resources when the test scope ends.
+    defer memory_segment_manager.deinit();
+
+    // Set the number of used cells in segment 0 of `memory_segment_manager` to 0.
+    try memory_segment_manager.segment_used_sizes.put(0, 0);
+
+    // Set up memory for `memory_segment_manager`.
+    try memory_segment_manager.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{ 0, 0 } },
+            .{ .{ 0, 1 }, .{ 0, 1 } },
+            .{ .{ 2, 0 }, .{ 0, 0 } },
+            .{ .{ 2, 1 }, .{ 0, 0 } },
+        },
+    );
+    // Ensure proper deallocation of memory data when the test scope ends.
+    defer memory_segment_manager.memory.deinitData(std.testing.allocator);
+
+    // Set the number of used cells in segment 0 of `memory_segment_manager` to 0.
+    try memory_segment_manager.segment_used_sizes.put(0, 0);
+
+    // Test if the finalStack method of `builtin` returns the expected Relocatable instance.
+    // The method is called with `memory_segment_manager` and a Relocatable instance initialized with values (2, 2).
+    try expectEqual(
+        Relocatable.init(2, 2),
+        try builtin.finalStack(memory_segment_manager, Relocatable.init(2, 2)),
+    );
+
+    // Test if the stop pointer of `builtin` is equal to 0 when it's not included.
+    try expectEqual(@as(usize, 0), builtin.stop_ptr);
+}
+
+test "PoseidonBuiltinRunner: finalStack should return NoStopPointer error if data in memory at the given stop pointer address is not Relocatable" {
+    // Initialize a PoseidonBuiltinRunner instance named `builtin` with a ratio of 10 and included set to true.
+    var builtin = PoseidonBuiltinRunner.init(std.testing.allocator, 10, true);
+    // Ensure proper deallocation of resources when the test scope ends.
+    defer builtin.deinit();
+
+    // Initialize a MemorySegmentManager instance named `memory_segment_manager`.
+    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    // Ensure proper deallocation of resources when the test scope ends.
+    defer memory_segment_manager.deinit();
+
+    // Set the number of used cells in segment 0 of `memory_segment_manager` to 0.
+    try memory_segment_manager.segment_used_sizes.put(0, 0);
+
+    // Set up memory for `memory_segment_manager` with specific segment sizes, including a non-Relocatable value at stop pointer address.
+    try memory_segment_manager.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{ 0, 0 } }, // First segment size
+            .{ .{ 0, 1 }, .{ 0, 1 } }, // Second segment size
+            .{ .{ 2, 0 }, .{ 0, 0 } }, // Third segment size
+            .{ .{ 2, 1 }, .{2} }, // Fourth segment size (contains non-Relocatable data)
+        },
+    );
+    // Ensure proper deallocation of memory data when the test scope ends.
+    defer memory_segment_manager.memory.deinitData(std.testing.allocator);
+
+    // Set the number of used cells in segment 0 of `memory_segment_manager` to 0.
+    try memory_segment_manager.segment_used_sizes.put(0, 0);
+
+    // Test if a NoStopPointer error is raised when calling the finalStack method of `builtin`.
+    try expectError(
+        RunnerError.NoStopPointer,
+        builtin.finalStack(memory_segment_manager, Relocatable.init(2, 2)),
     );
 }
 
 test "PoseidonBuiltinRunner: finalStack stop ptr check" {
-    var builtin = PoseidonBuiltinRunner.init(
-        std.testing.allocator,
-        10,
-        true,
-    );
+    // Initialize a PoseidonBuiltinRunner instance named `builtin` with a ratio of 10 and included set to true.
+    var builtin = PoseidonBuiltinRunner.init(std.testing.allocator, 10, true);
+    // Ensure proper deallocation of resources when the test scope ends.
     defer builtin.deinit();
 
+    // Initialize a MemorySegmentManager instance named `memory_segment_manager`.
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
+    // Ensure proper deallocation of resources when the test scope ends.
     defer memory_segment_manager.deinit();
 
+    // Set the base index of `builtin` to 22.
     builtin.base = 22;
 
-    _ = try memory_segment_manager.addSegment();
-    _ = try memory_segment_manager.addSegment();
-    _ = try memory_segment_manager.addSegment();
-
-    try memory_segment_manager.memory.set(
+    // Set up memory for `memory_segment_manager` with specific segment sizes.
+    try memory_segment_manager.memory.setUpMemory(
         std.testing.allocator,
-        try Relocatable.init(
-            2,
-            2,
-        ).subUint(1),
-        .{ .relocatable = Relocatable.init(
-            22,
-            18,
-        ) },
+        .{.{ .{ 2, 1 }, .{ 22, 18 } }},
     );
+    // Ensure proper deallocation of memory data when the test scope ends.
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
+    // Set the number of used cells in segment 22 of `memory_segment_manager` to 17.
     try memory_segment_manager.segment_used_sizes.put(22, 17);
 
+    // Test if the finalStack method of `builtin` returns the expected Relocatable instance.
+    // The method is called with `memory_segment_manager` and a Relocatable instance initialized with values (2, 2).
     try expectEqual(
         Relocatable.init(2, 1),
         try builtin.finalStack(
@@ -387,42 +527,37 @@ test "PoseidonBuiltinRunner: finalStack stop ptr check" {
         ),
     );
 
+    // Test if the stop pointer value is as expected.
+    try expectEqual(@as(?usize, 18), builtin.stop_ptr.?);
+}
+
+test "PoseidonBuiltinRunner: deduceMemoryCell missing input cells no error" {
+    // Initialize a PoseidonBuiltinRunner instance named `builtin` with a ratio of 10 and included set to true.
+    var builtin = PoseidonBuiltinRunner.init(std.testing.allocator, 10, true);
+    // Ensure proper deallocation of resources when the test scope ends.
+    defer builtin.deinit();
+
+    // Initialize a Memory instance named `mem`.
+    var mem = try Memory.init(std.testing.allocator);
+    // Ensure proper deallocation of resources when the test scope ends.
+    defer mem.deinit();
+
+    // Set up memory for `mem`.
+    try mem.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{ 0, 0 } },
+            .{ .{ 0, 1 }, .{ 0, 1 } },
+            .{ .{ 2, 0 }, .{ 0, 0 } },
+            .{ .{ 2, 1 }, .{ 0, 0 } },
+        },
+    );
+    // Ensure proper deallocation of memory data when the test scope ends.
+    defer mem.deinitData(std.testing.allocator);
+
+    // Test if the deduceMemoryCell method of `builtin` returns null when called with missing input cells.
     try expectEqual(
-        @as(?usize, @intCast(18)),
-        builtin.stop_ptr.?,
-    );
-}
-
-test "PoseidonBuiltinRunner: getUsedInstances" {
-    var builtin = PoseidonBuiltinRunner.init(
-        std.testing.allocator,
-        10,
-        true,
-    );
-    defer builtin.deinit();
-
-    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
-
-    defer memory_segment_manager.deinit();
-
-    try memory_segment_manager.segment_used_sizes.put(0, 1);
-
-    try expectEqual(1, builtin.getUsedInstances(memory_segment_manager));
-}
-
-test "PoseidonBuiltinRunner: getUsedInstances expected error MissingSegmentUsedSizes" {
-    var builtin = PoseidonBuiltinRunner.init(
-        std.testing.allocator,
-        10,
-        true,
-    );
-    defer builtin.deinit();
-
-    var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
-    defer memory_segment_manager.deinit();
-
-    try expectError(
-        MemoryError.MissingSegmentUsedSizes,
-        builtin.getUsedInstances(memory_segment_manager),
+        null,
+        try builtin.deduceMemoryCell(std.testing.allocator, Relocatable.init(0, 0), mem),
     );
 }

@@ -63,6 +63,8 @@ pub const CairoVMError = error{
     Unexpected,
     /// Expected range_check builtin to be present
     NoRangeCheckBuiltin,
+    /// Expected signature builtin to be present
+    NoSignatureBuiltin,
     /// getBuiltin by name, if not exist error
     NotFoundBuiltin,
     ReferenceNotFound,
