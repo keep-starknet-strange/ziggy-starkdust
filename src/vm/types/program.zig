@@ -43,6 +43,20 @@ pub const HintsRanges = union(enum) {
     ),
     NonExtensive: std.ArrayList(HintRange),
 
+    pub fn isExtensive(self: *Self) bool {
+        return switch (self) {
+            .Extensive => true,
+            inline else => false,
+        };
+    }
+
+    pub fn count(self: *Self) usize {
+        return switch (self.*) {
+            .Extensive => self.Extensive.count(),
+            .NonExtensive => self.NonExtensive.items.len,
+        };
+    }
+
     pub fn deinit(self: *Self) void {
         switch (self.*) {
             .Extensive => self.Extensive.deinit(),
@@ -110,16 +124,12 @@ pub const HintsCollection = struct {
         if (extensive_hints) {
             return Self{
                 .hints = hints_values,
-                .hint_ranges = HintsRanges{
-                    .Extensive = hints_ranges_ext.?,
-                },
+                .hint_ranges = HintsRanges{ .Extensive = hints_ranges_ext.? },
             };
         } else {
             return Self{
                 .hints = hints_values,
-                .hint_ranges = HintsRanges{
-                    .NonExtensive = hints_ranges_non_ext.?,
-                },
+                .hint_ranges = HintsRanges{ .NonExtensive = hints_ranges_non_ext.? },
             };
         }
     }
@@ -153,20 +163,22 @@ pub const HintsCollection = struct {
         var res = std.AutoHashMap(usize, []const HintParams).init(allocator);
         errdefer res.deinit();
 
-        // Iterate over hints_ranges to populate the AutoHashMap.
-        var it = self.hints_ranges.iterator();
+        if (self.hints_ranges.isExtensive()) {
+            // Iterate over hints_ranges to populate the AutoHashMap.
+            var it = self.hints_ranges.Extensive.iterator();
 
-        while (it.next()) |kv| {
-            // Calculate the end index of the hint slice.
-            const end = kv.value_ptr.start + kv.value_ptr.length;
+            while (it.next()) |kv| {
+                // Calculate the end index of the hint slice.
+                const end = kv.value_ptr.start + kv.value_ptr.length;
 
-            // Check if the end index is within bounds of hints.items.
-            if (end <= self.hints.items.len) {
-                // Put the offset and corresponding hint slice into the AutoHashMap.
-                try res.put(
-                    kv.key_ptr.offset,
-                    self.hints.items[kv.value_ptr.start..end],
-                );
+                // Check if the end index is within bounds of hints.items.
+                if (end <= self.hints.items.len) {
+                    // Put the offset and corresponding hint slice into the AutoHashMap.
+                    try res.put(
+                        kv.key_ptr.offset,
+                        self.hints.items[kv.value_ptr.start..end],
+                    );
+                }
             }
         }
 
