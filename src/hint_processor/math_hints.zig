@@ -1,6 +1,7 @@
 const std = @import("std");
 
 const CoreVM = @import("../vm/core.zig");
+const field_helper = @import("../math/fields/helper.zig");
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const STARKNET_PRIME = @import("../math/fields/fields.zig").STARKNET_PRIME;
 const SIGNED_FELT_MAX = @import("../math/fields/fields.zig").SIGNED_FELT_MAX;
@@ -203,20 +204,6 @@ pub fn sqrt(
     );
 }
 
-fn divModFloor(num: u256, denominator: u256) !struct { u256, u256 } {
-    if (denominator == 0) return error.DividedByZero;
-
-    return .{ @divFloor(num, denominator), @mod(num, denominator) };
-}
-
-fn divRem(num: u256, denominator: u256) !struct { u256, u256 } {
-    if (denominator == 0) return error.DividedByZero;
-
-    return .{
-        @divTrunc(num, denominator),
-        @rem(num, denominator),
-    };
-}
 // Implements hint:
 
 // from starkware.cairo.common.math_utils import assert_integer
@@ -238,7 +225,7 @@ pub fn unsignedDivRem(
         if (div.isZero() or div.gt(Felt252.fromInt(u256, STARKNET_PRIME / b.toInteger()))) return HintError.OutOfValidRange;
     } else if (div.isZero()) return HintError.OutOfValidRange;
 
-    const qr = try (divRem(value.toInteger(), div.toInteger()) catch MathError.DividedByZero);
+    const qr = try (field_helper.divRem(value.toInteger(), div.toInteger()) catch MathError.DividedByZero);
 
     try hint_utils.insertValueFromVarName(allocator, "r", MaybeRelocatable.fromInt(u256, qr[1]), vm, ids_data, ap_tracking);
     try hint_utils.insertValueFromVarName(allocator, "q", MaybeRelocatable.fromInt(u256, qr[0]), vm, ids_data, ap_tracking);
@@ -318,8 +305,8 @@ pub fn assertLeFelt(
 
     try exec_scopes.assignOrUpdateVariable("excluded", .{ .felt = Felt252.fromInt(u256, excluded) });
 
-    const qr0 = try divModFloor(lengths_and_indices[0][0], prime_over_3_high.toInteger());
-    const qr1 = try divModFloor(lengths_and_indices[1][0], prime_over_2_high.toInteger());
+    const qr0 = try field_helper.divModFloor(lengths_and_indices[0][0], prime_over_3_high.toInteger());
+    const qr1 = try field_helper.divModFloor(lengths_and_indices[1][0], prime_over_2_high.toInteger());
 
     try vm.insertInMemory(allocator, range_check_ptr, MaybeRelocatable.fromFelt(Felt252.fromInt(u256, qr0[1])));
     try vm.insertInMemory(allocator, try range_check_ptr.addInt(1), MaybeRelocatable.fromFelt(Felt252.fromInt(u256, qr0[0])));
@@ -350,18 +337,82 @@ pub fn assertLeFeltExcluded1(
     const excluded = try exec_scopes.getFelt("excluded");
 
     if (!excluded.isOne()) {
-        try hint_utils.insertValueIntoAp(allocator, vm, Felt252.one());
+        try hint_utils.insertValueIntoAp(allocator, vm, MaybeRelocatable.fromFelt(Felt252.one()));
     } else {
-        try hint_utils.insertValueIntoAp(allocator, vm, Felt252.zero());
+        try hint_utils.insertValueIntoAp(allocator, vm, MaybeRelocatable.fromFelt(Felt252.zero()));
     }
 }
 
 pub fn assertLeFeltExcluded2(exec_scopes: *ExecutionScopes) !void {
     const excluded = try exec_scopes.getFelt("excluded");
 
-    if (excluded != Felt252.fromInt(u256, 2)) {
+    if (!excluded.equal(Felt252.fromInt(u256, 2))) {
         return HintError.ExcludedNot2;
     }
+}
+
+// Implements hint:
+// %{
+//     from starkware.cairo.common.math_utils import assert_integer
+//     assert_integer(ids.a)
+//     assert_integer(ids.b)
+//     assert (ids.a % PRIME) < (ids.b % PRIME), \
+//         f'a = {ids.a % PRIME} is not less than b = {ids.b % PRIME}.'
+// %}
+pub fn assertLtFelt(
+    vm: *CairoVM,
+    ids_data: std.StringHashMap(HintReference),
+    ap_tracking: ApTracking,
+) !void {
+    const a = try hint_utils.getIntegerFromVarName("a", vm, ids_data, ap_tracking);
+    const b = try hint_utils.getIntegerFromVarName("b", vm, ids_data, ap_tracking);
+    // Main logic
+    // assert_integer(ids.a)
+    // assert_integer(ids.b)
+    // assert (ids.a % PRIME) < (ids.b % PRIME), \
+    //     f'a = {ids.a % PRIME} is not less than b = {ids.b % PRIME}.'
+    if (a.ge(b)) {
+        return HintError.AssertLtFelt252;
+    }
+}
+
+//Implements hint: from starkware.cairo.common.math_utils import as_int
+//        # Correctness check.
+//        value = as_int(ids.value, PRIME) % PRIME
+//        assert value < ids.UPPER_BOUND, f'{value} is outside of the range [0, 2**250).'
+//        # Calculation for the assertion.
+//        ids.high, ids.low = divmod(ids.value, ids.SHIFT)
+pub fn assert250Bit(
+    vm: *CairoVM,
+    ids_data: std.StringHashMap(HintReference),
+    ap_tracking: ApTracking,
+    constants: *std.StringHashMap(Felt252),
+) !void {
+    const UPPER_BOUND = "starkware.cairo.common.math.assert_250_bit.UPPER_BOUND";
+    const SHIFT = "starkware.cairo.common.math.assert_250_bit.SHIFT";
+    //Declare constant values
+    const upper_bound = constants
+        .get(UPPER_BOUND) orelse try hint_utils.getConstantFromVarName("UPPER_BOUND", constants);
+    const shift = constants
+        .get(SHIFT) orelse try hint_utils.getConstantFromVarName("SHIFT", constants);
+    var value = try hint_utils.getIntegerFromVarName(
+        "value",
+        vm,
+        ids_data,
+        ap_tracking,
+    );
+
+    value = Felt252.fromSignedInt(u256, value.toSignedInt());
+
+    //Main logic
+    if (value.gt(upper_bound)) {
+        return HintError.ValueOutside250BitRange;
+    }
+
+    const qr = try value.divRem(shift);
+
+    try hint_utils.insertValueFromVarName("high", qr[0], vm, ids_data, ap_tracking);
+    try hint_utils.insertValueFromVarName("low", qr[1], vm, ids_data, ap_tracking);
 }
 
 // importing testing utils for tests
@@ -1106,5 +1157,82 @@ test "MathHints: assertLeFelt invalid" {
     try std.testing.expectError(
         HintError.NonLeFelt252,
         hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, &constants, &exec_scopes),
+    );
+}
+
+test "MathHints: assertLtFelt valid" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    _ = try vm.addMemorySegment();
+
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    var ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{
+        .{
+            .name = "a",
+            .elems = &.{
+                MaybeRelocatable.fromFelt(Felt252.fromInt(u32, 1)),
+            },
+        },
+        .{
+            .name = "b",
+            .elems = &.{
+                MaybeRelocatable.fromFelt(Felt252.fromInt(u32, 2)),
+            },
+        },
+    }, &vm);
+    defer ids_data.deinit();
+
+    const hint_processor: HintProcessor = .{};
+    var hint_data = HintData.init(
+        hint_codes.ASSERT_LT_FELT,
+        ids_data,
+        .{},
+    );
+
+    try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
+}
+
+test "MathHints: assertLtFelt invalid" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    _ = try vm.addMemorySegment();
+
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    var ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{
+        .{
+            .name = "a",
+            .elems = &.{
+                MaybeRelocatable.fromFelt(Felt252.fromInt(u32, 3)),
+            },
+        },
+        .{
+            .name = "b",
+            .elems = &.{
+                MaybeRelocatable.fromFelt(Felt252.fromInt(u32, 2)),
+            },
+        },
+    }, &vm);
+    defer ids_data.deinit();
+
+    const hint_processor: HintProcessor = .{};
+    var hint_data = HintData.init(
+        hint_codes.ASSERT_LT_FELT,
+        ids_data,
+        .{},
+    );
+
+    try std.testing.expectError(
+        HintError.AssertLtFelt252,
+        hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined),
     );
 }

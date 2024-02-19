@@ -13,6 +13,19 @@ const Allocator = std.mem.Allocator;
 const HintError = @import("../vm/error.zig").HintError;
 const hint_processor_utils = @import("hint_processor_utils.zig");
 
+pub fn getConstantFromVarName(
+    var_name: []const u8,
+    constants: *const std.StringHashMap(Felt252),
+) !Felt252 {
+    while (constants.iterator().next()) |k|
+        if (std.mem.eql(
+            u8,
+            std.mem.splitBackwardsScalar(u8, k.key_ptr.*, '.').next() orelse continue,
+            var_name,
+        )) return k.value_ptr.*;
+
+    return HintError.MissingConstant;
+}
 //Inserts value into the address of the given ids variable
 pub fn insertValueFromVarName(
     allocator: Allocator,

@@ -2,8 +2,9 @@ const std = @import("std");
 const builtin = @import("builtin");
 const ArrayList = std.ArrayList;
 
-const tonelliShanks = @import("./helper.zig").tonelliShanks;
-const extendedGCD = @import("./helper.zig").extendedGCD;
+const helper = @import("helper.zig");
+const tonelliShanks = helper.tonelliShanks;
+const extendedGCD = helper.extendedGCD;
 
 pub const ModSqrtError = error{
     InvalidInput,
@@ -579,6 +580,19 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             return Self.fromInt(u256, @intCast(t));
         }
 
+        /// Quotient and remainder between `self` and `rhs`.
+        pub fn divRem(
+            self: Self,
+            rhs: Self,
+        ) !struct { q: Self, r: Self } {
+            const qr = try helper.divRem(self.toInteger(), rhs.toInteger());
+
+            return .{
+                .q = Self.fromInt(u256, qr[0]),
+                .r = Self.fromInt(u256, qr[1]),
+            };
+        }
+
         /// Divide one field element by another.
         ///
         /// Divides the current field element by another field element.
@@ -604,12 +618,12 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             );
         }
 
-        pub fn fromSignedInt(comptime T: type, signed: T) Self {
-            if (signed < 0) {
-                return Self.fromInt(T, -signed).neg();
+        pub fn fromSignedInt(comptime T: type, signed: struct { positive: bool, abs: T }) Self {
+            if (!signed.positive) {
+                return Self.fromInt(T, signed.abs).neg();
             }
 
-            return Self.fromInt(i256, signed);
+            return Self.fromInt(T, signed.abs);
         }
 
         // converting felt to abs value with sign
