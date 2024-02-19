@@ -618,15 +618,17 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             );
         }
 
-        pub fn fromSignedInt(comptime T: type, signed: struct { positive: bool, abs: T }) Self {
-            if (!signed.positive) {
-                return Self.fromInt(T, signed.abs).neg();
+        pub fn fromSignedInt(comptime T: type, positive: bool, value: T) Self {
+            std.debug.assert(value >= 0);
+
+            if (!positive) {
+                return Self.fromInt(T, value).neg();
             }
 
-            return Self.fromInt(T, signed.abs);
+            return Self.fromInt(T, value);
         }
 
-        // converting felt to abs value with sign
+        // converting felt to abs value with sign, in (- FIELD / 2, FIELD / 2
         pub fn toSignedInt(self: Self) struct { positive: bool, abs: u256 } {
             const val = self.toInteger();
             if (val > SIGNED_FELT_MAX) {

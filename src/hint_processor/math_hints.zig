@@ -95,9 +95,9 @@ pub fn verifyEcdsaSignature(
 
     const ecdsa_ptr = try hint_utils.getPtrFromVarName("ecdsa_ptr", vm, ids_data, ap_tracking);
 
-    const builtin_runner = try vm.getBuiltinRunner(.Signature);
+    const builtin_runner = try vm.getSignatureBuiltin();
 
-    try builtin_runner.Signature.addSignature(ecdsa_ptr, .{
+    try builtin_runner.addSignature(ecdsa_ptr, .{
         r,
         s,
     });
@@ -547,7 +547,7 @@ test "MathHints: assertNN invalid" {
         .{
             .name = "a",
             .elems = &.{
-                MaybeRelocatable.fromFelt(Felt252.fromSignedInt(i32, -1)),
+                MaybeRelocatable.fromFelt(Felt252.fromSignedInt(i32, false, 1)),
             },
         },
     }, &vm);
@@ -583,7 +583,7 @@ test "MathHints: assertNN incorrect ids" {
         .{
             .name = "incorrect_id",
             .elems = &.{
-                MaybeRelocatable.fromFelt(Felt252.fromSignedInt(i32, -1)),
+                MaybeRelocatable.fromFelt(Felt252.fromSignedInt(i32, false, 1)),
             },
         },
     }, &vm);
@@ -835,7 +835,7 @@ test "MathHints: sqrt invalid negative number" {
         .{
             .name = "value",
             .elems = &.{
-                MaybeRelocatable.fromFelt(Felt252.fromSignedInt(i32, -81)),
+                MaybeRelocatable.fromFelt(Felt252.fromSignedInt(i32, false, 81)),
             },
         },
         .{
@@ -962,7 +962,7 @@ test "MathHints: unsigned div rem out of range" {
         .{
             .name = "div",
             .elems = &.{
-                MaybeRelocatable.fromFelt(Felt252.fromSignedInt(i32, -7)),
+                MaybeRelocatable.fromFelt(Felt252.fromSignedInt(i32, false, 7)),
             },
         },
         .{
@@ -1012,7 +1012,7 @@ test "MathHints: unsigned div rem  incorrect ids" {
         .{
             .name = "diiiv",
             .elems = &.{
-                MaybeRelocatable.fromFelt(Felt252.fromSignedInt(i32, -7)),
+                MaybeRelocatable.fromFelt(Felt252.fromSignedInt(i32, false, 7)),
             },
         },
         .{
