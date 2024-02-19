@@ -196,16 +196,14 @@ pub const CairoVM = struct {
         return &self.builtin_runners;
     }
 
-    /// Gets builtin runner by name
-    /// if not exist return not found builtin error
-    pub fn getBuiltinRunner(self: *Self, name: BuiltinName) !*BuiltinRunner {
-        for (self.builtin_runners.items) |*runner| {
-            if (@intFromEnum(runner.*) == @intFromEnum(name)) {
-                return runner;
-            }
-        }
+    pub fn getSignatureBuiltin(self: *const Self) !*builtin_runner.SignatureBuiltinRunner {
+        for (self.builtin_runners.items) |*runner|
+            switch (runner.*) {
+                .Signature => |*signature_builtin| return signature_builtin,
+                else => {},
+            };
 
-        return CairoVMError.NotFoundBuiltin;
+        return CairoVMError.NoSignatureBuiltin;
     }
 
     pub fn insertInMemory(

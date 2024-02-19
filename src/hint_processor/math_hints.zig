@@ -94,9 +94,9 @@ pub fn verifyEcdsaSignature(
 
     const ecdsa_ptr = try hint_utils.getPtrFromVarName("ecdsa_ptr", vm, ids_data, ap_tracking);
 
-    const builtin_runner = try vm.getBuiltinRunner(.Signature);
+    const builtin_runner = try vm.getSignatureBuiltin();
 
-    try builtin_runner.Signature.addSignature(ecdsa_ptr, .{
+    try builtin_runner.addSignature(ecdsa_ptr, .{
         r,
         s,
     });
