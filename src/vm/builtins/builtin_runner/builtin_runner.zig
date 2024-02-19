@@ -243,6 +243,7 @@ pub const BuiltinRunner = union(BuiltinName) {
     /// The total number of used instances as a `usize`, or an error if calculation fails.
     pub fn getUsedInstances(self: *Self, segments: *MemorySegmentManager) !usize {
         return switch (self.*) {
+            .SegmentArena => 0,
             inline else => |*builtin| try builtin.getUsedInstances(segments),
         };
     }
