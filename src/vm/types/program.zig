@@ -32,6 +32,25 @@ pub const HintRange = struct {
     length: usize,
 };
 
+pub const HintsRanges = union(enum) {
+    const Self = @This();
+
+    Extensive: std.HashMap(
+        Relocatable,
+        HintRange,
+        std.hash_map.AutoContext(Relocatable),
+        std.hash_map.default_max_load_percentage,
+    ),
+    NonExtensive: std.ArrayList(HintRange),
+
+    pub fn deinit(self: *Self) void {
+        switch (self.*) {
+            .Extensive => self.Extensive.deinit(),
+            .NonExtensive => self.NonExtensive.deinit(),
+        }
+    }
+};
+
 pub const Hints = std.ArrayList(HintParams);
 
 /// Represents a collection of hints.
@@ -42,12 +61,7 @@ pub const HintsCollection = struct {
     /// List of HintParams.
     hints: Hints,
     /// Map of Relocatable to HintRange.
-    hints_ranges: std.HashMap(
-        Relocatable,
-        HintRange,
-        std.hash_map.AutoContext(Relocatable),
-        std.hash_map.default_max_load_percentage,
-    ),
+    hints_ranges: HintsRanges,
 
     /// Initializes a new HintsCollection.
     ///
@@ -71,13 +85,13 @@ pub const HintsCollection = struct {
         }
 
         var hints_values = try std.ArrayList(HintParams).initCapacity(allocator, total_hints_len);
-        var hints_ranges_non_ext: ?std.ArrayList(std.meta.Tuple(.{ usize, usize })) = null;
-        var hints_ranges_ext: ?std.AutoHashMap(Relocatable, std.meta.Tuple(.{ usize, usize })) = null;
+        var hints_ranges_non_ext: ?std.ArrayList(HintRange) = null;
+        var hints_ranges_ext: ?std.AutoHashMap(Relocatable, HintRange) = null;
 
         if (extensive_hints) {
-            hints_ranges_ext = std.AutoHashMap(Relocatable, std.meta.Tuple(.{ usize, usize })).init(allocator);
+            hints_ranges_ext = std.AutoHashMap(Relocatable, HintRange).init(allocator);
         } else {
-            hints_ranges_non_ext = std.ArrayList(std.meta.Tuple(.{ usize, usize })).init(allocator);
+            hints_ranges_non_ext = std.ArrayList(HintRange).init(allocator);
         }
 
         it = hints.iterator();
@@ -86,17 +100,28 @@ pub const HintsCollection = struct {
                 const range = .{ hints_values.items.len, kv.value_ptr.items.len };
                 if (extensive_hints) {
                     try hints_ranges_ext.?.put(Relocatable.new(0, kv.key_ptr.*), range);
-                    try hints_values.appendSlice(kv.value_ptr.items);
                 } else {
                     try hints_ranges_non_ext.?.append(range);
                 }
+                try hints_values.appendSlice(kv.value_ptr.items);
             }
         }
 
-        // return Self {
-        //     .hints = hints_values,
-        //     .hint_ranges = hint
-        // }
+        if (extensive_hints) {
+            return Self{
+                .hints = hints_values,
+                .hint_ranges = HintsRanges{
+                    .Extensive = hints_ranges_ext.?,
+                },
+            };
+        } else {
+            return Self{
+                .hints = hints_values,
+                .hint_ranges = HintsRanges{
+                    .NonExtensive = hints_ranges_non_ext.?,
+                },
+            };
+        }
     }
 
     /// Initializes a new default HintsCollection.
@@ -106,10 +131,7 @@ pub const HintsCollection = struct {
     pub fn initDefault(allocator: Allocator) Self {
         return .{
             .hints = std.ArrayList(HintParams).init(allocator),
-            .hints_ranges = std.AutoHashMap(
-                Relocatable,
-                HintRange,
-            ).init(allocator),
+            .hints_ranges = HintsRanges{ .Extensive = std.AutoHashMap(Relocatable, HintRange).init(allocator) },
         };
     }
 
@@ -187,7 +209,7 @@ pub const SharedProgramData = struct {
     pub fn init(allocator: Allocator) Self {
         return .{
             .data = std.ArrayList(MaybeRelocatable).init(allocator),
-            .hints_collection = HintsCollection.init(allocator),
+            .hints_collection = HintsCollection.initDefault(allocator),
             .main = null,
             .start = null,
             .end = null,

@@ -66,7 +66,6 @@ pub const ApTracking = struct {
     group: usize = 0,
     /// Reflects Ap register changes within the same `group`.
     offset: usize = 0,
-   
 };
 
 /// Represents tracking data for references considering various program flows.
@@ -763,7 +762,7 @@ pub const ProgramJson = struct {
             if (max_hint_pc >= self.data.?.len) return ProgramError.InvalidHintPc;
 
             // Initialize a new HintsCollection.
-            var hints_collection = HintsCollection.init(allocator);
+            var hints_collection = HintsCollection.initDefault(allocator);
             errdefer hints_collection.deinit();
 
             // Iterate over the hints map to populate the HintsCollection.
@@ -775,7 +774,7 @@ pub const ProgramJson = struct {
                     if (entry.value_ptr.len <= 0) return ProgramError.EmptyVecAlreadyFiltered;
 
                     // Populate hints_ranges and hints in the HintsCollection.
-                    try hints_collection.hints_ranges.put(
+                    try hints_collection.hints_ranges.Extensive.put(
                         Relocatable.init(
                             0,
                             try std.fmt.parseInt(u64, entry.key_ptr.*, 10),
@@ -793,7 +792,7 @@ pub const ProgramJson = struct {
         }
 
         // Return an empty HintsCollection if there are no valid hints.
-        return HintsCollection.init(allocator);
+        return HintsCollection.initDefault(allocator);
     }
 };
 
