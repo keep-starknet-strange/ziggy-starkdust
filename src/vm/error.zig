@@ -263,3 +263,7 @@ pub const HintError = error{
 
     ExcludedNot2,
 };
+
+pub const InsufficientAllocatedCellsError = error{
+    MinStepNotReached,
+};

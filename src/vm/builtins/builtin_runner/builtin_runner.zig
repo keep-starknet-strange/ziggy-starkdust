@@ -5,6 +5,7 @@ const Tuple = std.meta.Tuple;
 const MemorySegmentManager = @import("../../memory/segments.zig").MemorySegmentManager;
 const CairoVM = @import("../../../vm/core.zig").CairoVM;
 const MemoryError = @import("../../../vm/error.zig").MemoryError;
+const InsufficientAllocatedCellsError = @import("../../../vm/error.zig").InsufficientAllocatedCellsError;
 const BitwiseBuiltinRunner = @import("./bitwise.zig").BitwiseBuiltinRunner;
 const EcOpBuiltinRunner = @import("./ec_op.zig").EcOpBuiltinRunner;
 const HashBuiltinRunner = @import("./hash.zig").HashBuiltinRunner;
@@ -295,9 +296,69 @@ pub const BuiltinRunner = union(enum) {
     /// The total number of used memory cells as a `usize`, or an error if calculation fails.
     pub fn getUsedCells(self: *Self, segments: *MemorySegmentManager) !usize {
         return switch (self.*) {
+            .SegmentArena => 0,
             inline else => |*builtin| try builtin.getUsedCells(segments),
         };
     }
+
+    /// Retrieves the number of allocated memory units associated with the built-in runner.
+    ///
+    /// This function calculates and returns the total number of allocated memory units managed by
+    /// the specific type of built-in runner. It takes into account various factors such as ratio,
+    /// current step, instances per component, and cells per instance to compute the allocation.
+    ///
+    /// # Arguments
+    ///
+    /// - `vm`: A pointer to the `CairoVM` containing relevant information for computation.
+    ///
+    /// # Returns
+    ///
+    /// The total number of allocated memory units as a `usize`, or an error if calculation fails.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if any error occurs during the computation.
+    ///
+    pub fn getAllocatedMemoryUnits(self: *Self, vm: *CairoVM) !usize {
+        switch (self.*) {
+            // For Output and SegmentArena built-in runners, return 0 as they do not allocate memory units
+            .Output, .SegmentArena => return 0,
+            // For other types of built-in runners
+            else => {
+                // Check if the built-in runner has a ratio
+                if (self.ratio()) |r| {
+                    // Ensure that the current step is sufficient for allocation based on the ratio
+                    if (vm.current_step < r * self.getInstancesPerComponent())
+                        return InsufficientAllocatedCellsError.MinStepNotReached;
+
+                    // Calculate the value based on the current step and ratio
+                    const value: usize = std.math.divExact(usize, vm.current_step, r) catch
+                        return MemoryError.ErrorCalculatingMemoryUnits;
+
+                    // Return the value multiplied by the cells per instance
+                    return value * self.cellsPerInstance();
+                }
+
+                // Calculate instances and components based on used cells and instances per component
+                const instances: usize = (try self.getUsedCells(vm.segments)) / self.cellsPerInstance();
+                const components: usize = @intCast(std.math.ceilPowerOfTwoPromote(
+                    usize,
+                    @intCast((instances / self.getInstancesPerComponent())),
+                ));
+
+                // Return the calculated allocation based on cells per instance, instances per component, and components
+                return @as(usize, @intCast(self.cellsPerInstance())) *
+                    @as(usize, @intCast(self.getInstancesPerComponent())) *
+                    components;
+            },
+        }
+    }
+
+    // pub fn getUsedPermRangeCheckUnits(self: *Self, vm: *CairoVM) !usize {
+    //     return switch (self.*) {
+    //     .RangeCheck => |range_check|
+    //     };
+    // }
 
     /// Retrieves the number of used instances associated with the built-in runner.
     ///
@@ -615,4 +676,191 @@ test "BuiltinRunner: getMemoryAccesses with real data" {
 
     // Verify that the actual memory accesses match the expected memory accesses
     try expectEqualSlices(Relocatable, expected.items, actual.items);
+}
+
+test "BuiltinRunner: getAllocatedMemoryUnits with Keccak builtin with items" {
+    // Initialize an ArrayList to represent the state representation
+    var state_rep = ArrayList(u32).init(std.testing.allocator);
+    // Ensure the ArrayList is deallocated at the end of the test
+    defer state_rep.deinit();
+    // Append 200 elements with the value 8 to the state representation ArrayList
+    try state_rep.appendNTimes(200, 8);
+
+    // Initialize a KeccakInstanceDef with a capacity of 10 and the state representation ArrayList
+    var keccak_instance_def = KeccakInstanceDef.init(10, state_rep);
+
+    // Initialize a BuiltinRunner union with the KeccakBuiltinRunner variant
+    var builtin: BuiltinRunner = .{
+        .Keccak = KeccakBuiltinRunner.init(
+            std.testing.allocator,
+            &keccak_instance_def,
+            true,
+        ),
+    };
+
+    // Initialize a Cairo VM
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    // Ensure the Cairo VM is properly deallocated at the end of the test
+    defer vm.deinit();
+    // Set the current step of the Cairo VM to 160
+    vm.current_step = 160;
+
+    // Verify that the result of getAllocatedMemoryUnits(&vm) is equal to 256 when casted to usize
+    try expectEqual(@as(usize, 256), try builtin.getAllocatedMemoryUnits(&vm));
+}
+
+test "BuiltinRunner: getAllocatedMemoryUnits with Keccak builtin and minimum step not reached" {
+    // Initialize an ArrayList to represent the state representation
+    var state_rep = ArrayList(u32).init(std.testing.allocator);
+    // Ensure the ArrayList is deallocated at the end of the test
+    defer state_rep.deinit();
+    // Append 200 elements with the value 8 to the state representation ArrayList
+    try state_rep.appendNTimes(200, 8);
+
+    // Initialize a KeccakInstanceDef with a capacity of 10 and the state representation ArrayList
+    var keccak_instance_def = KeccakInstanceDef.init(10, state_rep);
+
+    // Initialize a BuiltinRunner union with the KeccakBuiltinRunner variant
+    var builtin: BuiltinRunner = .{
+        .Keccak = KeccakBuiltinRunner.init(
+            std.testing.allocator,
+            &keccak_instance_def,
+            true,
+        ),
+    };
+
+    // Initialize a Cairo VM
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    // Ensure the Cairo VM is properly deallocated at the end of the test
+    defer vm.deinit();
+    // Set the current step of the Cairo VM to 10
+    vm.current_step = 10;
+
+    // Verify that calling getAllocatedMemoryUnits(&vm) results in an InsufficientAllocatedCellsError
+    try expectError(
+        InsufficientAllocatedCellsError.MinStepNotReached,
+        builtin.getAllocatedMemoryUnits(&vm),
+    );
+}
+
+test "BuiltinRunner: getAllocatedMemoryUnits with output builtin" {
+    // Initialize a BuiltinRunner union with the OutputBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .Output = OutputBuiltinRunner.init(std.testing.allocator, true) };
+
+    // Initialize a Cairo VM
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    // Ensure the Cairo VM is properly deallocated at the end of the test
+    defer vm.deinit();
+
+    // Verify that the result of getAllocatedMemoryUnits(&vm) is equal to 0 when casted to usize
+    try expectEqual(
+        @as(usize, 0),
+        builtin.getAllocatedMemoryUnits(&vm),
+    );
+}
+
+test "BuiltinRunner: getAllocatedMemoryUnits with range check builtin" {
+    // Initialize a BuiltinRunner union with the RangeCheckBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true) };
+
+    // Initialize a Cairo VM
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    // Ensure the Cairo VM is properly deallocated at the end of the test
+    defer vm.deinit();
+
+    // Set the current step of the Cairo VM to 8
+    vm.current_step = 8;
+
+    // Verify that the result of getAllocatedMemoryUnits(&vm) is equal to 1 when casted to usize
+    try expectEqual(
+        @as(usize, 1),
+        builtin.getAllocatedMemoryUnits(&vm),
+    );
+}
+
+test "BuiltinRunner: getAllocatedMemoryUnits with hash builtin" {
+    // Initialize a BuiltinRunner union with the HashBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .Hash = HashBuiltinRunner.init(std.testing.allocator, 1, true) };
+
+    // Initialize a Cairo VM
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    // Ensure the Cairo VM is properly deallocated at the end of the test
+    defer vm.deinit();
+
+    // Set the current step of the Cairo VM to 1
+    vm.current_step = 1;
+
+    // Verify that the result of getAllocatedMemoryUnits(&vm) is equal to 3 when casted to usize
+    try expectEqual(
+        @as(usize, 3),
+        builtin.getAllocatedMemoryUnits(&vm),
+    );
+}
+
+test "BuiltinRunner: getAllocatedMemoryUnits with bitwise builtin" {
+    // Initialize a BuiltinRunner union with the BitwiseBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .Bitwise = .{} };
+
+    // Initialize a Cairo VM
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    // Ensure the Cairo VM is properly deallocated at the end of the test
+    defer vm.deinit();
+
+    // Set the current step of the Cairo VM to 256
+    vm.current_step = 256;
+
+    // Verify that the result of getAllocatedMemoryUnits(&vm) is equal to 5 when casted to usize
+    try expectEqual(
+        @as(usize, 5),
+        builtin.getAllocatedMemoryUnits(&vm),
+    );
+}
+
+test "BuiltinRunner: getAllocatedMemoryUnits with elliptic curve operation builtin" {
+    // Initialize a BuiltinRunner union with the EcOpBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .EcOp = EcOpBuiltinRunner.initDefault(std.testing.allocator) };
+
+    // Initialize a Cairo VM
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    // Ensure the Cairo VM is properly deallocated at the end of the test
+    defer vm.deinit();
+
+    // Set the current step of the Cairo VM to 256
+    vm.current_step = 256;
+
+    // Verify that the result of getAllocatedMemoryUnits(&vm) is equal to 7 when casted to usize
+    try expectEqual(
+        @as(usize, 7),
+        builtin.getAllocatedMemoryUnits(&vm),
+    );
+}
+
+test "BuiltinRunner: getAllocatedMemoryUnits with keccak builtin" {
+    // Initialize a default Keccak instance definition
+    var keccak_instance_def = try KeccakInstanceDef.initDefault(std.testing.allocator);
+
+    // Initialize a BuiltinRunner union with the KeccakBuiltinRunner variant
+    var builtin: BuiltinRunner = .{
+        .Keccak = KeccakBuiltinRunner.init(
+            std.testing.allocator,
+            &keccak_instance_def,
+            true,
+        ),
+    };
+    // Ensure proper deallocation of the built-in runner at the end of the test
+    defer builtin.deinit();
+
+    // Initialize a Cairo VM
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    // Ensure the Cairo VM is properly deallocated at the end of the test
+    defer vm.deinit();
+
+    // Set the current step of the Cairo VM to 32768
+    vm.current_step = 32768;
+
+    // Verify that the result of getAllocatedMemoryUnits(&vm) is equal to 256 when casted to usize
+    try expectEqual(
+        @as(usize, 256),
+        builtin.getAllocatedMemoryUnits(&vm),
+    );
 }
