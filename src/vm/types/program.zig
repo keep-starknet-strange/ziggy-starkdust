@@ -164,22 +164,24 @@ pub const HintsCollection = struct {
         var res = std.AutoHashMap(usize, []const HintParams).init(allocator);
         errdefer res.deinit();
 
-        if (self.hints_ranges.isExtensive()) {
-            // Iterate over hints_ranges to populate the AutoHashMap.
-            var it = self.hints_ranges.Extensive.iterator();
+        if (!self.hints_ranges.isExtensive()) {
+            return ProgramError.NonExtensiveHints;
+        }
 
-            while (it.next()) |kv| {
-                // Calculate the end index of the hint slice.
-                const end = kv.value_ptr.start + kv.value_ptr.length;
+        // Iterate over hints_ranges to populate the AutoHashMap.
+        var it = self.hints_ranges.Extensive.iterator();
 
-                // Check if the end index is within bounds of hints.items.
-                if (end <= self.hints.items.len) {
-                    // Put the offset and corresponding hint slice into the AutoHashMap.
-                    try res.put(
-                        kv.key_ptr.offset,
-                        self.hints.items[kv.value_ptr.start..end],
-                    );
-                }
+        while (it.next()) |kv| {
+            // Calculate the end index of the hint slice.
+            const end = kv.value_ptr.start + kv.value_ptr.length;
+
+            // Check if the end index is within bounds of hints.items.
+            if (end <= self.hints.items.len) {
+                // Put the offset and corresponding hint slice into the AutoHashMap.
+                try res.put(
+                    kv.key_ptr.offset,
+                    self.hints.items[kv.value_ptr.start..end],
+                );
             }
         }
 
@@ -318,7 +320,7 @@ pub const Program = struct {
         return .{
             .shared_program_data = .{
                 .data = data,
-                .hints_collection = HintsCollection.initDefault(allocator),
+                .hints_collection = try HintsCollection.init(allocator, hints, data.len, true),
                 .main = main,
                 .error_message_attributes = error_message_attributes,
                 .instruction_locations = instruction_locations,

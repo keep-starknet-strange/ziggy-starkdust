@@ -193,6 +193,7 @@ pub const MathError = error{
     RelocatableMul,
     ByteConversionError,
     DividedByZero,
+    NonExtensiveHints,
 };
 
 /// Represents different error conditions that occur in trace relocation
