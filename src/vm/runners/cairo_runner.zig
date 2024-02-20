@@ -3,6 +3,9 @@ const json = std.json;
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 
+const HintData = @import("../../hint_processor/hint_processor_def.zig").HintData;
+const HintReference = @import("../../hint_processor/hint_processor_def.zig").HintReference;
+const HintProcessor = @import("../../hint_processor/hint_processor_def.zig").CairoVMHintProcessor;
 const BuiltinRunner = @import("../builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
 const Config = @import("../config.zig").Config;
 const CairoVM = @import("../core.zig").CairoVM;
@@ -12,6 +15,7 @@ const MaybeRelocatable = @import("../memory/relocatable.zig").MaybeRelocatable;
 const ProgramJson = @import("../types/programjson.zig").ProgramJson;
 const Program = @import("../types/program.zig").Program;
 const CairoRunnerError = @import("../error.zig").CairoRunnerError;
+const CairoVMError = @import("../error.zig").CairoVMError;
 const RunnerError = @import("../error.zig").RunnerError;
 const MemoryError = @import("../error.zig").MemoryError;
 const trace_context = @import("../trace_context.zig");
@@ -20,6 +24,8 @@ const starknet_felt = @import("../../math/fields/starknet.zig");
 const Felt252 = starknet_felt.Felt252;
 const OutputBuiltinRunner = @import("../builtins/builtin_runner/output.zig").OutputBuiltinRunner;
 const BitwiseBuiltinRunner = @import("../builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
+const ExecutionScopes = @import("../types/execution_scopes.zig").ExecutionScopes;
+const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -28,14 +34,14 @@ const expectEqualSlices = std.testing.expectEqualSlices;
 
 /// Tracks the step resources of a cairo execution run.
 const RunResources = struct {
-    const Self = @This();    
+    const Self = @This();
     // We consider the 'default' mode of RunResources having infinite steps.
     n_steps: ?usize = null,
 
     pub fn init(n_steps: usize) Self {
-        return .{.n_steps = n_steps};
+        return .{ .n_steps = n_steps };
     }
-    
+
     pub fn consumed(self: *Self) bool {
         if (self.n_steps) |n_steps| {
             return n_steps == 0;
@@ -57,7 +63,7 @@ const RunResources = struct {
 /// It is primarily used in the context of Starknet and implemented by HintProcessors.
 const ResourceTracker = struct {
     const Self = @This();
-    
+
     // define interface fields: ptr,vtab
     ptr: *anyopaque, //ptr to instance
     vtab: *const VTab, //ptr to vtab
@@ -85,14 +91,14 @@ const ResourceTracker = struct {
         std.debug.assert(@typeInfo(PtrInfo.Pointer.child) == .Struct); // Must point to a struct
         const impl = struct {
             fn consumed(ptr: *anyopaque) bool {
-                const self: Ptr = @ptrCast(@alignCast(ptr));                
+                const self: Ptr = @ptrCast(@alignCast(ptr));
                 return self.consumed();
             }
             fn consumeStep(ptr: *anyopaque) void {
-                const self: Ptr = @ptrCast(@alignCast(ptr));                                
+                const self: Ptr = @ptrCast(@alignCast(ptr));
                 self.consumeStep();
             }
-        }; 
+        };
         return .{
             .ptr = obj,
             .vtab = &.{
@@ -102,6 +108,8 @@ const ResourceTracker = struct {
         };
     }
 };
+
+pub const RunnerMode = enum { execution_mode, proof_mode_canonical, proof_mode_cairo1 };
 
 const BuiltinInfo = struct { segment_index: usize, stop_pointer: usize };
 
@@ -113,18 +121,20 @@ pub const CairoRunner = struct {
     vm: CairoVM,
     program_base: Relocatable = undefined,
     execution_base: Relocatable = undefined,
-    initial_pc: Relocatable = undefined,
-    initial_ap: Relocatable = undefined,
-    initial_fp: Relocatable = undefined,
+    initial_pc: ?Relocatable = null,
+    initial_ap: ?Relocatable = null,
+    initial_fp: ?Relocatable = null,
     final_pc: *Relocatable = undefined,
     instructions: std.ArrayList(MaybeRelocatable),
-    function_call_stack: std.ArrayList(MaybeRelocatable),
+    // function_call_stack: std.ArrayList(MaybeRelocatable),
     entrypoint_name: []const u8 = "main",
     layout: CairoLayout,
-    proof_mode: bool,
+    runner_mode: RunnerMode,
     run_ended: bool = false,
+    execution_public_memory: ?std.ArrayList(usize) = null,
     relocated_trace: []RelocatedTraceEntry = undefined,
     relocated_memory: ArrayList(?Felt252),
+    execution_scopes: ExecutionScopes = undefined,
 
     pub fn init(
         allocator: Allocator,
@@ -147,38 +157,52 @@ pub const CairoRunner = struct {
             },
             .instructions = instructions,
             .vm = vm,
-            .function_call_stack = std.ArrayList(MaybeRelocatable).init(allocator),
-            .proof_mode = proof_mode,
+            .runner_mode = if (proof_mode) .proof_mode_canonical else .execution_mode,
             .relocated_memory = ArrayList(?Felt252).init(allocator),
         };
+    }
+
+    pub fn isProofMode(self: *Self) bool {
+        return self.runner_mode == .proof_mode_canonical or self.runner_mode == .proof_mode_cairo1;
     }
 
     pub fn initBuiltins(self: *Self, vm: *CairoVM) !void {
         vm.builtin_runners = try CairoLayout.setUpBuiltinRunners(
             self.layout,
             self.allocator,
-            self.proof_mode,
+            self.isProofMode(),
             self.program.builtins.?,
         );
     }
 
     pub fn setupExecutionState(self: *Self) !Relocatable {
         try self.initBuiltins(&self.vm);
-        try self.initSegments();
+        try self.initSegments(null);
         const end = try self.initMainEntrypoint();
-        self.initVM();
+        try self.initVM();
         return end;
     }
 
     /// Initializes common segments for the execution of a cairo program.
-    pub fn initSegments(self: *Self) !void {
+    ///
+    /// This function initializes the memory segments required for the execution of a Cairo program.
+    /// It creates segments for the program base, execution stack, and built-in runners.
+    ///
+    /// # Arguments
+    ///
+    /// - `program_base`: An optional `Relocatable` representing the base address for the program.
+    ///
+    /// # Returns
+    ///
+    /// This function returns `void`.
+    pub fn initSegments(self: *Self, program_base: ?Relocatable) !void {
+        // Set the program base to the provided value or create a new segment.
+        self.program_base = if (program_base) |base| base else try self.vm.segments.addSegment();
 
-        // Common segments, as defined in pg 41 of the cairo paper
-        // stores the bytecode of the executed Cairo ProgramJson
-        self.program_base = try self.vm.segments.addSegment();
-        // stores the execution stack
+        // Create a segment for the execution stack.
         self.execution_base = try self.vm.segments.addSegment();
 
+        // Initialize segments for each built-in runner.
         for (self.vm.builtin_runners.items) |*builtin_runner| {
             try builtin_runner.initSegments(self.vm.segments);
         }
@@ -190,9 +214,9 @@ pub const CairoRunner = struct {
     /// Loads the function call stack to the execution segment.
     /// # Arguments
     /// - `entrypoint:` The address, relative to the program segment, where execution begins.
-    pub fn initState(self: *Self, entrypoint: usize) !void {
+    pub fn initState(self: *Self, entrypoint: usize, stack: *std.ArrayList(MaybeRelocatable)) !void {
         self.initial_pc = self.program_base;
-        self.initial_pc.addUintInPlace(entrypoint);
+        self.initial_pc.?.addUintInPlace(entrypoint);
 
         _ = try self.vm.segments.loadData(
             self.allocator,
@@ -203,11 +227,11 @@ pub const CairoRunner = struct {
         _ = try self.vm.segments.loadData(
             self.allocator,
             self.execution_base,
-            &self.function_call_stack,
+            stack,
         );
     }
 
-    pub fn initFunctionEntrypoint(self: *Self, entrypoint: usize, return_fp: Relocatable) !Relocatable {
+    pub fn initFunctionEntrypoint(self: *Self, entrypoint: usize, return_fp: Relocatable, stack: *std.ArrayList(MaybeRelocatable)) !Relocatable {
         var end = try self.vm.segments.addSegment();
 
         // per 6.1 of cairo whitepaper
@@ -216,28 +240,65 @@ pub const CairoRunner = struct {
         // but to situate the functionality with Cairo's read-only memory,
         // the frame pointer register is used to point to the current frame in the stack
         // the runner sets the return fp and establishes the end address that execution treats as the endpoint.
-        try self.function_call_stack.append(MaybeRelocatable.fromRelocatable(return_fp));
-        try self.function_call_stack.append(MaybeRelocatable.fromRelocatable(end));
+        try stack.append(MaybeRelocatable.fromRelocatable(return_fp));
+        try stack.append(MaybeRelocatable.fromRelocatable(end));
 
         self.initial_fp = self.execution_base;
-        self.initial_fp.addUintInPlace(@as(u64, self.function_call_stack.items.len));
+        self.initial_fp.?.addUintInPlace(@as(u64, stack.items.len));
         self.initial_ap = self.initial_fp;
 
         self.final_pc = &end;
-        try self.initState(entrypoint);
+        try self.initState(entrypoint, stack);
         return end;
     }
 
     /// Initializes runner state for execution of a program from the `main()` entrypoint.
     pub fn initMainEntrypoint(self: *Self) !Relocatable {
+        var stack = std.ArrayList(MaybeRelocatable).init(self.allocator);
+        defer stack.deinit();
+
         for (self.vm.builtin_runners.items) |*builtin_runner| {
             const builtin_stack = try builtin_runner.initialStack(self.allocator);
             defer builtin_stack.deinit();
             for (builtin_stack.items) |item| {
-                try self.function_call_stack.append(item);
+                try stack.append(item);
             }
         }
-        // TODO handle the case where we are running in proof mode
+
+        if (self.isProofMode()) {
+            var target_offset: usize = 2;
+
+            if (self.runner_mode == .proof_mode_canonical) {
+                var stack_prefix = try std.ArrayList(MaybeRelocatable).initCapacity(self.allocator, 2 + stack.items.len);
+                defer stack_prefix.deinit();
+
+                try stack_prefix.append(MaybeRelocatable.fromRelocatable(try self.execution_base.addUint(target_offset)));
+                try stack_prefix.appendSlice(stack.items);
+
+                var execution_public_memory = try std.ArrayList(usize).initCapacity(self.allocator, stack_prefix.items.len);
+                for (0..stack_prefix.items.len) |v| {
+                    try execution_public_memory.append(v);
+                }
+                self.execution_public_memory = execution_public_memory;
+
+                try self.initState(try (self.program.getStartPc() orelse RunnerError.NoProgramStart), &stack_prefix);
+            } else {
+                target_offset = stack.items.len + 2;
+
+                const return_fp = try self.vm.segments.addSegment();
+                const end = try self.vm.segments.addSegment();
+                try stack.append(MaybeRelocatable.fromRelocatable(return_fp));
+                try stack.append(MaybeRelocatable.fromRelocatable(end));
+
+                try self.initState(try (self.program.getStartPc() orelse RunnerError.NoProgramStart), &stack);
+            }
+
+            self.initial_fp = try self.execution_base.addUint(target_offset);
+            self.initial_ap = self.initial_fp;
+
+            return self.program_base.addUint(try (self.program.getEndPc() orelse RunnerError.NoProgramEnd));
+        }
+
         const return_fp = try self.vm.segments.addSegment();
         // Buffer for concatenation
         var buffer: [100]u8 = undefined;
@@ -245,16 +306,58 @@ pub const CairoRunner = struct {
         // Concatenate strings
         const full_entrypoint_name = try std.fmt.bufPrint(&buffer, "__main__.{s}", .{self.entrypoint_name});
 
-        const main_offset: usize = self.program.identifiers.?.map.get(full_entrypoint_name).?.pc orelse 0;
+        if (self.program.identifiers) |identifiers| {
+            if (identifiers.map.get(full_entrypoint_name)) |identifier| {
+                if (identifier.pc) |pc| {
+                    return self.initFunctionEntrypoint(pc, return_fp, &stack);
+                }
+            }
+        }
 
-        const end = try self.initFunctionEntrypoint(main_offset, return_fp);
-        return end;
+        return RunnerError.MissingMain;
     }
 
-    pub fn initVM(self: *Self) void {
-        self.vm.run_context.ap.* = self.initial_ap;
-        self.vm.run_context.fp.* = self.initial_fp;
-        self.vm.run_context.pc.* = self.initial_pc;
+    /// Initializes the runner's virtual machine (VM) state for execution.
+    ///
+    /// This function sets up the initial state of the VM, including the program counter (PC),
+    /// activation pointer (AP), and frame pointer (FP). It also adds validation rules for built-in runners
+    /// and validates the existing memory segments.
+    ///
+    /// # Arguments
+    ///
+    /// - `self`: A mutable reference to the `CairoRunner` instance.
+    ///
+    /// # Returns
+    ///
+    /// This function returns `void`. In case of errors, it returns a `RunnerError`.
+    pub fn initVM(self: *Self) !void {
+        // Set VM state: AP, FP, PC
+        self.vm.run_context.ap.* = self.initial_ap orelse return RunnerError.NoAP;
+        self.vm.run_context.fp.* = self.initial_fp orelse return RunnerError.NoFP;
+        self.vm.run_context.pc.* = self.initial_pc orelse return RunnerError.NoPC;
+
+        // Add validation rules for built-in runners
+        for (self.vm.builtin_runners.items) |*builtin_runner| {
+            try builtin_runner.addValidationRule(self.vm.segments.memory);
+        }
+
+        // Validate existing memory segments
+        self.vm.segments.memory.validateExistingMemory() catch return RunnerError.MemoryValidationError;
+    }
+
+    /// Gets the data used by the HintProcessor to execute each hint
+    pub fn getHintData(self: *Self, hint_processor: HintProcessor, references: []HintReference) !std.ArrayList(HintData) {
+        var result = std.ArrayList(HintData).init(self.allocator);
+        errdefer result.deinit();
+
+        const hints_collection = try self.program.getHintsCollections(self.allocator);
+        for (hints_collection.hints.items) |hint| {
+            try result.append(
+                try (hint_processor.compileHint(self.allocator, hint.code, hint.flow_tracking_data.ap_tracking, hint.flow_tracking_data.reference_ids, references) catch CairoVMError.CompileHintFail),
+            );
+        }
+
+        return result;
     }
 
     pub fn runUntilPC(self: *Self, end: Relocatable) !void {
@@ -382,7 +485,9 @@ pub const CairoRunner = struct {
         // currently handling the deinit of the json.Parsed(ProgramJson) outside of constructor
         // otherwise the runner would always assume json in its interface
         // self.program.deinit();
-        self.function_call_stack.deinit();
+
+        if (self.execution_public_memory) |execution_public_memory| execution_public_memory.deinit();
+
         self.instructions.deinit();
         self.layout.deinit();
         self.vm.deinit();
@@ -390,6 +495,180 @@ pub const CairoRunner = struct {
     }
 };
 
+test "CairoRunner: initMainEntrypoint no main" {
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        ProgramJson{},
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+
+    defer cairo_runner.deinit();
+
+    // Add an OutputBuiltinRunner to the CairoRunner without setting the stop pointer.
+    try cairo_runner.vm.builtin_runners.append(.{ .Output = OutputBuiltinRunner.initDefault(std.testing.allocator) });
+
+    if (cairo_runner.initMainEntrypoint()) |_| {
+        return error.ExpectedError;
+    } else |_| {}
+}
+
+test "CairoRunner: initVM should initialize the VM properly with no builtins" {
+    // Initialize a CairoRunner with an empty program, "plain" layout, and empty instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        ProgramJson{},
+        "plain",
+
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure proper cleanup.
+    defer cairo_runner.deinit();
+
+    // Set initial values for program_base, initial_pc, initial_ap, and initial_fp.
+    cairo_runner.program_base = Relocatable.init(0, 0);
+    cairo_runner.initial_pc = Relocatable.init(0, 1);
+    cairo_runner.initial_ap = Relocatable.init(1, 2);
+    cairo_runner.initial_fp = Relocatable.init(1, 2);
+
+    // Initialize the VM state using the initVM function.
+    try cairo_runner.initVM();
+
+    // Expect that the program counter (PC) is initialized correctly.
+    try expectEqual(
+        Relocatable.init(0, 1),
+        cairo_runner.vm.run_context.pc.*,
+    );
+    // Expect that the allocation pointer (AP) is initialized correctly.
+    try expectEqual(
+        Relocatable.init(1, 2),
+        cairo_runner.vm.run_context.ap.*,
+    );
+    // Expect that the frame pointer (FP) is initialized correctly.
+    try expectEqual(
+        Relocatable.init(1, 2),
+        cairo_runner.vm.run_context.fp.*,
+    );
+}
+
+test "CairoRunner: initVM should initialize the VM properly with Range Check builtin" {
+    // Initialize a CairoRunner with an empty program, "plain" layout, and empty instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        ProgramJson{},
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+    // Defer the deinitialization of the CairoRunner to ensure proper cleanup.
+    defer cairo_runner.deinit();
+
+    // Append a RangeCheckBuiltinRunner to the CairoRunner's list of built-in runners.
+    try cairo_runner.vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner{} });
+
+    // Set initial values for program_base, initial_pc, initial_ap, and initial_fp.
+    cairo_runner.initial_pc = Relocatable.init(0, 1);
+    cairo_runner.initial_ap = Relocatable.init(1, 2);
+    cairo_runner.initial_fp = Relocatable.init(1, 2);
+
+    // Initialize memory segments for the CairoRunner.
+    try cairo_runner.initSegments(null);
+
+    // Set up memory for the VM with specific addresses and values.
+    try cairo_runner.vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 2, 0 }, .{23} },
+            .{ .{ 2, 1 }, .{233} },
+        },
+    );
+    // Ensure data memory is deallocated after the test.
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Expect that the name of the first built-in runner is "range_check_builtin".
+    try expect(std.mem.eql(
+        u8,
+        cairo_runner.vm.builtin_runners.items[0].name(),
+        "range_check_builtin",
+    ));
+    // Expect that the base address of the first built-in runner is 2.
+    try expectEqual(
+        @as(usize, 2),
+        cairo_runner.vm.builtin_runners.items[0].base(),
+    );
+
+    // Initialize the VM state using the initVM function.
+    try cairo_runner.initVM();
+
+    // Expect that the validated addresses in memory match the expected addresses.
+    try expect(cairo_runner.vm.segments.memory.validated_addresses.contains(Relocatable.init(2, 0)));
+    try expect(cairo_runner.vm.segments.memory.validated_addresses.contains(Relocatable.init(2, 1)));
+
+    // Expect that the total number of validated addresses is 2.
+    try expect(cairo_runner.vm.segments.memory.validated_addresses.len() == 2);
+}
+
+test "CairoRunner: initVM should return an error with invalid Range Check builtin" {
+    // Initialize a CairoRunner with an empty program, "plain" layout, and empty instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        ProgramJson{},
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+    // Defer the deinitialization of the CairoRunner to ensure proper cleanup.
+    defer cairo_runner.deinit();
+
+    // Append a RangeCheckBuiltinRunner to the CairoRunner's list of built-in runners.
+    try cairo_runner.vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner{} });
+
+    // Set initial values for program_base, initial_pc, initial_ap, and initial_fp.
+    cairo_runner.initial_pc = Relocatable.init(0, 1);
+    cairo_runner.initial_ap = Relocatable.init(1, 2);
+    cairo_runner.initial_fp = Relocatable.init(1, 2);
+
+    // Initialize memory segments for the CairoRunner.
+    try cairo_runner.initSegments(null);
+
+    // Set up memory for the VM with specific addresses and values.
+    try cairo_runner.vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 2, 0 }, .{23} },
+        },
+    );
+    // Set an invalid value in memory for the Range Check builtin.
+    try cairo_runner.vm.segments.memory.set(
+        std.testing.allocator,
+        Relocatable.init(2, 4),
+        .{ .felt = Felt252.fromInt(u8, 1).neg() },
+    );
+    // Ensure data memory is deallocated after the test.
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Expect an error of type RunnerError.MemoryValidationError when initializing the VM.
+    try expectError(RunnerError.MemoryValidationError, cairo_runner.initVM());
+}
 
 test "RunResources: consumed and consumeStep" {
     // given
@@ -419,7 +698,7 @@ test "RunResources: with unlimited steps" {
     var run_resources = RunResources{};
 
     // default case has null for n_steps
-    try std.testing.expectEqual(null,run_resources.n_steps);
+    try std.testing.expectEqual(null, run_resources.n_steps);
 
     var tracker = ResourceTracker.init(&run_resources);
 
@@ -540,7 +819,8 @@ test "CairoRunner: relocateMemory should relocated memory properly with gaps" {
         ),
         false,
     );
-    defer cairo_runner.deinit(); // Ensure CairoRunner resources are cleaned up.
+    // Ensure CairoRunner resources are cleaned up.
+    defer cairo_runner.deinit();
 
     // Create four memory segments in the VM.
     inline for (0..4) |_| {
@@ -587,5 +867,110 @@ test "CairoRunner: relocateMemory should relocated memory properly with gaps" {
             Felt252.fromInt(u8, 5),
         },
         cairo_runner.relocated_memory.items,
+    );
+}
+
+test "CairoRunner: initSegments should initialize the segments properly with base" {
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        ProgramJson{},
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit();
+
+    // Append an OutputBuiltinRunner to the CairoRunner's list of built-in runners.
+    try cairo_runner.vm.builtin_runners.append(.{ .Output = OutputBuiltinRunner.initDefault(std.testing.allocator) });
+
+    // Add six additional segments to the CairoRunner's virtual machine.
+    inline for (0..6) |_| {
+        _ = try cairo_runner.vm.segments.addSegment();
+    }
+
+    // Initialize the segments for the CairoRunner with a provided base address (Relocatable).
+    try cairo_runner.initSegments(Relocatable.init(5, 9));
+
+    // Expect that the program base is initialized correctly.
+    try expectEqual(
+        Relocatable.init(5, 9),
+        cairo_runner.program_base,
+    );
+    // Expect that the execution base is initialized correctly.
+    try expectEqual(
+        Relocatable.init(6, 0),
+        cairo_runner.execution_base,
+    );
+    // Expect that the name of the first built-in runner is "output_builtin".
+    try expect(std.mem.eql(
+        u8,
+        cairo_runner.vm.builtin_runners.items[0].name(),
+        "output_builtin",
+    ));
+    // Expect that the base address of the first built-in runner is 7.
+    try expectEqual(
+        @as(usize, 7),
+        cairo_runner.vm.builtin_runners.items[0].base(),
+    );
+    // Expect that the total number of segments in the virtual machine is 8.
+    try expectEqual(
+        @as(usize, 8),
+        cairo_runner.vm.segments.numSegments(),
+    );
+}
+
+test "CairoRunner: initSegments should initialize the segments properly with no base" {
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        ProgramJson{},
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit();
+
+    // Append an OutputBuiltinRunner to the CairoRunner's list of built-in runners.
+    try cairo_runner.vm.builtin_runners.append(.{ .Output = OutputBuiltinRunner.initDefault(std.testing.allocator) });
+
+    // Initialize the segments for the CairoRunner with no provided base address (null).
+    try cairo_runner.initSegments(null);
+
+    // Expect that the program base is initialized correctly to (0, 0).
+    try expectEqual(
+        Relocatable.init(0, 0),
+        cairo_runner.program_base,
+    );
+    // Expect that the execution base is initialized correctly to (1, 0).
+    try expectEqual(
+        Relocatable.init(1, 0),
+        cairo_runner.execution_base,
+    );
+    // Expect that the name of the first built-in runner is "output_builtin".
+    try expect(std.mem.eql(
+        u8,
+        cairo_runner.vm.builtin_runners.items[0].name(),
+        "output_builtin",
+    ));
+    // Expect that the base address of the first built-in runner is 2.
+    try expectEqual(
+        @as(usize, 2),
+        cairo_runner.vm.builtin_runners.items[0].base(),
+    );
+    // Expect that the total number of segments in the virtual machine is 3.
+    try expectEqual(
+        @as(usize, 3),
+        cairo_runner.vm.segments.numSegments(),
     );
 }

@@ -81,11 +81,7 @@ pub const HashBuiltinRunner = struct {
     /// - `self`: Updates the `base` value to the new segment's index.
     pub fn initSegments(self: *Self, segments: *MemorySegmentManager) !void {
         // `segments.addSegment()` always returns a positive index
-        const seg = try segments.addSegment();
-        self.base = @as(
-            usize,
-            @intCast(seg.segment_index),
-        );
+        self.base = @intCast((try segments.addSegment()).segment_index);
     }
 
     /// Initializes and returns an `ArrayList` of `MaybeRelocatable` values.
@@ -100,14 +96,14 @@ pub const HashBuiltinRunner = struct {
     /// An `ArrayList` of `MaybeRelocatable` values.
     pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
         var result = ArrayList(MaybeRelocatable).init(allocator);
+        errdefer result.deinit();
         if (self.included) {
             try result.append(.{
-                .relocatable = Relocatable.new(
+                .relocatable = Relocatable.init(
                     @intCast(self.base),
                     0,
                 ),
             });
-            return result;
         }
         return result;
     }
@@ -136,10 +132,7 @@ pub const HashBuiltinRunner = struct {
     /// # Returns
     /// A tuple of `usize` and `?usize` addresses.
     pub fn getMemorySegmentAddresses(self: *Self) std.meta.Tuple(&.{ usize, ?usize }) {
-        return .{
-            self.base,
-            self.stop_ptr,
-        };
+        return .{ self.base, self.stop_ptr };
     }
 
     /// Calculates the number of used instances for the Hash runner.
@@ -263,6 +256,11 @@ pub const HashBuiltinRunner = struct {
 
         return (MaybeRelocatable.fromFelt(pedersen_result));
     }
+
+    /// Frees the resources owned by this instance of `HashBuiltinRunner`.
+    pub fn deinit(self: *Self) void {
+        self.verified_addresses.deinit();
+    }
 };
 
 test "HashBuiltinRunner: initialStack should return an empty array list if included is false" {
@@ -330,8 +328,8 @@ test "HashBuiltinRunner: final stack success" {
 
     try segment_used_size.put(0, 0);
     vm.segments.segment_used_sizes = segment_used_size;
-    const pointer = Relocatable.new(2, 2);
-    try expectEqual(Relocatable.new(2, 1), try hash_builtin.finalStack(vm.segments, pointer));
+    const pointer = Relocatable.init(2, 2);
+    try expectEqual(Relocatable.init(2, 1), try hash_builtin.finalStack(vm.segments, pointer));
 }
 
 test "HashBuiltinRunner: final stack error stop pointer" {
@@ -362,7 +360,7 @@ test "HashBuiltinRunner: final stack error stop pointer" {
     ).init(std.testing.allocator);
     try segment_used_size.put(0, 999);
     vm.segments.segment_used_sizes = segment_used_size;
-    const pointer = Relocatable.new(2, 2);
+    const pointer = Relocatable.init(2, 2);
     try expectError(RunnerError.InvalidStopPointer, hash_builtin.finalStack(vm.segments, pointer));
 }
 
@@ -387,8 +385,8 @@ test "HashBuiltinRunner: final stack error when not included" {
 
     try vm.segments.segment_used_sizes.put(0, 0);
 
-    const pointer = Relocatable.new(2, 2);
-    try expectEqual(Relocatable.new(2, 2), try hash_builtin.finalStack(vm.segments, pointer));
+    const pointer = Relocatable.init(2, 2);
+    try expectEqual(Relocatable.init(2, 2), try hash_builtin.finalStack(vm.segments, pointer));
 }
 
 test "HashBuiltinRunner: final stack error non relocatable" {
@@ -420,7 +418,7 @@ test "HashBuiltinRunner: final stack error non relocatable" {
 
     vm.segments.segment_used_sizes = segment_used_size;
 
-    const pointer = Relocatable.new(2, 2);
+    const pointer = Relocatable.init(2, 2);
     try expectError(CairoVMError.TypeMismatchNotRelocatable, hash_builtin.finalStack(vm.segments, pointer));
 }
 
@@ -442,7 +440,7 @@ test "HashBuiltinRunner: deduce memory cell pedersen for preset memory valid" {
         .{ .{ 0, 4 }, .{72} },
         .{ .{ 0, 5 }, .{0} },
     });
-    const res = (try hash_builtin.deduceMemoryCell(Relocatable.new(0, 5), memory_segment_manager.memory)).?;
+    const res = (try hash_builtin.deduceMemoryCell(Relocatable.init(0, 5), memory_segment_manager.memory)).?;
     try expectEqual(
         MaybeRelocatable.fromInt(u256, 0x73b3ec210cccbb970f80c6826fb1c40ae9f487617696234ff147451405c339f),
         res,
@@ -469,7 +467,7 @@ test "HashBuiltinRunner: deduce memory cell pedersen for preset memory incorrect
         .{ .{ 0, 6 }, .{0} },
     });
 
-    const res = (try hash_builtin.deduceMemoryCell(Relocatable.new(0, 6), memory_segment_manager.memory));
+    const res = (try hash_builtin.deduceMemoryCell(Relocatable.init(0, 6), memory_segment_manager.memory));
     try expectEqual(@as(?MaybeRelocatable, null), res);
 }
 
@@ -490,7 +488,7 @@ test "HashBuiltinRunner: deduce memory cell pedersen for preset memory no values
         .{ .{ 0, 5 }, .{0} },
     });
 
-    const res = (try hash_builtin.deduceMemoryCell(Relocatable.new(0, 5), memory_segment_manager.memory));
+    const res = (try hash_builtin.deduceMemoryCell(Relocatable.init(0, 5), memory_segment_manager.memory));
     try expectEqual(@as(?MaybeRelocatable, null), res);
 }
 
@@ -504,7 +502,6 @@ test "HashBuiltinRunner: deduce memory cell pedersen for preset memory already c
     defer memory_segment_manager.deinit();
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
-
     try memory_segment_manager.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 0, 3 }, .{32} },
         .{ .{ 0, 4 }, .{72} },
@@ -516,7 +513,7 @@ test "HashBuiltinRunner: deduce memory cell pedersen for preset memory already c
     try hash_builtin.verified_addresses.insertSlice(0, &[_]bool{ false, false, false, false, false, true });
     defer hash_builtin.verified_addresses.deinit();
 
-    const res = (try hash_builtin.deduceMemoryCell(Relocatable.new(0, 5), memory_segment_manager.memory));
+    const res = (try hash_builtin.deduceMemoryCell(Relocatable.init(0, 5), memory_segment_manager.memory));
     try expectEqual(@as(?MaybeRelocatable, null), res);
 }
 

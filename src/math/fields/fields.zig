@@ -2,17 +2,27 @@ const std = @import("std");
 const builtin = @import("builtin");
 const ArrayList = std.ArrayList;
 
+const tonelliShanks = @import("./helper.zig").tonelliShanks;
+const extendedGCD = @import("./helper.zig").extendedGCD;
+
+pub const ModSqrtError = error{
+    InvalidInput,
+};
+
+pub const STARKNET_PRIME: u256 = @import("../../math/fields/constants.zig").STARKNET_PRIME;
+pub const SIGNED_FELT_MAX: u256 = STARKNET_PRIME >> @as(u32, 1);
+
 /// Represents a finite field element.
-pub fn Field(comptime F: type, comptime mod: u256) type {
+pub fn Field(comptime F: type, comptime modulo: u256) type {
     return struct {
         const Self = @This();
 
         /// Number of bits needed to represent a field element with the given modulo.
-        pub const BitSize = @bitSizeOf(u256) - @clz(mod);
+        pub const BitSize = @bitSizeOf(u256) - @clz(modulo);
         /// Number of bytes required to store a field element.
         pub const BytesSize = @sizeOf(u256);
         /// The modulo value representing the finite field.
-        pub const Modulo = mod;
+        pub const Modulo = modulo;
         /// Half of the modulo value (Modulo - 1) divided by 2.
         pub const QMinOneDiv2 = (Modulo - 1) / 2;
         /// The number of bits in each limb (typically 64 for u64).
@@ -128,7 +138,7 @@ pub fn Field(comptime F: type, comptime mod: u256) type {
                     std.mem.writeInt(
                         u256,
                         lbe[0..],
-                        num % Modulo,
+                        @as(u256, @intCast(num)) % Modulo,
                         .little,
                     );
                     var nonMont: F.NonMontgomeryDomainFieldElement = undefined;
@@ -142,32 +152,6 @@ pub fn Field(comptime F: type, comptime mod: u256) type {
                     );
                 },
             }
-
-            return .{ .fe = mont };
-        }
-
-        /// Create a field element from a signed integer in Montgomery representation.
-        ///
-        /// This function converts a signed integer to a field element in Montgomery form.
-        pub fn fromSignedInteger(num: i256) Self {
-            var lbe: [BytesSize]u8 = [_]u8{0} ** BytesSize;
-            std.mem.writeInt(
-                i256,
-                lbe[0..],
-                @mod(num, Modulo),
-                .little,
-            );
-
-            var nonMont: F.NonMontgomeryDomainFieldElement = undefined;
-            F.fromBytes(
-                &nonMont,
-                lbe,
-            );
-            var mont: F.MontgomeryDomainFieldElement = undefined;
-            F.toMontgomery(
-                &mont,
-                nonMont,
-            );
 
             return .{ .fe = mont };
         }
@@ -352,6 +336,21 @@ pub fn Field(comptime F: type, comptime mod: u256) type {
             return .{ .fe = ret };
         }
 
+        /// Calculating mod sqrt
+        /// TODO: add precomution?
+        pub fn sqrt(
+            elem: Self,
+        ) ?Self {
+            const a = elem.toInteger();
+
+            const v = tonelliShanks(@intCast(a), @intCast(modulo));
+            if (v[2]) {
+                return Self.fromInt(u256, @intCast(v[0]));
+            }
+
+            return null;
+        }
+
         /// Subtract one field element from another.
         ///
         /// Subtracts another field element from the current field element.
@@ -366,6 +365,27 @@ pub fn Field(comptime F: type, comptime mod: u256) type {
                 other.fe,
             );
             return .{ .fe = ret };
+        }
+
+        pub fn mod(
+            self: Self,
+            other: Self,
+        ) Self {
+            return Self.fromInt(u256, @mod(self.toInteger(), other.toInteger()));
+        }
+
+        // multiply two field elements and return the result modulo the modulus
+        // support overflowed multiplication
+        pub fn mulModFloor(
+            self: Self,
+            other: Self,
+            modulus: Self,
+        ) Self {
+            const s: u512 = @intCast(self.toInteger());
+            const o: u512 = @intCast(other.toInteger());
+            const m: u512 = @intCast(modulus.toInteger());
+
+            return Self.fromInt(u256, @intCast((s * o) % m));
         }
 
         /// Multiply two field elements.
@@ -434,6 +454,21 @@ pub fn Field(comptime F: type, comptime mod: u256) type {
             return self.equal(one());
         }
 
+        pub fn modInverse(operand: Self, modulus: Self) !Self {
+            const ext = extendedGCD(@bitCast(operand.toInteger()), @bitCast(modulus.toInteger()));
+
+            if (ext.gcd != 1) {
+                @panic("GCD must be one");
+            }
+
+            const result = if (ext.x < 0)
+                ext.x + @as(i256, @bitCast(modulus.toInteger()))
+            else
+                ext.x;
+
+            return Self.fromInt(u256, @bitCast(result));
+        }
+
         /// Calculate the square of a field element.
         ///
         /// Computes the square of the current field element.
@@ -474,6 +509,11 @@ pub fn Field(comptime F: type, comptime mod: u256) type {
                 base = base.mul(base);
             }
             return res;
+        }
+
+        /// Bitand operation
+        pub fn bitAnd(self: Self, other: Self) Self {
+            return Self.fromInt(u256, self.toInteger() & other.toInteger());
         }
 
         /// Batch inversion of multiple field elements.
@@ -564,6 +604,29 @@ pub fn Field(comptime F: type, comptime mod: u256) type {
             );
         }
 
+        pub fn fromSignedInt(comptime T: type, signed: T) Self {
+            if (signed < 0) {
+                return Self.fromInt(T, -signed).neg();
+            }
+
+            return Self.fromInt(i256, signed);
+        }
+
+        // converting felt to abs value with sign
+        pub fn toSignedInt(self: Self) struct { positive: bool, abs: u256 } {
+            const val = self.toInteger();
+            if (val > SIGNED_FELT_MAX) {
+                return .{
+                    .positive = false,
+                    .abs = STARKNET_PRIME - val,
+                };
+            }
+
+            return .{
+                .positive = true,
+                .abs = val,
+            };
+        }
         /// Convert the field element to a u256 integer.
         ///
         /// Converts the field element to a u256 integer.
@@ -681,8 +744,7 @@ pub fn Field(comptime F: type, comptime mod: u256) type {
         /// `true` if `self` is less than or equal to `other`, `false` otherwise.
         pub fn le(self: Self, other: Self) bool {
             return switch (self.cmp(other)) {
-                .lt => true,
-                .eq => true,
+                .lt, .eq => true,
                 else => false,
             };
         }
@@ -712,8 +774,7 @@ pub fn Field(comptime F: type, comptime mod: u256) type {
         /// `true` if `self` is greater than or equal to `other`, `false` otherwise.
         pub fn ge(self: Self, other: Self) bool {
             return switch (self.cmp(other)) {
-                .gt => true,
-                .eq => true,
+                .gt, .eq => true,
                 else => false,
             };
         }

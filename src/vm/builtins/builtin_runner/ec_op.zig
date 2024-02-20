@@ -111,6 +111,7 @@ pub const EcOpBuiltinRunner = struct {
     /// An `ArrayList` of `MaybeRelocatable` values.
     pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
         var result = ArrayList(MaybeRelocatable).init(allocator);
+        errdefer result.deinit();
         if (self.included) {
             try result.append(MaybeRelocatable.fromSegment(
                 @intCast(self.base),
@@ -198,7 +199,9 @@ pub const EcOpBuiltinRunner = struct {
     /// The number of used cells as a `u32`, or `MemoryError.MissingSegmentUsedSizes` if
     /// the size is not available.
     pub fn getUsedCells(self: *Self, segments: *MemorySegmentManager) !u32 {
-        return segments.getSegmentUsedSize(@intCast(self.base)) orelse MemoryError.MissingSegmentUsedSizes;
+        return segments.getSegmentUsedSize(
+            @intCast(self.base),
+        ) orelse MemoryError.MissingSegmentUsedSizes;
     }
 
     /// Calculates the number of used instances for the EC OP runner.
@@ -421,7 +424,7 @@ test "ECOPBuiltinRunner: final stack error stop pointer" {
     try segment_used_size.put(0, 999);
     vm.segments.segment_used_sizes = segment_used_size;
 
-    const pointer = Relocatable.new(2, 2);
+    const pointer = Relocatable.init(2, 2);
 
     try expectError(
         RunnerError.InvalidStopPointer,
@@ -463,7 +466,7 @@ test "ECOPBuiltinRunner: final stack error when not included" {
     try segment_used_size.put(0, 0);
     vm.segments.segment_used_sizes = segment_used_size;
 
-    const pointer = Relocatable.new(2, 2);
+    const pointer = Relocatable.init(2, 2);
 
     try expectEqual(
         pointer,
@@ -505,7 +508,7 @@ test "ECOPBuiltinRunner: final stack error non relocatable" {
     try segment_used_size.put(0, 0);
     vm.segments.segment_used_sizes = segment_used_size;
 
-    const pointer = Relocatable.new(2, 2);
+    const pointer = Relocatable.init(2, 2);
 
     try expectError(
         CairoVMError.TypeMismatchNotRelocatable,
@@ -571,7 +574,7 @@ test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory valid" {
     );
 
     const expected = Felt252.fromInt(u256, 3598390311618116577316045819420613574162151407434885460365915347732568210029);
-    const actual = try builtin.deduceMemoryCell(std.testing.allocator, Relocatable.new(3, 6), vm.segments.memory);
+    const actual = try builtin.deduceMemoryCell(std.testing.allocator, Relocatable.init(3, 6), vm.segments.memory);
 
     try expectEqual(
         MaybeRelocatable.fromFelt(expected),
@@ -613,7 +616,7 @@ test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory unfilled inp
         },
     );
 
-    const actual = builtin.deduceMemoryCell(std.testing.allocator, Relocatable.new(3, 6), vm.segments.memory);
+    const actual = builtin.deduceMemoryCell(std.testing.allocator, Relocatable.init(3, 6), vm.segments.memory);
 
     try expectError(
         error.PointNotOnCurve,
@@ -655,7 +658,7 @@ test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory addr not an 
         },
     );
 
-    const actual = builtin.deduceMemoryCell(std.testing.allocator, Relocatable.new(3, 3), vm.segments.memory);
+    const actual = builtin.deduceMemoryCell(std.testing.allocator, Relocatable.init(3, 3), vm.segments.memory);
 
     try expectError(
         error.NotOutputCell,
@@ -697,7 +700,7 @@ test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory non integer 
         },
     );
 
-    const actual = builtin.deduceMemoryCell(std.testing.allocator, Relocatable.new(3, 6), vm.segments.memory);
+    const actual = builtin.deduceMemoryCell(std.testing.allocator, Relocatable.init(3, 6), vm.segments.memory);
 
     try expectError(
         error.TypeMismatchNotFelt,

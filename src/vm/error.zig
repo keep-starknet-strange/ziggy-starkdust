@@ -1,5 +1,7 @@
 /// Represents different error conditions that occur in the Cairo VM.
 pub const CairoVMError = error{
+    // Failed to compile hint
+    CompileHintFail,
     /// Adding two relocatables is forbidden.
     AddRelocToRelocForbidden,
     /// Memory access is out of bounds.
@@ -59,6 +61,13 @@ pub const CairoVMError = error{
     InvalidOpcode,
     /// Unexpected Failure
     Unexpected,
+    /// Expected range_check builtin to be present
+    NoRangeCheckBuiltin,
+    /// Expected signature builtin to be present
+    NoSignatureBuiltin,
+    /// getBuiltin by name, if not exist error
+    NotFoundBuiltin,
+    ReferenceNotFound,
 };
 
 /// Represents different error conditions that are memory-related.
@@ -109,6 +118,15 @@ pub const MemoryError = error{
     InsufficientAllocatedCellsErrorMinStepNotReached,
     /// Invalid type encountered during the GenArg operation.
     GenArgInvalidType,
+    // ECDSA builtin: Expected public key at address to be an integer
+    PubKeyNonInt,
+    // ECDSA builtin: Expected message hash at address to be an integer
+    MsgNonInt,
+    // Signature hint is missing for ECDSA builtin at address.
+    // Add it using 'ecdsa_builtin.add_signature'.
+    SignatureNotFound,
+    // Invalid signature
+    InvalidSignature,
 };
 
 /// Represents the error conditions that are related to the `CairoRunner`.
@@ -125,6 +143,12 @@ pub const RunnerError = error{
     /// Raised when underflow occurs (i.e., subtracting 1 from 0),
     /// or when it fails to get a value for the computed address.
     NoStopPointer,
+    // Running in a proof mode, but no __start__ label found, try compiling with proof mode
+    NoProgramStart,
+    // Running in a proof mode, but on __end__ label found, try compiling with proof mode
+    NoProgramEnd,
+    // Missing main()
+    MissingMain,
     /// Invalid stop pointer index occured in calculation of the final stack.
     /// Raised when the current vm step
     InvalidStopPointerIndex,
@@ -138,6 +162,14 @@ pub const RunnerError = error{
     IntegerBiggerThanPowerOfTwo,
     /// Memory-related errors in the built-in runners.
     Memory,
+    /// Raised when attempting to access the program counter (PC) when it is not available.
+    NoPC,
+    /// Raised when attempting to access the allocation pointer (AP) when it is not available.
+    NoAP,
+    /// Raised when attempting to access the function pointer (FP) when it is not available.
+    NoFP,
+    /// Raised when there are errors related to memory validation in Cairo runner.
+    MemoryValidationError,
 };
 
 /// Represents different error conditions that occur during mathematical operations.
@@ -159,6 +191,8 @@ pub const MathError = error{
     /// Cell is not output cell
     NotOutputCell,
     RelocatableMul,
+    ByteConversionError,
+    DividedByZero,
 };
 
 /// Represents different error conditions that occur in trace relocation
@@ -192,4 +226,40 @@ pub const ProgramError = error{
     /// Indicates an unsupported or unimplemented builtin encountered within the program.
     UnsupportedBuiltin,
     EmptyVecAlreadyFiltered,
+};
+
+// Represents errors occuring during ECDSA verify
+pub const VerifyError = error{
+    InvalidPublicKey,
+    InvalidMessageHash,
+    InvalidR,
+    InvalidS,
+};
+
+pub const HintError = error{
+    AssertNNValueOutOfRange,
+    ValueOutsideValidRange,
+    AssertNotZero,
+    // expected an integer
+    IdentifierNotInteger,
+    IdentifierNotRelocatable,
+    // unknown identifier in ids
+    UnknownIdentifier,
+    UnknownIdentifierInternal,
+    WrongIdentifierTypeInternal,
+    Memory,
+
+    ValueOutside250BitRange,
+    AssertNotEqualFail,
+    // Div out of range
+    OutOfValidRange,
+
+    MissingConstant,
+
+    NonLeFelt252,
+    ArcTooBig,
+
+    VariableNotInScopeError,
+
+    ExcludedNot2,
 };

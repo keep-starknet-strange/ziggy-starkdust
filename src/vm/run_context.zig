@@ -108,13 +108,13 @@ pub const RunContext = struct {
             .AP => self.ap.*,
             .FP => self.fp.*,
         };
-        if (instruction.off_0 < 0) {
+
+        return if (instruction.off_0 < 0)
             // Convert i16 to u64 safely and then negate
-            return try base_addr.subUint(@intCast(-instruction.off_0));
-        } else {
+            try base_addr.subUint(@intCast(-instruction.off_0))
+        else
             // Convert i16 to u64 safely
-            return try base_addr.addUint(@intCast(instruction.off_0));
-        }
+            try base_addr.addUint(@intCast(instruction.off_0));
     }
 
     /// Compute OP 0 address for a given instruction.
@@ -131,13 +131,12 @@ pub const RunContext = struct {
             .FP => self.fp.*,
         };
 
-        if (instruction.off_1 < 0) {
+        return if (instruction.off_1 < 0)
             // Convert i16 to u64 safely and then negate
-            return try base_addr.subUint(@intCast(-instruction.off_1));
-        } else {
+            try base_addr.subUint(@intCast(-instruction.off_1))
+        else
             // Convert i16 to u64 safely
-            return try base_addr.addUint(@intCast(instruction.off_1));
-        }
+            try base_addr.addUint(@intCast(instruction.off_1));
     }
 
     /// Compute OP 1 address for a given instruction.
@@ -157,13 +156,12 @@ pub const RunContext = struct {
             .Op0 => if (op_0) |val| try val.tryIntoRelocatable() else return error.UnknownOp0,
         };
 
-        if (instruction.off_2 < 0) {
+        return if (instruction.off_2 < 0)
             // Convert i16 to u64 safely and then negate
-            return try base_addr.subUint(@intCast(-instruction.off_2));
-        } else {
+            try base_addr.subUint(@intCast(-instruction.off_2))
+        else
             // Convert i16 to u64 safely
             return try base_addr.addUint(@intCast(instruction.off_2));
-        }
     }
 
     /// Returns the current frame pointer (FP) of the run context.

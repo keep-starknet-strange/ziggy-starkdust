@@ -17,22 +17,6 @@ pub const Relocatable = struct {
     /// The offset in the memory segment.
     offset: u64 = 0,
 
-    /// Creates a new Relocatable.
-    /// # Arguments
-    /// - segment_index - The index of the memory segment.
-    /// - offset - The offset in the memory segment.
-    /// # Returns
-    /// A new Relocatable.
-    pub fn new(
-        segment_index: i64,
-        offset: u64,
-    ) Self {
-        return .{
-            .segment_index = segment_index,
-            .offset = offset,
-        };
-    }
-
     // Creates a new Relocatable.
     // # Arguments
     // - segment_index - The index of the memory segment.
@@ -214,6 +198,13 @@ pub const Relocatable = struct {
     /// - other - The other MaybeRelocatable to add.
     pub fn addMaybeRelocatableInplace(self: *Self, other: MaybeRelocatable) !void {
         try self.addFeltInPlace(try other.tryIntoFelt());
+    }
+
+    pub fn addMaybeRelocatable(self: *const Self, other: MaybeRelocatable) !Self {
+        var cp = self.*;
+
+        try cp.addMaybeRelocatableInplace(other);
+        return cp;
     }
 
     /// Calculates the relocated address based on the provided relocation_table.
@@ -696,7 +687,7 @@ test "Relocatable: addUint should add a u64 to a Relocatable and return a new Re
 }
 
 test "Relocatable: addUint should return a math error if overflow occurs." {
-    const relocatable = Relocatable.new(
+    const relocatable = Relocatable.init(
         2,
         4,
     );

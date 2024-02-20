@@ -21,7 +21,7 @@ const MemorySegmentManager = @import("./segments.zig").MemorySegmentManager;
 const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
 
 // Function that validates a memory address and returns a list of validated adresses
-pub const validation_rule = *const fn (*Memory, Relocatable) anyerror![1]Relocatable;
+pub const validation_rule = *const fn (Allocator, *Memory, Relocatable) anyerror!std.ArrayList(Relocatable);
 
 pub const MemoryCell = struct {
     /// Represents a memory cell that holds relocation information and access status.
@@ -248,9 +248,9 @@ pub const Memory = struct {
     /// ArrayList storing temporary data in the memory, indexed by Relocatable addresses.
     temp_data: std.ArrayList(std.ArrayListUnmanaged(?MemoryCell)),
     /// Number of segments currently present in the memory.
-    num_segments: u32,
+    num_segments: u32 = 0,
     /// Number of temporary segments in the memory.
-    num_temp_segments: u32,
+    num_temp_segments: u32 = 0,
     /// Hash map tracking validated addresses to ensure they have been properly validated.
     /// Consideration: Possible merge with `data` for optimization; benchmarking recommended.
     validated_addresses: AddressSet,
@@ -283,12 +283,10 @@ pub const Memory = struct {
     pub fn init(allocator: Allocator) !*Self {
         const memory = try allocator.create(Self);
 
-        memory.* = Self{
+        memory.* = .{
             .allocator = allocator,
             .data = std.ArrayList(std.ArrayListUnmanaged(?MemoryCell)).init(allocator),
             .temp_data = std.ArrayList(std.ArrayListUnmanaged(?MemoryCell)).init(allocator),
-            .num_segments = 0,
-            .num_temp_segments = 0,
             .validated_addresses = AddressSet.init(allocator),
             .relocation_rules = std.AutoHashMap(
                 u64,
@@ -565,8 +563,9 @@ pub const Memory = struct {
     pub fn validateMemoryCell(self: *Self, address: Relocatable) !void {
         if (self.validation_rules.get(@intCast(address.segment_index))) |rule| {
             if (!self.validated_addresses.contains(address)) {
-                const list = try rule(self, address);
-                try self.validated_addresses.addAddresses(&[_]Relocatable{list[0]});
+                const list = try rule(self.allocator, self, address);
+                defer list.deinit();
+                try self.validated_addresses.addAddresses(list.items);
             }
         }
     }
@@ -1358,7 +1357,7 @@ test "Memory: set where number of segments is less than segment index should ret
         MemoryError.UnallocatedSegment,
         segments.memory.set(
             allocator,
-            Relocatable.new(3, 1),
+            Relocatable.init(3, 1),
             .{ .felt = Felt252.three() },
         ),
     );

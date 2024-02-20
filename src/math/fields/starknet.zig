@@ -134,19 +134,6 @@ test "Felt252 fromInteger" {
     );
 }
 
-test "Felt252 fromSignedInteger" {
-    try expectEqual(
-        Felt252{ .fe = .{
-            0xffffffeb9bf00041, 0x9987fff, 0xfffffffffffb7c00, 0x7fffea55af00670,
-        } },
-        Felt252.fromSignedInteger(-106710729501573572985208420194530329073740042555888586719234),
-    );
-    try expectEqual(
-        Felt252.fromInt(u8, 10),
-        Felt252.fromSignedInteger(10),
-    );
-}
-
 test "Felt252 toInteger" {
     try expectEqual(
         @as(
@@ -1004,4 +991,21 @@ test "Felt252 wrapping_shr" {
         } },
         e.wrapping_shr(1),
     );
+}
+
+test "Felt252: fromSigned and toSigned" {
+    try expectEqual(Felt252.zero().sub(Felt252.one()), Felt252.fromSignedInt(i8, -1));
+
+    try expectEqual(Felt252.fromInt(u32, 250), Felt252.fromSignedInt(i32, -250).neg());
+
+    try expectEqual(Felt252.fromInt(u256, std.math.maxInt(i256)), Felt252.fromSignedInt(i256, std.math.maxInt(i256)));
+
+    const maxSignedNeg = Felt252.fromSignedInt(i256, -(std.math.maxInt(i256) - 1)).toSignedInt();
+    // because overflow its positive number
+    try expectEqual(
+        true,
+        maxSignedNeg.positive,
+    );
+
+    try expectEqual(Felt252.fromInt(i256, @mod(std.math.maxInt(i256) - 1, STARKNET_PRIME)).toSignedInt().abs, maxSignedNeg.abs);
 }

@@ -85,9 +85,9 @@ pub const ECPoint = struct {
     pub fn ecDouble(self: *Self, alpha: Felt252) ECError!ECPoint {
 
         // Assumes the point is given in affine form (x, y) and has y != 0.
-        if (self.y.equal(Felt252.zero())) {
+        if (self.y.equal(Felt252.zero()))
             return ECError.YCoordinateIsZero;
-        }
+
         const m = try self.ecDoubleSlope(alpha);
         const x = m.pow(2).sub(self.x.mul(Felt252.two()));
         const y = m.mul(self.x.sub(x)).sub(self.y);
