@@ -45,7 +45,7 @@ pub const HintsRanges = union(enum) {
     NonExtensive: std.ArrayList(HintRange),
 
     pub fn isExtensive(self: *Self) bool {
-        return switch (self) {
+        return switch (self.*) {
             .Extensive => true,
             inline else => false,
         };
@@ -66,7 +66,7 @@ pub const HintsRanges = union(enum) {
     }
 };
 
-pub const Hints = std.ArrayList(HintParams);
+const Hints = std.ArrayList(HintParams);
 
 /// Represents a collection of hints.
 ///
@@ -82,13 +82,13 @@ pub const HintsCollection = struct {
     ///
     /// # Params:
     ///   - `allocator`: The allocator used to initialize the collection.
-    pub fn init(allocator: Allocator, hints: std.AutoHashMap(usize, Hints), program_length: usize, extensive_hints: bool) !Self {
-        var max_hint_pc = 0;
-        var total_hints_len = 0;
+    pub fn init(allocator: Allocator, hints: std.AutoHashMap(usize, []const HintParams), program_length: usize, extensive_hints: bool) !Self {
+        var max_hint_pc = @as(usize, @intCast(0));
+        var total_hints_len = @as(usize, @intCast(0));
         var it = hints.iterator();
         while (it.next()) |kv| {
-            max_hint_pc = std.math.max(max_hint_pc, kv.key_ptr.*);
-            total_hints_len += kv.value_ptr.items.len;
+            max_hint_pc = @max(max_hint_pc, kv.key_ptr.*);
+            total_hints_len += kv.value_ptr.len;
         }
 
         if (max_hint_pc == 0 or total_hints_len == 0) {
@@ -111,26 +111,26 @@ pub const HintsCollection = struct {
 
         it = hints.iterator();
         while (it.next()) |kv| {
-            if (kv.value_ptr.*.items.len > 0) {
-                const range = .{ hints_values.items.len, kv.value_ptr.items.len };
+            if (kv.value_ptr.*.len > 0) {
+                const range = HintRange{ .start = hints_values.items.len, .length = kv.value_ptr.len };
                 if (extensive_hints) {
-                    try hints_ranges_ext.?.put(Relocatable.new(0, kv.key_ptr.*), range);
+                    try hints_ranges_ext.?.put(Relocatable.init(0, kv.key_ptr.*), range);
                 } else {
                     try hints_ranges_non_ext.?.append(range);
                 }
-                try hints_values.appendSlice(kv.value_ptr.items);
+                try hints_values.appendSlice(kv.value_ptr.*);
             }
         }
 
         if (extensive_hints) {
             return Self{
                 .hints = hints_values,
-                .hint_ranges = HintsRanges{ .Extensive = hints_ranges_ext.? },
+                .hints_ranges = HintsRanges{ .Extensive = hints_ranges_ext.? },
             };
         } else {
             return Self{
                 .hints = hints_values,
-                .hint_ranges = HintsRanges{ .NonExtensive = hints_ranges_non_ext.? },
+                .hints_ranges = HintsRanges{ .NonExtensive = hints_ranges_non_ext.? },
             };
         }
     }
@@ -320,7 +320,7 @@ pub const Program = struct {
         return .{
             .shared_program_data = .{
                 .data = data,
-                .hints_collection = try HintsCollection.init(allocator, hints, data.len, true),
+                .hints_collection = try HintsCollection.init(allocator, hints, data.items.len, true),
                 .main = main,
                 .error_message_attributes = error_message_attributes,
                 .instruction_locations = instruction_locations,
