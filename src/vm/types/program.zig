@@ -44,24 +44,38 @@ pub const HintsRanges = union(enum) {
     ),
     NonExtensive: std.ArrayList(HintRange),
 
-    pub fn isExtensive(self: *Self) bool {
-        return switch (self.*) {
-            .Extensive => true,
-            inline else => false,
+    pub fn init(
+        allocator: Allocator,
+        extensive_hints: bool,
+    ) Self {
+        return switch (extensive_hints) {
+            true => Self{ .Extensive = std.AutoHashMap(Relocatable, HintRange).init(allocator) },
+            false => Self{ .NonExtensive = std.ArrayList(HintRange).init(allocator) },
         };
+    }
+
+    pub fn add(self: *Self, offset: usize, range: HintRange) !void {
+        return switch (self.*) {
+            .Extensive => |*extensive| try extensive.put(Relocatable.init(0, offset), range),
+            .NonExtensive => |*non_extensive| try non_extensive.append(range),
+        };
+    }
+
+    pub fn isExtensive(self: Self) bool {
+        return @as(bool, self == Self.Extensive);
     }
 
     pub fn count(self: *Self) usize {
         return switch (self.*) {
-            .Extensive => self.Extensive.count(),
-            .NonExtensive => self.NonExtensive.items.len,
+            .Extensive => |*extensive| extensive.count(),
+            .NonExtensive => |*non_extensive| non_extensive.items.len,
         };
     }
 
     pub fn deinit(self: *Self) void {
         switch (self.*) {
-            .Extensive => self.Extensive.deinit(),
-            .NonExtensive => self.NonExtensive.deinit(),
+            .Extensive => |*extensive| extensive.deinit(),
+            .NonExtensive => |*non_extensive| non_extensive.deinit(),
         }
     }
 };
@@ -100,39 +114,25 @@ pub const HintsCollection = struct {
         }
 
         var hints_values = try std.ArrayList(HintParams).initCapacity(allocator, total_hints_len);
-        var hints_ranges_non_ext: ?std.ArrayList(HintRange) = null;
-        var hints_ranges_ext: ?std.AutoHashMap(Relocatable, HintRange) = null;
+        errdefer hints_values.deinit();
 
-        if (extensive_hints) {
-            hints_ranges_ext = std.AutoHashMap(Relocatable, HintRange).init(allocator);
-        } else {
-            hints_ranges_non_ext = std.ArrayList(HintRange).init(allocator);
-        }
+        var hints_ranges = HintsRanges.init(allocator, extensive_hints);
 
         it = hints.iterator();
         while (it.next()) |kv| {
             if (kv.value_ptr.*.len > 0) {
-                const range = HintRange{ .start = hints_values.items.len, .length = kv.value_ptr.len };
-                if (extensive_hints) {
-                    try hints_ranges_ext.?.put(Relocatable.init(0, kv.key_ptr.*), range);
-                } else {
-                    try hints_ranges_non_ext.?.append(range);
-                }
+                try hints_ranges.add(
+                    kv.key_ptr.*,
+                    .{ .start = hints_values.items.len, .length = kv.value_ptr.len },
+                );
                 try hints_values.appendSlice(kv.value_ptr.*);
             }
         }
 
-        if (extensive_hints) {
-            return Self{
-                .hints = hints_values,
-                .hints_ranges = HintsRanges{ .Extensive = hints_ranges_ext.? },
-            };
-        } else {
-            return Self{
-                .hints = hints_values,
-                .hints_ranges = HintsRanges{ .NonExtensive = hints_ranges_non_ext.? },
-            };
-        }
+        return Self{
+            .hints = hints_values,
+            .hints_ranges = hints_ranges,
+        };
     }
 
     /// Initializes a new default HintsCollection.
@@ -142,7 +142,7 @@ pub const HintsCollection = struct {
     pub fn initDefault(allocator: Allocator) Self {
         return .{
             .hints = std.ArrayList(HintParams).init(allocator),
-            .hints_ranges = HintsRanges{ .Extensive = std.AutoHashMap(Relocatable, HintRange).init(allocator) },
+            .hints_ranges = HintsRanges.init(allocator, true),
         };
     }
 
