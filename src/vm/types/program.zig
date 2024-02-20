@@ -221,7 +221,7 @@ pub const SharedProgramData = struct {
     ///
     /// # Params:
     ///   - `allocator`: The allocator used to initialize the instance.
-    pub fn init(allocator: Allocator) Self {
+    pub fn initDefault(allocator: Allocator) Self {
         return .{
             .data = std.ArrayList(MaybeRelocatable).init(allocator),
             .hints_collection = HintsCollection.initDefault(allocator),
@@ -342,7 +342,7 @@ pub const Program = struct {
     ///   - A new instance of `Program`.
     pub fn initDefault(allocator: Allocator) Self {
         return .{
-            .shared_program_data = SharedProgramData.init(allocator),
+            .shared_program_data = SharedProgramData.initDefault(allocator),
             .constants = std.StringHashMap(Felt252).init(allocator),
             .builtins = std.ArrayList(BuiltinName).init(allocator),
         };
