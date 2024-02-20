@@ -21,6 +21,7 @@ const Memory = @import("../../memory/memory.zig").Memory;
 const KeccakInstanceDef = @import("../../types/keccak_instance_def.zig").KeccakInstanceDef;
 const EcdsaInstanceDef = @import("../../types/ecdsa_instance_def.zig").EcdsaInstanceDef;
 const BitwiseInstanceDef = @import("../../types/bitwise_instance_def.zig").BitwiseInstanceDef;
+const EcOpInstanceDef = @import("../../types/ec_op_instance_def.zig").EcOpInstanceDef;
 
 const ArrayList = std.ArrayList;
 
@@ -430,6 +431,39 @@ pub const BuiltinRunner = union(enum) {
                 // Calculate and return the total number of used permanent range check units
                 return usedCells * range_check.n_parts;
             },
+            else => 0,
+        };
+    }
+
+    /// Calculates the number of used diluted check units associated with the built-in runner.
+    ///
+    /// This function takes into account the type of built-in runner and calculates the number of
+    /// used diluted check units based on the specific characteristics of each type.
+    ///
+    /// # Arguments
+    ///
+    /// - `self`: A pointer to the `BuiltinRunner` instance.
+    /// - `allocator`: The allocator used for memory allocation.
+    /// - `diluted_spacing`: The spacing between diluted check units.
+    /// - `diluted_n_bits`: The number of bits per diluted check unit.
+    ///
+    /// # Returns
+    ///
+    /// The number of used diluted check units.
+    ///
+    /// # Errors
+    ///
+    /// This function returns an error if the calculation fails or if the built-in runner type
+    /// does not support diluted check units.
+    pub fn getUsedDilutedCheckUnits(
+        self: *Self,
+        allocator: Allocator,
+        diluted_spacing: u32,
+        diluted_n_bits: u32,
+    ) !usize {
+        return switch (self.*) {
+            .Bitwise => |*bitwise| bitwise.getUsedDilutedCheckUnits(allocator, diluted_spacing, diluted_n_bits),
+            .Keccak => KeccakBuiltinRunner.getUsedDilutedCheckUnits(diluted_n_bits),
             else => 0,
         };
     }
@@ -1197,11 +1231,6 @@ test "BuiltinRunner:getUsedPermRangeCheckUnits with output builtin" {
 
 test "BuiltinRunner:getUsedPermRangeCheckUnits with range check builtin" {
     // Initialize a `BuiltinRunner` with a `RangeCheck` variant.
-    // This sets up the test scenario where the built-in runner is of type range check operation.
-    // The `RangeCheckBuiltinRunner.init` function initializes the range check with the specified parameters:
-    // - `8`: the number of range check parts
-    // - `8`: the number of bits per range check part
-    // - `true`: indicating the range check is for a public range
     var builtin: BuiltinRunner = .{ .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true) };
 
     // Initialize a Cairo VM
@@ -1221,4 +1250,108 @@ test "BuiltinRunner:getUsedPermRangeCheckUnits with range check builtin" {
     // This function retrieves the number of used permanent range check units associated with the built-in runner.
     // In this case, since the built-in runner is a range check operation, the expected number of used units is 8.
     try expectEqual(@as(usize, 8), builtin.getUsedPermRangeCheckUnits(&vm));
+}
+
+test "BuiltinRunner:getUsedDilutedCheckUnits with bitwise builtin" {
+    // Initialize a `BuiltinRunner` with a `Bitwise` variant.
+    var builtin: BuiltinRunner = .{ .Bitwise = .{} };
+
+    // Test the `getUsedDilutedCheckUnits` function with specific parameters.
+    try expectEqual(
+        @as(usize, 1255),
+        try builtin.getUsedDilutedCheckUnits(std.testing.allocator, 270, 7),
+    );
+}
+
+test "BuiltinRunner:getUsedDilutedCheckUnits with keccak builtin (zero case)" {
+    // Initialize a default Keccak instance definition.
+    var keccak_instance_def = try KeccakInstanceDef.initDefault(std.testing.allocator);
+
+    // Initialize a BuiltinRunner union with the KeccakBuiltinRunner variant.
+    var builtin: BuiltinRunner = .{
+        .Keccak = KeccakBuiltinRunner.init(
+            std.testing.allocator,
+            &keccak_instance_def,
+            true,
+        ),
+    };
+
+    // Deallocate the BuiltinRunner at the end of the test.
+    defer builtin.deinit();
+
+    // Test the `getUsedDilutedCheckUnits` function with specific parameters.
+    try expectEqual(
+        @as(usize, 0),
+        try builtin.getUsedDilutedCheckUnits(std.testing.allocator, 270, 7),
+    );
+}
+
+test "BuiltinRunner:getUsedDilutedCheckUnits with keccak builtin (non zero case)" {
+    // Initialize a default Keccak instance definition
+    var keccak_instance_def = try KeccakInstanceDef.initDefault(std.testing.allocator);
+
+    // Initialize a BuiltinRunner union with the KeccakBuiltinRunner variant
+    var builtin: BuiltinRunner = .{
+        .Keccak = KeccakBuiltinRunner.init(
+            std.testing.allocator,
+            &keccak_instance_def,
+            true,
+        ),
+    };
+
+    // Ensure the BuiltinRunner instance is properly deallocated at the end of the test
+    defer builtin.deinit();
+
+    // Test the `getUsedDilutedCheckUnits` function with specific parameters.
+    try expectEqual(
+        @as(usize, 32768),
+        try builtin.getUsedDilutedCheckUnits(std.testing.allocator, 0, 8),
+    );
+}
+
+test "BuiltinRunner:getUsedDilutedCheckUnits with elliptic curve operation builtin" {
+    // Define the instance definition for the elliptic curve operation
+    const instance_def: EcOpInstanceDef = .{ .ratio = 10 };
+
+    // Initialize a BuiltinRunner union with the EcOpBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .EcOp = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true) };
+
+    // Test the `getUsedDilutedCheckUnits` function with specific parameters.
+    try expectEqual(
+        @as(usize, 0),
+        try builtin.getUsedDilutedCheckUnits(std.testing.allocator, 270, 7),
+    );
+}
+
+test "BuiltinRunner:getUsedDilutedCheckUnits with hash builtin" {
+    // Initialize a BuiltinRunner union with the HashBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .Hash = HashBuiltinRunner.init(std.testing.allocator, 1, true) };
+
+    // Test the `getUsedDilutedCheckUnits` function with specific parameters.
+    try expectEqual(
+        @as(usize, 0),
+        try builtin.getUsedDilutedCheckUnits(std.testing.allocator, 270, 7),
+    );
+}
+
+test "BuiltinRunner:getUsedDilutedCheckUnits with range check builtin" {
+    // Initialize a BuiltinRunner union with the RangeCheckBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true) };
+
+    // Test the `getUsedDilutedCheckUnits` function with specific parameters.
+    try expectEqual(
+        @as(usize, 0),
+        try builtin.getUsedDilutedCheckUnits(std.testing.allocator, 270, 7),
+    );
+}
+
+test "BuiltinRunner:getUsedDilutedCheckUnits with output builtin" {
+    // Initialize a BuiltinRunner union with the OutputBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .Output = OutputBuiltinRunner.init(std.testing.allocator, true) };
+
+    // Test the `getUsedDilutedCheckUnits` function with specific parameters.
+    try expectEqual(
+        @as(usize, 0),
+        try builtin.getUsedDilutedCheckUnits(std.testing.allocator, 270, 7),
+    );
 }
