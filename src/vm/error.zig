@@ -266,4 +266,5 @@ pub const HintError = error{
 
 pub const InsufficientAllocatedCellsError = error{
     MinStepNotReached,
+    BuiltinCells,
 };

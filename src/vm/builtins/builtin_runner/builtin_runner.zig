@@ -354,11 +354,85 @@ pub const BuiltinRunner = union(enum) {
         }
     }
 
-    // pub fn getUsedPermRangeCheckUnits(self: *Self, vm: *CairoVM) !usize {
-    //     return switch (self.*) {
-    //     .RangeCheck => |range_check|
-    //     };
-    // }
+    /// Retrieves the number of used cells and allocated size associated with the built-in runner.
+    ///
+    /// This function calculates and returns a tuple containing the number of used cells and the allocated
+    /// size managed by the specific type of built-in runner based on the provided `CairoVM` instance.
+    ///
+    /// # Arguments
+    ///
+    /// - `vm`: A pointer to the `CairoVM` instance.
+    ///
+    /// # Returns
+    ///
+    /// A tuple containing the number of used cells and the allocated size as follows:
+    /// - The number of used cells as a `usize`.
+    /// - The allocated size as an optional `usize`. If the built-in runner doesn't have an allocated size,
+    ///   the size will be `null`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if any error occurs during the calculation.
+    ///
+    /// # Remarks
+    ///
+    /// This function is used to determine the usage and allocation status of memory cells associated
+    /// with the specific type of built-in runner.
+    pub fn getUsedCellsAndAllocatedSize(self: *Self, vm: *CairoVM) !Tuple(&.{ usize, ?usize }) {
+        switch (self.*) {
+            // For output and segment arena built-in runners
+            .Output, .SegmentArena => {
+                // Calculate the number of used cells
+                const used = try self.getUsedCells(vm.segments);
+                // Return a tuple with both used cells and allocated size set to the same value
+                return .{ used, used };
+            },
+            else => {
+                // Calculate the number of used cells
+                const used = try self.getUsedCells(vm.segments);
+                // Calculate the allocated size
+                const size = try self.getAllocatedMemoryUnits(vm);
+
+                // Check if the used cells exceed the allocated size
+                if (used > size) return InsufficientAllocatedCellsError.BuiltinCells;
+
+                // Return a tuple containing the number of used cells and the allocated size
+                return .{ used, size };
+            },
+        }
+    }
+
+    /// Retrieves the number of used permanent range check units associated with the built-in runner.
+    ///
+    /// This function calculates and returns the total number of used permanent range check units managed by
+    /// the specific type of built-in runner based on the provided `CairoVM` instance.
+    ///
+    /// # Arguments
+    ///
+    /// - `vm`: A pointer to the `CairoVM` instance.
+    ///
+    /// # Returns
+    ///
+    /// The total number of used permanent range check units as a `usize`.
+    ///
+    /// # Remarks
+    ///
+    /// This function is used to determine the usage of permanent range check units associated
+    /// with the specific type of built-in runner.
+    pub fn getUsedPermRangeCheckUnits(self: *Self, vm: *CairoVM) !usize {
+        return switch (self.*) {
+            // For range check built-in runners
+            .RangeCheck => |range_check| {
+                // Get the number of used cells and allocated size tuple
+                const tuple = try self.getUsedCellsAndAllocatedSize(vm);
+                // Extract the number of used cells from the tuple
+                const usedCells = tuple[0];
+                // Calculate and return the total number of used permanent range check units
+                return usedCells * range_check.n_parts;
+            },
+            else => 0,
+        };
+    }
 
     /// Retrieves the number of used instances associated with the built-in runner.
     ///
@@ -1028,4 +1102,123 @@ test "BuiltinRunner:getRangeCheckUsage with bitwise builtin" {
 
     // Test the `getRangeCheckUsage` function of the `BuiltinRunner`.
     try expectEqual(null, builtin.getRangeCheckUsage(memory));
+}
+
+test "BuiltinRunner:getUsedPermRangeCheckUnits with bitwise builtin" {
+    // Initialize a `BuiltinRunner` with a `Bitwise` variant.
+    // This sets up the test scenario where the built-in runner is of type bitwise.
+    var builtin: BuiltinRunner = .{ .Bitwise = .{} };
+
+    // Initialize a Cairo VM
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    // Ensure the Cairo VM is properly deallocated at the end of the test
+    defer vm.deinit();
+
+    // Set the current step of the Cairo VM to 8
+    // This simulates the current step of the VM for the test scenario.
+    vm.current_step = 8;
+
+    // Set segment used sizes to simulate real memory access data
+    // Here, the segment used size at index 0 is set to 5, indicating memory usage.
+    try vm.segments.segment_used_sizes.put(0, 5);
+
+    // Call the `getUsedPermRangeCheckUnits` function of the `builtin` instance
+    try expectEqual(@as(usize, 0), builtin.getUsedPermRangeCheckUnits(&vm));
+}
+
+test "BuiltinRunner:getUsedPermRangeCheckUnits with elliptic curve operation builtin" {
+    // Initialize a `BuiltinRunner` with an `EcOp` variant.
+    // This sets up the test scenario where the built-in runner is of type elliptic curve operation.
+    var builtin: BuiltinRunner = .{ .EcOp = EcOpBuiltinRunner.initDefault(std.testing.allocator) };
+
+    // Initialize a Cairo VM
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    // Ensure the Cairo VM is properly deallocated at the end of the test
+    defer vm.deinit();
+
+    // Set the current step of the Cairo VM to 8
+    // This simulates the current step of the VM for the test scenario.
+    vm.current_step = 8;
+
+    // Set segment used sizes to simulate real memory access data
+    // Here, the segment used size at index 0 is set to 5, indicating memory usage.
+    try vm.segments.segment_used_sizes.put(0, 5);
+
+    // Call the `getUsedPermRangeCheckUnits` function of the `builtin` instance
+    // This function retrieves the number of used permanent range check units associated with the built-in runner.
+    try expectEqual(@as(usize, 0), builtin.getUsedPermRangeCheckUnits(&vm));
+}
+
+test "BuiltinRunner:getUsedPermRangeCheckUnits with hash builtin" {
+    // Initialize a `BuiltinRunner` with a `Hash` variant.
+    // This sets up the test scenario where the built-in runner is of type hash operation.
+    var builtin: BuiltinRunner = .{ .Hash = HashBuiltinRunner.init(std.testing.allocator, 8, true) };
+
+    // Initialize a Cairo VM
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    // Ensure the Cairo VM is properly deallocated at the end of the test
+    defer vm.deinit();
+
+    // Set the current step of the Cairo VM to 8
+    // This simulates the current step of the VM for the test scenario.
+    vm.current_step = 8;
+
+    // Set segment used sizes to simulate real memory access data
+    // Here, the segment used size at index 0 is set to 5, indicating memory usage.
+    try vm.segments.segment_used_sizes.put(0, 5);
+
+    // Call the `getUsedPermRangeCheckUnits` function of the `builtin` instance
+    // This function retrieves the number of used permanent range check units associated with the built-in runner.
+    try expectEqual(@as(usize, 0), builtin.getUsedPermRangeCheckUnits(&vm));
+}
+
+test "BuiltinRunner:getUsedPermRangeCheckUnits with output builtin" {
+    // Initialize a `BuiltinRunner` with an `OutputBuiltinRunner` variant.
+    // This sets up the test scenario where the built-in runner is of type output operation.
+    var builtin: BuiltinRunner = .{ .Output = OutputBuiltinRunner.init(std.testing.allocator, true) };
+
+    // Initialize a Cairo VM
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    // Ensure the Cairo VM is properly deallocated at the end of the test
+    defer vm.deinit();
+
+    // Set the current step of the Cairo VM to 8
+    // This simulates the current step of the VM for the test scenario.
+    vm.current_step = 8;
+
+    // Set segment used sizes to simulate real memory access data
+    // Here, the segment used size at index 0 is set to 5, indicating memory usage.
+    try vm.segments.segment_used_sizes.put(0, 5);
+
+    // Call the `getUsedPermRangeCheckUnits` function of the `builtin` instance
+    // This function retrieves the number of used permanent range check units associated with the built-in runner.
+    try expectEqual(@as(usize, 0), builtin.getUsedPermRangeCheckUnits(&vm));
+}
+
+test "BuiltinRunner:getUsedPermRangeCheckUnits with range check builtin" {
+    // Initialize a `BuiltinRunner` with a `RangeCheck` variant.
+    // This sets up the test scenario where the built-in runner is of type range check operation.
+    // The `RangeCheckBuiltinRunner.init` function initializes the range check with the specified parameters:
+    // - `8`: the number of range check parts
+    // - `8`: the number of bits per range check part
+    // - `true`: indicating the range check is for a public range
+    var builtin: BuiltinRunner = .{ .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true) };
+
+    // Initialize a Cairo VM
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    // Ensure the Cairo VM is properly deallocated at the end of the test
+    defer vm.deinit();
+
+    // Set the current step of the Cairo VM to 8
+    // This simulates the current step of the VM for the test scenario.
+    vm.current_step = 8;
+
+    // Set segment used sizes to simulate real memory access data
+    // Here, the segment used size at index 0 is set to 1, indicating memory usage.
+    try vm.segments.segment_used_sizes.put(0, 1);
+
+    // Call the `getUsedPermRangeCheckUnits` function of the `builtin` instance
+    // This function retrieves the number of used permanent range check units associated with the built-in runner.
+    // In this case, since the built-in runner is a range check operation, the expected number of used units is 8.
+    try expectEqual(@as(usize, 8), builtin.getUsedPermRangeCheckUnits(&vm));
 }
