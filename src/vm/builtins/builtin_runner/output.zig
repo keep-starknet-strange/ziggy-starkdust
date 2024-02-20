@@ -220,7 +220,7 @@ pub const OutputBuiltinRunner = struct {
             const stop_pointer_addr = pointer.subUint(
                 @intCast(1),
             ) catch return RunnerError.NoStopPointer;
-            const stop_pointer = try (segments.memory.get(stop_pointer_addr) orelse return RunnerError.NoStopPointer).tryIntoRelocatable();
+            const stop_pointer = try (segments.memory.get(stop_pointer_addr) orelse return RunnerError.NoStopPointer).intoRelocatable();
             if (@as(
                 isize,
                 @intCast(self.base),

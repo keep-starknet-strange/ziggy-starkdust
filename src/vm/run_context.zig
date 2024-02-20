@@ -153,7 +153,7 @@ pub const RunContext = struct {
             .FP => self.fp.*,
             .AP => self.ap.*,
             .Imm => if (instruction.off_2 == 1) self.pc.* else return error.ImmShouldBe1,
-            .Op0 => if (op_0) |val| try val.tryIntoRelocatable() else return error.UnknownOp0,
+            .Op0 => if (op_0) |val| try val.intoRelocatable() else return error.UnknownOp0,
         };
 
         return if (instruction.off_2 < 0)

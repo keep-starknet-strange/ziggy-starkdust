@@ -340,7 +340,7 @@ pub const BitwiseBuiltinRunner = struct {
     ) !Relocatable {
         if (self.included) {
             const stop_pointer_addr = pointer.subUint(1) catch return RunnerError.NoStopPointer;
-            const stop_pointer = try (segments.memory.get(stop_pointer_addr) orelse return RunnerError.NoStopPointer).tryIntoRelocatable();
+            const stop_pointer = try (segments.memory.get(stop_pointer_addr) orelse return RunnerError.NoStopPointer).intoRelocatable();
             if (self.base != stop_pointer.segment_index) {
                 return RunnerError.InvalidStopPointerIndex;
             }

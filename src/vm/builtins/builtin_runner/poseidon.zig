@@ -149,8 +149,8 @@ pub const PoseidonBuiltinRunner = struct {
         const stop_pointer_addr = pointer.subUint(1) catch return RunnerError.NoStopPointer;
 
         // Retrieve the stop pointer value from memory and convert it into a Relocatable pointer.
-    const stop_pointer = segments.memory.getRelocatable(stop_pointer_addr) catch
-        return RunnerError.NoStopPointer;
+        const stop_pointer = segments.memory.getRelocatable(stop_pointer_addr) catch
+            return RunnerError.NoStopPointer;
 
         // Verify if the base index of the runner matches the segment index of the stop pointer.
         if (self.base != stop_pointer.segment_index) return RunnerError.InvalidStopPointerIndex;
@@ -249,7 +249,7 @@ pub const PoseidonBuiltinRunner = struct {
         // Iterate over input cells, retrieve their values, and append them to the array list.
         for (0..self.n_input_cells) |i| {
             const val = memory.get(try first_input_addr.addUint(i)) orelse return null;
-            try input_felts.append(val.tryIntoFelt() catch
+            try input_felts.append(val.intoFelt() catch
                 return RunnerError.BuiltinExpectedInteger);
         }
 

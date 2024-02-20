@@ -291,7 +291,7 @@ pub const CairoVM = struct {
         // First, we convert the encoded instruction to a u64.
         // If the MaybeRelocatable is not a felt, this operation will fail.
         // If the MaybeRelocatable is a felt but the value does not fit into a u64, this operation will fail.
-        const encoded_instruction_u64 = encoded_instruction.?.tryIntoU64() catch {
+        const encoded_instruction_u64 = encoded_instruction.?.intoU64() catch {
             return CairoVMError.InstructionEncodingError;
         };
 
@@ -699,7 +699,7 @@ pub const CairoVM = struct {
                 // Check that the res is not null.
                 if (operands.res) |val| {
                     // Check that the res is a relocatable.
-                    self.run_context.pc.* = val.tryIntoRelocatable() catch
+                    self.run_context.pc.* = val.intoRelocatable() catch
                         return error.PcUpdateJumpResNotRelocatable;
                 } else {
                     return error.ResUnconstrainedUsedWithPcUpdateJump;
@@ -710,7 +710,7 @@ pub const CairoVM = struct {
                 // Check that the res is not null.
                 if (operands.res) |val| {
                     // Check that the res is a felt.
-                    try self.run_context.pc.*.addFeltInPlace(val.tryIntoFelt() catch return error.PcUpdateJumpRelResNotFelt);
+                    try self.run_context.pc.*.addFeltInPlace(val.intoFelt() catch return error.PcUpdateJumpRelResNotFelt);
                 } else {
                     return error.ResUnconstrainedUsedWithPcUpdateJumpRel;
                 }
@@ -1288,7 +1288,7 @@ pub const CairoVM = struct {
     pub fn decodeCurrentInstruction(self: *const Self) !Instruction {
         const felt = try self.segments.memory.getFelt(self.run_context.getPC());
 
-        const instruction = felt.tryIntoU64() catch {
+        const instruction = felt.intoU64() catch {
             return CairoVMError.InvalidInstructionEncoding;
         };
         return decoder.decodeInstructions(instruction);
