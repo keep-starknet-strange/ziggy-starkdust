@@ -29,6 +29,7 @@ const expectError = std.testing.expectError;
 const expectEqual = std.testing.expectEqual;
 const expect = std.testing.expect;
 const expectEqualSlices = std.testing.expectEqualSlices;
+const expectEqualStrings = std.testing.expectEqualStrings;
 
 /// The name of the output builtin.
 pub const OUTPUT_BUILTIN_NAME = "output_builtin";
@@ -1354,4 +1355,31 @@ test "BuiltinRunner:getUsedDilutedCheckUnits with output builtin" {
         @as(usize, 0),
         try builtin.getUsedDilutedCheckUnits(std.testing.allocator, 270, 7),
     );
+}
+
+test "BuiltinRunner: builtin name function" {
+    // Initialize a `BuiltinRunner` with the `Bitwise` variant and test its name.
+    var bitwise: BuiltinRunner = .{ .Bitwise = .{} };
+    try expectEqualStrings("bitwise_builtin", bitwise.name());
+
+    // Initialize a `BuiltinRunner` with the `Hash` variant and test its name.
+    var hash: BuiltinRunner = .{ .Hash = HashBuiltinRunner.init(std.testing.allocator, 1, true) };
+    try expectEqualStrings("pedersen_builtin", hash.name());
+
+    // Initialize a `BuiltinRunner` with the `RangeCheck` variant and test its name.
+    var range_check: BuiltinRunner = .{ .RangeCheck = .{} };
+    try expectEqualStrings("range_check_builtin", range_check.name());
+
+    // Initialize a `BuiltinRunner` with the `EcOp` variant and test its name.
+    var ec_op: BuiltinRunner = .{ .EcOp = EcOpBuiltinRunner.initDefault(std.testing.allocator) };
+    try expectEqualStrings("ec_op_builtin", ec_op.name());
+
+    // Initialize a `BuiltinRunner` with the `Signature` variant and test its name.
+    var ecdsa_instance_def = EcdsaInstanceDef.init(512);
+    var ecdsa: BuiltinRunner = .{ .Signature = SignatureBuiltinRunner.init(std.testing.allocator, &ecdsa_instance_def, false) };
+    try expectEqualStrings("ecdsa_builtin", ecdsa.name());
+
+    // Initialize a `BuiltinRunner` with the `Output` variant and test its name.
+    var output: BuiltinRunner = .{ .Output = OutputBuiltinRunner.initDefault(std.testing.allocator) };
+    try expectEqualStrings("output_builtin", output.name());
 }
