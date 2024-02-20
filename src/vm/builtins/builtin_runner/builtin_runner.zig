@@ -437,6 +437,38 @@ pub const BuiltinRunner = union(enum) {
         }
     }
 
+    /// Retrieves the usage statistics associated with range checks, if applicable.
+    ///
+    /// This function retrieves the usage statistics associated with range checks, if applicable. It returns a `Tuple`
+    /// containing information about the number of range checks performed and the total memory usage attributed to these
+    /// checks.
+    ///
+    /// # Parameters
+    ///
+    /// * `memory` - A pointer to the `Memory` manager for the current context.
+    ///
+    /// # Returns
+    ///
+    /// * If the built-in runner is of type `RangeCheck`, the function returns a `Tuple` containing:
+    ///     - The number of range checks performed.
+    ///     - The total memory usage attributed to these checks.
+    /// * If the built-in runner is not of type `RangeCheck`, the function returns `null`.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if any error occurs during the retrieval process.
+    ///
+    /// # Remarks
+    ///
+    /// This function is part of the `BuiltinRunner` union(enum) and is used to retrieve usage statistics associated
+    /// specifically with range checks.
+    pub fn getRangeCheckUsage(self: *Self, memory: *Memory) ?std.meta.Tuple(&.{ usize, usize }) {
+        return switch (self.*) {
+            .RangeCheck => |*range_check| range_check.getRangeCheckUsage(memory),
+            else => null,
+        };
+    }
+
     pub fn deinit(self: *Self) void {
         switch (self.*) {
             .EcOp => |*ec_op| ec_op.deinit(),
@@ -863,4 +895,137 @@ test "BuiltinRunner: getAllocatedMemoryUnits with keccak builtin" {
         @as(usize, 256),
         builtin.getAllocatedMemoryUnits(&vm),
     );
+}
+
+test "BuiltinRunner:getRangeCheckUsage with range check builtin" {
+    // Initialize a `BuiltinRunner` with a `RangeCheckBuiltinRunner`.
+    var builtin: BuiltinRunner = .{ .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true) };
+
+    // Initialize a `Memory` instance for testing.
+    var memory = try Memory.init(std.testing.allocator);
+    // Ensure the memory instance is deallocated properly at the end of the test.
+    defer memory.deinit();
+
+    // Set up memory segments with specific data for testing range checks.
+    try memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ 0, 1 }, .{2} },
+            .{ .{ 0, 2 }, .{3} },
+            .{ .{ 0, 3 }, .{4} },
+        },
+    );
+    // Ensure the memory data is deallocated properly at the end of the test.
+    defer memory.deinitData(std.testing.allocator);
+
+    // Test the `getRangeCheckUsage` function
+    try expectEqual(
+        @as(?std.meta.Tuple(&.{ usize, usize }), .{ 0, 4 }),
+        builtin.getRangeCheckUsage(memory),
+    );
+}
+
+test "BuiltinRunner:getRangeCheckUsage with output builtin" {
+    // Initialize a `BuiltinRunner` with an `OutputBuiltinRunner`.
+    var builtin: BuiltinRunner = .{ .Output = OutputBuiltinRunner.init(std.testing.allocator, true) };
+
+    // Initialize a `Memory` instance for testing.
+    var memory = try Memory.init(std.testing.allocator);
+    // Ensure the memory instance is deallocated properly at the end of the test.
+    defer memory.deinit();
+
+    // Set up memory segments with specific data for testing output builtin.
+    try memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ 0, 1 }, .{2} },
+            .{ .{ 0, 2 }, .{3} },
+            .{ .{ 0, 3 }, .{4} },
+        },
+    );
+    // Ensure the memory data is deallocated properly at the end of the test.
+    defer memory.deinitData(std.testing.allocator);
+
+    // Test the `getRangeCheckUsage` function of the `BuiltinRunner`
+    try expectEqual(null, builtin.getRangeCheckUsage(memory));
+}
+
+test "BuiltinRunner:getRangeCheckUsage with hash builtin" {
+    // Initialize a `BuiltinRunner` with a `HashBuiltinRunner`.
+    var builtin: BuiltinRunner = .{ .Hash = HashBuiltinRunner.init(std.testing.allocator, 256, true) };
+
+    // Initialize a `Memory` instance for testing.
+    var memory = try Memory.init(std.testing.allocator);
+    // Ensure the memory instance is deallocated properly at the end of the test.
+    defer memory.deinit();
+
+    // Set up memory segments with specific data for testing hash builtin.
+    try memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ 0, 1 }, .{2} },
+            .{ .{ 0, 2 }, .{3} },
+            .{ .{ 0, 3 }, .{4} },
+        },
+    );
+    // Ensure the memory data is deallocated properly at the end of the test.
+    defer memory.deinitData(std.testing.allocator);
+
+    // Test the `getRangeCheckUsage` function of the `BuiltinRunner`.
+    try expectEqual(null, builtin.getRangeCheckUsage(memory));
+}
+
+test "BuiltinRunner:getRangeCheckUsage with elliptic curve operation builtin" {
+    // Initialize a `BuiltinRunner` with an `EcOpBuiltinRunner`.
+    var builtin: BuiltinRunner = .{ .EcOp = EcOpBuiltinRunner.initDefault(std.testing.allocator) };
+
+    // Initialize a `Memory` instance for testing.
+    var memory = try Memory.init(std.testing.allocator);
+    // Ensure the memory instance is deallocated properly at the end of the test.
+    defer memory.deinit();
+
+    // Set up memory segments with specific data for testing elliptic curve operation builtin.
+    try memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ 0, 1 }, .{2} },
+            .{ .{ 0, 2 }, .{3} },
+            .{ .{ 0, 3 }, .{4} },
+        },
+    );
+    // Ensure the memory data is deallocated properly at the end of the test.
+    defer memory.deinitData(std.testing.allocator);
+
+    // Test the `getRangeCheckUsage` function of the `BuiltinRunner`.
+    try expectEqual(null, builtin.getRangeCheckUsage(memory));
+}
+
+test "BuiltinRunner:getRangeCheckUsage with bitwise builtin" {
+    // Initialize a `BuiltinRunner` with a `Bitwise` variant.
+    var builtin: BuiltinRunner = .{ .Bitwise = .{} };
+
+    // Initialize a `Memory` instance for testing.
+    var memory = try Memory.init(std.testing.allocator);
+    // Ensure the memory instance is deallocated properly at the end of the test.
+    defer memory.deinit();
+
+    // Set up memory segments with specific data for testing bitwise builtin.
+    try memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ 0, 1 }, .{2} },
+            .{ .{ 0, 2 }, .{3} },
+            .{ .{ 0, 3 }, .{4} },
+        },
+    );
+    // Ensure the memory data is deallocated properly at the end of the test.
+    defer memory.deinitData(std.testing.allocator);
+
+    // Test the `getRangeCheckUsage` function of the `BuiltinRunner`.
+    try expectEqual(null, builtin.getRangeCheckUsage(memory));
 }
