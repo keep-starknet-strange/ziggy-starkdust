@@ -264,4 +264,8 @@ pub const HintError = error{
     ExcludedNot2,
 
     AssertLtFelt252,
+
+    AssertionFailed,
+
+    SplitIntNotZero,
 };

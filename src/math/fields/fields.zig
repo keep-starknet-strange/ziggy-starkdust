@@ -512,6 +512,11 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             return res;
         }
 
+        /// Bitor operation
+        pub fn bitOr(self: Self, other: Self) Self {
+            return Self.fromInt(u256, self.toInteger() | other.toInteger());
+        }
+
         /// Bitand operation
         pub fn bitAnd(self: Self, other: Self) Self {
             return Self.fromInt(u256, self.toInteger() & other.toInteger());
@@ -618,30 +623,23 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             );
         }
 
-        pub fn fromSignedInt(comptime T: type, positive: bool, value: T) Self {
-            std.debug.assert(value >= 0);
-
-            if (!positive) {
-                return Self.fromInt(T, value).neg();
+        /// Convert int to Field type, without FIELD max check overflow
+        pub fn fromSignedInt(value: anytype) Self {
+            if (value > 0) {
+                return Self.fromInt(u256, @intCast(value));
             }
 
-            return Self.fromInt(T, value);
+            return Self.fromInt(u256, @intCast(-value)).neg();
         }
 
         // converting felt to abs value with sign, in (- FIELD / 2, FIELD / 2
-        pub fn toSignedInt(self: Self) struct { positive: bool, abs: u256 } {
+        pub fn toSignedInt(self: Self) i256 {
             const val = self.toInteger();
             if (val > SIGNED_FELT_MAX) {
-                return .{
-                    .positive = false,
-                    .abs = STARKNET_PRIME - val,
-                };
+                return -@as(i256, @intCast(STARKNET_PRIME - val));
             }
 
-            return .{
-                .positive = true,
-                .abs = val,
-            };
+            return @intCast(val);
         }
         /// Convert the field element to a u256 integer.
         ///
@@ -793,6 +791,10 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
                 .gt, .eq => true,
                 else => false,
             };
+        }
+
+        pub fn shl(self: Self, other: u8) Self {
+            return Self.fromInt(u256, self.toInteger() << other);
         }
 
         /// Left shift by `rhs` bits with overflow detection.

@@ -168,6 +168,14 @@ pub const CairoVMHintProcessor = struct {
             try math_hints.assertLeFeltExcluded2(exec_scopes);
         } else if (std.mem.eql(u8, hint_codes.ASSERT_LT_FELT, hint_data.code)) {
             try math_hints.assertLtFelt(vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.ASSERT_250_BITS, hint_data.code)) {
+            try math_hints.assert250Bit(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_FELT, hint_data.code)) {
+            try math_hints.splitFelt(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_INT_ASSERT_RANGE, hint_data.code)) {
+            try math_hints.splitIntAssertRange(vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SIGNED_DIV_REM, hint_data.code)) {
+            try math_hints.signedDivRem(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         }
     }
 };

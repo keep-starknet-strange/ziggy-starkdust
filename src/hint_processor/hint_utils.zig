@@ -17,12 +17,12 @@ pub fn getConstantFromVarName(
     var_name: []const u8,
     constants: *const std.StringHashMap(Felt252),
 ) !Felt252 {
-    while (constants.iterator().next()) |k|
-        if (std.mem.eql(
-            u8,
-            std.mem.splitBackwardsScalar(u8, k.key_ptr.*, '.').next() orelse continue,
-            var_name,
-        )) return k.value_ptr.*;
+    var it = constants.iterator();
+    while (it.next()) |k| {
+        if (k.key_ptr.*.len < var_name.len) continue;
+        if (std.mem.eql(u8, var_name, k.key_ptr.*[k.key_ptr.*.len - var_name.len ..]))
+            return k.value_ptr.*;
+    }
 
     return HintError.MissingConstant;
 }
