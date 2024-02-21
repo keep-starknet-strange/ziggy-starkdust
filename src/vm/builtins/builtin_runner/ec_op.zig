@@ -552,33 +552,18 @@ test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory valid" {
     try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
-            .{
-                .{ 3, 0 },
-                .{@as(u256, 0x68caa9509b7c2e90b4d92661cbf7c465471c1e8598c5f989691eef6653e0f38)},
-            },
-            .{
-                .{ 3, 1 },
-                .{@as(u256, 0x79a8673f498531002fc549e06ff2010ffc0c191cceb7da5532acb95cdcb591)},
-            },
-            .{
-                .{ 3, 2 },
-                .{@as(u256, 0x1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca)},
-            },
-            .{
-                .{ 3, 3 },
-                .{@as(u256, 0x5668060aa49730b7be4801df46ec62de53ecd11abe43a32873000c36e8dc1f)},
-            },
+            .{ .{ 3, 0 }, .{0x68caa9509b7c2e90b4d92661cbf7c465471c1e8598c5f989691eef6653e0f38} },
+            .{ .{ 3, 1 }, .{0x79a8673f498531002fc549e06ff2010ffc0c191cceb7da5532acb95cdcb591} },
+            .{ .{ 3, 2 }, .{0x1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca} },
+            .{ .{ 3, 3 }, .{0x5668060aa49730b7be4801df46ec62de53ecd11abe43a32873000c36e8dc1f} },
             .{ .{ 3, 4 }, .{34} },
             .{ .{ 3, 5 }, .{2778063437308421278851140253538604815869848682781135193774472480292420096757} },
         },
     );
 
-    const expected = Felt252.fromInt(u256, 3598390311618116577316045819420613574162151407434885460365915347732568210029);
-    const actual = try builtin.deduceMemoryCell(std.testing.allocator, Relocatable.init(3, 6), vm.segments.memory);
-
     try expectEqual(
-        MaybeRelocatable.fromFelt(expected),
-        actual,
+        MaybeRelocatable.fromInt(u256, 0x7f49de2c3a7d1671437406869edb1805ba43e1c0173b35f8c2e8fcc13c3fa6d),
+        try builtin.deduceMemoryCell(std.testing.allocator, Relocatable.init(3, 6), vm.segments.memory),
     );
 }
 
@@ -599,18 +584,9 @@ test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory unfilled inp
     try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
-            .{
-                .{ 3, 1 },
-                .{@as(u256, 0x79a8673f498531002fc549e06ff2010ffc0c191cceb7da5532acb95cdcb591)},
-            },
-            .{
-                .{ 3, 2 },
-                .{@as(u256, 0x1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca)},
-            },
-            .{
-                .{ 3, 3 },
-                .{@as(u256, 0x5668060aa49730b7be4801df46ec62de53ecd11abe43a32873000c36e8dc1f)},
-            },
+            .{ .{ 3, 1 }, .{0x79a8673f498531002fc549e06ff2010ffc0c191cceb7da5532acb95cdcb591} },
+            .{ .{ 3, 2 }, .{0x1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca} },
+            .{ .{ 3, 3 }, .{0x5668060aa49730b7be4801df46ec62de53ecd11abe43a32873000c36e8dc1f} },
             .{ .{ 3, 4 }, .{34} },
             .{ .{ 3, 5 }, .{2778063437308421278851140253538604815869848682781135193774472480292420096757} },
         },
@@ -641,18 +617,9 @@ test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory addr not an 
     try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
-            .{
-                .{ 3, 1 },
-                .{@as(u256, 0x79a8673f498531002fc549e06ff2010ffc0c191cceb7da5532acb95cdcb591)},
-            },
-            .{
-                .{ 3, 2 },
-                .{@as(u256, 0x1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca)},
-            },
-            .{
-                .{ 3, 3 },
-                .{@as(u256, 0x5668060aa49730b7be4801df46ec62de53ecd11abe43a32873000c36e8dc1f)},
-            },
+            .{ .{ 3, 1 }, .{0x79a8673f498531002fc549e06ff2010ffc0c191cceb7da5532acb95cdcb591} },
+            .{ .{ 3, 2 }, .{0x1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca} },
+            .{ .{ 3, 3 }, .{0x5668060aa49730b7be4801df46ec62de53ecd11abe43a32873000c36e8dc1f} },
             .{ .{ 3, 4 }, .{34} },
             .{ .{ 3, 5 }, .{2778063437308421278851140253538604815869848682781135193774472480292420096757} },
         },
@@ -683,18 +650,9 @@ test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory non integer 
     try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
-            .{
-                .{ 3, 1 },
-                .{@as(u256, 0x79a8673f498531002fc549e06ff2010ffc0c191cceb7da5532acb95cdcb591)},
-            },
-            .{
-                .{ 3, 2 },
-                .{@as(u256, 0x1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca)},
-            },
-            .{
-                .{ 3, 3 },
-                .{ 1, 2 },
-            },
+            .{ .{ 3, 1 }, .{0x79a8673f498531002fc549e06ff2010ffc0c191cceb7da5532acb95cdcb591} },
+            .{ .{ 3, 2 }, .{0x1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca} },
+            .{ .{ 3, 3 }, .{ 1, 2 } },
             .{ .{ 3, 4 }, .{34} },
             .{ .{ 3, 5 }, .{2778063437308421278851140253538604815869848682781135193774472480292420096757} },
         },
