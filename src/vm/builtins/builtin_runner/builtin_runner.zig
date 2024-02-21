@@ -289,6 +289,7 @@ pub const BuiltinRunner = union(enum) {
             .EcOp => |*ec_op| ec_op.deinit(),
             .Hash => |*hash| hash.deinit(),
             .Keccak => |*keccak| keccak.deinit(),
+            .Signature => |*signature| signature.deinit(),
             else => {},
         }
     }
