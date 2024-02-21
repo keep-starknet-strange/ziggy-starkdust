@@ -226,6 +226,7 @@ pub const ProgramError = error{
     /// Indicates an unsupported or unimplemented builtin encountered within the program.
     UnsupportedBuiltin,
     EmptyVecAlreadyFiltered,
+    NonExtensiveHints,
 };
 
 // Represents errors occuring during ECDSA verify

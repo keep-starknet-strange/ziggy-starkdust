@@ -118,11 +118,7 @@ pub const CairoVM = struct {
         self.trace_context.deinit();
         // Loop through the built-in runners and deallocate their resources.
         for (self.builtin_runners.items) |*builtin| {
-            switch (builtin.*) {
-                .Keccak => |*keccak| keccak.deinit(),
-                .Signature => |*signature| signature.deinit(),
-                else => {},
-            }
+            builtin.deinit();
         }
         // Deallocate built-in runners.
         self.builtin_runners.deinit();
@@ -850,18 +846,12 @@ pub const CairoVM = struct {
         address: Relocatable,
     ) CairoVMError!?MaybeRelocatable {
         for (self.builtin_runners.items) |*builtin_item| {
-            if (@as(
-                u64,
-                @intCast(builtin_item.base()),
-            ) == address.segment_index) {
+            if (builtin_item.base() == address.segment_index)
                 return builtin_item.deduceMemoryCell(
                     allocator,
                     address,
                     self.segments.memory,
-                ) catch {
-                    return CairoVMError.RunnerError;
-                };
-            }
+                ) catch CairoVMError.RunnerError;
         }
         return null;
     }
