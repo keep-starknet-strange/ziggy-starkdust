@@ -571,7 +571,7 @@ pub const BuiltinRunner = union(enum) {
     ///
     /// This function is part of the `BuiltinRunner` union(enum) and is used to retrieve usage statistics associated
     /// specifically with range checks.
-    pub fn getRangeCheckUsage(self: *Self, memory: *Memory) ?std.meta.Tuple(&.{ usize, usize }) {
+    pub fn getRangeCheckUsage(self: *const Self, memory: *Memory) ?std.meta.Tuple(&.{ usize, usize }) {
         return switch (self.*) {
             .RangeCheck => |*range_check| range_check.getRangeCheckUsage(memory),
             else => null,
