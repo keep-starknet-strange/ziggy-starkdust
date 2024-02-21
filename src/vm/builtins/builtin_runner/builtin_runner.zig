@@ -589,6 +589,144 @@ pub const BuiltinRunner = union(enum) {
     }
 };
 
+test "BuiltinRunner: getRangeCheckUsage with range check builtin" {
+    // Initialize a BuiltinRunner for range check operations.
+    var builtin: BuiltinRunner = .{ .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true) };
+
+    // Initialize a Memory instance named `mem`.
+    var mem = try Memory.init(std.testing.allocator);
+    defer mem.deinit();
+
+    // Set up memory for `mem`.
+    try mem.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ 0, 1 }, .{2} },
+            .{ .{ 0, 2 }, .{3} },
+            .{ .{ 0, 3 }, .{4} },
+        },
+    );
+    defer mem.deinitData(std.testing.allocator);
+
+    // Test if the getRangeCheckUsage method of the range check builtin returns the expected tuple.
+    try expectEqual(
+        @as(?Tuple(&.{ usize, usize }), .{ 0, 4 }),
+        builtin.getRangeCheckUsage(mem),
+    );
+}
+
+test "BuiltinRunner: getRangeCheckUsage with output builtin" {
+    // Initialize a BuiltinRunner for output operations.
+    var builtin: BuiltinRunner = .{ .Output = OutputBuiltinRunner.initDefault(std.testing.allocator) };
+
+    // Initialize a Memory instance named `mem`.
+    var mem = try Memory.init(std.testing.allocator);
+    defer mem.deinit();
+
+    // Set up memory for `mem`.
+    try mem.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ 0, 1 }, .{2} },
+            .{ .{ 0, 2 }, .{3} },
+            .{ .{ 0, 3 }, .{4} },
+        },
+    );
+    defer mem.deinitData(std.testing.allocator);
+
+    // Test if the getRangeCheckUsage method of the output builtin returns null.
+    try expectEqual(
+        null,
+        builtin.getRangeCheckUsage(mem),
+    );
+}
+
+test "BuiltinRunner: getRangeCheckUsage with hash builtin" {
+    // Initialize a BuiltinRunner for hash operations.
+    var builtin: BuiltinRunner = .{ .Hash = HashBuiltinRunner.init(std.testing.allocator, 256, true) };
+    defer builtin.deinit();
+
+    // Initialize a Memory instance named `mem`.
+    var mem = try Memory.init(std.testing.allocator);
+    defer mem.deinit();
+
+    // Set up memory for `mem`.
+    try mem.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ 0, 1 }, .{2} },
+            .{ .{ 0, 2 }, .{3} },
+            .{ .{ 0, 3 }, .{4} },
+        },
+    );
+    defer mem.deinitData(std.testing.allocator);
+
+    // Test if the getRangeCheckUsage method of the hash builtin returns null.
+    try expectEqual(
+        null,
+        builtin.getRangeCheckUsage(mem),
+    );
+}
+
+test "BuiltinRunner: getRangeCheckUsage with elliptic curve operations builtin" {
+    // Initialize a BuiltinRunner for elliptic curve operations.
+    var builtin: BuiltinRunner = .{ .EcOp = EcOpBuiltinRunner.initDefault(std.testing.allocator) };
+    defer builtin.deinit();
+
+    // Initialize a Memory instance named `mem`.
+    var mem = try Memory.init(std.testing.allocator);
+    defer mem.deinit();
+
+    // Set up memory for `mem`.
+    try mem.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ 0, 1 }, .{2} },
+            .{ .{ 0, 2 }, .{3} },
+            .{ .{ 0, 3 }, .{4} },
+        },
+    );
+    defer mem.deinitData(std.testing.allocator);
+
+    // Test if the getRangeCheckUsage method of the elliptic curve operations builtin returns null.
+    try expectEqual(
+        null,
+        builtin.getRangeCheckUsage(mem),
+    );
+}
+
+test "BuiltinRunner: getRangeCheckUsage with bitwise builtin" {
+    // Initialize a BuiltinRunner for bitwise operations.
+    var builtin: BuiltinRunner = .{ .Bitwise = .{} };
+    defer builtin.deinit();
+
+    // Initialize a Memory instance named `mem`.
+    var mem = try Memory.init(std.testing.allocator);
+    defer mem.deinit();
+
+    // Set up memory for `mem`.
+    try mem.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{1} },
+            .{ .{ 0, 1 }, .{2} },
+            .{ .{ 0, 2 }, .{3} },
+            .{ .{ 0, 3 }, .{4} },
+        },
+    );
+    defer mem.deinitData(std.testing.allocator);
+
+    // Test if the getRangeCheckUsage method of the bitwise operations builtin returns null.
+    try expectEqual(
+        null,
+        builtin.getRangeCheckUsage(mem),
+    );
+}
+
 test "BuiltinRunner: ratio method" {
     // Initialize a BuiltinRunner for bitwise operations.
     const bitwise_builtin: BuiltinRunner = .{ .Bitwise = .{} };
