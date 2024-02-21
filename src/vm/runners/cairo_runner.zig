@@ -3,6 +3,7 @@ const json = std.json;
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 
+const MemoryCell = @import("../memory/memory.zig").MemoryCell;
 const HintData = @import("../../hint_processor/hint_processor_def.zig").HintData;
 const HintReference = @import("../../hint_processor/hint_processor_def.zig").HintReference;
 const HintProcessor = @import("../../hint_processor/hint_processor_def.zig").CairoVMHintProcessor;
@@ -481,6 +482,63 @@ pub const CairoRunner = struct {
         return builtin_segment_info;
     }
 
+    /// Retrieves the permanent range check limits from the CairoRunner instance.
+    ///
+    /// This function iterates through the builtin runners of the CairoRunner and gathers
+    /// information about the range check usage. It considers both the range check usage
+    /// provided by the builtin runners and any range check limits specified in the VM configuration.
+    /// The function calculates the minimum range check limits from all sources and returns them.
+    ///
+    /// # Arguments
+    /// - `self`: A mutable reference to the CairoRunner instance.
+    /// - `allocator`: The allocator to be used for initializing internal data structures.
+    ///
+    /// # Returns
+    /// An optional tuple containing the minimum permanent range check limits.
+    /// If no range check limits are found, it returns `null`.
+    pub fn getPermRangeCheckLimits(self: *Self, allocator: Allocator) !?std.meta.Tuple(&.{ isize, isize }) {
+
+        // Initialize an ArrayList to store information about builtin segments.
+        var runner_usages = ArrayList(std.meta.Tuple(&.{ isize, isize })).init(allocator);
+
+        // Defer the deinitialization of the ArrayList to ensure cleanup in case of errors.
+        defer runner_usages.deinit();
+
+        // Iterate through each builtin runner to collect range check usage.
+        for (self.vm.builtin_runners.items) |builtin| {
+            // Check if the builtin runner provides range check usage information.
+            if (builtin.getRangeCheckUsage(self.vm.segments.memory)) |rc| {
+                // Append the range check usage tuple to the ArrayList.
+                try runner_usages.append(.{ @intCast(rc[0]), @intCast(rc[1]) });
+            }
+        }
+
+        // Check if the VM configuration specifies range check limits.
+        if (self.vm.rc_limits) |rc| {
+            // Append the range check limits from the VM configuration to the ArrayList.
+            try runner_usages.append(rc);
+        }
+
+        // If no range check usage information is available, return null.
+        if (runner_usages.items.len == 0) {
+            return null;
+        }
+
+        // Initialize the result tuple with the range check limits from the VM configuration
+        // or the first builtin runner, whichever is available.
+        var res: std.meta.Tuple(&.{ isize, isize }) = self.vm.rc_limits orelse runner_usages.items[0];
+
+        // Iterate through each range check usage tuple to find the minimum limits.
+        for (runner_usages.items) |runner_usage| {
+            // Update the result tuple with the minimum limits.
+            res[0] = @min(res[0], runner_usage[0]);
+            res[1] = @max(res[1], runner_usage[1]);
+        }
+
+        // Return the minimum permanent range check limits.
+        return res;
+    }
+
     pub fn deinit(self: *Self) void {
         // currently handling the deinit of the json.Parsed(ProgramJson) outside of constructor
         // otherwise the runner would always assume json in its interface
@@ -569,10 +627,7 @@ test "CairoRunner: initVM should initialize the VM properly with Range Check bui
         ProgramJson{},
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
-        try CairoVM.init(
-            std.testing.allocator,
-            .{},
-        ),
+        try CairoVM.init(std.testing.allocator, .{}),
         false,
     );
     // Defer the deinitialization of the CairoRunner to ensure proper cleanup.
@@ -972,5 +1027,116 @@ test "CairoRunner: initSegments should initialize the segments properly with no 
     try expectEqual(
         @as(usize, 3),
         cairo_runner.vm.segments.numSegments(),
+    );
+}
+
+test "CairoRunner: getPermRangeCheckLimits with no builtin" {
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        ProgramJson{},
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit();
+
+    // Set up memory for the CairoRunner with a single memory cell.
+    try cairo_runner.vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{140739638165522} },
+            .{ .{ 0, 1 }, .{211104085050912} },
+            .{ .{ 0, 2 }, .{158327526917968} },
+        },
+    );
+
+    // Create an ArrayList to hold the segment.
+    var segment_1 = std.ArrayListUnmanaged(?MemoryCell){};
+
+    // Append the MemoryCell to the segment N times.
+    try segment_1.appendNTimes(
+        std.testing.allocator,
+        MemoryCell.init(MaybeRelocatable.fromSegment(0, 0)),
+        128 * 1024,
+    );
+
+    // Append the segment to the memory data.
+    try cairo_runner.vm.segments.memory.data.append(segment_1);
+
+    // Defer the deinitialization of memory data to ensure cleanup.
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Assign range limits to the CairoRunner instance.
+    cairo_runner.vm.rc_limits = .{ 32768, 32803 };
+
+    // Invoke the `getPermRangeCheckLimits` function and expect the result to match the expected tuple.
+    try expectEqual(
+        @as(?std.meta.Tuple(&.{ isize, isize }), .{ 32768, 32803 }),
+        try cairo_runner.getPermRangeCheckLimits(std.testing.allocator),
+    );
+}
+
+test "CairoRunner: getPermRangeCheckLimits with range check builtin" {
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        ProgramJson{},
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit();
+
+    // Set up memory for the CairoRunner with a single memory cell.
+    try cairo_runner.vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{.{ .{ 0, 0 }, .{141834852500784} }},
+    );
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Add a range check builtin runner with specific parameters.
+    try cairo_runner.vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner.init(12, 5, true) });
+
+    // Invoke the `getPermRangeCheckLimits` function and expect the result to match the expected tuple.
+    try expectEqual(
+        @as(?std.meta.Tuple(&.{ isize, isize }), .{ 0, 33023 }),
+        try cairo_runner.getPermRangeCheckLimits(std.testing.allocator),
+    );
+}
+
+test "CairoRunner: getPermRangeCheckLimits with null range limit" {
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        ProgramJson{},
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit();
+
+    // Invoke the `getPermRangeCheckLimits` function and expect the result to be null.
+    try expectEqual(
+        null,
+        try cairo_runner.getPermRangeCheckLimits(std.testing.allocator),
     );
 }
