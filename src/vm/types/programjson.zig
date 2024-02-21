@@ -863,7 +863,7 @@ pub const ProgramJson = struct {
                     if (entry.value_ptr.len <= 0) return ProgramError.EmptyVecAlreadyFiltered;
 
                     // Populate hints_ranges and hints in the HintsCollection.
-                    try hints_collection.hints_ranges.put(
+                    try hints_collection.hints_ranges.Extensive.put(
                         Relocatable.init(
                             0,
                             try std.fmt.parseInt(u64, entry.key_ptr.*, 10),
