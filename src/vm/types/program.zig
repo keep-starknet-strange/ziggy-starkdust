@@ -97,8 +97,8 @@ pub const HintsCollection = struct {
     /// # Params:
     ///   - `allocator`: The allocator used to initialize the collection.
     pub fn init(allocator: Allocator, hints: std.AutoHashMap(usize, []const HintParams), program_length: usize, extensive_hints: bool) !Self {
-        var max_hint_pc = @as(usize, @intCast(0));
-        var total_hints_len = @as(usize, @intCast(0));
+        var max_hint_pc: usize = 0;
+        var total_hints_len: usize = 0;
         var it = hints.iterator();
         while (it.next()) |kv| {
             max_hint_pc = @max(max_hint_pc, kv.key_ptr.*);
