@@ -382,3 +382,35 @@ test "Elliptic curve math: compute double slope for valid point B" {
     const expected_slope = Felt252.fromInt(u256, 2904750555256547440469454488220756360634457312540595732507835416669695939476);
     try expectEqual(expected_slope, actual_slope);
 }
+
+test "Elliptic curve math: compute_ec_op_impl_valid_a" {
+    const partial_sum = AffinePoint{ .x = Felt252.fromInt(u256, 3139037544796708144595053687182055617920475701120786241351436619796497072089), .y = Felt252.fromInt(u256, 2119589567875935397690285099786081818522144748339117565577200220779667999801), .infinity = false };
+    const doubled_point = AffinePoint{ .x = Felt252.fromInt(u256, 874739451078007766457464989774322083649278607533249481151382481072868806602), .y = Felt252.fromInt(u256, 152666792071518830868575557812948353041420400780739481342941381225525861407), .infinity = false };
+    const m = Felt252.fromInt(u8, 34);
+    const height = 256;
+    const actual_ec_point = try ecOpImpl(partial_sum, doubled_point, m, ALPHA, height);
+    const expected_ec_point = AffinePoint{ .x = Felt252.fromInt(u256, 1977874238339000383330315148209250828062304908491266318460063803060754089297), .y = Felt252.fromInt(u256, 2969386888251099938335087541720168257053975603483053253007176033556822156706), .infinity = false };
+
+    try expectEqual(actual_ec_point, expected_ec_point);
+}
+
+test "Elliptic curve math: compute_ec_op_impl_valid_b" {
+    const partial_sum = AffinePoint{ .x = Felt252.fromInt(u256, 2962412995502985605007699495352191122971573493113767820301112397466445942584), .y = Felt252.fromInt(u256, 214950771763870898744428659242275426967582168179217139798831865603966154129), .infinity = false };
+    const doubled_point = AffinePoint{ .x = Felt252.fromInt(u256, 874739451078007766457464989774322083649278607533249481151382481072868806602), .y = Felt252.fromInt(u256, 152666792071518830868575557812948353041420400780739481342941381225525861407), .infinity = false };
+    const m = Felt252.fromInt(u8, 34);
+    const height = 256;
+    const actual_ec_point = try ecOpImpl(partial_sum, doubled_point, m, ALPHA, height);
+    const expected_ec_point = AffinePoint{ .x = Felt252.fromInt(u256, 2778063437308421278851140253538604815869848682781135193774472480292420096757), .y = Felt252.fromInt(u256, 3598390311618116577316045819420613574162151407434885460365915347732568210029), .infinity = false };
+
+    try expectEqual(actual_ec_point, expected_ec_point);
+}
+
+test "Elliptic curve math: compute_ec_op_invalid_same_x_coordinate" {
+    const partial_sum = AffinePoint{ .x = Felt252.one(), .y = Felt252.fromInt(u8, 9), .infinity = false };
+    const doubled_point = AffinePoint{ .x = Felt252.one(), .y = Felt252.fromInt(u8, 12), .infinity = false };
+    const m = Felt252.fromInt(u8, 34);
+    const height = 256;
+    const actual_ec_point = ecOpImpl(partial_sum, doubled_point, m, ALPHA, height);
+
+    try expectError(ECError.XCoordinatesAreEqual, actual_ec_point);
+}

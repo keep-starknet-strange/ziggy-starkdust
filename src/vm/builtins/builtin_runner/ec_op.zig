@@ -4,7 +4,6 @@ const EcOpInstanceDef = ec_op_instance_def.EcOpInstanceDef;
 const relocatable = @import("../../memory/relocatable.zig");
 const CoreVM = @import("../../../vm/core.zig");
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
-//const EC = @import("../../../math/fields/elliptic_curve.zig");
 const EC = @import("../../../math/crypto/curve/ec_point.zig");
 const Error = @import("../../error.zig");
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
@@ -22,13 +21,7 @@ const insertAtIndex = @import("../../../utils/testing.zig").insertAtIndex;
 const RunnerError = Error.RunnerError;
 const Tuple = std.meta.Tuple;
 
-/// Array of `ECPoint` instances representing points on an elliptic curve.
-//const EC_POINTS = [_]EC.ECPoint{
-//    .{ .x = Felt252.zero(), .y = Felt252.one() },
-//    .{ .x = Felt252.two(), .y = Felt252.three() },
-//    .{ .x = Felt252.fromInt(u8, 5), .y = Felt252.fromInt(u8, 6) },
-//};
-// Array of `ECPoint` instances representing points on an elliptic curve.
+// Array of `AffinePoint` instances representing points on an elliptic curve.
 const EC_POINTS = [_]EC.AffinePoint{
     .{ .x = Felt252.zero(), .y = Felt252.one(), .infinity = false },
     .{ .x = Felt252.two(), .y = Felt252.three(), .infinity = false },
