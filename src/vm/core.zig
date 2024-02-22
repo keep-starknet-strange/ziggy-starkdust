@@ -307,7 +307,7 @@ pub const CairoVM = struct {
 
     /// Do a single step of the VM.
     /// Process an instruction cycle using the typical fetch-decode-execute cycle.
-    pub fn stepHintProccessor(self: *Self, allocator: Allocator) !void {
+    pub fn step(self: *Self, allocator: Allocator) !void {
         // TODO: Run hints.
 
         std.log.debug(
@@ -1505,9 +1505,6 @@ test "Core: test step for preset memory alloc hint" {
     );
     defer vm.deinit();
 
-    _ = try vm.addMemorySegment();
-    _ = try vm.addMemorySegment();
-
     vm.run_context.pc.* = Relocatable.init(0, 3);
     vm.run_context.ap.* = Relocatable.init(1, 2);
     vm.run_context.fp.* = Relocatable.init(1, 2);
@@ -1545,7 +1542,7 @@ test "Core: test step for preset memory alloc hint" {
     inline for (0..6) |_| {
         const hint_data = if (vm.run_context.pc.eq(Relocatable.init(0, 0))) hint_datas.items[0..] else hint_datas.items[0..0];
         try vm.stepHintNotExtensive(std.testing.allocator, hint_processor, &exec_scopes, hint_data, &constants);
-        try vm.stepHintProccessor(std.testing.allocator);
+        try vm.step(std.testing.allocator);
     }
 
     const expected_trace = [_][3][2]u64{
