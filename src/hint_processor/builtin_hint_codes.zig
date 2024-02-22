@@ -119,3 +119,10 @@ pub const SPLIT_FELT =
 pub const SPLIT_INT = "memory[ids.output] = res = (int(ids.value) % PRIME) % ids.base\nassert res < ids.bound, f'split_int(): Limb {res} is out of range.'";
 
 pub const SPLIT_INT_ASSERT_RANGE = "assert ids.value == 0, 'split_int(): value is out of range.'";
+
+pub const ADD_SEGMENT = "memory[ap] = segments.add()";
+
+pub const VM_ENTER_SCOPE = "vm_enter_scope()";
+pub const VM_EXIT_SCOPE = "vm_exit_scope()";
+
+pub const MEMCPY_ENTER_SCOPE = "vm_enter_scope({'n': ids.len})";

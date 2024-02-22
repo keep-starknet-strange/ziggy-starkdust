@@ -18,6 +18,7 @@ const Relocatable = @import("../vm/memory/relocatable.zig").Relocatable;
 /// import hint code
 const hint_codes = @import("builtin_hint_codes.zig");
 const math_hints = @import("math_hints.zig");
+const memcpy_hint_utils = @import("memcpy_hint_utils.zig");
 
 const deserialize_utils = @import("../parser/deserialize_utils.zig");
 
@@ -184,6 +185,14 @@ pub const CairoVMHintProcessor = struct {
             try math_hints.splitIntAssertRange(vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.SIGNED_DIV_REM, hint_data.code)) {
             try math_hints.signedDivRem(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.ADD_SEGMENT, hint_data.code)) {
+            try memcpy_hint_utils.addSegment(allocator, vm);
+        } else if (std.mem.eql(u8, hint_codes.VM_ENTER_SCOPE, hint_data.code)) {
+            try memcpy_hint_utils.enterScope(allocator, exec_scopes);
+        } else if (std.mem.eql(u8, hint_codes.VM_EXIT_SCOPE, hint_data.code)) {
+            try memcpy_hint_utils.exitScope(exec_scopes);
+        } else if (std.mem.eql(u8, hint_codes.MEMCPY_ENTER_SCOPE, hint_data.code)) {
+            try memcpy_hint_utils.memcpyEnterScope(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         }
     }
 

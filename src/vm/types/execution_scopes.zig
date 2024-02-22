@@ -4,7 +4,7 @@ const Allocator = std.mem.Allocator;
 const Felt252 = @import("../../math/fields/starknet.zig").Felt252;
 const HintError = @import("../error.zig").HintError;
 
-const HintType = union(enum) {
+pub const HintType = union(enum) {
     // TODO: Add missing types
     felt: Felt252,
     u64: u64,
@@ -32,12 +32,14 @@ pub const ExecutionScopes = struct {
         self.data.deinit();
     }
 
-    pub fn enterScope(self: *Self, scope: std.StringHashMap(HintType)) void {
-        self.data.append(scope);
+    pub fn enterScope(self: *Self, scope: std.StringHashMap(HintType)) !void {
+        try self.data.append(scope);
     }
 
-    pub fn exitScope(self: *Self) void {
-        self.data.pop();
+    pub fn exitScope(self: *Self) !void {
+        if (self.data.items.len == 0) return HintError.FromScopeError;
+        var last = self.data.pop();
+        last.deinit();
     }
 
     ///Returns the value in the current execution scope that matches the name and is of the given generic type
