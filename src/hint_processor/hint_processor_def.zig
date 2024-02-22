@@ -13,6 +13,7 @@ const HintParams = programjson.HintParams;
 const ReferenceManager = programjson.ReferenceManager;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const ExecutionScopes = @import("../vm/types/execution_scopes.zig").ExecutionScopes;
+const Relocatable = @import("../vm/memory/relocatable.zig").Relocatable;
 
 /// import hint code
 const hint_codes = @import("builtin_hint_codes.zig");
@@ -129,9 +130,14 @@ pub fn getIdsData(allocator: Allocator, reference_ids: StringHashMap(usize), ref
     return ids_data;
 }
 
+// A map of hints that can be used to extend the current map of hints for the vm run
+// The map matches the pc at which the hints should be executed to a vec of compiled hints (Outputed by HintProcessor::CompileHint)
+pub const HintExtension = std.AutoHashMap(Relocatable, std.ArrayList(HintData));
+
 pub const CairoVMHintProcessor = struct {
     const Self = @This();
 
+    //Transforms hint data outputed by the VM into whichever format will be later used by execute_hint
     pub fn compileHint(_: *Self, allocator: Allocator, hint_code: []const u8, ap_tracking: ApTracking, reference_ids: StringHashMap(usize), references: []HintReference) !HintData {
         const ids_data = try getIdsData(allocator, reference_ids, references);
         errdefer ids_data.deinit();
@@ -143,6 +149,8 @@ pub const CairoVMHintProcessor = struct {
         };
     }
 
+    // Executes the hint which's data is provided by a dynamic structure previously created by compile_hint
+    // Note: if the `extensive_hints` feature is activated the method used by the vm to execute hints is `execute_hint_extensive`, which's default implementation calls this method.
     pub fn executeHint(_: *const Self, allocator: Allocator, vm: *CairoVM, hint_data: *HintData, constants: *std.StringHashMap(Felt252), exec_scopes: *ExecutionScopes) !void {
         if (std.mem.eql(u8, hint_codes.ASSERT_NN, hint_data.code)) {
             try math_hints.assertNN(vm, hint_data.ids_data, hint_data.ap_tracking);
@@ -161,6 +169,17 @@ pub const CairoVMHintProcessor = struct {
         } else if (std.mem.eql(u8, hint_codes.ASSERT_LE_FELT, hint_data.code)) {
             try math_hints.assertLeFelt(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking, constants);
         }
+    }
+
+    // Executes the hint which's data is provided by a dynamic structure previously created by compile_hint
+    // Also returns a map of hints to be loaded after the current hint is executed
+    // Note: This is the method used by the vm to execute hints,
+    // if you chose to implement this method instead of using the default implementation, then `execute_hint` will not be used
+    pub fn executeHintExtensive(self: *const Self, allocator: Allocator, vm: *CairoVM, hint_data: *HintData, constants: *std.StringHashMap(Felt252), exec_scopes: *ExecutionScopes) !HintExtension {
+        try self.executeHint(allocator, vm, hint_data, constants, exec_scopes);
+
+        const result = HintExtension.init(allocator);
+        return result;
     }
 };
 
