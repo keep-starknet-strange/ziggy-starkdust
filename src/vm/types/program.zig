@@ -49,8 +49,8 @@ pub const HintsRanges = union(enum) {
         extensive_hints: bool,
     ) Self {
         return switch (extensive_hints) {
-            true => Self{ .Extensive = std.AutoHashMap(Relocatable, HintRange).init(allocator) },
-            false => Self{ .NonExtensive = std.ArrayList(HintRange).init(allocator) },
+            true => .{ .Extensive = std.AutoHashMap(Relocatable, HintRange).init(allocator) },
+            false => .{ .NonExtensive = std.ArrayList(HintRange).init(allocator) },
         };
     }
 
@@ -129,7 +129,7 @@ pub const HintsCollection = struct {
             }
         }
 
-        return Self{
+        return .{
             .hints = hints_values,
             .hints_ranges = hints_ranges,
         };
@@ -1052,4 +1052,66 @@ test "Program: init a new program with invalid identifiers should return an erro
             null, // Instruction locations (null for this test case).
         ),
     );
+}
+
+test "Program: new program with extensive hints" {
+    const allocator = std.testing.allocator;
+
+    const reference_manager = ReferenceManager.init(allocator);
+
+    const builtins = std.ArrayList(BuiltinName).init(allocator);
+
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    defer data.deinit();
+
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 1000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 2000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5201798304953696256));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    var hints = std.AutoHashMap(usize, []const HintParams).init(allocator);
+    defer hints.deinit();
+
+    const default_scopes = &[_][]const u8{};
+    const default_flow_tracking_data = .{ .ap_tracking = .{ .offset = 0, .group = 0 }, .reference_ids = null };
+    try hints.put(
+        5,
+        &[_]HintParams{
+            HintParams.init("c", default_scopes, default_flow_tracking_data),
+            HintParams.init("d", default_scopes, default_flow_tracking_data),
+        },
+    );
+    try hints.put(
+        1,
+        &[_]HintParams{
+            HintParams.init("a", default_scopes, default_flow_tracking_data),
+        },
+    );
+    try hints.put(
+        4,
+        &[_]HintParams{
+            HintParams.init("b", default_scopes, default_flow_tracking_data),
+        },
+    );
+
+    var program = try Program.init(
+        allocator,
+        builtins,
+        data,
+        null,
+        hints,
+        reference_manager,
+        std.StringHashMap(Identifier).init(allocator),
+        std.ArrayList(Attribute).init(allocator),
+        null,
+    );
+
+    defer program.deinit(allocator);
+
+    try expectEqual(program.builtins, builtins);
+    try expectEqual(program.shared_program_data.data.items, data.items);
+    try expectEqual(program.shared_program_data.main, null);
+    // try expectEqual(program.shared_program_data.identifiers, std.StringHashMap(Identifier).init(allocator));
 }
