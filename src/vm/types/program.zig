@@ -62,7 +62,7 @@ pub const HintsRanges = union(enum) {
     }
 
     pub fn isExtensive(self: Self) bool {
-        return @as(bool, self == Self.Extensive);
+        return self == .Extensive;
     }
 
     pub fn count(self: *Self) usize {
@@ -230,10 +230,7 @@ pub const SharedProgramData = struct {
                 usize,
                 InstructionLocation,
             ).init(allocator),
-            .identifiers = std.AutoHashMap(
-                []u8,
-                Identifier,
-            ).init(allocator),
+            .identifiers = std.AutoHashMap([]u8, Identifier).init(allocator),
             .reference_manager = std.ArrayList(HintReference).init(allocator),
         };
     }

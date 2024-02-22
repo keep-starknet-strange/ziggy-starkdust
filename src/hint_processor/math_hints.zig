@@ -931,7 +931,7 @@ test "MathHints: verifyEcdsaSignature valid" {
         .{
             .name = "ecdsa_ptr",
             .elems = &.{
-                MaybeRelocatable.fromRelocatable(Relocatable.init(0, 0)),
+                MaybeRelocatable.fromRelocatable(.{}),
             },
         },
     }, &vm);

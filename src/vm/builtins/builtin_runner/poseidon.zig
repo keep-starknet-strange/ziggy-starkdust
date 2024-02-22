@@ -558,6 +558,6 @@ test "PoseidonBuiltinRunner: deduceMemoryCell missing input cells no error" {
     // Test if the deduceMemoryCell method of `builtin` returns null when called with missing input cells.
     try expectEqual(
         null,
-        try builtin.deduceMemoryCell(std.testing.allocator, Relocatable.init(0, 0), mem),
+        try builtin.deduceMemoryCell(std.testing.allocator, .{}, mem),
     );
 }

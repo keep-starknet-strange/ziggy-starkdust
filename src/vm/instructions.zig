@@ -133,31 +133,31 @@ pub const Instruction = struct {
     /// Offset 0
     ///
     /// In the range [-2**15, 2*15) = [-2**(OFFSET_BITS-1), 2**(OFFSET_BITS-1)).
-    off_0: i16,
+    off_0: i16 = 0,
     /// Offset 1
     ///
     /// In the range [-2**15, 2*15) = [-2**(OFFSET_BITS-1), 2**(OFFSET_BITS-1)).
-    off_1: i16,
+    off_1: i16 = 0,
     /// Offset 2
     ///
     /// In the range [-2**15, 2*15) = [-2**(OFFSET_BITS-1), 2**(OFFSET_BITS-1)).
-    off_2: i16,
+    off_2: i16 = 0,
     /// Destination register.
-    dst_reg: Register,
+    dst_reg: Register = .FP,
     /// Operand 0 register.
-    op_0_reg: Register,
+    op_0_reg: Register = .FP,
     /// Source for Operand 1 data.
-    op_1_addr: Op1Src,
+    op_1_addr: Op1Src = .Imm,
     /// Logic for result computation.
-    res_logic: ResLogic,
+    res_logic: ResLogic = .Add,
     /// Update method for the program counter.
-    pc_update: PcUpdate,
+    pc_update: PcUpdate = .Jump,
     /// Update method for the allocation pointer.
-    ap_update: ApUpdate,
+    ap_update: ApUpdate = .Add,
     /// Update method for the frame pointer.
-    fp_update: FpUpdate,
+    fp_update: FpUpdate = .APPlus2,
     /// Opcode representing the operation or instruction type.
-    opcode: Opcode,
+    opcode: Opcode = .Call,
 
     /// Returns the size of an instruction.
     /// # Returns
@@ -167,18 +167,6 @@ pub const Instruction = struct {
             .Imm => 2,
             else => 1,
         };
-    }
-
-    /// Returns a default instruction.
-    ///
-    /// Generates a default instruction (`CALL FP FP Add2 JumpRel Add2 Imm`) and decodes it.
-    pub fn initDefault() Self {
-        //  0|  opcode|ap_update|pc_update|res_logic|op1_src|op0_reg|dst_reg
-        // 15|14 13 12|    11 10|  9  8  7|     6  5|4  3  2|      1|      0
-        //   |    CALL|      ADD|     JUMP|      ADD|    IMM|     FP|     FP
-        //  0  0  0  1      0  1   0  0  1      0  1 0  0  1       1       1
-        //  0001 0100 1010 0111 = 0x14A7; offx = 0
-        return decoder.decodeInstructions(0x14A7800080008000) catch unreachable;
     }
 
     /// Checks if the instruction is a CALL instruction.
