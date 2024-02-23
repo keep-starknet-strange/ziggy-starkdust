@@ -106,12 +106,22 @@ pub const Attribute = struct {
 /// This structure defines parameters related to a hint, comprising code details, accessible scopes,
 /// and flow tracking data.
 pub const HintParams = struct {
+    const Self = @This();
+
     /// Code associated with the hint.
     code: []const u8,
     /// Accessible scopes for the hint.
     accessible_scopes: []const []const u8,
     /// Flow tracking data related to the hint.
     flow_tracking_data: FlowTrackingData,
+
+    pub fn init(code: []const u8, accessible_scopes: []const []const u8, flow_tracking_data: FlowTrackingData) Self {
+        return .{
+            .code = code,
+            .accessible_scopes = accessible_scopes,
+            .flow_tracking_data = flow_tracking_data,
+        };
+    }
 };
 
 /// Represents an instruction with associated location details.
@@ -851,7 +861,8 @@ pub const ProgramJson = struct {
             if (max_hint_pc >= self.data.?.len) return ProgramError.InvalidHintPc;
 
             // Initialize a new HintsCollection.
-            var hints_collection = HintsCollection.initDefault(allocator, extensive_hints);
+
+            var hints_collection = try HintsCollection.initDefault(allocator);
             errdefer hints_collection.deinit();
 
             if (!extensive_hints) {
