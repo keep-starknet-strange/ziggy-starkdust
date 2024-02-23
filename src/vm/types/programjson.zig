@@ -544,16 +544,14 @@ pub const ProgramJson = struct {
         errdefer builtins.deinit();
 
         // Collects built-in names and adds them to the builtins list.
-        for (0..self.attributes.?.len) |i| {
-            if (self.builtins != null and i < self.builtins.?.len) {
+        if (self.builtins) |builtins_name|
+            for (builtins_name) |builtin_name|
                 // Convert the string to the corresponding BuiltinName enum value and append it.
                 try builtins.append(std.meta.stringToEnum(
                     BuiltinName,
-                    self.builtins.?[i],
+                    builtin_name,
                 ) orelse
                     return ProgramError.UnsupportedBuiltin);
-            }
-        }
 
         // Return the populated array list of built-in names.
         return builtins;

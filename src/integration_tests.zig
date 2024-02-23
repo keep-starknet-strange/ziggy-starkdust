@@ -12,12 +12,12 @@ pub fn main() void {
     const cairo_programs = [_]struct {
         pathname: []const u8,
         layout: []const u8,
-        extensive_hints: bool = true,
+        extensive_hints: bool = false,
     }{
-        // .{ .pathname = "cairo_programs/factorial.json", .layout = "plain" },
-        // .{ .pathname = "cairo_programs/fibonacci.json", .layout = "plain" },
+        .{ .pathname = "cairo_programs/factorial.json", .layout = "plain" },
+        .{ .pathname = "cairo_programs/fibonacci.json", .layout = "plain" },
         .{ .pathname = "cairo_programs/bitwise_builtin_test.json", .layout = "all_cairo" },
-        // .{ .pathname = "cairo_programs/assert_lt_felt.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/assert_lt_felt.json", .layout = "all_cairo" },
     };
 
     var ok_count: usize = 0;
