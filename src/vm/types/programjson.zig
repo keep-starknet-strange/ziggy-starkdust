@@ -465,7 +465,7 @@ pub const ProgramJson = struct {
     /// error messages, instruction locations, and identifiers with associated metadata.
     ///
     /// To use this function effectively, ensure correct and compatible JSON data representing a Cairo v0 program.
-    pub fn parseProgramJson(self: *Self, allocator: Allocator, entrypoint: ?*[]const u8) !Program {
+    pub fn parseProgramJson(self: *Self, allocator: Allocator, entrypoint: ?*[]const u8, extensive_hints: bool) !Program {
         // Check if the prime string matches the expected value.
         if (!std.mem.eql(u8, PRIME_STR, self.prime.?))
             return ProgramError.PrimeDiffers;
@@ -478,7 +478,7 @@ pub const ProgramJson = struct {
             defer allocator.free(e.*);
         }
 
-        var hints_collection = try self.getHintsCollections(allocator);
+        const hints_collection = try self.getHintsCollections(allocator, extensive_hints);
 
         // Construct and return a `Program` instance.
         return .{
@@ -493,10 +493,10 @@ pub const ProgramJson = struct {
                 .identifiers = try self.getIdentifiers(allocator),
                 .reference_manager = try Program.getReferenceList(
                     allocator,
-                    &self.reference_manager.?.references.?,
+                    self.reference_manager.?.references.?,
                 ),
             },
-            .hints = try hints_collection.intoHashMap(allocator),
+
             .constants = try self.getConstants(allocator),
             .builtins = try self.getBuiltins(allocator),
         };
@@ -544,16 +544,14 @@ pub const ProgramJson = struct {
         errdefer builtins.deinit();
 
         // Collects built-in names and adds them to the builtins list.
-        for (0..self.attributes.?.len) |i| {
-            if (self.builtins != null and i < self.builtins.?.len) {
+        if (self.builtins) |builtins_name|
+            for (builtins_name) |builtin_name|
                 // Convert the string to the corresponding BuiltinName enum value and append it.
                 try builtins.append(std.meta.stringToEnum(
                     BuiltinName,
-                    self.builtins.?[i],
+                    builtin_name,
                 ) orelse
                     return ProgramError.UnsupportedBuiltin);
-            }
-        }
 
         // Return the populated array list of built-in names.
         return builtins;
@@ -837,7 +835,7 @@ pub const ProgramJson = struct {
     ///
     /// # Returns:
     ///   - A `HintsCollection` containing organized hint information.
-    pub fn getHintsCollections(self: *Self, allocator: Allocator) !HintsCollection {
+    pub fn getHintsCollections(self: *Self, allocator: Allocator, extensive_hints: bool) !HintsCollection {
         // Initialize variables to track maximum hint PC and total length of hints.
         var max_hint_pc: usize = 0;
         var full_len: usize = 0;
@@ -861,8 +859,13 @@ pub const ProgramJson = struct {
             if (max_hint_pc >= self.data.?.len) return ProgramError.InvalidHintPc;
 
             // Initialize a new HintsCollection.
-            var hints_collection = try HintsCollection.initDefault(allocator);
+
+            var hints_collection = try HintsCollection.initDefault(allocator, extensive_hints);
             errdefer hints_collection.deinit();
+
+            if (!extensive_hints) {
+                try hints_collection.hints_ranges.NonExtensive.appendNTimes(null, max_hint_pc + 1);
+            }
 
             // Iterate over the hints map to populate the HintsCollection.
             if (self.hints) |hints| {
@@ -871,18 +874,27 @@ pub const ProgramJson = struct {
                 while (it.next()) |entry| {
                     // Check for empty vector in the hints map.
                     if (entry.value_ptr.len <= 0) return ProgramError.EmptyVecAlreadyFiltered;
+                    const pc = try std.fmt.parseInt(u64, entry.key_ptr.*, 10);
 
-                    // Populate hints_ranges and hints in the HintsCollection.
-                    try hints_collection.hints_ranges.Extensive.put(
-                        Relocatable.init(
-                            0,
-                            try std.fmt.parseInt(u64, entry.key_ptr.*, 10),
-                        ),
-                        .{
+                    if (extensive_hints) {
+                        // Populate hints_ranges and hints in the HintsCollection.
+                        try hints_collection.hints_ranges.Extensive.put(
+                            Relocatable.init(
+                                0,
+                                pc,
+                            ),
+                            .{
+                                .start = hints_collection.hints.items.len,
+                                .length = entry.value_ptr.len,
+                            },
+                        );
+                    } else {
+                        hints_collection.hints_ranges.NonExtensive.items[pc] = .{
                             .start = hints_collection.hints.items.len,
                             .length = entry.value_ptr.len,
-                        },
-                    );
+                        };
+                    }
+
                     try hints_collection.hints.appendSlice(entry.value_ptr.*);
                 }
             }
@@ -891,7 +903,7 @@ pub const ProgramJson = struct {
         }
 
         // Return an empty HintsCollection if there are no valid hints.
-        return HintsCollection.initDefault(allocator);
+        return HintsCollection.initDefault(allocator, extensive_hints);
     }
 };
 
@@ -1276,6 +1288,7 @@ test "ProgramJson: parseProgramJson should parse a Cairo v0 JSON Program and con
     var program = try parsed_program.value.parseProgramJson(
         std.testing.allocator,
         &entrypoint,
+        true,
     );
     defer program.deinit(std.testing.allocator);
 
@@ -1388,6 +1401,7 @@ test "ProgramJson: parseProgramJson with missing entry point should return an er
         parsed_program.value.parseProgramJson(
             std.testing.allocator,
             &entrypoint,
+            true,
         ),
     );
 }
@@ -1414,6 +1428,7 @@ test "ProgramJson: parseProgramJson should parse a valid manually compiled progr
     var program = try parsed_program.value.parseProgramJson(
         std.testing.allocator,
         &entrypoint,
+        true,
     );
     // Deallocate program at the end of the scope
     defer program.deinit(std.testing.allocator);
@@ -1520,6 +1535,7 @@ test "ProgramJson: parseProgramJson should parse a valid manually compiled progr
     var program = try parsed_program.value.parseProgramJson(
         std.testing.allocator,
         null,
+        true,
     );
     // Deallocate program at the end of the scope
     defer program.deinit(std.testing.allocator);
@@ -1626,6 +1642,7 @@ test "ProgramJson: parseProgramJson with constant deserialization" {
     var program = try parsed_program.value.parseProgramJson(
         std.testing.allocator,
         null,
+        true,
     );
     // Deallocate program at the end of the scope.
     defer program.deinit(std.testing.allocator);
@@ -2344,6 +2361,7 @@ test "ProgramJson: Program deserialization with instruction locations containing
     var program = try parsed_program.value.parseProgramJson(
         std.testing.allocator,
         null,
+        true,
     );
     // Deallocate program at the end of the scope.
     defer program.deinit(std.testing.allocator);

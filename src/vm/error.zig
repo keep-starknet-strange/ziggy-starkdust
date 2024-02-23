@@ -269,4 +269,5 @@ pub const HintError = error{
     AssertionFailed,
 
     SplitIntNotZero,
+    FromScopeError,
 };

@@ -1,5 +1,6 @@
 const std = @import("std");
 const ProgramJson = @import("vm/types/programjson.zig").ProgramJson;
+const Program = @import("vm/types/program.zig").Program;
 const CairoVM = @import("vm/core.zig").CairoVM;
 const CairoRunner = @import("vm/runners/cairo_runner.zig").CairoRunner;
 
@@ -8,13 +9,15 @@ pub fn main() void {
     // Given
     const allocator = gpa.allocator();
 
-    const cairo_programs: [3]struct {
+    const cairo_programs = [_]struct {
         pathname: []const u8,
         layout: []const u8,
-    } = .{
+        extensive_hints: bool = false,
+    }{
         .{ .pathname = "cairo_programs/factorial.json", .layout = "plain" },
         .{ .pathname = "cairo_programs/fibonacci.json", .layout = "plain" },
         .{ .pathname = "cairo_programs/bitwise_builtin_test.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/assert_lt_felt.json", .layout = "all_cairo" },
     };
 
     var ok_count: usize = 0;
@@ -33,7 +36,9 @@ pub fn main() void {
         if (!have_tty) {
             std.debug.print("{d}/{d} {s}... \n", .{ i + 1, cairo_programs.len, test_cairo_program.pathname });
         }
-        const result = cairo_run(allocator, test_cairo_program.pathname, test_cairo_program.layout);
+
+        const result = cairo_run(allocator, test_cairo_program.pathname, test_cairo_program.layout, test_cairo_program.extensive_hints);
+
         if (result) |_| {
             ok_count += 1;
             test_node.end();
@@ -57,12 +62,14 @@ pub fn main() void {
     }
 }
 
-pub fn cairo_run(allocator: std.mem.Allocator, pathname: []const u8, layout: []const u8) !void {
+pub fn cairo_run(allocator: std.mem.Allocator, pathname: []const u8, layout: []const u8, extensive_hints: bool) !void {
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
     const path = try std.os.realpath(pathname, &buffer);
 
     var parsed_program = try ProgramJson.parseFromFile(allocator, path);
     defer parsed_program.deinit();
+
+    var entrypoint: []const u8 = "main";
 
     const instructions = try parsed_program.value.readData(allocator);
 
@@ -74,17 +81,18 @@ pub fn cairo_run(allocator: std.mem.Allocator, pathname: []const u8, layout: []c
     // when
     var runner = try CairoRunner.init(
         allocator,
-        parsed_program.value,
+        try parsed_program.value.parseProgramJson(allocator, &entrypoint, extensive_hints),
         layout,
         instructions,
         vm,
         false,
     );
-    defer runner.deinit();
+    defer runner.deinit(allocator);
+
     const end = try runner.setupExecutionState();
     errdefer std.debug.print("failed on step: {}\n", .{runner.vm.current_step});
 
     // then
-    try runner.runUntilPC(end);
+    try runner.runUntilPC(end, extensive_hints);
     try runner.endRun();
 }
