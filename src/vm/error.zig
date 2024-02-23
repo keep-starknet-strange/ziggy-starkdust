@@ -263,4 +263,10 @@ pub const HintError = error{
     VariableNotInScopeError,
 
     ExcludedNot2,
+
+    AssertLtFelt252,
+
+    AssertionFailed,
+
+    SplitIntNotZero,
 };
