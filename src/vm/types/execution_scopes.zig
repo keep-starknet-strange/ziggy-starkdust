@@ -42,7 +42,7 @@ pub const ExecutionScopes = struct {
 
     ///Returns the value in the current execution scope that matches the name and is of the given generic type
     pub fn get(self: *const Self, name: []const u8) !HintType {
-        return if (self.getLocalVariableMut()) |variable| variable.get(name) orelse HintError.VariableNotInScopeError or HintError.VariableNotInScopeError;
+        return if (self.getLocalVariableMut()) |variable| (variable.get(name) orelse HintError.VariableNotInScopeError) else HintError.VariableNotInScopeError;
     }
 
     pub fn getFelt(self: *const Self, name: []const u8) !Felt252 {

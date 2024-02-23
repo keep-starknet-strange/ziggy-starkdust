@@ -98,3 +98,27 @@ pub fn extendedGCD(self: i256, other: i256) struct { gcd: i256, x: i256, y: i256
     else
         .{ .gcd = -r[1], .x = -s[1], .y = -t[1] };
 }
+
+pub fn divModFloorSigned(num: i256, denominator: i256) !struct { i256, i256 } {
+    if (denominator == 0) return error.DividedByZero;
+
+    return .{
+        @divFloor(num, denominator),
+        @mod(num, denominator),
+    };
+}
+
+pub fn divModFloor(num: u256, denominator: u256) !struct { u256, u256 } {
+    if (denominator == 0) return error.DividedByZero;
+
+    return .{ @divFloor(num, denominator), @mod(num, denominator) };
+}
+
+pub fn divRem(num: u256, denominator: u256) !struct { u256, u256 } {
+    if (denominator == 0) return error.DividedByZero;
+
+    return .{
+        @divTrunc(num, denominator),
+        @rem(num, denominator),
+    };
+}
