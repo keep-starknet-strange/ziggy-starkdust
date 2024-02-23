@@ -53,12 +53,21 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
         config,
     );
 
-    const parsed_program = try ProgramJson.parseFromFile(allocator, config.filename);
+    var parsed_program = try ProgramJson.parseFromFile(allocator, config.filename);
     const instructions = try parsed_program.value.readData(allocator);
     defer parsed_program.deinit();
 
-    var runner = try CairoRunner.init(allocator, parsed_program.value, config.layout, instructions, vm, config.proof_mode);
-    defer runner.deinit();
+    var entrypoint: []const u8 = "main";
+
+    var runner = try CairoRunner.init(
+        allocator,
+        try parsed_program.value.parseProgramJson(allocator, &entrypoint),
+        config.layout,
+        instructions,
+        vm,
+        config.proof_mode,
+    );
+    defer runner.deinit(allocator);
     const end = try runner.setupExecutionState();
     try runner.runUntilPC(end);
     try runner.endRun();
