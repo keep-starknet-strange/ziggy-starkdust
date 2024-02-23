@@ -59,9 +59,10 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
 
     var entrypoint: []const u8 = "main";
 
+    // TODO: add flag for extensive_hints
     var runner = try CairoRunner.init(
         allocator,
-        try parsed_program.value.parseProgramJson(allocator, &entrypoint),
+        try parsed_program.value.parseProgramJson(allocator, &entrypoint, false),
         config.layout,
         instructions,
         vm,
