@@ -857,7 +857,7 @@ pub const ProgramJson = struct {
             if (max_hint_pc >= self.data.?.len) return ProgramError.InvalidHintPc;
 
             // Initialize a new HintsCollection.
-            var hints_collection = HintsCollection.initDefault(allocator);
+            var hints_collection = try HintsCollection.initDefault(allocator);
             errdefer hints_collection.deinit();
 
             // Iterate over the hints map to populate the HintsCollection.
