@@ -239,19 +239,13 @@ pub const SharedProgramData = struct {
     ///
     /// # Params:
     ///   - `allocator`: The allocator used to initialize the instance.
-    pub fn initDefault(allocator: Allocator) Self {
+    pub fn initDefault(allocator: Allocator) !Self {
         return .{
             .data = std.ArrayList(MaybeRelocatable).init(allocator),
-            .hints_collection = HintsCollection.initDefault(allocator),
+            .hints_collection = try HintsCollection.initDefault(allocator),
             .error_message_attributes = std.ArrayList(Attribute).init(allocator),
-            .instruction_locations = std.AutoHashMap(
-                usize,
-                InstructionLocation,
-            ).init(allocator),
-            .identifiers = std.AutoHashMap(
-                []u8,
-                Identifier,
-            ).init(allocator),
+            .instruction_locations = std.StringHashMap(InstructionLocation).init(allocator),
+            .identifiers = std.StringHashMap(Identifier).init(allocator),
             .reference_manager = std.ArrayList(HintReference).init(allocator),
         };
     }
@@ -357,11 +351,12 @@ pub const Program = struct {
     ///
     /// # Returns:
     ///   - A new instance of `Program`.
-    pub fn initDefault(allocator: Allocator) Self {
+    pub fn initDefault(allocator: Allocator) !Self {
         return .{
-            .shared_program_data = SharedProgramData.initDefault(allocator),
+            .shared_program_data = try SharedProgramData.initDefault(allocator),
             .constants = std.StringHashMap(Felt252).init(allocator),
             .builtins = std.ArrayList(BuiltinName).init(allocator),
+            .hints = std.AutoHashMap(usize, []const HintParams).init(allocator),
         };
     }
 
