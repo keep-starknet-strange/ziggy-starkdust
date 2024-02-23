@@ -60,7 +60,8 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
     var runner = try CairoRunner.init(allocator, parsed_program.value, config.layout, instructions, vm, config.proof_mode);
     defer runner.deinit();
     const end = try runner.setupExecutionState();
-    try runner.runUntilPC(end);
+    // TODO: make flag for extensive_hints
+    try runner.runUntilPC(end, false);
     try runner.endRun();
     // TODO readReturnValues necessary for builtins
 
