@@ -352,7 +352,7 @@ pub const CairoRunner = struct {
         errdefer result.deinit();
 
         for (self.program.shared_program_data.hints_collection.hints.items) |hint| {
-            //// TODO: improve this part, becuase of std.json.arrayhashmap
+            //// TODO: improve this part, because of std.json.arrayhashmap
             var reference_ids = std.StringHashMap(usize).init(self.allocator);
             defer reference_ids.deinit();
 
