@@ -377,7 +377,7 @@ pub const CairoRunner = struct {
     }
 
     pub fn runUntilPC(self: *Self, end: Relocatable, extensive_hints: bool) !void {
-        var hint_processor = HintProcessor{};
+        var hint_processor: HintProcessor = .{};
 
         const references = self.program.shared_program_data.reference_manager.items;
 
