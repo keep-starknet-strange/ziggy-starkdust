@@ -171,7 +171,7 @@ pub const CairoRunner = struct {
             self.layout,
             self.allocator,
             self.isProofMode(),
-            self.program.builtins.?,
+            self.program.builtins,
         );
     }
 
