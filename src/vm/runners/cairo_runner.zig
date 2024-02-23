@@ -13,7 +13,6 @@ const CairoVM = @import("../core.zig").CairoVM;
 const CairoLayout = @import("../types/layout.zig").CairoLayout;
 const Relocatable = @import("../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../memory/relocatable.zig").MaybeRelocatable;
-const ProgramJson = @import("../types/programjson.zig").ProgramJson;
 const Program = @import("../types/program.zig").Program;
 const CairoRunnerError = @import("../error.zig").CairoRunnerError;
 const CairoVMError = @import("../error.zig").CairoVMError;
@@ -117,7 +116,7 @@ const BuiltinInfo = struct { segment_index: usize, stop_pointer: usize };
 pub const CairoRunner = struct {
     const Self = @This();
 
-    program: ProgramJson,
+    program: Program,
     allocator: Allocator,
     vm: CairoVM,
     program_base: Relocatable = undefined,
@@ -139,7 +138,7 @@ pub const CairoRunner = struct {
 
     pub fn init(
         allocator: Allocator,
-        program: ProgramJson,
+        program: Program,
         layout: []const u8,
         instructions: std.ArrayList(MaybeRelocatable),
         vm: CairoVM,
@@ -282,7 +281,8 @@ pub const CairoRunner = struct {
                 }
                 self.execution_public_memory = execution_public_memory;
 
-                try self.initState(try (self.program.getStartPc() orelse RunnerError.NoProgramStart), &stack_prefix);
+                try self.initState(try (self.program.shared_program_data.start orelse
+                    RunnerError.NoProgramStart), &stack_prefix);
             } else {
                 target_offset = stack.items.len + 2;
 
@@ -291,13 +291,15 @@ pub const CairoRunner = struct {
                 try stack.append(MaybeRelocatable.fromRelocatable(return_fp));
                 try stack.append(MaybeRelocatable.fromRelocatable(end));
 
-                try self.initState(try (self.program.getStartPc() orelse RunnerError.NoProgramStart), &stack);
+                try self.initState(try (self.program.shared_program_data.start orelse
+                    RunnerError.NoProgramStart), &stack);
             }
 
             self.initial_fp = try self.execution_base.addUint(target_offset);
             self.initial_ap = self.initial_fp;
 
-            return self.program_base.addUint(try (self.program.getEndPc() orelse RunnerError.NoProgramEnd));
+            return self.program_base.addUint(try (self.program.shared_program_data.end orelse
+                RunnerError.NoProgramEnd));
         }
 
         const return_fp = try self.vm.segments.addSegment();
@@ -307,13 +309,9 @@ pub const CairoRunner = struct {
         // Concatenate strings
         const full_entrypoint_name = try std.fmt.bufPrint(&buffer, "__main__.{s}", .{self.entrypoint_name});
 
-        if (self.program.identifiers) |identifiers| {
-            if (identifiers.map.get(full_entrypoint_name)) |identifier| {
-                if (identifier.pc) |pc| {
-                    return self.initFunctionEntrypoint(pc, return_fp, &stack);
-                }
-            }
-        }
+        if (self.program.shared_program_data.identifiers.get(full_entrypoint_name)) |identifier|
+            if (identifier.pc) |pc|
+                return self.initFunctionEntrypoint(pc, return_fp, &stack);
 
         return RunnerError.MissingMain;
     }
@@ -354,7 +352,13 @@ pub const CairoRunner = struct {
         const hints_collection = try self.program.getHintsCollections(self.allocator);
         for (hints_collection.hints.items) |hint| {
             try result.append(
-                try (hint_processor.compileHint(self.allocator, hint.code, hint.flow_tracking_data.ap_tracking, hint.flow_tracking_data.reference_ids, references) catch CairoVMError.CompileHintFail),
+                try (hint_processor.compileHint(
+                    self.allocator,
+                    hint.code,
+                    hint.flow_tracking_data.ap_tracking,
+                    hint.flow_tracking_data.reference_ids,
+                    references,
+                ) catch CairoVMError.CompileHintFail),
             );
         }
 
@@ -539,10 +543,10 @@ pub const CairoRunner = struct {
         return res;
     }
 
-    pub fn deinit(self: *Self) void {
+    pub fn deinit(self: *Self, allocator: Allocator) void {
         // currently handling the deinit of the json.Parsed(ProgramJson) outside of constructor
         // otherwise the runner would always assume json in its interface
-        // self.program.deinit();
+        self.program.deinit(allocator);
 
         if (self.execution_public_memory) |execution_public_memory| execution_public_memory.deinit();
 
@@ -556,7 +560,7 @@ pub const CairoRunner = struct {
 test "CairoRunner: initMainEntrypoint no main" {
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        ProgramJson{},
+        try Program.initDefault(std.testing.allocator),
         "all_cairo",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
@@ -566,7 +570,7 @@ test "CairoRunner: initMainEntrypoint no main" {
         false,
     );
 
-    defer cairo_runner.deinit();
+    defer cairo_runner.deinit(std.testing.allocator);
 
     // Add an OutputBuiltinRunner to the CairoRunner without setting the stop pointer.
     try cairo_runner.vm.builtin_runners.append(.{ .Output = OutputBuiltinRunner.initDefault(std.testing.allocator) });
@@ -580,9 +584,8 @@ test "CairoRunner: initVM should initialize the VM properly with no builtins" {
     // Initialize a CairoRunner with an empty program, "plain" layout, and empty instructions.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        ProgramJson{},
+        try Program.initDefault(std.testing.allocator),
         "plain",
-
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
             std.testing.allocator,
@@ -592,7 +595,7 @@ test "CairoRunner: initVM should initialize the VM properly with no builtins" {
     );
 
     // Defer the deinitialization of the CairoRunner to ensure proper cleanup.
-    defer cairo_runner.deinit();
+    defer cairo_runner.deinit(std.testing.allocator);
 
     // Set initial values for program_base, initial_pc, initial_ap, and initial_fp.
     cairo_runner.program_base = Relocatable.init(0, 0);
@@ -624,14 +627,14 @@ test "CairoRunner: initVM should initialize the VM properly with Range Check bui
     // Initialize a CairoRunner with an empty program, "plain" layout, and empty instructions.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        ProgramJson{},
+        try Program.initDefault(std.testing.allocator),
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(std.testing.allocator, .{}),
         false,
     );
     // Defer the deinitialization of the CairoRunner to ensure proper cleanup.
-    defer cairo_runner.deinit();
+    defer cairo_runner.deinit(std.testing.allocator);
 
     // Append a RangeCheckBuiltinRunner to the CairoRunner's list of built-in runners.
     try cairo_runner.vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner{} });
@@ -682,7 +685,7 @@ test "CairoRunner: initVM should return an error with invalid Range Check builti
     // Initialize a CairoRunner with an empty program, "plain" layout, and empty instructions.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        ProgramJson{},
+        try Program.initDefault(std.testing.allocator),
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
@@ -692,7 +695,7 @@ test "CairoRunner: initVM should return an error with invalid Range Check builti
         false,
     );
     // Defer the deinitialization of the CairoRunner to ensure proper cleanup.
-    defer cairo_runner.deinit();
+    defer cairo_runner.deinit(std.testing.allocator);
 
     // Append a RangeCheckBuiltinRunner to the CairoRunner's list of built-in runners.
     try cairo_runner.vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner{} });
@@ -770,7 +773,7 @@ test "CairoRunner: getBuiltinSegmentsInfo with segment info empty should return 
     // Create a CairoRunner instance for testing.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        ProgramJson{},
+        try Program.initDefault(std.testing.allocator),
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
@@ -779,7 +782,7 @@ test "CairoRunner: getBuiltinSegmentsInfo with segment info empty should return 
         ),
         false,
     );
-    defer cairo_runner.deinit();
+    defer cairo_runner.deinit(std.testing.allocator);
 
     // Retrieve the builtin segment info from the CairoRunner.
     var builtin_segment_info = try cairo_runner.getBuiltinSegmentsInfo(std.testing.allocator);
@@ -793,7 +796,7 @@ test "CairoRunner: getBuiltinSegmentsInfo info based not finished" {
     // Create a CairoRunner instance for testing.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        ProgramJson{},
+        try Program.initDefault(std.testing.allocator),
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
@@ -802,7 +805,7 @@ test "CairoRunner: getBuiltinSegmentsInfo info based not finished" {
         ),
         false,
     );
-    defer cairo_runner.deinit();
+    defer cairo_runner.deinit(std.testing.allocator);
 
     // Add an OutputBuiltinRunner to the CairoRunner without setting the stop pointer.
     try cairo_runner.vm.builtin_runners.append(.{ .Output = OutputBuiltinRunner.initDefault(std.testing.allocator) });
@@ -818,7 +821,7 @@ test "CairoRunner: getBuiltinSegmentsInfo should provide builtin segment informa
     // Create a CairoRunner instance for testing.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        ProgramJson{},
+        try Program.initDefault(std.testing.allocator),
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
@@ -827,7 +830,7 @@ test "CairoRunner: getBuiltinSegmentsInfo should provide builtin segment informa
         ),
         false,
     );
-    defer cairo_runner.deinit();
+    defer cairo_runner.deinit(std.testing.allocator);
 
     // Create instances of OutputBuiltinRunner and BitwiseBuiltinRunner with stop pointers.
     var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
@@ -865,7 +868,7 @@ test "CairoRunner: relocateMemory should relocated memory properly with gaps" {
     // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        ProgramJson{},
+        try Program.initDefault(std.testing.allocator),
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
@@ -875,7 +878,7 @@ test "CairoRunner: relocateMemory should relocated memory properly with gaps" {
         false,
     );
     // Ensure CairoRunner resources are cleaned up.
-    defer cairo_runner.deinit();
+    defer cairo_runner.deinit(std.testing.allocator);
 
     // Create four memory segments in the VM.
     inline for (0..4) |_| {
@@ -929,7 +932,7 @@ test "CairoRunner: initSegments should initialize the segments properly with bas
     // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        ProgramJson{},
+        try Program.initDefault(std.testing.allocator),
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
@@ -939,7 +942,7 @@ test "CairoRunner: initSegments should initialize the segments properly with bas
         false,
     );
     // Defer the deinitialization of the CairoRunner to ensure cleanup.
-    defer cairo_runner.deinit();
+    defer cairo_runner.deinit(std.testing.allocator);
 
     // Append an OutputBuiltinRunner to the CairoRunner's list of built-in runners.
     try cairo_runner.vm.builtin_runners.append(.{ .Output = OutputBuiltinRunner.initDefault(std.testing.allocator) });
@@ -984,7 +987,7 @@ test "CairoRunner: initSegments should initialize the segments properly with no 
     // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        ProgramJson{},
+        try Program.initDefault(std.testing.allocator),
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
@@ -994,7 +997,7 @@ test "CairoRunner: initSegments should initialize the segments properly with no 
         false,
     );
     // Defer the deinitialization of the CairoRunner to ensure cleanup.
-    defer cairo_runner.deinit();
+    defer cairo_runner.deinit(std.testing.allocator);
 
     // Append an OutputBuiltinRunner to the CairoRunner's list of built-in runners.
     try cairo_runner.vm.builtin_runners.append(.{ .Output = OutputBuiltinRunner.initDefault(std.testing.allocator) });
@@ -1034,7 +1037,7 @@ test "CairoRunner: getPermRangeCheckLimits with no builtin" {
     // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        ProgramJson{},
+        try Program.initDefault(std.testing.allocator),
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
@@ -1045,7 +1048,7 @@ test "CairoRunner: getPermRangeCheckLimits with no builtin" {
     );
 
     // Defer the deinitialization of the CairoRunner to ensure cleanup.
-    defer cairo_runner.deinit();
+    defer cairo_runner.deinit(std.testing.allocator);
 
     // Set up memory for the CairoRunner with a single memory cell.
     try cairo_runner.vm.segments.memory.setUpMemory(
@@ -1087,7 +1090,7 @@ test "CairoRunner: getPermRangeCheckLimits with range check builtin" {
     // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        ProgramJson{},
+        try Program.initDefault(std.testing.allocator),
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
@@ -1098,7 +1101,7 @@ test "CairoRunner: getPermRangeCheckLimits with range check builtin" {
     );
 
     // Defer the deinitialization of the CairoRunner to ensure cleanup.
-    defer cairo_runner.deinit();
+    defer cairo_runner.deinit(std.testing.allocator);
 
     // Set up memory for the CairoRunner with a single memory cell.
     try cairo_runner.vm.segments.memory.setUpMemory(
@@ -1121,7 +1124,7 @@ test "CairoRunner: getPermRangeCheckLimits with null range limit" {
     // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        ProgramJson{},
+        try Program.initDefault(std.testing.allocator),
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
@@ -1132,7 +1135,7 @@ test "CairoRunner: getPermRangeCheckLimits with null range limit" {
     );
 
     // Defer the deinitialization of the CairoRunner to ensure cleanup.
-    defer cairo_runner.deinit();
+    defer cairo_runner.deinit(std.testing.allocator);
 
     // Invoke the `getPermRangeCheckLimits` function and expect the result to be null.
     try expectEqual(
