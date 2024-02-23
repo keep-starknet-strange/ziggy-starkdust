@@ -160,6 +160,7 @@ pub const CairoRunner = struct {
             .vm = vm,
             .runner_mode = if (proof_mode) .proof_mode_canonical else .execution_mode,
             .relocated_memory = ArrayList(?Felt252).init(allocator),
+            .execution_scopes = try ExecutionScopes.init(allocator),
         };
     }
 
@@ -347,14 +348,23 @@ pub const CairoRunner = struct {
     }
 
     /// Gets the data used by the HintProcessor to execute each hint
-    pub fn getHintData(self: *Self, hint_processor: HintProcessor, references: []HintReference) !std.ArrayList(HintData) {
+    pub fn getHintData(self: *Self, program: *Program, hint_processor: *HintProcessor, references: []HintReference) !std.ArrayList(HintData) {
         var result = std.ArrayList(HintData).init(self.allocator);
         errdefer result.deinit();
 
-        const hints_collection = try self.program.getHintsCollections(self.allocator);
-        for (hints_collection.hints.items) |hint| {
+        for (program.shared_program_data.hints_collection.hints.items) |hint| {
+            //// TODO: improve this part, becuase of std.json.arrayhashmap
+            var reference_ids = std.StringHashMap(usize).init(self.allocator);
+            defer reference_ids.deinit();
+
+            var it = hint.flow_tracking_data.reference_ids.?.map.iterator();
+
+            while (it.next()) |ref_id_en|
+                try reference_ids.put(ref_id_en.key_ptr.*, ref_id_en.value_ptr.*);
+            // end part
+
             try result.append(
-                try (hint_processor.compileHint(self.allocator, hint.code, hint.flow_tracking_data.ap_tracking, hint.flow_tracking_data.reference_ids, references) catch CairoVMError.CompileHintFail),
+                try (hint_processor.compileHint(self.allocator, hint.code, hint.flow_tracking_data.ap_tracking, reference_ids, references) catch CairoVMError.CompileHintFail),
             );
         }
 
@@ -362,8 +372,36 @@ pub const CairoRunner = struct {
     }
 
     pub fn runUntilPC(self: *Self, end: Relocatable) !void {
+        var hint_processor = HintProcessor{};
+        var entrypoint: []const u8 =
+            "main";
+        var program = try self.program.parseProgramJson(
+            self.allocator,
+            &entrypoint,
+            false,
+        );
+        defer program.deinit(self.allocator);
+        // TODO implement extensive hint parse
+
+        const references = program.shared_program_data.reference_manager.items;
+
+        const hint_datas = try self.getHintData(
+            &program,
+            &hint_processor,
+            references,
+        );
+        defer hint_datas.deinit();
+
         while (!end.eq(self.vm.run_context.pc.*)) {
-            try self.vm.step(self.allocator);
+            var hint_data_final: []HintData = &.{};
+            // TODO implement extensive hint data parse
+            if (program.shared_program_data.hints_collection.hints_ranges.NonExtensive.items.len > self.vm.run_context.pc.offset) {
+                if (program.shared_program_data.hints_collection.hints_ranges.NonExtensive.items[self.vm.run_context.pc.offset]) |range| {
+                    hint_data_final = hint_datas.items[range.start .. range.start + range.length];
+                }
+            }
+
+            try self.vm.step(self.allocator, .{}, &self.execution_scopes, hint_data_final, &program.constants);
         }
     }
 
@@ -550,6 +588,7 @@ pub const CairoRunner = struct {
         self.layout.deinit();
         self.vm.deinit();
         self.relocated_memory.deinit();
+        self.execution_scopes.deinit();
     }
 };
 

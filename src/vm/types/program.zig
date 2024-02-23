@@ -16,6 +16,8 @@ const Reference = @import("./programjson.zig").Reference;
 const HintReference = @import("../../hint_processor/hint_processor_def.zig").HintReference;
 const ProgramError = @import("../error.zig").ProgramError;
 
+const deserialize_utils = @import("../../parser/deserialize_utils.zig");
+
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
@@ -42,7 +44,7 @@ pub const HintsRanges = union(enum) {
         std.hash_map.AutoContext(Relocatable),
         std.hash_map.default_max_load_percentage,
     ),
-    NonExtensive: std.ArrayList(HintRange),
+    NonExtensive: std.ArrayList(?HintRange),
 
     pub fn init(
         allocator: Allocator,
@@ -50,7 +52,7 @@ pub const HintsRanges = union(enum) {
     ) Self {
         return switch (extensive_hints) {
             true => Self{ .Extensive = std.AutoHashMap(Relocatable, HintRange).init(allocator) },
-            false => Self{ .NonExtensive = std.ArrayList(HintRange).init(allocator) },
+            false => Self{ .NonExtensive = std.ArrayList(?HintRange).init(allocator) },
         };
     }
 
@@ -106,7 +108,7 @@ pub const HintsCollection = struct {
         }
 
         if (max_hint_pc == 0 or total_hints_len == 0) {
-            return Self.initDefault(allocator);
+            return Self.initDefault(allocator, extensive_hints);
         }
 
         if (max_hint_pc >= program_length) {
@@ -139,10 +141,10 @@ pub const HintsCollection = struct {
     ///
     /// # Params:
     ///   - `allocator`: The allocator used to initialize the collection.
-    pub fn initDefault(allocator: Allocator) Self {
+    pub fn initDefault(allocator: Allocator, extensive_hints: bool) Self {
         return .{
             .hints = std.ArrayList(HintParams).init(allocator),
-            .hints_ranges = HintsRanges.init(allocator, true),
+            .hints_ranges = HintsRanges.init(allocator, extensive_hints),
         };
     }
 
@@ -275,6 +277,7 @@ pub const SharedProgramData = struct {
         self.identifiers.deinit();
 
         // Deinitialize reference manager.
+        for (self.reference_manager.items) |item| item.deinit(allocator);
         self.reference_manager.deinit();
     }
 };
@@ -288,8 +291,6 @@ pub const Program = struct {
     constants: std.StringHashMap(Felt252),
     /// Stores the list of built-in names.
     builtins: std.ArrayList(BuiltinName),
-    /// Stores a hash map of hint params
-    hints: std.AutoHashMap(usize, []const HintParams),
 
     /// Initializes a new `Program` instance with provided parameters.
     ///
@@ -320,7 +321,7 @@ pub const Program = struct {
         return .{
             .shared_program_data = .{
                 .data = data,
-                .hints_collection = try HintsCollection.init(allocator, hints, data.items.len, true),
+                .hints_collection = try HintsCollection.init(allocator, hints, data.items.len, false),
                 .main = main,
                 .error_message_attributes = error_message_attributes,
                 .instruction_locations = instruction_locations,
@@ -329,7 +330,6 @@ pub const Program = struct {
             },
             .constants = try Self.extractConstants(identifiers, allocator),
             .builtins = builtins,
-            .hints = hints,
         };
     }
 
@@ -397,17 +397,19 @@ pub const Program = struct {
     ///
     /// # Returns:
     ///   - A list of `HintReference` containing references.
-    pub fn getReferenceList(allocator: Allocator, reference_manager: *[]const Reference) !std.ArrayList(HintReference) {
+    pub fn getReferenceList(allocator: Allocator, reference_manager: []const Reference) !std.ArrayList(HintReference) {
         var res = std.ArrayList(HintReference).init(allocator);
         errdefer res.deinit();
 
-        for (0..reference_manager.len) |i| {
-            const ref = reference_manager.*[i];
+        for (reference_manager) |ref| {
+            const val_addr = try deserialize_utils.parseValue(ref.value, allocator);
             try res.append(.{
-                .offset1 = .{ .value = @intCast(ref.ap_tracking_data.offset) },
-                .dereference = false,
+                .offset1 = val_addr.offset1,
+                .offset2 = val_addr.offset2,
+                .dereference = val_addr.dereference,
                 .ap_tracking_data = ref.ap_tracking_data,
-                .cairo_type = "felt",
+                // .cairo_type = "felt",
+                .cairo_type = val_addr.value_type,
             });
         }
 
@@ -490,7 +492,6 @@ pub const Program = struct {
         self.shared_program_data.deinit(allocator);
         self.constants.deinit();
         self.builtins.deinit();
-        self.hints.deinit();
     }
 };
 

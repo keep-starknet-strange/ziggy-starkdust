@@ -95,6 +95,10 @@ pub const HintReference = struct {
     pub fn initSimple(offset1: i32) Self {
         return .{ .offset1 = .{ .reference = .{ .FP, offset1, false } } };
     }
+
+    pub fn deinit(self: Self, allocator: Allocator) void {
+        if (self.cairo_type) |t| allocator.free(t);
+    }
 };
 
 /// Takes a mapping from reference name to reference id, normalizes the reference name, and maps the normalized reference name to its denoted HintReference from a reference array.
@@ -193,7 +197,7 @@ pub const CairoVMHintProcessor = struct {
             try memcpy_hint_utils.exitScope(exec_scopes);
         } else if (std.mem.eql(u8, hint_codes.MEMCPY_ENTER_SCOPE, hint_data.code)) {
             try memcpy_hint_utils.memcpyEnterScope(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
-        }
+        } else {}
     }
 
     // Executes the hint which's data is provided by a dynamic structure previously created by compile_hint
