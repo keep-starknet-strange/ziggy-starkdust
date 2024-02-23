@@ -862,7 +862,7 @@ pub const ProgramJson = struct {
 
             // Initialize a new HintsCollection.
 
-            var hints_collection = try HintsCollection.initDefault(allocator);
+            var hints_collection = try HintsCollection.initDefault(allocator, extensive_hints);
             errdefer hints_collection.deinit();
 
             if (!extensive_hints) {

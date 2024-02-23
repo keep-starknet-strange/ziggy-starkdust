@@ -153,11 +153,10 @@ pub const HintsCollection = struct {
     ///
     /// # Params:
     ///   - `allocator`: The allocator used to initialize the collection.
-
-    pub fn initDefault(allocator: Allocator) !Self {
+    pub fn initDefault(allocator: Allocator, extensive_hints: bool) !Self {
         return .{
             .hints = std.ArrayList(HintParams).init(allocator),
-            .hints_ranges = try HintsRanges.init(allocator, 0, true),
+            .hints_ranges = try HintsRanges.init(allocator, 0, extensive_hints),
         };
     }
 
@@ -1095,6 +1094,7 @@ test "Program: new program with extensive hints" {
     try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
 
     var hints = std.AutoHashMap(usize, []const HintParams).init(allocator);
+    defer hints.deinit();
 
     const default_scopes = &[_][]const u8{};
     const default_flow_tracking_data = .{ .ap_tracking = .{ .offset = 0, .group = 0 }, .reference_ids = null };
@@ -1171,6 +1171,7 @@ test "Program: new program with non-extensive hints" {
     try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
 
     var hints = std.AutoHashMap(usize, []const HintParams).init(allocator);
+    defer hints.deinit();
 
     const default_scopes = &[_][]const u8{};
     const default_flow_tracking_data = .{ .ap_tracking = .{ .offset = 0, .group = 0 }, .reference_ids = null };

@@ -373,7 +373,6 @@ pub const CairoRunner = struct {
     }
 
     pub fn runUntilPC(self: *Self, end: Relocatable, extensive_hints: bool) !void {
-        std.log.debug("ia zdes\n", .{});
         var hint_processor = HintProcessor{};
 
         var entrypoint: []const u8 =
@@ -402,8 +401,6 @@ pub const CairoRunner = struct {
         if (extensive_hints) hint_ranges = try program.shared_program_data.hints_collection.hints_ranges.Extensive.clone();
 
         while (!end.eq(self.vm.run_context.pc.*)) {
-            std.log.debug("pc: {any}\n", .{self.vm.run_context.getPC()});
-
             if (extensive_hints) {
                 try self.vm.stepExtensive(self.allocator, .{}, &self.execution_scopes, &hint_datas, &hint_ranges, &program.constants);
             } else {
