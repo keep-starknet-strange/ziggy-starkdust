@@ -371,21 +371,22 @@ pub const CairoRunner = struct {
         return result;
     }
 
-    pub fn runUntilPC(self: *Self, end: Relocatable) !void {
+    pub fn runUntilPC(self: *Self, end: Relocatable, extensive_hints: bool) !void {
         var hint_processor = HintProcessor{};
+
         var entrypoint: []const u8 =
             "main";
+
         var program = try self.program.parseProgramJson(
             self.allocator,
             &entrypoint,
-            false,
+            extensive_hints,
         );
         defer program.deinit(self.allocator);
-        // TODO implement extensive hint parse
 
         const references = program.shared_program_data.reference_manager.items;
 
-        const hint_datas = try self.getHintData(
+        var hint_datas = try self.getHintData(
             &program,
             &hint_processor,
             references,
@@ -393,15 +394,22 @@ pub const CairoRunner = struct {
         defer hint_datas.deinit();
 
         while (!end.eq(self.vm.run_context.pc.*)) {
-            var hint_data_final: []HintData = &.{};
-            // TODO implement extensive hint data parse
-            if (program.shared_program_data.hints_collection.hints_ranges.NonExtensive.items.len > self.vm.run_context.pc.offset) {
-                if (program.shared_program_data.hints_collection.hints_ranges.NonExtensive.items[self.vm.run_context.pc.offset]) |range| {
-                    hint_data_final = hint_datas.items[range.start .. range.start + range.length];
-                }
-            }
+            if (extensive_hints) {
+                var hint_ranges = program.shared_program_data.hints_collection.hints_ranges.Extensive;
 
-            try self.vm.step(self.allocator, .{}, &self.execution_scopes, hint_data_final, &program.constants);
+                try self.vm.stepHintExtensive(self.allocator, .{}, &self.execution_scopes, &hint_datas, &hint_ranges, &program.constants);
+            } else {
+                // cfg not extensive hints feature
+                var hint_data_final: []HintData = &.{};
+                // TODO implement extensive hint data parse
+                if (program.shared_program_data.hints_collection.hints_ranges.NonExtensive.items.len > self.vm.run_context.pc.offset) {
+                    if (program.shared_program_data.hints_collection.hints_ranges.NonExtensive.items[self.vm.run_context.pc.offset]) |range| {
+                        hint_data_final = hint_datas.items[range.start .. range.start + range.length];
+                    }
+                }
+
+                try self.vm.stepNotExtensive(self.allocator, .{}, &self.execution_scopes, hint_data_final, &program.constants);
+            }
         }
     }
 

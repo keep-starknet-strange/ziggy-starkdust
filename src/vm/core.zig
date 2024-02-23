@@ -278,7 +278,7 @@ pub const CairoVM = struct {
             for (hint_range.start..hint_range.start + hint_range.length) |idx| {
                 const hint_data = if (idx < hint_datas.items.len) &hint_datas.items[idx] else return CairoVMError.Unexpected;
 
-                const hint_extension = try hint_processor.executeHintExtensive(allocator, self, hint_data, constants, exec_scopes);
+                var hint_extension = try hint_processor.executeHintExtensive(allocator, self, hint_data, constants, exec_scopes);
                 defer hint_extension.deinit();
 
                 var it = hint_extension.iterator();
@@ -305,12 +305,7 @@ pub const CairoVM = struct {
         }
     }
 
-    /// Do a single step of the VM.
-    /// Process an instruction cycle using the typical fetch-decode-execute cycle.
-    pub fn step(self: *Self, allocator: Allocator, hint_processor: HintProcessor, exec_scopes: *ExecutionScopes, hint_datas: []HintData, constants: *std.StringHashMap(Felt252)) !void {
-        // TODO: implement flag extensive or not hint
-        try self.stepHintNotExtensive(allocator, hint_processor, exec_scopes, hint_datas, constants);
-
+    pub fn stepInstruction(self: *Self, allocator: Allocator) !void {
         std.log.debug(
             "Running instruction at pc: {}\n",
             .{self.run_context.pc.*},
@@ -323,7 +318,6 @@ pub const CairoVM = struct {
             "Running instruction, fp: {}\n",
             .{self.run_context.fp.*},
         );
-
         // ************************************************************
         // *                    FETCH                                 *
         // ************************************************************
@@ -348,6 +342,22 @@ pub const CairoVM = struct {
         // *                    EXECUTE                               *
         // ************************************************************
         return self.runInstruction(allocator, &instruction);
+    }
+
+    /// Do a single step of the VM with not extensive hints.
+    /// Process an instruction cycle using the typical fetch-decode-execute cycle.
+    pub fn stepNotExtensive(self: *Self, allocator: Allocator, hint_processor: HintProcessor, exec_scopes: *ExecutionScopes, hint_datas: []HintData, constants: *std.StringHashMap(Felt252)) !void {
+        try self.stepHintNotExtensive(allocator, hint_processor, exec_scopes, hint_datas, constants);
+
+        try self.stepInstruction(allocator);
+    }
+
+    /// Do a single step of the VM with extensive hints.
+    /// Process an instruction cycle using the typical fetch-decode-execute cycle.
+    pub fn stepExtensive(self: *Self, allocator: Allocator, hint_processor: HintProcessor, exec_scopes: *ExecutionScopes, hint_datas: *std.ArrayList(HintData), hint_ranges: *std.AutoHashMap(Relocatable, HintRange), constants: *std.StringHashMap(Felt252)) !void {
+        try self.stepHintExtensive(allocator, hint_processor, exec_scopes, hint_datas, hint_ranges, constants);
+
+        try self.stepInstruction(allocator);
     }
 
     /// Insert Operands only after checking if they were deduced.
@@ -1497,7 +1507,7 @@ const Op1Result = struct {
 
 const HintReference = @import("../hint_processor/hint_processor_def.zig").HintReference;
 
-test "Core: test step for preset memory alloc hint" {
+test "Core: test step for preset memory alloc hint not extensive" {
     var vm = try CairoVM.init(
         std.testing.allocator,
         .{
@@ -1543,7 +1553,95 @@ test "Core: test step for preset memory alloc hint" {
     inline for (0..6) |_| {
         const hint_data = if (vm.run_context.pc.eq(Relocatable.init(0, 0))) hint_datas.items[0..] else hint_datas.items[0..0];
 
-        try vm.step(std.testing.allocator, hint_processor, &exec_scopes, hint_data, &constants);
+        try vm.stepNotExtensive(std.testing.allocator, hint_processor, &exec_scopes, hint_data, &constants);
+    }
+
+    const expected_trace = [_][3][2]u64{
+        .{
+            .{ 0, 3 }, .{ 1, 2 }, .{ 1, 2 },
+        },
+        .{
+            .{ 0, 0 }, .{ 1, 4 }, .{ 1, 4 },
+        },
+        .{
+            .{ 0, 2 }, .{ 1, 5 }, .{ 1, 4 },
+        },
+        .{
+            .{ 0, 5 }, .{ 1, 5 }, .{ 1, 2 },
+        },
+        .{
+            .{ 0, 7 }, .{ 1, 6 }, .{ 1, 2 },
+        },
+        .{
+            .{ 0, 8 }, .{ 1, 6 }, .{ 1, 2 },
+        },
+    };
+
+    try std.testing.expectEqual(expected_trace.len, vm.trace_context.state.enabled.entries.items.len);
+
+    for (expected_trace, 0..) |trace_entry, idx| {
+        // pc, ap, fp
+        const trace_entry_a = vm.trace_context.state.enabled.entries.items[idx];
+        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[0][0]), trace_entry[0][1]), trace_entry_a.pc);
+        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[1][0]), trace_entry[1][1]), trace_entry_a.ap);
+        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[2][0]), trace_entry[2][1]), trace_entry_a.fp);
+    }
+}
+
+test "Core: test step for preset memory alloc hint extensive" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{
+            .enable_trace = true,
+        },
+    );
+    defer vm.deinit();
+
+    vm.run_context.pc.* = Relocatable.init(0, 3);
+    vm.run_context.ap.* = Relocatable.init(1, 2);
+    vm.run_context.fp.* = Relocatable.init(1, 2);
+
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 0 }, .{290341444919459839} },
+        .{ .{ 0, 1 }, .{1} },
+        .{ .{ 0, 2 }, .{2345108766317314046} },
+        .{ .{ 0, 3 }, .{1226245742482522112} },
+        .{ .{ 0, 4 }, .{3618502788666131213697322783095070105623107215331596699973092056135872020478} },
+        .{ .{ 0, 5 }, .{5189976364521848832} },
+        .{ .{ 0, 6 }, .{1} },
+        .{ .{ 0, 7 }, .{4611826758063128575} },
+        .{ .{ 0, 8 }, .{2345108766317314046} },
+        .{ .{ 1, 0 }, .{ 2, 0 } },
+        .{ .{ 1, 1 }, .{ 3, 0 } },
+    });
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    const hint_processor: HintProcessor = .{};
+    var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
+    defer ids_data.deinit();
+
+    var hint_datas = std.ArrayList(HintData).init(std.testing.allocator);
+    defer hint_datas.deinit();
+
+    try hint_datas.append(
+        HintData.init("memory[ap] = segments.add()", ids_data, .{}),
+    );
+
+    var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
+    defer exec_scopes.deinit();
+    var constants = std.StringHashMap(Felt252).init(std.testing.allocator);
+    defer constants.deinit();
+
+    inline for (0..6) |_| {
+        var hint_ranges = std.AutoHashMap(Relocatable, HintRange).init(std.testing.allocator);
+        defer hint_ranges.deinit();
+
+        try hint_ranges.put(Relocatable.init(0, 0), .{
+            .start = 0,
+            .length = 1,
+        });
+
+        try vm.stepExtensive(std.testing.allocator, hint_processor, &exec_scopes, &hint_datas, &hint_ranges, &constants);
     }
 
     const expected_trace = [_][3][2]u64{
