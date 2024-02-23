@@ -86,6 +86,6 @@ pub fn cairo_run(allocator: std.mem.Allocator, pathname: []const u8, layout: []c
     errdefer std.debug.print("failed on step: {}\n", .{runner.vm.current_step});
 
     // then
-    try runner.runUntilPC(end, false);
+    try runner.runUntilPC(end, true);
     try runner.endRun();
 }

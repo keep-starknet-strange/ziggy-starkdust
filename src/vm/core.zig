@@ -273,7 +273,6 @@ pub const CairoVM = struct {
         constants: *std.StringHashMap(Felt252),
     ) !void {
         if (hint_ranges.get(self.run_context.getPC())) |hint_range| {
-
             // Execute each hint for the given range
             for (hint_range.start..hint_range.start + hint_range.length) |idx| {
                 const hint_data = if (idx < hint_datas.items.len) &hint_datas.items[idx] else return CairoVMError.Unexpected;

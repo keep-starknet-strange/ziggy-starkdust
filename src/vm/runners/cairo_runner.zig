@@ -15,6 +15,7 @@ const Relocatable = @import("../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../memory/relocatable.zig").MaybeRelocatable;
 const ProgramJson = @import("../types/programjson.zig").ProgramJson;
 const Program = @import("../types/program.zig").Program;
+const HintRange = @import("../types/program.zig").HintRange;
 const CairoRunnerError = @import("../error.zig").CairoRunnerError;
 const CairoVMError = @import("../error.zig").CairoVMError;
 const RunnerError = @import("../error.zig").RunnerError;
@@ -372,6 +373,7 @@ pub const CairoRunner = struct {
     }
 
     pub fn runUntilPC(self: *Self, end: Relocatable, extensive_hints: bool) !void {
+        std.log.debug("ia zdes\n", .{});
         var hint_processor = HintProcessor{};
 
         var entrypoint: []const u8 =
@@ -393,11 +395,17 @@ pub const CairoRunner = struct {
         );
         defer hint_datas.deinit();
 
-        while (!end.eq(self.vm.run_context.pc.*)) {
-            if (extensive_hints) {
-                var hint_ranges = program.shared_program_data.hints_collection.hints_ranges.Extensive;
+        var hint_ranges: std.AutoHashMap(Relocatable, HintRange) = undefined;
+        defer {
+            if (extensive_hints) hint_ranges.deinit();
+        }
+        if (extensive_hints) hint_ranges = try program.shared_program_data.hints_collection.hints_ranges.Extensive.clone();
 
-                try self.vm.stepHintExtensive(self.allocator, .{}, &self.execution_scopes, &hint_datas, &hint_ranges, &program.constants);
+        while (!end.eq(self.vm.run_context.pc.*)) {
+            std.log.debug("pc: {any}\n", .{self.vm.run_context.getPC()});
+
+            if (extensive_hints) {
+                try self.vm.stepExtensive(self.allocator, .{}, &self.execution_scopes, &hint_datas, &hint_ranges, &program.constants);
             } else {
                 // cfg not extensive hints feature
                 var hint_data_final: []HintData = &.{};
