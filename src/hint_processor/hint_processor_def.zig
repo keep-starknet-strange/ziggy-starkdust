@@ -207,8 +207,7 @@ pub const CairoVMHintProcessor = struct {
     pub fn executeHintExtensive(self: *const Self, allocator: Allocator, vm: *CairoVM, hint_data: *HintData, constants: *std.StringHashMap(Felt252), exec_scopes: *ExecutionScopes) !HintExtension {
         try self.executeHint(allocator, vm, hint_data, constants, exec_scopes);
 
-        const result = HintExtension.init(allocator);
-        return result;
+        return HintExtension.init(allocator);
     }
 };
 
