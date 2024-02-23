@@ -116,7 +116,11 @@ pub const HintParams = struct {
     flow_tracking_data: FlowTrackingData,
 
     pub fn init(code: []const u8, accessible_scopes: []const []const u8, flow_tracking_data: FlowTrackingData) Self {
-        return .{ .code = code, .accessible_scopes = accessible_scopes, .flow_tracking_data = flow_tracking_data };
+        return .{
+            .code = code,
+            .accessible_scopes = accessible_scopes,
+            .flow_tracking_data = flow_tracking_data,
+        };
     }
 };
 
