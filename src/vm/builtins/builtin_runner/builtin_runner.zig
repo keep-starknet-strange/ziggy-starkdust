@@ -328,6 +328,25 @@ pub const BuiltinRunner = union(BuiltinName) {
         };
     }
 
+    /// Gets the number of input cells
+    ///
+    /// # Returns
+    ///
+    /// `n_input_cells` from the individual builtin
+    pub fn getNumberInputCells(self: *Self) u32 {
+        return switch (self.*) {
+            .Bitwise => |*bitwise| bitwise.n_input_cells,
+            .EcOp => |*ec_op| ec_op.n_input_cells,
+            .Hash => |*hash| hash.n_input_cells,
+            .Output => 0,
+            .RangeCheck => |*range_check| range_check.n_input_cells,
+            .Keccak => |*keccak| keccak.n_input_cells,
+            .Signature => |*signature| signature.n_input_cells,
+            .Poseidon => |*poseidon| poseidon.n_input_cells,
+            .SegmentArena => |*segment_arena| segment_arena.n_input_cells_per_instance,
+        };
+    }
+
     pub fn deinit(self: *Self) void {
         switch (self.*) {
             .EcOp => |*ec_op| ec_op.deinit(),
