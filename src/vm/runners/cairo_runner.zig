@@ -232,7 +232,6 @@ pub const CairoRunner = struct {
                 self.program.shared_program_data.data.items,
             );
 
-
             for (0..self.program.shared_program_data.data.items.len) |i|
                 self.vm.segments.memory.markAsAccessed(try prog_base.addUint(i));
         }
@@ -297,7 +296,6 @@ pub const CairoRunner = struct {
                 var stack_prefix = try std.ArrayList(MaybeRelocatable).initCapacity(self.allocator, 2 + stack.items.len);
                 defer stack_prefix.deinit();
 
-
                 try stack_prefix.append(MaybeRelocatable.fromRelocatable(try (self.execution_base orelse return RunnerError.NoExecBase).addUint(target_offset)));
                 try stack_prefix.append(MaybeRelocatable.fromFelt(Felt252.zero()));
                 try stack_prefix.appendSlice(stack.items);
@@ -324,7 +322,6 @@ pub const CairoRunner = struct {
                     RunnerError.NoProgramStart), &stack);
             }
 
-
             self.initial_fp = try (self.execution_base orelse return RunnerError.NoExecBase).addUint(target_offset);
             self.initial_ap = self.initial_fp;
 
@@ -334,7 +331,12 @@ pub const CairoRunner = struct {
 
         const return_fp = try self.vm.segments.addSegment();
 
-        if (self.entrypoint) |main| return self.initFunctionEntrypoint(main, return_fp, &stack);
+        if (self.entrypoint) |main|
+            return self.initFunctionEntrypoint(
+                main,
+                MaybeRelocatable.fromRelocatable(return_fp),
+                &stack,
+            );
 
         return RunnerError.MissingMain;
     }

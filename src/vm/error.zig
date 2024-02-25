@@ -174,7 +174,6 @@ pub const RunnerError = error{
     NoFP,
     /// Raised when there are errors related to memory validation in Cairo runner.
     MemoryValidationError,
-    NoExecBase,
 };
 
 /// Represents different error conditions that occur during mathematical operations.
