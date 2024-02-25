@@ -70,7 +70,7 @@ pub const KeccakBuiltinRunner = struct {
     /// A new `KeccakBuiltinRunner` instance.
     pub fn init(
         allocator: Allocator,
-        instance_def: *KeccakInstanceDef,
+        instance_def: *const KeccakInstanceDef,
         included: bool,
     ) Self {
         return .{

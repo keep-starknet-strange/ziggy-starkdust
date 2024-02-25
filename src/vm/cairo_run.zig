@@ -69,7 +69,7 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
         config.proof_mode,
     );
     defer runner.deinit(allocator);
-    const end = try runner.setupExecutionState();
+    const end = try runner.setupExecutionState(config.allow_missing_builtins orelse config.proof_mode);
     // TODO: make flag for extensive_hints
     try runner.runUntilPC(end, false);
     try runner.endRun();
