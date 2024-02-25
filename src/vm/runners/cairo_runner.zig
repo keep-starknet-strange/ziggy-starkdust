@@ -219,8 +219,7 @@ pub const CairoRunner = struct {
     /// - `entrypoint:` The address, relative to the program segment, where execution begins.
     pub fn initState(self: *Self, entrypoint: usize, stack: *std.ArrayList(MaybeRelocatable)) !void {
         if (self.program_base) |prog_base| {
-            self.initial_pc = self.program_base;
-            self.initial_pc.?.addUintInPlace(entrypoint);
+            self.initial_pc = try prog_base.addUint(entrypoint);
 
             _ = try self.vm.segments.loadData(
                 self.allocator,
