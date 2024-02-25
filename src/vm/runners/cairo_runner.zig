@@ -120,15 +120,15 @@ pub const CairoRunner = struct {
     program: Program,
     allocator: Allocator,
     vm: CairoVM,
-    program_base: Relocatable = undefined,
-    execution_base: Relocatable = undefined,
+    program_base: ?Relocatable = null,
+    execution_base: ?Relocatable = null,
     initial_pc: ?Relocatable = null,
     initial_ap: ?Relocatable = null,
     initial_fp: ?Relocatable = null,
     final_pc: *Relocatable = undefined,
     instructions: std.ArrayList(MaybeRelocatable),
     // function_call_stack: std.ArrayList(MaybeRelocatable),
-    entrypoint_name: []const u8 = "main",
+    entrypoint: ?usize,
     layout: CairoLayout,
     runner_mode: RunnerMode,
     run_ended: bool = false,
@@ -161,6 +161,7 @@ pub const CairoRunner = struct {
             .runner_mode = if (proof_mode) .proof_mode_canonical else .execution_mode,
             .relocated_memory = ArrayList(?Felt252).init(allocator),
             .execution_scopes = try ExecutionScopes.init(allocator),
+            .entrypoint = program.shared_program_data.main,
         };
     }
 
@@ -217,20 +218,26 @@ pub const CairoRunner = struct {
     /// # Arguments
     /// - `entrypoint:` The address, relative to the program segment, where execution begins.
     pub fn initState(self: *Self, entrypoint: usize, stack: *std.ArrayList(MaybeRelocatable)) !void {
-        self.initial_pc = self.program_base;
-        self.initial_pc.?.addUintInPlace(entrypoint);
+        if (self.program_base) |prog_base| {
+            self.initial_pc = self.program_base;
+            self.initial_pc.?.addUintInPlace(entrypoint);
 
-        _ = try self.vm.segments.loadData(
-            self.allocator,
-            self.program_base,
-            &self.instructions,
-        );
+            _ = try self.vm.segments.loadData(
+                self.allocator,
+                prog_base,
+                self.program.shared_program_data.data.items,
+            );
 
-        _ = try self.vm.segments.loadData(
-            self.allocator,
-            self.execution_base,
-            stack,
-        );
+            for (0..self.program.shared_program_data.data.items.len) |i|
+                self.vm.segments.memory.markAsAccessed(try prog_base.addUint(i));
+        }
+        if (self.execution_base) |exec_base| {
+            _ = try self.vm.segments.loadData(
+                self.allocator,
+                exec_base,
+                stack.items,
+            );
+        } else return RunnerError.NoProgBase;
     }
 
     pub fn initFunctionEntrypoint(self: *Self, entrypoint: usize, return_fp: Relocatable, stack: *std.ArrayList(MaybeRelocatable)) !Relocatable {
@@ -262,9 +269,8 @@ pub const CairoRunner = struct {
         for (self.vm.builtin_runners.items) |*builtin_runner| {
             const builtin_stack = try builtin_runner.initialStack(self.allocator);
             defer builtin_stack.deinit();
-            for (builtin_stack.items) |item| {
-                try stack.append(item);
-            }
+
+            try stack.appendSlice(builtin_stack.items);
         }
 
         if (self.isProofMode()) {
@@ -274,13 +280,18 @@ pub const CairoRunner = struct {
                 var stack_prefix = try std.ArrayList(MaybeRelocatable).initCapacity(self.allocator, 2 + stack.items.len);
                 defer stack_prefix.deinit();
 
-                try stack_prefix.append(MaybeRelocatable.fromRelocatable(try self.execution_base.addUint(target_offset)));
+                const exec_base = self.execution_base orelse return RunnerError.NoExecBase;
+
+                try stack_prefix.append(MaybeRelocatable.fromRelocatable(try exec_base.addUint(target_offset)));
+                try stack_prefix.append(MaybeRelocatable.fromFelt(Felt252.zero()));
                 try stack_prefix.appendSlice(stack.items);
 
                 var execution_public_memory = try std.ArrayList(usize).initCapacity(self.allocator, stack_prefix.items.len);
+
                 for (0..stack_prefix.items.len) |v| {
                     try execution_public_memory.append(v);
                 }
+
                 self.execution_public_memory = execution_public_memory;
 
                 try self.initState(try (self.program.shared_program_data.start orelse
@@ -297,23 +308,16 @@ pub const CairoRunner = struct {
                     RunnerError.NoProgramStart), &stack);
             }
 
-            self.initial_fp = try self.execution_base.addUint(target_offset);
+            self.initial_fp = try (self.execution_base orelse return RunnerError.NoExecBase).addUint(target_offset);
             self.initial_ap = self.initial_fp;
 
-            return self.program_base.addUint(try (self.program.shared_program_data.end orelse
+            return (self.program_base orelse return RunnerError.NoExecBase).addUint(try (self.program.shared_program_data.end orelse
                 RunnerError.NoProgramEnd));
         }
 
         const return_fp = try self.vm.segments.addSegment();
-        // Buffer for concatenation
-        var buffer: [100]u8 = undefined;
 
-        // Concatenate strings
-        const full_entrypoint_name = try std.fmt.bufPrint(&buffer, "__main__.{s}", .{self.entrypoint_name});
-
-        if (self.program.shared_program_data.identifiers.get(full_entrypoint_name)) |identifier|
-            if (identifier.pc) |pc|
-                return self.initFunctionEntrypoint(pc, return_fp, &stack);
+        if (self.entrypoint) |main| return self.initFunctionEntrypoint(main, return_fp, &stack);
 
         return RunnerError.MissingMain;
     }
@@ -620,6 +624,73 @@ test "CairoRunner: initMainEntrypoint no main" {
     if (cairo_runner.initMainEntrypoint()) |_| {
         return error.ExpectedError;
     } else |_| {}
+}
+
+test "CairoRunner: initMainEntrypoint" {
+    var program = try Program.initDefault(std.testing.allocator, true);
+
+    program.shared_program_data.main = 1;
+
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+
+    defer cairo_runner.deinit(std.testing.allocator);
+    // why this deinit is separated?
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    cairo_runner.program_base = Relocatable.init(0, 0);
+    cairo_runner.execution_base = Relocatable.init(0, 0);
+
+    // Add an OutputBuiltinRunner to the CairoRunner without setting the stop pointer.
+    // try cairo_runner.vm.builtin_runners.append(.{ .Output = OutputBuiltinRunner.initDefault(std.testing.allocator) });
+    try expectEqual(
+        Relocatable.init(1, 0),
+        cairo_runner.initMainEntrypoint(),
+    );
+}
+
+test "CairoRunner: initMainEntrypoint proof_mode empty program" {
+    var program = try Program.initDefault(std.testing.allocator, true);
+
+    program.shared_program_data.main = 8;
+    program.shared_program_data.start = 0;
+    program.shared_program_data.end = 0;
+
+    var runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        true,
+    );
+
+    runner.runner_mode = .proof_mode_canonical;
+
+    defer runner.deinit(std.testing.allocator);
+    // why this deinit is separated?
+    defer runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    try runner.initSegments(null);
+
+    try expectEqual(Relocatable.init(1, 0), runner.execution_base);
+    try expectEqual(Relocatable.init(0, 0), runner.program_base);
+    try expectEqual(Relocatable.init(0, 0), runner.initMainEntrypoint());
+    try expectEqual(Relocatable.init(1, 2), runner.initial_ap);
+    try expectEqual(runner.initial_fp, runner.initial_ap);
+    try expectEqual([2]usize{ 0, 1 }, runner.execution_public_memory.?.items[0..2].*);
 }
 
 test "CairoRunner: initVM should initialize the VM properly with no builtins" {

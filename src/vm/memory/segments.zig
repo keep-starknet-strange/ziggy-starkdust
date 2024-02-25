@@ -295,18 +295,18 @@ pub const MemorySegmentManager = struct {
         self: *Self,
         allocator: Allocator,
         ptr: Relocatable,
-        data: *std.ArrayList(MaybeRelocatable),
+        data: []const MaybeRelocatable,
     ) !Relocatable {
-        var idx = data.items.len;
+        var idx = data.len;
         while (idx > 0) : (idx -= 1) {
             const i = idx - 1;
             try self.memory.set(
                 allocator,
                 try ptr.addUint(@intCast(i)),
-                data.items[i],
+                data[i],
             );
         }
-        return ptr.addUint(data.items.len) catch MemoryError.Math;
+        return ptr.addUint(data.len) catch MemoryError.Math;
     }
 
     /// Records details for a specified segment, facilitating relocation:
@@ -411,7 +411,7 @@ pub const MemorySegmentManager = struct {
                 try self.loadData(
                     self.allocator,
                     ptr,
-                    arg,
+                    arg.items,
                 ),
             ),
             std.ArrayList(Relocatable) => {
@@ -427,7 +427,7 @@ pub const MemorySegmentManager = struct {
                     try self.loadData(
                         self.allocator,
                         ptr,
-                        &tmp,
+                        tmp.items,
                     ),
                 );
             },
@@ -1099,7 +1099,7 @@ test "MemorySegmentManager: loadData with empty data" {
         try memory_segment_manager.loadData(
             allocator,
             Relocatable.init(0, 3),
-            &data,
+            data.items,
         ),
     );
 }
@@ -1119,7 +1119,7 @@ test "MemorySegmentManager: loadData with one element" {
     const actual = try memory_segment_manager.loadData(
         allocator,
         Relocatable.init(0, 0),
-        &data,
+        data.items,
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
@@ -1147,7 +1147,7 @@ test "MemorySegmentManager: loadData with three elements" {
     const actual = try memory_segment_manager.loadData(
         allocator,
         Relocatable.init(0, 0),
-        &data,
+        data.items,
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
