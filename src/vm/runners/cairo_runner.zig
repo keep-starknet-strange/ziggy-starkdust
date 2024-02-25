@@ -280,9 +280,7 @@ pub const CairoRunner = struct {
                 var stack_prefix = try std.ArrayList(MaybeRelocatable).initCapacity(self.allocator, 2 + stack.items.len);
                 defer stack_prefix.deinit();
 
-                const exec_base = self.execution_base orelse return RunnerError.NoExecBase;
-
-                try stack_prefix.append(MaybeRelocatable.fromRelocatable(try exec_base.addUint(target_offset)));
+                try stack_prefix.append(MaybeRelocatable.fromRelocatable(try (self.execution_base orelse return RunnerError.NoExecBase).addUint(target_offset)));
                 try stack_prefix.append(MaybeRelocatable.fromFelt(Felt252.zero()));
                 try stack_prefix.appendSlice(stack.items);
 
