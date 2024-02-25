@@ -175,14 +175,48 @@ pub const CairoRunner = struct {
         var program_builtins = std.AutoHashMap(BuiltinName, void).init(self.allocator);
         defer program_builtins.deinit();
 
+        for (self.program.builtins.items) |builtin| {
+            try program_builtins.put(builtin, undefined);
+        }
+
+        // check if program builtins in right order
+        {
+            var builtin_ordered_list: []const BuiltinName = &.{
+                .output,
+                .pedersen,
+                .range_check,
+                .ecdsa,
+                .bitwise,
+                .ec_op,
+                .keccak,
+                .poseidon,
+            };
+
+            for (self.program.builtins.items) |builtin| {
+                var found = false;
+
+                for (builtin_ordered_list, 0..) |ord_builtin, idx| {
+                    if (builtin == ord_builtin) {
+                        found = true;
+                        builtin_ordered_list = builtin_ordered_list[idx + 1 ..];
+                        break;
+                    }
+                }
+
+                if (!found) return RunnerError.DisorderedBuiltins;
+            }
+        }
+
         if (self.layout.builtins.output) {
-            const included = !(try program_builtins.getOrPut(.output)).found_existing;
+            const included = program_builtins.remove(.output);
+
             if (included or self.isProofMode())
                 try self.vm.builtin_runners.append(.{ .Output = builtin_runner_import.OutputBuiltinRunner.init(included, self.allocator) });
         }
 
         if (self.layout.builtins.pedersen) |pedersen_def| {
-            const included = !(try program_builtins.getOrPut(.pedersen)).found_existing;
+            const included = program_builtins.remove(.pedersen);
+
             if (included or self.isProofMode())
                 try self.vm.builtin_runners.append(.{
                     .Hash = builtin_runner_import.HashBuiltinRunner.init(self.allocator, pedersen_def.ratio, included),
@@ -190,7 +224,8 @@ pub const CairoRunner = struct {
         }
 
         if (self.layout.builtins.range_check) |instance_def| {
-            const included = !(try program_builtins.getOrPut(.range_check)).found_existing;
+            const included = program_builtins.remove(.range_check);
+
             if (included or self.isProofMode())
                 try self.vm.builtin_runners.append(.{
                     .RangeCheck = builtin_runner_import.RangeCheckBuiltinRunner.init(instance_def.ratio, instance_def.n_parts, included),
@@ -198,7 +233,8 @@ pub const CairoRunner = struct {
         }
 
         if (self.layout.builtins.ecdsa) |instance_def| {
-            const included = !(try program_builtins.getOrPut(.ecdsa)).found_existing;
+            const included = program_builtins.remove(.ecdsa);
+
             if (included or self.isProofMode())
                 try self.vm.builtin_runners.append(.{
                     .Signature = builtin_runner_import.SignatureBuiltinRunner.init(self.allocator, &instance_def, included),
@@ -206,7 +242,8 @@ pub const CairoRunner = struct {
         }
 
         if (self.layout.builtins.ec_op) |instance_def| {
-            const included = !(try program_builtins.getOrPut(.ec_op)).found_existing;
+            const included = program_builtins.remove(.ec_op);
+
             if (included or self.isProofMode())
                 try self.vm.builtin_runners.append(.{
                     .EcOp = builtin_runner_import.EcOpBuiltinRunner.init(self.allocator, instance_def, included),
@@ -214,7 +251,8 @@ pub const CairoRunner = struct {
         }
 
         if (self.layout.builtins.keccak) |instance_def| {
-            const included = !(try program_builtins.getOrPut(.keccak)).found_existing;
+            const included = program_builtins.remove(.keccak);
+
             if (included or self.isProofMode())
                 try self.vm.builtin_runners.append(.{
                     .Keccak = builtin_runner_import.KeccakBuiltinRunner.init(self.allocator, &instance_def, included),
@@ -222,7 +260,8 @@ pub const CairoRunner = struct {
         }
 
         if (self.layout.builtins.bitwise) |instance_def| {
-            const included = !(try program_builtins.getOrPut(.bitwise)).found_existing;
+            const included = program_builtins.remove(.bitwise);
+
             if (included or self.isProofMode())
                 try self.vm.builtin_runners.append(.{
                     .Bitwise = builtin_runner_import.BitwiseBuiltinRunner.init(&instance_def, included),
@@ -230,14 +269,15 @@ pub const CairoRunner = struct {
         }
 
         if (self.layout.builtins.poseidon) |instance_def| {
-            const included = !(try program_builtins.getOrPut(.poseidon)).found_existing;
+            const included = program_builtins.remove(.poseidon);
+
             if (included or self.isProofMode())
                 try self.vm.builtin_runners.append(.{
                     .Poseidon = builtin_runner_import.PoseidonBuiltinRunner.init(self.allocator, instance_def.ratio, included),
                 });
         }
 
-        if (program_builtins.count() != 8 and !allow_missing_builtins)
+        if (program_builtins.count() != 0 and !allow_missing_builtins)
             return RunnerError.NoBuiltinForInstance;
     }
 
@@ -1359,4 +1399,26 @@ test "CairoRunner: initBuiltins missing builtins no allow missing" {
     defer cairo_runner.deinit(std.testing.allocator);
 
     try std.testing.expectError(RunnerError.NoBuiltinForInstance, cairo_runner.initBuiltins(false));
+}
+
+test "CairoRunner: initBuiltins with disordered builtins" {
+    var program = try Program.initDefault(std.testing.allocator, true);
+    try program.builtins.appendSlice(&.{ .range_check, .output });
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    try std.testing.expectError(RunnerError.DisorderedBuiltins, cairo_runner.initBuiltins(false));
 }

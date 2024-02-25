@@ -139,6 +139,8 @@ pub const CairoRunnerError = error{
 
 /// Represents different error conditions that occur in the built-in runners.
 pub const RunnerError = error{
+    // Given builtins are not in appropiate order
+    DisorderedBuiltins,
     // Builtin(s) not present in layout
     NoBuiltinForInstance,
     //Initialization failure: No execution base
