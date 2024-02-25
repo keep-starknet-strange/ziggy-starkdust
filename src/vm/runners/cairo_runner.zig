@@ -264,13 +264,7 @@ pub const CairoRunner = struct {
         if (self.execution_base) |b| {
             self.initial_fp = Relocatable.init(b.segment_index, b.offset + stack.items.len);
             self.initial_ap = self.initial_fp;
-        } else {
-            return RunnerError.NoExecBase;
-        }
-
-        // self.initial_fp = self.execution_base;
-        // self.initial_fp.?.addUintInPlace(@as(u64, stack.items.len));
-        // self.initial_ap = self.initial_fp;
+        } else return RunnerError.NoExecBase;
 
         try self.initState(entrypoint, stack);
         self.final_pc = &end;
