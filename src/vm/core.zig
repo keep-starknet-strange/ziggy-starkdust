@@ -1089,7 +1089,7 @@ pub const CairoVM = struct {
         return self.segments.loadData(
             self.allocator,
             ptr,
-            data,
+            data.items,
         );
     }
 
@@ -1644,24 +1644,12 @@ test "Core: test step for preset memory alloc hint extensive" {
     }
 
     const expected_trace = [_][3][2]u64{
-        .{
-            .{ 0, 3 }, .{ 1, 2 }, .{ 1, 2 }
-        },
-        .{
-            .{ 0, 0 }, .{ 1, 4 }, .{ 1, 4 }
-        },
-        .{
-            .{ 0, 2 }, .{ 1, 5 }, .{ 1, 4 }
-        },
-        .{
-            .{ 0, 5 }, .{ 1, 5 }, .{ 1, 2 }
-        },
-        .{
-            .{ 0, 7 }, .{ 1, 6 }, .{ 1, 2 }
-        },
-        .{
-            .{ 0, 8 }, .{ 1, 6 }, .{ 1, 2 }
-        },
+        .{ .{ 0, 3 }, .{ 1, 2 }, .{ 1, 2 } },
+        .{ .{ 0, 0 }, .{ 1, 4 }, .{ 1, 4 } },
+        .{ .{ 0, 2 }, .{ 1, 5 }, .{ 1, 4 } },
+        .{ .{ 0, 5 }, .{ 1, 5 }, .{ 1, 2 } },
+        .{ .{ 0, 7 }, .{ 1, 6 }, .{ 1, 2 } },
+        .{ .{ 0, 8 }, .{ 1, 6 }, .{ 1, 2 } },
     };
 
     try std.testing.expectEqual(expected_trace.len, vm.trace_context.state.enabled.entries.items.len);
