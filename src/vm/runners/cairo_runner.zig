@@ -240,7 +240,7 @@ pub const CairoRunner = struct {
             _ = self.vm.segments.loadData(
                 self.allocator,
                 pb,
-                &self.program.shared_program_data.data,
+                self.program.shared_program_data.data.items,
             ) catch return RunnerError.MemoryInitializationError;
 
             // Mark memory addresses in the program base segment as accessed.
@@ -251,7 +251,7 @@ pub const CairoRunner = struct {
         // Check if the execution base is initialized.
         if (self.execution_base) |eb| {
             // Load the function call stack into the execution base segment.
-            _ = self.vm.segments.loadData(self.allocator, eb, stack) catch
+            _ = self.vm.segments.loadData(self.allocator, eb, stack.items) catch
                 return RunnerError.MemoryInitializationError;
         } else {
             // Return an error if the execution base is not initialized.
@@ -324,7 +324,6 @@ pub const CairoRunner = struct {
                 try self.initState(try (self.program.shared_program_data.start orelse
                     RunnerError.NoProgramStart), &stack);
             }
-
 
             self.initial_fp = try (self.execution_base orelse return RunnerError.NoExecBase).addUint(target_offset);
             self.initial_ap = self.initial_fp;
