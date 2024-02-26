@@ -3818,11 +3818,14 @@ test "CairoVM: verifyAutoDeductions for keccak builtin runner" {
     const allocator = std.testing.allocator;
 
     var keccak_instance_def = try KeccakInstanceDef.initDefault(allocator);
-    const keccak_builtin = KeccakBuiltinRunner.init(
+    defer keccak_instance_def.deinit();
+
+    const keccak_builtin = try KeccakBuiltinRunner.init(
         allocator,
         &keccak_instance_def,
         true,
     );
+
     const builtin = BuiltinRunner{ .Keccak = keccak_builtin };
 
     var vm = try CairoVM.init(allocator, .{});

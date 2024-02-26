@@ -527,9 +527,11 @@ test "BuiltinRunner: ratio method" {
 
     // Initialize a Keccak instance definition.
     var keccak_instance_def = try KeccakInstanceDef.initDefault(std.testing.allocator);
+    defer keccak_instance_def.deinit();
+
     // Initialize a BuiltinRunner for Keccak operations.
     var keccak_builtin: BuiltinRunner = .{
-        .Keccak = KeccakBuiltinRunner.init(
+        .Keccak = try KeccakBuiltinRunner.init(
             std.testing.allocator,
             &keccak_instance_def,
             true,
@@ -589,9 +591,11 @@ test "BuiltinRunner: cellsPerInstance method" {
 
     // Initialize a Keccak instance definition.
     var keccak_instance_def = try KeccakInstanceDef.initDefault(std.testing.allocator);
+    defer keccak_instance_def.deinit();
+
     // Initialize a BuiltinRunner for Keccak operations.
     var keccak_builtin: BuiltinRunner = .{
-        .Keccak = KeccakBuiltinRunner.init(
+        .Keccak = try KeccakBuiltinRunner.init(
             std.testing.allocator,
             &keccak_instance_def,
             true,

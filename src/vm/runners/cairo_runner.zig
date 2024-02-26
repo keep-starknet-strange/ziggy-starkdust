@@ -241,6 +241,15 @@ pub const CairoRunner = struct {
                 });
         }
 
+        if (self.layout.builtins.bitwise) |instance_def| {
+            const included = program_builtins.remove(.bitwise);
+
+            if (included or self.isProofMode())
+                try self.vm.builtin_runners.append(.{
+                    .Bitwise = builtin_runner_import.BitwiseBuiltinRunner.init(&instance_def, included),
+                });
+        }
+
         if (self.layout.builtins.ec_op) |instance_def| {
             const included = program_builtins.remove(.ec_op);
 
@@ -255,16 +264,7 @@ pub const CairoRunner = struct {
 
             if (included or self.isProofMode())
                 try self.vm.builtin_runners.append(.{
-                    .Keccak = builtin_runner_import.KeccakBuiltinRunner.init(self.allocator, &instance_def, included),
-                });
-        }
-
-        if (self.layout.builtins.bitwise) |instance_def| {
-            const included = program_builtins.remove(.bitwise);
-
-            if (included or self.isProofMode())
-                try self.vm.builtin_runners.append(.{
-                    .Bitwise = builtin_runner_import.BitwiseBuiltinRunner.init(&instance_def, included),
+                    .Keccak = try builtin_runner_import.KeccakBuiltinRunner.init(self.allocator, &instance_def, included),
                 });
         }
 
@@ -1421,4 +1421,48 @@ test "CairoRunner: initBuiltins with disordered builtins" {
     defer cairo_runner.deinit(std.testing.allocator);
 
     try std.testing.expectError(RunnerError.DisorderedBuiltins, cairo_runner.initBuiltins(false));
+}
+
+test "CairoRunner: initBuiltins all builtins and maintain order" {
+    var program = try Program.initDefault(std.testing.allocator, true);
+    try program.builtins.appendSlice(&.{
+        .output,
+        .pedersen,
+        .range_check,
+        .ecdsa,
+        .bitwise,
+        .ec_op,
+        .keccak,
+        .poseidon,
+    });
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    try cairo_runner.initBuiltins(false);
+
+    const given_runners = cairo_runner.vm.getBuiltinRunners().items;
+
+    // std.log.err("len {any}, {any}\n", .{ given_runners.len, given_runners[0] });
+
+    try std.testing.expectEqual(given_runners[0].name(), builtin_runner_import.OUTPUT_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[1].name(), builtin_runner_import.HASH_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[2].name(), builtin_runner_import.RANGE_CHECK_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[3].name(), builtin_runner_import.SIGNATURE_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[4].name(), builtin_runner_import.BITWISE_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[5].name(), builtin_runner_import.EC_OP_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[6].name(), builtin_runner_import.KECCAK_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[7].name(), builtin_runner_import.POSEIDON_BUILTIN_NAME);
 }
