@@ -44,7 +44,7 @@ pub const KeccakInstanceDef = struct {
     /// # Parameters
     ///
     /// - `ratio`: An optional 32-bit integer representing the ratio for the Keccak instance.
-    /// - `state_rep`: An `ArrayList` of 32-bit integers specifying the state representation pattern, state_rep will deinited by this struct
+    /// - `state_rep`: An `ArrayList` of 32-bit integers specifying the state representation pattern, state_rep owner become this struct
     ///
     /// # Returns
     ///

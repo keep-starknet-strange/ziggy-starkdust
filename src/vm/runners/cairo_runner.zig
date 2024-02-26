@@ -1455,8 +1455,6 @@ test "CairoRunner: initBuiltins all builtins and maintain order" {
 
     const given_runners = cairo_runner.vm.getBuiltinRunners().items;
 
-    // std.log.err("len {any}, {any}\n", .{ given_runners.len, given_runners[0] });
-
     try std.testing.expectEqual(given_runners[0].name(), builtin_runner_import.OUTPUT_BUILTIN_NAME);
     try std.testing.expectEqual(given_runners[1].name(), builtin_runner_import.HASH_BUILTIN_NAME);
     try std.testing.expectEqual(given_runners[2].name(), builtin_runner_import.RANGE_CHECK_BUILTIN_NAME);
