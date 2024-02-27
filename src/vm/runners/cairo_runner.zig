@@ -17,6 +17,7 @@ const Program = @import("../types/program.zig").Program;
 const HintRange = @import("../types/program.zig").HintRange;
 const CairoRunnerError = @import("../error.zig").CairoRunnerError;
 const CairoVMError = @import("../error.zig").CairoVMError;
+const InsufficientAllocatedCellsError = @import("../error.zig").InsufficientAllocatedCellsError;
 const RunnerError = @import("../error.zig").RunnerError;
 const MemoryError = @import("../error.zig").MemoryError;
 const trace_context = @import("../trace_context.zig");
@@ -528,6 +529,20 @@ pub const CairoRunner = struct {
         return builtin_segment_info;
     }
 
+    /// Checks that there are enough trace cells to fill the entire range check
+    /// range.
+    pub fn checkRangeCheckUsage(self: *Self, allocator: Allocator, vm: *CairoVM) !void {
+        const rc_min_max = (try self.getPermRangeCheckLimits(allocator)) orelse return;
+        var rc_units_used_by_builtins: usize = 0;
+
+        for (vm.builtin_runners.items) |runner|
+            rc_units_used_by_builtins = rc_units_used_by_builtins + try runner.getUsedPermRangeCheckUnits(vm);
+
+        const unused_rc_units = (@as(usize, self.layout.rc_units) - 3) * vm.current_step - rc_units_used_by_builtins;
+
+        if (unused_rc_units < @as(usize, rc_min_max[1] - rc_min_max[0]))
+            return InsufficientAllocatedCellsError.RangeCheckUnits;
+    }
     /// Retrieves the permanent range check limits from the CairoRunner instance.
     ///
     /// This function iterates through the builtin runners of the CairoRunner and gathers

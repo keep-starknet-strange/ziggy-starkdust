@@ -4,15 +4,19 @@ const Tuple = std.meta.Tuple;
 
 const MemorySegmentManager = @import("../../memory/segments.zig").MemorySegmentManager;
 
-pub const BitwiseBuiltinRunner = @import("./bitwise.zig").BitwiseBuiltinRunner;
-pub const EcOpBuiltinRunner = @import("./ec_op.zig").EcOpBuiltinRunner;
-pub const HashBuiltinRunner = @import("./hash.zig").HashBuiltinRunner;
-pub const KeccakBuiltinRunner = @import("./keccak.zig").KeccakBuiltinRunner;
-pub const OutputBuiltinRunner = @import("./output.zig").OutputBuiltinRunner;
-pub const PoseidonBuiltinRunner = @import("./poseidon.zig").PoseidonBuiltinRunner;
-pub const RangeCheckBuiltinRunner = @import("./range_check.zig").RangeCheckBuiltinRunner;
-pub const SegmentArenaBuiltinRunner = @import("./segment_arena.zig").SegmentArenaBuiltinRunner;
-pub const SignatureBuiltinRunner = @import("./signature.zig").SignatureBuiltinRunner;
+pub const BitwiseBuiltinRunner = @import("bitwise.zig").BitwiseBuiltinRunner;
+pub const EcOpBuiltinRunner = @import("ec_op.zig").EcOpBuiltinRunner;
+pub const HashBuiltinRunner = @import("hash.zig").HashBuiltinRunner;
+pub const KeccakBuiltinRunner = @import("keccak.zig").KeccakBuiltinRunner;
+pub const OutputBuiltinRunner = @import("output.zig").OutputBuiltinRunner;
+pub const PoseidonBuiltinRunner = @import("poseidon.zig").PoseidonBuiltinRunner;
+pub const RangeCheckBuiltinRunner = @import("range_check.zig").RangeCheckBuiltinRunner;
+pub const SegmentArenaBuiltinRunner = @import("segment_arena.zig").SegmentArenaBuiltinRunner;
+pub const SignatureBuiltinRunner = @import("signature.zig").SignatureBuiltinRunner;
+
+const InsufficientAllocatedCellsError = @import("../../error.zig").InsufficientAllocatedCellsError;
+const MemoryError = @import("../../error.zig").MemoryError;
+const CairoVM = @import("../../core.zig").CairoVM;
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
 const Memory = @import("../../memory/memory.zig").Memory;
@@ -222,8 +226,9 @@ pub const BuiltinRunner = union(BuiltinName) {
     /// # Returns
     ///
     /// The total number of used memory cells as a `usize`, or an error if calculation fails.
-    pub fn getUsedCells(self: *Self, segments: *MemorySegmentManager) !usize {
+    pub fn getUsedCells(self: *const Self, segments: *MemorySegmentManager) !usize {
         return switch (self.*) {
+            .SegmentArena => 0,
             inline else => |*builtin| try builtin.getUsedCells(segments),
         };
     }
@@ -257,7 +262,7 @@ pub const BuiltinRunner = union(BuiltinName) {
     /// # Returns
     ///
     /// A `usize` representing the number of instances per component for the built-in runner.
-    pub fn getInstancesPerComponent(self: *Self) u32 {
+    pub fn getInstancesPerComponent(self: *const Self) u32 {
         return switch (self.*) {
             .SegmentArena, .Output => 1,
             inline else => |*builtin| builtin.instances_per_component,
@@ -326,6 +331,64 @@ pub const BuiltinRunner = union(BuiltinName) {
             .RangeCheck => |*range_check| range_check.getRangeCheckUsage(memory),
             else => null,
         };
+    }
+
+    ///Returns the builtin's allocated memory units
+    pub fn getAllocatedMemoryUnits(
+        self: *const Self,
+        vm: *CairoVM,
+    ) !usize {
+        return switch (self.*) {
+            .Output, .SegmentArena => 0,
+            else => blk: {
+                if (self.ratio()) |_ratio| {
+                    const min_step = @as(usize, _ratio * self.getInstancesPerComponent());
+
+                    if (vm.current_step < min_step)
+                        break :blk InsufficientAllocatedCellsError.MinStepNotReached;
+
+                    break :blk @as(usize, self.cellsPerInstance()) * (std.math.divExact(usize, vm.current_step, @as(usize, _ratio)) catch return MemoryError.ErrorCalculatingMemoryUnits);
+                } else {
+                    const instances = (try self.getUsedCells(vm.segments)) / @as(usize, self.cellsPerInstance());
+                    const components = (instances / @as(usize, self.getInstancesPerComponent()));
+
+                    break :blk components * @as(usize, self.cellsPerInstance()) * @as(usize, self.getInstancesPerComponent());
+                }
+            },
+        };
+    }
+
+    pub fn getUsedCellsAndAllocatedSize(
+        self: *const Self,
+        vm: *CairoVM,
+    ) !struct { usize, usize } {
+        switch (self.*) {
+            .Output, .SegmentArena => {
+                const used = try self.getUsedCells(vm.segments);
+                return .{ used, used };
+            },
+            else => {
+                const used = try self.getUsedCells(vm.segments);
+                const size = try self.getAllocatedMemoryUnits(vm);
+
+                if (used > size) return InsufficientAllocatedCellsError.BuiltinCells;
+                return .{ used, size };
+            },
+        }
+    }
+
+    /// Returns the number of range check units used by the builtin.
+    pub fn getUsedPermRangeCheckUnits(
+        self: *const Self,
+        vm: *CairoVM,
+    ) !usize {
+        switch (self.*) {
+            .RangeCheck => |range_check| {
+                const used_size = try self.getUsedCellsAndAllocatedSize(vm);
+                return used_size[0] * @as(usize, range_check.n_parts);
+            },
+            else => return 0,
+        }
     }
 
     pub fn deinit(self: *Self) void {
@@ -602,4 +665,159 @@ test "BuiltinRunner: cellsPerInstance method" {
     // Test the cellsPerInstance method for keccak_builtin.
     // We expect the number of cells per instance to be 2048.
     try expectEqual(@as(u32, 16), keccak_builtin.cellsPerInstance());
+}
+
+test "BuiltinRunner: getAllocataedMemoryUnitsHash" {
+    var builtin = BuiltinRunner{
+        .Hash = HashBuiltinRunner.init(std.testing.allocator, 1, true),
+    };
+    defer builtin.deinit();
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+    vm.current_step = 1;
+    try std.testing.expectEqual(3, try builtin.getAllocatedMemoryUnits(&vm));
+}
+
+test "BuiltinRunner: getAllocataedMemoryUnits EcOp" {
+    var builtin = BuiltinRunner{
+        .EcOp = EcOpBuiltinRunner.init(std.testing.allocator, .{}, true),
+    };
+    defer builtin.deinit();
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+    vm.current_step = 256;
+    try std.testing.expectEqual(7, try builtin.getAllocatedMemoryUnits(&vm));
+}
+
+test "BuiltinRunner: getAllocataedMemoryUnits Output" {
+    var builtin = BuiltinRunner{
+        .Output = OutputBuiltinRunner.init(true, std.testing.allocator),
+    };
+    defer builtin.deinit();
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+    try std.testing.expectEqual(0, try builtin.getAllocatedMemoryUnits(&vm));
+}
+
+test "BuiltinRunner: getAllocataedMemoryUnits Keccak" {
+    var def = try KeccakInstanceDef.initDefault(std.testing.allocator);
+    // defer def.deinit();
+
+    var builtin = BuiltinRunner{
+        .Keccak = KeccakBuiltinRunner.init(std.testing.allocator, &def, true),
+    };
+    defer builtin.deinit();
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+    vm.current_step = 32768;
+    try std.testing.expectEqual(256, try builtin.getAllocatedMemoryUnits(&vm));
+}
+
+test "BuiltinRunner: getAllocataedMemoryUnits Bitwise" {
+    var builtin = BuiltinRunner{
+        .Bitwise = BitwiseBuiltinRunner.init(&.{}, true),
+    };
+    defer builtin.deinit();
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+    vm.current_step = 256;
+    try std.testing.expectEqual(5, try builtin.getAllocatedMemoryUnits(&vm));
+}
+
+test "BuiltinRunner: getAllocataedMemoryUnits RangeCheck" {
+    var builtin = BuiltinRunner{
+        .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
+    };
+    defer builtin.deinit();
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+    vm.current_step = 8;
+    try std.testing.expectEqual(1, try builtin.getAllocatedMemoryUnits(&vm));
+}
+
+const Program = @import("../../types/program.zig").Program;
+const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
+const CairoRunner = @import("../../../vm/runners/cairo_runner.zig").CairoRunner;
+
+test "BuiltinRunner: getAllocataedMemoryUnits hash with items" {
+    var builtin = BuiltinRunner{
+        .Hash = HashBuiltinRunner.init(std.testing.allocator, 10, true),
+    };
+    defer builtin.deinit();
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    vm.run_context.pc.* = Relocatable.init(0, 0);
+    vm.run_context.ap.* = Relocatable.init(1, 0);
+    vm.run_context.fp.* = Relocatable.init(1, 0);
+    // should we move to vm.deinit?
+
+    var program = try Program.initDefault(std.testing.allocator, true);
+
+    try program.builtins.append(.pedersen);
+
+    const data_append: []const u256 = &.{
+        4612671182993129469,
+        5189976364521848832,
+        18446744073709551615,
+        5199546496550207487,
+        4612389712311386111,
+        5198983563776393216,
+        2,
+        2345108766317314046,
+        5191102247248822272,
+        5189976364521848832,
+        7,
+        1226245742482522112,
+        3618502788666131213697322783095070105623107215331596699973092056135872020470,
+        2345108766317314046,
+    };
+    for (data_append) |d|
+        try program.shared_program_data.data.append(.{ .felt = Felt252.fromInt(u256, d) });
+
+    program.shared_program_data.main = 8;
+
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        vm,
+        false,
+    );
+
+    defer cairo_runner.deinit(std.testing.allocator);
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    const address = try cairo_runner.setupExecutionState();
+
+    try cairo_runner.runUntilPC(address, true);
+    try std.testing.expectEqual(3, try builtin.getAllocatedMemoryUnits(&vm));
 }
