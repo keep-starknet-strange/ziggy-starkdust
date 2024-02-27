@@ -930,7 +930,7 @@ test "BuiltinRunner: getMemoryAccesses with missing segment used sizes" {
 
 test "BuiltinRunner: getAllocataedMemoryUnits Output" {
     var builtin = BuiltinRunner{
-        .Output = OutputBuiltinRunner.init(true, std.testing.allocator),
+        .Output = OutputBuiltinRunner.init(std.testing.allocator, true),
     };
     defer builtin.deinit();
 

@@ -540,7 +540,7 @@ pub const CairoRunner = struct {
 
         const unused_rc_units = (@as(usize, self.layout.rc_units) - 3) * vm.current_step - rc_units_used_by_builtins;
 
-        if (unused_rc_units < @as(usize, rc_min_max[1] - rc_min_max[0]))
+        if (unused_rc_units < @as(usize, @intCast(rc_min_max[1] - rc_min_max[0])))
             return InsufficientAllocatedCellsError.RangeCheckUnits;
     }
     /// Retrieves the permanent range check limits from the CairoRunner instance.
@@ -1267,4 +1267,80 @@ test "CairoRunner: getPermRangeCheckLimits with null range limit" {
         null,
         try cairo_runner.getPermRangeCheckLimits(std.testing.allocator),
     );
+}
+
+test "CairoRunner: checkRangeCheckUsage without builtins" {
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator, true),
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+
+    cairo_runner.vm.current_step = 10000;
+
+    var segm = std.ArrayListUnmanaged(?MemoryCell){};
+    try segm.append(std.testing.allocator, MemoryCell.init(MaybeRelocatable.fromFelt(Felt252.fromInt(u256, 0x80FF80000530))));
+
+    try cairo_runner.vm.segments.memory.data.append(segm);
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+    try cairo_runner.checkRangeCheckUsage(std.testing.allocator, &cairo_runner.vm);
+}
+test "CairoRunner: checkRangeCheckUsage perm range limits none" {
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator, true),
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+    try cairo_runner.checkRangeCheckUsage(std.testing.allocator, &cairo_runner.vm);
+}
+
+test "CairoRunner: checkRangeCheckUsage without builtins" {
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator, true),
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+
+    cairo_runner.vm.builtin_runners.append(.{
+        .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
+    });
+    cairo_runner.vm.current_step = 10000;
+
+    var segm = std.ArrayListUnmanaged(?MemoryCell){};
+    try segm.append(std.testing.allocator, MemoryCell.init(MaybeRelocatable.fromFelt(Felt252.fromInt(u256, 0x80FF80000530))));
+
+    try cairo_runner.vm.segments.memory.data.append(segm);
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    try std.testing.expectError(MemoryError., ) cairo_runner.checkRangeCheckUsage(std.testing.allocator, &cairo_runner.vm);
 }
