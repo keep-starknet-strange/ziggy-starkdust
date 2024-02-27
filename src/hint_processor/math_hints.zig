@@ -289,13 +289,20 @@ pub fn assertLeFelt(
     const arc1 = b - a;
     const arc2 = STARKNET_PRIME - 1 - b;
 
-    const lengths_and_indices = [_]struct { u256, u64 }{
+    var lengths_and_indices = [_]struct { u256, u64 }{
         .{ a, 0 },
         .{ arc1, 1 },
         .{ arc2, 2 },
     };
+    inline for (0..3) |i| {
+        var j = i;
 
-    // std.sort.block(struct { u256, u64 }, &lengths_and_indices, void, cmpFn);
+        while (j > 0 and lengths_and_indices[j - 1][0] > lengths_and_indices[j][0]) : (j -= 1) {
+            const tmp = lengths_and_indices[j];
+            lengths_and_indices[j] = lengths_and_indices[j - 1];
+            lengths_and_indices[j - 1] = tmp;
+        }
+    }
     // TODO: I believe this check can be removed
 
     if (lengths_and_indices[0][0] > prime_div3 or lengths_and_indices[1][0] > prime_div2)
