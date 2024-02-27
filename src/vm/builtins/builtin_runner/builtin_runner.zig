@@ -58,8 +58,29 @@ pub const POSEIDON_BUILTIN_NAME = "poseidon_builtin";
 /// The name of the segment arena builtin.
 pub const SEGMENT_ARENA_BUILTIN_NAME = "segment_arena_builtin";
 
+pub const BuiltinName = enum {
+    /// Bitwise built-in runner for bitwise operations.
+    Bitwise,
+    /// EC Operation built-in runner for elliptic curve operations.
+    EcOp,
+    /// Hash built-in runner for hash operations.
+    Hash,
+    /// Output built-in runner for output operations.
+    Output,
+    /// Range Check built-in runner for range check operations.
+    RangeCheck,
+    /// Keccak built-in runner for Keccak operations.
+    Keccak,
+    /// Signature built-in runner for signature operations.
+    Signature,
+    /// Poseidon built-in runner for Poseidon operations.
+    Poseidon,
+    /// Segment Arena built-in runner for segment arena operations.
+    SegmentArena,
+};
+
 /// Built-in runner
-pub const BuiltinRunner = union(enum) {
+pub const BuiltinRunner = union(BuiltinName) {
     const Self = @This();
 
     /// Bitwise built-in runner for bitwise operations.

@@ -16,6 +16,8 @@ const Reference = @import("./programjson.zig").Reference;
 const HintReference = @import("../../hint_processor/hint_processor_def.zig").HintReference;
 const ProgramError = @import("../error.zig").ProgramError;
 
+const deserialize_utils = @import("../../parser/deserialize_utils.zig");
+
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
@@ -42,22 +44,34 @@ pub const HintsRanges = union(enum) {
         std.hash_map.AutoContext(Relocatable),
         std.hash_map.default_max_load_percentage,
     ),
-    NonExtensive: std.ArrayList(HintRange),
+    NonExtensive: std.ArrayList(?HintRange),
 
     pub fn init(
         allocator: Allocator,
+        max_hint_pc: usize,
         extensive_hints: bool,
-    ) Self {
+    ) !Self {
         return switch (extensive_hints) {
-            true => Self{ .Extensive = std.AutoHashMap(Relocatable, HintRange).init(allocator) },
-            false => Self{ .NonExtensive = std.ArrayList(HintRange).init(allocator) },
+            true => .{ .Extensive = std.AutoHashMap(Relocatable, HintRange).init(allocator) },
+            false => .{
+                .NonExtensive = blk: {
+                    var res = std.ArrayList(?HintRange).init(allocator);
+                    errdefer res.deinit();
+                    const append_result = res.appendNTimes(null, max_hint_pc + 1);
+                    if (append_result) {
+                        break :blk res;
+                    } else |err| {
+                        return err;
+                    }
+                },
+            },
         };
     }
 
     pub fn add(self: *Self, offset: usize, range: HintRange) !void {
         return switch (self.*) {
             .Extensive => |*extensive| try extensive.put(Relocatable.init(0, offset), range),
-            .NonExtensive => |*non_extensive| try non_extensive.append(range),
+            .NonExtensive => |*non_extensive| non_extensive.items[offset] = range,
         };
     }
 
@@ -106,7 +120,7 @@ pub const HintsCollection = struct {
         }
 
         if (max_hint_pc == 0 or total_hints_len == 0) {
-            return Self.initDefault(allocator);
+            return Self.initDefault(allocator, extensive_hints);
         }
 
         if (max_hint_pc >= program_length) {
@@ -116,10 +130,10 @@ pub const HintsCollection = struct {
         var hints_values = try std.ArrayList(HintParams).initCapacity(allocator, total_hints_len);
         errdefer hints_values.deinit();
 
-        var hints_ranges = HintsRanges.init(allocator, extensive_hints);
+        var hints_ranges = try HintsRanges.init(allocator, max_hint_pc, extensive_hints);
 
         it = hints.iterator();
-        while (it.next()) |kv| {
+        while (it.next()) |*kv| {
             if (kv.value_ptr.*.len > 0) {
                 try hints_ranges.add(
                     kv.key_ptr.*,
@@ -129,7 +143,7 @@ pub const HintsCollection = struct {
             }
         }
 
-        return Self{
+        return .{
             .hints = hints_values,
             .hints_ranges = hints_ranges,
         };
@@ -139,10 +153,10 @@ pub const HintsCollection = struct {
     ///
     /// # Params:
     ///   - `allocator`: The allocator used to initialize the collection.
-    pub fn initDefault(allocator: Allocator) Self {
+    pub fn initDefault(allocator: Allocator, extensive_hints: bool) !Self {
         return .{
             .hints = std.ArrayList(HintParams).init(allocator),
-            .hints_ranges = HintsRanges.init(allocator, true),
+            .hints_ranges = try HintsRanges.init(allocator, 0, extensive_hints),
         };
     }
 
@@ -164,24 +178,28 @@ pub const HintsCollection = struct {
         var res = std.AutoHashMap(usize, []const HintParams).init(allocator);
         errdefer res.deinit();
 
-        if (!self.hints_ranges.isExtensive()) {
-            return ProgramError.NonExtensiveHints;
-        }
+        if (self.hints_ranges.isExtensive()) {
+            // Iterate over hints_ranges to populate the AutoHashMap.
+            var it = self.hints_ranges.Extensive.iterator();
 
-        // Iterate over hints_ranges to populate the AutoHashMap.
-        var it = self.hints_ranges.Extensive.iterator();
+            while (it.next()) |kv| {
+                // Calculate the end index of the hint slice.
+                const end = kv.value_ptr.start + kv.value_ptr.length;
 
-        while (it.next()) |kv| {
-            // Calculate the end index of the hint slice.
-            const end = kv.value_ptr.start + kv.value_ptr.length;
-
-            // Check if the end index is within bounds of hints.items.
-            if (end <= self.hints.items.len) {
-                // Put the offset and corresponding hint slice into the AutoHashMap.
-                try res.put(
-                    kv.key_ptr.offset,
-                    self.hints.items[kv.value_ptr.start..end],
-                );
+                // Check if the end index is within bounds of hints.items.
+                if (end <= self.hints.items.len) {
+                    // Put the offset and corresponding hint slice into the AutoHashMap.
+                    try res.put(
+                        kv.key_ptr.offset,
+                        self.hints.items[kv.value_ptr.start..end],
+                    );
+                }
+            }
+        } else {
+            for (self.hints_ranges.NonExtensive.items, 0..) |range, pc| {
+                if (range) |r| {
+                    try res.put(pc, self.hints.items[r.start..(r.start + r.length)]);
+                }
             }
         }
 
@@ -221,19 +239,13 @@ pub const SharedProgramData = struct {
     ///
     /// # Params:
     ///   - `allocator`: The allocator used to initialize the instance.
-    pub fn initDefault(allocator: Allocator) Self {
+    pub fn initDefault(allocator: Allocator, extensive_hints: bool) !Self {
         return .{
             .data = std.ArrayList(MaybeRelocatable).init(allocator),
-            .hints_collection = HintsCollection.initDefault(allocator),
+            .hints_collection = try HintsCollection.initDefault(allocator, extensive_hints),
             .error_message_attributes = std.ArrayList(Attribute).init(allocator),
-            .instruction_locations = std.AutoHashMap(
-                usize,
-                InstructionLocation,
-            ).init(allocator),
-            .identifiers = std.AutoHashMap(
-                []u8,
-                Identifier,
-            ).init(allocator),
+            .instruction_locations = std.StringHashMap(InstructionLocation).init(allocator),
+            .identifiers = std.StringHashMap(Identifier).init(allocator),
             .reference_manager = std.ArrayList(HintReference).init(allocator),
         };
     }
@@ -275,6 +287,7 @@ pub const SharedProgramData = struct {
         self.identifiers.deinit();
 
         // Deinitialize reference manager.
+        for (self.reference_manager.items) |item| item.deinit(allocator);
         self.reference_manager.deinit();
     }
 };
@@ -288,8 +301,6 @@ pub const Program = struct {
     constants: std.StringHashMap(Felt252),
     /// Stores the list of built-in names.
     builtins: std.ArrayList(BuiltinName),
-    /// Stores a hash map of hint params
-    hints: std.AutoHashMap(usize, []const HintParams),
 
     /// Initializes a new `Program` instance with provided parameters.
     ///
@@ -316,11 +327,12 @@ pub const Program = struct {
         identifiers: std.StringHashMap(Identifier),
         error_message_attributes: std.ArrayList(Attribute),
         instruction_locations: ?std.StringHashMap(InstructionLocation),
+        extensive_hints: bool,
     ) !Self {
         return .{
             .shared_program_data = .{
                 .data = data,
-                .hints_collection = try HintsCollection.init(allocator, hints, data.items.len, true),
+                .hints_collection = try HintsCollection.init(allocator, hints, data.items.len, extensive_hints),
                 .main = main,
                 .error_message_attributes = error_message_attributes,
                 .instruction_locations = instruction_locations,
@@ -329,7 +341,6 @@ pub const Program = struct {
             },
             .constants = try Self.extractConstants(identifiers, allocator),
             .builtins = builtins,
-            .hints = hints,
         };
     }
 
@@ -340,9 +351,9 @@ pub const Program = struct {
     ///
     /// # Returns:
     ///   - A new instance of `Program`.
-    pub fn initDefault(allocator: Allocator) Self {
+    pub fn initDefault(allocator: Allocator, extensive_hints: bool) !Self {
         return .{
-            .shared_program_data = SharedProgramData.initDefault(allocator),
+            .shared_program_data = try SharedProgramData.initDefault(allocator, extensive_hints),
             .constants = std.StringHashMap(Felt252).init(allocator),
             .builtins = std.ArrayList(BuiltinName).init(allocator),
         };
@@ -397,17 +408,19 @@ pub const Program = struct {
     ///
     /// # Returns:
     ///   - A list of `HintReference` containing references.
-    pub fn getReferenceList(allocator: Allocator, reference_manager: *[]const Reference) !std.ArrayList(HintReference) {
+    pub fn getReferenceList(allocator: Allocator, reference_manager: []const Reference) !std.ArrayList(HintReference) {
         var res = std.ArrayList(HintReference).init(allocator);
         errdefer res.deinit();
 
-        for (0..reference_manager.len) |i| {
-            const ref = reference_manager.*[i];
+        for (reference_manager) |ref| {
+            const val_addr = try deserialize_utils.parseValue(ref.value, allocator);
             try res.append(.{
-                .offset1 = .{ .value = @intCast(ref.ap_tracking_data.offset) },
-                .dereference = false,
+                .offset1 = val_addr.offset1,
+                .offset2 = val_addr.offset2,
+                .dereference = val_addr.dereference,
                 .ap_tracking_data = ref.ap_tracking_data,
-                .cairo_type = "felt",
+                // .cairo_type = "felt",
+                .cairo_type = val_addr.value_type,
             });
         }
 
@@ -490,7 +503,6 @@ pub const Program = struct {
         self.shared_program_data.deinit(allocator);
         self.constants.deinit();
         self.builtins.deinit();
-        self.hints.deinit();
     }
 };
 
@@ -667,6 +679,7 @@ test "Program: init function should init a basic program" {
         identifiers,
         error_message_attributes,
         null,
+        true,
     );
 
     // Defer the deinitialization of the program to free allocated memory after the test case.
@@ -716,6 +729,7 @@ test "Program: init function should init a basic program (data length function)"
         identifiers,
         error_message_attributes,
         null, // Instruction locations (null for this test case).
+        true,
     );
 
     // Defer the deinitialization of the program to free allocated memory after the test case.
@@ -772,6 +786,7 @@ test "Program: init function should init a program with identifiers" {
         identifiers,
         error_message_attributes,
         null, // Instruction locations (null for this test case).
+        true,
     );
 
     // Defer the deinitialization of the program to free allocated memory after the test case.
@@ -843,6 +858,7 @@ test "Program: init function should init a program with identifiers (get identif
         identifiers,
         error_message_attributes,
         null, // Instruction locations (null for this test case).
+        true,
     );
 
     // Defer the deinitialization of the program to free allocated memory after the test case.
@@ -916,6 +932,7 @@ test "Program: iteratorIdentifier should return an iterator over identifiers" {
         identifiers,
         error_message_attributes,
         null, // Instruction locations (null for this test case).
+        true,
     );
 
     // Defer the deinitialization of the program to free allocated memory after the test case.
@@ -971,6 +988,7 @@ test "Program: init function should init a program with builtins" {
         identifiers,
         error_message_attributes,
         null, // Instruction locations (null for this test case).
+        true,
     );
 
     // Defer the deinitialization of the program to free allocated memory after the test case.
@@ -1050,6 +1068,159 @@ test "Program: init a new program with invalid identifiers should return an erro
             identifiers,
             error_message_attributes,
             null, // Instruction locations (null for this test case).
+            true,
         ),
     );
+}
+
+test "Program: new program with extensive hints" {
+    const allocator = std.testing.allocator;
+    const reference_manager = ReferenceManager.init(allocator);
+    const builtins = std.ArrayList(BuiltinName).init(allocator);
+
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 1000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 2000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5201798304953696256));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    var hints = std.AutoHashMap(usize, []const HintParams).init(allocator);
+    defer hints.deinit();
+
+    const default_scopes = &[_][]const u8{};
+    const default_flow_tracking_data = .{ .ap_tracking = .{ .offset = 0, .group = 0 }, .reference_ids = null };
+    try hints.put(
+        5,
+        &[_]HintParams{
+            HintParams.init("c", default_scopes, default_flow_tracking_data),
+            HintParams.init("d", default_scopes, default_flow_tracking_data),
+        },
+    );
+    try hints.put(
+        1,
+        &[_]HintParams{
+            HintParams.init("a", default_scopes, default_flow_tracking_data),
+        },
+    );
+    try hints.put(
+        4,
+        &[_]HintParams{
+            HintParams.init("b", default_scopes, default_flow_tracking_data),
+        },
+    );
+
+    const identifiers = std.StringHashMap(Identifier).init(allocator);
+
+    var program = try Program.init(
+        allocator,
+        builtins,
+        data,
+        null,
+        hints,
+        reference_manager,
+        identifiers,
+        std.ArrayList(Attribute).init(allocator),
+        null,
+        true,
+    );
+
+    defer program.deinit(allocator);
+
+    try expectEqual(program.builtins, builtins);
+    try expectEqual(program.shared_program_data.data.items, data.items);
+    try expectEqual(program.shared_program_data.main, null);
+    try expectEqual(program.shared_program_data.identifiers, identifiers);
+
+    var program_hints = try program.shared_program_data.hints_collection.intoHashMap(allocator);
+    defer program_hints.deinit();
+    try expectEqual(@as(usize, 3), program_hints.count());
+    try expect(program_hints.get(5).?.len == 2);
+    try expectEqualDeep(hints.get(5).?[0], program_hints.get(5).?[0]);
+    try expectEqualDeep(hints.get(5).?[1], program_hints.get(5).?[1]);
+
+    try expect(program_hints.get(1).?.len == 1);
+    try expectEqualDeep(hints.get(1).?[0], program_hints.get(1).?[0]);
+
+    try expect(hints.get(4).?.len == 1);
+    try expectEqualDeep(hints.get(4).?[0], program_hints.get(4).?[0]);
+}
+
+test "Program: new program with non-extensive hints" {
+    const allocator = std.testing.allocator;
+
+    const reference_manager = ReferenceManager.init(allocator);
+
+    const builtins = std.ArrayList(BuiltinName).init(allocator);
+
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 1000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 2000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5201798304953696256));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    var hints = std.AutoHashMap(usize, []const HintParams).init(allocator);
+    defer hints.deinit();
+
+    const default_scopes = &[_][]const u8{};
+    const default_flow_tracking_data = .{ .ap_tracking = .{ .offset = 0, .group = 0 }, .reference_ids = null };
+    try hints.put(
+        5,
+        &[_]HintParams{
+            HintParams.init("c", default_scopes, default_flow_tracking_data),
+            HintParams.init("d", default_scopes, default_flow_tracking_data),
+        },
+    );
+    try hints.put(
+        1,
+        &[_]HintParams{
+            HintParams.init("a", default_scopes, default_flow_tracking_data),
+        },
+    );
+    try hints.put(
+        4,
+        &[_]HintParams{
+            HintParams.init("b", default_scopes, default_flow_tracking_data),
+        },
+    );
+
+    const identifiers = std.StringHashMap(Identifier).init(allocator);
+
+    var program = try Program.init(
+        allocator,
+        builtins,
+        data,
+        null,
+        hints,
+        reference_manager,
+        identifiers,
+        std.ArrayList(Attribute).init(allocator),
+        null,
+        false,
+    );
+
+    defer program.deinit(allocator);
+
+    try expectEqual(program.builtins, builtins);
+    try expectEqual(program.shared_program_data.data.items, data.items);
+    try expectEqual(program.shared_program_data.main, null);
+    try expectEqual(program.shared_program_data.identifiers, identifiers);
+
+    var program_hints = try program.shared_program_data.hints_collection.intoHashMap(allocator);
+    defer program_hints.deinit();
+    try expectEqual(@as(usize, 3), program_hints.count());
+    try expect(program_hints.get(5).?.len == 2);
+    try expectEqualDeep(hints.get(5).?[0], program_hints.get(5).?[0]);
+    try expectEqualDeep(hints.get(5).?[1], program_hints.get(5).?[1]);
+
+    try expect(program_hints.get(1).?.len == 1);
+    try expectEqualDeep(hints.get(1).?[0], program_hints.get(1).?[0]);
+
+    try expect(hints.get(4).?.len == 1);
+    try expectEqualDeep(hints.get(4).?[0], program_hints.get(4).?[0]);
 }

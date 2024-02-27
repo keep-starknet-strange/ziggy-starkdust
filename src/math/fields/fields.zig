@@ -2,8 +2,9 @@ const std = @import("std");
 const builtin = @import("builtin");
 const ArrayList = std.ArrayList;
 
-const tonelliShanks = @import("./helper.zig").tonelliShanks;
-const extendedGCD = @import("./helper.zig").extendedGCD;
+const helper = @import("helper.zig");
+const tonelliShanks = helper.tonelliShanks;
+const extendedGCD = helper.extendedGCD;
 
 pub const ModSqrtError = error{
     InvalidInput,
@@ -511,6 +512,11 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             return res;
         }
 
+        /// Bitor operation
+        pub fn bitOr(self: Self, other: Self) Self {
+            return Self.fromInt(u256, self.toInteger() | other.toInteger());
+        }
+
         /// Bitand operation
         pub fn bitAnd(self: Self, other: Self) Self {
             return Self.fromInt(u256, self.toInteger() & other.toInteger());
@@ -579,6 +585,19 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             return Self.fromInt(u256, @intCast(t));
         }
 
+        /// Quotient and remainder between `self` and `rhs`.
+        pub fn divRem(
+            self: Self,
+            rhs: Self,
+        ) !struct { q: Self, r: Self } {
+            const qr = try helper.divRem(self.toInteger(), rhs.toInteger());
+
+            return .{
+                .q = Self.fromInt(u256, qr[0]),
+                .r = Self.fromInt(u256, qr[1]),
+            };
+        }
+
         /// Divide one field element by another.
         ///
         /// Divides the current field element by another field element.
@@ -604,28 +623,23 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             );
         }
 
-        pub fn fromSignedInt(comptime T: type, signed: T) Self {
-            if (signed < 0) {
-                return Self.fromInt(T, -signed).neg();
+        /// Convert int to Field type, without FIELD max check overflow
+        pub fn fromSignedInt(value: anytype) Self {
+            if (value > 0) {
+                return Self.fromInt(u256, @intCast(value));
             }
 
-            return Self.fromInt(i256, signed);
+            return Self.fromInt(u256, @intCast(-value)).neg();
         }
 
-        // converting felt to abs value with sign
-        pub fn toSignedInt(self: Self) struct { positive: bool, abs: u256 } {
+        // converting felt to abs value with sign, in (- FIELD / 2, FIELD / 2
+        pub fn toSignedInt(self: Self) i256 {
             const val = self.toInteger();
             if (val > SIGNED_FELT_MAX) {
-                return .{
-                    .positive = false,
-                    .abs = STARKNET_PRIME - val,
-                };
+                return -@as(i256, @intCast(STARKNET_PRIME - val));
             }
 
-            return .{
-                .positive = true,
-                .abs = val,
-            };
+            return @intCast(val);
         }
         /// Convert the field element to a u256 integer.
         ///
@@ -777,6 +791,10 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
                 .gt, .eq => true,
                 else => false,
             };
+        }
+
+        pub fn shl(self: Self, other: u8) Self {
+            return Self.fromInt(u256, self.toInteger() << other);
         }
 
         /// Left shift by `rhs` bits with overflow detection.

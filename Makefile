@@ -39,6 +39,10 @@ test-filter:
 build-integration-test:
 	@zig build integration_test
 
+run-integration-test:
+	@zig build integration_test
+	./zig-out/bin/integration_test
+
 build-and-run-pedersen-table-gen:
 	@zig build pedersen_table_gen
 	> ./src/math/crypto/pedersen/gen/constants.zig

@@ -13,10 +13,12 @@ const HintParams = programjson.HintParams;
 const ReferenceManager = programjson.ReferenceManager;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const ExecutionScopes = @import("../vm/types/execution_scopes.zig").ExecutionScopes;
+const Relocatable = @import("../vm/memory/relocatable.zig").Relocatable;
 
 /// import hint code
 const hint_codes = @import("builtin_hint_codes.zig");
 const math_hints = @import("math_hints.zig");
+const memcpy_hint_utils = @import("memcpy_hint_utils.zig");
 
 const deserialize_utils = @import("../parser/deserialize_utils.zig");
 
@@ -93,6 +95,10 @@ pub const HintReference = struct {
     pub fn initSimple(offset1: i32) Self {
         return .{ .offset1 = .{ .reference = .{ .FP, offset1, false } } };
     }
+
+    pub fn deinit(self: Self, allocator: Allocator) void {
+        if (self.cairo_type) |t| allocator.free(t);
+    }
 };
 
 /// Takes a mapping from reference name to reference id, normalizes the reference name, and maps the normalized reference name to its denoted HintReference from a reference array.
@@ -129,9 +135,14 @@ pub fn getIdsData(allocator: Allocator, reference_ids: StringHashMap(usize), ref
     return ids_data;
 }
 
+// A map of hints that can be used to extend the current map of hints for the vm run
+// The map matches the pc at which the hints should be executed to a vec of compiled hints (Outputed by HintProcessor::CompileHint)
+pub const HintExtension = std.AutoHashMap(Relocatable, std.ArrayList(HintData));
+
 pub const CairoVMHintProcessor = struct {
     const Self = @This();
 
+    //Transforms hint data outputed by the VM into whichever format will be later used by execute_hint
     pub fn compileHint(_: *Self, allocator: Allocator, hint_code: []const u8, ap_tracking: ApTracking, reference_ids: StringHashMap(usize), references: []HintReference) !HintData {
         const ids_data = try getIdsData(allocator, reference_ids, references);
         errdefer ids_data.deinit();
@@ -143,6 +154,8 @@ pub const CairoVMHintProcessor = struct {
         };
     }
 
+    // Executes the hint which's data is provided by a dynamic structure previously created by compile_hint
+    // Note: if the `extensive_hints` feature is activated the method used by the vm to execute hints is `execute_hint_extensive`, which's default implementation calls this method.
     pub fn executeHint(_: *const Self, allocator: Allocator, vm: *CairoVM, hint_data: *HintData, constants: *std.StringHashMap(Felt252), exec_scopes: *ExecutionScopes) !void {
         if (std.mem.eql(u8, hint_codes.ASSERT_NN, hint_data.code)) {
             try math_hints.assertNN(vm, hint_data.ids_data, hint_data.ap_tracking);
@@ -160,7 +173,41 @@ pub const CairoVMHintProcessor = struct {
             try math_hints.unsignedDivRem(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.ASSERT_LE_FELT, hint_data.code)) {
             try math_hints.assertLeFelt(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking, constants);
-        }
+        } else if (std.mem.eql(u8, hint_codes.ASSERT_LE_FELT_EXCLUDED_0, hint_data.code)) {
+            try math_hints.assertLeFeltExcluded0(allocator, vm, exec_scopes);
+        } else if (std.mem.eql(u8, hint_codes.ASSERT_LE_FELT_EXCLUDED_1, hint_data.code)) {
+            try math_hints.assertLeFeltExcluded1(allocator, vm, exec_scopes);
+        } else if (std.mem.eql(u8, hint_codes.ASSERT_LE_FELT_EXCLUDED_2, hint_data.code)) {
+            try math_hints.assertLeFeltExcluded2(exec_scopes);
+        } else if (std.mem.eql(u8, hint_codes.ASSERT_LT_FELT, hint_data.code)) {
+            try math_hints.assertLtFelt(vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.ASSERT_250_BITS, hint_data.code)) {
+            try math_hints.assert250Bit(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_FELT, hint_data.code)) {
+            try math_hints.splitFelt(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_INT_ASSERT_RANGE, hint_data.code)) {
+            try math_hints.splitIntAssertRange(vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SIGNED_DIV_REM, hint_data.code)) {
+            try math_hints.signedDivRem(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.ADD_SEGMENT, hint_data.code)) {
+            try memcpy_hint_utils.addSegment(allocator, vm);
+        } else if (std.mem.eql(u8, hint_codes.VM_ENTER_SCOPE, hint_data.code)) {
+            try memcpy_hint_utils.enterScope(allocator, exec_scopes);
+        } else if (std.mem.eql(u8, hint_codes.VM_EXIT_SCOPE, hint_data.code)) {
+            try memcpy_hint_utils.exitScope(exec_scopes);
+        } else if (std.mem.eql(u8, hint_codes.MEMCPY_ENTER_SCOPE, hint_data.code)) {
+            try memcpy_hint_utils.memcpyEnterScope(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else {}
+    }
+
+    // Executes the hint which's data is provided by a dynamic structure previously created by compile_hint
+    // Also returns a map of hints to be loaded after the current hint is executed
+    // Note: This is the method used by the vm to execute hints,
+    // if you chose to implement this method instead of using the default implementation, then `execute_hint` will not be used
+    pub fn executeHintExtensive(self: *const Self, allocator: Allocator, vm: *CairoVM, hint_data: *HintData, constants: *std.StringHashMap(Felt252), exec_scopes: *ExecutionScopes) !HintExtension {
+        try self.executeHint(allocator, vm, hint_data, constants, exec_scopes);
+
+        return HintExtension.init(allocator);
     }
 };
 
