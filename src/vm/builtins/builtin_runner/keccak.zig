@@ -1197,7 +1197,7 @@ test "KeccakBuiltinRunner: deduceMemoryCell input cell" {
         @as(?MaybeRelocatable, null),
         try keccak_builtin.deduceMemoryCell(
             std.testing.allocator,
-            Relocatable.init(0, 0),
+            .{},
             mem,
         ),
     );
