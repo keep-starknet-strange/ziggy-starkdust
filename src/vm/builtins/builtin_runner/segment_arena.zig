@@ -20,7 +20,7 @@ pub const SegmentArenaBuiltinRunner = struct {
     const Self = @This();
 
     /// Base
-    base: Relocatable = Relocatable.init(0, 0),
+    base: Relocatable = .{},
     /// Included boolean flag
     included: bool,
     /// Number of cells per instance

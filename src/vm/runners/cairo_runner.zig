@@ -728,7 +728,7 @@ test "CairoRunner: initVM should initialize the VM properly with no builtins" {
     defer cairo_runner.deinit(std.testing.allocator);
 
     // Set initial values for program_base, initial_pc, initial_ap, and initial_fp.
-    cairo_runner.program_base = Relocatable.init(0, 0);
+    cairo_runner.program_base = .{};
     cairo_runner.initial_pc = Relocatable.init(0, 1);
     cairo_runner.initial_ap = Relocatable.init(1, 2);
     cairo_runner.initial_fp = Relocatable.init(1, 2);
@@ -1137,7 +1137,7 @@ test "CairoRunner: initSegments should initialize the segments properly with no 
 
     // Expect that the program base is initialized correctly to (0, 0).
     try expectEqual(
-        Relocatable.init(0, 0),
+        Relocatable{},
         cairo_runner.program_base,
     );
     // Expect that the execution base is initialized correctly to (1, 0).
