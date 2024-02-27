@@ -276,3 +276,8 @@ pub const HintError = error{
     SplitIntNotZero,
     FromScopeError,
 };
+
+pub const InsufficientAllocatedCellsError = error{
+    MinStepNotReached,
+    BuiltinCells,
+};
