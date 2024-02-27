@@ -210,7 +210,7 @@ pub const HashBuiltinRunner = struct {
         const stop_pointer_addr = pointer.subUint(
             @intCast(1),
         ) catch return RunnerError.NoStopPointer;
-        const stop_pointer = try (segments.memory.get(stop_pointer_addr) orelse return RunnerError.NoStopPointer).tryIntoRelocatable();
+        const stop_pointer = try (segments.memory.get(stop_pointer_addr) orelse return RunnerError.NoStopPointer).intoRelocatable();
         if (@as(
             isize,
             @intCast(self.base),
@@ -241,10 +241,10 @@ pub const HashBuiltinRunner = struct {
         if (address.offset % @as(u64, self.cells_per_instance) != 2) {
             return null;
         }
-        const a = (memory.get(Relocatable.init(address.segment_index, address.offset - 2)) orelse return null).tryIntoFelt() catch {
+        const a = (memory.get(Relocatable.init(address.segment_index, address.offset - 2)) orelse return null).intoFelt() catch {
             return RunnerError.BuiltinExpectedInteger;
         };
-        const b = (memory.get(Relocatable.init(address.segment_index, address.offset - 1)) orelse return null).tryIntoFelt() catch {
+        const b = (memory.get(Relocatable.init(address.segment_index, address.offset - 1)) orelse return null).intoFelt() catch {
             return RunnerError.BuiltinExpectedInteger;
         };
 

@@ -576,9 +576,7 @@ test "MathHints: isPositive false" {
         },
         .{
             .name = "is_positive",
-            .elems = &.{
-                null,
-            },
+            .elems = &.{null},
         },
     }, &vm);
     defer ids_data.deinit();
@@ -1179,6 +1177,7 @@ test "MathHints: unsigned div rem  incorrect ids" {
         hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined),
     );
 }
+
 test "MathHints: assertLeFelt valid" {
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -1191,9 +1190,7 @@ test "MathHints: assertLeFelt valid" {
 
     var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();
-    try exec_scopes.assignOrUpdateVariable("exclued", .{
-        .u64 = 1,
-    });
+    try exec_scopes.assignOrUpdateVariable("exclued", .{ .u64 = 1 });
 
     var constants = std.StringHashMap(Felt252).init(std.testing.allocator);
     defer constants.deinit();
@@ -1219,7 +1216,7 @@ test "MathHints: assertLeFelt valid" {
         .{
             .name = "range_check_ptr",
             .elems = &.{
-                MaybeRelocatable.fromRelocatable(Relocatable.init(1, 0)),
+                MaybeRelocatable.fromRelocatable(Relocatable.init(2, 0)),
             },
         },
     }, &vm);

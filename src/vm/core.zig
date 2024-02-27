@@ -17,9 +17,9 @@ const TraceError = @import("error.zig").TraceError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
-const builtin_runner = @import("builtins/builtin_runner/builtin_runner.zig");
-const BuiltinRunner = builtin_runner.BuiltinRunner;
-const BuiltinName = builtin_runner.BuiltinName;
+const RangeCheckBuiltinRunner = @import("builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
+const SignatureBuiltinRunner = @import("builtins/builtin_runner/signature.zig").SignatureBuiltinRunner;
+const BuiltinRunner = @import("builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const HashBuiltinRunner = @import("./builtins/builtin_runner/hash.zig").HashBuiltinRunner;
 const Instruction = instructions.Instruction;
@@ -78,10 +78,7 @@ pub const CairoVM = struct {
     /// - `CairoVM`: The created VM.
     /// # Errors
     /// - If a memory allocation fails.
-    pub fn init(
-        allocator: Allocator,
-        config: Config,
-    ) !Self {
+    pub fn init(allocator: Allocator, config: Config) !Self {
         // Initialize the memory segment manager.
         const memory_segment_manager = try segments.MemorySegmentManager.init(allocator);
         errdefer memory_segment_manager.deinit();
@@ -196,7 +193,7 @@ pub const CairoVM = struct {
         return &self.builtin_runners;
     }
 
-    pub fn getSignatureBuiltin(self: *const Self) !*builtin_runner.SignatureBuiltinRunner {
+    pub fn getSignatureBuiltin(self: *const Self) !*SignatureBuiltinRunner {
         for (self.builtin_runners.items) |*runner|
             switch (runner.*) {
                 .Signature => |*signature_builtin| return signature_builtin,
@@ -330,7 +327,7 @@ pub const CairoVM = struct {
         // First, we convert the encoded instruction to a u64.
         // If the MaybeRelocatable is not a felt, this operation will fail.
         // If the MaybeRelocatable is a felt but the value does not fit into a u64, this operation will fail.
-        const encoded_instruction_u64 = encoded_instruction.?.tryIntoU64() catch {
+        const encoded_instruction_u64 = encoded_instruction.?.intoU64() catch {
             return CairoVMError.InstructionEncodingError;
         };
 
@@ -746,7 +743,7 @@ pub const CairoVM = struct {
                 // Check that the res is not null.
                 if (operands.res) |val| {
                     // Check that the res is a relocatable.
-                    self.run_context.pc.* = val.tryIntoRelocatable() catch
+                    self.run_context.pc.* = val.intoRelocatable() catch
                         return error.PcUpdateJumpResNotRelocatable;
                 } else {
                     return error.ResUnconstrainedUsedWithPcUpdateJump;
@@ -757,7 +754,7 @@ pub const CairoVM = struct {
                 // Check that the res is not null.
                 if (operands.res) |val| {
                     // Check that the res is a felt.
-                    try self.run_context.pc.*.addFeltInPlace(val.tryIntoFelt() catch return error.PcUpdateJumpRelResNotFelt);
+                    try self.run_context.pc.*.addFeltInPlace(val.intoFelt() catch return error.PcUpdateJumpRelResNotFelt);
                 } else {
                     return error.ResUnconstrainedUsedWithPcUpdateJumpRel;
                 }
@@ -1188,7 +1185,7 @@ pub const CairoVM = struct {
 
     pub fn getRangeCheckBuiltin(
         self: *Self,
-    ) CairoVMError!*builtin_runner.RangeCheckBuiltinRunner {
+    ) CairoVMError!*RangeCheckBuiltinRunner {
         for (self.builtin_runners.items) |*runner| {
             switch (runner.*) {
                 .RangeCheck => |*rc| return rc,
@@ -1320,7 +1317,7 @@ pub const CairoVM = struct {
     pub fn decodeCurrentInstruction(self: *const Self) !Instruction {
         const felt = try self.segments.memory.getFelt(self.run_context.getPC());
 
-        const instruction = felt.tryIntoU64() catch
+        const instruction = felt.intoU64() catch 
             return CairoVMError.InvalidInstructionEncoding;
 
         return decoder.decodeInstructions(instruction);
