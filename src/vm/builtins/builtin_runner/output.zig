@@ -87,7 +87,7 @@ pub const OutputBuiltinRunner = struct {
     /// # Returns
     ///
     /// A new `OutputBuiltinRunner` instance.
-    pub fn init(included: bool, allocator: Allocator) Self {
+    pub fn init(allocator: Allocator, included: bool) Self {
         return .{
             .included = included,
             .pages = AutoHashMap(usize, PublicMemoryPage).init(allocator),
@@ -220,7 +220,7 @@ pub const OutputBuiltinRunner = struct {
             const stop_pointer_addr = pointer.subUint(
                 @intCast(1),
             ) catch return RunnerError.NoStopPointer;
-            const stop_pointer = try (segments.memory.get(stop_pointer_addr) orelse return RunnerError.NoStopPointer).tryIntoRelocatable();
+            const stop_pointer = try (segments.memory.get(stop_pointer_addr) orelse return RunnerError.NoStopPointer).intoRelocatable();
             if (@as(
                 isize,
                 @intCast(self.base),
@@ -387,7 +387,7 @@ test "OutputBuiltinRunner: initSegments should set builtin base to segment index
 }
 
 test "OutputBuiltinRunner: initialStack should return an empty array list if included is false" {
-    var output_builtin = OutputBuiltinRunner.init(false, std.testing.allocator);
+    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator, false);
     defer output_builtin.deinit();
     var expected = ArrayList(MaybeRelocatable).init(std.testing.allocator);
     defer expected.deinit();
@@ -468,7 +468,7 @@ test "OutputBuiltinRunner: getUsedInstances should return the number of used ins
 }
 
 test "OutputBuiltinRunner: finalStack should return relocatable pointer if not included" {
-    var output_builtin = OutputBuiltinRunner.init(false, std.testing.allocator);
+    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator, false);
     defer output_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();

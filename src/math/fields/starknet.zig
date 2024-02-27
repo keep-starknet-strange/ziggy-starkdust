@@ -284,24 +284,24 @@ test "Felt252 toBytes" {
     );
 }
 
-test "Felt252 tryIntoU64" {
+test "Felt252 intoU64" {
     try expectEqual(
         @as(
             u64,
             10,
         ),
-        try Felt252.fromInt(u8, 10).tryIntoU64(),
+        try Felt252.fromInt(u8, 10).intoU64(),
     );
     try expectEqual(
         @as(
             u64,
             std.math.maxInt(u64),
         ),
-        try Felt252.fromInt(u64, std.math.maxInt(u64)).tryIntoU64(),
+        try Felt252.fromInt(u64, std.math.maxInt(u64)).intoU64(),
     );
     try std.testing.expectError(
         error.ValueTooLarge,
-        Felt252.fromInt(u128, std.math.maxInt(u64) + 1).tryIntoU64(),
+        Felt252.fromInt(u128, std.math.maxInt(u64) + 1).intoU64(),
     );
 }
 
