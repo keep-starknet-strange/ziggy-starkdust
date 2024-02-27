@@ -178,7 +178,10 @@ pub const RangeCheckBuiltinRunner = struct {
     ) !Relocatable {
         if (self.included) {
             const stop_pointer_addr = pointer.subUint(1) catch return RunnerError.NoStopPointer;
-            const stop_pointer = try (segments.memory.get(stop_pointer_addr)).tryIntoRelocatable();
+            // const stop_pointer = try (segments.memory.get(stop_pointer_addr)).intoRelocatable();
+
+            const stop_pointer = segments.memory.getRelocatable(stop_pointer_addr) catch
+                return RunnerError.NoStopPointer;
             if (@as(
                 isize,
                 @intCast(self.base),
@@ -234,7 +237,7 @@ pub const RangeCheckBuiltinRunner = struct {
             return null;
 
         for (rc_segment.items) |cell| {
-            var cellFelt = cell.?.maybe_relocatable.tryIntoFelt() catch null;
+            var cellFelt = cell.?.maybe_relocatable.intoFelt() catch null;
             const cellBytes = cellFelt.?.toBytes();
             var j: usize = 0;
             while (j < 32) : (j += 2) {

@@ -88,12 +88,12 @@ pub fn getOffsetValueReference(
 ///Computes the memory address of the ids variable indicated by the HintReference as a [Relocatable]
 pub fn computeAddrFromReference(hint_reference: HintReference, hint_ap_tracking: ApTracking, vm: *CairoVM) ?Relocatable {
     const offset1 = switch (hint_reference.offset1) {
-        .reference => getOffsetValueReference(vm, hint_reference, hint_ap_tracking, hint_reference.offset1).?.tryIntoRelocatable() catch unreachable,
+        .reference => getOffsetValueReference(vm, hint_reference, hint_ap_tracking, hint_reference.offset1).?.intoRelocatable() catch unreachable,
         else => return null,
     };
 
     return switch (hint_reference.offset2) {
-        .reference => offset1.addFelt(getOffsetValueReference(vm, hint_reference, hint_ap_tracking, hint_reference.offset2).?.tryIntoFelt() catch unreachable) catch unreachable,
+        .reference => offset1.addFelt(getOffsetValueReference(vm, hint_reference, hint_ap_tracking, hint_reference.offset2).?.intoFelt() catch unreachable) catch unreachable,
 
         .value => |val| offset1.addInt(val) catch unreachable,
 
