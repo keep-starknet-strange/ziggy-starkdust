@@ -25,10 +25,16 @@ const trace_context = @import("../trace_context.zig");
 const RelocatedTraceEntry = trace_context.TraceContext.RelocatedTraceEntry;
 const starknet_felt = @import("../../math/fields/starknet.zig");
 const Felt252 = starknet_felt.Felt252;
+const ExecutionScopes = @import("../types/execution_scopes.zig").ExecutionScopes;
+
 const OutputBuiltinRunner = @import("../builtins/builtin_runner/output.zig").OutputBuiltinRunner;
 const BitwiseBuiltinRunner = @import("../builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
-const ExecutionScopes = @import("../types/execution_scopes.zig").ExecutionScopes;
 const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
+const HashBuiltinRunner = @import("../builtins/builtin_runner/hash.zig").HashBuiltinRunner;
+const SignatureBuiltinRunner = @import("../builtins/builtin_runner/signature.zig").SignatureBuiltinRunner;
+const EcOpBuiltinRunner = @import("../builtins/builtin_runner/ec_op.zig").EcOpBuiltinRunner;
+const KeccakBuiltinRunner = @import("../builtins/builtin_runner/keccak.zig").KeccakBuiltinRunner;
+const PoseidonBuiltinRunner = @import("../builtins/builtin_runner/poseidon.zig").PoseidonBuiltinRunner;
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -211,7 +217,7 @@ pub const CairoRunner = struct {
             const included = program_builtins.remove(.output);
 
             if (included or self.isProofMode())
-                try self.vm.builtin_runners.append(.{ .Output = builtin_runner_import.OutputBuiltinRunner.init(included, self.allocator) });
+                try self.vm.builtin_runners.append(.{ .Output = OutputBuiltinRunner.init(self.allocator, included) });
         }
 
         if (self.layout.builtins.pedersen) |pedersen_def| {
@@ -219,7 +225,7 @@ pub const CairoRunner = struct {
 
             if (included or self.isProofMode())
                 try self.vm.builtin_runners.append(.{
-                    .Hash = builtin_runner_import.HashBuiltinRunner.init(self.allocator, pedersen_def.ratio, included),
+                    .Hash = HashBuiltinRunner.init(self.allocator, pedersen_def.ratio, included),
                 });
         }
 
@@ -228,7 +234,7 @@ pub const CairoRunner = struct {
 
             if (included or self.isProofMode())
                 try self.vm.builtin_runners.append(.{
-                    .RangeCheck = builtin_runner_import.RangeCheckBuiltinRunner.init(instance_def.ratio, instance_def.n_parts, included),
+                    .RangeCheck = RangeCheckBuiltinRunner.init(instance_def.ratio, instance_def.n_parts, included),
                 });
         }
 
@@ -237,7 +243,7 @@ pub const CairoRunner = struct {
 
             if (included or self.isProofMode())
                 try self.vm.builtin_runners.append(.{
-                    .Signature = builtin_runner_import.SignatureBuiltinRunner.init(self.allocator, &instance_def, included),
+                    .Signature = SignatureBuiltinRunner.init(self.allocator, &instance_def, included),
                 });
         }
 
@@ -246,7 +252,7 @@ pub const CairoRunner = struct {
 
             if (included or self.isProofMode())
                 try self.vm.builtin_runners.append(.{
-                    .Bitwise = builtin_runner_import.BitwiseBuiltinRunner.init(&instance_def, included),
+                    .Bitwise = BitwiseBuiltinRunner.init(&instance_def, included),
                 });
         }
 
@@ -255,7 +261,7 @@ pub const CairoRunner = struct {
 
             if (included or self.isProofMode())
                 try self.vm.builtin_runners.append(.{
-                    .EcOp = builtin_runner_import.EcOpBuiltinRunner.init(self.allocator, instance_def, included),
+                    .EcOp = EcOpBuiltinRunner.init(self.allocator, instance_def, included),
                 });
         }
 
@@ -264,7 +270,7 @@ pub const CairoRunner = struct {
 
             if (included or self.isProofMode())
                 try self.vm.builtin_runners.append(.{
-                    .Keccak = try builtin_runner_import.KeccakBuiltinRunner.init(self.allocator, &instance_def, included),
+                    .Keccak = try KeccakBuiltinRunner.init(self.allocator, &instance_def, included),
                 });
         }
 
@@ -273,7 +279,7 @@ pub const CairoRunner = struct {
 
             if (included or self.isProofMode())
                 try self.vm.builtin_runners.append(.{
-                    .Poseidon = builtin_runner_import.PoseidonBuiltinRunner.init(self.allocator, instance_def.ratio, included),
+                    .Poseidon = PoseidonBuiltinRunner.init(self.allocator, instance_def.ratio, included),
                 });
         }
 
