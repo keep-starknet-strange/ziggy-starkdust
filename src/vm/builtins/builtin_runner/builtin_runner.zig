@@ -343,7 +343,7 @@ pub const BuiltinRunner = union(BuiltinName) {
     ///
     /// Returns an error if any error occurs during the computation.
     ///
-    pub fn getAllocatedMemoryUnits(self: *Self, vm: *CairoVM) !usize {
+    pub fn getAllocatedMemoryUnits(self: *const Self, vm: *CairoVM) !usize {
         switch (self.*) {
             // For Output and SegmentArena built-in runners, return 0 as they do not allocate memory units
             .Output, .SegmentArena => return 0,
@@ -402,7 +402,7 @@ pub const BuiltinRunner = union(BuiltinName) {
     ///
     /// This function is used to determine the usage and allocation status of memory cells associated
     /// with the specific type of built-in runner.
-    pub fn getUsedCellsAndAllocatedSize(self: *Self, vm: *CairoVM) !Tuple(&.{ usize, ?usize }) {
+    pub fn getUsedCellsAndAllocatedSize(self: *const Self, vm: *CairoVM) !Tuple(&.{ usize, ?usize }) {
         switch (self.*) {
             // For output and segment arena built-in runners
             .Output, .SegmentArena => {
@@ -443,7 +443,7 @@ pub const BuiltinRunner = union(BuiltinName) {
     ///
     /// This function is used to determine the usage of permanent range check units associated
     /// with the specific type of built-in runner.
-    pub fn getUsedPermRangeCheckUnits(self: *Self, vm: *CairoVM) !usize {
+    pub fn getUsedPermRangeCheckUnits(self: *const Self, vm: *CairoVM) !usize {
         return switch (self.*) {
             // For range check built-in runners
             .RangeCheck => |range_check| {
@@ -598,64 +598,6 @@ pub const BuiltinRunner = union(BuiltinName) {
             .RangeCheck => |*range_check| range_check.getRangeCheckUsage(memory),
             else => null,
         };
-    }
-
-    ///Returns the builtin's allocated memory units
-    pub fn getAllocatedMemoryUnits(
-        self: *const Self,
-        vm: *CairoVM,
-    ) !usize {
-        return switch (self.*) {
-            .Output, .SegmentArena => 0,
-            else => blk: {
-                if (self.ratio()) |_ratio| {
-                    const min_step = @as(usize, _ratio * self.getInstancesPerComponent());
-
-                    if (vm.current_step < min_step)
-                        break :blk InsufficientAllocatedCellsError.MinStepNotReached;
-
-                    break :blk @as(usize, self.cellsPerInstance()) * (std.math.divExact(usize, vm.current_step, @as(usize, _ratio)) catch return MemoryError.ErrorCalculatingMemoryUnits);
-                } else {
-                    const instances = (try self.getUsedCells(vm.segments)) / @as(usize, self.cellsPerInstance());
-                    const components = (instances / @as(usize, self.getInstancesPerComponent()));
-
-                    break :blk components * @as(usize, self.cellsPerInstance()) * @as(usize, self.getInstancesPerComponent());
-                }
-            },
-        };
-    }
-
-    pub fn getUsedCellsAndAllocatedSize(
-        self: *const Self,
-        vm: *CairoVM,
-    ) !struct { usize, usize } {
-        switch (self.*) {
-            .Output, .SegmentArena => {
-                const used = try self.getUsedCells(vm.segments);
-                return .{ used, used };
-            },
-            else => {
-                const used = try self.getUsedCells(vm.segments);
-                const size = try self.getAllocatedMemoryUnits(vm);
-
-                if (used > size) return InsufficientAllocatedCellsError.BuiltinCells;
-                return .{ used, size };
-            },
-        }
-    }
-
-    /// Returns the number of range check units used by the builtin.
-    pub fn getUsedPermRangeCheckUnits(
-        self: *const Self,
-        vm: *CairoVM,
-    ) !usize {
-        switch (self.*) {
-            .RangeCheck => |range_check| {
-                const used_size = try self.getUsedCellsAndAllocatedSize(vm);
-                return used_size[0] * @as(usize, range_check.n_parts);
-            },
-            else => return 0,
-        }
     }
 
     pub fn deinit(self: *Self) void {
@@ -937,15 +879,6 @@ test "BuiltinRunner: finalStack" {
         .{},
     );
     defer vm.deinit();
-    vm.current_step = 1;
-    try std.testing.expectEqual(3, try builtin.getAllocatedMemoryUnits(&vm));
-}
-
-test "BuiltinRunner: getAllocataedMemoryUnits EcOp" {
-    var builtin = BuiltinRunner{
-        .EcOp = EcOpBuiltinRunner.init(std.testing.allocator, .{}, true),
-    };
-    defer builtin.deinit();
 
     // Initialize ArrayList for built-in runners
     var builtins = ArrayList(BuiltinRunner).init(std.testing.allocator);
@@ -978,15 +911,21 @@ test "BuiltinRunner: getAllocataedMemoryUnits EcOp" {
 
 test "BuiltinRunner: getMemoryAccesses with missing segment used sizes" {
     // Initialize Cairo VM
-
     var vm = try CairoVM.init(
         std.testing.allocator,
         .{},
     );
-
+    // Ensure Cairo VM is properly deallocated at the end of the test
     defer vm.deinit();
-    vm.current_step = 256;
-    try std.testing.expectEqual(7, try builtin.getAllocatedMemoryUnits(&vm));
+
+    // Initialize a BuiltinRunner instance with Bitwise runner
+    var builtin: BuiltinRunner = .{ .Bitwise = .{} };
+
+    // Expecting an error of type MemoryError.MissingSegmentUsedSizes
+    try expectError(
+        MemoryError.MissingSegmentUsedSizes,
+        builtin.getMemoryAccesses(std.testing.allocator, &vm),
+    );
 }
 
 test "BuiltinRunner: getAllocataedMemoryUnits Output" {
@@ -995,11 +934,12 @@ test "BuiltinRunner: getAllocataedMemoryUnits Output" {
     };
     defer builtin.deinit();
 
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
     // Ensure Cairo VM is properly deallocated at the end of the test
     defer vm.deinit();
-
-    // Initialize a BuiltinRunner instance with Bitwise runner
-    var builtin: BuiltinRunner = .{ .Bitwise = .{} };
 
     // Expecting an error of type MemoryError.MissingSegmentUsedSizes
     try expectError(
@@ -1014,8 +954,22 @@ test "BuiltinRunner: getMemoryAccesses with empty access" {
         std.testing.allocator,
         .{},
     );
+    // Ensure Cairo VM is properly deallocated at the end of the test
     defer vm.deinit();
-    try std.testing.expectEqual(0, try builtin.getAllocatedMemoryUnits(&vm));
+
+    // Set segment used sizes to simulate empty memory access
+    try vm.segments.segment_used_sizes.put(0, 0);
+
+    // Initialize a BuiltinRunner instance with Bitwise runner
+    var builtin: BuiltinRunner = .{ .Bitwise = .{} };
+
+    // Retrieve memory accesses from the built-in runner
+    var actual = try builtin.getMemoryAccesses(std.testing.allocator, &vm);
+    // Ensure actual result is deallocated at the end of the test
+    defer actual.deinit();
+
+    // Expecting the actual memory accesses to be empty
+    try expect(actual.items.len == 0);
 }
 
 test "BuiltinRunner: getAllocataedMemoryUnits Keccak" {
@@ -1064,86 +1018,6 @@ test "BuiltinRunner: getAllocataedMemoryUnits RangeCheck" {
     defer vm.deinit();
     vm.current_step = 8;
     try std.testing.expectEqual(1, try builtin.getAllocatedMemoryUnits(&vm));
-}
-
-const Program = @import("../../types/program.zig").Program;
-const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
-const CairoRunner = @import("../../../vm/runners/cairo_runner.zig").CairoRunner;
-
-test "BuiltinRunner: getAllocataedMemoryUnits hash with items" {
-    var builtin = BuiltinRunner{
-        .Hash = HashBuiltinRunner.init(std.testing.allocator, 10, true),
-    };
-    defer builtin.deinit();
-
-    var vm = try CairoVM.init(
-        std.testing.allocator,
-        .{},
-    );
-    vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.ap.* = Relocatable.init(1, 0);
-    vm.run_context.fp.* = Relocatable.init(1, 0);
-    // should we move to vm.deinit?
-
-    var program = try Program.initDefault(std.testing.allocator, true);
-
-    try program.builtins.append(.pedersen);
-
-    const data_append: []const u256 = &.{
-        4612671182993129469,
-        5189976364521848832,
-        18446744073709551615,
-        5199546496550207487,
-        4612389712311386111,
-        5198983563776393216,
-        2,
-        2345108766317314046,
-        5191102247248822272,
-        5189976364521848832,
-        7,
-        1226245742482522112,
-        3618502788666131213697322783095070105623107215331596699973092056135872020470,
-        2345108766317314046,
-    };
-    for (data_append) |d|
-        try program.shared_program_data.data.append(.{ .felt = Felt252.fromInt(u256, d) });
-
-    program.shared_program_data.main = 8;
-
-    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
-    var cairo_runner = try CairoRunner.init(
-        std.testing.allocator,
-        program,
-        "all_cairo",
-        ArrayList(MaybeRelocatable).init(std.testing.allocator),
-        vm,
-        false,
-    );
-
-    defer cairo_runner.deinit(std.testing.allocator);
-    defer vm.segments.memory.deinitData(std.testing.allocator);
-
-    const address = try cairo_runner.setupExecutionState();
-
-    try cairo_runner.runUntilPC(address, true);
-    try std.testing.expectEqual(3, try builtin.getAllocatedMemoryUnits(&vm));
-
-    // Ensure Cairo VM is properly deallocated at the end of the test
-    defer vm.deinit();
-
-    // Set segment used sizes to simulate empty memory access
-    try vm.segments.segment_used_sizes.put(0, 0);
-
-    // Initialize a BuiltinRunner instance with Bitwise runner
-    var builtin: BuiltinRunner = .{ .Bitwise = .{} };
-
-    // Retrieve memory accesses from the built-in runner
-    var actual = try builtin.getMemoryAccesses(std.testing.allocator, &vm);
-    // Ensure actual result is deallocated at the end of the test
-    defer actual.deinit();
-
-    // Expecting the actual memory accesses to be empty
-    try expect(actual.items.len == 0);
 }
 
 test "BuiltinRunner: getMemoryAccesses with real data" {
