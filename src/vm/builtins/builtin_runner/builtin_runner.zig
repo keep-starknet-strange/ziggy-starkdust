@@ -794,9 +794,11 @@ test "BuiltinRunner: ratio method" {
 
     // Initialize a Keccak instance definition.
     var keccak_instance_def = try KeccakInstanceDef.initDefault(std.testing.allocator);
+    defer keccak_instance_def.deinit();
+
     // Initialize a BuiltinRunner for Keccak operations.
     var keccak_builtin: BuiltinRunner = .{
-        .Keccak = KeccakBuiltinRunner.init(
+        .Keccak = try KeccakBuiltinRunner.init(
             std.testing.allocator,
             &keccak_instance_def,
             true,
@@ -856,9 +858,11 @@ test "BuiltinRunner: cellsPerInstance method" {
 
     // Initialize a Keccak instance definition.
     var keccak_instance_def = try KeccakInstanceDef.initDefault(std.testing.allocator);
+    defer keccak_instance_def.deinit();
+
     // Initialize a BuiltinRunner for Keccak operations.
     var keccak_builtin: BuiltinRunner = .{
-        .Keccak = KeccakBuiltinRunner.init(
+        .Keccak = try KeccakBuiltinRunner.init(
             std.testing.allocator,
             &keccak_instance_def,
             true,
@@ -885,6 +889,7 @@ test "BuiltinRunner: finalStack" {
 
     // Initialize various built-in runners
     var keccak_instance_def = try KeccakInstanceDef.initDefault(std.testing.allocator);
+    defer keccak_instance_def.deinit();
     var ecdsa_instance_def = EcdsaInstanceDef.init(512);
     var bitwise_instance_def: BitwiseInstanceDef = .{};
 
@@ -892,7 +897,7 @@ test "BuiltinRunner: finalStack" {
     try builtins.append(.{ .Hash = HashBuiltinRunner.init(std.testing.allocator, 1, false) });
     try builtins.append(.{ .Output = OutputBuiltinRunner.init(std.testing.allocator, false) });
     try builtins.append(.{ .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, false) });
-    try builtins.append(.{ .Keccak = KeccakBuiltinRunner.init(std.testing.allocator, &keccak_instance_def, false) });
+    try builtins.append(.{ .Keccak = try KeccakBuiltinRunner.init(std.testing.allocator, &keccak_instance_def, false) });
     try builtins.append(.{ .Signature = SignatureBuiltinRunner.init(std.testing.allocator, &ecdsa_instance_def, false) });
 
     // Iterate through each built-in runner and test its `finalStack` function
@@ -982,22 +987,23 @@ test "BuiltinRunner: getMemoryAccesses with real data" {
 test "BuiltinRunner: getAllocatedMemoryUnits with Keccak builtin with items" {
     // Initialize an ArrayList to represent the state representation
     var state_rep = ArrayList(u32).init(std.testing.allocator);
-    // Ensure the ArrayList is deallocated at the end of the test
-    defer state_rep.deinit();
     // Append 200 elements with the value 8 to the state representation ArrayList
     try state_rep.appendNTimes(200, 8);
 
     // Initialize a KeccakInstanceDef with a capacity of 10 and the state representation ArrayList
     var keccak_instance_def = KeccakInstanceDef.init(10, state_rep);
+    // Ensure the ArrayList is deallocated at the end of the test
+    defer keccak_instance_def.deinit();
 
     // Initialize a BuiltinRunner union with the KeccakBuiltinRunner variant
     var builtin: BuiltinRunner = .{
-        .Keccak = KeccakBuiltinRunner.init(
+        .Keccak = try KeccakBuiltinRunner.init(
             std.testing.allocator,
             &keccak_instance_def,
             true,
         ),
     };
+    defer builtin.deinit();
 
     // Initialize a Cairo VM
     var vm = try CairoVM.init(std.testing.allocator, .{});
@@ -1012,23 +1018,25 @@ test "BuiltinRunner: getAllocatedMemoryUnits with Keccak builtin with items" {
 
 test "BuiltinRunner: getAllocatedMemoryUnits with Keccak builtin and minimum step not reached" {
     // Initialize an ArrayList to represent the state representation
+    // not dealocating, because keccak_instance_def will dealocate it
     var state_rep = ArrayList(u32).init(std.testing.allocator);
-    // Ensure the ArrayList is deallocated at the end of the test
-    defer state_rep.deinit();
     // Append 200 elements with the value 8 to the state representation ArrayList
     try state_rep.appendNTimes(200, 8);
 
+    // Ensure the ArrayList is deallocated at the end of the test
     // Initialize a KeccakInstanceDef with a capacity of 10 and the state representation ArrayList
     var keccak_instance_def = KeccakInstanceDef.init(10, state_rep);
+    defer keccak_instance_def.deinit();
 
     // Initialize a BuiltinRunner union with the KeccakBuiltinRunner variant
     var builtin: BuiltinRunner = .{
-        .Keccak = KeccakBuiltinRunner.init(
+        .Keccak = try KeccakBuiltinRunner.init(
             std.testing.allocator,
             &keccak_instance_def,
             true,
         ),
     };
+    defer builtin.deinit();
 
     // Initialize a Cairo VM
     var vm = try CairoVM.init(std.testing.allocator, .{});
@@ -1139,10 +1147,11 @@ test "BuiltinRunner: getAllocatedMemoryUnits with elliptic curve operation built
 test "BuiltinRunner: getAllocatedMemoryUnits with keccak builtin" {
     // Initialize a default Keccak instance definition
     var keccak_instance_def = try KeccakInstanceDef.initDefault(std.testing.allocator);
+    defer keccak_instance_def.deinit();
 
     // Initialize a BuiltinRunner union with the KeccakBuiltinRunner variant
     var builtin: BuiltinRunner = .{
-        .Keccak = KeccakBuiltinRunner.init(
+        .Keccak = try KeccakBuiltinRunner.init(
             std.testing.allocator,
             &keccak_instance_def,
             true,
@@ -1427,10 +1436,11 @@ test "BuiltinRunner:getUsedDilutedCheckUnits with bitwise builtin" {
 test "BuiltinRunner:getUsedDilutedCheckUnits with keccak builtin (zero case)" {
     // Initialize a default Keccak instance definition.
     var keccak_instance_def = try KeccakInstanceDef.initDefault(std.testing.allocator);
+    defer keccak_instance_def.deinit();
 
     // Initialize a BuiltinRunner union with the KeccakBuiltinRunner variant.
     var builtin: BuiltinRunner = .{
-        .Keccak = KeccakBuiltinRunner.init(
+        .Keccak = try KeccakBuiltinRunner.init(
             std.testing.allocator,
             &keccak_instance_def,
             true,
@@ -1450,10 +1460,11 @@ test "BuiltinRunner:getUsedDilutedCheckUnits with keccak builtin (zero case)" {
 test "BuiltinRunner:getUsedDilutedCheckUnits with keccak builtin (non zero case)" {
     // Initialize a default Keccak instance definition
     var keccak_instance_def = try KeccakInstanceDef.initDefault(std.testing.allocator);
+    defer keccak_instance_def.deinit();
 
     // Initialize a BuiltinRunner union with the KeccakBuiltinRunner variant
     var builtin: BuiltinRunner = .{
-        .Keccak = KeccakBuiltinRunner.init(
+        .Keccak = try KeccakBuiltinRunner.init(
             std.testing.allocator,
             &keccak_instance_def,
             true,
