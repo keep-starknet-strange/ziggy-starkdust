@@ -667,7 +667,7 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
         /// Try to convert the field element to a u64 if its value is small enough.
         ///
         /// Attempts to convert the field element to a u64 if its value is within the representable range.
-        pub fn tryIntoU64(self: Self) !u64 {
+        pub fn intoU64(self: Self) !u64 {
             const asU256 = self.toInteger();
             // Check if the value is small enough to fit into a u64
             if (asU256 > @as(
