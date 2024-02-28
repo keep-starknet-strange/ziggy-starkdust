@@ -17,6 +17,11 @@ const Allocator = std.mem.Allocator;
 const ApTracking = @import("../vm/types/programjson.zig").ApTracking;
 const ExecutionScopes = @import("../vm/types/execution_scopes.zig").ExecutionScopes;
 
+const testing_utils = @import("testing_utils.zig");
+const RangeCheckBuiltinRunner = @import("../vm/builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
+const SignatureBuiltinRunner = @import("../vm/builtins/builtin_runner/signature.zig").SignatureBuiltinRunner;
+const EcdsaInstanceDef = @import("../vm/types/ecdsa_instance_def.zig").EcdsaInstanceDef;
+
 const MathError = @import("../vm/error.zig").MathError;
 const HintError = @import("../vm/error.zig").HintError;
 const CairoVMError = @import("../vm/error.zig").CairoVMError;
@@ -548,12 +553,6 @@ pub fn signedDivRem(
         ap_tracking,
     );
 }
-
-// importing testing utils for tests
-const testing_utils = @import("testing_utils.zig");
-const RangeCheckBuiltinRunner = @import("../vm/builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
-const SignatureBuiltinRunner = @import("../vm/builtins/builtin_runner/signature.zig").SignatureBuiltinRunner;
-const EcdsaInstanceDef = @import("../vm/types/ecdsa_instance_def.zig").EcdsaInstanceDef;
 
 test "MathHints: isPositive false" {
     var vm = try CairoVM.init(

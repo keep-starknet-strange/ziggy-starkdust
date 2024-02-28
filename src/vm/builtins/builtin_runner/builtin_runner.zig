@@ -1,20 +1,12 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const Tuple = std.meta.Tuple;
+const ArrayList = std.ArrayList;
 
 const MemorySegmentManager = @import("../../memory/segments.zig").MemorySegmentManager;
 const CairoVM = @import("../../../vm/core.zig").CairoVM;
 const MemoryError = @import("../../../vm/error.zig").MemoryError;
 const InsufficientAllocatedCellsError = @import("../../../vm/error.zig").InsufficientAllocatedCellsError;
-const BitwiseBuiltinRunner = @import("./bitwise.zig").BitwiseBuiltinRunner;
-const EcOpBuiltinRunner = @import("./ec_op.zig").EcOpBuiltinRunner;
-const HashBuiltinRunner = @import("./hash.zig").HashBuiltinRunner;
-const KeccakBuiltinRunner = @import("./keccak.zig").KeccakBuiltinRunner;
-const OutputBuiltinRunner = @import("./output.zig").OutputBuiltinRunner;
-const PoseidonBuiltinRunner = @import("./poseidon.zig").PoseidonBuiltinRunner;
-const RangeCheckBuiltinRunner = @import("./range_check.zig").RangeCheckBuiltinRunner;
-const SegmentArenaBuiltinRunner = @import("./segment_arena.zig").SegmentArenaBuiltinRunner;
-const SignatureBuiltinRunner = @import("./signature.zig").SignatureBuiltinRunner;
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
 const Memory = @import("../../memory/memory.zig").Memory;
@@ -23,7 +15,15 @@ const EcdsaInstanceDef = @import("../../types/ecdsa_instance_def.zig").EcdsaInst
 const BitwiseInstanceDef = @import("../../types/bitwise_instance_def.zig").BitwiseInstanceDef;
 const EcOpInstanceDef = @import("../../types/ec_op_instance_def.zig").EcOpInstanceDef;
 
-const ArrayList = std.ArrayList;
+pub const BitwiseBuiltinRunner = @import("./bitwise.zig").BitwiseBuiltinRunner;
+pub const EcOpBuiltinRunner = @import("./ec_op.zig").EcOpBuiltinRunner;
+pub const HashBuiltinRunner = @import("./hash.zig").HashBuiltinRunner;
+pub const KeccakBuiltinRunner = @import("./keccak.zig").KeccakBuiltinRunner;
+pub const OutputBuiltinRunner = @import("./output.zig").OutputBuiltinRunner;
+pub const PoseidonBuiltinRunner = @import("./poseidon.zig").PoseidonBuiltinRunner;
+pub const RangeCheckBuiltinRunner = @import("./range_check.zig").RangeCheckBuiltinRunner;
+pub const SegmentArenaBuiltinRunner = @import("./segment_arena.zig").SegmentArenaBuiltinRunner;
+pub const SignatureBuiltinRunner = @import("./signature.zig").SignatureBuiltinRunner;
 
 const expectError = std.testing.expectError;
 const expectEqual = std.testing.expectEqual;

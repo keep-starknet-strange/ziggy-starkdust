@@ -18,7 +18,7 @@ const Felt252 = starknet_felt.Felt252;
 
 // Test imports.
 const MemorySegmentManager = @import("./segments.zig").MemorySegmentManager;
-const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
+const builtins = @import("../builtins/builtin_runner/builtin_runner.zig");
 
 // Function that validates a memory address and returns a list of validated adresses
 pub const validation_rule = *const fn (Allocator, *Memory, Relocatable) anyerror!std.ArrayList(Relocatable);
@@ -1091,7 +1091,7 @@ test "Memory: validate existing memory" {
     var segments = try MemorySegmentManager.init(allocator);
     defer segments.deinit();
 
-    var builtin = RangeCheckBuiltinRunner.init(8, 8, true);
+    var builtin = builtins.RangeCheckBuiltinRunner.init(8, 8, true);
     try builtin.initSegments(segments);
     try builtin.addValidationRule(segments.memory);
 
@@ -1131,7 +1131,7 @@ test "Memory: validate memory cell" {
     var segments = try MemorySegmentManager.init(allocator);
     defer segments.deinit();
 
-    var builtin = RangeCheckBuiltinRunner.init(8, 8, true);
+    var builtin = builtins.RangeCheckBuiltinRunner.init(8, 8, true);
     try builtin.initSegments(segments);
     try builtin.addValidationRule(segments.memory);
 
@@ -1157,7 +1157,7 @@ test "Memory: validate memory cell segment index not in validation rules" {
     var segments = try MemorySegmentManager.init(allocator);
     defer segments.deinit();
 
-    var builtin = RangeCheckBuiltinRunner.init(8, 8, true);
+    var builtin = builtins.RangeCheckBuiltinRunner.init(8, 8, true);
     try builtin.initSegments(segments);
 
     try segments.memory.setUpMemory(
@@ -1180,7 +1180,7 @@ test "Memory: validate memory cell already exist in validation rules" {
     var segments = try MemorySegmentManager.init(allocator);
     defer segments.deinit();
 
-    var builtin = RangeCheckBuiltinRunner.init(8, 8, true);
+    var builtin = builtins.RangeCheckBuiltinRunner.init(8, 8, true);
     try builtin.initSegments(segments);
     try builtin.addValidationRule(segments.memory);
 
@@ -1378,7 +1378,7 @@ test "validate existing memory for range check within bound" {
     var segments = try MemorySegmentManager.init(allocator);
     defer segments.deinit();
 
-    var builtin = RangeCheckBuiltinRunner.init(8, 8, true);
+    var builtin = builtins.RangeCheckBuiltinRunner.init(8, 8, true);
     try builtin.initSegments(segments);
 
     // ************************************************************

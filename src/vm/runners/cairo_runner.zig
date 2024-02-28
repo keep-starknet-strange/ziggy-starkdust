@@ -7,7 +7,6 @@ const MemoryCell = @import("../memory/memory.zig").MemoryCell;
 const HintData = @import("../../hint_processor/hint_processor_def.zig").HintData;
 const HintReference = @import("../../hint_processor/hint_processor_def.zig").HintReference;
 const HintProcessor = @import("../../hint_processor/hint_processor_def.zig").CairoVMHintProcessor;
-const BuiltinRunner = @import("../builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
 const Config = @import("../config.zig").Config;
 const CairoVM = @import("../core.zig").CairoVM;
 const CairoLayout = @import("../types/layout.zig").CairoLayout;
@@ -15,7 +14,6 @@ const Relocatable = @import("../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../memory/relocatable.zig").MaybeRelocatable;
 const Program = @import("../types/program.zig").Program;
 const BuiltinName = @import("../types/programjson.zig").BuiltinName;
-const builtin_runner_import = @import("../builtins/builtin_runner/builtin_runner.zig");
 const HintRange = @import("../types/program.zig").HintRange;
 const CairoRunnerError = @import("../error.zig").CairoRunnerError;
 const CairoVMError = @import("../error.zig").CairoVMError;
@@ -27,14 +25,7 @@ const starknet_felt = @import("../../math/fields/starknet.zig");
 const Felt252 = starknet_felt.Felt252;
 const ExecutionScopes = @import("../types/execution_scopes.zig").ExecutionScopes;
 
-const OutputBuiltinRunner = @import("../builtins/builtin_runner/output.zig").OutputBuiltinRunner;
-const BitwiseBuiltinRunner = @import("../builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
-const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
-const HashBuiltinRunner = @import("../builtins/builtin_runner/hash.zig").HashBuiltinRunner;
-const SignatureBuiltinRunner = @import("../builtins/builtin_runner/signature.zig").SignatureBuiltinRunner;
-const EcOpBuiltinRunner = @import("../builtins/builtin_runner/ec_op.zig").EcOpBuiltinRunner;
-const KeccakBuiltinRunner = @import("../builtins/builtin_runner/keccak.zig").KeccakBuiltinRunner;
-const PoseidonBuiltinRunner = @import("../builtins/builtin_runner/poseidon.zig").PoseidonBuiltinRunner;
+const builtins = @import("../builtins/builtin_runner/builtin_runner.zig");
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -217,7 +208,7 @@ pub const CairoRunner = struct {
             const included = program_builtins.remove(.output);
 
             if (included or self.isProofMode())
-                try self.vm.builtin_runners.append(.{ .Output = OutputBuiltinRunner.init(self.allocator, included) });
+                try self.vm.builtin_runners.append(.{ .Output = builtins.OutputBuiltinRunner.init(self.allocator, included) });
         }
 
         if (self.layout.builtins.pedersen) |pedersen_def| {
@@ -225,7 +216,7 @@ pub const CairoRunner = struct {
 
             if (included or self.isProofMode())
                 try self.vm.builtin_runners.append(.{
-                    .Hash = HashBuiltinRunner.init(self.allocator, pedersen_def.ratio, included),
+                    .Hash = builtins.HashBuiltinRunner.init(self.allocator, pedersen_def.ratio, included),
                 });
         }
 
@@ -234,7 +225,7 @@ pub const CairoRunner = struct {
 
             if (included or self.isProofMode())
                 try self.vm.builtin_runners.append(.{
-                    .RangeCheck = RangeCheckBuiltinRunner.init(instance_def.ratio, instance_def.n_parts, included),
+                    .RangeCheck = builtins.RangeCheckBuiltinRunner.init(instance_def.ratio, instance_def.n_parts, included),
                 });
         }
 
@@ -243,7 +234,7 @@ pub const CairoRunner = struct {
 
             if (included or self.isProofMode())
                 try self.vm.builtin_runners.append(.{
-                    .Signature = SignatureBuiltinRunner.init(self.allocator, &instance_def, included),
+                    .Signature = builtins.SignatureBuiltinRunner.init(self.allocator, &instance_def, included),
                 });
         }
 
@@ -252,7 +243,7 @@ pub const CairoRunner = struct {
 
             if (included or self.isProofMode())
                 try self.vm.builtin_runners.append(.{
-                    .Bitwise = BitwiseBuiltinRunner.init(&instance_def, included),
+                    .Bitwise = builtins.BitwiseBuiltinRunner.init(&instance_def, included),
                 });
         }
 
@@ -261,7 +252,7 @@ pub const CairoRunner = struct {
 
             if (included or self.isProofMode())
                 try self.vm.builtin_runners.append(.{
-                    .EcOp = EcOpBuiltinRunner.init(self.allocator, instance_def, included),
+                    .EcOp = builtins.EcOpBuiltinRunner.init(self.allocator, instance_def, included),
                 });
         }
 
@@ -270,7 +261,7 @@ pub const CairoRunner = struct {
 
             if (included or self.isProofMode())
                 try self.vm.builtin_runners.append(.{
-                    .Keccak = try KeccakBuiltinRunner.init(self.allocator, &instance_def, included),
+                    .Keccak = try builtins.KeccakBuiltinRunner.init(self.allocator, &instance_def, included),
                 });
         }
 
@@ -279,7 +270,7 @@ pub const CairoRunner = struct {
 
             if (included or self.isProofMode())
                 try self.vm.builtin_runners.append(.{
-                    .Poseidon = PoseidonBuiltinRunner.init(self.allocator, instance_def.ratio, included),
+                    .Poseidon = builtins.PoseidonBuiltinRunner.init(self.allocator, instance_def.ratio, included),
                 });
         }
 
@@ -724,8 +715,8 @@ test "CairoRunner: initMainEntrypoint no main" {
 
     defer cairo_runner.deinit(std.testing.allocator);
 
-    // Add an OutputBuiltinRunner to the CairoRunner without setting the stop pointer.
-    try cairo_runner.vm.builtin_runners.append(.{ .Output = OutputBuiltinRunner.initDefault(std.testing.allocator) });
+    // Add an builtins.OutputBuiltinRunner to the CairoRunner without setting the stop pointer.
+    try cairo_runner.vm.builtin_runners.append(.{ .Output = builtins.OutputBuiltinRunner.initDefault(std.testing.allocator) });
 
     if (cairo_runner.initMainEntrypoint()) |_| {
         return error.ExpectedError;
@@ -756,8 +747,8 @@ test "CairoRunner: initMainEntrypoint" {
     cairo_runner.program_base = Relocatable.init(0, 0);
     cairo_runner.execution_base = Relocatable.init(0, 0);
 
-    // Add an OutputBuiltinRunner to the CairoRunner without setting the stop pointer.
-    // try cairo_runner.vm.builtin_runners.append(.{ .Output = OutputBuiltinRunner.initDefault(std.testing.allocator) });
+    // Add an builtins.OutputBuiltinRunner to the CairoRunner without setting the stop pointer.
+    // try cairo_runner.vm.builtin_runners.append(.{ .Output = builtins.OutputBuiltinRunner.initDefault(std.testing.allocator) });
     try expectEqual(
         Relocatable.init(1, 0),
         cairo_runner.initMainEntrypoint(),
@@ -855,8 +846,8 @@ test "CairoRunner: initVM should initialize the VM properly with Range Check bui
     // Defer the deinitialization of the CairoRunner to ensure proper cleanup.
     defer cairo_runner.deinit(std.testing.allocator);
 
-    // Append a RangeCheckBuiltinRunner to the CairoRunner's list of built-in runners.
-    try cairo_runner.vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner{} });
+    // Append a builtins.RangeCheckBuiltinRunner to the CairoRunner's list of built-in runners.
+    try cairo_runner.vm.builtin_runners.append(.{ .RangeCheck = builtins.RangeCheckBuiltinRunner{} });
 
     // Set initial values for program_base, initial_pc, initial_ap, and initial_fp.
     cairo_runner.initial_pc = Relocatable.init(0, 1);
@@ -916,8 +907,8 @@ test "CairoRunner: initVM should return an error with invalid Range Check builti
     // Defer the deinitialization of the CairoRunner to ensure proper cleanup.
     defer cairo_runner.deinit(std.testing.allocator);
 
-    // Append a RangeCheckBuiltinRunner to the CairoRunner's list of built-in runners.
-    try cairo_runner.vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner{} });
+    // Append a builtins.RangeCheckBuiltinRunner to the CairoRunner's list of built-in runners.
+    try cairo_runner.vm.builtin_runners.append(.{ .RangeCheck = builtins.RangeCheckBuiltinRunner{} });
 
     // Set initial values for program_base, initial_pc, initial_ap, and initial_fp.
     cairo_runner.initial_pc = Relocatable.init(0, 1);
@@ -1026,8 +1017,8 @@ test "CairoRunner: getBuiltinSegmentsInfo info based not finished" {
     );
     defer cairo_runner.deinit(std.testing.allocator);
 
-    // Add an OutputBuiltinRunner to the CairoRunner without setting the stop pointer.
-    try cairo_runner.vm.builtin_runners.append(.{ .Output = OutputBuiltinRunner.initDefault(std.testing.allocator) });
+    // Add an builtins.OutputBuiltinRunner to the CairoRunner without setting the stop pointer.
+    try cairo_runner.vm.builtin_runners.append(.{ .Output = builtins.OutputBuiltinRunner.initDefault(std.testing.allocator) });
 
     // Ensure that calling getBuiltinSegmentsInfo results in a RunnerError.NoStopPointer.
     try expectError(
@@ -1051,14 +1042,14 @@ test "CairoRunner: getBuiltinSegmentsInfo should provide builtin segment informa
     );
     defer cairo_runner.deinit(std.testing.allocator);
 
-    // Create instances of OutputBuiltinRunner and BitwiseBuiltinRunner with stop pointers.
-    var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
+    // Create instances of builtins.OutputBuiltinRunner and builtins.BitwiseBuiltinRunner with stop pointers.
+    var output_builtin = builtins.OutputBuiltinRunner.initDefault(std.testing.allocator);
     output_builtin.stop_ptr = 10;
 
-    var bitwise_builtin = BitwiseBuiltinRunner{};
+    var bitwise_builtin = builtins.BitwiseBuiltinRunner{};
     bitwise_builtin.stop_ptr = 25;
 
-    // Append instances of OutputBuiltinRunner and BitwiseBuiltinRunner to the CairoRunner.
+    // Append instances of builtins.OutputBuiltinRunner and builtins.BitwiseBuiltinRunner to the CairoRunner.
     try cairo_runner.vm.builtin_runners.appendNTimes(.{ .Output = output_builtin }, 5);
     try cairo_runner.vm.builtin_runners.appendNTimes(.{ .Bitwise = bitwise_builtin }, 3);
 
@@ -1163,8 +1154,8 @@ test "CairoRunner: initSegments should initialize the segments properly with bas
     // Defer the deinitialization of the CairoRunner to ensure cleanup.
     defer cairo_runner.deinit(std.testing.allocator);
 
-    // Append an OutputBuiltinRunner to the CairoRunner's list of built-in runners.
-    try cairo_runner.vm.builtin_runners.append(.{ .Output = OutputBuiltinRunner.initDefault(std.testing.allocator) });
+    // Append an builtins.OutputBuiltinRunner to the CairoRunner's list of built-in runners.
+    try cairo_runner.vm.builtin_runners.append(.{ .Output = builtins.OutputBuiltinRunner.initDefault(std.testing.allocator) });
 
     // Add six additional segments to the CairoRunner's virtual machine.
     inline for (0..6) |_| {
@@ -1218,8 +1209,8 @@ test "CairoRunner: initSegments should initialize the segments properly with no 
     // Defer the deinitialization of the CairoRunner to ensure cleanup.
     defer cairo_runner.deinit(std.testing.allocator);
 
-    // Append an OutputBuiltinRunner to the CairoRunner's list of built-in runners.
-    try cairo_runner.vm.builtin_runners.append(.{ .Output = OutputBuiltinRunner.initDefault(std.testing.allocator) });
+    // Append an builtins.OutputBuiltinRunner to the CairoRunner's list of built-in runners.
+    try cairo_runner.vm.builtin_runners.append(.{ .Output = builtins.OutputBuiltinRunner.initDefault(std.testing.allocator) });
 
     // Initialize the segments for the CairoRunner with no provided base address (null).
     try cairo_runner.initSegments(null);
@@ -1330,7 +1321,7 @@ test "CairoRunner: getPermRangeCheckLimits with range check builtin" {
     defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
 
     // Add a range check builtin runner with specific parameters.
-    try cairo_runner.vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner.init(12, 5, true) });
+    try cairo_runner.vm.builtin_runners.append(.{ .RangeCheck = builtins.RangeCheckBuiltinRunner.init(12, 5, true) });
 
     // Invoke the `getPermRangeCheckLimits` function and expect the result to match the expected tuple.
     try expectEqual(
@@ -1461,12 +1452,12 @@ test "CairoRunner: initBuiltins all builtins and maintain order" {
 
     const given_runners = cairo_runner.vm.getBuiltinRunners().items;
 
-    try std.testing.expectEqual(given_runners[0].name(), builtin_runner_import.OUTPUT_BUILTIN_NAME);
-    try std.testing.expectEqual(given_runners[1].name(), builtin_runner_import.HASH_BUILTIN_NAME);
-    try std.testing.expectEqual(given_runners[2].name(), builtin_runner_import.RANGE_CHECK_BUILTIN_NAME);
-    try std.testing.expectEqual(given_runners[3].name(), builtin_runner_import.SIGNATURE_BUILTIN_NAME);
-    try std.testing.expectEqual(given_runners[4].name(), builtin_runner_import.BITWISE_BUILTIN_NAME);
-    try std.testing.expectEqual(given_runners[5].name(), builtin_runner_import.EC_OP_BUILTIN_NAME);
-    try std.testing.expectEqual(given_runners[6].name(), builtin_runner_import.KECCAK_BUILTIN_NAME);
-    try std.testing.expectEqual(given_runners[7].name(), builtin_runner_import.POSEIDON_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[0].name(), builtins.OUTPUT_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[1].name(), builtins.HASH_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[2].name(), builtins.RANGE_CHECK_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[3].name(), builtins.SIGNATURE_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[4].name(), builtins.BITWISE_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[5].name(), builtins.EC_OP_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[6].name(), builtins.KECCAK_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[7].name(), builtins.POSEIDON_BUILTIN_NAME);
 }

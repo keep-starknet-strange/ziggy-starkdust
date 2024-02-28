@@ -15,18 +15,9 @@ const KeccakInstanceDef = @import("./keccak_instance_def.zig").KeccakInstanceDef
 const PoseidonInstanceDef = @import("./poseidon_instance_def.zig").PoseidonInstanceDef;
 
 const RunnerError = @import("../../vm/error.zig").RunnerError;
-const BuiltinRunner = @import("../builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
 const BuiltinName = @import("./program.zig").BuiltinName;
 
-const BitwiseBuiltinRunner = @import("../builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
-const EcOpBuiltinRunner = @import("../builtins/builtin_runner/ec_op.zig").EcOpBuiltinRunner;
-const HashBuiltinRunner = @import("../builtins/builtin_runner/hash.zig").HashBuiltinRunner;
-const KeccakBuiltinRunner = @import("../builtins/builtin_runner/keccak.zig").KeccakBuiltinRunner;
-const PoseidonBuiltinRunner = @import("../builtins/builtin_runner/poseidon.zig").PoseidonBuiltinRunner;
-const OutputBuiltinRunner = @import("../builtins/builtin_runner/output.zig").OutputBuiltinRunner;
-const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
-const SegmentArenaBuiltinRunner = @import("../builtins/builtin_runner/segment_arena.zig").SegmentArenaBuiltinRunner;
-const SignatureBuiltinRunner = @import("../builtins/builtin_runner/signature.zig").SignatureBuiltinRunner;
+const builtins = @import("../builtins/builtin_runner/builtin_runner.zig");
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -175,8 +166,8 @@ pub const CairoLayout = struct {
         allocator: Allocator,
         proof_mode: bool,
         program_builtins: std.ArrayList(BuiltinName),
-    ) !ArrayList(BuiltinRunner) {
-        var builtin_runners = ArrayList(BuiltinRunner).init(allocator);
+    ) !ArrayList(builtins.BuiltinRunner) {
+        var builtin_runners = ArrayList(builtins.BuiltinRunner).init(allocator);
 
         // When running in proof_mode, all builtins defined in a layout are included.
         if (proof_mode) {
@@ -192,29 +183,29 @@ pub const CairoLayout = struct {
             if (!self.containsBuiltin(builtin)) return RunnerError.BuiltinNotInLayout;
 
             switch (builtin) {
-                .output => try builtin_runners.append(.{ .Output = OutputBuiltinRunner.initDefault(allocator) }),
+                .output => try builtin_runners.append(.{ .Output = builtins.OutputBuiltinRunner.initDefault(allocator) }),
                 // TODO: implement initDefault for the rest of the builtin runners.
 
                 .pedersen => {
-                    // try builtin_runners.append(BuiltinRunner{ .Pedersen = HashBuiltinRunner.initDefault() });
+                    // try builtin_runners.append(builtins.BuiltinRunner{ .Pedersen = builtins.HashBuiltinRunner.initDefault() });
                 },
                 .range_check => {
-                    try builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner{} });
+                    try builtin_runners.append(.{ .RangeCheck = builtins.RangeCheckBuiltinRunner{} });
                 },
                 .ecdsa => {
-                    // try builtin_runners.append(BuiltinRunner{ .Signature = SignatureBuiltinRunner.initDefault() });
+                    // try builtin_runners.append(builtins.BuiltinRunner{ .Signature = builtins.SignatureBuiltinRunner.initDefault() });
                 },
                 .bitwise => {
-                    try builtin_runners.append(.{ .Bitwise = BitwiseBuiltinRunner{} });
+                    try builtin_runners.append(.{ .Bitwise = builtins.BitwiseBuiltinRunner{} });
                 },
                 .ec_op => {
-                    // try builtin_runners.append(BuiltinRunner{ .EcOp = EcOpBuiltinRunner.initDefault() });
+                    // try builtin_runners.append(builtins.BuiltinRunner{ .EcOp = builtins.EcOpBuiltinRunner.initDefault() });
                 },
                 .keccak => {
-                    // try builtin_runners.append(BuiltinRunner{ .Keccak = KeccakBuiltinRunner.initDefault() });
+                    // try builtin_runners.append(builtins.BuiltinRunner{ .Keccak = builtins.KeccakBuiltinRunner.initDefault() });
                 },
                 .poseidon => {
-                    // try builtin_runners.append(BuiltinRunner{ .Poseidon = PoseidonBuiltinRunner.initDefault() });
+                    // try builtin_runners.append(builtins.BuiltinRunner{ .Poseidon = builtins.PoseidonBuiltinRunner.initDefault() });
                 },
                 // TODO: add segment_arena to BuiltinsInstanceDef
                 .segment_arena => return RunnerError.BuiltinNotInLayout,

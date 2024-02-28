@@ -17,11 +17,8 @@ const TraceError = @import("error.zig").TraceError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
-const RangeCheckBuiltinRunner = @import("builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
-const SignatureBuiltinRunner = @import("builtins/builtin_runner/signature.zig").SignatureBuiltinRunner;
-const BuiltinRunner = @import("builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
+const builtins = @import("builtins/builtin_runner/builtin_runner.zig");
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
-const HashBuiltinRunner = @import("./builtins/builtin_runner/hash.zig").HashBuiltinRunner;
 const Instruction = instructions.Instruction;
 const Opcode = instructions.Opcode;
 const Error = @import("./error.zig");
@@ -45,7 +42,7 @@ pub const CairoVM = struct {
     /// The run context.
     run_context: *RunContext,
     /// ArrayList of built-in runners
-    builtin_runners: ArrayList(BuiltinRunner),
+    builtin_runners: ArrayList(builtins.BuiltinRunner),
     /// The memory segment manager.
     segments: *segments.MemorySegmentManager,
     /// Whether the run is finished or not.
@@ -89,7 +86,7 @@ pub const CairoVM = struct {
         const trace_context = try TraceContext.init(allocator, config.enable_trace);
         errdefer trace_context.deinit();
         // Initialize the built-in runners.
-        const builtin_runners = ArrayList(BuiltinRunner).init(allocator);
+        const builtin_runners = ArrayList(builtins.BuiltinRunner).init(allocator);
         errdefer builtin_runners.deinit();
         // Initialize the instruction cache.
         const instruction_cache = ArrayList(?Instruction).init(allocator);
@@ -189,11 +186,11 @@ pub const CairoVM = struct {
     /// # Returns
     ///
     /// A mutable reference to the list of built-in runners.
-    pub fn getBuiltinRunners(self: *Self) *ArrayList(BuiltinRunner) {
+    pub fn getBuiltinRunners(self: *Self) *ArrayList(builtins.BuiltinRunner) {
         return &self.builtin_runners;
     }
 
-    pub fn getSignatureBuiltin(self: *const Self) !*SignatureBuiltinRunner {
+    pub fn getSignatureBuiltin(self: *const Self) !*builtins.SignatureBuiltinRunner {
         for (self.builtin_runners.items) |*runner|
             switch (runner.*) {
                 .Signature => |*signature_builtin| return signature_builtin,
@@ -662,7 +659,7 @@ pub const CairoVM = struct {
     /// ## Arguments
     /// - `allocator`: The allocator instance to use for memory operations.
     /// - `addr`: The memory address to verify.
-    /// - `builtin`: The BuiltinRunner instance used for deducing the memory cell.
+    /// - `builtin`: The builtins.BuiltinRunner instance used for deducing the memory cell.
     ///
     /// ## Returns
     /// - `void`: Returns nothing on success.
@@ -671,7 +668,7 @@ pub const CairoVM = struct {
         self: *const Self,
         allocator: Allocator,
         addr: Relocatable,
-        builtin: *BuiltinRunner,
+        builtin: *builtins.BuiltinRunner,
     ) !void {
         const value = try builtin.deduceMemoryCell(
             allocator,
@@ -1185,7 +1182,7 @@ pub const CairoVM = struct {
 
     pub fn getRangeCheckBuiltin(
         self: *Self,
-    ) CairoVMError!*RangeCheckBuiltinRunner {
+    ) CairoVMError!*builtins.RangeCheckBuiltinRunner {
         for (self.builtin_runners.items) |*runner| {
             switch (runner.*) {
                 .RangeCheck => |*rc| return rc,
@@ -1317,7 +1314,7 @@ pub const CairoVM = struct {
     pub fn decodeCurrentInstruction(self: *const Self) !Instruction {
         const felt = try self.segments.memory.getFelt(self.run_context.getPC());
 
-        const instruction = felt.intoU64() catch 
+        const instruction = felt.intoU64() catch
             return CairoVMError.InvalidInstructionEncoding;
 
         return decoder.decodeInstructions(instruction);
