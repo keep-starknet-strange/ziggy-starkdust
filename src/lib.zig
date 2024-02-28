@@ -44,6 +44,7 @@ pub const hint_processor = struct {
     pub usingnamespace @import("hint_processor/memcpy_hint_utils.zig");
     pub usingnamespace @import("hint_processor/hint_utils.zig");
     pub usingnamespace @import("hint_processor/math_hints.zig");
+    pub usingnamespace @import("hint_processor/garaga.zig");
 };
 
 pub const parser = struct {
