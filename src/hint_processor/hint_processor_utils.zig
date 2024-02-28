@@ -38,7 +38,6 @@ pub fn getIntegerFromReference(
         .immediate => |int_1| return int_1,
         else => {},
     }
-
     return if (computeAddrFromReference(hint_reference, ap_tracking, vm)) |var_addr| vm.segments.memory.getFelt(var_addr) catch HintError.WrongIdentifierTypeInternal else HintError.UnknownIdentifierInternal;
 }
 

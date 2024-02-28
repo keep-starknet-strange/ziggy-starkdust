@@ -19,6 +19,7 @@ const Relocatable = @import("../vm/memory/relocatable.zig").Relocatable;
 const hint_codes = @import("builtin_hint_codes.zig");
 const math_hints = @import("math_hints.zig");
 const memcpy_hint_utils = @import("memcpy_hint_utils.zig");
+const poseidon_utils = @import("poseidon_utils.zig");
 
 const deserialize_utils = @import("../parser/deserialize_utils.zig");
 
@@ -197,7 +198,11 @@ pub const CairoVMHintProcessor = struct {
             try memcpy_hint_utils.exitScope(exec_scopes);
         } else if (std.mem.eql(u8, hint_codes.MEMCPY_ENTER_SCOPE, hint_data.code)) {
             try memcpy_hint_utils.memcpyEnterScope(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
-        } else {}
+        } else if (std.mem.eql(u8, hint_codes.NONDET_N_GREATER_THAN_10, hint_data.code)) {
+            try poseidon_utils.nGreaterThan10(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.NONDET_N_GREATER_THAN_2, hint_data.code)) {
+            try poseidon_utils.nGreaterThan2(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        }
     }
 
     // Executes the hint which's data is provided by a dynamic structure previously created by compile_hint

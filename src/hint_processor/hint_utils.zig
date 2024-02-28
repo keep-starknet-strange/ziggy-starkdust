@@ -102,7 +102,6 @@ pub fn getIntegerFromVarName(
     ap_tracking: ApTracking,
 ) !Felt252 {
     const reference = try getReferenceFromVarName(var_name, ids_data);
-
     return hint_processor_utils.getIntegerFromReference(vm, reference, ap_tracking) catch |err| switch (err) {
         HintError.WrongIdentifierTypeInternal => HintError.IdentifierNotInteger,
         else => HintError.UnknownIdentifier,

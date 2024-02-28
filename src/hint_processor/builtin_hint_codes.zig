@@ -126,3 +126,5 @@ pub const VM_ENTER_SCOPE = "vm_enter_scope()";
 pub const VM_EXIT_SCOPE = "vm_exit_scope()";
 
 pub const MEMCPY_ENTER_SCOPE = "vm_enter_scope({'n': ids.len})";
+pub const NONDET_N_GREATER_THAN_10 = "memory[ap] = to_felt_or_relocatable(ids.n >= 10)";
+pub const NONDET_N_GREATER_THAN_2 = "memory[ap] = to_felt_or_relocatable(ids.n >= 2)";
