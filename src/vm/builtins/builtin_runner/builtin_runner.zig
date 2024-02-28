@@ -3,15 +3,15 @@ const Allocator = std.mem.Allocator;
 const Tuple = std.meta.Tuple;
 
 const MemorySegmentManager = @import("../../memory/segments.zig").MemorySegmentManager;
-pub const BitwiseBuiltinRunner = @import("bitwise.zig").BitwiseBuiltinRunner;
-pub const EcOpBuiltinRunner = @import("ec_op.zig").EcOpBuiltinRunner;
-pub const HashBuiltinRunner = @import("hash.zig").HashBuiltinRunner;
-pub const KeccakBuiltinRunner = @import("keccak.zig").KeccakBuiltinRunner;
-pub const OutputBuiltinRunner = @import("output.zig").OutputBuiltinRunner;
-pub const PoseidonBuiltinRunner = @import("poseidon.zig").PoseidonBuiltinRunner;
-pub const RangeCheckBuiltinRunner = @import("range_check.zig").RangeCheckBuiltinRunner;
-pub const SegmentArenaBuiltinRunner = @import("segment_arena.zig").SegmentArenaBuiltinRunner;
-pub const SignatureBuiltinRunner = @import("signature.zig").SignatureBuiltinRunner;
+const BitwiseBuiltinRunner = @import("bitwise.zig").BitwiseBuiltinRunner;
+const EcOpBuiltinRunner = @import("ec_op.zig").EcOpBuiltinRunner;
+const HashBuiltinRunner = @import("hash.zig").HashBuiltinRunner;
+const KeccakBuiltinRunner = @import("keccak.zig").KeccakBuiltinRunner;
+const OutputBuiltinRunner = @import("output.zig").OutputBuiltinRunner;
+const PoseidonBuiltinRunner = @import("poseidon.zig").PoseidonBuiltinRunner;
+const RangeCheckBuiltinRunner = @import("range_check.zig").RangeCheckBuiltinRunner;
+const SegmentArenaBuiltinRunner = @import("segment_arena.zig").SegmentArenaBuiltinRunner;
+const SignatureBuiltinRunner = @import("signature.zig").SignatureBuiltinRunner;
 
 const InsufficientAllocatedCellsError = @import("../../error.zig").InsufficientAllocatedCellsError;
 const MemoryError = @import("../../error.zig").MemoryError;
