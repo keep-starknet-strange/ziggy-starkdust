@@ -1,8 +1,7 @@
 const std = @import("std");
 const Allocator = std.mem.Allocator;
 const Register = @import("../vm/instructions.zig").Register;
-const OffsetValue = @import("../vm/types/programjson.zig").OffsetValue;
-const ValueAddress = @import("../vm/types/programjson.zig").ValueAddress;
+const programjson = @import("../vm/types/types.zig").programjson;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 
 const expect = std.testing.expect;
@@ -53,7 +52,7 @@ pub const OffsetValueResult = struct {
     remaining_input: []const u8,
 
     /// The parsed offset value.
-    offset_value: OffsetValue,
+    offset_value: programjson.OffsetValue,
 };
 
 /// Represents the result of parsing a register and its offset from a byte array.
@@ -322,7 +321,7 @@ pub fn innerDereference(input: []const u8) !OffsetValueResult {
     const rem = std.mem.trimLeft(u8, input[last_bracket..], "]");
 
     // Determine if the parsed register is valid and create the appropriate offset value or reference
-    const offset_value: OffsetValue = if (register_and_offset.register) |r|
+    const offset_value: programjson.OffsetValue = if (register_and_offset.register) |r|
         // Create a reference
         .{ .reference = .{ r, register_and_offset.offset, true } }
     else
@@ -352,7 +351,7 @@ pub fn noInnerDereference(input: []const u8) !OffsetValueResult {
     const register_and_offset = try parseRegisterAndOffset(input);
 
     // Determine if the parsed register is valid and create the appropriate offset value or reference
-    const offset_value: OffsetValue = if (register_and_offset.register) |r|
+    const offset_value: programjson.OffsetValue = if (register_and_offset.register) |r|
         // Create a reference
         .{ .reference = .{ r, register_and_offset.offset, false } }
     else
@@ -377,15 +376,15 @@ pub fn noInnerDereference(input: []const u8) !OffsetValueResult {
 ///
 /// If the struct name is followed by indirection level information, it concatenates them into a single type string.
 ///
-/// Finally, it constructs and returns a `ValueAddress` containing the parsed offsets, dereference status, and type information.
+/// Finally, it constructs and returns a `programjson.ValueAddress` containing the parsed offsets, dereference status, and type information.
 ///
 /// # Parameters
 /// - `input`: A byte array representing the value expression to parse.
 /// - `allocator`: An allocator to allocate memory for intermediate data structures.
 ///
 /// # Returns
-/// A `ValueAddress` containing information about the parsed value, including offsets, dereference status, and type.
-pub fn parseValue(input: []const u8, allocator: Allocator) !ValueAddress {
+/// A `programjson.ValueAddress` containing information about the parsed value, including offsets, dereference status, and type.
+pub fn parseValue(input: []const u8, allocator: Allocator) !programjson.ValueAddress {
     // Remove outer brackets from the input
     const without_brackets = outerBrackets(input);
 
@@ -423,12 +422,12 @@ pub fn parseValue(input: []const u8, allocator: Allocator) !ValueAddress {
     errdefer allocator.free(type_);
 
     // Parse the first offset value or default to immediate value 0
-    const first_offset: OffsetValue = if (first_offset_value) |ov| ov.offset_value else .{ .value = 0 };
+    const first_offset: programjson.OffsetValue = if (first_offset_value) |ov| ov.offset_value else .{ .value = 0 };
     // Parse the second offset value or default to immediate value 0
-    const second_offset: OffsetValue = if (second_offset_value) |ov| ov.offset_value else .{ .value = 0 };
+    const second_offset: programjson.OffsetValue = if (second_offset_value) |ov| ov.offset_value else .{ .value = 0 };
 
     // Determine the offsets tuple based on the struct type and indirection level
-    const offsets: std.meta.Tuple(&.{ OffsetValue, OffsetValue }) = if (std.mem.eql(u8, struct_, "felt") and indirection_level.len == 0)
+    const offsets: std.meta.Tuple(&.{ programjson.OffsetValue, programjson.OffsetValue }) = if (std.mem.eql(u8, struct_, "felt") and indirection_level.len == 0)
         .{
             switch (first_offset) {
                 // Immediate value offset
@@ -463,7 +462,7 @@ pub fn parseValue(input: []const u8, allocator: Allocator) !ValueAddress {
         // Default to provided offsets
         .{ first_offset, second_offset };
 
-    // Return a ValueAddress containing parsed value information
+    // Return a programjson.ValueAddress containing parsed value information
     return .{
         .offset1 = offsets[0], // First offset value
         .offset2 = offsets[1], // Second offset value
@@ -665,7 +664,7 @@ test "parseRegisterAndOffset: should correctly identify and parse register and o
     );
 }
 
-test "innerDereference: should correctly identify and parse OffsetValue" {
+test "innerDereference: should correctly identify and parse programjson.OffsetValue" {
     // Test case: Inner dereference expression "[fp + (-1)] + 2"
     try expectEqualDeep(
         OffsetValueResult{
@@ -709,7 +708,7 @@ test "innerDereference: should correctly identify and parse OffsetValue" {
     );
 }
 
-test "noInnerDereference: should correctly identify and parse OffsetValue with no inner" {
+test "noInnerDereference: should correctly identify and parse programjson.OffsetValue with no inner" {
     // Test case: Dereference expression "ap + 3" with no inner dereference
     try expectEqualDeep(
         OffsetValueResult{
@@ -744,7 +743,7 @@ test "parseValue: with inner dereference" {
     defer std.testing.allocator.free(res.value_type);
 
     try expectEqualDeep(
-        ValueAddress{
+        programjson.ValueAddress{
             .offset1 = .{ .reference = .{ .FP, -1, true } },
             .offset2 = .{ .value = 2 },
             .dereference = true,
@@ -760,7 +759,7 @@ test "parseValue: with no inner dereference" {
     defer std.testing.allocator.free(res.value_type);
 
     try expectEqualDeep(
-        ValueAddress{
+        programjson.ValueAddress{
             .offset1 = .{ .reference = .{ .AP, 2, false } },
             .offset2 = .{ .value = 0 },
             .dereference = false,
@@ -776,7 +775,7 @@ test "parseValue: with no register" {
     defer std.testing.allocator.free(res.value_type);
 
     try expectEqualDeep(
-        ValueAddress{
+        programjson.ValueAddress{
             .offset1 = .{ .value = 825323 },
             .offset2 = .{ .value = 0 },
             .dereference = false,
@@ -792,7 +791,7 @@ test "parseValue: with no inner dereference and two offsets" {
     defer std.testing.allocator.free(res.value_type);
 
     try expectEqualDeep(
-        ValueAddress{
+        programjson.ValueAddress{
             .offset1 = .{ .reference = .{ .AP, 0, false } },
             .offset2 = .{ .value = -1 },
             .dereference = true,
@@ -808,7 +807,7 @@ test "parseValue: with inner dereference and offset" {
     defer std.testing.allocator.free(res.value_type);
 
     try expectEqualDeep(
-        ValueAddress{
+        programjson.ValueAddress{
             .offset1 = .{ .reference = .{ .AP, 0, true } },
             .offset2 = .{ .value = 1 },
             .dereference = true,
@@ -824,7 +823,7 @@ test "parseValue: with inner dereference and immediate" {
     defer std.testing.allocator.free(res.value_type);
 
     try expectEqualDeep(
-        ValueAddress{
+        programjson.ValueAddress{
             .offset1 = .{ .reference = .{ .AP, 0, true } },
             .offset2 = .{ .immediate = Felt252.one() },
             .dereference = true,
@@ -840,7 +839,7 @@ test "parseValue: with inner dereference to pointer" {
     defer std.testing.allocator.free(res.value_type);
 
     try expectEqualDeep(
-        ValueAddress{
+        programjson.ValueAddress{
             .offset1 = .{ .reference = .{ .AP, 1, true } },
             .offset2 = .{ .value = 1 },
             .dereference = true,
@@ -856,7 +855,7 @@ test "parseValue: with 2 inner dereference" {
     defer std.testing.allocator.free(res.value_type);
 
     try expectEqualDeep(
-        ValueAddress{
+        programjson.ValueAddress{
             .offset1 = .{ .reference = .{ .AP, 0, true } },
             .offset2 = .{ .reference = .{ .FP, 1, true } },
             .dereference = true,
@@ -872,7 +871,7 @@ test "parseValue: with 2 inner dereferences" {
     defer std.testing.allocator.free(res.value_type);
 
     try expectEqualDeep(
-        ValueAddress{
+        programjson.ValueAddress{
             .offset1 = .{ .reference = .{ .AP, 1, true } },
             .offset2 = .{ .reference = .{ .FP, 1, true } },
             .dereference = true,
@@ -888,7 +887,7 @@ test "parseValue: with no reference" {
     defer std.testing.allocator.free(res.value_type);
 
     try expectEqualDeep(
-        ValueAddress{
+        programjson.ValueAddress{
             .offset1 = .{ .immediate = Felt252.fromInt(u32, 825323) },
             .offset2 = .{ .immediate = Felt252.zero() },
             .dereference = false,
@@ -904,7 +903,7 @@ test "parseValue: with one reference" {
     defer std.testing.allocator.free(res.value_type);
 
     try expectEqualDeep(
-        ValueAddress{
+        programjson.ValueAddress{
             .offset1 = .{ .reference = .{ .AP, 0, true } },
             .offset2 = .{ .value = 1 },
             .dereference = true,
@@ -920,7 +919,7 @@ test "parseValue: with double reference" {
     defer std.testing.allocator.free(res.value_type);
 
     try expectEqualDeep(
-        ValueAddress{
+        programjson.ValueAddress{
             .offset1 = .{ .reference = .{ .AP, 0, true } },
             .offset2 = .{ .value = 1 },
             .dereference = true,
@@ -936,7 +935,7 @@ test "parseValue: to felt with double reference" {
     defer std.testing.allocator.free(res.value_type);
 
     try expectEqualDeep(
-        ValueAddress{
+        programjson.ValueAddress{
             .offset1 = .{ .reference = .{ .AP, 0, true } },
             .offset2 = .{ .reference = .{ .AP, 0, true } },
             .dereference = true,
@@ -952,7 +951,7 @@ test "parseValue: to felt with double reference and offset" {
     defer std.testing.allocator.free(res.value_type);
 
     try expectEqualDeep(
-        ValueAddress{
+        programjson.ValueAddress{
             .offset1 = .{ .reference = .{ .AP, 1, true } },
             .offset2 = .{ .reference = .{ .AP, 2, true } },
             .dereference = true,

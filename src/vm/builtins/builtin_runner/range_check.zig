@@ -9,7 +9,7 @@ const Error = @import("../../error.zig");
 const validation_rule = @import("../../memory/memory.zig").validation_rule;
 const Memory = @import("../../memory/memory.zig").Memory;
 const memoryFile = @import("../../memory/memory.zig");
-const range_check_instance_def = @import("../../types/range_check_instance_def.zig");
+const range_check_instance_def = @import("../../types/types.zig").range_check_instance_def;
 
 const CELLS_PER_RANGE_CHECK = range_check_instance_def.CELLS_PER_RANGE_CHECK;
 const Relocatable = relocatable.Relocatable;

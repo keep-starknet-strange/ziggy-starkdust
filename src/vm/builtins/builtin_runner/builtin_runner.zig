@@ -10,10 +10,7 @@ const InsufficientAllocatedCellsError = @import("../../../vm/error.zig").Insuffi
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
 const Memory = @import("../../memory/memory.zig").Memory;
-const KeccakInstanceDef = @import("../../types/keccak_instance_def.zig").KeccakInstanceDef;
-const EcdsaInstanceDef = @import("../../types/ecdsa_instance_def.zig").EcdsaInstanceDef;
-const BitwiseInstanceDef = @import("../../types/bitwise_instance_def.zig").BitwiseInstanceDef;
-const EcOpInstanceDef = @import("../../types/ec_op_instance_def.zig").EcOpInstanceDef;
+const types = @import("../../types/types.zig");
 
 pub const BitwiseBuiltinRunner = @import("./bitwise.zig").BitwiseBuiltinRunner;
 pub const EcOpBuiltinRunner = @import("./ec_op.zig").EcOpBuiltinRunner;
@@ -793,7 +790,7 @@ test "BuiltinRunner: ratio method" {
     try expectEqual(@as(?u32, 8), rangecheck_builtin.ratio());
 
     // Initialize a Keccak instance definition.
-    var keccak_instance_def = try KeccakInstanceDef.initDefault(std.testing.allocator);
+    var keccak_instance_def = try types.keccak_instance_def.KeccakInstanceDef.initDefault(std.testing.allocator);
     defer keccak_instance_def.deinit();
 
     // Initialize a BuiltinRunner for Keccak operations.
@@ -857,7 +854,7 @@ test "BuiltinRunner: cellsPerInstance method" {
     try expectEqual(@as(u32, 1), rangecheck_builtin.cellsPerInstance());
 
     // Initialize a Keccak instance definition.
-    var keccak_instance_def = try KeccakInstanceDef.initDefault(std.testing.allocator);
+    var keccak_instance_def = try types.keccak_instance_def.KeccakInstanceDef.initDefault(std.testing.allocator);
     defer keccak_instance_def.deinit();
 
     // Initialize a BuiltinRunner for Keccak operations.
@@ -888,10 +885,10 @@ test "BuiltinRunner: finalStack" {
     defer builtins.deinit();
 
     // Initialize various built-in runners
-    var keccak_instance_def = try KeccakInstanceDef.initDefault(std.testing.allocator);
+    var keccak_instance_def = try types.keccak_instance_def.KeccakInstanceDef.initDefault(std.testing.allocator);
     defer keccak_instance_def.deinit();
-    var ecdsa_instance_def = EcdsaInstanceDef.init(512);
-    var bitwise_instance_def: BitwiseInstanceDef = .{};
+    var ecdsa_instance_def = types.ecdsa_instance_def.EcdsaInstanceDef.init(512);
+    var bitwise_instance_def: types.bitwise_instance_def.BitwiseInstanceDef = .{};
 
     try builtins.append(.{ .Bitwise = BitwiseBuiltinRunner.init(&bitwise_instance_def, false) });
     try builtins.append(.{ .Hash = HashBuiltinRunner.init(std.testing.allocator, 1, false) });
@@ -990,8 +987,8 @@ test "BuiltinRunner: getAllocatedMemoryUnits with Keccak builtin with items" {
     // Append 200 elements with the value 8 to the state representation ArrayList
     try state_rep.appendNTimes(200, 8);
 
-    // Initialize a KeccakInstanceDef with a capacity of 10 and the state representation ArrayList
-    var keccak_instance_def = KeccakInstanceDef.init(10, state_rep);
+    // Initialize a types.keccak_instance_def.KeccakInstanceDef with a capacity of 10 and the state representation ArrayList
+    var keccak_instance_def = types.keccak_instance_def.KeccakInstanceDef.init(10, state_rep);
     // Ensure the ArrayList is deallocated at the end of the test
     defer keccak_instance_def.deinit();
 
@@ -1024,8 +1021,8 @@ test "BuiltinRunner: getAllocatedMemoryUnits with Keccak builtin and minimum ste
     try state_rep.appendNTimes(200, 8);
 
     // Ensure the ArrayList is deallocated at the end of the test
-    // Initialize a KeccakInstanceDef with a capacity of 10 and the state representation ArrayList
-    var keccak_instance_def = KeccakInstanceDef.init(10, state_rep);
+    // Initialize a types.keccak_instance_def.KeccakInstanceDef with a capacity of 10 and the state representation ArrayList
+    var keccak_instance_def = types.keccak_instance_def.KeccakInstanceDef.init(10, state_rep);
     defer keccak_instance_def.deinit();
 
     // Initialize a BuiltinRunner union with the KeccakBuiltinRunner variant
@@ -1146,7 +1143,7 @@ test "BuiltinRunner: getAllocatedMemoryUnits with elliptic curve operation built
 
 test "BuiltinRunner: getAllocatedMemoryUnits with keccak builtin" {
     // Initialize a default Keccak instance definition
-    var keccak_instance_def = try KeccakInstanceDef.initDefault(std.testing.allocator);
+    var keccak_instance_def = try types.keccak_instance_def.KeccakInstanceDef.initDefault(std.testing.allocator);
     defer keccak_instance_def.deinit();
 
     // Initialize a BuiltinRunner union with the KeccakBuiltinRunner variant
@@ -1435,7 +1432,7 @@ test "BuiltinRunner:getUsedDilutedCheckUnits with bitwise builtin" {
 
 test "BuiltinRunner:getUsedDilutedCheckUnits with keccak builtin (zero case)" {
     // Initialize a default Keccak instance definition.
-    var keccak_instance_def = try KeccakInstanceDef.initDefault(std.testing.allocator);
+    var keccak_instance_def = try types.keccak_instance_def.KeccakInstanceDef.initDefault(std.testing.allocator);
     defer keccak_instance_def.deinit();
 
     // Initialize a BuiltinRunner union with the KeccakBuiltinRunner variant.
@@ -1459,7 +1456,7 @@ test "BuiltinRunner:getUsedDilutedCheckUnits with keccak builtin (zero case)" {
 
 test "BuiltinRunner:getUsedDilutedCheckUnits with keccak builtin (non zero case)" {
     // Initialize a default Keccak instance definition
-    var keccak_instance_def = try KeccakInstanceDef.initDefault(std.testing.allocator);
+    var keccak_instance_def = try types.keccak_instance_def.KeccakInstanceDef.initDefault(std.testing.allocator);
     defer keccak_instance_def.deinit();
 
     // Initialize a BuiltinRunner union with the KeccakBuiltinRunner variant
@@ -1483,7 +1480,7 @@ test "BuiltinRunner:getUsedDilutedCheckUnits with keccak builtin (non zero case)
 
 test "BuiltinRunner:getUsedDilutedCheckUnits with elliptic curve operation builtin" {
     // Define the instance definition for the elliptic curve operation
-    const instance_def: EcOpInstanceDef = .{ .ratio = 10 };
+    const instance_def: types.ec_op_instance_def.EcOpInstanceDef = .{ .ratio = 10 };
 
     // Initialize a BuiltinRunner union with the EcOpBuiltinRunner variant
     var builtin: BuiltinRunner = .{ .EcOp = EcOpBuiltinRunner.init(std.testing.allocator, instance_def, true) };
@@ -1546,7 +1543,7 @@ test "BuiltinRunner: builtin name function" {
     try expectEqualStrings("ec_op_builtin", ec_op.name());
 
     // Initialize a `BuiltinRunner` with the `Signature` variant and test its name.
-    var ecdsa_instance_def = EcdsaInstanceDef.init(512);
+    var ecdsa_instance_def = types.ecdsa_instance_def.EcdsaInstanceDef.init(512);
     var ecdsa: BuiltinRunner = .{ .Signature = SignatureBuiltinRunner.init(std.testing.allocator, &ecdsa_instance_def, false) };
     try expectEqualStrings("ecdsa_builtin", ecdsa.name());
 

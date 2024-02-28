@@ -22,8 +22,7 @@ const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
 const builtins = @import("./builtins/builtin_runner/builtin_runner.zig");
-const BitwiseInstanceDef = @import("./types/bitwise_instance_def.zig").BitwiseInstanceDef;
-const KeccakInstanceDef = @import("./types/keccak_instance_def.zig").KeccakInstanceDef;
+const types = @import("./types/types.zig");
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const Instruction = @import("instructions.zig").Instruction;
 const CairoVM = @import("core.zig").CairoVM;
@@ -122,7 +121,7 @@ test "CairoVM: deduceMemoryCell builtin valid" {
         .{},
     );
     defer vm.deinit();
-    var instance_def: BitwiseInstanceDef = .{};
+    var instance_def: types.bitwise_instance_def.BitwiseInstanceDef = .{};
     try vm.builtin_runners.append(
         builtins.BuiltinRunner{
             .Bitwise = builtins.BitwiseBuiltinRunner.init(&instance_def, true),
@@ -2263,7 +2262,7 @@ test "CairoVM: computeOp0Deductions with a valid built in and non null deduceMem
         .{},
     );
     defer vm.deinit();
-    var instance_def: BitwiseInstanceDef = .{};
+    var instance_def: types.bitwise_instance_def.BitwiseInstanceDef = .{};
     try vm.builtin_runners.append(
         builtins.BuiltinRunner{
             .Bitwise = builtins.BitwiseBuiltinRunner.init(&instance_def, true),
@@ -2512,7 +2511,7 @@ test "CairoVM: getBuiltinRunners should return a reference to the builtin runner
         .{},
     );
     defer vm.deinit();
-    var instance_def: BitwiseInstanceDef = .{ .ratio = null, .total_n_bits = 2 };
+    var instance_def: types.bitwise_instance_def.BitwiseInstanceDef = .{ .ratio = null, .total_n_bits = 2 };
     try vm.builtin_runners.append(
         builtins.BuiltinRunner{
             .Bitwise = builtins.BitwiseBuiltinRunner.init(&instance_def, true),
@@ -2638,7 +2637,7 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceMemoryCell if n
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    var instance_def: BitwiseInstanceDef = .{};
+    var instance_def: types.bitwise_instance_def.BitwiseInstanceDef = .{};
     try vm.builtin_runners.append(
         builtins.BuiltinRunner{
             .Bitwise = builtins.BitwiseBuiltinRunner.init(&instance_def, true),
@@ -3818,7 +3817,7 @@ test "CairoVM: verifyAutoDeductions for bitwise builtin runner throws Inconsiste
 test "CairoVM: verifyAutoDeductions for keccak builtin runner" {
     const allocator = std.testing.allocator;
 
-    var keccak_instance_def = try KeccakInstanceDef.initDefault(allocator);
+    var keccak_instance_def = try types.keccak_instance_def.KeccakInstanceDef.initDefault(allocator);
     defer keccak_instance_def.deinit();
 
     const keccak_builtin = try builtins.KeccakBuiltinRunner.init(

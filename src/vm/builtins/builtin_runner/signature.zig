@@ -6,7 +6,7 @@ const Memory = @import("../../memory/memory.zig").Memory;
 const validation_rule = @import("../../memory/memory.zig").validation_rule;
 const MemorySegmentManager = @import("../../memory/segments.zig").MemorySegmentManager;
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
-const EcdsaInstanceDef = @import("../../types/ecdsa_instance_def.zig").EcdsaInstanceDef;
+const types = @import("../../types/types.zig");
 const verify = @import("../../../math/crypto/signatures.zig").verify;
 
 const CairoVM = @import("../../core.zig").CairoVM;
@@ -67,13 +67,13 @@ pub const SignatureBuiltinRunner = struct {
     /// # Arguments
     ///
     /// - `allocator`: An allocator for initializing the `signatures` HashMap.
-    /// - `instance_def`: A pointer to the `EcdsaInstanceDef` for this runner.
+    /// - `instance_def`: A pointer to the `types.ecdsa_instance_def.EcdsaInstanceDef` for this runner.
     /// - `included`: A boolean flag indicating whether this runner is included.
     ///
     /// # Returns
     ///
     /// A new `SignatureBuiltinRunner` instance.
-    pub fn init(allocator: Allocator, instance_def: *const EcdsaInstanceDef, included: bool) Self {
+    pub fn init(allocator: Allocator, instance_def: *const types.ecdsa_instance_def.EcdsaInstanceDef, included: bool) Self {
         return .{
             .included = included,
             .ratio = instance_def.ratio,
@@ -208,7 +208,7 @@ pub const SignatureBuiltinRunner = struct {
 };
 
 test "Signature: Used Cells" {
-    var def = EcdsaInstanceDef.init(10);
+    var def = types.ecdsa_instance_def.EcdsaInstanceDef.init(10);
 
     var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
 
@@ -224,7 +224,7 @@ test "Signature: Used Cells" {
 }
 
 test "Signature: initialize segments" {
-    var def = EcdsaInstanceDef.init(10);
+    var def = types.ecdsa_instance_def.EcdsaInstanceDef.init(10);
 
     var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
 
@@ -237,7 +237,7 @@ test "Signature: initialize segments" {
 }
 
 test "Signature: get used instances" {
-    var def = EcdsaInstanceDef.init(10);
+    var def = types.ecdsa_instance_def.EcdsaInstanceDef.init(10);
 
     var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
 
@@ -254,7 +254,7 @@ test "Signature: get used instances" {
 
 test "Signature: final stack" {
     // default
-    var def = EcdsaInstanceDef.init(512);
+    var def = types.ecdsa_instance_def.EcdsaInstanceDef.init(512);
 
     var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
 
@@ -287,7 +287,7 @@ test "Signature: final stack" {
 
 test "Signature: final stack error stop pointer" {
     // default
-    var def = EcdsaInstanceDef.init(512);
+    var def = types.ecdsa_instance_def.EcdsaInstanceDef.init(512);
 
     var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
 
@@ -320,7 +320,7 @@ test "Signature: final stack error stop pointer" {
 
 test "Signature: final stack error non relocatable" {
     // default
-    var def = EcdsaInstanceDef.init(512);
+    var def = types.ecdsa_instance_def.EcdsaInstanceDef.init(512);
 
     var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
 
@@ -358,7 +358,7 @@ test "Signature: final stack error non relocatable" {
 
 test "Signature: get used cells empty" {
     // default
-    var def = EcdsaInstanceDef.init(512);
+    var def = types.ecdsa_instance_def.EcdsaInstanceDef.init(512);
 
     var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
 
@@ -378,7 +378,7 @@ test "Signature: get used cells empty" {
 
 test "Signature: get used cells" {
     // default
-    var def = EcdsaInstanceDef.init(512);
+    var def = types.ecdsa_instance_def.EcdsaInstanceDef.init(512);
 
     var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
 
@@ -397,7 +397,7 @@ test "Signature: get used cells" {
 }
 
 test "Signature: getInitialStackForRangeCheckWithBase" {
-    var def = EcdsaInstanceDef.init(512);
+    var def = types.ecdsa_instance_def.EcdsaInstanceDef.init(512);
 
     var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
 
@@ -412,7 +412,7 @@ test "Signature: getInitialStackForRangeCheckWithBase" {
 }
 
 test "Signature: initial stack not included test" {
-    var def = EcdsaInstanceDef.init(512);
+    var def = types.ecdsa_instance_def.EcdsaInstanceDef.init(512);
 
     var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, false);
 
@@ -423,7 +423,7 @@ test "Signature: initial stack not included test" {
 }
 
 test "Signature: deduce memory cell" {
-    var def = EcdsaInstanceDef.init(512);
+    var def = types.ecdsa_instance_def.EcdsaInstanceDef.init(512);
 
     var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
 
@@ -436,7 +436,7 @@ test "Signature: deduce memory cell" {
 }
 
 test "Signature: ratio" {
-    var def = EcdsaInstanceDef.init(512);
+    var def = types.ecdsa_instance_def.EcdsaInstanceDef.init(512);
 
     const builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
 
@@ -444,7 +444,7 @@ test "Signature: ratio" {
 }
 
 test "Signature: base" {
-    var def = EcdsaInstanceDef.init(512);
+    var def = types.ecdsa_instance_def.EcdsaInstanceDef.init(512);
 
     const builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
 
@@ -452,7 +452,7 @@ test "Signature: base" {
 }
 
 test "Signature: get memory segment addresses" {
-    var def = EcdsaInstanceDef.init(512);
+    var def = types.ecdsa_instance_def.EcdsaInstanceDef.init(512);
 
     const builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
 
@@ -463,7 +463,7 @@ test "Signature: get memory segment addresses" {
 
 test "Signature: final stack invalid stop pointer" {
     // default
-    var def = EcdsaInstanceDef.init(512);
+    var def = types.ecdsa_instance_def.EcdsaInstanceDef.init(512);
 
     var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
 
@@ -491,7 +491,7 @@ test "Signature: final stack invalid stop pointer" {
 
 test "Signature: final stack no used insances" {
     // default
-    var def = EcdsaInstanceDef.init(512);
+    var def = types.ecdsa_instance_def.EcdsaInstanceDef.init(512);
 
     var builtin = SignatureBuiltinRunner.init(std.testing.allocator, &def, true);
 

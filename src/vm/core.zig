@@ -23,9 +23,8 @@ const Instruction = instructions.Instruction;
 const Opcode = instructions.Opcode;
 const Error = @import("./error.zig");
 const HintProcessor = @import("../hint_processor/hint_processor_def.zig").CairoVMHintProcessor;
-const ExecutionScopes = @import("types/execution_scopes.zig").ExecutionScopes;
+const types = @import("types/types.zig");
 const HintData = @import("../hint_processor/hint_processor_def.zig").HintData;
-const HintRange = @import("../vm/types/program.zig").HintRange;
 
 const decoder = @import("../vm/decoding/decoder.zig");
 
@@ -261,9 +260,9 @@ pub const CairoVM = struct {
         self: *Self,
         allocator: Allocator,
         hint_processor: HintProcessor,
-        exec_scopes: *ExecutionScopes,
+        exec_scopes: *types.execution_scopes.ExecutionScopes,
         hint_datas: *std.ArrayList(HintData),
-        hint_ranges: *std.AutoHashMap(Relocatable, HintRange),
+        hint_ranges: *std.AutoHashMap(Relocatable, types.program.HintRange),
         constants: *std.StringHashMap(Felt252),
     ) !void {
         if (hint_ranges.get(self.run_context.getPC())) |hint_range| {
@@ -289,7 +288,7 @@ pub const CairoVM = struct {
         self: *Self,
         allocator: Allocator,
         hint_processor: HintProcessor,
-        exec_scopes: *ExecutionScopes,
+        exec_scopes: *types.execution_scopes.ExecutionScopes,
         hint_datas: []HintData,
         constants: *std.StringHashMap(Felt252),
     ) !void {
@@ -339,7 +338,7 @@ pub const CairoVM = struct {
 
     /// Do a single step of the VM with not extensive hints.
     /// Process an instruction cycle using the typical fetch-decode-execute cycle.
-    pub fn stepNotExtensive(self: *Self, allocator: Allocator, hint_processor: HintProcessor, exec_scopes: *ExecutionScopes, hint_datas: []HintData, constants: *std.StringHashMap(Felt252)) !void {
+    pub fn stepNotExtensive(self: *Self, allocator: Allocator, hint_processor: HintProcessor, exec_scopes: *types.execution_scopes.ExecutionScopes, hint_datas: []HintData, constants: *std.StringHashMap(Felt252)) !void {
         try self.stepHintNotExtensive(allocator, hint_processor, exec_scopes, hint_datas, constants);
 
         try self.stepInstruction(allocator);
@@ -347,7 +346,7 @@ pub const CairoVM = struct {
 
     /// Do a single step of the VM with extensive hints.
     /// Process an instruction cycle using the typical fetch-decode-execute cycle.
-    pub fn stepExtensive(self: *Self, allocator: Allocator, hint_processor: HintProcessor, exec_scopes: *ExecutionScopes, hint_datas: *std.ArrayList(HintData), hint_ranges: *std.AutoHashMap(Relocatable, HintRange), constants: *std.StringHashMap(Felt252)) !void {
+    pub fn stepExtensive(self: *Self, allocator: Allocator, hint_processor: HintProcessor, exec_scopes: *types.execution_scopes.ExecutionScopes, hint_datas: *std.ArrayList(HintData), hint_ranges: *std.AutoHashMap(Relocatable, types.program.HintRange), constants: *std.StringHashMap(Felt252)) !void {
         try self.stepHintExtensive(allocator, hint_processor, exec_scopes, hint_datas, hint_ranges, constants);
 
         try self.stepInstruction(allocator);
@@ -1514,7 +1513,7 @@ test "Core: test step for preset memory alloc hint not extensive" {
         HintData.init("memory[ap] = segments.add()", ids_data, .{}),
     );
 
-    var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
+    var exec_scopes = try types.execution_scopes.ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();
     var constants = std.StringHashMap(Felt252).init(std.testing.allocator);
     defer constants.deinit();
@@ -1596,13 +1595,13 @@ test "Core: test step for preset memory alloc hint extensive" {
         HintData.init("memory[ap] = segments.add()", ids_data, .{}),
     );
 
-    var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
+    var exec_scopes = try types.execution_scopes.ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();
     var constants = std.StringHashMap(Felt252).init(std.testing.allocator);
     defer constants.deinit();
 
     inline for (0..6) |_| {
-        var hint_ranges = std.AutoHashMap(Relocatable, HintRange).init(std.testing.allocator);
+        var hint_ranges = std.AutoHashMap(Relocatable, types.program.HintRange).init(std.testing.allocator);
         defer hint_ranges.deinit();
 
         try hint_ranges.put(Relocatable.init(0, 0), .{

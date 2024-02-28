@@ -2,17 +2,12 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 const StringHashMap = std.StringHashMap;
-const programjson = @import("../vm/types/programjson.zig");
+const types = @import("../vm/types/types.zig");
+const programjson = types.programjson;
+const execution_scopes = types.execution_scopes;
 const CairoVM = @import("../vm/core.zig").CairoVM;
 const CairoVMError = @import("../vm/error.zig").CairoVMError;
-const OffsetValue = programjson.OffsetValue;
-const ApTracking = programjson.ApTracking;
-const Reference = programjson.Reference;
-const ReferenceProgram = programjson.ReferenceProgram;
-const HintParams = programjson.HintParams;
-const ReferenceManager = programjson.ReferenceManager;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
-const ExecutionScopes = @import("../vm/types/execution_scopes.zig").ExecutionScopes;
 const Relocatable = @import("../vm/memory/relocatable.zig").Relocatable;
 
 /// import hint code
@@ -36,9 +31,9 @@ pub const HintData = struct {
     /// Code string that is mapped by the processor to a corresponding implementation
     code: []const u8,
     ids_data: std.StringHashMap(HintReference),
-    ap_tracking: ApTracking,
+    ap_tracking: programjson.ApTracking,
 
-    pub fn init(code: []const u8, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) Self {
+    pub fn init(code: []const u8, ids_data: std.StringHashMap(HintReference), ap_tracking: programjson.ApTracking) Self {
         return .{
             .code = code,
             .ids_data = ids_data,
@@ -58,13 +53,13 @@ pub const HintData = struct {
 pub const HintReference = struct {
     const Self = @This();
     /// First offset value within the hint reference.
-    offset1: OffsetValue,
+    offset1: programjson.OffsetValue,
     /// Second offset value within the hint reference.
-    offset2: OffsetValue = .{ .value = 0 },
+    offset2: programjson.OffsetValue = .{ .value = 0 },
     /// Flag indicating dereference within the hint reference.
     dereference: bool = true,
     /// Ap tracking data associated with the hint reference (optional, defaults to null).
-    ap_tracking_data: ?ApTracking = null,
+    ap_tracking_data: ?programjson.ApTracking = null,
     /// Cairo type information related to the hint reference (optional, defaults to null).
     cairo_type: ?[]const u8 = null,
 
@@ -143,7 +138,7 @@ pub const CairoVMHintProcessor = struct {
     const Self = @This();
 
     //Transforms hint data outputed by the VM into whichever format will be later used by execute_hint
-    pub fn compileHint(_: *Self, allocator: Allocator, hint_code: []const u8, ap_tracking: ApTracking, reference_ids: StringHashMap(usize), references: []HintReference) !HintData {
+    pub fn compileHint(_: *Self, allocator: Allocator, hint_code: []const u8, ap_tracking: programjson.ApTracking, reference_ids: StringHashMap(usize), references: []HintReference) !HintData {
         const ids_data = try getIdsData(allocator, reference_ids, references);
         errdefer ids_data.deinit();
 
@@ -156,7 +151,7 @@ pub const CairoVMHintProcessor = struct {
 
     // Executes the hint which's data is provided by a dynamic structure previously created by compile_hint
     // Note: if the `extensive_hints` feature is activated the method used by the vm to execute hints is `execute_hint_extensive`, which's default implementation calls this method.
-    pub fn executeHint(_: *const Self, allocator: Allocator, vm: *CairoVM, hint_data: *HintData, constants: *std.StringHashMap(Felt252), exec_scopes: *ExecutionScopes) !void {
+    pub fn executeHint(_: *const Self, allocator: Allocator, vm: *CairoVM, hint_data: *HintData, constants: *std.StringHashMap(Felt252), exec_scopes: *execution_scopes.ExecutionScopes) !void {
         if (std.mem.eql(u8, hint_codes.ASSERT_NN, hint_data.code)) {
             try math_hints.assertNN(vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.VERIFY_ECDSA_SIGNATURE, hint_data.code)) {
@@ -204,7 +199,7 @@ pub const CairoVMHintProcessor = struct {
     // Also returns a map of hints to be loaded after the current hint is executed
     // Note: This is the method used by the vm to execute hints,
     // if you chose to implement this method instead of using the default implementation, then `execute_hint` will not be used
-    pub fn executeHintExtensive(self: *const Self, allocator: Allocator, vm: *CairoVM, hint_data: *HintData, constants: *std.StringHashMap(Felt252), exec_scopes: *ExecutionScopes) !HintExtension {
+    pub fn executeHintExtensive(self: *const Self, allocator: Allocator, vm: *CairoVM, hint_data: *HintData, constants: *std.StringHashMap(Felt252), exec_scopes: *execution_scopes.ExecutionScopes) !HintExtension {
         try self.executeHint(allocator, vm, hint_data, constants, exec_scopes);
 
         return HintExtension.init(allocator);

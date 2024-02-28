@@ -1,7 +1,7 @@
 const std = @import("std");
 const relocatable = @import("../../memory/relocatable.zig");
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
-const poseidon_instance_def = @import("../../types/poseidon_instance_def.zig");
+const types = @import("../../types/types.zig");
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
 const Memory = @import("../../memory/memory.zig").Memory;
@@ -10,8 +10,6 @@ const RunnerError = @import("../../error.zig").RunnerError;
 const poseidonPermuteComp = @import("../../../math/crypto/poseidon/poseidon.zig").poseidonPermuteComp;
 const MemoryError = @import("../../error.zig").MemoryError;
 const CairoVMError = @import("../../error.zig").CairoVMError;
-const Program = @import("../../types/program.zig").Program;
-const ProgramJSON = @import("../../types/programjson.zig");
 const CairoVM = @import("../../core.zig").CairoVM;
 const CairoRunner = @import("../../runners/cairo_runner.zig").CairoRunner;
 const BuiltinRunner = @import("./builtin_runner.zig").BuiltinRunner;
@@ -20,7 +18,7 @@ const AutoHashMap = std.AutoHashMap;
 const ArrayList = std.ArrayList;
 const Allocator = std.mem.Allocator;
 
-const PoseidonInstanceDef = poseidon_instance_def.PoseidonInstanceDef;
+const PoseidonInstanceDef = types.poseidon_instance_def.PoseidonInstanceDef;
 
 const expectError = std.testing.expectError;
 const expectEqual = std.testing.expectEqual;
@@ -36,9 +34,9 @@ pub const PoseidonBuiltinRunner = struct {
     /// Ratio
     ratio: ?u32,
     /// Number of cells per instance
-    cells_per_instance: u32 = poseidon_instance_def.CELLS_PER_POSEIDON,
+    cells_per_instance: u32 = types.poseidon_instance_def.CELLS_PER_POSEIDON,
     /// Number of input cells
-    n_input_cells: u32 = poseidon_instance_def.INPUT_CELLS_PER_POSEIDON,
+    n_input_cells: u32 = types.poseidon_instance_def.INPUT_CELLS_PER_POSEIDON,
     /// Stop pointer
     stop_ptr: ?usize = null,
     /// Included boolean flag

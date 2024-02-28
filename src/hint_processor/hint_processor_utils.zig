@@ -1,11 +1,10 @@
 const std = @import("std");
 
 const Register = @import("../vm/instructions.zig").Register;
-const ApTracking = @import("../vm/types/programjson.zig").ApTracking;
+const programjson = @import("../vm/types/types.zig").programjson;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const HintReference = @import("hint_processor_def.zig").HintReference;
 const CoreVM = @import("../vm/core.zig");
-const OffsetValue = @import("../vm/types/programjson.zig").OffsetValue;
 const CairoVM = CoreVM.CairoVM;
 const MaybeRelocatable = @import("../vm/memory/relocatable.zig").MaybeRelocatable;
 const Relocatable = @import("../vm/memory/relocatable.zig").Relocatable;
@@ -18,7 +17,7 @@ pub fn insertValueFromReference(
     value: MaybeRelocatable,
     vm: *CairoVM,
     hint_reference: HintReference,
-    ap_tracking: ApTracking,
+    ap_tracking: programjson.ApTracking,
 ) !void {
     if (computeAddrFromReference(hint_reference, ap_tracking, vm)) |var_addr| {
         vm.segments.memory.set(allocator, var_addr, value) catch HintError.Memory;
@@ -30,7 +29,7 @@ pub fn insertValueFromReference(
 pub fn getIntegerFromReference(
     vm: *CairoVM,
     hint_reference: HintReference,
-    ap_tracking: ApTracking,
+    ap_tracking: programjson.ApTracking,
 ) !Felt252 {
     // if the reference register is none, this means it is an immediate value and we
     // should return that value.
@@ -43,7 +42,7 @@ pub fn getIntegerFromReference(
 }
 
 ///Returns the Relocatable value stored in the given ids variable
-pub fn getPtrFromReference(hint_reference: HintReference, ap_tracking: ApTracking, vm: *CairoVM) !Relocatable {
+pub fn getPtrFromReference(hint_reference: HintReference, ap_tracking: programjson.ApTracking, vm: *CairoVM) !Relocatable {
     const var_addr = computeAddrFromReference(hint_reference, ap_tracking, vm) orelse return HintError.UnknownIdentifierInternal;
 
     return if (hint_reference.dereference)
@@ -52,7 +51,7 @@ pub fn getPtrFromReference(hint_reference: HintReference, ap_tracking: ApTrackin
         var_addr;
 }
 
-pub fn applyApTrackingCorrection(addr: Relocatable, ref_ap_tracking: ApTracking, hint_ap_tracking: ApTracking) ?Relocatable {
+pub fn applyApTrackingCorrection(addr: Relocatable, ref_ap_tracking: programjson.ApTracking, hint_ap_tracking: programjson.ApTracking) ?Relocatable {
     if (ref_ap_tracking.group == hint_ap_tracking.group) {
         return addr.subUint(hint_ap_tracking.offset - ref_ap_tracking.offset) catch unreachable;
     }
@@ -62,8 +61,8 @@ pub fn applyApTrackingCorrection(addr: Relocatable, ref_ap_tracking: ApTracking,
 pub fn getOffsetValueReference(
     vm: *CairoVM,
     hint_reference: HintReference,
-    hint_ap_tracking: ApTracking,
-    offset_value: OffsetValue,
+    hint_ap_tracking: programjson.ApTracking,
+    offset_value: programjson.OffsetValue,
 ) ?MaybeRelocatable {
     const refer = switch (offset_value) {
         .reference => |ref| ref,
@@ -86,7 +85,7 @@ pub fn getOffsetValueReference(
     }
 }
 ///Computes the memory address of the ids variable indicated by the HintReference as a [Relocatable]
-pub fn computeAddrFromReference(hint_reference: HintReference, hint_ap_tracking: ApTracking, vm: *CairoVM) ?Relocatable {
+pub fn computeAddrFromReference(hint_reference: HintReference, hint_ap_tracking: programjson.ApTracking, vm: *CairoVM) ?Relocatable {
     const offset1 = switch (hint_reference.offset1) {
         .reference => getOffsetValueReference(vm, hint_reference, hint_ap_tracking, hint_reference.offset1).?.intoRelocatable() catch unreachable,
         else => return null,
@@ -105,7 +104,7 @@ pub fn computeAddrFromReference(hint_reference: HintReference, hint_ap_tracking:
 pub fn getMaybeRelocatableFromReference(
     vm: *CairoVM,
     hint_reference: HintReference,
-    ap_tracking: ApTracking,
+    ap_tracking: programjson.ApTracking,
 ) ?MaybeRelocatable {
     //First handle case on only immediate
     switch (hint_reference.offset1) {

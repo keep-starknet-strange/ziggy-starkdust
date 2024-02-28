@@ -1,4 +1,5 @@
 const std = @import("std");
+const Allocator = std.mem.Allocator;
 
 const CoreVM = @import("../vm/core.zig");
 const field_helper = @import("../math/fields/helper.zig");
@@ -13,15 +14,13 @@ const HintProcessor = @import("hint_processor_def.zig").CairoVMHintProcessor;
 const HintData = @import("hint_processor_def.zig").HintData;
 const HintReference = @import("hint_processor_def.zig").HintReference;
 const hint_codes = @import("builtin_hint_codes.zig");
-const Allocator = std.mem.Allocator;
-const ApTracking = @import("../vm/types/programjson.zig").ApTracking;
-const ExecutionScopes = @import("../vm/types/execution_scopes.zig").ExecutionScopes;
-
+const types = @import("../vm/types/types.zig");
+const programjson = types.programjson;
+const execution_scopes = types.execution_scopes;
+const ecdsa_instance_def = types.ecdsa_instance_def;
 const testing_utils = @import("testing_utils.zig");
 const RangeCheckBuiltinRunner = @import("../vm/builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
 const SignatureBuiltinRunner = @import("../vm/builtins/builtin_runner/signature.zig").SignatureBuiltinRunner;
-const EcdsaInstanceDef = @import("../vm/types/ecdsa_instance_def.zig").EcdsaInstanceDef;
-
 const MathError = @import("../vm/error.zig").MathError;
 const HintError = @import("../vm/error.zig").HintError;
 const CairoVMError = @import("../vm/error.zig").CairoVMError;
@@ -35,7 +34,7 @@ const CairoVMError = @import("../vm/error.zig").CairoVMError;
 pub fn assertNN(
     vm: *CairoVM,
     ids_data: std.StringHashMap(HintReference),
-    ap_tracking: ApTracking,
+    ap_tracking: programjson.ApTracking,
 ) !void {
     const a = try hint_utils.getIntegerFromVarName(
         "a",
@@ -53,7 +52,7 @@ pub fn assertNN(
     }
 }
 
-pub fn isPositive(allocator: Allocator, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {
+pub fn isPositive(allocator: Allocator, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: programjson.ApTracking) !void {
     const value = try hint_utils.getIntegerFromVarName("value", vm, ids_data, ap_tracking);
     const range_check = try vm.getRangeCheckBuiltin();
 
@@ -82,7 +81,7 @@ pub fn isPositive(allocator: Allocator, vm: *CairoVM, ids_data: std.StringHashMa
 pub fn assertNonZero(
     vm: *CairoVM,
     ids_data: std.StringHashMap(HintReference),
-    ap_tracking: ApTracking,
+    ap_tracking: programjson.ApTracking,
 ) !void {
     const value = try hint_utils.getIntegerFromVarName("value", vm, ids_data, ap_tracking);
 
@@ -92,7 +91,7 @@ pub fn assertNonZero(
 pub fn verifyEcdsaSignature(
     vm: *CairoVM,
     ids_data: std.StringHashMap(HintReference),
-    ap_tracking: ApTracking,
+    ap_tracking: programjson.ApTracking,
 ) !void {
     const r = try hint_utils.getIntegerFromVarName("signature_r", vm, ids_data, ap_tracking);
 
@@ -125,7 +124,7 @@ pub fn isQuadResidue(
     allocator: Allocator,
     vm: *CairoVM,
     ids_data: std.StringHashMap(HintReference),
-    ap_tracking: ApTracking,
+    ap_tracking: programjson.ApTracking,
 ) !void {
     _ = ap_tracking; // autofix
     _ = vm; // autofix
@@ -154,7 +153,7 @@ pub fn isQuadResidue(
 pub fn assertNotEqual(
     vm: *CairoVM,
     ids_data: std.StringHashMap(HintReference),
-    ap_tracking: ApTracking,
+    ap_tracking: programjson.ApTracking,
 ) !void {
     const maybe_rel_a = try hint_utils.getMaybeRelocatableFromVarName("a", vm, ids_data, ap_tracking);
     const maybe_rel_b = try hint_utils.getMaybeRelocatableFromVarName("b", vm, ids_data, ap_tracking);
@@ -189,7 +188,7 @@ pub fn sqrt(
     allocator: Allocator,
     vm: *CairoVM,
     ids_data: std.StringHashMap(HintReference),
-    ap_tracking: ApTracking,
+    ap_tracking: programjson.ApTracking,
 ) !void {
     const mod_value = try hint_utils.getIntegerFromVarName("value", vm, ids_data, ap_tracking);
 
@@ -220,7 +219,7 @@ pub fn unsignedDivRem(
     allocator: Allocator,
     vm: *CairoVM,
     ids_data: std.StringHashMap(HintReference),
-    ap_tracking: ApTracking,
+    ap_tracking: programjson.ApTracking,
 ) !void {
     const div = try hint_utils.getIntegerFromVarName("div", vm, ids_data, ap_tracking);
     const value = try hint_utils.getIntegerFromVarName("value", vm, ids_data, ap_tracking);
@@ -266,9 +265,9 @@ fn cmpFn(context: void, a: struct { u256, u64 }, b: struct { u256, u64 }) bool {
 pub fn assertLeFelt(
     allocator: Allocator,
     vm: *CairoVM,
-    exec_scopes: *ExecutionScopes,
+    exec_scopes: *execution_scopes.ExecutionScopes,
     ids_data: std.StringHashMap(HintReference),
-    ap_tracking: ApTracking,
+    ap_tracking: programjson.ApTracking,
     constants: *std.StringHashMap(Felt252),
 ) !void {
     const PRIME_OVER_3_HIGH = "starkware.cairo.common.math.assert_le_felt.PRIME_OVER_3_HIGH";
@@ -330,7 +329,7 @@ pub fn assertLeFelt(
 pub fn assertLeFeltExcluded0(
     allocator: Allocator,
     vm: *CairoVM,
-    exec_scopes: *const ExecutionScopes,
+    exec_scopes: *const execution_scopes.ExecutionScopes,
 ) !void {
     const excluded = try exec_scopes.getFelt("excluded");
 
@@ -344,7 +343,7 @@ pub fn assertLeFeltExcluded0(
 pub fn assertLeFeltExcluded1(
     allocator: Allocator,
     vm: *CairoVM,
-    exec_scopes: *ExecutionScopes,
+    exec_scopes: *execution_scopes.ExecutionScopes,
 ) !void {
     const excluded = try exec_scopes.getFelt("excluded");
 
@@ -355,7 +354,7 @@ pub fn assertLeFeltExcluded1(
     }
 }
 
-pub fn assertLeFeltExcluded2(exec_scopes: *ExecutionScopes) !void {
+pub fn assertLeFeltExcluded2(exec_scopes: *execution_scopes.ExecutionScopes) !void {
     const excluded = try exec_scopes.getFelt("excluded");
 
     if (!excluded.equal(Felt252.fromInt(u256, 2))) {
@@ -374,7 +373,7 @@ pub fn assertLeFeltExcluded2(exec_scopes: *ExecutionScopes) !void {
 pub fn assertLtFelt(
     vm: *CairoVM,
     ids_data: std.StringHashMap(HintReference),
-    ap_tracking: ApTracking,
+    ap_tracking: programjson.ApTracking,
 ) !void {
     const a = try hint_utils.getIntegerFromVarName("a", vm, ids_data, ap_tracking);
     const b = try hint_utils.getIntegerFromVarName("b", vm, ids_data, ap_tracking);
@@ -398,7 +397,7 @@ pub fn assert250Bit(
     allocator: Allocator,
     vm: *CairoVM,
     ids_data: std.StringHashMap(HintReference),
-    ap_tracking: ApTracking,
+    ap_tracking: programjson.ApTracking,
     constants: *std.StringHashMap(Felt252),
 ) !void {
     const UPPER_BOUND = "starkware.cairo.common.math.assert_250_bit.UPPER_BOUND";
@@ -441,7 +440,7 @@ pub fn splitFelt(
     allocator: Allocator,
     vm: *CairoVM,
     ids_data: std.StringHashMap(HintReference),
-    ap_tracking: ApTracking,
+    ap_tracking: programjson.ApTracking,
     constants: *std.StringHashMap(Felt252),
 ) !void {
     const bound = Felt252.two().pow(128);
@@ -469,7 +468,7 @@ pub fn splitFelt(
 pub fn splitIntAssertRange(
     vm: *CairoVM,
     ids_data: std.StringHashMap(HintReference),
-    ap_tracking: ApTracking,
+    ap_tracking: programjson.ApTracking,
 ) !void {
     const value = try hint_utils.getIntegerFromVarName("value", vm, ids_data, ap_tracking);
     //Main logic (assert value == 0)
@@ -507,7 +506,7 @@ pub fn signedDivRem(
     allocator: Allocator,
     vm: *CairoVM,
     ids_data: std.StringHashMap(HintReference),
-    ap_tracking: ApTracking,
+    ap_tracking: programjson.ApTracking,
 ) !void {
     const div = try hint_utils.getIntegerFromVarName("div", vm, ids_data, ap_tracking);
     const value = try hint_utils.getIntegerFromVarName("value", vm, ids_data, ap_tracking);
@@ -908,7 +907,7 @@ test "MathHints: verifyEcdsaSignature valid" {
     );
     defer vm.deinit();
 
-    var def = EcdsaInstanceDef.init(2048);
+    var def = ecdsa_instance_def.EcdsaInstanceDef.init(2048);
     try vm.builtin_runners.append(.{
         .Signature = SignatureBuiltinRunner.init(std.testing.allocator, &def, true),
     });
@@ -1187,7 +1186,7 @@ test "MathHints: assertLeFelt valid" {
     _ = try vm.addMemorySegment();
     _ = try vm.addMemorySegment();
 
-    var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
+    var exec_scopes = try execution_scopes.ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();
     try exec_scopes.assignOrUpdateVariable("exclued", .{ .u64 = 1 });
 
@@ -1241,7 +1240,7 @@ test "MathHints: assertLeFelt invalid" {
     _ = try vm.addMemorySegment();
     _ = try vm.addMemorySegment();
 
-    var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
+    var exec_scopes = try execution_scopes.ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();
     try exec_scopes.assignOrUpdateVariable("exclued", .{
         .felt = Felt252.one(),

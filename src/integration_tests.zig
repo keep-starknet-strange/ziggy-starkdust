@@ -1,6 +1,5 @@
 const std = @import("std");
-const ProgramJson = @import("vm/types/programjson.zig").ProgramJson;
-const Program = @import("vm/types/program.zig").Program;
+const types = @import("vm/types/types.zig");
 const CairoVM = @import("vm/core.zig").CairoVM;
 const CairoRunner = @import("vm/runners/cairo_runner.zig").CairoRunner;
 
@@ -66,7 +65,7 @@ pub fn cairo_run(allocator: std.mem.Allocator, pathname: []const u8, layout: []c
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
     const path = try std.os.realpath(pathname, &buffer);
 
-    var parsed_program = try ProgramJson.parseFromFile(allocator, path);
+    var parsed_program = try types.ProgramJson.parseFromFile(allocator, path);
     defer parsed_program.deinit();
 
     var entrypoint: []const u8 = "main";

@@ -1,11 +1,10 @@
 const std = @import("std");
 
 const Register = @import("../vm/instructions.zig").Register;
-const ApTracking = @import("../vm/types/programjson.zig").ApTracking;
+const programjson = @import("../vm/types/types.zig").programjson;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const HintReference = @import("hint_processor_def.zig").HintReference;
 const CoreVM = @import("../vm/core.zig");
-const OffsetValue = @import("../vm/types/programjson.zig").OffsetValue;
 const CairoVM = CoreVM.CairoVM;
 const MaybeRelocatable = @import("../vm/memory/relocatable.zig").MaybeRelocatable;
 const Relocatable = @import("../vm/memory/relocatable.zig").Relocatable;
@@ -34,7 +33,7 @@ pub fn insertValueFromVarName(
     value: MaybeRelocatable,
     vm: *CairoVM,
     ids_data: std.StringHashMap(HintReference),
-    ap_tracking: ApTracking,
+    ap_tracking: programjson.ApTracking,
 ) !void {
     const var_address = try getRelocatableFromVarName(var_name, vm, ids_data, ap_tracking);
     try vm.segments.memory.set(allocator, var_address, value);
@@ -54,7 +53,7 @@ pub fn getPtrFromVarName(
     var_name: []const u8,
     vm: *CairoVM,
     ids_data: std.StringHashMap(HintReference),
-    ap_tracking: ApTracking,
+    ap_tracking: programjson.ApTracking,
 ) !Relocatable {
     const reference = try getReferenceFromVarName(var_name, ids_data);
 
@@ -77,7 +76,7 @@ pub fn getAddressFromVarName(
     var_name: []const u8,
     vm: *CairoVM,
     ids_data: std.StringHashMap(HintReference),
-    ap_tracking: ApTracking,
+    ap_tracking: programjson.ApTracking,
 ) !MaybeRelocatable {
     return MaybeRelocatable.fromRelocatable(try getRelocatableFromVarName(var_name, vm, ids_data, ap_tracking));
 }
@@ -87,7 +86,7 @@ pub fn getRelocatableFromVarName(
     var_name: []const u8,
     vm: *CairoVM,
     ids_data: std.StringHashMap(HintReference),
-    ap_tracking: ApTracking,
+    ap_tracking: programjson.ApTracking,
 ) !Relocatable {
     return if (ids_data.get(var_name)) |x| if (hint_processor_utils.computeAddrFromReference(x, ap_tracking, vm)) |v| v else HintError.UnknownIdentifier else HintError.UnknownIdentifier;
 }
@@ -99,7 +98,7 @@ pub fn getIntegerFromVarName(
     var_name: []const u8,
     vm: *CairoVM,
     ids_data: std.StringHashMap(HintReference),
-    ap_tracking: ApTracking,
+    ap_tracking: programjson.ApTracking,
 ) !Felt252 {
     const reference = try getReferenceFromVarName(var_name, ids_data);
 
@@ -109,7 +108,7 @@ pub fn getIntegerFromVarName(
     };
 }
 
-pub fn getValueFromReference(reference: HintReference, ap_tracking: ApTracking, vm: *CairoVM) !?MaybeRelocatable {
+pub fn getValueFromReference(reference: HintReference, ap_tracking: programjson.ApTracking, vm: *CairoVM) !?MaybeRelocatable {
     // Handle the case of immediate
     switch (reference.offset1) {
         .immediate => |val| return MaybeRelocatable.fromFelt(val),
@@ -132,7 +131,7 @@ pub fn getMaybeRelocatableFromVarName(
     var_name: []const u8,
     vm: *CairoVM,
     ids_data: std.StringHashMap(HintReference),
-    ap_tracking: ApTracking,
+    ap_tracking: programjson.ApTracking,
 ) !MaybeRelocatable {
     const reference = try getReferenceFromVarName(var_name, ids_data);
 

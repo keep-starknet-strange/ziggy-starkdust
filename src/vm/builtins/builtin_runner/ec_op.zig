@@ -1,5 +1,5 @@
 const std = @import("std");
-const ec_op_instance_def = @import("../../types/ec_op_instance_def.zig");
+const ec_op_instance_def = @import("../../types/types.zig").ec_op_instance_def;
 const EcOpInstanceDef = ec_op_instance_def.EcOpInstanceDef;
 const relocatable = @import("../../memory/relocatable.zig");
 const CoreVM = @import("../../../vm/core.zig");

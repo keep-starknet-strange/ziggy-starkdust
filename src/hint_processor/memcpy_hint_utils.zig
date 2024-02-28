@@ -1,12 +1,10 @@
 const std = @import("std");
 const hint_utils = @import("hint_utils.zig");
 const testing_utils = @import("testing_utils.zig");
+const types = @import("../vm/types/types.zig");
 
-const ApTracking = @import("../vm/types/programjson.zig").ApTracking;
 const Allocator = std.mem.Allocator;
 const CairoVM = @import("../vm/core.zig").CairoVM;
-const ExecutionScopes = @import("../vm/types/execution_scopes.zig").ExecutionScopes;
-const HintType = @import("../vm/types/execution_scopes.zig").HintType;
 const HintReference = @import("hint_processor_def.zig").HintReference;
 const MaybeRelocatable = @import("../vm/memory/relocatable.zig").MaybeRelocatable;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
@@ -20,14 +18,14 @@ pub fn addSegment(allocator: Allocator, vm: *CairoVM) !void {
 }
 
 //Implements hint: vm_enter_scope()
-pub fn enterScope(allocator: Allocator, exec_scopes: *ExecutionScopes) !void {
-    const scope = std.StringHashMap(HintType).init(allocator);
+pub fn enterScope(allocator: Allocator, exec_scopes: *types.execution_scopes.ExecutionScopes) !void {
+    const scope = std.StringHashMap(types.execution_scopes.HintType).init(allocator);
     try exec_scopes.enterScope(scope);
 }
 
 //  Implements hint:
 //  %{ vm_exit_scope() %}
-pub fn exitScope(exec_scopes: *ExecutionScopes) !void {
+pub fn exitScope(exec_scopes: *types.execution_scopes.ExecutionScopes) !void {
     try exec_scopes.exitScope();
 }
 
@@ -36,12 +34,12 @@ pub fn exitScope(exec_scopes: *ExecutionScopes) !void {
 pub fn memcpyEnterScope(
     allocator: Allocator,
     vm: *CairoVM,
-    exec_scopes: *ExecutionScopes,
+    exec_scopes: *types.execution_scopes.ExecutionScopes,
     ids_data: std.StringHashMap(HintReference),
-    ap_tracking: ApTracking,
+    ap_tracking: types.programjson.ApTracking,
 ) !void {
     const len = try hint_utils.getIntegerFromVarName("len", vm, ids_data, ap_tracking);
-    var scope = std.StringHashMap(HintType).init(allocator);
+    var scope = std.StringHashMap(types.execution_scopes.HintType).init(allocator);
     errdefer scope.deinit();
 
     try scope.put("n", .{ .felt = len });

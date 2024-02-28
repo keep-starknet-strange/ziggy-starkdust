@@ -1,7 +1,6 @@
 const std = @import("std");
 
-const bitwise_instance_def = @import("../../types/bitwise_instance_def.zig");
-const BitwiseInstanceDef = @import("../../types/bitwise_instance_def.zig").BitwiseInstanceDef;
+const types = @import("../../types/types.zig");
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const Segments = @import("../../memory/segments.zig");
 const Error = @import("../../error.zig");
@@ -25,7 +24,7 @@ pub const BitwiseError = error{
     InvalidAddressForBitwise,
 };
 
-const BITWISE_INSTANCE_DEF = BitwiseInstanceDef{};
+const BITWISE_INSTANCE_DEF = types.bitwise_instance_def.BitwiseInstanceDef{};
 
 /// Bitwise built-in runner
 pub const BitwiseBuiltinRunner = struct {
@@ -36,12 +35,12 @@ pub const BitwiseBuiltinRunner = struct {
     /// Base
     base: usize = 0,
     /// the number of memory cells per invocation
-    cells_per_instance: u32 = bitwise_instance_def.CELLS_PER_BITWISE,
+    cells_per_instance: u32 = types.bitwise_instance_def.CELLS_PER_BITWISE,
     /// The number of the first memory cells in each invocation that that form the input.
     /// The rest of the cells are considered output.
-    n_input_cells: u32 = bitwise_instance_def.INPUT_CELLS_PER_BITWISE,
+    n_input_cells: u32 = types.bitwise_instance_def.INPUT_CELLS_PER_BITWISE,
     /// Built-in bitwise instance
-    bitwise_builtin: BitwiseInstanceDef = BITWISE_INSTANCE_DEF,
+    bitwise_builtin: types.bitwise_instance_def.BitwiseInstanceDef = BITWISE_INSTANCE_DEF,
     /// Stop pointer
     stop_ptr: ?usize = null,
     /// Included boolean flag
@@ -56,14 +55,14 @@ pub const BitwiseBuiltinRunner = struct {
     ///
     /// # Arguments
     ///
-    /// - `instance_def`: A pointer to the `BitwiseInstanceDef` for this runner.
+    /// - `instance_def`: A pointer to the `types.bitwise_instance_def.BitwiseInstanceDef` for this runner.
     /// - `included`: A boolean flag indicating whether this runner is included.
     ///
     /// # Returns
     ///
     /// A new `BitwiseBuiltinRunner` instance.
     pub fn init(
-        instance_def: *const BitwiseInstanceDef,
+        instance_def: *const types.bitwise_instance_def.BitwiseInstanceDef,
         included: bool,
     ) Self {
         return .{
@@ -409,7 +408,7 @@ test "BitwiseBuiltinRunner: initialStack should return an empty array list if in
     defer expected.deinit();
 
     // given a builtin when not included
-    var default: BitwiseInstanceDef = .{};
+    var default: types.bitwise_instance_def.BitwiseInstanceDef = .{};
     var builtin = BitwiseBuiltinRunner.init(&default, false);
 
     // then
@@ -878,7 +877,7 @@ test "BitwiseBuiltinRunner: should return expectededuceMemoryCell bitwise-or" {
 
 test "BitwiseBuiltinRunner: finalStack should return relocatable pointer if not included" {
     // given
-    var default: BitwiseInstanceDef = .{};
+    var default: types.bitwise_instance_def.BitwiseInstanceDef = .{};
     var builtin = BitwiseBuiltinRunner.init(&default, false);
 
     // when
@@ -1176,7 +1175,7 @@ test "BitwiseBuiltinRunner: deduceMemoryCell should return UnsupportedNumberOfBi
     const address = Relocatable.init(0, 7);
 
     try Memory.setUpMemory(mem, std.testing.allocator, .{
-        .{ .{ 0, 5 }, .{std.math.pow(u256, 2, bitwise_instance_def.TOTAL_N_BITS_BITWISE_DEFAULT) + 1} },
+        .{ .{ 0, 5 }, .{std.math.pow(u256, 2, types.bitwise_instance_def.TOTAL_N_BITS_BITWISE_DEFAULT) + 1} },
         .{ .{ 0, 6 }, .{12} },
         .{ .{ 0, 8 }, .{0} },
     });
