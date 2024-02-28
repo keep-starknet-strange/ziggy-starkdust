@@ -1,6 +1,6 @@
 const std = @import("std");
 const Felt252 = @import("../../math/fields/starknet.zig").Felt252;
-const CairoVMError = @import("../error.zig").CairoVMError;
+const VMError = @import("../error.zig").VMError;
 const MathError = @import("../error.zig").MathError;
 const MemoryError = @import("../error.zig").MemoryError;
 const STARKNET_PRIME = @import("../../math/fields/constants.zig").STARKNET_PRIME;
@@ -99,7 +99,7 @@ pub const Relocatable = struct {
     /// This method fails if `self` and other` are not from the same segment.
     pub fn sub(self: Self, other: Self) !Self {
         if (self.segment_index != other.segment_index) {
-            return CairoVMError.TypeMismatchNotRelocatable;
+            return VMError.TypeMismatchNotRelocatable;
         }
 
         return try subUint(self, other.offset);
@@ -443,9 +443,9 @@ pub const MaybeRelocatable = union(enum) {
     /// Return the value of the MaybeRelocatable as a felt or error.
     /// # Returns
     /// The value of the MaybeRelocatable as a Relocatable felt or error.
-    pub fn intoFelt(self: *const Self) CairoVMError!Felt252 {
+    pub fn intoFelt(self: *const Self) VMError!Felt252 {
         return switch (self.*) {
-            .relocatable => CairoVMError.TypeMismatchNotFelt,
+            .relocatable => VMError.TypeMismatchNotFelt,
             .felt => |felt| felt,
         };
     }
@@ -458,7 +458,7 @@ pub const MaybeRelocatable = union(enum) {
         ValueTooLarge,
     }!u64 {
         return switch (self.*) {
-            .relocatable => CairoVMError.TypeMismatchNotFelt,
+            .relocatable => VMError.TypeMismatchNotFelt,
             .felt => |felt| felt.intoU64(),
         };
     }
@@ -466,10 +466,10 @@ pub const MaybeRelocatable = union(enum) {
     /// Return the value of the MaybeRelocatable as a Relocatable.
     /// # Returns
     /// The value of the MaybeRelocatable as a Relocatable.
-    pub fn intoRelocatable(self: *const Self) CairoVMError!Relocatable {
+    pub fn intoRelocatable(self: *const Self) VMError!Relocatable {
         return switch (self.*) {
             .relocatable => |relocatable| relocatable,
-            .felt => CairoVMError.TypeMismatchNotRelocatable,
+            .felt => VMError.TypeMismatchNotRelocatable,
         };
     }
 
@@ -774,7 +774,7 @@ test "Relocatable: sub two Relocatable with same segment index but impossible su
 
 test "Relocatable: sub two Relocatable with different segment index" {
     try expectError(
-        CairoVMError.TypeMismatchNotRelocatable,
+        VMError.TypeMismatchNotRelocatable,
         Relocatable.init(2, 8).sub(Relocatable.init(3, 5)),
     );
 }
@@ -809,7 +809,7 @@ test "Relocatable: addMaybeRelocatableInplace should increase offset if other is
 test "Relocatable: addMaybeRelocatableInplace should return an error if other is Relocatable" {
     var relocatable = Relocatable.init(2, 8);
     try expectError(
-        CairoVMError.TypeMismatchNotFelt,
+        VMError.TypeMismatchNotFelt,
         relocatable.addMaybeRelocatableInplace(MaybeRelocatable{ .relocatable = Relocatable.init(
             0,
             10,
@@ -1204,7 +1204,7 @@ test "MaybeRelocatable: intoRelocatable should return Relocatable if MaybeReloca
 test "MaybeRelocatable: intoRelocatable should return an error if MaybeRelocatable is Felt" {
     var maybeRelocatable = MaybeRelocatable.fromInt(u8, 10);
     try expectError(
-        CairoVMError.TypeMismatchNotRelocatable,
+        VMError.TypeMismatchNotRelocatable,
         maybeRelocatable.intoRelocatable(),
     );
 }
@@ -1251,7 +1251,7 @@ test "MaybeRelocatable: intoFelt should return Felt if MaybeRelocatable is Felt"
 
 test "MaybeRelocatable: intoFelt should return an error if MaybeRelocatable is Relocatable" {
     var maybeRelocatable = MaybeRelocatable.fromSegment(0, 10);
-    try expectError(CairoVMError.TypeMismatchNotFelt, maybeRelocatable.intoFelt());
+    try expectError(VMError.TypeMismatchNotFelt, maybeRelocatable.intoFelt());
 }
 
 test "MaybeRelocatable: intoU64 should return a u64 if MaybeRelocatable is Felt" {
@@ -1261,7 +1261,7 @@ test "MaybeRelocatable: intoU64 should return a u64 if MaybeRelocatable is Felt"
 
 test "MaybeRelocatable: intoU64 should return an error if MaybeRelocatable is Relocatable" {
     const maybeRelocatable = MaybeRelocatable.fromSegment(0, 10);
-    try expectError(CairoVMError.TypeMismatchNotFelt, maybeRelocatable.intoU64());
+    try expectError(VMError.TypeMismatchNotFelt, maybeRelocatable.intoU64());
 }
 
 test "MaybeRelocatable: intoU64 should return an error if MaybeRelocatable Felt cannot be coerced to u64" {
@@ -1326,7 +1326,7 @@ test "MaybeRelocatable: sub between two Relocatable should return a proper Maybe
 
 test "MaybeRelocatable: sub between two Relocatable with different segment indexes should return an error" {
     try expectError(
-        CairoVMError.TypeMismatchNotRelocatable,
+        VMError.TypeMismatchNotRelocatable,
         MaybeRelocatable.fromSegment(3, 20).sub(MaybeRelocatable.fromSegment(0, 10)),
     );
 }

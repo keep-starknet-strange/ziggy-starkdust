@@ -6,7 +6,7 @@ const types = @import("../vm/types/types.zig");
 const programjson = types.programjson;
 const execution_scopes = types.execution_scopes;
 const CairoVM = @import("../vm/core.zig").CairoVM;
-const CairoVMError = @import("../vm/error.zig").CairoVMError;
+const VMError = @import("../vm/error.zig").VMError;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const Relocatable = @import("../vm/memory/relocatable.zig").Relocatable;
 
@@ -117,11 +117,11 @@ pub fn getIdsData(allocator: Allocator, reference_ids: StringHashMap(usize), ref
         const path = ref_id_entry.key_ptr.*;
         const ref_id = ref_id_entry.value_ptr.*;
 
-        if (ref_id >= references.len) return CairoVMError.Unexpected;
+        if (ref_id >= references.len) return VMError.Unexpected;
 
         var name_iterator = std.mem.splitBackwardsSequence(u8, path, ".");
 
-        const name = name_iterator.next() orelse return CairoVMError.Unexpected;
+        const name = name_iterator.next() orelse return VMError.Unexpected;
         const ref_hint = references[ref_id];
 
         try ids_data.put(name, ref_hint);
@@ -315,7 +315,7 @@ test "getIdsData: should throw Unexpected when there is no ref data correspondin
 
     // then
     try expectError(
-        CairoVMError.Unexpected,
+        VMError.Unexpected,
         getIdsData(allocator, reference_ids, references.items),
     );
 }

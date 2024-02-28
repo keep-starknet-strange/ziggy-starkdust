@@ -10,10 +10,11 @@ const HintProcessor = @import("../../hint_processor/hint_processor_def.zig").Cai
 const Config = @import("../config.zig").Config;
 const CairoVM = @import("../core.zig").CairoVM;
 const types = @import("../types/types.zig");
+const Program = types.Program;
 const Relocatable = @import("../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../memory/relocatable.zig").MaybeRelocatable;
 const CairoRunnerError = @import("../error.zig").CairoRunnerError;
-const CairoVMError = @import("../error.zig").CairoVMError;
+const VMError = @import("../error.zig").VMError;
 const RunnerError = @import("../error.zig").RunnerError;
 const MemoryError = @import("../error.zig").MemoryError;
 const trace_context = @import("../trace_context.zig");
@@ -112,7 +113,7 @@ const BuiltinInfo = struct { segment_index: usize, stop_pointer: usize };
 pub const CairoRunner = struct {
     const Self = @This();
 
-    program: types.program.Program,
+    program: Program,
     allocator: Allocator,
     vm: CairoVM,
     program_base: ?Relocatable = null,
@@ -134,7 +135,7 @@ pub const CairoRunner = struct {
 
     pub fn init(
         allocator: Allocator,
-        program: types.program.Program,
+        program: Program,
         layout: []const u8,
         instructions: std.ArrayList(MaybeRelocatable),
         vm: CairoVM,
@@ -466,7 +467,7 @@ pub const CairoRunner = struct {
                     hint.flow_tracking_data.ap_tracking,
                     reference_ids,
                     references,
-                ) catch CairoVMError.CompileHintFail),
+                ) catch VMError.CompileHintFail),
             );
         }
 
@@ -699,7 +700,7 @@ pub const CairoRunner = struct {
 test "CairoRunner: initMainEntrypoint no main" {
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        try types.program.Program.initDefault(std.testing.allocator, true),
+        try Program.initDefault(std.testing.allocator, true),
         "all_cairo",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
@@ -720,7 +721,7 @@ test "CairoRunner: initMainEntrypoint no main" {
 }
 
 test "CairoRunner: initMainEntrypoint" {
-    var program = try types.program.Program.initDefault(std.testing.allocator, true);
+    var program = try Program.initDefault(std.testing.allocator, true);
 
     program.shared_program_data.main = 1;
 
@@ -752,7 +753,7 @@ test "CairoRunner: initMainEntrypoint" {
 }
 
 test "CairoRunner: initMainEntrypoint proof_mode empty program" {
-    var program = try types.program.Program.initDefault(std.testing.allocator, true);
+    var program = try Program.initDefault(std.testing.allocator, true);
 
     program.shared_program_data.main = 8;
     program.shared_program_data.start = 0;
@@ -790,7 +791,7 @@ test "CairoRunner: initVM should initialize the VM properly with no builtins" {
     // Initialize a CairoRunner with an empty program, "plain" layout, and empty instructions.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        try types.program.Program.initDefault(std.testing.allocator, true),
+        try Program.initDefault(std.testing.allocator, true),
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
@@ -833,7 +834,7 @@ test "CairoRunner: initVM should initialize the VM properly with Range Check bui
     // Initialize a CairoRunner with an empty program, "plain" layout, and empty instructions.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        try types.program.Program.initDefault(std.testing.allocator, true),
+        try Program.initDefault(std.testing.allocator, true),
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(std.testing.allocator, .{}),
@@ -891,7 +892,7 @@ test "CairoRunner: initVM should return an error with invalid Range Check builti
     // Initialize a CairoRunner with an empty program, "plain" layout, and empty instructions.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        try types.program.Program.initDefault(std.testing.allocator, true),
+        try Program.initDefault(std.testing.allocator, true),
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
@@ -979,7 +980,7 @@ test "CairoRunner: getBuiltinSegmentsInfo with segment info empty should return 
     // Create a CairoRunner instance for testing.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        try types.program.Program.initDefault(std.testing.allocator, true),
+        try Program.initDefault(std.testing.allocator, true),
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
@@ -1002,7 +1003,7 @@ test "CairoRunner: getBuiltinSegmentsInfo info based not finished" {
     // Create a CairoRunner instance for testing.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        try types.program.Program.initDefault(std.testing.allocator, true),
+        try Program.initDefault(std.testing.allocator, true),
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
@@ -1027,7 +1028,7 @@ test "CairoRunner: getBuiltinSegmentsInfo should provide builtin segment informa
     // Create a CairoRunner instance for testing.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        try types.program.Program.initDefault(std.testing.allocator, true),
+        try Program.initDefault(std.testing.allocator, true),
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
@@ -1074,7 +1075,7 @@ test "CairoRunner: relocateMemory should relocated memory properly with gaps" {
     // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        try types.program.Program.initDefault(std.testing.allocator, true),
+        try Program.initDefault(std.testing.allocator, true),
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
@@ -1138,7 +1139,7 @@ test "CairoRunner: initSegments should initialize the segments properly with bas
     // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        try types.program.Program.initDefault(std.testing.allocator, true),
+        try Program.initDefault(std.testing.allocator, true),
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
@@ -1193,7 +1194,7 @@ test "CairoRunner: initSegments should initialize the segments properly with no 
     // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        try types.program.Program.initDefault(std.testing.allocator, true),
+        try Program.initDefault(std.testing.allocator, true),
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
@@ -1243,7 +1244,7 @@ test "CairoRunner: getPermRangeCheckLimits with no builtin" {
     // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        try types.program.Program.initDefault(std.testing.allocator, true),
+        try Program.initDefault(std.testing.allocator, true),
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
@@ -1296,7 +1297,7 @@ test "CairoRunner: getPermRangeCheckLimits with range check builtin" {
     // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        try types.program.Program.initDefault(std.testing.allocator, true),
+        try Program.initDefault(std.testing.allocator, true),
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
@@ -1330,7 +1331,7 @@ test "CairoRunner: getPermRangeCheckLimits with null range limit" {
     // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        try types.program.Program.initDefault(std.testing.allocator, true),
+        try Program.initDefault(std.testing.allocator, true),
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
@@ -1351,7 +1352,7 @@ test "CairoRunner: getPermRangeCheckLimits with null range limit" {
 }
 
 test "CairoRunner: initBuiltins missing builtins allow missing" {
-    var program = try types.program.Program.initDefault(std.testing.allocator, true);
+    var program = try Program.initDefault(std.testing.allocator, true);
     try program.builtins.appendSlice(&.{ .output, .ecdsa });
     // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
     var cairo_runner = try CairoRunner.init(
@@ -1373,7 +1374,7 @@ test "CairoRunner: initBuiltins missing builtins allow missing" {
 }
 
 test "CairoRunner: initBuiltins missing builtins no allow missing" {
-    var program = try types.program.Program.initDefault(std.testing.allocator, true);
+    var program = try Program.initDefault(std.testing.allocator, true);
     try program.builtins.appendSlice(&.{ .output, .ecdsa });
     // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
     var cairo_runner = try CairoRunner.init(
@@ -1395,7 +1396,7 @@ test "CairoRunner: initBuiltins missing builtins no allow missing" {
 }
 
 test "CairoRunner: initBuiltins with disordered builtins" {
-    var program = try types.program.Program.initDefault(std.testing.allocator, true);
+    var program = try Program.initDefault(std.testing.allocator, true);
     try program.builtins.appendSlice(&.{ .range_check, .output });
     // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
     var cairo_runner = try CairoRunner.init(
@@ -1417,7 +1418,7 @@ test "CairoRunner: initBuiltins with disordered builtins" {
 }
 
 test "CairoRunner: initBuiltins all builtins and maintain order" {
-    var program = try types.program.Program.initDefault(std.testing.allocator, true);
+    var program = try Program.initDefault(std.testing.allocator, true);
     try program.builtins.appendSlice(&.{
         .output,
         .pedersen,

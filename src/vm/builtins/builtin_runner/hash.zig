@@ -20,7 +20,7 @@ const ArrayList = std.ArrayList;
 const MemorySegmentManager = Segments.MemorySegmentManager;
 const RunnerError = Error.RunnerError;
 const pedersen_hash = @import("../../../math/crypto/pedersen/pedersen.zig").pedersenHash;
-const CairoVMError = @import("../../../vm/error.zig").CairoVMError;
+const VMError = @import("../../../vm/error.zig").VMError;
 
 /// Hash built-in runner
 pub const HashBuiltinRunner = struct {
@@ -419,7 +419,7 @@ test "HashBuiltinRunner: final stack error non relocatable" {
     vm.segments.segment_used_sizes = segment_used_size;
 
     const pointer = Relocatable.init(2, 2);
-    try expectError(CairoVMError.TypeMismatchNotRelocatable, hash_builtin.finalStack(vm.segments, pointer));
+    try expectError(VMError.TypeMismatchNotRelocatable, hash_builtin.finalStack(vm.segments, pointer));
 }
 
 test "HashBuiltinRunner: deduce memory cell pedersen for preset memory valid" {

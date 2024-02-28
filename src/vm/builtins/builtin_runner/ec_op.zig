@@ -16,7 +16,7 @@ const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 const AutoHashMap = std.AutoHashMap;
 const CairoVM = CoreVM.CairoVM;
-const CairoVMError = @import("../../../vm/error.zig").CairoVMError;
+const VMError = @import("../../../vm/error.zig").VMError;
 const insertAtIndex = @import("../../../utils/testing.zig").insertAtIndex;
 const RunnerError = Error.RunnerError;
 const Tuple = std.meta.Tuple;
@@ -511,7 +511,7 @@ test "ECOPBuiltinRunner: final stack error non relocatable" {
     const pointer = Relocatable.init(2, 2);
 
     try expectError(
-        CairoVMError.TypeMismatchNotRelocatable,
+        VMError.TypeMismatchNotRelocatable,
         builtin.finalStack(vm.segments, pointer),
     );
 }

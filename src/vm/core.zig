@@ -11,7 +11,7 @@ const MaybeRelocatable = relocatable.MaybeRelocatable;
 const Relocatable = relocatable.Relocatable;
 const instructions = @import("instructions.zig");
 const RunContext = @import("run_context.zig").RunContext;
-const CairoVMError = @import("error.zig").CairoVMError;
+const VMError = @import("error.zig").VMError;
 const MemoryError = @import("error.zig").MemoryError;
 const TraceError = @import("error.zig").TraceError;
 const Config = @import("config.zig").Config;
@@ -196,7 +196,7 @@ pub const CairoVM = struct {
                 else => {},
             };
 
-        return CairoVMError.NoSignatureBuiltin;
+        return VMError.NoSignatureBuiltin;
     }
 
     pub fn insertInMemory(
@@ -268,7 +268,7 @@ pub const CairoVM = struct {
         if (hint_ranges.get(self.run_context.getPC())) |hint_range| {
             // Execute each hint for the given range
             for (hint_range.start..hint_range.start + hint_range.length) |idx| {
-                const hint_data = if (idx < hint_datas.items.len) &hint_datas.items[idx] else return CairoVMError.Unexpected;
+                const hint_data = if (idx < hint_datas.items.len) &hint_datas.items[idx] else return VMError.Unexpected;
 
                 var hint_extension = try hint_processor.executeHintExtensive(allocator, self, hint_data, constants, exec_scopes);
                 defer hint_extension.deinit();
@@ -324,7 +324,7 @@ pub const CairoVM = struct {
         // If the MaybeRelocatable is not a felt, this operation will fail.
         // If the MaybeRelocatable is a felt but the value does not fit into a u64, this operation will fail.
         const encoded_instruction_u64 = encoded_instruction.?.intoU64() catch {
-            return CairoVMError.InstructionEncodingError;
+            return VMError.InstructionEncodingError;
         };
 
         // Then, we decode the instruction.
@@ -381,7 +381,7 @@ pub const CairoVM = struct {
     ///
     /// # Errors
     ///
-    /// This function may return an error of type `CairoVMError.InstructionEncodingError` if there
+    /// This function may return an error of type `VMError.InstructionEncodingError` if there
     /// is an issue with encoding or decoding the instruction.
     ///
     /// # Tracing
@@ -586,7 +586,7 @@ pub const CairoVM = struct {
             op1,
         )).op_0;
 
-        return op0_op orelse CairoVMError.FailedToComputeOp0;
+        return op0_op orelse VMError.FailedToComputeOp0;
     }
 
     /// Compute Op1 deductions based on the provided instruction, destination, and Op0.
@@ -617,7 +617,7 @@ pub const CairoVM = struct {
         } else {
             const op1_deductions = try deduceOp1(instruction, dst_op, op0);
             if (res.* == null) res.* = op1_deductions.res;
-            return op1_deductions.op_1 orelse CairoVMError.FailedToComputeOp1;
+            return op1_deductions.op_1 orelse VMError.FailedToComputeOp1;
         }
     }
 
@@ -632,7 +632,7 @@ pub const CairoVM = struct {
     ///
     /// ## Returns
     /// - `void`: Returns nothing on success.
-    /// - `CairoVMError.InconsistentAutoDeduction`: Returns an error if a deduced value does not match the memory.
+    /// - `VMError.InconsistentAutoDeduction`: Returns an error if a deduced value does not match the memory.
     pub fn verifyAutoDeductions(self: *const Self, allocator: Allocator) !void {
         for (self.builtin_runners.items) |*builtin| {
             const segment_index = builtin.base();
@@ -642,7 +642,7 @@ pub const CairoVM = struct {
                     const addr = Relocatable.init(@intCast(segment_index), offset);
                     const deduced_memory_cell = try builtin.deduceMemoryCell(allocator, addr, self.segments.memory) orelse continue;
                     if (!deduced_memory_cell.eq(v.maybe_relocatable)) {
-                        return CairoVMError.InconsistentAutoDeduction;
+                        return VMError.InconsistentAutoDeduction;
                     }
                 }
             }
@@ -662,7 +662,7 @@ pub const CairoVM = struct {
     ///
     /// ## Returns
     /// - `void`: Returns nothing on success.
-    /// - `CairoVMError.InconsistentAutoDeduction`: Returns an error if the deduced value does not match the memory.
+    /// - `VMError.InconsistentAutoDeduction`: Returns an error if the deduced value does not match the memory.
     pub fn verifyAutoDeductionsForAddr(
         self: *const Self,
         allocator: Allocator,
@@ -676,7 +676,7 @@ pub const CairoVM = struct {
         ) orelse return;
         const current_value = self.segments.memory.get(addr) orelse return;
         if (!value.eq(current_value))
-            return CairoVMError.InconsistentAutoDeduction;
+            return VMError.InconsistentAutoDeduction;
     }
 
     /// Attempts to deduce `op0` and `res` for an instruction, given `dst` and `op1`.
@@ -855,9 +855,9 @@ pub const CairoVM = struct {
     /// Deduces the destination register for a given instruction.
     ///
     /// This function analyzes the opcode of the instruction and deduces the destination register accordingly.
-    /// For `.AssertEq` opcode, it returns the value of the result if available, otherwise `CairoVMError.NoDst`.
+    /// For `.AssertEq` opcode, it returns the value of the result if available, otherwise `VMError.NoDst`.
     /// For `.Call` opcode, it returns a new relocatable value based on the frame pointer.
-    /// For other opcodes, it returns `CairoVMError.NoDst`.
+    /// For other opcodes, it returns `VMError.NoDst`.
     ///
     /// # Arguments
     ///
@@ -872,9 +872,9 @@ pub const CairoVM = struct {
         res: ?MaybeRelocatable,
     ) !MaybeRelocatable {
         return switch (instruction.opcode) {
-            .AssertEq => if (res) |r| r else CairoVMError.NoDst,
+            .AssertEq => if (res) |r| r else VMError.NoDst,
             .Call => MaybeRelocatable.fromRelocatable(self.run_context.fp.*),
-            else => CairoVMError.NoDst,
+            else => VMError.NoDst,
         };
     }
 
@@ -888,14 +888,14 @@ pub const CairoVM = struct {
         self: *Self,
         allocator: Allocator,
         address: Relocatable,
-    ) CairoVMError!?MaybeRelocatable {
+    ) VMError!?MaybeRelocatable {
         for (self.builtin_runners.items) |*builtin_item| {
             if (builtin_item.base() == address.segment_index)
                 return builtin_item.deduceMemoryCell(
                     allocator,
                     address,
                     self.segments.memory,
-                ) catch CairoVMError.RunnerError;
+                ) catch VMError.RunnerError;
         }
         return null;
     }
@@ -989,9 +989,9 @@ pub const CairoVM = struct {
     ///
     /// # Errors
     ///
-    /// - Returns `CairoVMError.RunNotFinished` if the VM's run is not yet finished.
+    /// - Returns `VMError.RunNotFinished` if the VM's run is not yet finished.
     pub fn markAddressRangeAsAccessed(self: *Self, base: Relocatable, len: usize) !void {
-        if (!self.is_run_finished) return CairoVMError.RunNotFinished;
+        if (!self.is_run_finished) return VMError.RunNotFinished;
         for (0..len) |i| {
             self.segments.memory.markAsAccessed(try base.addUint(i));
         }
@@ -1027,12 +1027,12 @@ pub const CairoVM = struct {
     ///
     /// Returns a list of memory cell addresses that comprise the public memory. If the relocation table
     /// is not available, it throws `MemoryError.UnrelocatedMemory`. If an error occurs during the
-    /// retrieval process, it throws `CairoVMError.Memory`.
+    /// retrieval process, it throws `VMError.Memory`.
     pub fn getPublicMemoryAddresses(self: *Self) !std.ArrayList(std.meta.Tuple(&.{ usize, usize })) {
         // Check if the relocation table is available
         if (self.relocation_table) |r| {
             // Retrieve the public memory addresses using the relocation table
-            return self.segments.getPublicMemoryAddresses(&r) catch CairoVMError.Memory;
+            return self.segments.getPublicMemoryAddresses(&r) catch VMError.Memory;
         }
         // Throw an error if the relocation table is not available
         return MemoryError.UnrelocatedMemory;
@@ -1181,7 +1181,7 @@ pub const CairoVM = struct {
 
     pub fn getRangeCheckBuiltin(
         self: *Self,
-    ) CairoVMError!*builtins.RangeCheckBuiltinRunner {
+    ) VMError!*builtins.RangeCheckBuiltinRunner {
         for (self.builtin_runners.items) |*runner| {
             switch (runner.*) {
                 .RangeCheck => |*rc| return rc,
@@ -1189,7 +1189,7 @@ pub const CairoVM = struct {
             }
         }
 
-        return CairoVMError.NoRangeCheckBuiltin;
+        return VMError.NoRangeCheckBuiltin;
     }
 
     /// Retrieves a continuous range of memory values starting from a specified address within the Cairo VM's memory segment.
@@ -1235,12 +1235,12 @@ pub const CairoVM = struct {
     /// This function performs opcode-specific assertions based on the opcode of the given instruction.
     ///
     /// - For the `AssertEq` opcode, it asserts that the result and destination operands are equal.
-    ///   Returns `CairoVMError.DiffAssertValues` if the assertion fails or `CairoVMError.UnconstrainedResAssertEq`
+    ///   Returns `VMError.DiffAssertValues` if the assertion fails or `VMError.UnconstrainedResAssertEq`
     ///   if the result operand is unconstrained.
     ///
     /// - For the `Call` opcode, it asserts that operand 0 is the return program counter (PC) and that the destination
-    ///   operand is the frame pointer (FP). Returns `CairoVMError.CantWriteReturnPc` if the assertion on operand 0 fails
-    ///   or `CairoVMError.CantWriteReturnFp` if the assertion on the destination operand fails.
+    ///   operand is the frame pointer (FP). Returns `VMError.CantWriteReturnPc` if the assertion on operand 0 fails
+    ///   or `VMError.CantWriteReturnFp` if the assertion on the destination operand fails.
     ///
     /// - No assertions are performed for other opcodes.
     ///
@@ -1255,9 +1255,9 @@ pub const CairoVM = struct {
             .AssertEq => {
                 if (operands.res) |res| {
                     if (!res.eq(operands.dst))
-                        return CairoVMError.DiffAssertValues;
+                        return VMError.DiffAssertValues;
                 } else {
-                    return CairoVMError.UnconstrainedResAssertEq;
+                    return VMError.UnconstrainedResAssertEq;
                 }
             },
             // Perform assertions specific to the Call opcode.
@@ -1266,12 +1266,12 @@ pub const CairoVM = struct {
                 const return_pc = MaybeRelocatable.fromRelocatable(try self.run_context.pc.addUint(instruction.size()));
                 // Assert that the operand 0 is the return PC.
                 if (!operands.op_0.eq(return_pc)) {
-                    return CairoVMError.CantWriteReturnPc;
+                    return VMError.CantWriteReturnPc;
                 }
 
                 // Assert that the destination operand is the frame pointer (FP).
                 if (!MaybeRelocatable.fromRelocatable(self.run_context.getFP()).eq(operands.dst)) {
-                    return CairoVMError.CantWriteReturnFp;
+                    return VMError.CantWriteReturnFp;
                 }
             },
             // No assertions for other opcodes.
@@ -1314,7 +1314,7 @@ pub const CairoVM = struct {
         const felt = try self.segments.memory.getFelt(self.run_context.getPC());
 
         const instruction = felt.intoU64() catch
-            return CairoVMError.InvalidInstructionEncoding;
+            return VMError.InvalidInstructionEncoding;
 
         return decoder.decodeInstructions(instruction);
     }

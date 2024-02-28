@@ -1,7 +1,7 @@
 // Core imports.
 const std = @import("std");
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
-const CairoVMError = @import("./error.zig").CairoVMError;
+const VMError = @import("./error.zig").VMError;
 const decoder = @import("./decoding/decoder.zig");
 
 //  Structure of the 63-bit that form the first word of each instruction.

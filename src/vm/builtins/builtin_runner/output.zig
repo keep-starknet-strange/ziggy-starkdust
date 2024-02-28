@@ -13,7 +13,7 @@ const ArrayList = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const MemoryError = Error.MemoryError;
 const RunnerError = Error.RunnerError;
-const CairoVMError = Error.CairoVMError;
+const VMError = Error.VMError;
 const MathError = Error.MathError;
 const CairoVM = CoreVM.CairoVM;
 
@@ -533,7 +533,7 @@ test "OutputBuiltinRunner: finalStack should return TypeMismatchNotRelocatable e
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
     try expectError(
-        CairoVMError.TypeMismatchNotRelocatable,
+        VMError.TypeMismatchNotRelocatable,
         output_builtin.finalStack(
             memory_segment_manager,
             Relocatable.init(2, 2),

@@ -23,7 +23,7 @@ const RangeCheckBuiltinRunner = @import("../vm/builtins/builtin_runner/range_che
 const SignatureBuiltinRunner = @import("../vm/builtins/builtin_runner/signature.zig").SignatureBuiltinRunner;
 const MathError = @import("../vm/error.zig").MathError;
 const HintError = @import("../vm/error.zig").HintError;
-const CairoVMError = @import("../vm/error.zig").CairoVMError;
+const VMError = @import("../vm/error.zig").VMError;
 
 //Implements hint:
 // %{
@@ -797,7 +797,7 @@ test "MathHints: assertNN no range check builtin" {
     );
 
     try std.testing.expectError(
-        CairoVMError.NoRangeCheckBuiltin,
+        VMError.NoRangeCheckBuiltin,
         hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined),
     );
 }

@@ -6,7 +6,7 @@ const CairoRunner = @import("./runners/cairo_runner.zig").CairoRunner;
 const CairoVM = @import("./core.zig").CairoVM;
 const Config = @import("./config.zig").Config;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
-const types = @import("./types/types.zig");
+const ProgramJson = @import("./types/types.zig").ProgramJson;
 
 const trace_context = @import("./trace_context.zig");
 const RelocatedTraceEntry = trace_context.TraceContext.RelocatedTraceEntry;
@@ -52,7 +52,7 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
         config,
     );
 
-    var parsed_program = try types.programjson.ProgramJson.parseFromFile(allocator, config.filename);
+    var parsed_program = try ProgramJson.parseFromFile(allocator, config.filename);
     const instructions = try parsed_program.value.readData(allocator);
     defer parsed_program.deinit();
 

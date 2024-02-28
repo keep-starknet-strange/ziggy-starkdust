@@ -1,5 +1,5 @@
 /// Represents different error conditions that occur in the Cairo VM.
-pub const CairoVMError = error{
+pub const VMError = error{
     // Failed to compile hint
     CompileHintFail,
     /// Adding two relocatables is forbidden.

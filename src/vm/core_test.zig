@@ -14,7 +14,7 @@ const MaybeRelocatable = relocatable.MaybeRelocatable;
 const Relocatable = relocatable.Relocatable;
 const instructions = @import("instructions.zig");
 const RunContext = @import("run_context.zig").RunContext;
-const CairoVMError = @import("error.zig").CairoVMError;
+const VMError = @import("error.zig").VMError;
 const TraceError = @import("error.zig").TraceError;
 const MemoryError = @import("error.zig").MemoryError;
 const MathError = @import("error.zig").MathError;
@@ -2006,7 +2006,7 @@ test "CairoVM: compute operands deduce dst none" {
 
     // Test checks
     try expectError(
-        CairoVMError.NoDst,
+        VMError.NoDst,
         vm.computeOperands(
             std.testing.allocator,
             &.{
@@ -2302,7 +2302,7 @@ test "CairoVM: computeOp0Deductions should return VM error if deduceOp0 and dedu
 
     // Test check
     try expectError(
-        CairoVMError.FailedToComputeOp0,
+        VMError.FailedToComputeOp0,
         vm.computeOp0Deductions(
             std.testing.allocator,
             Relocatable.init(0, 7),
@@ -2370,7 +2370,7 @@ test "CairoVM: deduceDst should return VM error No dst if AssertEq opcode withou
 
     // Test check
     try expectError(
-        CairoVMError.NoDst,
+        VMError.NoDst,
         vm.deduceDst(
             &.{
                 .off_0 = 0,
@@ -2425,7 +2425,7 @@ test "CairoVM: deduceDst should return VM error No dst if not AssertEq or Call o
 
     // Test check
     try expectError(
-        CairoVMError.NoDst,
+        VMError.NoDst,
         vm.deduceDst(
             &.{
                 .off_0 = 0,
@@ -2724,7 +2724,7 @@ test "CairoVM: computeOp1Deductions should modify res (if null) using res from d
     );
 }
 
-test "CairoVM: computeOp1Deductions should return CairoVMError error if deduceMemoryCell is null and deduceOp1.op_1 is null" {
+test "CairoVM: computeOp1Deductions should return VMError error if deduceMemoryCell is null and deduceOp1.op_1 is null" {
     // Test setup
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
@@ -2738,7 +2738,7 @@ test "CairoVM: computeOp1Deductions should return CairoVMError error if deduceMe
 
     // Test check
     try expectError(
-        CairoVMError.FailedToComputeOp1,
+        VMError.FailedToComputeOp1,
         vm.computeOp1Deductions(
             std.testing.allocator,
             Relocatable.init(0, 7),
@@ -2957,7 +2957,7 @@ test "CairoVM: markAddressRangeAsAccessed should return an error if the run is n
     defer vm.deinit();
 
     try expectError(
-        CairoVMError.RunNotFinished,
+        VMError.RunNotFinished,
         vm.markAddressRangeAsAccessed(.{}, 3),
     );
 }
@@ -2978,7 +2978,7 @@ test "CairoVM: opcodeAssertions should throw UnconstrainedAssertEq error" {
     defer vm.deinit();
 
     try expectError(
-        CairoVMError.UnconstrainedResAssertEq,
+        VMError.UnconstrainedResAssertEq,
         vm.opcodeAssertions(
             &.{
                 .off_0 = 0,
@@ -3014,7 +3014,7 @@ test "CairoVM: opcodeAssertions instructions failed - should throw DiffAssertVal
     defer vm.deinit();
 
     try expectError(
-        CairoVMError.DiffAssertValues,
+        VMError.DiffAssertValues,
         vm.opcodeAssertions(
             &.{
                 .off_0 = 0,
@@ -3050,7 +3050,7 @@ test "CairoVM: opcodeAssertions instructions failed relocatables - should throw 
     defer vm.deinit();
 
     try expectError(
-        CairoVMError.DiffAssertValues,
+        VMError.DiffAssertValues,
         vm.opcodeAssertions(
             &.{
                 .off_0 = 0,
@@ -3088,7 +3088,7 @@ test "CairoVM: opcodeAssertions inconsistent op0 - should throw CantWriteReturnP
     vm.run_context.pc.* = Relocatable.init(0, 4);
 
     try expectError(
-        CairoVMError.CantWriteReturnPc,
+        VMError.CantWriteReturnPc,
         vm.opcodeAssertions(
             &.{
                 .off_0 = 0,
@@ -3126,7 +3126,7 @@ test "CairoVM: opcodeAssertions inconsistent dst - should throw CantWriteReturnF
     vm.run_context.fp.* = Relocatable.init(0, 6);
 
     try expectError(
-        CairoVMError.CantWriteReturnFp,
+        VMError.CantWriteReturnFp,
         vm.opcodeAssertions(
             &.{
                 .off_0 = 0,
@@ -3511,9 +3511,9 @@ test "CairoVM: getPublicMemoryAddresses should return Cairo VM Memory error if s
         try vm.relocation_table.?.append(offset);
     }
 
-    // Validate if the function throws the expected CairoVMError.Memory.
+    // Validate if the function throws the expected VMError.Memory.
     try expectError(
-        CairoVMError.Memory,
+        VMError.Memory,
         vm.getPublicMemoryAddresses(),
     );
 }
@@ -3723,7 +3723,7 @@ test "CairoVM: verifyAutoDeductionsForAddr throws InconsistentAutoDeduction" {
     );
     defer vm.segments.memory.deinitData(allocator);
 
-    try expectError(CairoVMError.InconsistentAutoDeduction, vm.verifyAutoDeductionsForAddr(allocator, Relocatable.init(2, 2), &builtin));
+    try expectError(VMError.InconsistentAutoDeduction, vm.verifyAutoDeductionsForAddr(allocator, Relocatable.init(2, 2), &builtin));
 }
 
 test "CairoVM: decode current instruction" {
@@ -3759,7 +3759,7 @@ test "CairoVM: decode current instruction invalid encoding" {
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{.{ .{ 0, 0 }, .{std.math.maxInt(u64) + 1} }});
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    try expectError(CairoVMError.InvalidInstructionEncoding, vm.decodeCurrentInstruction());
+    try expectError(VMError.InvalidInstructionEncoding, vm.decodeCurrentInstruction());
 }
 
 test "CairoVM: verifyAutoDeductions for bitwise builtin runner" {
@@ -3811,7 +3811,7 @@ test "CairoVM: verifyAutoDeductions for bitwise builtin runner throws Inconsiste
 
     defer vm.segments.memory.deinitData(allocator);
 
-    try expectError(CairoVMError.InconsistentAutoDeduction, vm.verifyAutoDeductions(allocator));
+    try expectError(VMError.InconsistentAutoDeduction, vm.verifyAutoDeductions(allocator));
 }
 
 test "CairoVM: verifyAutoDeductions for keccak builtin runner" {

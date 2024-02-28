@@ -1,6 +1,6 @@
 const Instruction = @import("../instructions.zig").Instruction;
 const std = @import("std");
-const CairoVMError = @import("../error.zig").CairoVMError;
+const VMError = @import("../error.zig").VMError;
 const Instructions = @import("../instructions.zig");
 const Register = Instructions.Register;
 const PcUpdate = Instructions.PcUpdate;
@@ -42,7 +42,7 @@ pub fn decodeInstructions(encoded_instr: u64) !Instruction {
     const OFFX_MASK: u64 = 0xFFFF;
 
     if (encoded_instr & HIGH_BIT != 0)
-        return CairoVMError.InstructionNonZeroHighBit;
+        return VMError.InstructionNonZeroHighBit;
 
     // Grab flags
     const flags = encoded_instr >> FLAGS_OFFSET;
@@ -62,7 +62,7 @@ pub fn decodeInstructions(encoded_instr: u64) !Instruction {
         1 => .Jump,
         2 => .JumpRel,
         4 => .Jnz,
-        else => return CairoVMError.InvalidPcUpdate,
+        else => return VMError.InvalidPcUpdate,
     };
 
     const opcode: Opcode = switch (opcode_num) {
@@ -70,7 +70,7 @@ pub fn decodeInstructions(encoded_instr: u64) !Instruction {
         1 => .Call,
         2 => .Ret,
         4 => .AssertEq,
-        else => return CairoVMError.InvalidOpcode,
+        else => return VMError.InvalidOpcode,
     };
 
     return .{
@@ -90,20 +90,20 @@ pub fn decodeInstructions(encoded_instr: u64) !Instruction {
             1 => .Imm,
             2 => .FP,
             4 => .AP,
-            else => return CairoVMError.InvalidOp1Reg,
+            else => return VMError.InvalidOp1Reg,
         },
         .res_logic = switch (res_logic_num) {
             0 => if (pc_update == .Jnz) .Unconstrained else .Op1,
             1 => .Add,
             2 => .Mul,
-            else => return CairoVMError.InvalidResLogic,
+            else => return VMError.InvalidResLogic,
         },
         .pc_update = pc_update,
         .ap_update = switch (ap_update_num) {
             0 => if (opcode == .Call) .Add2 else .Regular,
             1 => .Add,
             2 => .Add1,
-            else => return CairoVMError.InvalidApUpdate,
+            else => return VMError.InvalidApUpdate,
         },
         .fp_update = switch (opcode) {
             .Call => .APPlus2,
@@ -125,27 +125,27 @@ pub fn decodeOffset(offset: u64) !i16 {
 }
 
 test "decodeInstructions: non-zero high bit" {
-    try expectError(CairoVMError.InstructionNonZeroHighBit, decodeInstructions(0x94A7800080008000));
+    try expectError(VMError.InstructionNonZeroHighBit, decodeInstructions(0x94A7800080008000));
 }
 
 test "decodeInstructions: invalid op register" {
-    try expectError(CairoVMError.InvalidOp1Reg, decodeInstructions(0x294F800080008000));
+    try expectError(VMError.InvalidOp1Reg, decodeInstructions(0x294F800080008000));
 }
 
 test "decodeInstructions: invalid pc update" {
-    try expectError(CairoVMError.InvalidPcUpdate, decodeInstructions(0x29A8800080008000));
+    try expectError(VMError.InvalidPcUpdate, decodeInstructions(0x29A8800080008000));
 }
 
 test "decodeInstructions: invalid res logic" {
-    try expectError(CairoVMError.InvalidResLogic, decodeInstructions(0x2968800080008000));
+    try expectError(VMError.InvalidResLogic, decodeInstructions(0x2968800080008000));
 }
 
 test "decodeInstructions: invalid opcode" {
-    try expectError(CairoVMError.InvalidOpcode, decodeInstructions(0x3948800080008000));
+    try expectError(VMError.InvalidOpcode, decodeInstructions(0x3948800080008000));
 }
 
 test "decodeInstructions: invalid ap update" {
-    try expectError(CairoVMError.InvalidApUpdate, decodeInstructions(0x2D48800080008000));
+    try expectError(VMError.InvalidApUpdate, decodeInstructions(0x2D48800080008000));
 }
 
 test "decodeInstructions: decode flags call add jmp add imm fp fp" {

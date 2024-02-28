@@ -9,7 +9,7 @@ const CairoVM = CoreVM.CairoVM;
 const MaybeRelocatable = @import("../vm/memory/relocatable.zig").MaybeRelocatable;
 const Relocatable = @import("../vm/memory/relocatable.zig").Relocatable;
 const Allocator = std.mem.Allocator;
-const HintError = @import("../vm/error.zig").HintError;
+const CairoError = @import("../vm/error.zig");
 
 ///Inserts value into the address of the given ids variable
 pub fn insertValueFromReference(
@@ -20,8 +20,8 @@ pub fn insertValueFromReference(
     ap_tracking: programjson.ApTracking,
 ) !void {
     if (computeAddrFromReference(hint_reference, ap_tracking, vm)) |var_addr| {
-        vm.segments.memory.set(allocator, var_addr, value) catch HintError.Memory;
-    } else return HintError.UnknownIdentifierInternal;
+        vm.segments.memory.set(allocator, var_addr, value) catch CairoError.HintError.Memory;
+    } else return CairoError.HintError.UnknownIdentifierInternal;
 }
 
 ///Returns the Integer value stored in the given ids variable
@@ -38,15 +38,15 @@ pub fn getIntegerFromReference(
         else => {},
     }
 
-    return if (computeAddrFromReference(hint_reference, ap_tracking, vm)) |var_addr| vm.segments.memory.getFelt(var_addr) catch HintError.WrongIdentifierTypeInternal else HintError.UnknownIdentifierInternal;
+    return if (computeAddrFromReference(hint_reference, ap_tracking, vm)) |var_addr| vm.segments.memory.getFelt(var_addr) catch CairoError.HintError.WrongIdentifierTypeInternal else CairoError.HintError.UnknownIdentifierInternal;
 }
 
 ///Returns the Relocatable value stored in the given ids variable
 pub fn getPtrFromReference(hint_reference: HintReference, ap_tracking: programjson.ApTracking, vm: *CairoVM) !Relocatable {
-    const var_addr = computeAddrFromReference(hint_reference, ap_tracking, vm) orelse return HintError.UnknownIdentifierInternal;
+    const var_addr = computeAddrFromReference(hint_reference, ap_tracking, vm) orelse return CairoError.HintError.UnknownIdentifierInternal;
 
     return if (hint_reference.dereference)
-        vm.getRelocatable(var_addr) catch HintError.WrongIdentifierTypeInternal
+        vm.getRelocatable(var_addr) catch CairoError.HintError.WrongIdentifierTypeInternal
     else
         var_addr;
 }

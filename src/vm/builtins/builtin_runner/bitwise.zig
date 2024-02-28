@@ -9,7 +9,7 @@ const CoreVM = @import("../../../vm/core.zig");
 const ArrayList = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const CairoVM = CoreVM.CairoVM;
-const CairoVMError = Error.CairoVMError;
+const VMError = Error.VMError;
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
 const Memory = @import("../../memory/memory.zig").Memory;
@@ -958,7 +958,7 @@ test "BitwiseBuiltinRunner: finalStack should return TypeMismatchNotRelocatable 
 
     // then
     try expectError(
-        CairoVMError.TypeMismatchNotRelocatable,
+        VMError.TypeMismatchNotRelocatable,
         builtin.finalStack(
             memory_segment_manager,
             Relocatable.init(2, 2),

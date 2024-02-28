@@ -12,3 +12,7 @@ pub const poseidon_instance_def =  @import("./poseidon_instance_def.zig");
 pub const program =  @import("./program.zig");
 pub const programjson =  @import("./programjson.zig");
 pub const range_check_instance_def =  @import("./range_check_instance_def.zig");
+
+
+pub const Program =  program.Program;
+pub const ProgramJson =  programjson.ProgramJson;
