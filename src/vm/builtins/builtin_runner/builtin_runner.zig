@@ -599,6 +599,19 @@ pub const BuiltinRunner = union(BuiltinName) {
         };
     }
 
+    /// Gets the number of input cells
+    ///
+    /// # Returns
+    ///
+    /// `n_input_cells` from the individual builtin
+    pub fn getNumberInputCells(self: *Self) u32 {
+        return switch (self.*) {
+            .Output => 0,
+            .SegmentArena => |*segment_arena| segment_arena.n_input_cells_per_instance,
+            inline else => |*builtin| builtin.n_input_cells,
+        };
+    }
+
     pub fn deinit(self: *Self) void {
         switch (self.*) {
             .EcOp => |*ec_op| ec_op.deinit(),
@@ -1553,4 +1566,122 @@ test "BuiltinRunner: builtin name function" {
     // Initialize a `BuiltinRunner` with the `Output` variant and test its name.
     var output: BuiltinRunner = .{ .Output = OutputBuiltinRunner.initDefault(std.testing.allocator) };
     try expectEqualStrings("output_builtin", output.name());
+}
+
+test "BuiltinRunner:getNumberInputCells with output builtin" {
+    // Initialize a BuiltinRunner union with the OutputBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .Output = OutputBuiltinRunner.initDefault(std.testing.allocator) };
+
+    // Test the `getNumberInputCells` function with specific parameters.
+    try expectEqual(
+        0,
+        builtin.getNumberInputCells(),
+    );
+}
+
+test "BuiltinRunner:getNumberInputCells with segment arena builtin" {
+    // Initialize a BuiltinRunner union with the SegmentArenaBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .SegmentArena = SegmentArenaBuiltinRunner.init(true) };
+
+    // Test the `getNumberInputCells` function with specific parameters.
+    try expectEqual(
+        3,
+        builtin.getNumberInputCells(),
+    );
+}
+
+test "BuiltinRunner:getNumberInputCells with bitwise builtin" {
+    // Initialize a BuiltinRunner union with the BitwiseBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .Bitwise = .{} };
+
+    // Test the `getNumberInputCells` function with specific parameters.
+    try expectEqual(
+        2,
+        builtin.getNumberInputCells(),
+    );
+}
+
+test "BuiltinRunner:getNumberInputCells with elliptic curve operations builtin" {
+    // Initialize a BuiltinRunner union with the EcOpBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .EcOp = EcOpBuiltinRunner.initDefault(std.testing.allocator) };
+
+    // Test the `getNumberInputCells` function with specific parameters.
+    try expectEqual(
+        5,
+        builtin.getNumberInputCells(),
+    );
+}
+
+test "BuiltinRunner:getNumberInputCells with hash builtin" {
+    // Initialize a BuiltinRunner union with the HashBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .Hash = HashBuiltinRunner.init(std.testing.allocator, 256, true) };
+
+    // Test the `getNumberInputCells` function with specific parameters.
+    try expectEqual(
+        2,
+        builtin.getNumberInputCells(),
+    );
+}
+
+test "BuiltinRunner:getNumberInputCells with range check builtin" {
+    // Initialize a BuiltinRunner union with the RangeCheckBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .RangeCheck = .{} };
+
+    // Test the `getNumberInputCells` function with specific parameters.
+    try expectEqual(
+        1,
+        builtin.getNumberInputCells(),
+    );
+}
+
+test "BuiltinRunner:getNumberInputCells with keccak builtin" {
+    // Initialize a default Keccak instance definition.
+    var keccak_instance_def = try KeccakInstanceDef.initDefault(std.testing.allocator);
+    defer keccak_instance_def.deinit();
+
+    // Initialize a BuiltinRunner union with the KeccakBuiltinRunner variant
+    var builtin: BuiltinRunner = .{
+        .Keccak = try KeccakBuiltinRunner.init(
+            std.testing.allocator,
+            &keccak_instance_def,
+            true,
+        ),
+    };
+
+    // Ensure the BuiltinRunner instance is properly deallocated at the end of the test
+    defer builtin.deinit();
+
+    // Test the `getNumberInputCells` function with specific parameters.
+    try expectEqual(
+        8,
+        builtin.getNumberInputCells(),
+    );
+}
+
+test "BuiltinRunner:getNumberInputCells with signature builtin" {
+    // Initialize a default ECDSA instance definition.
+    var ecdsa_instance_def = .{};
+
+    // Initialize a BuiltinRunner union with the SignatureBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .Signature = SignatureBuiltinRunner.init(std.testing.allocator, &ecdsa_instance_def, true) };
+
+    // Ensure the BuiltinRunner instance is properly deallocated at the end of the test
+    defer builtin.deinit();
+
+    // Test the `getNumberInputCells` function with specific parameters.
+    try expectEqual(
+        2,
+        builtin.getNumberInputCells(),
+    );
+}
+
+test "BuiltinRunner:getNumberInputCells with poseidon builtin" {
+    // Initialize a BuiltinRunner union with the PoseidonBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .Poseidon = PoseidonBuiltinRunner.init(std.testing.allocator, 256, true) };
+
+    // Test the `getNumberInputCells` function with specific parameters.
+    try expectEqual(
+        3,
+        builtin.getNumberInputCells(),
+    );
 }
