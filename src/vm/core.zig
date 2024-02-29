@@ -1317,7 +1317,7 @@ pub const CairoVM = struct {
     pub fn decodeCurrentInstruction(self: *const Self) !Instruction {
         const felt = try self.segments.memory.getFelt(self.run_context.getPC());
 
-        const instruction = felt.intoU64() catch 
+        const instruction = felt.intoU64() catch
             return CairoVMError.InvalidInstructionEncoding;
 
         return decoder.decodeInstructions(instruction);
