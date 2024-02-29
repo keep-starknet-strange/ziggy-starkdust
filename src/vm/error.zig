@@ -139,6 +139,14 @@ pub const CairoRunnerError = error{
 
 /// Represents different error conditions that occur in the built-in runners.
 pub const RunnerError = error{
+    // Given builtins are not in appropiate order
+    DisorderedBuiltins,
+    // Builtin(s) not present in layout
+    NoBuiltinForInstance,
+    //Initialization failure: No execution base
+    NoExecBase,
+    // Initialization failure: No program base
+    NoProgBase,
     /// Errors associated with computing the address of a stop pointer of RangeCheckBuiltinRunner
     /// Raised when underflow occurs (i.e., subtracting 1 from 0),
     /// or when it fails to get a value for the computed address.
@@ -270,4 +278,9 @@ pub const HintError = error{
 
     SplitIntNotZero,
     FromScopeError,
+};
+
+pub const InsufficientAllocatedCellsError = error{
+    MinStepNotReached,
+    BuiltinCells,
 };

@@ -158,15 +158,15 @@ pub const EcOpBuiltinRunner = struct {
         // All input cells should be filled, and be integer values.
         for (0..self.n_input_cells) |i| {
             if (memory.get(try instance.addFelt(Felt252.fromInt(u256, i)))) |cell| {
-                const felt = try cell.tryIntoFelt();
+                const felt = try cell.intoFelt();
                 try input_cells.append(felt);
             }
         }
 
         for (EC_POINTS[0..2]) |pair| {
             if (!EC.ECPoint.init(
-                input_cells.items[try pair.x.tryIntoU64()],
-                input_cells.items[try pair.y.tryIntoU64()],
+                input_cells.items[try pair.x.intoU64()],
+                input_cells.items[try pair.y.intoU64()],
             ).pointOnCurve(EC.ALPHA, EC.BETA))
                 return error.PointNotOnCurve;
         }
@@ -283,7 +283,7 @@ pub const EcOpBuiltinRunner = struct {
     ) !Relocatable {
         if (self.included) {
             const stop_pointer_addr = pointer.subUint(1) catch return RunnerError.NoStopPointer;
-            const stop_pointer = try (segments.memory.get(stop_pointer_addr) orelse return RunnerError.NoStopPointer).tryIntoRelocatable();
+            const stop_pointer = try (segments.memory.get(stop_pointer_addr) orelse return RunnerError.NoStopPointer).intoRelocatable();
             if (self.base != stop_pointer.segment_index) {
                 return RunnerError.InvalidStopPointerIndex;
             }

@@ -44,7 +44,7 @@ pub const KeccakInstanceDef = struct {
     /// # Parameters
     ///
     /// - `ratio`: An optional 32-bit integer representing the ratio for the Keccak instance.
-    /// - `state_rep`: An `ArrayList` of 32-bit integers specifying the state representation pattern.
+    /// - `state_rep`: An `ArrayList` of 32-bit integers specifying the state representation pattern, state_rep owner become this struct
     ///
     /// # Returns
     ///
@@ -155,6 +155,7 @@ test "KeccakInstanceDef: cellsPerBuiltin function should return CELLS_PER_EC_OP"
 test "KeccakInstanceDef: rangeCheckUnitsPerBuiltin function should return 0" {
     // Initializing a Keccak instance def using `initDefault`.
     var keccak_instance_def = try KeccakInstanceDef.initDefault(std.testing.allocator);
+
     defer keccak_instance_def.deinit();
 
     // Verifying that `rangeCheckUnitsPerBuiltin` returns the expected value.
