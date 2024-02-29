@@ -3,18 +3,19 @@ const Allocator = std.mem.Allocator;
 const Tuple = std.meta.Tuple;
 
 const MemorySegmentManager = @import("../../memory/segments.zig").MemorySegmentManager;
-const CairoVM = @import("../../../vm/core.zig").CairoVM;
-const MemoryError = @import("../../../vm/error.zig").MemoryError;
-const InsufficientAllocatedCellsError = @import("../../../vm/error.zig").InsufficientAllocatedCellsError;
-const BitwiseBuiltinRunner = @import("./bitwise.zig").BitwiseBuiltinRunner;
-const EcOpBuiltinRunner = @import("./ec_op.zig").EcOpBuiltinRunner;
-const HashBuiltinRunner = @import("./hash.zig").HashBuiltinRunner;
-const KeccakBuiltinRunner = @import("./keccak.zig").KeccakBuiltinRunner;
-const OutputBuiltinRunner = @import("./output.zig").OutputBuiltinRunner;
-const PoseidonBuiltinRunner = @import("./poseidon.zig").PoseidonBuiltinRunner;
-const RangeCheckBuiltinRunner = @import("./range_check.zig").RangeCheckBuiltinRunner;
-const SegmentArenaBuiltinRunner = @import("./segment_arena.zig").SegmentArenaBuiltinRunner;
-const SignatureBuiltinRunner = @import("./signature.zig").SignatureBuiltinRunner;
+const BitwiseBuiltinRunner = @import("bitwise.zig").BitwiseBuiltinRunner;
+const EcOpBuiltinRunner = @import("ec_op.zig").EcOpBuiltinRunner;
+const HashBuiltinRunner = @import("hash.zig").HashBuiltinRunner;
+const KeccakBuiltinRunner = @import("keccak.zig").KeccakBuiltinRunner;
+const OutputBuiltinRunner = @import("output.zig").OutputBuiltinRunner;
+const PoseidonBuiltinRunner = @import("poseidon.zig").PoseidonBuiltinRunner;
+const RangeCheckBuiltinRunner = @import("range_check.zig").RangeCheckBuiltinRunner;
+const SegmentArenaBuiltinRunner = @import("segment_arena.zig").SegmentArenaBuiltinRunner;
+const SignatureBuiltinRunner = @import("signature.zig").SignatureBuiltinRunner;
+
+const InsufficientAllocatedCellsError = @import("../../error.zig").InsufficientAllocatedCellsError;
+const MemoryError = @import("../../error.zig").MemoryError;
+const CairoVM = @import("../../core.zig").CairoVM;
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
 const Memory = @import("../../memory/memory.zig").Memory;
@@ -317,7 +318,7 @@ pub const BuiltinRunner = union(BuiltinName) {
     /// # Returns
     ///
     /// The total number of used memory cells as a `usize`, or an error if calculation fails.
-    pub fn getUsedCells(self: *Self, segments: *MemorySegmentManager) !usize {
+    pub fn getUsedCells(self: *const Self, segments: *MemorySegmentManager) !usize {
         return switch (self.*) {
             .SegmentArena => 0,
             inline else => |*builtin| try builtin.getUsedCells(segments),
@@ -342,7 +343,7 @@ pub const BuiltinRunner = union(BuiltinName) {
     ///
     /// Returns an error if any error occurs during the computation.
     ///
-    pub fn getAllocatedMemoryUnits(self: *Self, vm: *CairoVM) !usize {
+    pub fn getAllocatedMemoryUnits(self: *const Self, vm: *CairoVM) !usize {
         switch (self.*) {
             // For Output and SegmentArena built-in runners, return 0 as they do not allocate memory units
             .Output, .SegmentArena => return 0,
@@ -401,7 +402,7 @@ pub const BuiltinRunner = union(BuiltinName) {
     ///
     /// This function is used to determine the usage and allocation status of memory cells associated
     /// with the specific type of built-in runner.
-    pub fn getUsedCellsAndAllocatedSize(self: *Self, vm: *CairoVM) !Tuple(&.{ usize, ?usize }) {
+    pub fn getUsedCellsAndAllocatedSize(self: *const Self, vm: *CairoVM) !Tuple(&.{ usize, ?usize }) {
         switch (self.*) {
             // For output and segment arena built-in runners
             .Output, .SegmentArena => {
@@ -442,7 +443,7 @@ pub const BuiltinRunner = union(BuiltinName) {
     ///
     /// This function is used to determine the usage of permanent range check units associated
     /// with the specific type of built-in runner.
-    pub fn getUsedPermRangeCheckUnits(self: *Self, vm: *CairoVM) !usize {
+    pub fn getUsedPermRangeCheckUnits(self: *const Self, vm: *CairoVM) !usize {
         return switch (self.*) {
             // For range check built-in runners
             .RangeCheck => |range_check| {
@@ -519,7 +520,7 @@ pub const BuiltinRunner = union(BuiltinName) {
     /// # Returns
     ///
     /// A `usize` representing the number of instances per component for the built-in runner.
-    pub fn getInstancesPerComponent(self: *Self) u32 {
+    pub fn getInstancesPerComponent(self: *const Self) u32 {
         return switch (self.*) {
             .SegmentArena, .Output => 1,
             inline else => |*builtin| builtin.instances_per_component,
@@ -596,6 +597,19 @@ pub const BuiltinRunner = union(BuiltinName) {
         return switch (self.*) {
             .RangeCheck => |*range_check| range_check.getRangeCheckUsage(memory),
             else => null,
+        };
+    }
+
+    /// Gets the number of input cells
+    ///
+    /// # Returns
+    ///
+    /// `n_input_cells` from the individual builtin
+    pub fn getNumberInputCells(self: *Self) u32 {
+        return switch (self.*) {
+            .Output => 0,
+            .SegmentArena => |*segment_arena| segment_arena.n_input_cells_per_instance,
+            inline else => |*builtin| builtin.n_input_cells,
         };
     }
 
@@ -932,6 +946,26 @@ test "BuiltinRunner: getMemoryAccesses with missing segment used sizes" {
     );
 }
 
+test "BuiltinRunner: getAllocataedMemoryUnits Output" {
+    var builtin = BuiltinRunner{
+        .Output = OutputBuiltinRunner.init(std.testing.allocator, true),
+    };
+    defer builtin.deinit();
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    // Ensure Cairo VM is properly deallocated at the end of the test
+    defer vm.deinit();
+
+    // Expecting an error of type MemoryError.MissingSegmentUsedSizes
+    try expectError(
+        MemoryError.MissingSegmentUsedSizes,
+        builtin.getMemoryAccesses(std.testing.allocator, &vm),
+    );
+}
+
 test "BuiltinRunner: getMemoryAccesses with empty access" {
     // Initialize Cairo VM
     var vm = try CairoVM.init(
@@ -954,6 +988,54 @@ test "BuiltinRunner: getMemoryAccesses with empty access" {
 
     // Expecting the actual memory accesses to be empty
     try expect(actual.items.len == 0);
+}
+
+test "BuiltinRunner: getAllocataedMemoryUnits Keccak" {
+    var def = try KeccakInstanceDef.initDefault(std.testing.allocator);
+    defer def.deinit();
+
+    var builtin = BuiltinRunner{
+        .Keccak = try KeccakBuiltinRunner.init(std.testing.allocator, &def, true),
+    };
+    defer builtin.deinit();
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+    vm.current_step = 32768;
+    try std.testing.expectEqual(256, try builtin.getAllocatedMemoryUnits(&vm));
+}
+
+test "BuiltinRunner: getAllocataedMemoryUnits Bitwise" {
+    var builtin = BuiltinRunner{
+        .Bitwise = BitwiseBuiltinRunner.init(&.{}, true),
+    };
+    defer builtin.deinit();
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+    vm.current_step = 256;
+    try std.testing.expectEqual(5, try builtin.getAllocatedMemoryUnits(&vm));
+}
+
+test "BuiltinRunner: getAllocataedMemoryUnits RangeCheck" {
+    var builtin = BuiltinRunner{
+        .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
+    };
+    defer builtin.deinit();
+
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+    vm.current_step = 8;
+    try std.testing.expectEqual(1, try builtin.getAllocatedMemoryUnits(&vm));
 }
 
 test "BuiltinRunner: getMemoryAccesses with real data" {
@@ -1553,4 +1635,122 @@ test "BuiltinRunner: builtin name function" {
     // Initialize a `BuiltinRunner` with the `Output` variant and test its name.
     var output: BuiltinRunner = .{ .Output = OutputBuiltinRunner.initDefault(std.testing.allocator) };
     try expectEqualStrings("output_builtin", output.name());
+}
+
+test "BuiltinRunner:getNumberInputCells with output builtin" {
+    // Initialize a BuiltinRunner union with the OutputBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .Output = OutputBuiltinRunner.initDefault(std.testing.allocator) };
+
+    // Test the `getNumberInputCells` function with specific parameters.
+    try expectEqual(
+        0,
+        builtin.getNumberInputCells(),
+    );
+}
+
+test "BuiltinRunner:getNumberInputCells with segment arena builtin" {
+    // Initialize a BuiltinRunner union with the SegmentArenaBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .SegmentArena = SegmentArenaBuiltinRunner.init(true) };
+
+    // Test the `getNumberInputCells` function with specific parameters.
+    try expectEqual(
+        3,
+        builtin.getNumberInputCells(),
+    );
+}
+
+test "BuiltinRunner:getNumberInputCells with bitwise builtin" {
+    // Initialize a BuiltinRunner union with the BitwiseBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .Bitwise = .{} };
+
+    // Test the `getNumberInputCells` function with specific parameters.
+    try expectEqual(
+        2,
+        builtin.getNumberInputCells(),
+    );
+}
+
+test "BuiltinRunner:getNumberInputCells with elliptic curve operations builtin" {
+    // Initialize a BuiltinRunner union with the EcOpBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .EcOp = EcOpBuiltinRunner.initDefault(std.testing.allocator) };
+
+    // Test the `getNumberInputCells` function with specific parameters.
+    try expectEqual(
+        5,
+        builtin.getNumberInputCells(),
+    );
+}
+
+test "BuiltinRunner:getNumberInputCells with hash builtin" {
+    // Initialize a BuiltinRunner union with the HashBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .Hash = HashBuiltinRunner.init(std.testing.allocator, 256, true) };
+
+    // Test the `getNumberInputCells` function with specific parameters.
+    try expectEqual(
+        2,
+        builtin.getNumberInputCells(),
+    );
+}
+
+test "BuiltinRunner:getNumberInputCells with range check builtin" {
+    // Initialize a BuiltinRunner union with the RangeCheckBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .RangeCheck = .{} };
+
+    // Test the `getNumberInputCells` function with specific parameters.
+    try expectEqual(
+        1,
+        builtin.getNumberInputCells(),
+    );
+}
+
+test "BuiltinRunner:getNumberInputCells with keccak builtin" {
+    // Initialize a default Keccak instance definition.
+    var keccak_instance_def = try KeccakInstanceDef.initDefault(std.testing.allocator);
+    defer keccak_instance_def.deinit();
+
+    // Initialize a BuiltinRunner union with the KeccakBuiltinRunner variant
+    var builtin: BuiltinRunner = .{
+        .Keccak = try KeccakBuiltinRunner.init(
+            std.testing.allocator,
+            &keccak_instance_def,
+            true,
+        ),
+    };
+
+    // Ensure the BuiltinRunner instance is properly deallocated at the end of the test
+    defer builtin.deinit();
+
+    // Test the `getNumberInputCells` function with specific parameters.
+    try expectEqual(
+        8,
+        builtin.getNumberInputCells(),
+    );
+}
+
+test "BuiltinRunner:getNumberInputCells with signature builtin" {
+    // Initialize a default ECDSA instance definition.
+    var ecdsa_instance_def = .{};
+
+    // Initialize a BuiltinRunner union with the SignatureBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .Signature = SignatureBuiltinRunner.init(std.testing.allocator, &ecdsa_instance_def, true) };
+
+    // Ensure the BuiltinRunner instance is properly deallocated at the end of the test
+    defer builtin.deinit();
+
+    // Test the `getNumberInputCells` function with specific parameters.
+    try expectEqual(
+        2,
+        builtin.getNumberInputCells(),
+    );
+}
+
+test "BuiltinRunner:getNumberInputCells with poseidon builtin" {
+    // Initialize a BuiltinRunner union with the PoseidonBuiltinRunner variant
+    var builtin: BuiltinRunner = .{ .Poseidon = PoseidonBuiltinRunner.init(std.testing.allocator, 256, true) };
+
+    // Test the `getNumberInputCells` function with specific parameters.
+    try expectEqual(
+        3,
+        builtin.getNumberInputCells(),
+    );
 }
