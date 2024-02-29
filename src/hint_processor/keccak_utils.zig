@@ -105,6 +105,77 @@ pub fn unsafeKeccak(
     try vm.insertInMemory(allocator, low_addr, MaybeRelocatable.fromFelt(low));
 }
 
+// Implements hint:
+
+//     %{
+//         from eth_hash.auto import keccak
+//         keccak_input = bytearray()
+//         n_elms = ids.keccak_state.end_ptr - ids.keccak_state.start_ptr
+//         for word in memory.get_range(ids.keccak_state.start_ptr, n_elms):
+//             keccak_input += word.to_bytes(16, 'big')
+//         hashed = keccak(keccak_input)
+//         ids.high = int.from_bytes(hashed[:16], 'big')
+//         ids.low = int.from_bytes(hashed[16:32], 'big')
+//     %}
+pub fn unsafeKeccakFinalize(
+    allocator: std.mem.Allocator,
+    vm: *CairoVM,
+    ids_data: std.StringHashMap(HintReference),
+    ap_tracking: ApTracking,
+) !void {
+    // Just for reference (cairo code):
+    // struct KeccakState:
+    //     member start_ptr : felt*
+    //     member end_ptr : felt*
+    // end
+
+    const keccak_state_ptr = try hint_utils.getRelocatableFromVarName("keccak_state", vm, ids_data, ap_tracking);
+
+    // as `keccak_state` is a struct, the pointer to the struct is the same as the pointer to the first element.
+    // this is why to get the pointer stored in the field `start_ptr` it is enough to pass the variable name as
+    // `keccak_state`, which is the one that appears in the reference manager of the compiled JSON.
+    const start_ptr = try hint_utils.getPtrFromVarName("keccak_state", vm, ids_data, ap_tracking);
+
+    // in the KeccakState struct, the field `end_ptr` is the second one, so this variable should be get from
+    // the memory cell contiguous to the one where KeccakState is pointing to.
+    const end_ptr = try vm.getRelocatable(Relocatable{
+        .segment_index = keccak_state_ptr.segment_index,
+        .offset = keccak_state_ptr.offset + 1,
+    });
+
+    const n_elems = try end_ptr.sub(start_ptr);
+
+    var keccak_input = std.ArrayList(u8).init(allocator);
+    defer keccak_input.deinit();
+
+    const range = try vm.getFeltRange(start_ptr, n_elems.offset);
+    defer range.deinit();
+
+    for (range.items) |word| {
+        try keccak_input.appendSlice(word.toBytesBe()[16..]);
+    }
+
+    var hasher = std.crypto.hash.sha3.Keccak256.init(.{});
+    hasher.update(keccak_input.items);
+    var hashed: [32]u8 = undefined;
+
+    hasher.final(&hashed);
+
+    var high_bytes = [_]u8{0} ** 32;
+    var low_bytes = [_]u8{0} ** 32;
+    @memcpy(high_bytes[16..], hashed[0..16]);
+    @memcpy(low_bytes[16..], hashed[16..32]);
+
+    const high = Felt252.fromBytesBe(high_bytes);
+    const low = Felt252.fromBytesBe(low_bytes);
+
+    const high_addr = try hint_utils.getRelocatableFromVarName("high", vm, ids_data, ap_tracking);
+    const low_addr = try hint_utils.getRelocatableFromVarName("low", vm, ids_data, ap_tracking);
+
+    try vm.insertInMemory(allocator, high_addr, MaybeRelocatable.fromFelt(high));
+    try vm.insertInMemory(allocator, low_addr, MaybeRelocatable.fromFelt(low));
+}
+
 test "KeccakUtils: unsafeKeccak ok" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
@@ -267,4 +338,51 @@ test "KeccakUtils: unsafeKeccak invalid word size" {
     var hint_data = HintData.init(hint_codes.UNSAFE_KECCAK, ids_data, .{});
 
     try std.testing.expectError(HintError.InvalidWordSize, hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, &exec_scopes));
+}
+
+test "KeccakUtils: unsafeKeccakFinalize ok" {
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // _ = try vm.addMemorySegment();
+    const input_start = try vm.addMemorySegment();
+
+    var ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{
+        .{
+            .name = "keccak_state",
+            .elems = &.{
+                MaybeRelocatable.fromRelocatable(input_start),
+                MaybeRelocatable.fromRelocatable(try input_start.addUint(2)),
+            },
+        },
+        .{
+            .name = "high",
+            .elems = &.{
+                null,
+            },
+        },
+        .{
+            .name = "low",
+            .elems = &.{
+                null,
+            },
+        },
+    }, &vm);
+
+    defer ids_data.deinit();
+
+    try vm.insertInMemory(std.testing.allocator, input_start, MaybeRelocatable.fromFelt(Felt252.zero()));
+    try vm.insertInMemory(std.testing.allocator, try input_start.addUint(1), MaybeRelocatable.fromFelt(Felt252.one()));
+
+    const hint_processor: HintProcessor = .{};
+    var hint_data = HintData.init(hint_codes.UNSAFE_KECCAK_FINALIZE, ids_data, .{});
+
+    try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
+
+    const high = try hint_utils.getIntegerFromVarName("high", &vm, ids_data, undefined);
+    const low = try hint_utils.getIntegerFromVarName("low", &vm, ids_data, undefined);
+
+    try std.testing.expectEqual(Felt252.fromInt(u256, 235346966651632113557018504892503714354), high);
+    try std.testing.expectEqual(Felt252.fromInt(u256, 17219183504112405672555532996650339574), low);
 }

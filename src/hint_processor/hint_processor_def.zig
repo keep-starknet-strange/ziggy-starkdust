@@ -205,6 +205,8 @@ pub const CairoVMHintProcessor = struct {
             try poseidon_utils.nGreaterThan2(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.UNSAFE_KECCAK, hint_data.code)) {
             try keccak_utils.unsafeKeccak(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.UNSAFE_KECCAK_FINALIZE, hint_data.code)) {
+            try keccak_utils.unsafeKeccakFinalize(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         }
     }
 

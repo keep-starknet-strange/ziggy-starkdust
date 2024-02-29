@@ -150,3 +150,14 @@ pub const UNSAFE_KECCAK =
     \\ids.high = int.from_bytes(hashed[:16], 'big')
     \\ids.low = int.from_bytes(hashed[16:32], 'big')
 ;
+
+pub const UNSAFE_KECCAK_FINALIZE =
+    \\from eth_hash.auto import keccak
+    \\keccak_input = bytearray()
+    \\n_elms = ids.keccak_state.end_ptr - ids.keccak_state.start_ptr
+    \\for word in memory.get_range(ids.keccak_state.start_ptr, n_elms):
+    \\    keccak_input += word.to_bytes(16, 'big')
+    \\hashed = keccak(keccak_input)
+    \\ids.high = int.from_bytes(hashed[:16], 'big')
+    \\ids.low = int.from_bytes(hashed[16:32], 'big')
+;
