@@ -45,6 +45,7 @@ pub const hint_processor = struct {
     pub usingnamespace @import("hint_processor/hint_utils.zig");
     pub usingnamespace @import("hint_processor/math_hints.zig");
     pub usingnamespace @import("hint_processor/felt_bit_length.zig");
+    pub usingnamespace @import("hint_processor/segments.zig");
 };
 
 pub const parser = struct {
