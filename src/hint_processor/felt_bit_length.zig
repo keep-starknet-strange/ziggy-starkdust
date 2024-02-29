@@ -56,7 +56,7 @@ pub fn getFeltBitLength(
     );
 }
 
-test "Garaga: simple test" {
+test "FeltBitLength: simple test" {
     // Initialize a hashmap to store variable references.
     var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
     defer ids_data.deinit();
@@ -100,7 +100,7 @@ test "Garaga: simple test" {
     try expectEqual(Felt252.fromInt(u8, 3), res);
 }
 
-test "Garaga: range test" {
+test "FeltBitLength: range test" {
     // Iterate over a range of values from 0 to 251 (inclusive).
     for (0..252) |i| {
         // Initialize a hashmap to store variable references.
@@ -147,7 +147,7 @@ test "Garaga: range test" {
     }
 }
 
-test "Garaga: wrap around" {
+test "FeltBitLength: wrap around" {
     // Initialize a hashmap to store variable references.
     var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
     defer ids_data.deinit();
