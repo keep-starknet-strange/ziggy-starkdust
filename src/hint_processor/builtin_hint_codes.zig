@@ -128,3 +128,25 @@ pub const VM_EXIT_SCOPE = "vm_exit_scope()";
 pub const MEMCPY_ENTER_SCOPE = "vm_enter_scope({'n': ids.len})";
 pub const NONDET_N_GREATER_THAN_10 = "memory[ap] = to_felt_or_relocatable(ids.n >= 10)";
 pub const NONDET_N_GREATER_THAN_2 = "memory[ap] = to_felt_or_relocatable(ids.n >= 2)";
+
+pub const UNSAFE_KECCAK =
+    \\from eth_hash.auto import keccak
+    \\
+    \\data, length = ids.data, ids.length
+    \\
+    \\if '__keccak_max_size' in globals():
+    \\    assert length <= __keccak_max_size, \
+    \\        f'unsafe_keccak() can only be used with length<={__keccak_max_size}. ' \
+    \\        f'Got: length={length}.'
+    \\
+    \\keccak_input = bytearray()
+    \\for word_i, byte_i in enumerate(range(0, length, 16)):
+    \\    word = memory[data + word_i]
+    \\    n_bytes = min(16, length - byte_i)
+    \\    assert 0 <= word < 2 ** (8 * n_bytes)
+    \\    keccak_input += word.to_bytes(n_bytes, 'big')
+    \\
+    \\hashed = keccak(keccak_input)
+    \\ids.high = int.from_bytes(hashed[:16], 'big')
+    \\ids.low = int.from_bytes(hashed[16:32], 'big')
+;

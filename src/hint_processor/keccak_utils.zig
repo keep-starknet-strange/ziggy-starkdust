@@ -16,8 +16,6 @@ const MathError = @import("../vm/error.zig").MathError;
 const HintError = @import("../vm/error.zig").HintError;
 const CairoVMError = @import("../vm/error.zig").CairoVMError;
 
-const keccakF = @import("../vm/builtins/builtin_runner/keccak.zig").keccakF;
-
 // Implements hint:
 //    %{
 //        from eth_hash.auto import keccak
@@ -64,9 +62,11 @@ pub fn unsafeKeccak(
     // transform to u64 to make ranges cleaner in the for loop below
     const u64_length = length.intoU64() catch return HintError.InvalidKeccakInputLength;
 
-    const ZEROES = []u8 ** 32;
+    const ZEROES = [_]u8{0} ** 32;
 
     var keccak_input = std.ArrayList(u8).init(std.testing.allocator);
+    defer keccak_input.deinit();
+
     var word_i: usize = 0;
     var byte_i: u64 = 0;
     while (byte_i < u64_length) : (byte_i += 16) {
@@ -74,30 +74,35 @@ pub fn unsafeKeccak(
 
         const word = try vm.getFelt(word_addr);
         const bytes = word.toBytesBe();
-        const n_bytes = @min(16, u64_length - byte_i);
-        const start: usize = 32 - n_bytes;
+        const n_bytes = @min(@as(usize, 16), u64_length - byte_i);
+        const start: usize = @as(usize, 32) - n_bytes;
 
         // word <= 2^(8 * n_bytes) <=> `start` leading zeroes
         if (!std.mem.startsWith(u8, ZEROES[0..], bytes[0..start]))
             return HintError.InvalidWordSize;
 
-        keccak_input.appendSlice(bytes[0..start]);
+        try keccak_input.appendSlice(bytes[start..]);
         // increase step
         word_i = word_i + 1;
     }
-    const hashed = try keccakF(&keccak_input.items);
 
-    var high_bytes = []u8 ** 32;
-    var low_bytes = []u8 ** 32;
+    var high_bytes = [_]u8{0} ** 32;
+    var low_bytes = [_]u8{0} ** 32;
 
-    std.mem.copyForwards(u8, high_bytes[16..], hashed[0..16]);
-    std.mem.copyForwards(u8, low_bytes[16..], hashed[16..32]);
+    var hasher = std.crypto.hash.sha3.Keccak256.init(.{});
+    hasher.update(keccak_input.items);
 
-    const high = Felt252.fromBytesBe(&high_bytes);
-    const low = Felt252.fromBytesBe(&low_bytes);
+    var hashed: [32]u8 = undefined;
+    hasher.final(&hashed);
 
-    try vm.insertInMemory(allocator, high_addr, high);
-    try vm.insertInMemory(allocator, low_addr, low);
+    @memcpy(high_bytes[16..], hashed[0..16]);
+    @memcpy(low_bytes[16..], hashed[16..32]);
+
+    const high = Felt252.fromBytesBe(high_bytes);
+    const low = Felt252.fromBytesBe(low_bytes);
+
+    try vm.insertInMemory(allocator, high_addr, MaybeRelocatable.fromFelt(high));
+    try vm.insertInMemory(allocator, low_addr, MaybeRelocatable.fromFelt(low));
 }
 
 test "KeccakUtils: unsafeKeccak ok" {
@@ -105,6 +110,7 @@ test "KeccakUtils: unsafeKeccak ok" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
+    // _ = try vm.addMemorySegment();
     const data_ptr = try vm.addMemorySegment();
 
     var ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{
@@ -135,16 +141,130 @@ test "KeccakUtils: unsafeKeccak ok" {
     }, &vm);
 
     defer ids_data.deinit();
-    inline for (0..3) |i|
+
+    var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
+    defer exec_scopes.deinit();
+
+    try exec_scopes.assignOrUpdateVariable("__keccak_max_size", .{
+        .u64 = 500,
+    });
+
+    inline for (0..3) |i| {
         try vm.insertInMemory(std.testing.allocator, Relocatable.init(data_ptr.segment_index, data_ptr.offset + i), MaybeRelocatable.fromFelt(Felt252.one()));
+    }
 
     const hint_processor: HintProcessor = .{};
-    var hint_data = HintData.init(hint_codes.NONDET_N_GREATER_THAN_2, ids_data, .{});
+    var hint_data = HintData.init(hint_codes.UNSAFE_KECCAK, ids_data, .{});
 
-    vm.run_context.ap.* = Relocatable.init(1, 3);
-    vm.run_context.fp.* = Relocatable.init(1, 1);
+    try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, &exec_scopes);
 
-    try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
+    const high = try hint_utils.getIntegerFromVarName("high", &vm, ids_data, undefined);
+    const low = try hint_utils.getIntegerFromVarName("low", &vm, ids_data, undefined);
 
-    try std.testing.expectEqual(Felt252.zero(), try vm.segments.memory.getFelt(vm.run_context.getAP()));
+    try std.testing.expectEqual(Felt252.fromInt(u256, 199195598804046335037364682505062700553), high);
+    try std.testing.expectEqual(Felt252.fromInt(u256, 259413678945892999811634722593932702747), low);
+}
+
+test "KeccakUtils: unsafeKeccak max size exceed" {
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // _ = try vm.addMemorySegment();
+    const data_ptr = try vm.addMemorySegment();
+
+    var ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{
+        .{
+            .name = "length",
+            .elems = &.{
+                MaybeRelocatable.fromFelt(Felt252.fromInt(u256, 3)),
+            },
+        },
+        .{
+            .name = "data",
+            .elems = &.{
+                MaybeRelocatable.fromRelocatable(data_ptr),
+            },
+        },
+        .{
+            .name = "high",
+            .elems = &.{
+                null,
+            },
+        },
+        .{
+            .name = "low",
+            .elems = &.{
+                null,
+            },
+        },
+    }, &vm);
+
+    defer ids_data.deinit();
+
+    var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
+    defer exec_scopes.deinit();
+
+    try exec_scopes.assignOrUpdateVariable("__keccak_max_size", .{
+        .u64 = 2,
+    });
+
+    inline for (0..3) |i| {
+        try vm.insertInMemory(std.testing.allocator, Relocatable.init(data_ptr.segment_index, data_ptr.offset + i), MaybeRelocatable.fromFelt(Felt252.one()));
+    }
+
+    const hint_processor: HintProcessor = .{};
+    var hint_data = HintData.init(hint_codes.UNSAFE_KECCAK, ids_data, .{});
+
+    try std.testing.expectError(HintError.KeccakMaxSize, hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, &exec_scopes));
+}
+
+test "KeccakUtils: unsafeKeccak invalid word size" {
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // _ = try vm.addMemorySegment();
+    const data_ptr = try vm.addMemorySegment();
+
+    var ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{
+        .{
+            .name = "length",
+            .elems = &.{
+                MaybeRelocatable.fromFelt(Felt252.fromInt(u256, 3)),
+            },
+        },
+        .{
+            .name = "data",
+            .elems = &.{
+                MaybeRelocatable.fromRelocatable(data_ptr),
+            },
+        },
+        .{
+            .name = "high",
+            .elems = &.{
+                null,
+            },
+        },
+        .{
+            .name = "low",
+            .elems = &.{
+                null,
+            },
+        },
+    }, &vm);
+
+    defer ids_data.deinit();
+
+    var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
+    defer exec_scopes.deinit();
+
+    inline for (0..3) |i| {
+        try vm.insertInMemory(std.testing.allocator, Relocatable.init(data_ptr.segment_index, data_ptr.offset + i), MaybeRelocatable.fromFelt(Felt252.fromSignedInt(-1)));
+    }
+
+    const hint_processor: HintProcessor = .{};
+    var hint_data = HintData.init(hint_codes.UNSAFE_KECCAK, ids_data, .{});
+
+    try std.testing.expectError(HintError.InvalidWordSize, hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, &exec_scopes));
 }
