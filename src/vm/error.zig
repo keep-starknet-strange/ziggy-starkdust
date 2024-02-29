@@ -281,6 +281,14 @@ pub const HintError = error{
 };
 
 pub const InsufficientAllocatedCellsError = error{
+    //  Number of steps must be at least for some builtin
     MinStepNotReached,
+    // The builtin used cells but the capacity is wrong
     BuiltinCells,
+    // There are only cells to fill the range checks holes, but potentially are required.
+    RangeCheckUnits,
+    // There are only cells to fill the diluted check holes, but potentially are required
+    DilutedCells,
+    // There are only cells to fill the memory address holes, but are required.
+    MemoryAddresses,
 };
