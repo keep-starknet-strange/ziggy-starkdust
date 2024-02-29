@@ -1408,7 +1408,6 @@ test "CairoRunner: getPermRangeCheckLimits with null range limit" {
     );
 }
 
-
 test "CairoRunner: checkRangeCheckUsage perm range limits none" {
     // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
     var cairo_runner = try CairoRunner.init(
@@ -1433,7 +1432,7 @@ test "CairoRunner: checkRangeCheckUsage without builtins" {
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
         try Program.initDefault(std.testing.allocator, true),
-                "plain",
+        "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
             std.testing.allocator,
@@ -1441,7 +1440,7 @@ test "CairoRunner: checkRangeCheckUsage without builtins" {
         ),
         false,
     );
-     cairo_runner.vm.current_step = 10000;
+    cairo_runner.vm.current_step = 10000;
 
     var segm = std.ArrayListUnmanaged(?MemoryCell){};
     try segm.append(std.testing.allocator, MemoryCell.init(MaybeRelocatable.fromFelt(Felt252.fromInt(u256, 0x80FF80000530))));
@@ -1467,7 +1466,7 @@ test "CairoRunner: get constants" {
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
         program,
-                "plain",
+        "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
             std.testing.allocator,
@@ -1475,7 +1474,7 @@ test "CairoRunner: get constants" {
         ),
         false,
     );
-     // Defer the deinitialization of the CairoRunner object to ensure cleanup after the test.
+    // Defer the deinitialization of the CairoRunner object to ensure cleanup after the test.
     defer cairo_runner.deinit(std.testing.allocator);
 
     // Retrieve the constants from the CairoRunner.
