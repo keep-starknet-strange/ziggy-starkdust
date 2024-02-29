@@ -23,6 +23,7 @@ const Attribute = @import("../types/programjson.zig").Attribute;
 const ReferenceManager = @import("../types/programjson.zig").ReferenceManager;
 const CairoRunnerError = @import("../error.zig").CairoRunnerError;
 const CairoVMError = @import("../error.zig").CairoVMError;
+const InsufficientAllocatedCellsError = @import("../error.zig").InsufficientAllocatedCellsError;
 const RunnerError = @import("../error.zig").RunnerError;
 const MemoryError = @import("../error.zig").MemoryError;
 const trace_context = @import("../trace_context.zig");
@@ -667,6 +668,22 @@ pub const CairoRunner = struct {
         return builtin_segment_info;
     }
 
+
+    /// Checks that there are enough trace cells to fill the entire range check
+    /// range.
+    pub fn checkRangeCheckUsage(self: *Self, allocator: Allocator, vm: *CairoVM) !void {
+        const rc_min_max = (try self.getPermRangeCheckLimits(allocator)) orelse return;
+        var rc_units_used_by_builtins: usize = 0;
+
+        for (vm.builtin_runners.items) |runner|
+            rc_units_used_by_builtins = rc_units_used_by_builtins + try runner.getUsedPermRangeCheckUnits(vm);
+
+        const unused_rc_units = (@as(usize, self.layout.rc_units) - 3) * vm.current_step - rc_units_used_by_builtins;
+
+        if (unused_rc_units < @as(usize, @intCast(rc_min_max[1] - rc_min_max[0])))
+            return InsufficientAllocatedCellsError.RangeCheckUnits;
+    }
+
     /// Retrieves the number of memory holes in the CairoRunner's virtual machine (VM) segments.
     ///
     /// Memory holes are regions of memory that are unused or uninitialized.
@@ -697,6 +714,7 @@ pub const CairoRunner = struct {
             has_output_builtin,
         );
     }
+
 
     /// Retrieves the permanent range check limits from the CairoRunner instance.
     ///
@@ -1439,6 +1457,51 @@ test "CairoRunner: getPermRangeCheckLimits with null range limit" {
     );
 }
 
+test "CairoRunner: checkRangeCheckUsage perm range limits none" {
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator, true),
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+    try cairo_runner.checkRangeCheckUsage(std.testing.allocator, &cairo_runner.vm);
+}
+
+test "CairoRunner: checkRangeCheckUsage without builtins" {
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator, true),
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+    cairo_runner.vm.current_step = 10000;
+
+    var segm = std.ArrayListUnmanaged(?MemoryCell){};
+    try segm.append(std.testing.allocator, MemoryCell.init(MaybeRelocatable.fromFelt(Felt252.fromInt(u256, 0x80FF80000530))));
+
+    try cairo_runner.vm.segments.memory.data.append(segm);
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    try cairo_runner.checkRangeCheckUsage(std.testing.allocator, &cairo_runner.vm);
+}
 test "CairoRunner: get constants" {
     // Initialize a default program with built-ins enabled using the testing allocator.
     var program = try Program.initDefault(std.testing.allocator, true);
@@ -1460,7 +1523,6 @@ test "CairoRunner: get constants" {
         ),
         false,
     );
-
     // Defer the deinitialization of the CairoRunner object to ensure cleanup after the test.
     defer cairo_runner.deinit(std.testing.allocator);
 
@@ -1492,7 +1554,6 @@ test "CairoRunner: initBuiltins missing builtins allow missing" {
         ),
         false,
     );
-
     // Defer the deinitialization of the CairoRunner to ensure cleanup.
     defer cairo_runner.deinit(std.testing.allocator);
 
