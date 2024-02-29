@@ -17,6 +17,10 @@ const Program = @import("../types/program.zig").Program;
 const BuiltinName = @import("../types/programjson.zig").BuiltinName;
 const builtin_runner_import = @import("../builtins/builtin_runner/builtin_runner.zig");
 const HintRange = @import("../types/program.zig").HintRange;
+const HintParams = @import("../types/programjson.zig").HintParams;
+const Identifier = @import("../types/programjson.zig").Identifier;
+const Attribute = @import("../types/programjson.zig").Attribute;
+const ReferenceManager = @import("../types/programjson.zig").ReferenceManager;
 const CairoRunnerError = @import("../error.zig").CairoRunnerError;
 const CairoVMError = @import("../error.zig").CairoVMError;
 const RunnerError = @import("../error.zig").RunnerError;
@@ -348,7 +352,12 @@ pub const CairoRunner = struct {
         } else return RunnerError.NoProgBase;
     }
 
-    pub fn initFunctionEntrypoint(self: *Self, entrypoint: usize, return_fp: Relocatable, stack: *std.ArrayList(MaybeRelocatable)) !Relocatable {
+    pub fn initFunctionEntrypoint(
+        self: *Self,
+        entrypoint: usize,
+        return_fp: MaybeRelocatable,
+        stack: *std.ArrayList(MaybeRelocatable),
+    ) !Relocatable {
         var end = try self.vm.segments.addSegment();
 
         // per 6.1 of cairo whitepaper
@@ -357,15 +366,16 @@ pub const CairoRunner = struct {
         // but to situate the functionality with Cairo's read-only memory,
         // the frame pointer register is used to point to the current frame in the stack
         // the runner sets the return fp and establishes the end address that execution treats as the endpoint.
-        try stack.append(MaybeRelocatable.fromRelocatable(return_fp));
+        try stack.append(return_fp);
         try stack.append(MaybeRelocatable.fromRelocatable(end));
 
-        self.initial_fp = self.execution_base;
-        self.initial_fp.?.addUintInPlace(@as(u64, stack.items.len));
-        self.initial_ap = self.initial_fp;
+        if (self.execution_base) |b| {
+            self.initial_fp = Relocatable.init(b.segment_index, b.offset + stack.items.len);
+            self.initial_ap = self.initial_fp;
+        } else return RunnerError.NoExecBase;
 
-        self.final_pc = &end;
         try self.initState(entrypoint, stack);
+        self.final_pc = &end;
         return end;
     }
 
@@ -423,7 +433,12 @@ pub const CairoRunner = struct {
 
         const return_fp = try self.vm.segments.addSegment();
 
-        if (self.entrypoint) |main| return self.initFunctionEntrypoint(main, return_fp, &stack);
+        if (self.entrypoint) |main|
+            return self.initFunctionEntrypoint(
+                main,
+                MaybeRelocatable.fromRelocatable(return_fp),
+                &stack,
+            );
 
         return RunnerError.MissingMain;
     }
@@ -1469,4 +1484,83 @@ test "CairoRunner: initBuiltins all builtins and maintain order" {
     try std.testing.expectEqual(given_runners[5].name(), builtin_runner_import.EC_OP_BUILTIN_NAME);
     try std.testing.expectEqual(given_runners[6].name(), builtin_runner_import.KECCAK_BUILTIN_NAME);
     try std.testing.expectEqual(given_runners[7].name(), builtin_runner_import.POSEIDON_BUILTIN_NAME);
+}
+
+test "CairoRunner: initial FP should be null if no initialization" {
+    // Initialize a CairoRunner instance with default parameters for testing.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator, true),
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    // Verify that the initial function pointer (FP) is null.
+    try expectEqual(null, cairo_runner.initial_fp);
+}
+
+test "CairoRunner: initial FP with a simple program" {
+    // Initialize a list of built-in functions.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.output);
+
+    // Initialize data structures required for a program.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a Program instance with the specified parameters.
+    const program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        null,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
+        true,
+    );
+
+    // Initialize a CairoVM instance.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+
+    // Add memory segments to the CairoVM instance.
+    inline for (0..2) |_| _ = try vm.addMemorySegment();
+
+    // Initialize a CairoRunner instance with the created Program and CairoVM instances.
+
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        vm,
+        false,
+    );
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    // Set the program and execution base addresses.
+    cairo_runner.program_base = .{};
+    cairo_runner.execution_base = Relocatable.init(1, 0);
+
+    // Initialize a stack for function entrypoint testing.
+    var stack = ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    defer stack.deinit();
+    _ = try cairo_runner.initFunctionEntrypoint(0, MaybeRelocatable.fromInt(u8, 9), &stack);
+
+    // Deinitialize memory segments.
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Verify that the initial function pointer (FP) is correct.
+    try expectEqual(Relocatable.init(1, 2), cairo_runner.initial_fp);
 }
