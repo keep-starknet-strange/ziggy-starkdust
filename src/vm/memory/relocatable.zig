@@ -116,7 +116,7 @@ pub const Relocatable = struct {
     /// # Errors
     /// An error is returned if the subtraction results in an underflow (negative value).
     pub fn subFelt(self: Self, other: Felt252) MathError!Self {
-        return try self.subUint(try other.tryIntoU64());
+        return try self.subUint(try other.intoU64());
     }
 
     /// Substract a u64 from a Relocatable and return a new Relocatable.
@@ -181,7 +181,7 @@ pub const Relocatable = struct {
     pub fn addFelt(self: Self, other: Felt252) MathError!Self {
         return .{
             .segment_index = self.segment_index,
-            .offset = try Felt252.fromInt(u64, self.offset).add(other).tryIntoU64(),
+            .offset = try Felt252.fromInt(u64, self.offset).add(other).intoU64(),
         };
     }
 
@@ -190,14 +190,21 @@ pub const Relocatable = struct {
     /// - self: Pointer to the Relocatable object to modify.
     /// - other: The felt to add to `self.offset`.
     pub fn addFeltInPlace(self: *Self, other: Felt252) !void {
-        self.offset = try Felt252.fromInt(u64, self.offset).add(other).tryIntoU64();
+        self.offset = try Felt252.fromInt(u64, self.offset).add(other).intoU64();
     }
 
     /// Performs additions if other contains a Felt value, fails otherwise.
     /// # Arguments
     /// - other - The other MaybeRelocatable to add.
     pub fn addMaybeRelocatableInplace(self: *Self, other: MaybeRelocatable) !void {
-        try self.addFeltInPlace(try other.tryIntoFelt());
+        try self.addFeltInPlace(try other.intoFelt());
+    }
+
+    pub fn addMaybeRelocatable(self: *const Self, other: MaybeRelocatable) !Self {
+        var cp = self.*;
+
+        try cp.addMaybeRelocatableInplace(other);
+        return cp;
     }
 
     /// Calculates the relocated address based on the provided relocation_table.
@@ -436,7 +443,7 @@ pub const MaybeRelocatable = union(enum) {
     /// Return the value of the MaybeRelocatable as a felt or error.
     /// # Returns
     /// The value of the MaybeRelocatable as a Relocatable felt or error.
-    pub fn tryIntoFelt(self: *const Self) CairoVMError!Felt252 {
+    pub fn intoFelt(self: *const Self) CairoVMError!Felt252 {
         return switch (self.*) {
             .relocatable => CairoVMError.TypeMismatchNotFelt,
             .felt => |felt| felt,
@@ -446,20 +453,20 @@ pub const MaybeRelocatable = union(enum) {
     /// Return the value of the MaybeRelocatable as a felt or error.
     /// # Returns
     /// The value of the MaybeRelocatable as a Relocatable felt or error.
-    pub fn tryIntoU64(self: *const Self) error{
+    pub fn intoU64(self: *const Self) error{
         TypeMismatchNotFelt,
         ValueTooLarge,
     }!u64 {
         return switch (self.*) {
             .relocatable => CairoVMError.TypeMismatchNotFelt,
-            .felt => |felt| felt.tryIntoU64(),
+            .felt => |felt| felt.intoU64(),
         };
     }
 
     /// Return the value of the MaybeRelocatable as a Relocatable.
     /// # Returns
     /// The value of the MaybeRelocatable as a Relocatable.
-    pub fn tryIntoRelocatable(self: *const Self) CairoVMError!Relocatable {
+    pub fn intoRelocatable(self: *const Self) CairoVMError!Relocatable {
         return switch (self.*) {
             .relocatable => |relocatable| relocatable,
             .felt => CairoVMError.TypeMismatchNotRelocatable,
@@ -1186,19 +1193,19 @@ test "MaybeRelocatable: cmp should return proper order results for Felt252 compa
     );
 }
 
-test "MaybeRelocatable: tryIntoRelocatable should return Relocatable if MaybeRelocatable is Relocatable" {
+test "MaybeRelocatable: intoRelocatable should return Relocatable if MaybeRelocatable is Relocatable" {
     var maybeRelocatable = MaybeRelocatable.fromSegment(0, 10);
     try expectEqual(
         Relocatable.init(0, 10),
-        try maybeRelocatable.tryIntoRelocatable(),
+        try maybeRelocatable.intoRelocatable(),
     );
 }
 
-test "MaybeRelocatable: tryIntoRelocatable should return an error if MaybeRelocatable is Felt" {
+test "MaybeRelocatable: intoRelocatable should return an error if MaybeRelocatable is Felt" {
     var maybeRelocatable = MaybeRelocatable.fromInt(u8, 10);
     try expectError(
         CairoVMError.TypeMismatchNotRelocatable,
-        maybeRelocatable.tryIntoRelocatable(),
+        maybeRelocatable.intoRelocatable(),
     );
 }
 
@@ -1237,29 +1244,29 @@ test "MaybeRelocatable: isFelt should return false if MaybeRelocatable is Reloca
     try expect(!maybeRelocatable.isFelt());
 }
 
-test "MaybeRelocatable: tryIntoFelt should return Felt if MaybeRelocatable is Felt" {
+test "MaybeRelocatable: intoFelt should return Felt if MaybeRelocatable is Felt" {
     var maybeRelocatable = MaybeRelocatable.fromInt(u8, 10);
-    try expectEqual(Felt252.fromInt(u8, 10), try maybeRelocatable.tryIntoFelt());
+    try expectEqual(Felt252.fromInt(u8, 10), try maybeRelocatable.intoFelt());
 }
 
-test "MaybeRelocatable: tryIntoFelt should return an error if MaybeRelocatable is Relocatable" {
+test "MaybeRelocatable: intoFelt should return an error if MaybeRelocatable is Relocatable" {
     var maybeRelocatable = MaybeRelocatable.fromSegment(0, 10);
-    try expectError(CairoVMError.TypeMismatchNotFelt, maybeRelocatable.tryIntoFelt());
+    try expectError(CairoVMError.TypeMismatchNotFelt, maybeRelocatable.intoFelt());
 }
 
-test "MaybeRelocatable: tryIntoU64 should return a u64 if MaybeRelocatable is Felt" {
+test "MaybeRelocatable: intoU64 should return a u64 if MaybeRelocatable is Felt" {
     var maybeRelocatable = MaybeRelocatable.fromInt(u8, 10);
-    try expectEqual(@as(u64, @intCast(10)), try maybeRelocatable.tryIntoU64());
+    try expectEqual(@as(u64, @intCast(10)), try maybeRelocatable.intoU64());
 }
 
-test "MaybeRelocatable: tryIntoU64 should return an error if MaybeRelocatable is Relocatable" {
+test "MaybeRelocatable: intoU64 should return an error if MaybeRelocatable is Relocatable" {
     const maybeRelocatable = MaybeRelocatable.fromSegment(0, 10);
-    try expectError(CairoVMError.TypeMismatchNotFelt, maybeRelocatable.tryIntoU64());
+    try expectError(CairoVMError.TypeMismatchNotFelt, maybeRelocatable.intoU64());
 }
 
-test "MaybeRelocatable: tryIntoU64 should return an error if MaybeRelocatable Felt cannot be coerced to u64" {
+test "MaybeRelocatable: intoU64 should return an error if MaybeRelocatable Felt cannot be coerced to u64" {
     var maybeRelocatable = MaybeRelocatable.fromInt(u256, std.math.maxInt(u64) + 1);
-    try expectError(MathError.ValueTooLarge, maybeRelocatable.tryIntoU64());
+    try expectError(MathError.ValueTooLarge, maybeRelocatable.intoU64());
 }
 
 test "MaybeRelocatable: any comparision should return false if other MaybeRelocatable is of different variant 1" {
@@ -1458,7 +1465,7 @@ test "MaybeRelocatable.mul: should return Felt multiplication operation if both 
             u256,
             0x32,
         ),
-        (try result1.tryIntoFelt()).toInteger(),
+        (try result1.intoFelt()).toInteger(),
     );
 
     // Test Case 2
@@ -1476,6 +1483,6 @@ test "MaybeRelocatable.mul: should return Felt multiplication operation if both 
             u256,
             0x7fffffffffffbd0ffffffffffffffffffffffffffffffffffffffffffffffbf,
         ),
-        (try result2.tryIntoFelt()).toInteger(),
+        (try result2.intoFelt()).toInteger(),
     );
 }

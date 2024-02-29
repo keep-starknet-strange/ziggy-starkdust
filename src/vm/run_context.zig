@@ -56,8 +56,8 @@ pub const RunContext = struct {
             .fp = fp,
         };
         run_context.pc.* = .{};
-        run_context.ap.* = .{};
-        run_context.fp.* = .{};
+        run_context.ap.* = Relocatable.init(1, 0);
+        run_context.fp.* = Relocatable.init(1, 0);
 
         return run_context;
     }
@@ -153,12 +153,12 @@ pub const RunContext = struct {
             .FP => self.fp.*,
             .AP => self.ap.*,
             .Imm => if (instruction.off_2 == 1) self.pc.* else return error.ImmShouldBe1,
-            .Op0 => if (op_0) |val| try val.tryIntoRelocatable() else return error.UnknownOp0,
+            .Op0 => if (op_0) |val| try val.intoRelocatable() else return error.UnknownOp0,
         };
 
         return if (instruction.off_2 < 0)
             // Convert i16 to u64 safely and then negate
-            try base_addr.subUint(@intCast(-instruction.off_2))
+            try base_addr.subUint(@abs(instruction.off_2))
         else
             // Convert i16 to u64 safely
             return try base_addr.addUint(@intCast(instruction.off_2));

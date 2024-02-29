@@ -19,7 +19,8 @@ const RunnerError = Error.RunnerError;
 
 const N_PARTS: u64 = 8;
 const INNER_RC_BOUND_SHIFT: u64 = 16;
-const BOUND = Felt252.one().saturating_shl(16 * N_PARTS);
+// const BOUND = Felt252.one().saturating_shl(16 * N_PARTS);
+const BOUND = Felt252.two().pow(16 * N_PARTS);
 
 /// Range check built-in runner
 pub const RangeCheckBuiltinRunner = struct {
@@ -83,8 +84,7 @@ pub const RangeCheckBuiltinRunner = struct {
     /// # Modifies
     /// - `self`: Updates the `base` value to the new segment's index.
     pub fn initSegments(self: *Self, segments: *MemorySegmentManager) !void {
-        const seg = try segments.addSegment();
-        self.base = @intCast(seg.segment_index);
+        self.base = @intCast((try segments.addSegment()).segment_index);
     }
 
     /// Initializes and returns an `ArrayList` of `MaybeRelocatable` values.
@@ -99,6 +99,7 @@ pub const RangeCheckBuiltinRunner = struct {
     /// An `ArrayList` of `MaybeRelocatable` values.
     pub fn initialStack(self: *Self, allocator: Allocator) !ArrayList(MaybeRelocatable) {
         var result = ArrayList(MaybeRelocatable).init(allocator);
+        errdefer result.deinit();
         if (self.included) {
             try result.append(.{
                 .relocatable = Relocatable.init(
@@ -152,14 +153,8 @@ pub const RangeCheckBuiltinRunner = struct {
     ///
     /// # Returns
     /// A tuple of `usize` and `?usize` addresses.
-    pub fn getMemorySegmentAddresses(self: *const Self) std.meta.Tuple(&.{
-        usize,
-        ?usize,
-    }) {
-        return .{
-            self.base,
-            self.stop_ptr,
-        };
+    pub fn getMemorySegmentAddresses(self: *const Self) std.meta.Tuple(&.{ usize, ?usize }) {
+        return .{ self.base, self.stop_ptr };
     }
 
     /// Calculate the final stack.
@@ -183,7 +178,10 @@ pub const RangeCheckBuiltinRunner = struct {
     ) !Relocatable {
         if (self.included) {
             const stop_pointer_addr = pointer.subUint(1) catch return RunnerError.NoStopPointer;
-            const stop_pointer = try (segments.memory.get(stop_pointer_addr)).tryIntoRelocatable();
+            // const stop_pointer = try (segments.memory.get(stop_pointer_addr)).intoRelocatable();
+
+            const stop_pointer = segments.memory.getRelocatable(stop_pointer_addr) catch
+                return RunnerError.NoStopPointer;
             if (@as(
                 isize,
                 @intCast(self.base),
@@ -228,7 +226,7 @@ pub const RangeCheckBuiltinRunner = struct {
     /// # Returns
     ///
     /// - An `Array`containing the min and max of range check.
-    pub fn getRangeCheckUsage(self: *Self, memory: *Memory) ?std.meta.Tuple(&.{ usize, usize }) {
+    pub fn getRangeCheckUsage(self: *const Self, memory: *Memory) ?std.meta.Tuple(&.{ usize, usize }) {
         if (memory.data.capacity == 0) {
             return null;
         }
@@ -239,7 +237,7 @@ pub const RangeCheckBuiltinRunner = struct {
             return null;
 
         for (rc_segment.items) |cell| {
-            var cellFelt = cell.?.maybe_relocatable.tryIntoFelt() catch null;
+            var cellFelt = cell.?.maybe_relocatable.intoFelt() catch null;
             const cellBytes = cellFelt.?.toBytes();
             var j: usize = 0;
             while (j < 32) : (j += 2) {

@@ -46,7 +46,7 @@ pub fn tonelliShanks(n: u512, p: u512) struct { u512, u512, bool } {
     }
 
     if (s == 1) {
-        const result: u512 = powModulus(n, (p + 1) / 4, p);
+        const result = powModulus(n, (p + 1) / 4, p);
         return .{ result, p - result, true };
     }
 
@@ -56,10 +56,10 @@ pub fn tonelliShanks(n: u512, p: u512) struct { u512, u512, bool } {
         z = z + 1;
     }
 
-    var c: u512 = powModulus(z, q, p);
-    var t: u512 = powModulus(n, q, p);
-    var m: u512 = s;
-    var result: u512 = powModulus(n, (q + 1) >> 1, p);
+    var c = powModulus(z, q, p);
+    var t = powModulus(n, q, p);
+    var m = s;
+    var result = powModulus(n, (q + 1) >> 1, p);
 
     while (t != 1) {
         var i: u512 = 1;
@@ -69,7 +69,7 @@ pub fn tonelliShanks(n: u512, p: u512) struct { u512, u512, bool } {
             z = multiplyModulus(z, z, p);
         }
 
-        const b: u512 = powModulus(c, @as(u512, 1) << @intCast(m - i - 1), p);
+        const b = powModulus(c, @as(u512, 1) << @intCast(m - i - 1), p);
         c = multiplyModulus(b, b, p);
         t = multiplyModulus(t, c, p);
         m = i;
@@ -93,9 +93,32 @@ pub fn extendedGCD(self: i256, other: i256) struct { gcd: i256, x: i256, y: i256
         t[0] = t[0] - q * t[1];
     }
 
-    if (r[1] >= 0) {
-        return .{ .gcd = r[1], .x = s[1], .y = t[1] };
-    } else {
-        return .{ .gcd = -r[1], .x = -s[1], .y = -t[1] };
-    }
+    return if (r[1] >= 0)
+        .{ .gcd = r[1], .x = s[1], .y = t[1] }
+    else
+        .{ .gcd = -r[1], .x = -s[1], .y = -t[1] };
+}
+
+pub fn divModFloorSigned(num: i256, denominator: i256) !struct { i256, i256 } {
+    if (denominator == 0) return error.DividedByZero;
+
+    return .{
+        @divFloor(num, denominator),
+        @mod(num, denominator),
+    };
+}
+
+pub fn divModFloor(num: u256, denominator: u256) !struct { u256, u256 } {
+    if (denominator == 0) return error.DividedByZero;
+
+    return .{ @divFloor(num, denominator), @mod(num, denominator) };
+}
+
+pub fn divRem(num: u256, denominator: u256) !struct { u256, u256 } {
+    if (denominator == 0) return error.DividedByZero;
+
+    return .{
+        @divTrunc(num, denominator),
+        @rem(num, denominator),
+    };
 }

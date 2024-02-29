@@ -1,5 +1,7 @@
 /// Represents different error conditions that occur in the Cairo VM.
 pub const CairoVMError = error{
+    // Failed to compile hint
+    CompileHintFail,
     /// Adding two relocatables is forbidden.
     AddRelocToRelocForbidden,
     /// Memory access is out of bounds.
@@ -59,6 +61,13 @@ pub const CairoVMError = error{
     InvalidOpcode,
     /// Unexpected Failure
     Unexpected,
+    /// Expected range_check builtin to be present
+    NoRangeCheckBuiltin,
+    /// Expected signature builtin to be present
+    NoSignatureBuiltin,
+    /// getBuiltin by name, if not exist error
+    NotFoundBuiltin,
+    ReferenceNotFound,
 };
 
 /// Represents different error conditions that are memory-related.
@@ -130,10 +139,24 @@ pub const CairoRunnerError = error{
 
 /// Represents different error conditions that occur in the built-in runners.
 pub const RunnerError = error{
+    // Given builtins are not in appropiate order
+    DisorderedBuiltins,
+    // Builtin(s) not present in layout
+    NoBuiltinForInstance,
+    //Initialization failure: No execution base
+    NoExecBase,
+    // Initialization failure: No program base
+    NoProgBase,
     /// Errors associated with computing the address of a stop pointer of RangeCheckBuiltinRunner
     /// Raised when underflow occurs (i.e., subtracting 1 from 0),
     /// or when it fails to get a value for the computed address.
     NoStopPointer,
+    // Running in a proof mode, but no __start__ label found, try compiling with proof mode
+    NoProgramStart,
+    // Running in a proof mode, but on __end__ label found, try compiling with proof mode
+    NoProgramEnd,
+    // Missing main()
+    MissingMain,
     /// Invalid stop pointer index occured in calculation of the final stack.
     /// Raised when the current vm step
     InvalidStopPointerIndex,
@@ -177,6 +200,7 @@ pub const MathError = error{
     NotOutputCell,
     RelocatableMul,
     ByteConversionError,
+    DividedByZero,
 };
 
 /// Represents different error conditions that occur in trace relocation
@@ -210,6 +234,7 @@ pub const ProgramError = error{
     /// Indicates an unsupported or unimplemented builtin encountered within the program.
     UnsupportedBuiltin,
     EmptyVecAlreadyFiltered,
+    NonExtensiveHints,
 };
 
 // Represents errors occuring during ECDSA verify
@@ -218,4 +243,52 @@ pub const VerifyError = error{
     InvalidMessageHash,
     InvalidR,
     InvalidS,
+};
+
+pub const HintError = error{
+    AssertNNValueOutOfRange,
+    ValueOutsideValidRange,
+    AssertNotZero,
+    // expected an integer
+    IdentifierNotInteger,
+    IdentifierNotRelocatable,
+    // unknown identifier in ids
+    UnknownIdentifier,
+    UnknownIdentifierInternal,
+    WrongIdentifierTypeInternal,
+    Memory,
+
+    ValueOutside250BitRange,
+    AssertNotEqualFail,
+    // Div out of range
+    OutOfValidRange,
+
+    MissingConstant,
+
+    NonLeFelt252,
+    ArcTooBig,
+
+    VariableNotInScopeError,
+
+    ExcludedNot2,
+
+    AssertLtFelt252,
+
+    AssertionFailed,
+
+    SplitIntNotZero,
+    FromScopeError,
+};
+
+pub const InsufficientAllocatedCellsError = error{
+    //  Number of steps must be at least for some builtin
+    MinStepNotReached,
+    // The builtin used cells but the capacity is wrong
+    BuiltinCells,
+    // There are only cells to fill the range checks holes, but potentially are required.
+    RangeCheckUnits,
+    // There are only cells to fill the diluted check holes, but potentially are required
+    DilutedCells,
+    // There are only cells to fill the memory address holes, but are required.
+    MemoryAddresses,
 };

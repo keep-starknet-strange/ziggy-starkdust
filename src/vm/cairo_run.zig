@@ -20,9 +20,9 @@ const RelocatedTraceEntry = trace_context.TraceContext.RelocatedTraceEntry;
 /// - `dest`: The destination file that the trace is to be written.
 pub fn writeEncodedTrace(relocated_trace: []const RelocatedTraceEntry, dest: *std.fs.File.Writer) !void {
     for (relocated_trace) |entry| {
-        try dest.writeInt(u64, try entry.ap.tryIntoU64(), .little);
-        try dest.writeInt(u64, try entry.fp.tryIntoU64(), .little);
-        try dest.writeInt(u64, try entry.pc.tryIntoU64(), .little);
+        try dest.writeInt(u64, try entry.ap.intoU64(), .little);
+        try dest.writeInt(u64, try entry.fp.intoU64(), .little);
+        try dest.writeInt(u64, try entry.pc.intoU64(), .little);
     }
 }
 
@@ -53,14 +53,25 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
         config,
     );
 
-    const parsed_program = try ProgramJson.parseFromFile(allocator, config.filename);
+    var parsed_program = try ProgramJson.parseFromFile(allocator, config.filename);
     const instructions = try parsed_program.value.readData(allocator);
     defer parsed_program.deinit();
 
-    var runner = try CairoRunner.init(allocator, parsed_program.value, config.layout, instructions, vm, config.proof_mode);
-    defer runner.deinit();
-    const end = try runner.setupExecutionState();
-    try runner.runUntilPC(end);
+    var entrypoint: []const u8 = "main";
+
+    // TODO: add flag for extensive_hints
+    var runner = try CairoRunner.init(
+        allocator,
+        try parsed_program.value.parseProgramJson(allocator, &entrypoint, false),
+        config.layout,
+        instructions,
+        vm,
+        config.proof_mode,
+    );
+    defer runner.deinit(allocator);
+    const end = try runner.setupExecutionState(config.allow_missing_builtins orelse config.proof_mode);
+    // TODO: make flag for extensive_hints
+    try runner.runUntilPC(end, false);
     try runner.endRun();
     // TODO readReturnValues necessary for builtins
 

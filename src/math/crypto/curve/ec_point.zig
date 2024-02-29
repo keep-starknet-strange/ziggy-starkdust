@@ -37,9 +37,8 @@ pub const ProjectivePoint = struct {
     }
 
     pub fn doubleAssign(self: *Self) void {
-        if (self.infinity) {
+        if (self.infinity)
             return;
-        }
 
         // t=3x^2+az^2 with a=1 from stark curve
         const t = Felt252.three().mul(self.x).mul(self.x).add(self.z.mul(self.z));
@@ -70,9 +69,8 @@ pub const ProjectivePoint = struct {
     }
 
     fn addAssign(self: *Self, rhs: ProjectivePoint) void {
-        if (rhs.infinity) {
+        if (rhs.infinity)
             return;
-        }
 
         if (self.infinity) {
             self.* = rhs;
@@ -108,9 +106,8 @@ pub const ProjectivePoint = struct {
     }
 
     pub fn addAssignAffinePoint(self: *Self, rhs: AffinePoint) void {
-        if (rhs.infinity) {
+        if (rhs.infinity)
             return;
-        }
 
         if (self.infinity) {
             self.* = .{
@@ -198,22 +195,22 @@ pub const AffinePoint = struct {
     }
 
     pub fn addAssign(self: *Self, rhs: *AffinePoint) void {
-        if (rhs.infinity) {
+        if (rhs.infinity)
             return;
-        }
+
         if (self.infinity) {
-            self.x = rhs.x;
-            self.y = rhs.y;
-            self.alpha = rhs.alpha;
-            self.infinity = rhs.infinity;
+            self.* = .{ .x = rhs.x, .y = rhs.y, .alpha = rhs.alpha, .infinity = rhs.infinity };
             return;
         }
 
         if (self.x.equal(rhs.x)) {
             if (self.y.equal(rhs.y.neg())) {
-                self.x = Felt252.zero();
-                self.y = Felt252.zero();
-                self.infinity = true;
+                self.* = .{
+                    .x = Felt252.zero(),
+                    .y = Felt252.zero(),
+                    .alpha = ALPHA,
+                    .infinity = true,
+                };
                 return;
             }
             self.doubleAssign();
@@ -229,9 +226,8 @@ pub const AffinePoint = struct {
     }
 
     pub fn doubleAssign(self: *Self) void {
-        if (self.infinity) {
+        if (self.infinity)
             return;
-        }
 
         // l = (3x^2+a)/2y with a=1 from stark curve
         const lambda = Felt252.three().mul(self.x.mul(self.x)).add(Felt252.one()).mul(Felt252.two().mul(self.y).inv().?);

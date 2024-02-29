@@ -2,12 +2,16 @@ const std = @import("std");
 const builtin = @import("builtin");
 const ArrayList = std.ArrayList;
 
-const tonelliShanks = @import("./helper.zig").tonelliShanks;
-const extendedGCD = @import("./helper.zig").extendedGCD;
+const helper = @import("helper.zig");
+const tonelliShanks = helper.tonelliShanks;
+const extendedGCD = helper.extendedGCD;
 
 pub const ModSqrtError = error{
     InvalidInput,
 };
+
+pub const STARKNET_PRIME: u256 = @import("../../math/fields/constants.zig").STARKNET_PRIME;
+pub const SIGNED_FELT_MAX: u256 = STARKNET_PRIME >> @as(u32, 1);
 
 /// Represents a finite field element.
 pub fn Field(comptime F: type, comptime modulo: u256) type {
@@ -135,7 +139,7 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
                     std.mem.writeInt(
                         u256,
                         lbe[0..],
-                        num % Modulo,
+                        @as(u256, @intCast(num)) % Modulo,
                         .little,
                     );
                     var nonMont: F.NonMontgomeryDomainFieldElement = undefined;
@@ -508,6 +512,11 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             return res;
         }
 
+        /// Bitor operation
+        pub fn bitOr(self: Self, other: Self) Self {
+            return Self.fromInt(u256, self.toInteger() | other.toInteger());
+        }
+
         /// Bitand operation
         pub fn bitAnd(self: Self, other: Self) Self {
             return Self.fromInt(u256, self.toInteger() & other.toInteger());
@@ -576,6 +585,19 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             return Self.fromInt(u256, @intCast(t));
         }
 
+        /// Quotient and remainder between `self` and `rhs`.
+        pub fn divRem(
+            self: Self,
+            rhs: Self,
+        ) !struct { q: Self, r: Self } {
+            const qr = try helper.divRem(self.toInteger(), rhs.toInteger());
+
+            return .{
+                .q = Self.fromInt(u256, qr[0]),
+                .r = Self.fromInt(u256, qr[1]),
+            };
+        }
+
         /// Divide one field element by another.
         ///
         /// Divides the current field element by another field element.
@@ -601,6 +623,24 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             );
         }
 
+        /// Convert int to Field type, without FIELD max check overflow
+        pub fn fromSignedInt(value: anytype) Self {
+            if (value > 0) {
+                return Self.fromInt(u256, @intCast(value));
+            }
+
+            return Self.fromInt(u256, @intCast(-value)).neg();
+        }
+
+        // converting felt to abs value with sign, in (- FIELD / 2, FIELD / 2
+        pub fn toSignedInt(self: Self) i256 {
+            const val = self.toInteger();
+            if (val > SIGNED_FELT_MAX) {
+                return -@as(i256, @intCast(STARKNET_PRIME - val));
+            }
+
+            return @intCast(val);
+        }
         /// Convert the field element to a u256 integer.
         ///
         /// Converts the field element to a u256 integer.
@@ -627,7 +667,7 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
         /// Try to convert the field element to a u64 if its value is small enough.
         ///
         /// Attempts to convert the field element to a u64 if its value is within the representable range.
-        pub fn tryIntoU64(self: Self) !u64 {
+        pub fn intoU64(self: Self) !u64 {
             const asU256 = self.toInteger();
             // Check if the value is small enough to fit into a u64
             if (asU256 > @as(
@@ -718,8 +758,7 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
         /// `true` if `self` is less than or equal to `other`, `false` otherwise.
         pub fn le(self: Self, other: Self) bool {
             return switch (self.cmp(other)) {
-                .lt => true,
-                .eq => true,
+                .lt, .eq => true,
                 else => false,
             };
         }
@@ -749,10 +788,13 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
         /// `true` if `self` is greater than or equal to `other`, `false` otherwise.
         pub fn ge(self: Self, other: Self) bool {
             return switch (self.cmp(other)) {
-                .gt => true,
-                .eq => true,
+                .gt, .eq => true,
                 else => false,
             };
+        }
+
+        pub fn shl(self: Self, other: u8) Self {
+            return Self.fromInt(u256, self.toInteger() << other);
         }
 
         /// Left shift by `rhs` bits with overflow detection.

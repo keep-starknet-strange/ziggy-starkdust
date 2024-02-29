@@ -7,11 +7,12 @@ const Relocatable = @import("../memory/relocatable.zig").Relocatable;
 const ProgramError = @import("../error.zig").ProgramError;
 const Felt252 = @import("../../math/fields/starknet.zig").Felt252;
 const Register = @import("../instructions.zig").Register;
-const Program = @import("./program.zig").Program;
-const HintsCollection = @import("./program.zig").HintsCollection;
-const SharedProgramData = @import("./program.zig").SharedProgramData;
+const Program = @import("program.zig").Program;
+const HintsCollection = @import("program.zig").HintsCollection;
+const SharedProgramData = @import("program.zig").SharedProgramData;
 const HintReference = @import("../../hint_processor/hint_processor_def.zig").HintReference;
 const PRIME_STR = @import("../../math/fields/starknet.zig").PRIME_STR;
+const HashMapWithArray = @import("../../hint_processor/hint_utils.zig").HashMapWithArray;
 
 /// Represents a singly linked list structure specialized for storing Instructions.
 pub const InstructionLinkedList = std.SinglyLinkedList(Instruction);
@@ -67,7 +68,6 @@ pub const ApTracking = struct {
     group: usize = 0,
     /// Reflects Ap register changes within the same `group`.
     offset: usize = 0,
-   
 };
 
 /// Represents tracking data for references considering various program flows.
@@ -81,7 +81,7 @@ const FlowTrackingData = struct {
     ///
     /// If populated, this field stores reference identifiers related to different program flows.
     /// It defaults to null if no references are present.
-    reference_ids: ?json.ArrayHashMap(usize) = null,
+    reference_ids: ?json.ArrayHashMap(usize),
 };
 
 /// Represents an attribute with associated metadata and tracking data.
@@ -106,12 +106,22 @@ pub const Attribute = struct {
 /// This structure defines parameters related to a hint, comprising code details, accessible scopes,
 /// and flow tracking data.
 pub const HintParams = struct {
+    const Self = @This();
+
     /// Code associated with the hint.
     code: []const u8,
     /// Accessible scopes for the hint.
     accessible_scopes: []const []const u8,
     /// Flow tracking data related to the hint.
     flow_tracking_data: FlowTrackingData,
+
+    pub fn init(code: []const u8, accessible_scopes: []const []const u8, flow_tracking_data: FlowTrackingData) Self {
+        return .{
+            .code = code,
+            .accessible_scopes = accessible_scopes,
+            .flow_tracking_data = flow_tracking_data,
+        };
+    }
 };
 
 /// Represents an instruction with associated location details.
@@ -455,7 +465,7 @@ pub const ProgramJson = struct {
     /// error messages, instruction locations, and identifiers with associated metadata.
     ///
     /// To use this function effectively, ensure correct and compatible JSON data representing a Cairo v0 program.
-    pub fn parseProgramJson(self: *Self, allocator: Allocator, entrypoint: ?*[]const u8) !Program {
+    pub fn parseProgramJson(self: *Self, allocator: Allocator, entrypoint: ?*[]const u8, extensive_hints: bool) !Program {
         // Check if the prime string matches the expected value.
         if (!std.mem.eql(u8, PRIME_STR, self.prime.?))
             return ProgramError.PrimeDiffers;
@@ -468,11 +478,13 @@ pub const ProgramJson = struct {
             defer allocator.free(e.*);
         }
 
+        const hints_collection = try self.getHintsCollections(allocator, extensive_hints);
+
         // Construct and return a `Program` instance.
         return .{
             .shared_program_data = .{
                 .data = try self.readData(allocator),
-                .hints_collection = try self.getHintsCollections(allocator),
+                .hints_collection = hints_collection,
                 .main = entrypoint_pc[1],
                 .start = self.getStartPc(),
                 .end = self.getEndPc(),
@@ -481,9 +493,10 @@ pub const ProgramJson = struct {
                 .identifiers = try self.getIdentifiers(allocator),
                 .reference_manager = try Program.getReferenceList(
                     allocator,
-                    &self.reference_manager.?.references.?,
+                    self.reference_manager.?.references.?,
                 ),
             },
+
             .constants = try self.getConstants(allocator),
             .builtins = try self.getBuiltins(allocator),
         };
@@ -531,16 +544,14 @@ pub const ProgramJson = struct {
         errdefer builtins.deinit();
 
         // Collects built-in names and adds them to the builtins list.
-        for (0..self.attributes.?.len) |i| {
-            if (self.builtins != null and i < self.builtins.?.len) {
+        if (self.builtins) |builtins_name|
+            for (builtins_name) |builtin_name|
                 // Convert the string to the corresponding BuiltinName enum value and append it.
                 try builtins.append(std.meta.stringToEnum(
                     BuiltinName,
-                    self.builtins.?[i],
+                    builtin_name,
                 ) orelse
                     return ProgramError.UnsupportedBuiltin);
-            }
-        }
 
         // Return the populated array list of built-in names.
         return builtins;
@@ -824,7 +835,7 @@ pub const ProgramJson = struct {
     ///
     /// # Returns:
     ///   - A `HintsCollection` containing organized hint information.
-    pub fn getHintsCollections(self: *Self, allocator: Allocator) !HintsCollection {
+    pub fn getHintsCollections(self: *Self, allocator: Allocator, extensive_hints: bool) !HintsCollection {
         // Initialize variables to track maximum hint PC and total length of hints.
         var max_hint_pc: usize = 0;
         var full_len: usize = 0;
@@ -848,8 +859,13 @@ pub const ProgramJson = struct {
             if (max_hint_pc >= self.data.?.len) return ProgramError.InvalidHintPc;
 
             // Initialize a new HintsCollection.
-            var hints_collection = HintsCollection.initDefault(allocator);
+
+            var hints_collection = try HintsCollection.initDefault(allocator, extensive_hints);
             errdefer hints_collection.deinit();
+
+            if (!extensive_hints) {
+                try hints_collection.hints_ranges.NonExtensive.appendNTimes(null, max_hint_pc + 1);
+            }
 
             // Iterate over the hints map to populate the HintsCollection.
             if (self.hints) |hints| {
@@ -858,18 +874,27 @@ pub const ProgramJson = struct {
                 while (it.next()) |entry| {
                     // Check for empty vector in the hints map.
                     if (entry.value_ptr.len <= 0) return ProgramError.EmptyVecAlreadyFiltered;
+                    const pc = try std.fmt.parseInt(u64, entry.key_ptr.*, 10);
 
-                    // Populate hints_ranges and hints in the HintsCollection.
-                    try hints_collection.hints_ranges.put(
-                        Relocatable.init(
-                            0,
-                            try std.fmt.parseInt(u64, entry.key_ptr.*, 10),
-                        ),
-                        .{
+                    if (extensive_hints) {
+                        // Populate hints_ranges and hints in the HintsCollection.
+                        try hints_collection.hints_ranges.Extensive.put(
+                            Relocatable.init(
+                                0,
+                                pc,
+                            ),
+                            .{
+                                .start = hints_collection.hints.items.len,
+                                .length = entry.value_ptr.len,
+                            },
+                        );
+                    } else {
+                        hints_collection.hints_ranges.NonExtensive.items[pc] = .{
                             .start = hints_collection.hints.items.len,
                             .length = entry.value_ptr.len,
-                        },
-                    );
+                        };
+                    }
+
                     try hints_collection.hints.appendSlice(entry.value_ptr.*);
                 }
             }
@@ -878,7 +903,7 @@ pub const ProgramJson = struct {
         }
 
         // Return an empty HintsCollection if there are no valid hints.
-        return HintsCollection.initDefault(allocator);
+        return HintsCollection.initDefault(allocator, extensive_hints);
     }
 };
 
@@ -1263,6 +1288,7 @@ test "ProgramJson: parseProgramJson should parse a Cairo v0 JSON Program and con
     var program = try parsed_program.value.parseProgramJson(
         std.testing.allocator,
         &entrypoint,
+        true,
     );
     defer program.deinit(std.testing.allocator);
 
@@ -1375,6 +1401,7 @@ test "ProgramJson: parseProgramJson with missing entry point should return an er
         parsed_program.value.parseProgramJson(
             std.testing.allocator,
             &entrypoint,
+            true,
         ),
     );
 }
@@ -1401,6 +1428,7 @@ test "ProgramJson: parseProgramJson should parse a valid manually compiled progr
     var program = try parsed_program.value.parseProgramJson(
         std.testing.allocator,
         &entrypoint,
+        true,
     );
     // Deallocate program at the end of the scope
     defer program.deinit(std.testing.allocator);
@@ -1447,7 +1475,7 @@ test "ProgramJson: parseProgramJson should parse a valid manually compiled progr
                 },
                 .flow_tracking_data = .{
                     .ap_tracking = .{ .group = 0, .offset = 0 },
-                    .reference_ids = json.ArrayHashMap(usize){},
+                    .reference_ids = .{},
                 },
             },
         },
@@ -1464,7 +1492,7 @@ test "ProgramJson: parseProgramJson should parse a valid manually compiled progr
                 },
                 .flow_tracking_data = .{
                     .ap_tracking = .{ .group = 5, .offset = 0 },
-                    .reference_ids = json.ArrayHashMap(usize){},
+                    .reference_ids = .{},
                 },
             },
         },
@@ -1507,6 +1535,7 @@ test "ProgramJson: parseProgramJson should parse a valid manually compiled progr
     var program = try parsed_program.value.parseProgramJson(
         std.testing.allocator,
         null,
+        true,
     );
     // Deallocate program at the end of the scope
     defer program.deinit(std.testing.allocator);
@@ -1553,7 +1582,7 @@ test "ProgramJson: parseProgramJson should parse a valid manually compiled progr
                 },
                 .flow_tracking_data = .{
                     .ap_tracking = .{ .group = 0, .offset = 0 },
-                    .reference_ids = json.ArrayHashMap(usize){},
+                    .reference_ids = .{},
                 },
             },
         },
@@ -1570,7 +1599,7 @@ test "ProgramJson: parseProgramJson should parse a valid manually compiled progr
                 },
                 .flow_tracking_data = .{
                     .ap_tracking = .{ .group = 5, .offset = 0 },
-                    .reference_ids = json.ArrayHashMap(usize){},
+                    .reference_ids = .{},
                 },
             },
         },
@@ -1613,6 +1642,7 @@ test "ProgramJson: parseProgramJson with constant deserialization" {
     var program = try parsed_program.value.parseProgramJson(
         std.testing.allocator,
         null,
+        true,
     );
     // Deallocate program at the end of the scope.
     defer program.deinit(std.testing.allocator);
@@ -1797,7 +1827,7 @@ test "ProgramJson: parseFromString should deserialize attributes properly" {
             .value = "SafeUint256: addition overflow",
             .flow_tracking_data = .{
                 .ap_tracking = .{ .group = 14, .offset = 35 },
-                .reference_ids = null,
+                .reference_ids = .{},
             },
         },
         .{
@@ -1807,7 +1837,7 @@ test "ProgramJson: parseFromString should deserialize attributes properly" {
             .value = "SafeUint256: subtraction overflow",
             .flow_tracking_data = .{
                 .ap_tracking = .{ .group = 15, .offset = 60 },
-                .reference_ids = null,
+                .reference_ids = .{},
             },
         },
     };
@@ -1920,7 +1950,7 @@ test "ProgramJson: parseFromString should deserialize instruction locations with
             },
             .flow_tracking_data = .{
                 .ap_tracking = .{ .group = 0, .offset = 0 },
-                .reference_ids = null,
+                .reference_ids = .{},
             },
             .hints = &[_]HintLocation{},
             .inst = .{
@@ -1945,7 +1975,7 @@ test "ProgramJson: parseFromString should deserialize instruction locations with
             },
             .flow_tracking_data = .{
                 .ap_tracking = .{ .group = 1, .offset = 1 },
-                .reference_ids = null,
+                .reference_ids = .{},
             },
             .hints = &[_]HintLocation{},
             .inst = .{
@@ -2331,6 +2361,7 @@ test "ProgramJson: Program deserialization with instruction locations containing
     var program = try parsed_program.value.parseProgramJson(
         std.testing.allocator,
         null,
+        true,
     );
     // Deallocate program at the end of the scope.
     defer program.deinit(std.testing.allocator);

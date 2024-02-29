@@ -29,13 +29,9 @@ inline fn cast(
         const dest = @typeInfo(DestType).Int;
         const source = @typeInfo(@TypeOf(target)).Int;
         if (dest.bits < source.bits) {
-            const T = std.meta.Int(
-                source.signedness,
-                dest.bits,
-            );
             return @bitCast(
                 @as(
-                    T,
+                    std.meta.Int(source.signedness, dest.bits),
                     @truncate(target),
                 ),
             );
@@ -4015,8 +4011,10 @@ pub fn divstep(
 pub fn divstepPrecomp(out1: *[4]u64) void {
     @setRuntimeSafety(mode == .Debug);
 
-    out1[0] = 0x20000001;
-    out1[1] = 0xfff6678000000000;
-    out1[2] = 0xfffff273ffffffff;
-    out1[3] = 0x7fffffbc0000010;
+    out1.* = [4]u64{
+        0x20000001,
+        0xfff6678000000000,
+        0xfffff273ffffffff,
+        0x7fffffbc0000010,
+    };
 }

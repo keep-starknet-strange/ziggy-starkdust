@@ -38,23 +38,23 @@ pub const CairoLayout = struct {
     const Self = @This();
 
     /// The name of the layout.
-    name: []const u8,
+    name: []const u8 = "plain",
     /// The step count in the CPU component.
-    cpu_component_step: u32,
+    cpu_component_step: u32 = 1,
     /// The number of Range Check units.
-    rc_units: u32,
+    rc_units: u32 = 16,
     /// The built-in instances configuration.
-    builtins: BuiltinsInstanceDef,
+    builtins: BuiltinsInstanceDef = BuiltinsInstanceDef.plain(),
     /// The fraction ratio of public memory cells to the total memory cells.
-    public_memory_fraction: u32,
+    public_memory_fraction: u32 = 4,
     /// The number of memory units per step.
-    memory_units_per_step: u32,
+    memory_units_per_step: u32 = 8,
     /// Optional diluted pool instance definition.
-    diluted_pool_instance_def: ?DilutedPoolInstanceDef,
+    diluted_pool_instance_def: ?DilutedPoolInstanceDef = null,
     /// The number of trace columns.
-    n_trace_columns: u32,
+    n_trace_columns: u32 = 8,
     /// The CPU instance definition.
-    cpu_instance_def: CpuInstanceDef,
+    cpu_instance_def: CpuInstanceDef = .{},
 
     /// Initializes a 'plain' layout instance configuration with default parameters.
     ///
@@ -69,17 +69,7 @@ pub const CairoLayout = struct {
     /// - `n_trace_columns`: 8
     /// - Other instances set to default or null.
     pub fn plainInstance() Self {
-        return .{
-            .name = "plain",
-            .cpu_component_step = 1,
-            .rc_units = 16,
-            .builtins = BuiltinsInstanceDef.plain(),
-            .public_memory_fraction = 4,
-            .memory_units_per_step = 8,
-            .diluted_pool_instance_def = null,
-            .n_trace_columns = 8,
-            .cpu_instance_def = CpuInstanceDef{},
-        };
+        return .{};
     }
 
     /// Initializes a 'small' layout instance configuration.
@@ -104,7 +94,7 @@ pub const CairoLayout = struct {
             .memory_units_per_step = 8,
             .diluted_pool_instance_def = null,
             .n_trace_columns = 25,
-            .cpu_instance_def = CpuInstanceDef{},
+            .cpu_instance_def = .{},
         };
     }
 
@@ -134,9 +124,9 @@ pub const CairoLayout = struct {
             .builtins = try BuiltinsInstanceDef.allCairo(allocator),
             .public_memory_fraction = 8,
             .memory_units_per_step = 8,
-            .diluted_pool_instance_def = DilutedPoolInstanceDef{},
+            .diluted_pool_instance_def = .{},
             .n_trace_columns = 11,
-            .cpu_instance_def = CpuInstanceDef{},
+            .cpu_instance_def = .{},
         };
     }
 
@@ -162,9 +152,9 @@ pub const CairoLayout = struct {
             .builtins = BuiltinsInstanceDef.dynamic(),
             .public_memory_fraction = 8,
             .memory_units_per_step = 8,
-            .diluted_pool_instance_def = DilutedPoolInstanceDef{},
+            .diluted_pool_instance_def = .{},
             .n_trace_columns = 73,
-            .cpu_instance_def = CpuInstanceDef{},
+            .cpu_instance_def = .{},
         };
     }
 
@@ -184,7 +174,7 @@ pub const CairoLayout = struct {
         self: Self,
         allocator: Allocator,
         proof_mode: bool,
-        program_builtins: []const []const u8,
+        program_builtins: std.ArrayList(BuiltinName),
     ) !ArrayList(BuiltinRunner) {
         var builtin_runners = ArrayList(BuiltinRunner).init(allocator);
 
@@ -196,27 +186,26 @@ pub const CairoLayout = struct {
         // If not in proof_mode, we iterate through the compiled program's json builtins array.
         // For each builtin, we check if it exists in a layout, if not, we throw an error.
         // If it does we include it's initialized builtin runner in the builtin_runners array.
-        for (program_builtins) |builtin| {
-            const case = std.meta.stringToEnum(BuiltinName, builtin) orelse return RunnerError.BuiltinNotInLayout;
+        for (program_builtins.items) |builtin| {
+            // const case = std.meta.stringToEnum(BuiltinName, builtin) orelse return RunnerError.BuiltinNotInLayout;
 
-            if (!self.containsBuiltin(case)) return RunnerError.BuiltinNotInLayout;
+            if (!self.containsBuiltin(builtin)) return RunnerError.BuiltinNotInLayout;
 
-            switch (case) {
-                .output => try builtin_runners.append(BuiltinRunner{ .Output = OutputBuiltinRunner.initDefault(allocator) }),
-
+            switch (builtin) {
+                .output => try builtin_runners.append(.{ .Output = OutputBuiltinRunner.initDefault(allocator) }),
                 // TODO: implement initDefault for the rest of the builtin runners.
 
                 .pedersen => {
                     // try builtin_runners.append(BuiltinRunner{ .Pedersen = HashBuiltinRunner.initDefault() });
                 },
                 .range_check => {
-                    try builtin_runners.append(BuiltinRunner{ .RangeCheck = RangeCheckBuiltinRunner{} });
+                    try builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner{} });
                 },
                 .ecdsa => {
                     // try builtin_runners.append(BuiltinRunner{ .Signature = SignatureBuiltinRunner.initDefault() });
                 },
                 .bitwise => {
-                    try builtin_runners.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner{} });
+                    try builtin_runners.append(.{ .Bitwise = BitwiseBuiltinRunner{} });
                 },
                 .ec_op => {
                     // try builtin_runners.append(BuiltinRunner{ .EcOp = EcOpBuiltinRunner.initDefault() });
@@ -382,10 +371,7 @@ test "CairoLayout: allCairoInstance" {
     try expectEqual(
         @as(
             ?PedersenInstanceDef,
-            .{
-                .ratio = 256,
-				.repetitions = 1
-            },
+            .{ .ratio = 256, .repetitions = 1 },
         ),
         actual.builtins.pedersen,
     );
