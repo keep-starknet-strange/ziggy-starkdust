@@ -758,6 +758,21 @@ pub const CairoRunner = struct {
         return res;
     }
 
+    /// Retrieves a pointer to the list of built-in functions defined in the program associated with the CairoRunner.
+    ///
+    /// This function returns a pointer to an ArrayList containing the names of the built-in functions defined in the program.
+    ///
+    /// # Arguments
+    ///
+    /// - `self`: A mutable reference to the CairoRunner instance.
+    ///
+    /// # Returns
+    ///
+    /// A pointer to an ArrayList containing the names of the built-in functions defined in the program.
+    pub fn getProgramBuiltins(self: *Self) *ArrayList(BuiltinName) {
+        return &self.program.builtins;
+    }
+
     /// Retrieves the constant values used in the CairoRunner instance.
     ///
     /// This function returns a map containing the constant values used in the CairoRunner instance.
@@ -1425,10 +1440,7 @@ test "CairoRunner: getPermRangeCheckLimits with null range limit" {
         try Program.initDefault(std.testing.allocator, true),
         "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
-        try CairoVM.init(
-            std.testing.allocator,
-            .{},
-        ),
+        try CairoVM.init(std.testing.allocator, .{}),
         false,
     );
 
@@ -1877,4 +1889,51 @@ test "CairoRunner: getMemoryHoles basic test" {
 
     // Test that invoking `getMemoryHoles` function returns 0 as there are no memory holes.
     try expectEqual(@as(usize, 0), try cairo_runner.getMemoryHoles());
+}
+
+test "CairoRunner: getProgramBuiltins" {
+    // Initialize a list of built-in functions.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.output);
+    try builtins.append(BuiltinName.ec_op);
+
+    // Initialize data structures required for a program.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a Program instance with the specified parameters.
+    const program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        null,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
+        true,
+    );
+
+    // Initialize a CairoRunner instance with the initialized Program.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(std.testing.allocator, .{}),
+        false,
+    );
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    // Call the `getProgramBuiltins` function to retrieve the list of built-in functions.
+    // Verify that the retrieved list matches the expected list of built-in functions.
+    try expectEqualSlices(
+        BuiltinName,
+        &[_]BuiltinName{ .output, .ec_op },
+        cairo_runner.getProgramBuiltins().items,
+    );
 }
