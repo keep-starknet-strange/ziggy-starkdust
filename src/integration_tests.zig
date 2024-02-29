@@ -89,7 +89,7 @@ pub fn cairo_run(allocator: std.mem.Allocator, pathname: []const u8, layout: []c
     );
     defer runner.deinit(allocator);
 
-    const end = try runner.setupExecutionState();
+    const end = try runner.setupExecutionState(false);
     errdefer std.debug.print("failed on step: {}\n", .{runner.vm.current_step});
 
     // then
