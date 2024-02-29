@@ -17,7 +17,6 @@ const Program = @import("../types/program.zig").Program;
 const BuiltinName = @import("../types/programjson.zig").BuiltinName;
 const builtin_runner_import = @import("../builtins/builtin_runner/builtin_runner.zig");
 const HintRange = @import("../types/program.zig").HintRange;
-const BuiltinName = @import("../types/programjson.zig").BuiltinName;
 const HintParams = @import("../types/programjson.zig").HintParams;
 const Identifier = @import("../types/programjson.zig").Identifier;
 const Attribute = @import("../types/programjson.zig").Attribute;
@@ -1379,6 +1378,114 @@ test "CairoRunner: getPermRangeCheckLimits with null range limit" {
     );
 }
 
+test "CairoRunner: initBuiltins missing builtins allow missing" {
+    var program = try Program.initDefault(std.testing.allocator, true);
+    try program.builtins.appendSlice(&.{ .output, .ecdsa });
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    try cairo_runner.initBuiltins(true);
+}
+
+test "CairoRunner: initBuiltins missing builtins no allow missing" {
+    var program = try Program.initDefault(std.testing.allocator, true);
+    try program.builtins.appendSlice(&.{ .output, .ecdsa });
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    try std.testing.expectError(RunnerError.NoBuiltinForInstance, cairo_runner.initBuiltins(false));
+}
+
+test "CairoRunner: initBuiltins with disordered builtins" {
+    var program = try Program.initDefault(std.testing.allocator, true);
+    try program.builtins.appendSlice(&.{ .range_check, .output });
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    try std.testing.expectError(RunnerError.DisorderedBuiltins, cairo_runner.initBuiltins(false));
+}
+
+test "CairoRunner: initBuiltins all builtins and maintain order" {
+    var program = try Program.initDefault(std.testing.allocator, true);
+    try program.builtins.appendSlice(&.{
+        .output,
+        .pedersen,
+        .range_check,
+        .ecdsa,
+        .bitwise,
+        .ec_op,
+        .keccak,
+        .poseidon,
+    });
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    try cairo_runner.initBuiltins(false);
+
+    const given_runners = cairo_runner.vm.getBuiltinRunners().items;
+
+    try std.testing.expectEqual(given_runners[0].name(), builtin_runner_import.OUTPUT_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[1].name(), builtin_runner_import.HASH_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[2].name(), builtin_runner_import.RANGE_CHECK_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[3].name(), builtin_runner_import.SIGNATURE_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[4].name(), builtin_runner_import.BITWISE_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[5].name(), builtin_runner_import.EC_OP_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[6].name(), builtin_runner_import.KECCAK_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[7].name(), builtin_runner_import.POSEIDON_BUILTIN_NAME);
+}
+
 test "CairoRunner: initial FP should be null if no initialization" {
     // Initialize a CairoRunner instance with default parameters for testing.
     var cairo_runner = try CairoRunner.init(
@@ -1456,57 +1563,4 @@ test "CairoRunner: initial FP with a simple program" {
 
     // Verify that the initial function pointer (FP) is correct.
     try expectEqual(Relocatable.init(1, 2), cairo_runner.initial_fp);
-        try CairoVM.init(
-            std.testing.allocator,
-            .{},
-        ),
-        false,
-    );
-
-    // Defer the deinitialization of the CairoRunner to ensure cleanup.
-    defer cairo_runner.deinit(std.testing.allocator);
-
-    try std.testing.expectError(RunnerError.DisorderedBuiltins, cairo_runner.initBuiltins(false));
-}
-
-test "CairoRunner: initBuiltins all builtins and maintain order" {
-    var program = try Program.initDefault(std.testing.allocator, true);
-    try program.builtins.appendSlice(&.{
-        .output,
-        .pedersen,
-        .range_check,
-        .ecdsa,
-        .bitwise,
-        .ec_op,
-        .keccak,
-        .poseidon,
-    });
-    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
-    var cairo_runner = try CairoRunner.init(
-        std.testing.allocator,
-        program,
-        "all_cairo",
-        ArrayList(MaybeRelocatable).init(std.testing.allocator),
-        try CairoVM.init(
-            std.testing.allocator,
-            .{},
-        ),
-        false,
-    );
-
-    // Defer the deinitialization of the CairoRunner to ensure cleanup.
-    defer cairo_runner.deinit(std.testing.allocator);
-
-    try cairo_runner.initBuiltins(false);
-
-    const given_runners = cairo_runner.vm.getBuiltinRunners().items;
-
-    try std.testing.expectEqual(given_runners[0].name(), builtin_runner_import.OUTPUT_BUILTIN_NAME);
-    try std.testing.expectEqual(given_runners[1].name(), builtin_runner_import.HASH_BUILTIN_NAME);
-    try std.testing.expectEqual(given_runners[2].name(), builtin_runner_import.RANGE_CHECK_BUILTIN_NAME);
-    try std.testing.expectEqual(given_runners[3].name(), builtin_runner_import.SIGNATURE_BUILTIN_NAME);
-    try std.testing.expectEqual(given_runners[4].name(), builtin_runner_import.BITWISE_BUILTIN_NAME);
-    try std.testing.expectEqual(given_runners[5].name(), builtin_runner_import.EC_OP_BUILTIN_NAME);
-    try std.testing.expectEqual(given_runners[6].name(), builtin_runner_import.KECCAK_BUILTIN_NAME);
-    try std.testing.expectEqual(given_runners[7].name(), builtin_runner_import.POSEIDON_BUILTIN_NAME);
 }
