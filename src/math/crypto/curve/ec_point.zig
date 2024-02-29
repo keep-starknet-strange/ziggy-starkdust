@@ -171,7 +171,7 @@ pub const AffinePoint = struct {
     ///
     /// # Returns
     /// An initialized `ECPoint` with the provided coordinates.
-    pub fn init(x: Felt252, y: Felt252, infinity: bool) Self {
+    pub fn initUnchecked(x: Felt252, y: Felt252, infinity: bool) Self {
         return .{ .x = x, .y = y, .infinity = infinity };
     }
 
@@ -346,7 +346,6 @@ pub fn ecOpImpl(const_partial_sum: AffinePoint, const_doubled_point: AffinePoint
             return ECError.XCoordinatesAreEqual;
         }
         if (slope & 1 != 0) {
-            //     partial_sum = try partial_sum.add(doubled_point);
             partial_sum = partial_sum.add(doubled_point);
         }
         doubled_point = try doubled_point.ecDouble(alpha);

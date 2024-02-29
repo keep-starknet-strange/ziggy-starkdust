@@ -163,7 +163,7 @@ pub const EcOpBuiltinRunner = struct {
         }
 
         for (EC_POINTS[0..2]) |pair| {
-            if (!EC.AffinePoint.init(
+            if (!EC.AffinePoint.initUnchecked(
                 input_cells.items[try pair.x.tryIntoU64()],
                 input_cells.items[try pair.y.tryIntoU64()],
                 false,
@@ -174,8 +174,8 @@ pub const EcOpBuiltinRunner = struct {
         const height = 256;
 
         const result = try EC.ecOpImpl(
-            EC.AffinePoint.init(input_cells.items[0], input_cells.items[1], false),
-            EC.AffinePoint.init(input_cells.items[2], input_cells.items[3], false),
+            EC.AffinePoint.initUnchecked(input_cells.items[0], input_cells.items[1], false),
+            EC.AffinePoint.initUnchecked(input_cells.items[2], input_cells.items[3], false),
             input_cells.items[4],
             EC.ALPHA,
             height,
