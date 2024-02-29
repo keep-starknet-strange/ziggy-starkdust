@@ -253,55 +253,6 @@ pub const KeccakBuiltinRunner = struct {
         return bytes_vector;
     }
 
-    /// Calculates the Keccak hash of the input message.
-    ///
-    /// This function computes the Keccak hash of the provided input message and returns
-    /// it as an fixed array based on block type. The Keccak hash function involves multiple steps of data
-    /// processing.
-    ///
-    /// # Arguments
-    ///
-    /// - `input_message`: A pointer to the input message as an array of bytes.
-    ///
-    /// # Returns
-    ///
-    /// An fixed array based on block type, containing the Keccak hash.
-    /// current block type hardcoded to u64.
-    fn keccakF(input_message: *[]const u8) ![keccakFELT_BYTE_SIZE * @sizeOf(u64)]u8 {
-        var result = [_]u8{0} ** (keccakFELT_BYTE_SIZE * @sizeOf(u64));
-
-        // 1600 bits = 200 bytes = 25 u64
-        var hashState: std.crypto.core.keccak.KeccakF(@bitSizeOf(u64) * keccakFELT_BYTE_SIZE) = .{
-            .st = undefined,
-        };
-
-        const input = input_message.*;
-
-        var i: usize = 0;
-        while (i + @sizeOf(u64) <= input.len) {
-            hashState.st[i / @sizeOf(u64)] = std.mem.readInt(
-                u64,
-                @ptrCast(input[i .. i + @sizeOf(u64)]),
-                .little,
-            );
-
-            i += @sizeOf(u64);
-        }
-
-        hashState.permuteR(keccakFELT_ROUND_COUNT);
-
-        for (hashState.st, 0..) |item, idx| {
-            std.mem.writeInt(
-                u64,
-                result[idx * @sizeOf(u64) .. (idx + 1) * @sizeOf(u64)][0..@sizeOf(u64)],
-                item,
-                .little,
-            );
-        }
-
-        return result;
-    }
-
     /// Calculate the final stack.
     ///
     /// This function calculates the final stack pointer for the Keccak runner, based on the provided `segments`, `pointer`, and `self` settings. If the runner is included,
@@ -463,6 +414,55 @@ pub const KeccakBuiltinRunner = struct {
         self.cache.deinit();
     }
 };
+
+/// Calculates the Keccak hash of the input message.
+///
+/// This function computes the Keccak hash of the provided input message and returns
+/// it as an fixed array based on block type. The Keccak hash function involves multiple steps of data
+/// processing.
+///
+/// # Arguments
+///
+/// - `input_message`: A pointer to the input message as an array of bytes.
+///
+/// # Returns
+///
+/// An fixed array based on block type, containing the Keccak hash.
+/// current block type hardcoded to u64.
+pub fn keccakF(input_message: *[]const u8) ![keccakFELT_BYTE_SIZE * @sizeOf(u64)]u8 {
+    var result = [_]u8{0} ** (keccakFELT_BYTE_SIZE * @sizeOf(u64));
+
+    // 1600 bits = 200 bytes = 25 u64
+    var hashState: std.crypto.core.keccak.KeccakF(@bitSizeOf(u64) * keccakFELT_BYTE_SIZE) = .{
+        .st = undefined,
+    };
+
+    const input = input_message.*;
+
+    var i: usize = 0;
+    while (i + @sizeOf(u64) <= input.len) {
+        hashState.st[i / @sizeOf(u64)] = std.mem.readInt(
+            u64,
+            @ptrCast(input[i .. i + @sizeOf(u64)]),
+            .little,
+        );
+
+        i += @sizeOf(u64);
+    }
+
+    hashState.permuteR(keccakFELT_ROUND_COUNT);
+
+    for (hashState.st, 0..) |item, idx| {
+        std.mem.writeInt(
+            u64,
+            result[idx * @sizeOf(u64) .. (idx + 1) * @sizeOf(u64)][0..@sizeOf(u64)],
+            item,
+            .little,
+        );
+    }
+
+    return result;
+}
 
 test "KeccakBuiltinRunner: initialStack should return an empty array list if included is false" {
     var keccak_instance_def = try KeccakInstanceDef.initDefault(std.testing.allocator);

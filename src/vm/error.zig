@@ -246,6 +246,12 @@ pub const VerifyError = error{
 };
 
 pub const HintError = error{
+    // unsafeKeccak() greater that keccak max size
+    KeccakMaxSize,
+    // Invalid word size
+    InvalidWordSize,
+    // Invalid input length
+    InvalidKeccakInputLength,
     AssertNNValueOutOfRange,
     ValueOutsideValidRange,
     AssertNotZero,
