@@ -39,22 +39,15 @@ pub const MemorySegmentManager = struct {
         false,
     ),
     // The size of the segments.
-    segment_sizes: std.HashMap(
-        u32,
-        u32,
-        std.hash_map.AutoContext(u32),
-        std.hash_map.default_max_load_percentage,
-    ),
+    segment_sizes: std.AutoHashMap(u32, u32),
     // The memory.
     memory: *Memory,
     // The public memory offsets.
     // A map from segment index to a list of pairs (offset, page_id) that constitute the
     // public memory. Note that the offset is absolute (not based on the page_id).
-    public_memory_offsets: std.HashMap(
+    public_memory_offsets: std.AutoHashMap(
         usize,
         std.ArrayList(Tuple(&.{ usize, usize })),
-        std.hash_map.AutoContext(usize),
-        std.hash_map.default_max_load_percentage,
     ),
 
     // ************************************************************
@@ -198,9 +191,8 @@ pub const MemorySegmentManager = struct {
     ///
     /// An `AutoArrayHashMap` representing the computed effective sizes of memory segments.
     pub fn computeEffectiveSize(self: *Self, allow_tmp_segments: bool) !std.AutoArrayHashMap(i64, u32) {
-        if (self.segment_used_sizes.count() != 0) {
+        if (self.segment_used_sizes.count() != 0)
             return self.segment_used_sizes;
-        }
 
         // TODO: Check if memory is frozen. At the time of writting this function memory cannot be frozen so we cannot check if it frozen.
 
@@ -213,10 +205,8 @@ pub const MemorySegmentManager = struct {
 
         if (allow_tmp_segments) {
             for (self.memory.temp_data.items, 0..) |segment, i| {
-                const key: i64 = @intCast(i);
-
                 try self.segment_used_sizes.put(
-                    -(key + 1),
+                    -(@as(i64, @intCast(i)) + 1),
                     @intCast(segment.items.len),
                 );
             }
@@ -302,7 +292,7 @@ pub const MemorySegmentManager = struct {
             const i = idx - 1;
             try self.memory.set(
                 allocator,
-                try ptr.addUint(@intCast(i)),
+                try ptr.addUint(i),
                 data[i],
             );
         }
@@ -1118,7 +1108,7 @@ test "MemorySegmentManager: loadData with one element" {
 
     const actual = try memory_segment_manager.loadData(
         allocator,
-        Relocatable.init(0, 0),
+        .{},
         data.items,
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
@@ -1126,7 +1116,7 @@ test "MemorySegmentManager: loadData with one element" {
     try expectEqual(Relocatable.init(0, 1), actual);
     try expectEqual(
         MaybeRelocatable.fromInt(u8, 4),
-        (memory_segment_manager.memory.get(Relocatable.init(0, 0))).?,
+        (memory_segment_manager.memory.get(.{})).?,
     );
 }
 
@@ -1146,7 +1136,7 @@ test "MemorySegmentManager: loadData with three elements" {
 
     const actual = try memory_segment_manager.loadData(
         allocator,
-        Relocatable.init(0, 0),
+        .{},
         data.items,
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
@@ -1154,7 +1144,7 @@ test "MemorySegmentManager: loadData with three elements" {
     try expectEqual(Relocatable.init(0, 3), actual);
     try expectEqual(
         MaybeRelocatable.fromInt(u8, 4),
-        (memory_segment_manager.memory.get(Relocatable.init(0, 0))).?,
+        (memory_segment_manager.memory.get(.{})).?,
     );
     try expectEqual(
         MaybeRelocatable.fromInt(u8, 5),
@@ -1481,7 +1471,7 @@ test "MemorySegmentManager: getMemoryHoles with missing segment used sizes" {
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
-    memory_segment_manager.memory.markAsAccessed(Relocatable.init(0, 0));
+    memory_segment_manager.memory.markAsAccessed(.{});
 
     try expectError(
         MemoryError.MissingSegmentUsedSizes,
@@ -1691,7 +1681,7 @@ test "MemorySegmentManager: genArg with a vector of Relocatable should write its
     defer vec.deinit();
 
     // Append various Relocatable values to the vector for testing purposes.
-    try vec.append(Relocatable.init(0, 0));
+    try vec.append(.{});
     try vec.append(Relocatable.init(0, 1));
     try vec.append(Relocatable.init(0, 2));
     try vec.append(Relocatable.init(0, 3));

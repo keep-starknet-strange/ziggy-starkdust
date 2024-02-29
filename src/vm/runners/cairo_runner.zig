@@ -14,6 +14,8 @@ const CairoLayout = @import("../types/layout.zig").CairoLayout;
 const Relocatable = @import("../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../memory/relocatable.zig").MaybeRelocatable;
 const Program = @import("../types/program.zig").Program;
+const BuiltinName = @import("../types/programjson.zig").BuiltinName;
+const builtin_runner_import = @import("../builtins/builtin_runner/builtin_runner.zig");
 const HintRange = @import("../types/program.zig").HintRange;
 const BuiltinName = @import("../types/programjson.zig").BuiltinName;
 const HintParams = @import("../types/programjson.zig").HintParams;
@@ -28,10 +30,16 @@ const trace_context = @import("../trace_context.zig");
 const RelocatedTraceEntry = trace_context.TraceContext.RelocatedTraceEntry;
 const starknet_felt = @import("../../math/fields/starknet.zig");
 const Felt252 = starknet_felt.Felt252;
+const ExecutionScopes = @import("../types/execution_scopes.zig").ExecutionScopes;
+
 const OutputBuiltinRunner = @import("../builtins/builtin_runner/output.zig").OutputBuiltinRunner;
 const BitwiseBuiltinRunner = @import("../builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
-const ExecutionScopes = @import("../types/execution_scopes.zig").ExecutionScopes;
 const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
+const HashBuiltinRunner = @import("../builtins/builtin_runner/hash.zig").HashBuiltinRunner;
+const SignatureBuiltinRunner = @import("../builtins/builtin_runner/signature.zig").SignatureBuiltinRunner;
+const EcOpBuiltinRunner = @import("../builtins/builtin_runner/ec_op.zig").EcOpBuiltinRunner;
+const KeccakBuiltinRunner = @import("../builtins/builtin_runner/keccak.zig").KeccakBuiltinRunner;
+const PoseidonBuiltinRunner = @import("../builtins/builtin_runner/poseidon.zig").PoseidonBuiltinRunner;
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -174,17 +182,118 @@ pub const CairoRunner = struct {
         return self.runner_mode == .proof_mode_canonical or self.runner_mode == .proof_mode_cairo1;
     }
 
-    pub fn initBuiltins(self: *Self, vm: *CairoVM) !void {
-        vm.builtin_runners = try CairoLayout.setUpBuiltinRunners(
-            self.layout,
-            self.allocator,
-            self.isProofMode(),
-            self.program.builtins,
-        );
+    pub fn initBuiltins(self: *Self, allow_missing_builtins: bool) !void {
+        var program_builtins = std.AutoHashMap(BuiltinName, void).init(self.allocator);
+        defer program_builtins.deinit();
+
+        for (self.program.builtins.items) |builtin| {
+            try program_builtins.put(builtin, undefined);
+        }
+
+        // check if program builtins in right order
+        {
+            var builtin_ordered_list: []const BuiltinName = &.{
+                .output,
+                .pedersen,
+                .range_check,
+                .ecdsa,
+                .bitwise,
+                .ec_op,
+                .keccak,
+                .poseidon,
+            };
+
+            for (self.program.builtins.items) |builtin| {
+                var found = false;
+
+                for (builtin_ordered_list, 0..) |ord_builtin, idx| {
+                    if (builtin == ord_builtin) {
+                        found = true;
+                        builtin_ordered_list = builtin_ordered_list[idx + 1 ..];
+                        break;
+                    }
+                }
+
+                if (!found) return RunnerError.DisorderedBuiltins;
+            }
+        }
+
+        if (self.layout.builtins.output) {
+            const included = program_builtins.remove(.output);
+
+            if (included or self.isProofMode())
+                try self.vm.builtin_runners.append(.{ .Output = OutputBuiltinRunner.init(self.allocator, included) });
+        }
+
+        if (self.layout.builtins.pedersen) |pedersen_def| {
+            const included = program_builtins.remove(.pedersen);
+
+            if (included or self.isProofMode())
+                try self.vm.builtin_runners.append(.{
+                    .Hash = HashBuiltinRunner.init(self.allocator, pedersen_def.ratio, included),
+                });
+        }
+
+        if (self.layout.builtins.range_check) |instance_def| {
+            const included = program_builtins.remove(.range_check);
+
+            if (included or self.isProofMode())
+                try self.vm.builtin_runners.append(.{
+                    .RangeCheck = RangeCheckBuiltinRunner.init(instance_def.ratio, instance_def.n_parts, included),
+                });
+        }
+
+        if (self.layout.builtins.ecdsa) |instance_def| {
+            const included = program_builtins.remove(.ecdsa);
+
+            if (included or self.isProofMode())
+                try self.vm.builtin_runners.append(.{
+                    .Signature = SignatureBuiltinRunner.init(self.allocator, &instance_def, included),
+                });
+        }
+
+        if (self.layout.builtins.bitwise) |instance_def| {
+            const included = program_builtins.remove(.bitwise);
+
+            if (included or self.isProofMode())
+                try self.vm.builtin_runners.append(.{
+                    .Bitwise = BitwiseBuiltinRunner.init(&instance_def, included),
+                });
+        }
+
+        if (self.layout.builtins.ec_op) |instance_def| {
+            const included = program_builtins.remove(.ec_op);
+
+            if (included or self.isProofMode())
+                try self.vm.builtin_runners.append(.{
+                    .EcOp = EcOpBuiltinRunner.init(self.allocator, instance_def, included),
+                });
+        }
+
+        if (self.layout.builtins.keccak) |instance_def| {
+            const included = program_builtins.remove(.keccak);
+
+            if (included or self.isProofMode())
+                try self.vm.builtin_runners.append(.{
+                    .Keccak = try KeccakBuiltinRunner.init(self.allocator, &instance_def, included),
+                });
+        }
+
+        if (self.layout.builtins.poseidon) |instance_def| {
+            const included = program_builtins.remove(.poseidon);
+
+            if (included or self.isProofMode())
+                try self.vm.builtin_runners.append(.{
+                    .Poseidon = PoseidonBuiltinRunner.init(self.allocator, instance_def.ratio, included),
+                });
+        }
+
+        if (program_builtins.count() != 0 and !allow_missing_builtins)
+            return RunnerError.NoBuiltinForInstance;
     }
 
-    pub fn setupExecutionState(self: *Self) !Relocatable {
-        try self.initBuiltins(&self.vm);
+    pub fn setupExecutionState(self: *Self, allow_missing_builtins: bool) !Relocatable {
+        try self.initBuiltins(allow_missing_builtins);
         try self.initSegments(null);
         const end = try self.initMainEntrypoint();
         try self.initVM();
@@ -724,7 +833,7 @@ test "CairoRunner: initVM should initialize the VM properly with no builtins" {
     defer cairo_runner.deinit(std.testing.allocator);
 
     // Set initial values for program_base, initial_pc, initial_ap, and initial_fp.
-    cairo_runner.program_base = Relocatable.init(0, 0);
+    cairo_runner.program_base = .{};
     cairo_runner.initial_pc = Relocatable.init(0, 1);
     cairo_runner.initial_ap = Relocatable.init(1, 2);
     cairo_runner.initial_fp = Relocatable.init(1, 2);
@@ -1133,7 +1242,7 @@ test "CairoRunner: initSegments should initialize the segments properly with no 
 
     // Expect that the program base is initialized correctly to (0, 0).
     try expectEqual(
-        Relocatable.init(0, 0),
+        Relocatable{},
         cairo_runner.program_base,
     );
     // Expect that the execution base is initialized correctly to (1, 0).
@@ -1322,6 +1431,7 @@ test "CairoRunner: initial FP with a simple program" {
     inline for (0..2) |_| _ = try vm.addMemorySegment();
 
     // Initialize a CairoRunner instance with the created Program and CairoVM instances.
+
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
         program,
@@ -1346,4 +1456,57 @@ test "CairoRunner: initial FP with a simple program" {
 
     // Verify that the initial function pointer (FP) is correct.
     try expectEqual(Relocatable.init(1, 2), cairo_runner.initial_fp);
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    try std.testing.expectError(RunnerError.DisorderedBuiltins, cairo_runner.initBuiltins(false));
+}
+
+test "CairoRunner: initBuiltins all builtins and maintain order" {
+    var program = try Program.initDefault(std.testing.allocator, true);
+    try program.builtins.appendSlice(&.{
+        .output,
+        .pedersen,
+        .range_check,
+        .ecdsa,
+        .bitwise,
+        .ec_op,
+        .keccak,
+        .poseidon,
+    });
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    try cairo_runner.initBuiltins(false);
+
+    const given_runners = cairo_runner.vm.getBuiltinRunners().items;
+
+    try std.testing.expectEqual(given_runners[0].name(), builtin_runner_import.OUTPUT_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[1].name(), builtin_runner_import.HASH_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[2].name(), builtin_runner_import.RANGE_CHECK_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[3].name(), builtin_runner_import.SIGNATURE_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[4].name(), builtin_runner_import.BITWISE_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[5].name(), builtin_runner_import.EC_OP_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[6].name(), builtin_runner_import.KECCAK_BUILTIN_NAME);
+    try std.testing.expectEqual(given_runners[7].name(), builtin_runner_import.POSEIDON_BUILTIN_NAME);
 }

@@ -76,7 +76,7 @@ pub const HintsRanges = union(enum) {
     }
 
     pub fn isExtensive(self: Self) bool {
-        return @as(bool, self == Self.Extensive);
+        return self == .Extensive;
     }
 
     pub fn count(self: *Self) usize {
