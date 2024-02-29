@@ -1648,3 +1648,172 @@ test "CairoRunner: initial FP with a simple program" {
     // Verify that the initial function pointer (FP) is correct.
     try expectEqual(Relocatable.init(1, 2), cairo_runner.initial_fp);
 }
+
+test "CairoRunner: getMemoryHoles with missing segment used sizes" {
+    // Initialize a CairoRunner with an empty program, "plain" layout, and empty instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator, true),
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(std.testing.allocator, .{}),
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    // Set up memory for the Cairo VM with missing segment used sizes.
+    // Allocator for memory allocation
+    try cairo_runner.vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{.{ .{ 0, 0 }, .{9} }},
+    );
+    // Defer memory cleanup
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Mark the memory as accessed (placeholder operation)
+    cairo_runner.vm.segments.memory.markAsAccessed(.{});
+
+    // Test that invoking `getMemoryHoles` function throws the expected error.
+    try expectError(MemoryError.MissingSegmentUsedSizes, cairo_runner.getMemoryHoles());
+}
+
+test "CairoRunner: getMemoryHoles empty" {
+    // Initialize a CairoRunner with an empty program, "plain" layout, and empty instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator, true),
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(std.testing.allocator, .{}),
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    // Test that invoking `getMemoryHoles` function returns 0 when there are no memory holes.
+    try expectEqual(@as(usize, 0), try cairo_runner.getMemoryHoles());
+}
+
+test "CairoRunner: getMemoryHoles with segment used size" {
+    // Initialize a CairoRunner with an empty program, "plain" layout, and empty instructions.
+    // Allocator for memory allocation
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator, true),
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(std.testing.allocator, .{}),
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    // Set up memory for the Cairo VM with specified segment used sizes.
+    // Allocator for memory allocation
+    try cairo_runner.vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{0} },
+            .{ .{ 0, 2 }, .{0} },
+        },
+    );
+    // Defer memory cleanup
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Specify segment used size for segment 0
+    try cairo_runner.vm.segments.segment_used_sizes.put(0, 4);
+
+    // Mark the specified memory cells as accessed (placeholder operation)
+    cairo_runner.vm.segments.memory.markAsAccessed(.{});
+    cairo_runner.vm.segments.memory.markAsAccessed(Relocatable.init(0, 2));
+
+    // Test that invoking `getMemoryHoles` function returns the expected number of memory holes.
+    try expectEqual(@as(usize, 2), try cairo_runner.getMemoryHoles());
+}
+
+test "CairoRunner: getMemoryHoles with empty accesses" {
+    // Initialize a CairoRunner with an empty program, "plain" layout, and empty instructions.
+    // Allocator for memory allocation
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator, true),
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(std.testing.allocator, .{}),
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    // Set up memory for the Cairo VM with specified memory cell accesses.
+    // Allocator for memory allocation
+    try cairo_runner.vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 1, 0 }, .{0} },
+            .{ .{ 1, 2 }, .{2} },
+        },
+    );
+    // Defer memory cleanup
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Mark specified memory cells as accessed in segment 1
+    cairo_runner.vm.segments.memory.markAsAccessed(Relocatable.init(1, 0));
+    cairo_runner.vm.segments.memory.markAsAccessed(Relocatable.init(1, 2));
+
+    // Initialize an OutputBuiltinRunner for testing
+    var output_builtin: BuiltinRunner = .{
+        .Output = OutputBuiltinRunner.init(std.testing.allocator, true),
+    };
+
+    // Initialize segments for the OutputBuiltinRunner
+    try output_builtin.initSegments(cairo_runner.vm.segments);
+
+    // Append the OutputBuiltinRunner to the list of builtin runners in Cairo VM
+    try cairo_runner.vm.builtin_runners.append(output_builtin);
+
+    // Specify segment used sizes for both segments
+    try cairo_runner.vm.segments.segment_used_sizes.put(0, 4);
+    try cairo_runner.vm.segments.segment_used_sizes.put(1, 4);
+
+    // Test that invoking `getMemoryHoles` function returns the expected number of memory holes.
+    try expectEqual(@as(usize, 2), try cairo_runner.getMemoryHoles());
+}
+
+test "CairoRunner: getMemoryHoles basic test" {
+    // Initialize a CairoRunner with an empty program, "plain" layout, and empty instructions.
+    // Allocator for memory allocation
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator, true),
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(std.testing.allocator, .{}),
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    // Initialize an OutputBuiltinRunner for testing
+    var output_builtin: BuiltinRunner = .{
+        .Output = OutputBuiltinRunner.init(std.testing.allocator, true),
+    };
+
+    // Initialize segments for the OutputBuiltinRunner
+    try output_builtin.initSegments(cairo_runner.vm.segments);
+
+    // Append the OutputBuiltinRunner to the list of builtin runners in Cairo VM
+    try cairo_runner.vm.builtin_runners.append(output_builtin);
+
+    // Specify segment used sizes for segment 0
+    try cairo_runner.vm.segments.segment_used_sizes.put(0, 4);
+
+    // Test that invoking `getMemoryHoles` function returns 0 as there are no memory holes.
+    try expectEqual(@as(usize, 0), try cairo_runner.getMemoryHoles());
+}
