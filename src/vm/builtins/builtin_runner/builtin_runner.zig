@@ -992,10 +992,10 @@ test "BuiltinRunner: getMemoryAccesses with empty access" {
 
 test "BuiltinRunner: getAllocataedMemoryUnits Keccak" {
     var def = try KeccakInstanceDef.initDefault(std.testing.allocator);
-    // defer def.deinit();
+    defer def.deinit();
 
     var builtin = BuiltinRunner{
-        .Keccak = KeccakBuiltinRunner.init(std.testing.allocator, &def, true),
+        .Keccak = try KeccakBuiltinRunner.init(std.testing.allocator, &def, true),
     };
     defer builtin.deinit();
 
