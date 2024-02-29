@@ -724,6 +724,21 @@ pub const CairoRunner = struct {
         return res;
     }
 
+    /// Retrieves the constant values used in the CairoRunner instance.
+    ///
+    /// This function returns a map containing the constant values used in the CairoRunner instance.
+    /// The constants are represented as a `StringHashMap` where the keys are the names of the constants
+    /// and the values are `Felt252` objects.
+    ///
+    /// # Arguments
+    /// - `self`: A reference to the CairoRunner instance.
+    ///
+    /// # Returns
+    /// A `StringHashMap` containing the constant values used in the CairoRunner instance.
+    pub fn getConstants(self: *Self) std.StringHashMap(Felt252) {
+        return self.program.constants;
+    }
+
     pub fn deinit(self: *Self, allocator: Allocator) void {
         // currently handling the deinit of the json.Parsed(ProgramJson) outside of constructor
         // otherwise the runner would always assume json in its interface
@@ -1393,6 +1408,7 @@ test "CairoRunner: getPermRangeCheckLimits with null range limit" {
     );
 }
 
+
 test "CairoRunner: checkRangeCheckUsage perm range limits none" {
     // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
     var cairo_runner = try CairoRunner.init(
@@ -1417,7 +1433,7 @@ test "CairoRunner: checkRangeCheckUsage without builtins" {
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
         try Program.initDefault(std.testing.allocator, true),
-        "plain",
+                "plain",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
             std.testing.allocator,
@@ -1425,8 +1441,7 @@ test "CairoRunner: checkRangeCheckUsage without builtins" {
         ),
         false,
     );
-
-    cairo_runner.vm.current_step = 10000;
+     cairo_runner.vm.current_step = 10000;
 
     var segm = std.ArrayListUnmanaged(?MemoryCell){};
     try segm.append(std.testing.allocator, MemoryCell.init(MaybeRelocatable.fromFelt(Felt252.fromInt(u256, 0x80FF80000530))));
@@ -1438,6 +1453,42 @@ test "CairoRunner: checkRangeCheckUsage without builtins" {
     defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
 
     try cairo_runner.checkRangeCheckUsage(std.testing.allocator, &cairo_runner.vm);
+}
+test "CairoRunner: get constants" {
+    // Initialize a default program with built-ins enabled using the testing allocator.
+    var program = try Program.initDefault(std.testing.allocator, true);
+
+    // Add constants to the program.
+    try program.constants.put("MAX", Felt252.fromInt(u64, 300));
+    try program.constants.put("MIN", Felt252.fromInt(u64, 20));
+
+    // Initialize a CairoRunner with an empty program, "plain" layout, and empty instructions list.
+    // Also initialize a CairoVM with an empty trace context.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+                "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+     // Defer the deinitialization of the CairoRunner object to ensure cleanup after the test.
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    // Retrieve the constants from the CairoRunner.
+    const runner_program_constants = cairo_runner.getConstants();
+
+    // Ensure that the count of constants retrieved matches the expected count (2).
+    try expectEqual(@as(usize, 2), runner_program_constants.count());
+
+    // Ensure that the constant value associated with the key "MAX" matches the expected value (300).
+    try expectEqual(Felt252.fromInt(u64, 300), runner_program_constants.get("MAX"));
+
+    // Ensure that the constant value associated with the key "MIN" matches the expected value (20).
+    try expectEqual(Felt252.fromInt(u64, 20), runner_program_constants.get("MIN").?);
 }
 
 test "CairoRunner: initBuiltins missing builtins allow missing" {
