@@ -1254,7 +1254,7 @@ test "Memory: get method without segment should return null" {
     // Get a value from the memory at an address that doesn't exist.
     try expectEqual(
         @as(?MaybeRelocatable, null),
-        memory.get(Relocatable.init(0, 0)),
+        memory.get(.{}),
     );
 }
 
@@ -1307,7 +1307,7 @@ test "Memory: set and get for both segments and temporary segments should return
     // Test checks
     try expectEqual(
         @as(?MaybeRelocatable, MaybeRelocatable.fromInt(u8, 1)),
-        memory.get(Relocatable.init(0, 0)),
+        memory.get(.{}),
     );
     try expectEqual(
         @as(?MaybeRelocatable, MaybeRelocatable.fromInt(u8, 1)),
@@ -1416,7 +1416,7 @@ test "Memory: getFelt should return UnknownMemoryCell error if address is unknow
     // Test checks
     try expectError(
         MemoryError.UnknownMemoryCell,
-        memory.getFelt(Relocatable.init(0, 0)),
+        memory.getFelt(.{}),
     );
 }
 
@@ -1434,7 +1434,7 @@ test "Memory: getFelt should return Felt252 if available at the given address" {
     // Test checks
     try expectEqual(
         Felt252.fromInt(u8, 23),
-        try memory.getFelt(Relocatable.init(0, 0)),
+        try memory.getFelt(.{}),
     );
 }
 
@@ -1452,7 +1452,7 @@ test "Memory: getFelt should return ExpectedInteger error if Relocatable instead
     // Test checks
     try expectError(
         MemoryError.ExpectedInteger,
-        memory.getFelt(Relocatable.init(0, 0)),
+        memory.getFelt(.{}),
     );
 }
 
@@ -1484,7 +1484,7 @@ test "Memory: getRelocatable should return ExpectedRelocatable error if no value
     // Test checks
     try expectError(
         error.ExpectedRelocatable,
-        memory.getRelocatable(Relocatable.init(0, 0)),
+        memory.getRelocatable(.{}),
     );
 }
 
@@ -1502,7 +1502,7 @@ test "Memory: getRelocatable should return Relocatable if available at the given
     // Test checks
     try expectEqual(
         Relocatable.init(4, 34),
-        try memory.getRelocatable(Relocatable.init(0, 0)),
+        try memory.getRelocatable(.{}),
     );
 }
 
@@ -1520,7 +1520,7 @@ test "Memory: getRelocatable should return ExpectedRelocatable error if Felt ins
     // Test checks
     try expectError(
         error.ExpectedRelocatable,
-        memory.getRelocatable(Relocatable.init(0, 0)),
+        memory.getRelocatable(.{}),
     );
 }
 
@@ -1905,15 +1905,15 @@ test "Memory: memCmp function" {
     try expectEqual(
         @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .eq, 3 }),
         memory.memCmp(
-            Relocatable.init(0, 0),
-            Relocatable.init(0, 0),
+            .{},
+            .{},
             3,
         ),
     );
     try expectEqual(
         @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .eq, 3 }),
         memory.memCmp(
-            Relocatable.init(0, 0),
+            .{},
             Relocatable.init(1, 0),
             3,
         ),
@@ -1921,7 +1921,7 @@ test "Memory: memCmp function" {
     try expectEqual(
         @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .lt, 4 }),
         memory.memCmp(
-            Relocatable.init(0, 0),
+            .{},
             Relocatable.init(1, 0),
             5,
         ),
@@ -1930,7 +1930,7 @@ test "Memory: memCmp function" {
         @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .gt, 4 }),
         memory.memCmp(
             Relocatable.init(1, 0),
-            Relocatable.init(0, 0),
+            .{},
             5,
         ),
     );
@@ -1945,7 +1945,7 @@ test "Memory: memCmp function" {
     try expectEqual(
         @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .gt, 0 }),
         memory.memCmp(
-            Relocatable.init(0, 0),
+            .{},
             Relocatable.init(2, 5),
             8,
         ),
@@ -1954,7 +1954,7 @@ test "Memory: memCmp function" {
         @as(std.meta.Tuple(&.{ std.math.Order, usize }), .{ .lt, 0 }),
         memory.memCmp(
             Relocatable.init(2, 5),
-            Relocatable.init(0, 0),
+            .{},
             8,
         ),
     );
@@ -2788,8 +2788,8 @@ test "Memory: relocateValueFromRelocatable with positive segment index" {
 
     // Test relocating values with positive segment indices and assert the expected results
     try expectEqual(
-        Relocatable.init(0, 0),
-        try memory.relocateValueFromRelocatable(Relocatable.init(0, 0)),
+        Relocatable{},
+        try memory.relocateValueFromRelocatable(.{}),
     );
     try expectEqual(
         Relocatable.init(5, 0),
@@ -2985,7 +2985,7 @@ test "Memory: relocateMemory with empty relocation rules" {
     // Verify the relocation results using expectEqual.
     try expectEqual(
         MaybeRelocatable.fromInt(u64, 1),
-        memory.get(Relocatable.init(0, 0)),
+        memory.get(.{}),
     );
     try expectEqual(
         MaybeRelocatable.fromInt(u64, 2),
@@ -3039,7 +3039,7 @@ test "Memory: relocateMemory with new segment and gap" {
     // Verify the relocation results using expectEqual.
     try expectEqual(
         MaybeRelocatable.fromInt(u64, 1),
-        memory.get(Relocatable.init(0, 0)),
+        memory.get(.{}),
     );
     try expectEqual(
         MaybeRelocatable.fromSegment(2, 1),
@@ -3120,7 +3120,7 @@ test "Memory: relocateMemory with new segment" {
     // Verify the relocation results using expectEqual.
     try expectEqual(
         MaybeRelocatable.fromInt(u64, 1),
-        memory.get(Relocatable.init(0, 0)),
+        memory.get(.{}),
     );
     try expectEqual(
         MaybeRelocatable.fromSegment(2, 0),
@@ -3235,7 +3235,7 @@ test "Memory: relocateMemory into an existing segment" {
     // Expect values in memory after relocation.
     try expectEqual(
         MaybeRelocatable.fromInt(u64, 1),
-        memory.get(Relocatable.init(0, 0)),
+        memory.get(.{}),
     );
     try expectEqual(
         MaybeRelocatable.fromSegment(1, 3),
@@ -3352,7 +3352,7 @@ test "Memory: relocateMemory into new segment with two temporary segments and on
     // Expectations for the relocated memory after relocation.
     try expectEqual(
         MaybeRelocatable.fromInt(u64, 1),
-        memory.get(Relocatable.init(0, 0)),
+        memory.get(.{}),
     );
     try expectEqual(
         MaybeRelocatable.fromSegment(2, 0),
@@ -3443,7 +3443,7 @@ test "Memory: relocateMemory into new segment with two temporary segments and tw
     // Expectations for the relocated memory after relocation.
     try expectEqual(
         MaybeRelocatable.fromInt(u64, 1),
-        memory.get(Relocatable.init(0, 0)),
+        memory.get(.{}),
     );
     try expectEqual(
         MaybeRelocatable.fromSegment(2, 0),
@@ -3528,7 +3528,7 @@ test "Memory: relocateMemory into an existing segment with temporary values in t
     // Expectations for the relocated memory after relocation.
     try expectEqual(
         MaybeRelocatable.fromInt(u64, 1),
-        memory.get(Relocatable.init(0, 0)),
+        memory.get(.{}),
     );
     try expectEqual(
         MaybeRelocatable.fromSegment(1, 3),

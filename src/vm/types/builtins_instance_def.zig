@@ -23,50 +23,41 @@ pub const BuiltinsInstanceDef = struct {
     /// Represents the availability of the 'output' builtin.
     ///
     /// If `true`, the 'output' builtin is available; otherwise, it's not present.
-    output: bool,
+    output: bool = false,
     /// Represents the instance of the 'Pedersen' builtin.
     ///
     /// If present, contains the instance definition for the 'Pedersen' builtin; otherwise, it's `null`.
-    pedersen: ?PedersenInstanceDef,
+    pedersen: ?PedersenInstanceDef = null,
     /// Represents the instance of the 'range_check' builtin.
     ///
     /// If present, contains the instance definition for the 'range_check' builtin; otherwise, it's `null`.
-    range_check: ?RangeCheckInstanceDef,
+    range_check: ?RangeCheckInstanceDef = null,
     /// Represents the instance of the 'ECDSA' builtin.
     ///
     /// If present, contains the instance definition for the 'ECDSA' builtin; otherwise, it's `null`.
-    ecdsa: ?EcdsaInstanceDef,
+    ecdsa: ?EcdsaInstanceDef = null,
     /// Represents the instance of the 'bitwise' builtin.
     ///
     /// If present, contains the instance definition for the 'bitwise' builtin; otherwise, it's `null`.
-    bitwise: ?BitwiseInstanceDef,
+    bitwise: ?BitwiseInstanceDef = null,
     /// Represents the instance of the 'ec_op' builtin.
     ///
     /// If present, contains the instance definition for the 'ec_op' builtin; otherwise, it's `null`.
-    ec_op: ?EcOpInstanceDef,
+    ec_op: ?EcOpInstanceDef = null,
     /// Represents the instance of the 'keccak' builtin.
     ///
     /// If present, contains the instance definition for the 'keccak' builtin; otherwise, it's `null`.
-    keccak: ?KeccakInstanceDef,
+    keccak: ?KeccakInstanceDef = null,
     /// Represents the instance of the 'Poseidon' builtin.
     ///
     /// If present, contains the instance definition for the 'Poseidon' builtin; otherwise, it's `null`.
-    poseidon: ?PoseidonInstanceDef,
+    poseidon: ?PoseidonInstanceDef = null,
 
     /// Initializes a new `BuiltinsInstanceDef` structure for the default 'plain' layout with no enabled builtins by default.
     ///
     /// This layout requires explicit specification of builtins when executing programs using Cairo.
     pub fn plain() Self {
-        return .{
-            .output = false,
-            .pedersen = null,
-            .range_check = null,
-            .ecdsa = null,
-            .bitwise = null,
-            .ec_op = null,
-            .keccak = null,
-            .poseidon = null,
-        };
+        return .{};
     }
 
     /// Represents the 'small' layout in Cairo.
@@ -78,10 +69,6 @@ pub const BuiltinsInstanceDef = struct {
             .pedersen = PedersenInstanceDef{},
             .range_check = RangeCheckInstanceDef{},
             .ecdsa = EcdsaInstanceDef{},
-            .bitwise = null,
-            .ec_op = null,
-            .keccak = null,
-            .poseidon = null,
         };
     }
 
@@ -112,8 +99,6 @@ pub const BuiltinsInstanceDef = struct {
             .ecdsa = EcdsaInstanceDef.init(null),
             .bitwise = BitwiseInstanceDef.init(null),
             .ec_op = EcOpInstanceDef.init(null),
-            .keccak = null,
-            .poseidon = null,
         };
     }
 
@@ -128,8 +113,8 @@ pub const BuiltinsInstanceDef = struct {
     /// - Checks if the 'Keccak' instance is not null within the structure.
     /// - Calls the `deinit` method on the 'Keccak' instance if it exists to release associated resources.
     pub fn deinit(self: *Self) void {
-        if (self.keccak != null) {
-            self.keccak.?.deinit();
+        if (self.keccak) |*k| {
+            k.deinit();
         }
     }
 };
@@ -190,7 +175,7 @@ test "BuiltinsInstanceDef: builtins all Cairo" {
             ?PedersenInstanceDef,
             .{
                 .ratio = 256,
-				.repetitions = 1,
+                .repetitions = 1,
             },
         ),
         actual.pedersen,
