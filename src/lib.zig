@@ -23,12 +23,12 @@ pub const vm = struct {
 };
 
 pub const math = struct {
+    pub usingnamespace @import("math/fields/helper.zig");
     pub usingnamespace @import("math/fields/fields.zig");
     pub usingnamespace @import("math/fields/stark_felt_252_gen_fp.zig");
     pub usingnamespace @import("math/fields/starknet.zig");
     pub usingnamespace @import("math/crypto/poseidon/poseidon.zig");
     pub usingnamespace @import("math/crypto/pedersen/pedersen.zig");
-
     pub usingnamespace @import("math/fields/elliptic_curve.zig");
 };
 
@@ -41,6 +41,10 @@ pub const build_options = @import("build_options.zig");
 
 pub const hint_processor = struct {
     pub usingnamespace @import("hint_processor/hint_processor_def.zig");
+    pub usingnamespace @import("hint_processor/memcpy_hint_utils.zig");
+    pub usingnamespace @import("hint_processor/hint_utils.zig");
+    pub usingnamespace @import("hint_processor/math_hints.zig");
+    pub usingnamespace @import("hint_processor/felt_bit_length.zig");
 };
 
 pub const parser = struct {

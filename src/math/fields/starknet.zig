@@ -284,24 +284,24 @@ test "Felt252 toBytes" {
     );
 }
 
-test "Felt252 tryIntoU64" {
+test "Felt252 intoU64" {
     try expectEqual(
         @as(
             u64,
             10,
         ),
-        try Felt252.fromInt(u8, 10).tryIntoU64(),
+        try Felt252.fromInt(u8, 10).intoU64(),
     );
     try expectEqual(
         @as(
             u64,
             std.math.maxInt(u64),
         ),
-        try Felt252.fromInt(u64, std.math.maxInt(u64)).tryIntoU64(),
+        try Felt252.fromInt(u64, std.math.maxInt(u64)).intoU64(),
     );
     try std.testing.expectError(
         error.ValueTooLarge,
-        Felt252.fromInt(u128, std.math.maxInt(u64) + 1).tryIntoU64(),
+        Felt252.fromInt(u128, std.math.maxInt(u64) + 1).intoU64(),
     );
 }
 
@@ -990,5 +990,20 @@ test "Felt252 wrapping_shr" {
             0x8000000000000000, 0xffffffffffffffff, 0x7fffffffffffffff, 0x0,
         } },
         e.wrapping_shr(1),
+    );
+}
+
+test "Felt252: fromSigned and toSigned" {
+    try expectEqual(Felt252.zero().sub(Felt252.one()), Felt252.fromSignedInt(-1));
+
+    try expectEqual(Felt252.fromInt(u32, 250), Felt252.fromSignedInt(-250).neg());
+
+    try expectEqual(Felt252.fromInt(u256, std.math.maxInt(i256)), Felt252.fromSignedInt(std.math.maxInt(i256)));
+
+    const maxSignedNeg = Felt252.fromSignedInt(-std.math.maxInt(i256) + 1).toSignedInt();
+    // because overflow its positive number
+    try expectEqual(
+        true,
+        maxSignedNeg > 0,
     );
 }

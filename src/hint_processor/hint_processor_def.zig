@@ -2,11 +2,26 @@ const std = @import("std");
 const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 const StringHashMap = std.StringHashMap;
-
+const programjson = @import("../vm/types/programjson.zig");
+const CairoVM = @import("../vm/core.zig").CairoVM;
 const CairoVMError = @import("../vm/error.zig").CairoVMError;
-const OffsetValue = @import("../vm/types/programjson.zig").OffsetValue;
-const ApTracking = @import("../vm/types/programjson.zig").ApTracking;
-const Reference = @import("../vm/types/programjson.zig").Reference;
+const OffsetValue = programjson.OffsetValue;
+const ApTracking = programjson.ApTracking;
+const Reference = programjson.Reference;
+const ReferenceProgram = programjson.ReferenceProgram;
+const HintParams = programjson.HintParams;
+const ReferenceManager = programjson.ReferenceManager;
+const Felt252 = @import("../math/fields/starknet.zig").Felt252;
+const ExecutionScopes = @import("../vm/types/execution_scopes.zig").ExecutionScopes;
+const Relocatable = @import("../vm/memory/relocatable.zig").Relocatable;
+
+/// import hint code
+const hint_codes = @import("builtin_hint_codes.zig");
+const math_hints = @import("math_hints.zig");
+const memcpy_hint_utils = @import("memcpy_hint_utils.zig");
+const felt_bit_length = @import("felt_bit_length.zig");
+
+const deserialize_utils = @import("../parser/deserialize_utils.zig");
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -16,29 +31,19 @@ const expectEqualStrings = std.testing.expectEqualStrings;
 /// Represents a 'compiled' hint.
 ///
 /// This structure the return type for the `compileHint` method in the HintProcessor interface
-pub const HintProcessorData = struct {
+pub const HintData = struct {
     const Self = @This();
 
-    allocator: Allocator,
     /// Code string that is mapped by the processor to a corresponding implementation
     code: []const u8,
-    /// Default ApTracking is initialized with group = 0 and offset = 0
-    ap_tracking: ApTracking = ApTracking{},
-    /// Maps a normalized reference name to its hint reference information
     ids_data: std.StringHashMap(HintReference),
-    
+    ap_tracking: ApTracking,
 
-    /// Initializes a unit of hint processor data with specified code and constructed id data mappings.
-    ///
-    /// # Params
-    ///   - `allocator`: The allocator that shares scope with the operating HintProcessor.
-    ///   - `code`: Code string that the HintProcessor dispatches to execution logic.
-    ///   - `ids_data`: A mapping from a normalized reference name to its `HintReference`, see `getIdsData` in this file for logic.
-    pub fn initDefault(allocator: Allocator, code: []const u8, ids_data: StringHashMap(HintReference)) Self {
+    pub fn init(code: []const u8, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) Self {
         return .{
-            .allocator = allocator,
             .code = code,
-            .ids_data = ids_data,  
+            .ids_data = ids_data,
+            .ap_tracking = ap_tracking,
         };
     }
 
@@ -56,7 +61,7 @@ pub const HintReference = struct {
     /// First offset value within the hint reference.
     offset1: OffsetValue,
     /// Second offset value within the hint reference.
-    offset2: ?OffsetValue = .{ .value = 0 },
+    offset2: OffsetValue = .{ .value = 0 },
     /// Flag indicating dereference within the hint reference.
     dereference: bool = true,
     /// Ap tracking data associated with the hint reference (optional, defaults to null).
@@ -91,6 +96,10 @@ pub const HintReference = struct {
     pub fn initSimple(offset1: i32) Self {
         return .{ .offset1 = .{ .reference = .{ .FP, offset1, false } } };
     }
+
+    pub fn deinit(self: Self, allocator: Allocator) void {
+        if (self.cairo_type) |t| allocator.free(t);
+    }
 };
 
 /// Takes a mapping from reference name to reference id, normalizes the reference name, and maps the normalized reference name to its denoted HintReference from a reference array.
@@ -111,13 +120,13 @@ pub fn getIdsData(allocator: Allocator, reference_ids: StringHashMap(usize), ref
 
     var ref_id_it = reference_ids.iterator();
     while (ref_id_it.next()) |ref_id_entry| {
-        const path  = ref_id_entry.key_ptr.*;
+        const path = ref_id_entry.key_ptr.*;
         const ref_id = ref_id_entry.value_ptr.*;
 
-        if (ref_id >= references.len) return CairoVMError.Unexpected;        
+        if (ref_id >= references.len) return CairoVMError.Unexpected;
 
         var name_iterator = std.mem.splitBackwardsSequence(u8, path, ".");
-        
+
         const name = name_iterator.next() orelse return CairoVMError.Unexpected;
         const ref_hint = references[ref_id];
 
@@ -127,6 +136,83 @@ pub fn getIdsData(allocator: Allocator, reference_ids: StringHashMap(usize), ref
     return ids_data;
 }
 
+// A map of hints that can be used to extend the current map of hints for the vm run
+// The map matches the pc at which the hints should be executed to a vec of compiled hints (Outputed by HintProcessor::CompileHint)
+pub const HintExtension = std.AutoHashMap(Relocatable, std.ArrayList(HintData));
+
+pub const CairoVMHintProcessor = struct {
+    const Self = @This();
+
+    //Transforms hint data outputed by the VM into whichever format will be later used by execute_hint
+    pub fn compileHint(_: *Self, allocator: Allocator, hint_code: []const u8, ap_tracking: ApTracking, reference_ids: StringHashMap(usize), references: []HintReference) !HintData {
+        const ids_data = try getIdsData(allocator, reference_ids, references);
+        errdefer ids_data.deinit();
+
+        return .{
+            .code = hint_code,
+            .ap_tracking = ap_tracking,
+            .ids_data = ids_data,
+        };
+    }
+
+    // Executes the hint which's data is provided by a dynamic structure previously created by compile_hint
+    // Note: if the `extensive_hints` feature is activated the method used by the vm to execute hints is `execute_hint_extensive`, which's default implementation calls this method.
+    pub fn executeHint(_: *const Self, allocator: Allocator, vm: *CairoVM, hint_data: *HintData, constants: *std.StringHashMap(Felt252), exec_scopes: *ExecutionScopes) !void {
+        if (std.mem.eql(u8, hint_codes.ASSERT_NN, hint_data.code)) {
+            try math_hints.assertNN(vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.VERIFY_ECDSA_SIGNATURE, hint_data.code)) {
+            try math_hints.verifyEcdsaSignature(vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.IS_POSITIVE, hint_data.code)) {
+            try math_hints.isPositive(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.ASSERT_NOT_ZERO, hint_data.code)) {
+            try math_hints.assertNonZero(vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.IS_QUAD_RESIDUE, hint_data.code)) {
+            try math_hints.isQuadResidue(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SQRT, hint_data.code)) {
+            try math_hints.sqrt(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.UNSIGNED_DIV_REM, hint_data.code)) {
+            try math_hints.unsignedDivRem(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.ASSERT_LE_FELT, hint_data.code)) {
+            try math_hints.assertLeFelt(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.ASSERT_LE_FELT_EXCLUDED_0, hint_data.code)) {
+            try math_hints.assertLeFeltExcluded0(allocator, vm, exec_scopes);
+        } else if (std.mem.eql(u8, hint_codes.ASSERT_LE_FELT_EXCLUDED_1, hint_data.code)) {
+            try math_hints.assertLeFeltExcluded1(allocator, vm, exec_scopes);
+        } else if (std.mem.eql(u8, hint_codes.ASSERT_LE_FELT_EXCLUDED_2, hint_data.code)) {
+            try math_hints.assertLeFeltExcluded2(exec_scopes);
+        } else if (std.mem.eql(u8, hint_codes.ASSERT_LT_FELT, hint_data.code)) {
+            try math_hints.assertLtFelt(vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.ASSERT_250_BITS, hint_data.code)) {
+            try math_hints.assert250Bit(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_FELT, hint_data.code)) {
+            try math_hints.splitFelt(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_INT_ASSERT_RANGE, hint_data.code)) {
+            try math_hints.splitIntAssertRange(vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SIGNED_DIV_REM, hint_data.code)) {
+            try math_hints.signedDivRem(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.ADD_SEGMENT, hint_data.code)) {
+            try memcpy_hint_utils.addSegment(allocator, vm);
+        } else if (std.mem.eql(u8, hint_codes.VM_ENTER_SCOPE, hint_data.code)) {
+            try memcpy_hint_utils.enterScope(allocator, exec_scopes);
+        } else if (std.mem.eql(u8, hint_codes.VM_EXIT_SCOPE, hint_data.code)) {
+            try memcpy_hint_utils.exitScope(exec_scopes);
+        } else if (std.mem.eql(u8, hint_codes.MEMCPY_ENTER_SCOPE, hint_data.code)) {
+            try memcpy_hint_utils.memcpyEnterScope(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.GET_FELT_BIT_LENGTH, hint_data.code)) {
+            try felt_bit_length.getFeltBitLength(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else {}
+    }
+
+    // Executes the hint which's data is provided by a dynamic structure previously created by compile_hint
+    // Also returns a map of hints to be loaded after the current hint is executed
+    // Note: This is the method used by the vm to execute hints,
+    // if you chose to implement this method instead of using the default implementation, then `execute_hint` will not be used
+    pub fn executeHintExtensive(self: *const Self, allocator: Allocator, vm: *CairoVM, hint_data: *HintData, constants: *std.StringHashMap(Felt252), exec_scopes: *ExecutionScopes) !HintExtension {
+        try self.executeHint(allocator, vm, hint_data, constants, exec_scopes);
+
+        return HintExtension.init(allocator);
+    }
+};
 
 test "HintReference: init should return a proper HintReference instance" {
     try expectEqual(
@@ -172,20 +258,23 @@ test "HintProcessorData: initDefault returns a proper HintProcessorData instance
     // add hint reference structs
     try references.append(HintReference.initSimple(10));
     try references.append(HintReference.initSimple(20));
-    
+
     // then
     const code: []const u8 = "memory[ap] = segments.add()";
-    
+
     const ids_data = try getIdsData(allocator, reference_ids, references.items);
 
-    var hp_data = HintProcessorData.initDefault(allocator, code, ids_data);
+    var hp_data = HintData.init(
+        code,
+        ids_data,
+        .{},
+    );
     defer hp_data.deinit();
 
     try expectEqual(@as(usize, 0), hp_data.ap_tracking.group);
     try expectEqual(@as(usize, 0), hp_data.ap_tracking.offset);
     try expectEqualStrings(code, hp_data.code);
 }
-
 
 test "getIdsData: should map (ref name x ref id) x (ref data) as (ref name x ref data)" {
     // Given
@@ -205,14 +294,13 @@ test "getIdsData: should map (ref name x ref id) x (ref data) as (ref name x ref
     // add hint reference structs
     try references.append(HintReference.initSimple(10));
     try references.append(HintReference.initSimple(20));
-    
+
     // then
     var ids_data = try getIdsData(allocator, reference_ids, references.items);
     defer ids_data.deinit();
 
     try expectEqual(ids_data.get("high").?.offset1.reference, .{ .FP, 10, false });
     try expectEqual(ids_data.get("low").?.offset1.reference, .{ .FP, 20, false });
-
 }
 
 test "getIdsData: should throw Unexpected when there is no ref data corresponding to ref ids mapping" {
@@ -232,7 +320,7 @@ test "getIdsData: should throw Unexpected when there is no ref data correspondin
 
     // add hint reference structs
     try references.append(HintReference.initSimple(10));
-    
+
     // then
     try expectError(
         CairoVMError.Unexpected,

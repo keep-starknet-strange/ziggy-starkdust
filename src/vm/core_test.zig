@@ -28,6 +28,7 @@ const BitwiseInstanceDef = @import("./types/bitwise_instance_def.zig").BitwiseIn
 const KeccakInstanceDef = @import("./types/keccak_instance_def.zig").KeccakInstanceDef;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const HashBuiltinRunner = @import("./builtins/builtin_runner/hash.zig").HashBuiltinRunner;
+const EcOpBuiltinRunner = @import("./builtins/builtin_runner/ec_op.zig").EcOpBuiltinRunner;
 const Instruction = @import("instructions.zig").Instruction;
 const CairoVM = @import("core.zig").CairoVM;
 const computeRes = @import("core.zig").computeRes;
@@ -47,10 +48,75 @@ test "CairoVM: deduceMemoryCell no builtin" {
     defer vm.deinit();
     try expectEqual(
         @as(?MaybeRelocatable, null),
-        try vm.deduceMemoryCell(std.testing.allocator, Relocatable.init(
-            0,
-            0,
-        )),
+        try vm.deduceMemoryCell(
+            std.testing.allocator,
+            .{},
+        ),
+    );
+}
+
+test "CairoVM: deduceMemoryCell with pedersen builtin" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.builtin_runners.append(.{
+        .Hash = HashBuiltinRunner.init(
+            std.testing.allocator,
+            8,
+            true,
+        ),
+    });
+
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 3 }, .{32} },
+            .{ .{ 0, 4 }, .{72} },
+            .{ .{ 0, 5 }, .{0} },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    try expectEqual(
+        MaybeRelocatable.fromInt(u256, 0x73b3ec210cccbb970f80c6826fb1c40ae9f487617696234ff147451405c339f),
+        try vm.deduceMemoryCell(
+            std.testing.allocator,
+            Relocatable.init(0, 5),
+        ),
+    );
+}
+
+test "CairoVM: deduceMemoryCell with elliptic curve operation builtin" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.builtin_runners.append(.{ .EcOp = EcOpBuiltinRunner.initDefault(std.testing.allocator) });
+
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{0x68caa9509b7c2e90b4d92661cbf7c465471c1e8598c5f989691eef6653e0f38} },
+            .{ .{ 0, 1 }, .{0x79a8673f498531002fc549e06ff2010ffc0c191cceb7da5532acb95cdcb591} },
+            .{ .{ 0, 2 }, .{0x1ef15c18599971b7beced415a40f0c7deacfd9b0d1819e03d723d8bc943cfca} },
+            .{ .{ 0, 3 }, .{0x5668060aa49730b7be4801df46ec62de53ecd11abe43a32873000c36e8dc1f} },
+            .{ .{ 0, 4 }, .{34} },
+            .{ .{ 0, 5 }, .{0x6245403e2fafe5df3b79ea28d050d477771bc560fc59e915b302cc9b70a92f5} },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    try expectEqual(
+        MaybeRelocatable.fromInt(u256, 0x7f49de2c3a7d1671437406869edb1805ba43e1c0173b35f8c2e8fcc13c3fa6d),
+        try vm.deduceMemoryCell(
+            std.testing.allocator,
+            Relocatable.init(0, 6),
+        ),
     );
 }
 
@@ -889,7 +955,7 @@ test "CairoVM: relocateTrace and trace comparison (simple use case)" {
         config,
     );
     defer vm.deinit();
-    const pc = Relocatable.init(0, 0);
+    const pc = .{};
     const ap = Relocatable.init(2, 0);
     const fp = Relocatable.init(2, 0);
     try vm.trace_context.traceInstruction(.{ .pc = pc, .ap = ap, .fp = fp });
@@ -977,7 +1043,7 @@ test "CairoVM: relocateTrace and trace comparison (more complex use case)" {
         .fp = Relocatable.init(1, 3),
     });
     try vm.trace_context.state.enabled.entries.append(.{
-        .pc = Relocatable.init(0, 0),
+        .pc = .{},
         .ap = Relocatable.init(1, 7),
         .fp = Relocatable.init(1, 7),
     });
@@ -1002,7 +1068,7 @@ test "CairoVM: relocateTrace and trace comparison (more complex use case)" {
         .fp = Relocatable.init(1, 3),
     });
     try vm.trace_context.state.enabled.entries.append(.{
-        .pc = Relocatable.init(0, 0),
+        .pc = .{},
         .ap = Relocatable.init(1, 11),
         .fp = Relocatable.init(1, 11),
     });
@@ -2389,7 +2455,7 @@ test "CairoVM: addMemorySegment should return a proper relocatable address for t
 
     // Test check
     try expectEqual(
-        Relocatable.init(0, 0),
+        Relocatable{},
         try vm.addMemorySegment(),
     );
 }
@@ -2416,9 +2482,9 @@ test "CairoVM: getRelocatable without value raises error" {
     defer vm.deinit();
 
     // Test check
-    try expectEqual(
-        @as(?MaybeRelocatable, null),
-        vm.getRelocatable(Relocatable.init(0, 0)),
+    try expectError(
+        error.ExpectedRelocatable,
+        vm.getRelocatable(.{}),
     );
 }
 
@@ -2430,15 +2496,15 @@ test "CairoVM: getRelocatable with value should return a MaybeRelocatable" {
     try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
-            .{ .{ 34, 12 }, .{5} },
+            .{ .{ 34, 12 }, .{ 5, 5 } },
         },
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     // Test check
     try expectEqual(
-        MaybeRelocatable.fromInt(u8, 5),
-        (vm.getRelocatable(Relocatable.init(34, 12))).?,
+        Relocatable.init(5, 5),
+        try (vm.getRelocatable(Relocatable.init(34, 12))),
     );
 }
 
@@ -2864,7 +2930,7 @@ test "CairoVM: markAddressRangeAsAccessed should mark memory segments as accesse
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    try vm.markAddressRangeAsAccessed(Relocatable.init(0, 0), 3);
+    try vm.markAddressRangeAsAccessed(.{}, 3);
     try vm.markAddressRangeAsAccessed(Relocatable.init(0, 10), 2);
     try vm.markAddressRangeAsAccessed(Relocatable.init(1, 1), 1);
 
@@ -2892,7 +2958,7 @@ test "CairoVM: markAddressRangeAsAccessed should return an error if the run is n
 
     try expectError(
         CairoVMError.RunNotFinished,
-        vm.markAddressRangeAsAccessed(Relocatable.init(0, 0), 3),
+        vm.markAddressRangeAsAccessed(.{}, 3),
     );
 }
 
@@ -3142,7 +3208,7 @@ test "CairoVM: getFeltRange for Relocatable instead of Felt" {
     try expectError(
         MemoryError.ExpectedInteger,
         vm.getFeltRange(
-            Relocatable.init(0, 0),
+            .{},
             3,
         ),
     );
@@ -3329,21 +3395,21 @@ test "CairoVM: addRelocationRule should add new relocation rule to the VM memory
         MemoryError.AddressNotInTemporarySegment,
         vm.addRelocationRule(
             Relocatable.init(5, 0),
-            Relocatable.init(0, 0),
+            .{},
         ),
     );
     try expectError(
         MemoryError.NonZeroOffset,
         vm.addRelocationRule(
             Relocatable.init(-3, 6),
-            Relocatable.init(0, 0),
+            .{},
         ),
     );
     try expectError(
         MemoryError.DuplicatedRelocation,
         vm.addRelocationRule(
             Relocatable.init(-1, 0),
-            Relocatable.init(0, 0),
+            .{},
         ),
     );
 }
@@ -3670,7 +3736,7 @@ test "CairoVM: decode current instruction" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     const result = try vm.decodeCurrentInstruction();
-    try expectEqual(Instruction.initDefault(), result);
+    try expectEqual(Instruction{}, result);
 }
 
 test "CairoVM: decode current instruction expected integer" {
@@ -3752,11 +3818,14 @@ test "CairoVM: verifyAutoDeductions for keccak builtin runner" {
     const allocator = std.testing.allocator;
 
     var keccak_instance_def = try KeccakInstanceDef.initDefault(allocator);
-    const keccak_builtin = KeccakBuiltinRunner.init(
+    defer keccak_instance_def.deinit();
+
+    const keccak_builtin = try KeccakBuiltinRunner.init(
         allocator,
         &keccak_instance_def,
         true,
     );
+
     const builtin = BuiltinRunner{ .Keccak = keccak_builtin };
 
     var vm = try CairoVM.init(allocator, .{});
@@ -4064,7 +4133,7 @@ test "CairoVM: runInstruction with Op0 being deduced" {
     );
 
     // Ensure that registers are updated as expected after the instruction execution.
-    try expectEqual(Relocatable.init(0, 0), vm.run_context.pc.*);
+    try expectEqual(Relocatable{}, vm.run_context.pc.*);
     try expectEqual(Relocatable.init(1, 11), vm.run_context.ap.*);
     try expectEqual(Relocatable.init(1, 11), vm.run_context.fp.*);
 
