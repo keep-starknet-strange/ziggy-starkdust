@@ -23,9 +23,9 @@ const Tuple = std.meta.Tuple;
 
 // Array of `AffinePoint` instances representing points on an elliptic curve.
 const EC_POINTS = [_]EC.AffinePoint{
-    .{ .x = Felt252.zero(), .y = Felt252.one(), .infinity = false },
-    .{ .x = Felt252.two(), .y = Felt252.three(), .infinity = false },
-    .{ .x = Felt252.fromInt(u8, 5), .y = Felt252.fromInt(u8, 6), .infinity = false },
+    .{ .x = Felt252.zero(), .y = Felt252.one(), .alpha = Felt252.one(), .infinity = false },
+    .{ .x = Felt252.two(), .y = Felt252.three(), .alpha = Felt252.one(), .infinity = false },
+    .{ .x = Felt252.fromInt(u8, 5), .y = Felt252.fromInt(u8, 6), .alpha = Felt252.one(), .infinity = false },
 };
 
 /// Output indices referencing the third point in the `EC_POINTS` array.
@@ -166,6 +166,7 @@ pub const EcOpBuiltinRunner = struct {
             if (!EC.AffinePoint.initUnchecked(
                 input_cells.items[try pair.x.tryIntoU64()],
                 input_cells.items[try pair.y.tryIntoU64()],
+                EC.ALPHA,
                 false,
             ).pointOnCurve(EC.ALPHA, EC.BETA))
                 return error.PointNotOnCurve;
@@ -174,10 +175,9 @@ pub const EcOpBuiltinRunner = struct {
         const height = 256;
 
         const result = try EC.ecOpImpl(
-            EC.AffinePoint.initUnchecked(input_cells.items[0], input_cells.items[1], false),
-            EC.AffinePoint.initUnchecked(input_cells.items[2], input_cells.items[3], false),
+            EC.AffinePoint.initUnchecked(input_cells.items[0], input_cells.items[1], EC.ALPHA, false),
+            EC.AffinePoint.initUnchecked(input_cells.items[2], input_cells.items[3], EC.ALPHA, false),
             input_cells.items[4],
-            EC.ALPHA,
             height,
         );
         try self.cache.put(x_addr, result.x);

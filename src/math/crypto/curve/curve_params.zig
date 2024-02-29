@@ -46,6 +46,7 @@ pub const GENERATOR: AffinePoint = .{
             405578048423154473,
         },
     },
+    .alpha = ALPHA,
     .infinity = false,
 };
 
@@ -64,6 +65,7 @@ pub const SHIFT_POINT: AffinePoint = .{
             81375596133053150,
         },
     },
+    .alpha = ALPHA,
     .infinity = false,
 };
 
@@ -84,6 +86,8 @@ pub const PEDERSEN_P0: AffinePoint = .{
             368891789801938570,
         },
     },
+
+    .alpha = ALPHA,
     .infinity = false,
 };
 
@@ -104,6 +108,7 @@ pub const PEDERSEN_P1: AffinePoint = .{
             285630633187035523,
         },
     },
+    .alpha = ALPHA,
     .infinity = false,
 };
 
@@ -124,6 +129,7 @@ pub const PEDERSEN_P2: AffinePoint = .{
             161068411212710156,
         },
     },
+    .alpha = ALPHA,
     .infinity = false,
 };
 
@@ -144,5 +150,6 @@ pub const PEDERSEN_P3: AffinePoint = .{
             345457391846365716,
         },
     },
+    .alpha = ALPHA,
     .infinity = false,
 };
