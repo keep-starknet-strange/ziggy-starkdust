@@ -1378,7 +1378,6 @@ test "CairoRunner: getPermRangeCheckLimits with null range limit" {
     );
 }
 
-
 test "CairoRunner: get constants" {
     // Initialize a default program with built-ins enabled using the testing allocator.
     var program = try Program.initDefault(std.testing.allocator, true);
@@ -1389,6 +1388,33 @@ test "CairoRunner: get constants" {
 
     // Initialize a CairoRunner with an empty program, "plain" layout, and empty instructions list.
     // Also initialize a CairoVM with an empty trace context.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner object to ensure cleanup after the test.
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    // Retrieve the constants from the CairoRunner.
+    const runner_program_constants = cairo_runner.getConstants();
+
+    // Ensure that the count of constants retrieved matches the expected count (2).
+    try expectEqual(@as(usize, 2), runner_program_constants.count());
+
+    // Ensure that the constant value associated with the key "MAX" matches the expected value (300).
+    try expectEqual(Felt252.fromInt(u64, 300), runner_program_constants.get("MAX"));
+
+    // Ensure that the constant value associated with the key "MIN" matches the expected value (20).
+    try expectEqual(Felt252.fromInt(u64, 20), runner_program_constants.get("MIN").?);
+}
 
 test "CairoRunner: initBuiltins missing builtins allow missing" {
     var program = try Program.initDefault(std.testing.allocator, true);
@@ -1428,20 +1454,8 @@ test "CairoRunner: initBuiltins missing builtins no allow missing" {
         false,
     );
 
-    // Defer the deinitialization of the CairoRunner object to ensure cleanup after the test.
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
     defer cairo_runner.deinit(std.testing.allocator);
-
-    // Retrieve the constants from the CairoRunner.
-    const runner_program_constants = cairo_runner.getConstants();
-
-    // Ensure that the count of constants retrieved matches the expected count (2).
-    try expectEqual(@as(usize, 2), runner_program_constants.count());
-
-    // Ensure that the constant value associated with the key "MAX" matches the expected value (300).
-    try expectEqual(Felt252.fromInt(u64, 300), runner_program_constants.get("MAX").?);
-
-    // Ensure that the constant value associated with the key "MIN" matches the expected value (20).
-    try expectEqual(Felt252.fromInt(u64, 20), runner_program_constants.get("MIN").?);
 
     try std.testing.expectError(RunnerError.NoBuiltinForInstance, cairo_runner.initBuiltins(false));
 }
