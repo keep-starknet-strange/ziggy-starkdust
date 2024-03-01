@@ -221,6 +221,8 @@ pub const CairoVMHintProcessor = struct {
             try keccak_utils.splitOutput(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, 0);
         } else if (std.mem.eql(u8, hint_codes.SPLIT_OUTPUT_1, hint_data.code)) {
             try keccak_utils.splitOutput(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, 1);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_N_BYTES, hint_data.code)) {
+            try keccak_utils.splitNBytes(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
         }
     }
 

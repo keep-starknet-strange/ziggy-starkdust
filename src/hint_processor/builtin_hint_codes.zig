@@ -178,3 +178,9 @@ pub const SPLIT_OUTPUT_1 =
     \\ids.output1_low = ids.output1 & ((1 << 128) - 1)
     \\ids.output1_high = ids.output1 >> 128
 ;
+
+pub const SPLIT_N_BYTES = "ids.n_words_to_copy, ids.n_bytes_left = divmod(ids.n_bytes, ids.BYTES_IN_WORD)";
+pub const SPLIT_OUTPUT_MID_LOW_HIGH =
+    \\tmp, ids.output1_low = divmod(ids.output1, 256 ** 7)
+    \\ids.output1_high, ids.output1_mid = divmod(tmp, 2 ** 128)
+;

@@ -246,6 +246,8 @@ pub const VerifyError = error{
 };
 
 pub const HintError = error{
+    // Math error
+    Math,
     // unsafeKeccak() greater that keccak max size
     KeccakMaxSize,
     // Invalid word size

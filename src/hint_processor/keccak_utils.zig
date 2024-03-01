@@ -17,6 +17,8 @@ const MathError = @import("../vm/error.zig").MathError;
 const HintError = @import("../vm/error.zig").HintError;
 const CairoVMError = @import("../vm/error.zig").CairoVMError;
 
+const BYTES_IN_WORD = "starkware.cairo.common.builtin_keccak.keccak.BYTES_IN_WORD";
+
 // Implements hint:
 //    %{
 //        from eth_hash.auto import keccak
@@ -406,6 +408,38 @@ test "KeccakUtils: unsafeKeccak invalid word size" {
     try std.testing.expectError(HintError.InvalidWordSize, hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, &exec_scopes));
 }
 
+// Implements hint: ids.n_words_to_copy, ids.n_bytes_left = divmod(ids.n_bytes, ids.BYTES_IN_WORD)
+pub fn splitNBytes(
+    allocator: std.mem.Allocator,
+    vm: *CairoVM,
+    ids_data: std.StringHashMap(HintReference),
+    ap_tracking: ApTracking,
+    constants: *const std.StringHashMap(Felt252),
+) !void {
+    const n_bytes =
+        (try hint_utils.getIntegerFromVarName("n_bytes", vm, ids_data, ap_tracking)).intoU64() catch return HintError.Math;
+
+    const bytes_in_word = constants.get(BYTES_IN_WORD).?.intoU64() catch return HintError.MissingConstant;
+
+    const high_low = try helper.divModFloor(u64, n_bytes, bytes_in_word);
+    try hint_utils.insertValueFromVarName(
+        allocator,
+        "n_words_to_copy",
+        MaybeRelocatable.fromInt(u64, high_low[0]),
+        vm,
+        ids_data,
+        ap_tracking,
+    );
+    try hint_utils.insertValueFromVarName(
+        allocator,
+        "n_bytes_left",
+        MaybeRelocatable.fromInt(u64, high_low[1]),
+        vm,
+        ids_data,
+        ap_tracking,
+    );
+}
+
 test "KeccakUtils: unsafeKeccakFinalize ok" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
@@ -558,6 +592,7 @@ test "KeccakUtils: splitOutput0" {
     try std.testing.expectEqual(Felt252.fromInt(u8, 0), try vm.segments.memory.getFelt(Relocatable.init(1, 1)));
     try std.testing.expectEqual(Felt252.fromInt(u32, 24), try vm.segments.memory.getFelt(Relocatable.init(1, 2)));
 }
+
 test "KeccakUtils: splitOutput1" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
@@ -581,4 +616,34 @@ test "KeccakUtils: splitOutput1" {
 
     try std.testing.expectEqual(Felt252.fromInt(u8, 0), try vm.segments.memory.getFelt(Relocatable.init(1, 1)));
     try std.testing.expectEqual(Felt252.fromInt(u32, 24), try vm.segments.memory.getFelt(Relocatable.init(1, 2)));
+}
+
+test "KeccakUtils: splitNBytes" {
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // _ = try vm.segments.addSegment();
+
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 1, 2 }, .{17} },
+    });
+
+    vm.run_context.fp.* = Relocatable.init(1, 3);
+
+    var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "n_words_to_copy", "n_bytes_left", "n_bytes" });
+    defer ids_data.deinit();
+
+    const hint_processor: HintProcessor = .{};
+    var hint_data = HintData.init(hint_codes.SPLIT_N_BYTES, ids_data, .{});
+
+    var constants = std.StringHashMap(Felt252).init(std.testing.allocator);
+    defer constants.deinit();
+
+    try constants.put(BYTES_IN_WORD, Felt252.fromInt(u8, 8));
+
+    try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, &constants, undefined);
+
+    try std.testing.expectEqual(Felt252.fromInt(u8, 2), try vm.segments.memory.getFelt(Relocatable.init(1, 0)));
+    try std.testing.expectEqual(Felt252.fromInt(u32, 1), try vm.segments.memory.getFelt(Relocatable.init(1, 1)));
 }
