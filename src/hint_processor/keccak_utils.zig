@@ -440,6 +440,24 @@ pub fn splitNBytes(
     );
 }
 
+// Implements hint:
+// tmp, ids.output1_low = divmod(ids.output1, 256 ** 7)
+// ids.output1_high, ids.output1_mid = divmod(tmp, 2 ** 128)
+pub fn splitOutputMidLowHigh(
+    allocator: std.mem.Allocator,
+    vm: *CairoVM,
+    ids_data: std.StringHashMap(HintReference),
+    ap_tracking: ApTracking,
+) !void {
+    const output1 = try hint_utils.getIntegerFromVarName("output1", vm, ids_data, ap_tracking);
+    const tmp_output1_low = try helper.divRem(output1.toInteger(), Felt252.pow2Const(8 * 7).toInteger());
+    const output1_high_output1_mid = try helper.divRem(tmp_output1_low[0], Felt252.pow2Const(128).toInteger());
+
+    try hint_utils.insertValueFromVarName(allocator, "output1_high", MaybeRelocatable.fromInt(u256, output1_high_output1_mid[0]), vm, ids_data, ap_tracking);
+    try hint_utils.insertValueFromVarName(allocator, "output1_mid", MaybeRelocatable.fromInt(u256, output1_high_output1_mid[1]), vm, ids_data, ap_tracking);
+    try hint_utils.insertValueFromVarName(allocator, "output1_low", MaybeRelocatable.fromInt(u256, tmp_output1_low[1]), vm, ids_data, ap_tracking);
+}
+
 test "KeccakUtils: unsafeKeccakFinalize ok" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
@@ -646,4 +664,30 @@ test "KeccakUtils: splitNBytes" {
 
     try std.testing.expectEqual(Felt252.fromInt(u8, 2), try vm.segments.memory.getFelt(Relocatable.init(1, 0)));
     try std.testing.expectEqual(Felt252.fromInt(u32, 1), try vm.segments.memory.getFelt(Relocatable.init(1, 1)));
+}
+
+test "KeccakUtils: splitOutputMidLowHigh" {
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // _ = try vm.segments.addSegment();
+
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 1, 0 }, .{72057594037927938} },
+    });
+
+    vm.run_context.fp.* = Relocatable.init(1, 4);
+
+    var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "output1", "output1_low", "output1_mid", "output1_high" });
+    defer ids_data.deinit();
+
+    const hint_processor: HintProcessor = .{};
+    var hint_data = HintData.init(hint_codes.SPLIT_OUTPUT_MID_LOW_HIGH, ids_data, .{});
+
+    try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
+
+    try std.testing.expectEqual(Felt252.fromInt(u8, 2), try vm.segments.memory.getFelt(Relocatable.init(1, 1)));
+    try std.testing.expectEqual(Felt252.fromInt(u32, 1), try vm.segments.memory.getFelt(Relocatable.init(1, 2)));
+    try std.testing.expectEqual(Felt252.fromInt(u32, 0), try vm.segments.memory.getFelt(Relocatable.init(1, 3)));
 }
