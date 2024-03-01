@@ -161,3 +161,20 @@ pub const UNSAFE_KECCAK_FINALIZE =
     \\ids.high = int.from_bytes(hashed[:16], 'big')
     \\ids.low = int.from_bytes(hashed[16:32], 'big')
 ;
+
+pub const SPLIT_INPUT_3 = "ids.high3, ids.low3 = divmod(memory[ids.inputs + 3], 256)";
+pub const SPLIT_INPUT_6 = "ids.high6, ids.low6 = divmod(memory[ids.inputs + 6], 256 ** 2)";
+pub const SPLIT_INPUT_9 = "ids.high9, ids.low9 = divmod(memory[ids.inputs + 9], 256 ** 3)";
+pub const SPLIT_INPUT_12 =
+    "ids.high12, ids.low12 = divmod(memory[ids.inputs + 12], 256 ** 4)";
+pub const SPLIT_INPUT_15 =
+    "ids.high15, ids.low15 = divmod(memory[ids.inputs + 15], 256 ** 5)";
+
+pub const SPLIT_OUTPUT_0 =
+    \\ids.output0_low = ids.output0 & ((1 << 128) - 1)
+    \\ids.output0_high = ids.output0 >> 128
+;
+pub const SPLIT_OUTPUT_1 =
+    \\ids.output1_low = ids.output1 & ((1 << 128) - 1)
+    \\ids.output1_high = ids.output1 >> 128
+;

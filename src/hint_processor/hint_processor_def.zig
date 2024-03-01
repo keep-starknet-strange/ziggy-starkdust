@@ -207,6 +207,20 @@ pub const CairoVMHintProcessor = struct {
             try keccak_utils.unsafeKeccak(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.UNSAFE_KECCAK_FINALIZE, hint_data.code)) {
             try keccak_utils.unsafeKeccakFinalize(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_INPUT_3, hint_data.code)) {
+            try keccak_utils.splitInput(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, 3, 1);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_INPUT_6, hint_data.code)) {
+            try keccak_utils.splitInput(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, 6, 2);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_INPUT_9, hint_data.code)) {
+            try keccak_utils.splitInput(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, 9, 3);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_INPUT_12, hint_data.code)) {
+            try keccak_utils.splitInput(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, 12, 4);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_INPUT_15, hint_data.code)) {
+            try keccak_utils.splitInput(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, 15, 5);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_OUTPUT_0, hint_data.code)) {
+            try keccak_utils.splitOutput(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, 0);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_OUTPUT_1, hint_data.code)) {
+            try keccak_utils.splitOutput(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, 1);
         }
     }
 
