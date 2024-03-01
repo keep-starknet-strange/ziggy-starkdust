@@ -278,6 +278,7 @@ pub const HintError = error{
 
     SplitIntNotZero,
     FromScopeError,
+    IdentifierHasNoMember,
 };
 
 pub const InsufficientAllocatedCellsError = error{

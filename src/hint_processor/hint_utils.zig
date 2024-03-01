@@ -99,7 +99,13 @@ pub fn getRelocatableFromVarName(
     ids_data: std.StringHashMap(HintReference),
     ap_tracking: ApTracking,
 ) !Relocatable {
-    return if (ids_data.get(var_name)) |x| if (hint_processor_utils.computeAddrFromReference(x, ap_tracking, vm)) |v| v else HintError.UnknownIdentifier else HintError.UnknownIdentifier;
+    return if (ids_data.get(var_name)) |x|
+        if (hint_processor_utils.computeAddrFromReference(x, ap_tracking, vm)) |v|
+            v
+        else
+            HintError.UnknownIdentifier
+    else
+        HintError.UnknownIdentifier;
 }
 
 /// Retrieves the value of a variable by its name.
