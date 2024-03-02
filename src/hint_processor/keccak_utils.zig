@@ -67,7 +67,7 @@ pub fn unsafeKeccak(
 
     const ZEROES = [_]u8{0} ** 32;
 
-    var keccak_input = std.ArrayList(u8).init(std.testing.allocator);
+    var keccak_input = std.ArrayList(u8).init(allocator);
     defer keccak_input.deinit();
 
     var word_i: usize = 0;
