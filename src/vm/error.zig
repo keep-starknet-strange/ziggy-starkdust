@@ -201,6 +201,7 @@ pub const MathError = error{
     RelocatableMul,
     ByteConversionError,
     DividedByZero,
+    Felt252ToUsizeConversion,
 };
 
 /// Represents different error conditions that occur in trace relocation
@@ -278,6 +279,7 @@ pub const HintError = error{
 
     SplitIntNotZero,
     FromScopeError,
+    InvalidSetRange,
 };
 
 pub const InsufficientAllocatedCellsError = error{

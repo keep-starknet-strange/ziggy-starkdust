@@ -1,3 +1,16 @@
+pub const SET_ADD =
+    \\assert ids.elm_size > 0
+    \\assert ids.set_ptr <= ids.set_end_ptr
+    \\elm_list = memory.get_range(ids.elm_ptr, ids.elm_size)
+    \\for i in range(0, ids.set_end_ptr - ids.set_ptr, ids.elm_size):
+    \\    if memory.get_range(ids.set_ptr + i, ids.elm_size) == elm_list:
+    \\        ids.index = i // ids.elm_size
+    \\        ids.is_elm_in_set = 1
+    \\        break
+    \\    else:
+    \\        ids.is_elm_in_set = 0
+;
+
 pub const GET_FELT_BIT_LENGTH =
     \\x = ids.x
     \\ids.bit_length = x.bit_length()
