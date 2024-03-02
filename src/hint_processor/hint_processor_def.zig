@@ -19,8 +19,11 @@ const Relocatable = @import("../vm/memory/relocatable.zig").Relocatable;
 const hint_codes = @import("builtin_hint_codes.zig");
 const math_hints = @import("math_hints.zig");
 const memcpy_hint_utils = @import("memcpy_hint_utils.zig");
+
 const poseidon_utils = @import("poseidon_utils.zig");
 const keccak_utils = @import("keccak_utils.zig");
+const felt_bit_length = @import("felt_bit_length.zig");
+
 
 const deserialize_utils = @import("../parser/deserialize_utils.zig");
 
@@ -225,7 +228,9 @@ pub const CairoVMHintProcessor = struct {
             try keccak_utils.splitNBytes(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
         } else if (std.mem.eql(u8, hint_codes.SPLIT_OUTPUT_MID_LOW_HIGH, hint_data.code)) {
             try keccak_utils.splitOutputMidLowHigh(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
-        }
+        } else if (std.mem.eql(u8, hint_codes.GET_FELT_BIT_LENGTH, hint_data.code)) {
+            try felt_bit_length.getFeltBitLength(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } 
     }
 
     // Executes the hint which's data is provided by a dynamic structure previously created by compile_hint

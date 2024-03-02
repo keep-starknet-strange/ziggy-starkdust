@@ -1,4 +1,7 @@
 const std = @import("std");
+const expectEqual = std.testing.expectEqual;
+const expect = std.testing.expect;
+const expectError = std.testing.expectError;
 
 const Register = @import("../vm/instructions.zig").Register;
 const ApTracking = @import("../vm/types/programjson.zig").ApTracking;
@@ -79,7 +82,14 @@ pub fn getAddressFromVarName(
     ids_data: std.StringHashMap(HintReference),
     ap_tracking: ApTracking,
 ) !MaybeRelocatable {
-    return MaybeRelocatable.fromRelocatable(try getRelocatableFromVarName(var_name, vm, ids_data, ap_tracking));
+    return MaybeRelocatable.fromRelocatable(
+        try getRelocatableFromVarName(
+            var_name,
+            vm,
+            ids_data,
+            ap_tracking,
+        ),
+    );
 }
 
 //Gets the address, as a Relocatable of the variable given by the ids name
@@ -92,17 +102,35 @@ pub fn getRelocatableFromVarName(
     return if (ids_data.get(var_name)) |x| if (hint_processor_utils.computeAddrFromReference(x, ap_tracking, vm)) |v| v else HintError.UnknownIdentifier else HintError.UnknownIdentifier;
 }
 
-//Gets the value of a variable name.
-//If the value is an MaybeRelocatable::Int(Bigint) return &Bigint
-//else raises Err
+/// Retrieves the value of a variable by its name.
+///
+/// This function retrieves the value of a variable identified by its name. If the value is an
+/// integer, it returns the integer value. Otherwise, it raises an error.
+///
+/// # Parameters
+/// - `var_name`: The name of the variable to retrieve.
+/// - `vm`: Pointer to the Cairo virtual machine.
+/// - `ids_data`: String hashmap containing variable references.
+/// - `ap_tracking`: ApTracking object representing the current activation packet tracking.
+///
+/// # Returns
+/// Returns the integer value of the variable identified by `var_name`.
+///
+/// # Errors
+/// Returns an error if the variable value is not an integer or if the variable is not found.
 pub fn getIntegerFromVarName(
     var_name: []const u8,
     vm: *CairoVM,
     ids_data: std.StringHashMap(HintReference),
     ap_tracking: ApTracking,
 ) !Felt252 {
+    // Retrieve the reference to the variable using its name.
     const reference = try getReferenceFromVarName(var_name, ids_data);
-    return hint_processor_utils.getIntegerFromReference(vm, reference, ap_tracking) catch |err| switch (err) {
+
+    // Get the integer value from the reference.
+    return hint_processor_utils.getIntegerFromReference(vm, reference, ap_tracking) catch |err|
+    // Handle specific errors.
+        switch (err) {
         HintError.WrongIdentifierTypeInternal => HintError.IdentifierNotInteger,
         else => HintError.UnknownIdentifier,
     };
@@ -136,4 +164,57 @@ pub fn getMaybeRelocatableFromVarName(
     const reference = try getReferenceFromVarName(var_name, ids_data);
 
     return hint_processor_utils.getMaybeRelocatableFromReference(vm, reference, ap_tracking) orelse HintError.UnknownIdentifier;
+}
+
+test "getIntegerFromVarName: valid" {
+    // Initializes the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    // Sets up memory segments in the virtual machine.
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{.{ .{ 1, 0 }, .{1} }},
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator); // Clean up memory data.
+
+    // Creates a hashmap containing variable references.
+    var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
+    defer ids_data.deinit();
+
+    // Puts a hint reference named "value" into the hashmap.
+    try ids_data.put("value", HintReference.initSimple(0));
+
+    // Calls `getIntegerFromVarName` function with the variable name "value".
+    try expectEqual(
+        Felt252.fromInt(u8, 1),
+        try getIntegerFromVarName("value", &vm, ids_data, .{}),
+    );
+}
+
+test "getIntegerFromVarName: invalid" {
+    // Initializes the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    // Sets up memory segments in the virtual machine with an invalid configuration.
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{.{ .{ 1, 0 }, .{ 0, 0 } }},
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator); // Clean up memory data.
+
+    // Creates a hashmap containing variable references.
+    var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
+    defer ids_data.deinit();
+
+    // Puts a hint reference named "value" into the hashmap.
+    try ids_data.put("value", HintReference.initSimple(0));
+
+    // Calls `getIntegerFromVarName` function with the variable name "value".
+    // Expects the function to return an error of type `HintError.IdentifierNotInteger`.
+    try expectError(
+        HintError.IdentifierNotInteger,
+        getIntegerFromVarName("value", &vm, ids_data, .{}),
+    );
 }
