@@ -653,7 +653,6 @@ pub const CairoRunner = struct {
         return builtin_segment_info;
     }
 
-
     /// Checks that there are enough trace cells to fill the entire range check
     /// range.
     pub fn checkRangeCheckUsage(self: *Self, allocator: Allocator, vm: *CairoVM) !void {
@@ -699,7 +698,6 @@ pub const CairoRunner = struct {
             has_output_builtin,
         );
     }
-
 
     /// Retrieves the permanent range check limits from the CairoRunner instance.
     ///

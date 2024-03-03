@@ -18,6 +18,7 @@ pub const vm = struct {
     pub usingnamespace @import("vm/types/builtins_instance_def.zig");
     pub usingnamespace @import("vm/types/diluted_pool_instance_def.zig");
     pub usingnamespace @import("vm/types/cpu_instance_def.zig");
+    pub usingnamespace @import("vm/types/execution_scopes.zig");
     pub usingnamespace @import("vm/types/layout.zig");
     pub usingnamespace @import("vm/decoding/decoder.zig");
 };
@@ -45,6 +46,7 @@ pub const hint_processor = struct {
     pub usingnamespace @import("hint_processor/hint_utils.zig");
     pub usingnamespace @import("hint_processor/math_hints.zig");
     pub usingnamespace @import("hint_processor/felt_bit_length.zig");
+    pub usingnamespace @import("hint_processor/find_element.zig");
 };
 
 pub const parser = struct {

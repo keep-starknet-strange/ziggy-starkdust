@@ -1,4 +1,6 @@
 const std = @import("std");
+const expectEqual = std.testing.expectEqual;
+const expect = std.testing.expect;
 const ArrayList = std.ArrayList;
 const Allocator = std.mem.Allocator;
 const Felt252 = @import("../../math/fields/starknet.zig").Felt252;
@@ -20,9 +22,7 @@ pub const ExecutionScopes = struct {
 
         try d.append(std.StringHashMap(HintType).init(allocator));
 
-        return .{
-            .data = d,
-        };
+        return .{ .data = d };
     }
 
     pub fn deinit(self: *Self) void {
@@ -44,7 +44,9 @@ pub const ExecutionScopes = struct {
 
     ///Returns the value in the current execution scope that matches the name and is of the given generic type
     pub fn get(self: *const Self, name: []const u8) !HintType {
-        return (self.getLocalVariableMut() orelse return HintError.VariableNotInScopeError).get(name) orelse HintError.VariableNotInScopeError;
+        return (self.getLocalVariableMut() orelse
+            return HintError.VariableNotInScopeError).get(name) orelse
+            HintError.VariableNotInScopeError;
     }
 
     pub fn getFelt(self: *const Self, name: []const u8) !Felt252 {
@@ -65,4 +67,14 @@ pub const ExecutionScopes = struct {
         var m = self.getLocalVariableMut() orelse return;
         try m.put(var_name, var_value);
     }
+
+    pub fn deleteVariable(self: *Self, var_name: []const u8) void {
+        if (self.getLocalVariableMut()) |*v| _ = v.*.remove(var_name);
+    }
 };
+
+test "ExecutionScopes: init" {
+    var scopes = try ExecutionScopes.init(std.testing.allocator);
+    defer scopes.deinit();
+    try expectEqual(@as(usize, 1), scopes.data.items.len);
+}

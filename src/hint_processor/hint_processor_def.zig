@@ -20,6 +20,7 @@ const hint_codes = @import("builtin_hint_codes.zig");
 const math_hints = @import("math_hints.zig");
 const memcpy_hint_utils = @import("memcpy_hint_utils.zig");
 const felt_bit_length = @import("felt_bit_length.zig");
+const find_element = @import("find_element.zig");
 
 const deserialize_utils = @import("../parser/deserialize_utils.zig");
 
@@ -200,6 +201,10 @@ pub const CairoVMHintProcessor = struct {
             try memcpy_hint_utils.memcpyEnterScope(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.GET_FELT_BIT_LENGTH, hint_data.code)) {
             try felt_bit_length.getFeltBitLength(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.FIND_ELEMENT, hint_data.code)) {
+            try find_element.findElement(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SEARCH_SORTED_LOWER, hint_data.code)) {
+            try find_element.searchSortedLower(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else {}
     }
 
