@@ -29,7 +29,6 @@ pub const math = struct {
     pub usingnamespace @import("math/fields/starknet.zig");
     pub usingnamespace @import("math/crypto/poseidon/poseidon.zig");
     pub usingnamespace @import("math/crypto/pedersen/pedersen.zig");
-    pub usingnamespace @import("math/fields/elliptic_curve.zig");
 };
 
 pub const utils = struct {
@@ -44,6 +43,8 @@ pub const hint_processor = struct {
     pub usingnamespace @import("hint_processor/memcpy_hint_utils.zig");
     pub usingnamespace @import("hint_processor/hint_utils.zig");
     pub usingnamespace @import("hint_processor/math_hints.zig");
+    pub usingnamespace @import("hint_processor/keccak_utils.zig");
+    pub usingnamespace @import("hint_processor/poseidon_utils.zig");
     pub usingnamespace @import("hint_processor/felt_bit_length.zig");
     pub usingnamespace @import("hint_processor/pow_utils.zig");
 };
