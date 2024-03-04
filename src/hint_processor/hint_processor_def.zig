@@ -19,8 +19,12 @@ const Relocatable = @import("../vm/memory/relocatable.zig").Relocatable;
 const hint_codes = @import("builtin_hint_codes.zig");
 const math_hints = @import("math_hints.zig");
 const memcpy_hint_utils = @import("memcpy_hint_utils.zig");
+
+const poseidon_utils = @import("poseidon_utils.zig");
+const keccak_utils = @import("keccak_utils.zig");
 const felt_bit_length = @import("felt_bit_length.zig");
 const set = @import("set.zig");
+
 
 const deserialize_utils = @import("../parser/deserialize_utils.zig");
 
@@ -199,6 +203,32 @@ pub const CairoVMHintProcessor = struct {
             try memcpy_hint_utils.exitScope(exec_scopes);
         } else if (std.mem.eql(u8, hint_codes.MEMCPY_ENTER_SCOPE, hint_data.code)) {
             try memcpy_hint_utils.memcpyEnterScope(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.NONDET_N_GREATER_THAN_10, hint_data.code)) {
+            try poseidon_utils.nGreaterThan10(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.NONDET_N_GREATER_THAN_2, hint_data.code)) {
+            try poseidon_utils.nGreaterThan2(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.UNSAFE_KECCAK, hint_data.code)) {
+            try keccak_utils.unsafeKeccak(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.UNSAFE_KECCAK_FINALIZE, hint_data.code)) {
+            try keccak_utils.unsafeKeccakFinalize(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_INPUT_3, hint_data.code)) {
+            try keccak_utils.splitInput(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, 3, 1);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_INPUT_6, hint_data.code)) {
+            try keccak_utils.splitInput(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, 6, 2);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_INPUT_9, hint_data.code)) {
+            try keccak_utils.splitInput(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, 9, 3);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_INPUT_12, hint_data.code)) {
+            try keccak_utils.splitInput(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, 12, 4);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_INPUT_15, hint_data.code)) {
+            try keccak_utils.splitInput(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, 15, 5);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_OUTPUT_0, hint_data.code)) {
+            try keccak_utils.splitOutput(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, 0);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_OUTPUT_1, hint_data.code)) {
+            try keccak_utils.splitOutput(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, 1);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_N_BYTES, hint_data.code)) {
+            try keccak_utils.splitNBytes(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_OUTPUT_MID_LOW_HIGH, hint_data.code)) {
+            try keccak_utils.splitOutputMidLowHigh(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.GET_FELT_BIT_LENGTH, hint_data.code)) {
             try felt_bit_length.getFeltBitLength(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.SET_ADD, hint_data.code)) {
