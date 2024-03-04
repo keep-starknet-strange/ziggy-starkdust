@@ -53,10 +53,7 @@ pub const Uint256 = struct {
     }
 
     pub fn split(comptime T: type, num: T) Self {
-        const mask_low = std.math.maxInt(u128);
-        const low = Felt252.fromInt(T, num & mask_low);
-        const high = Felt252.fromInt(T, num >> 128);
-        return Self.init(low, high);
+        return Self.init(Felt252.fromInt(T, num & std.math.maxInt(u128)), Felt252.fromInt(T, num >> 128));
     }
     // converting self to biguint value
     // optimize by using biguint
@@ -195,8 +192,7 @@ pub fn uint256Sub(
         }
     };
 
-    const result = Uint256.split(u512, res);
-    try result.insertFromVarName(allocator, "res", vm, ids_data, ap_tracking);
+    try Uint256.split(u512, res).insertFromVarName(allocator, "res", vm, ids_data, ap_tracking);
 }
 
 // Implements hint:
