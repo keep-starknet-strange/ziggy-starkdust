@@ -6,6 +6,17 @@ const MaybeRelocatable = relocatable.MaybeRelocatable;
 const IdsManager = @import("hint_utils.zig").IdsManager;
 const HintReference = @import("../hint_processor/hint_processor_def.zig").HintReference;
 
+pub fn setupIdsForTestWithoutMemory(allocator: std.mem.Allocator, data: []const []const u8) !std.StringHashMap(HintReference) {
+    var result = std.StringHashMap(HintReference).init(allocator);
+    errdefer result.deinit();
+
+    for (data, 0..) |name, idx| {
+        try result.put(name, HintReference.initSimple(@as(i32, @intCast(idx)) - @as(i32, @intCast(data.len))));
+    }
+
+    return result;
+}
+
 pub fn setupIdsForTest(allocator: std.mem.Allocator, data: []const struct { name: []const u8, elems: []const ?MaybeRelocatable }, vm: *CairoVM) !std.StringHashMap(HintReference) {
     var result = std.StringHashMap(HintReference).init(allocator);
     errdefer result.deinit();

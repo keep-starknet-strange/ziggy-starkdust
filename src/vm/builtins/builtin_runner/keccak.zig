@@ -253,55 +253,6 @@ pub const KeccakBuiltinRunner = struct {
         return bytes_vector;
     }
 
-    /// Calculates the Keccak hash of the input message.
-    ///
-    /// This function computes the Keccak hash of the provided input message and returns
-    /// it as an fixed array based on block type. The Keccak hash function involves multiple steps of data
-    /// processing.
-    ///
-    /// # Arguments
-    ///
-    /// - `input_message`: A pointer to the input message as an array of bytes.
-    ///
-    /// # Returns
-    ///
-    /// An fixed array based on block type, containing the Keccak hash.
-    /// current block type hardcoded to u64.
-    fn keccakF(input_message: *[]const u8) ![keccakFELT_BYTE_SIZE * @sizeOf(u64)]u8 {
-        var result = [_]u8{0} ** (keccakFELT_BYTE_SIZE * @sizeOf(u64));
-
-        // 1600 bits = 200 bytes = 25 u64
-        var hashState: std.crypto.core.keccak.KeccakF(@bitSizeOf(u64) * keccakFELT_BYTE_SIZE) = .{
-            .st = undefined,
-        };
-
-        const input = input_message.*;
-
-        var i: usize = 0;
-        while (i + @sizeOf(u64) <= input.len) {
-            hashState.st[i / @sizeOf(u64)] = std.mem.readInt(
-                u64,
-                @ptrCast(input[i .. i + @sizeOf(u64)]),
-                .little,
-            );
-
-            i += @sizeOf(u64);
-        }
-
-        hashState.permuteR(keccakFELT_ROUND_COUNT);
-
-        for (hashState.st, 0..) |item, idx| {
-            std.mem.writeInt(
-                u64,
-                result[idx * @sizeOf(u64) .. (idx + 1) * @sizeOf(u64)][0..@sizeOf(u64)],
-                item,
-                .little,
-            );
-        }
-
-        return result;
-    }
-
     /// Calculate the final stack.
     ///
     /// This function calculates the final stack pointer for the Keccak runner, based on the provided `segments`, `pointer`, and `self` settings. If the runner is included,
@@ -433,7 +384,7 @@ pub const KeccakBuiltinRunner = struct {
             try input_message.appendSlice(rpad.items);
         }
 
-        const keccak_result = try Self.keccakF(
+        const keccak_result = try keccakF(
             &input_message.items,
         );
 
@@ -463,6 +414,55 @@ pub const KeccakBuiltinRunner = struct {
         self.cache.deinit();
     }
 };
+
+/// Calculates the Keccak hash of the input message.
+///
+/// This function computes the Keccak hash of the provided input message and returns
+/// it as an fixed array based on block type. The Keccak hash function involves multiple steps of data
+/// processing.
+///
+/// # Arguments
+///
+/// - `input_message`: A pointer to the input message as an array of bytes.
+///
+/// # Returns
+///
+/// An fixed array based on block type, containing the Keccak hash.
+/// current block type hardcoded to u64.
+pub fn keccakF(input_message: *[]const u8) ![keccakFELT_BYTE_SIZE * @sizeOf(u64)]u8 {
+    var result = [_]u8{0} ** (keccakFELT_BYTE_SIZE * @sizeOf(u64));
+
+    // 1600 bits = 200 bytes = 25 u64
+    var hashState: std.crypto.core.keccak.KeccakF(@bitSizeOf(u64) * keccakFELT_BYTE_SIZE) = .{
+        .st = undefined,
+    };
+
+    const input = input_message.*;
+
+    var i: usize = 0;
+    while (i + @sizeOf(u64) <= input.len) {
+        hashState.st[i / @sizeOf(u64)] = std.mem.readInt(
+            u64,
+            @ptrCast(input[i .. i + @sizeOf(u64)]),
+            .little,
+        );
+
+        i += @sizeOf(u64);
+    }
+
+    hashState.permuteR(keccakFELT_ROUND_COUNT);
+
+    for (hashState.st, 0..) |item, idx| {
+        std.mem.writeInt(
+            u64,
+            result[idx * @sizeOf(u64) .. (idx + 1) * @sizeOf(u64)][0..@sizeOf(u64)],
+            item,
+            .little,
+        );
+    }
+
+    return result;
+}
 
 test "KeccakBuiltinRunner: initialStack should return an empty array list if included is false" {
     var keccak_instance_def = try KeccakInstanceDef.initDefault(std.testing.allocator);
@@ -751,7 +751,7 @@ test "KeccakBuiltinRunner: rightPad should return right pad result" {
 test "KeccakBuiltinRunner: keccakF" {
     const expected_output_bytes = "\xf6\x98\x81\xe1\x00!\x1f.\xc4*\x8c\x0c\x7fF\xc8q8\xdf\xb9\xbe\x07H\xca7T1\xab\x16\x17\xa9\x11\xff-L\x87\xb2iY.\x96\x82x\xde\xbb\\up?uz:0\xee\x08\x1b\x15\xd6\n\xab\r\x0b\x87T:w\x0fH\xe7!f},\x08a\xe5\xbe8\x16\x13\x9a?\xad~<9\xf7\x03`\x8b\xd8\xa3F\x8aQ\xf9\n9\xcdD\xb7.X\xf7\x8e\x1f\x17\x9e \xe5i\x01rr\xdf\xaf\x99k\x9f\x8e\x84\\\xday`\xf1``\x02q+\x8e\xad\x96\xd8\xff\xff3<\xb6\x01o\xd7\xa6\x86\x9d\xea\xbc\xfb\x08\xe1\xa3\x1c\x06z\xab@\xa1\xc1\xb1xZ\x92\x96\xc0.\x01\x13g\x93\x87!\xa6\xa8z\x9c@\x0bY'\xe7\xa7Qr\xe5\xc1\xa3\xa6\x88H\xa5\xc0@9k:y\xd1Kw\xd5";
     var input_bytes: []const u8 = "\x01\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x03\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x05\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x06\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x07\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x08\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
-    var actual = try (KeccakBuiltinRunner.keccakF(
+    var actual = try (keccakF(
         &input_bytes,
     ));
     try expectEqualSlices(

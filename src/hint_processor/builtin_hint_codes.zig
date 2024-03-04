@@ -1,3 +1,8 @@
+pub const GET_FELT_BIT_LENGTH =
+    \\x = ids.x
+    \\ids.bit_length = x.bit_length()
+;
+
 pub const ASSERT_NN = "from starkware.cairo.common.math_utils import assert_integer\nassert_integer(ids.a)\nassert 0 <= ids.a % PRIME < range_check_builtin.bound, f'a = {ids.a} is out of range.'";
 pub const VERIFY_ECDSA_SIGNATURE = "ecdsa_builtin.add_signature(ids.ecdsa_ptr.address_, (ids.signature_r, ids.signature_s))";
 pub const IS_POSITIVE = "from starkware.cairo.common.math_utils import is_positive\nids.is_positive = 1 if is_positive(\n    value=ids.value, prime=PRIME, rc_bound=range_check_builtin.bound) else 0";
@@ -126,3 +131,61 @@ pub const VM_ENTER_SCOPE = "vm_enter_scope()";
 pub const VM_EXIT_SCOPE = "vm_exit_scope()";
 
 pub const MEMCPY_ENTER_SCOPE = "vm_enter_scope({'n': ids.len})";
+pub const NONDET_N_GREATER_THAN_10 = "memory[ap] = to_felt_or_relocatable(ids.n >= 10)";
+pub const NONDET_N_GREATER_THAN_2 = "memory[ap] = to_felt_or_relocatable(ids.n >= 2)";
+
+pub const UNSAFE_KECCAK =
+    \\from eth_hash.auto import keccak
+    \\
+    \\data, length = ids.data, ids.length
+    \\
+    \\if '__keccak_max_size' in globals():
+    \\    assert length <= __keccak_max_size, \
+    \\        f'unsafe_keccak() can only be used with length<={__keccak_max_size}. ' \
+    \\        f'Got: length={length}.'
+    \\
+    \\keccak_input = bytearray()
+    \\for word_i, byte_i in enumerate(range(0, length, 16)):
+    \\    word = memory[data + word_i]
+    \\    n_bytes = min(16, length - byte_i)
+    \\    assert 0 <= word < 2 ** (8 * n_bytes)
+    \\    keccak_input += word.to_bytes(n_bytes, 'big')
+    \\
+    \\hashed = keccak(keccak_input)
+    \\ids.high = int.from_bytes(hashed[:16], 'big')
+    \\ids.low = int.from_bytes(hashed[16:32], 'big')
+;
+
+pub const UNSAFE_KECCAK_FINALIZE =
+    \\from eth_hash.auto import keccak
+    \\keccak_input = bytearray()
+    \\n_elms = ids.keccak_state.end_ptr - ids.keccak_state.start_ptr
+    \\for word in memory.get_range(ids.keccak_state.start_ptr, n_elms):
+    \\    keccak_input += word.to_bytes(16, 'big')
+    \\hashed = keccak(keccak_input)
+    \\ids.high = int.from_bytes(hashed[:16], 'big')
+    \\ids.low = int.from_bytes(hashed[16:32], 'big')
+;
+
+pub const SPLIT_INPUT_3 = "ids.high3, ids.low3 = divmod(memory[ids.inputs + 3], 256)";
+pub const SPLIT_INPUT_6 = "ids.high6, ids.low6 = divmod(memory[ids.inputs + 6], 256 ** 2)";
+pub const SPLIT_INPUT_9 = "ids.high9, ids.low9 = divmod(memory[ids.inputs + 9], 256 ** 3)";
+pub const SPLIT_INPUT_12 =
+    "ids.high12, ids.low12 = divmod(memory[ids.inputs + 12], 256 ** 4)";
+pub const SPLIT_INPUT_15 =
+    "ids.high15, ids.low15 = divmod(memory[ids.inputs + 15], 256 ** 5)";
+
+pub const SPLIT_OUTPUT_0 =
+    \\ids.output0_low = ids.output0 & ((1 << 128) - 1)
+    \\ids.output0_high = ids.output0 >> 128
+;
+pub const SPLIT_OUTPUT_1 =
+    \\ids.output1_low = ids.output1 & ((1 << 128) - 1)
+    \\ids.output1_high = ids.output1 >> 128
+;
+
+pub const SPLIT_N_BYTES = "ids.n_words_to_copy, ids.n_bytes_left = divmod(ids.n_bytes, ids.BYTES_IN_WORD)";
+pub const SPLIT_OUTPUT_MID_LOW_HIGH =
+    \\tmp, ids.output1_low = divmod(ids.output1, 256 ** 7)
+    \\ids.output1_high, ids.output1_mid = divmod(tmp, 2 ** 128)
+;
