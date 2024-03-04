@@ -108,7 +108,7 @@ pub fn divModFloorSigned(num: i256, denominator: i256) !struct { i256, i256 } {
     };
 }
 
-pub fn divModFloor(num: u256, denominator: u256) !struct { u256, u256 } {
+pub fn divModFloor(comptime T: type, num: T, denominator: T) !struct { T, T } {
     if (denominator == 0) return error.DividedByZero;
 
     return .{ @divFloor(num, denominator), @mod(num, denominator) };

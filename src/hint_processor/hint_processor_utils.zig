@@ -52,11 +52,6 @@ pub fn getIntegerFromReference(
         else => {},
     }
 
-    // std.debug.print(
-    //     "totototot = {any}\n",
-    //     .{computeAddrFromReference(hint_reference, ap_tracking, vm)},
-    // );
-
     // Compute the memory address of the variable and retrieve the integer value from memory.
     return if (computeAddrFromReference(hint_reference, ap_tracking, vm)) |var_addr|
         vm.segments.memory.getFelt(var_addr) catch HintError.WrongIdentifierTypeInternal

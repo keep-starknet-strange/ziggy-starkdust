@@ -312,8 +312,8 @@ pub fn assertLeFelt(
 
     try exec_scopes.assignOrUpdateVariable("excluded", .{ .felt = Felt252.fromInt(u256, excluded) });
 
-    const qr0 = try field_helper.divModFloor(lengths_and_indices[0][0], prime_over_3_high.toInteger());
-    const qr1 = try field_helper.divModFloor(lengths_and_indices[1][0], prime_over_2_high.toInteger());
+    const qr0 = try field_helper.divModFloor(u256, lengths_and_indices[0][0], prime_over_3_high.toInteger());
+    const qr1 = try field_helper.divModFloor(u256, lengths_and_indices[1][0], prime_over_2_high.toInteger());
 
     try vm.insertInMemory(allocator, range_check_ptr, MaybeRelocatable.fromFelt(Felt252.fromInt(u256, qr0[1])));
     try vm.insertInMemory(allocator, try range_check_ptr.addInt(1), MaybeRelocatable.fromFelt(Felt252.fromInt(u256, qr0[0])));

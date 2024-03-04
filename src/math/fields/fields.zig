@@ -477,6 +477,16 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             return self.mul(self);
         }
 
+        pub fn pow2Const(comptime exponent: u32) Self {
+            var base = Self.one();
+
+            inline for (exponent) |_| {
+                base = base.mul(Self.two());
+            }
+
+            return base;
+        }
+
         /// Raise a field element to a power of 2.
         ///
         /// Computes the current field element raised to the power of 2 to the `exponent` power.
