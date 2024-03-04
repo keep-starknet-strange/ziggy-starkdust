@@ -52,7 +52,9 @@ pub const ExecutionScopes = struct {
     pub fn getFelt(self: *const Self, name: []const u8) !Felt252 {
         return switch (try self.get(name)) {
             .felt => |f| f,
-            else => HintError.VariableNotInScopeError,
+            // in keccak implemntation of rust, they downcast u64 to felt
+            .u64 => |v| Felt252.fromInt(u64, v),
+            // else => HintError.VariableNotInScopeError,
         };
     }
 
