@@ -191,7 +191,7 @@ pub fn splitInput(
     const inputs_ptr = try hint_utils.getPtrFromVarName("inputs", vm, ids_data, ap_tracking);
     const binding = try vm.getFelt(try inputs_ptr.addUint(input_key));
     const split = Felt252.pow2Const(8 * exponent);
-    const high_low = try helper.divRem(binding.toInteger(), split.toInteger());
+    const high_low = try helper.divRem(u256, binding.toInteger(), split.toInteger());
     var buffer: [20]u8 = undefined;
 
     try hint_utils.insertValueFromVarName(
@@ -224,7 +224,7 @@ pub fn splitOutput(
     var buffer: [30]u8 = undefined;
     const output = try hint_utils.getIntegerFromVarName(try std.fmt.bufPrint(buffer[0..], "output{d}", .{num}), vm, ids_data, ap_tracking);
 
-    const high_low = try helper.divRem(output.toInteger(), Felt252.pow2Const(128).toInteger());
+    const high_low = try helper.divRem(u256, output.toInteger(), Felt252.pow2Const(128).toInteger());
     try hint_utils.insertValueFromVarName(
         allocator,
         try std.fmt.bufPrint(buffer[0..], "output{d}_high", .{num}),
@@ -450,8 +450,8 @@ pub fn splitOutputMidLowHigh(
     ap_tracking: ApTracking,
 ) !void {
     const output1 = try hint_utils.getIntegerFromVarName("output1", vm, ids_data, ap_tracking);
-    const tmp_output1_low = try helper.divRem(output1.toInteger(), Felt252.pow2Const(8 * 7).toInteger());
-    const output1_high_output1_mid = try helper.divRem(tmp_output1_low[0], Felt252.pow2Const(128).toInteger());
+    const tmp_output1_low = try helper.divRem(u256, output1.toInteger(), Felt252.pow2Const(8 * 7).toInteger());
+    const output1_high_output1_mid = try helper.divRem(u256, tmp_output1_low[0], Felt252.pow2Const(128).toInteger());
 
     try hint_utils.insertValueFromVarName(allocator, "output1_high", MaybeRelocatable.fromInt(u256, output1_high_output1_mid[0]), vm, ids_data, ap_tracking);
     try hint_utils.insertValueFromVarName(allocator, "output1_mid", MaybeRelocatable.fromInt(u256, output1_high_output1_mid[1]), vm, ids_data, ap_tracking);
