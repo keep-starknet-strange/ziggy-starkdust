@@ -259,6 +259,7 @@ pub const HintError = error{
     AssertNotZero,
     // expected an integer
     IdentifierNotInteger,
+    IdentifierHasNoMember,
     IdentifierNotRelocatable,
     // unknown identifier in ids
     UnknownIdentifier,
