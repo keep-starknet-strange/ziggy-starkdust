@@ -77,7 +77,6 @@ test "FeltBitLength: simple test" {
     inline for (0..2) |_| _ = try vm.addMemorySegment();
 
     // Set up memory segments in the virtual machine.
-    // The memory layout is: [0, 0, 0, 0, 0, 0, 0] (total 7 words).
     try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{.{ .{ 0, 0 }, .{7} }},

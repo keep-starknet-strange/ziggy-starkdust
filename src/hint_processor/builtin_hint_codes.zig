@@ -1,3 +1,7 @@
+pub const TEMPORARY_ARRAY = "ids.temporary_array = segments.add_temp_segment()";
+
+pub const RELOCATE_SEGMENT = "memory.add_relocation_rule(src_ptr=ids.src_ptr, dest_ptr=ids.dest_ptr)";
+
 pub const GET_FELT_BIT_LENGTH =
     \\x = ids.x
     \\ids.bit_length = x.bit_length()

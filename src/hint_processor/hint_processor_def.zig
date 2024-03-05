@@ -25,6 +25,7 @@ const usort = @import("usort.zig");
 const poseidon_utils = @import("poseidon_utils.zig");
 const keccak_utils = @import("keccak_utils.zig");
 const felt_bit_length = @import("felt_bit_length.zig");
+const segments = @import("segments.zig");
 
 const deserialize_utils = @import("../parser/deserialize_utils.zig");
 
@@ -231,6 +232,10 @@ pub const CairoVMHintProcessor = struct {
             try keccak_utils.splitOutputMidLowHigh(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.GET_FELT_BIT_LENGTH, hint_data.code)) {
             try felt_bit_length.getFeltBitLength(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.RELOCATE_SEGMENT, hint_data.code)) {
+            try segments.relocateSegment(vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.TEMPORARY_ARRAY, hint_data.code)) {
+            try segments.temporaryArray(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.UINT256_ADD, hint_data.code)) {
             try uint256_utils.uint256Add(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, false);
         } else if (std.mem.eql(u8, hint_codes.UINT256_ADD_LOW, hint_data.code)) {
@@ -263,7 +268,7 @@ pub const CairoVMHintProcessor = struct {
             try usort.verifyMultiplicityAssert(exec_scopes);
         } else if (std.mem.eql(u8, hint_codes.USORT_VERIFY_MULTIPLICITY_BODY, hint_data.code)) {
             try usort.verifyMultiplicityBody(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
-        }
+        } else {}
     }
 
     // Executes the hint which's data is provided by a dynamic structure previously created by compile_hint
