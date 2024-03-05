@@ -19,12 +19,12 @@ const Relocatable = @import("../vm/memory/relocatable.zig").Relocatable;
 const hint_codes = @import("builtin_hint_codes.zig");
 const math_hints = @import("math_hints.zig");
 const memcpy_hint_utils = @import("memcpy_hint_utils.zig");
+const uint256_utils = @import("uint256_utils.zig");
 
 const poseidon_utils = @import("poseidon_utils.zig");
 const keccak_utils = @import("keccak_utils.zig");
 const felt_bit_length = @import("felt_bit_length.zig");
 const find_element = @import("find_element.zig");
-
 
 const deserialize_utils = @import("../parser/deserialize_utils.zig");
 
@@ -235,6 +235,28 @@ pub const CairoVMHintProcessor = struct {
             try find_element.findElement(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.SEARCH_SORTED_LOWER, hint_data.code)) {
             try find_element.searchSortedLower(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.UINT256_ADD, hint_data.code)) {
+            try uint256_utils.uint256Add(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, false);
+        } else if (std.mem.eql(u8, hint_codes.UINT256_ADD_LOW, hint_data.code)) {
+            try uint256_utils.uint256Add(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, true);
+        } else if (std.mem.eql(u8, hint_codes.UINT128_ADD, hint_data.code)) {
+            try uint256_utils.uint128Add(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.UINT256_SUB, hint_data.code)) {
+            try uint256_utils.uint256Sub(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_64, hint_data.code)) {
+            try uint256_utils.split64(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.UINT256_SQRT, hint_data.code)) {
+            try uint256_utils.uint256Sqrt(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, false);
+        } else if (std.mem.eql(u8, hint_codes.UINT256_SQRT_FELT, hint_data.code)) {
+            try uint256_utils.uint256Sqrt(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, true);
+        } else if (std.mem.eql(u8, hint_codes.UINT256_SIGNED_NN, hint_data.code)) {
+            try uint256_utils.uint256SignedNn(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.UINT256_UNSIGNED_DIV_REM, hint_data.code)) {
+            try uint256_utils.uint256UnsignedDivRem(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.UINT256_EXPANDED_UNSIGNED_DIV_REM, hint_data.code)) {
+            try uint256_utils.uint256ExpandedUnsignedDivRem(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.UINT256_MUL_DIV_MOD, hint_data.code)) {
+            try uint256_utils.uint256MulDivMod(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else {}
     }
 
