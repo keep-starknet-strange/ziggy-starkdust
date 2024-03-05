@@ -139,7 +139,7 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
                     std.mem.writeInt(
                         u256,
                         lbe[0..],
-                        @as(u256, @intCast(num)) % Modulo,
+                        @as(u256, @intCast(num % Modulo)),
                         .little,
                     );
                     var nonMont: F.NonMontgomeryDomainFieldElement = undefined;
@@ -263,6 +263,18 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             }
 
             return ret;
+        }
+
+        /// Convert `self`'s representative into an array of `u64` digits,
+        /// least significant digits first.
+        pub fn toLeDigits(self: Self) [4]u64 {
+            var non_mont: F.NonMontgomeryDomainFieldElement = undefined;
+            F.fromMontgomery(
+                &non_mont,
+                self.fe,
+            );
+
+            return non_mont;
         }
 
         /// Convert the field element to a big-endian byte array.
@@ -600,7 +612,7 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             self: Self,
             rhs: Self,
         ) !struct { q: Self, r: Self } {
-            const qr = try helper.divRem(self.toInteger(), rhs.toInteger());
+            const qr = try helper.divRem(u256, self.toInteger(), rhs.toInteger());
 
             return .{
                 .q = Self.fromInt(u256, qr[0]),

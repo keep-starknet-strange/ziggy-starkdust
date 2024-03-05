@@ -202,3 +202,101 @@ pub const SPLIT_OUTPUT_MID_LOW_HIGH =
     \\tmp, ids.output1_low = divmod(ids.output1, 256 ** 7)
     \\ids.output1_high, ids.output1_mid = divmod(tmp, 2 ** 128)
 ;
+
+pub const BIGINT_TO_UINT256 = "ids.low = (ids.x.d0 + ids.x.d1 * ids.BASE) & ((1 << 128) - 1)";
+pub const UINT256_ADD =
+    \\sum_low = ids.a.low + ids.b.low
+    \\ids.carry_low = 1 if sum_low >= ids.SHIFT else 0
+    \\sum_high = ids.a.high + ids.b.high + ids.carry_low
+    \\ids.carry_high = 1 if sum_high >= ids.SHIFT else 0
+;
+
+pub const UINT256_ADD_LOW =
+    \\sum_low = ids.a.low + ids.b.low
+    \\ids.carry_low = 1 if sum_low >= ids.SHIFT else 0
+;
+
+pub const UINT128_ADD =
+    \\res = ids.a + ids.b
+    \\ids.carry = 1 if res >= ids.SHIFT else 0
+;
+
+pub const UINT256_SUB =
+    \\def split(num: int, num_bits_shift: int = 128, length: int = 2):
+    \\    a = []
+    \\    for _ in range(length):
+    \\        a.append( num & ((1 << num_bits_shift) - 1) )
+    \\        num = num >> num_bits_shift
+    \\    return tuple(a)
+    \\
+    \\def pack(z, num_bits_shift: int = 128) -> int:
+    \\    limbs = (z.low, z.high)
+    \\    return sum(limb << (num_bits_shift * i) for i, limb in enumerate(limbs))
+    \\
+    \\a = pack(ids.a)
+    \\b = pack(ids.b)
+    \\res = (a - b)%2**256
+    \\res_split = split(res)
+    \\ids.res.low = res_split[0]
+    \\ids.res.high = res_split[1]
+;
+
+pub const UINT256_SQRT =
+    \\from starkware.python.math_utils import isqrt
+    \\n = (ids.n.high << 128) + ids.n.low
+    \\root = isqrt(n)
+    \\assert 0 <= root < 2 ** 128
+    \\ids.root.low = root
+    \\ids.root.high = 0
+;
+
+pub const UINT256_SQRT_FELT =
+    \\from starkware.python.math_utils import isqrt
+    \\n = (ids.n.high << 128) + ids.n.low
+    \\root = isqrt(n)
+    \\assert 0 <= root < 2 ** 128
+    \\ids.root = root
+;
+
+pub const UINT256_SIGNED_NN = "memory[ap] = 1 if 0 <= (ids.a.high % PRIME) < 2 ** 127 else 0";
+
+pub const UINT256_UNSIGNED_DIV_REM =
+    \\a = (ids.a.high << 128) + ids.a.low
+    \\div = (ids.div.high << 128) + ids.div.low
+    \\quotient, remainder = divmod(a, div)
+    \\
+    \\ids.quotient.low = quotient & ((1 << 128) - 1)
+    \\ids.quotient.high = quotient >> 128
+    \\ids.remainder.low = remainder & ((1 << 128) - 1)
+    \\ids.remainder.high = remainder >> 128
+;
+
+pub const UINT256_EXPANDED_UNSIGNED_DIV_REM =
+    \\a = (ids.a.high << 128) + ids.a.low
+    \\div = (ids.div.b23 << 128) + ids.div.b01
+    \\quotient, remainder = divmod(a, div)
+    \\
+    \\ids.quotient.low = quotient & ((1 << 128) - 1)
+    \\ids.quotient.high = quotient >> 128
+    \\ids.remainder.low = remainder & ((1 << 128) - 1)
+    \\ids.remainder.high = remainder >> 128
+;
+
+pub const UINT256_MUL_DIV_MOD =
+    \\a = (ids.a.high << 128) + ids.a.low
+    \\b = (ids.b.high << 128) + ids.b.low
+    \\div = (ids.div.high << 128) + ids.div.low
+    \\quotient, remainder = divmod(a * b, div)
+    \\
+    \\ids.quotient_low.low = quotient & ((1 << 128) - 1)
+    \\ids.quotient_low.high = (quotient >> 128) & ((1 << 128) - 1)
+    \\ids.quotient_high.low = (quotient >> 256) & ((1 << 128) - 1)
+    \\ids.quotient_high.high = quotient >> 384
+    \\ids.remainder.low = remainder & ((1 << 128) - 1)
+    \\ids.remainder.high = remainder >> 128
+;
+
+pub const SPLIT_64 =
+    \\ids.low = ids.a & ((1<<64) - 1)
+    \\ids.high = ids.a >> 64
+;
