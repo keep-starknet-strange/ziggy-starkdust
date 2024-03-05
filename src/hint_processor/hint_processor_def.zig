@@ -20,6 +20,7 @@ const hint_codes = @import("builtin_hint_codes.zig");
 const math_hints = @import("math_hints.zig");
 const memcpy_hint_utils = @import("memcpy_hint_utils.zig");
 const uint256_utils = @import("uint256_utils.zig");
+const usort = @import("usort.zig");
 
 const poseidon_utils = @import("poseidon_utils.zig");
 const keccak_utils = @import("keccak_utils.zig");
@@ -252,6 +253,16 @@ pub const CairoVMHintProcessor = struct {
             try uint256_utils.uint256ExpandedUnsignedDivRem(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.UINT256_MUL_DIV_MOD, hint_data.code)) {
             try uint256_utils.uint256MulDivMod(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.USORT_ENTER_SCOPE, hint_data.code)) {
+            try usort.usortEnterScope(allocator, exec_scopes);
+        } else if (std.mem.eql(u8, hint_codes.USORT_BODY, hint_data.code)) {
+            try usort.usortBody(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.USORT_VERIFY, hint_data.code)) {
+            try usort.verifyUsort(vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.USORT_VERIFY_MULTIPLICITY_ASSERT, hint_data.code)) {
+            try usort.verifyMultiplicityAssert(exec_scopes);
+        } else if (std.mem.eql(u8, hint_codes.USORT_VERIFY_MULTIPLICITY_BODY, hint_data.code)) {
+            try usort.verifyMultiplicityBody(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         }
     }
 

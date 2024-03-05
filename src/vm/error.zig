@@ -246,6 +246,15 @@ pub const VerifyError = error{
 };
 
 pub const HintError = error{
+    // unexpected verify multiplicity fail: couldn't pop positions
+    CouldntPopPositions,
+    // unexpected verify multiplicity fail: positions length != 0
+    PositionsLengthNotZero,
+    // unexpected usort fail: positions_dict or key value pair not found
+    UnexpectedPositionsDictFail,
+    // usort() can only be used with input_len
+    UsortOutOfRange,
+    BigintToUsizeFail,
     // Math error
     Math,
     // unsafeKeccak() greater that keccak max size
