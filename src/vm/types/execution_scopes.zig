@@ -67,6 +67,16 @@ pub const ExecutionScopes = struct {
     }
 
     /// Returns the value in the current execution scope that matches the name and is of the given type.
+    pub fn getFelt(self: *const Self, name: []const u8) !Felt252 {
+        return switch (try self.get(name)) {
+            .felt => |f| f,
+            // in keccak implemntation of rust, they downcast u64 to felt
+            .u64 => |v| Felt252.fromInt(u64, v),
+            else => HintError.VariableNotInScopeError,
+        };
+    }
+
+    /// Returns the value in the current execution scope that matches the name and is of the given type.
     pub fn getValue(
         self: *const Self,
         comptime T: @typeInfo(HintType).Union.tag_type.?,
