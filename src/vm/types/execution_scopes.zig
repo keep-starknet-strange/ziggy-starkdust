@@ -30,7 +30,7 @@ pub const HintType = union(enum) {
                 d.deinit();
             },
             else => {},
-       }
+        }
     }
 };
 
@@ -87,7 +87,6 @@ pub const ExecutionScopes = struct {
             HintError.VariableNotInScopeError;
     }
 
-
     /// Returns the value in the current execution scope that matches the name and is of the given type.
     pub fn getFelt(self: *const Self, name: []const u8) !Felt252 {
         return switch (try self.get(name)) {
@@ -95,7 +94,6 @@ pub const ExecutionScopes = struct {
             // in keccak implemntation of rust, they downcast u64 to felt
             .u64 => |v| Felt252.fromInt(u64, v),
             else => HintError.VariableNotInScopeError,
-
         };
     }
 
@@ -116,6 +114,10 @@ pub const ExecutionScopes = struct {
             },
             .u64_list => switch (try self.get(name)) {
                 .u64_list => |list| try list.clone(),
+                else => HintError.VariableNotInScopeError,
+            },
+            .felt_map_of_u64_list => switch (try self.get(name)) {
+                .felt_map_of_u64_list => |v| v,
                 else => HintError.VariableNotInScopeError,
             },
         };
@@ -141,6 +143,10 @@ pub const ExecutionScopes = struct {
                 .u64_list => &r.u64_list,
                 else => HintError.VariableNotInScopeError,
             },
+            .felt_map_of_u64_list => switch (r.*) {
+                .felt_map_of_u64_list => &r.felt_map_of_u64_list,
+                else => HintError.VariableNotInScopeError,
+            },
         };
     }
 
@@ -158,34 +164,6 @@ pub const ExecutionScopes = struct {
             &self.data.items[self.data.items.len - 1]
         else
             null;
-    }
-    pub fn getMutArrayOfU64(self: *Self, name: []const u8) !*std.ArrayList(u64) {
-        if (self.getLocalVariableMut()) |val| {
-            if (val.getPtr(name)) |variable| {
-                switch (variable.*) {
-                    .arr_u64 => |*v| return v,
-                    else => {},
-                }
-            }
-        }
-
-        return HintError.VariableNotInScopeError;
-    }
-    ///Returns a mutable reference to the value in the current execution scope that matches the name and is of the given type
-    pub fn getMutMapFeltOfU64Array(
-        self: *Self,
-        name: []const u8,
-    ) !*std.AutoHashMap(Felt252, std.ArrayList(u64)) {
-        if (self.getLocalVariableMut()) |val| {
-            if (val.getPtr(name)) |variable| {
-                switch (variable.*) {
-                    .felt_map_of_arr_u64 => |*v| return v,
-                    else => {},
-                }
-            }
-        }
-
-        return HintError.VariableNotInScopeError;
     }
 
     /// Creates or updates an existing variable given its name and boxed value.
@@ -388,8 +366,6 @@ test "ExecutionScopes: get list of u64" {
 
     // Initialize a list of u64.
     var list_u64 = ArrayList(u64).init(std.testing.allocator);
-    // Defer the deinitialization of the list.
-    defer list_u64.deinit();
     // Append values to the list.
     try list_u64.append(20);
     try list_u64.append(18);
