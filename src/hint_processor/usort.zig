@@ -126,7 +126,7 @@ pub fn usortBody(
         try vm.insertInMemory(allocator, try output_base.addUint(i), MaybeRelocatable.fromFelt(sorted_element));
     }
 
-    for (0.., multiplicities.items) |i, repetition_amount| {
+    for (multiplicities.items, 0..) |repetition_amount, i| {
         try vm.insertInMemory(allocator, try multiplicities_base.addUint(i), MaybeRelocatable.fromInt(usize, repetition_amount));
     }
 
