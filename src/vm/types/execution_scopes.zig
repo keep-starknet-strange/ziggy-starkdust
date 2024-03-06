@@ -11,10 +11,27 @@ const ExecScopeError = @import("../error.zig").ExecScopeError;
 
 /// Represents the possible types of variables in the hint scope.
 pub const HintType = union(enum) {
+    const Self = @This();
     // TODO: Add missing types
     felt: Felt252,
     u64: u64,
     u64_list: ArrayList(u64),
+    felt_map_of_u64_list: std.AutoHashMap(Felt252, std.ArrayList(u64)),
+
+    pub fn deinit(self: *Self) void {
+        switch (self.*) {
+            .felt_map_of_u64_list => |*d| {
+                var it = d.valueIterator();
+                while (it.next()) |v| v.deinit();
+
+                d.deinit();
+            },
+            .u64_list => |d| {
+                d.deinit();
+            },
+            else => {},
+        }
+    }
 };
 
 /// Represents the execution scope with variables.
@@ -34,8 +51,12 @@ pub const ExecutionScopes = struct {
 
     /// Deinitializes the execution scope.
     pub fn deinit(self: *Self) void {
-        for (self.data.items) |*it| {
-            it.deinit();
+        for (self.data.items) |*m| {
+            var it = m.valueIterator();
+
+            while (it.next()) |h| h.deinit();
+
+            m.deinit();
         }
         self.data.deinit();
     }
@@ -95,6 +116,10 @@ pub const ExecutionScopes = struct {
                 .u64_list => |list| try list.clone(),
                 else => HintError.VariableNotInScopeError,
             },
+            .felt_map_of_u64_list => switch (try self.get(name)) {
+                .felt_map_of_u64_list => |v| v,
+                else => HintError.VariableNotInScopeError,
+            },
         };
     }
 
@@ -116,6 +141,10 @@ pub const ExecutionScopes = struct {
             },
             .u64_list => switch (r.*) {
                 .u64_list => &r.u64_list,
+                else => HintError.VariableNotInScopeError,
+            },
+            .felt_map_of_u64_list => switch (r.*) {
+                .felt_map_of_u64_list => &r.felt_map_of_u64_list,
                 else => HintError.VariableNotInScopeError,
             },
         };
@@ -337,8 +366,6 @@ test "ExecutionScopes: get list of u64" {
 
     // Initialize a list of u64.
     var list_u64 = ArrayList(u64).init(std.testing.allocator);
-    // Defer the deinitialization of the list.
-    defer list_u64.deinit();
     // Append values to the list.
     try list_u64.append(20);
     try list_u64.append(18);
