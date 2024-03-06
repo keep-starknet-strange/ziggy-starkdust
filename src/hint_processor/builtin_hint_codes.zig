@@ -291,3 +291,11 @@ pub const SPLIT_64 =
     \\ids.low = ids.a & ((1<<64) - 1)
     \\ids.high = ids.a >> 64
 ;
+
+pub const MEMSET_ENTER_SCOPE = "vm_enter_scope({'n': ids.n})";
+pub const MEMSET_CONTINUE_LOOP =
+    \\n -= 1
+    \\ids.continue_loop = 1 if n > 0 else 0
+;
+
+pub const MEMCPY_CONTINUE_COPYING = "n -= 1 ids.continue_copying = 1 if n > 0 else 0";
