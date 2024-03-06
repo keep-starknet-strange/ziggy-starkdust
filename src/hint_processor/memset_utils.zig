@@ -34,6 +34,8 @@ pub fn memsetEnterScope(
         try hint_utils.getIntegerFromVarName("n", vm, ids_data, ap_tracking);
 
     var scope = std.StringHashMap(HintType).init(allocator);
+    errdefer scope.deinit();
+
     try scope.put("n", .{ .felt = n });
     try exec_scopes.enterScope(scope);
 }
