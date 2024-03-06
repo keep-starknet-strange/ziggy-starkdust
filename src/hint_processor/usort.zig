@@ -26,14 +26,12 @@ pub fn usortEnterScope(allocator: std.mem.Allocator, exec_scopes: *ExecutionScop
 
     if (exec_scopes.getFelt("usort_max_size")) |usort_max_size| {
         try scope.put("usort_max_size", .{ .felt = usort_max_size });
-        try exec_scopes.enterScope(scope);
-    } else |_| {
-        try exec_scopes.enterScope(scope);
-    }
+    } else |_| {}
+
+    try exec_scopes.enterScope(scope);
 }
 
-fn orderFelt252(context: void, lhs: Felt252, rhs: Felt252) std.math.Order {
-    _ = context;
+fn orderFelt252(lhs: Felt252, rhs: Felt252) std.math.Order {
     return lhs.cmp(rhs);
 }
 
@@ -46,8 +44,7 @@ pub fn binarySearch(
     comptime T: type,
     key: anytype,
     items: []const T,
-    context: anytype,
-    comptime compareFn: fn (context: @TypeOf(context), key: @TypeOf(key), mid_item: T) std.math.Order,
+    comptime compareFn: fn (key: @TypeOf(key), mid_item: T) std.math.Order,
 ) union(enum) {
     found: usize,
     not_found: usize,
@@ -59,7 +56,7 @@ pub fn binarySearch(
         // Avoid overflowing in the midpoint calculation
         const mid = left + (right - left) / 2;
         // Compare the key with the midpoint element
-        switch (compareFn(context, key, items[mid])) {
+        switch (compareFn(key, items[mid])) {
             .eq => return .{ .found = mid },
             .gt => left = mid + 1,
             .lt => right = mid,
@@ -72,6 +69,7 @@ pub fn binarySearch(
         .not_found = left,
     };
 }
+
 pub fn usortBody(
     allocator: std.mem.Allocator,
     vm: *CairoVM,
@@ -101,15 +99,13 @@ pub fn usortBody(
 
     for (0..input_len_u64) |i| {
         const val = try vm.getFelt(try input_ptr.addUint(i));
-        switch (binarySearch(Felt252, val, output.items, {}, orderFelt252)) {
+        switch (binarySearch(Felt252, val, output.items, orderFelt252)) {
             .not_found => |output_index| try output.insert(output_index, val),
             else => {},
         }
 
-        var entry = positions_dict.getPtr(val) orelse blk: {
-            var arr = std.ArrayList(u64).init(allocator);
-            break :blk &arr;
-        };
+        var entry = positions_dict.getPtr(val) orelse
+            &std.ArrayList(u64).init(allocator);
 
         try entry.append(i);
     }
@@ -142,7 +138,14 @@ pub fn usortBody(
         ids_data,
         ap_tracking,
     );
-    try hint_utils.insertValueFromVarName(allocator, "output", MaybeRelocatable.fromRelocatable(output_base), vm, ids_data, ap_tracking);
+    try hint_utils.insertValueFromVarName(
+        allocator,
+        "output",
+        MaybeRelocatable.fromRelocatable(output_base),
+        vm,
+        ids_data,
+        ap_tracking,
+    );
     try hint_utils.insertValueFromVarName(
         allocator,
         "multiplicities",
