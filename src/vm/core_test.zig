@@ -34,6 +34,10 @@ const CairoVM = @import("core.zig").CairoVM;
 const computeRes = @import("core.zig").computeRes;
 const OperandsResult = @import("core.zig").OperandsResult;
 const deduceOp1 = @import("core.zig").deduceOp1;
+const HintData = @import("../hint_processor/hint_processor_def.zig").HintData;
+const HintRange = @import("./types/program.zig").HintRange;
+const ExecutionScopes = @import("./types/execution_scopes.zig").ExecutionScopes;
+const HintProcessor = @import("../hint_processor/hint_processor_def.zig").CairoVMHintProcessor;
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -979,16 +983,100 @@ test "CairoVM: relocateTrace and trace comparison (simple use case)" {
     defer allocator.free(relocation_table);
     try vm.relocateTrace(relocation_table);
 
-    const relocated_trace = TraceContext.RelocatedTraceEntry{
-        .pc = Felt252.fromInt(u8, 1),
-        .ap = Felt252.fromInt(u8, 4),
-        .fp = Felt252.fromInt(u8, 4),
-    };
-    const expected_relocated_trace = [_]TraceContext.RelocatedTraceEntry{relocated_trace};
-    const actual_relocated_trace = try vm.getRelocatedTrace();
-    for (expected_relocated_trace, actual_relocated_trace) |expected_trace, actual_trace| {
-        try expectEqual(expected_trace, actual_trace);
-    }
+    try expectEqualSlices(
+        TraceContext.RelocatedTraceEntry,
+        &[_]TraceContext.RelocatedTraceEntry{
+            .{
+                .pc = Felt252.fromInt(u8, 1),
+                .ap = Felt252.fromInt(u8, 4),
+                .fp = Felt252.fromInt(u8, 4),
+            },
+        },
+        try vm.getRelocatedTrace(),
+    );
+}
+
+test "CairoVM: test step for preset memory" {
+    // Test for a simple program execution
+    // Used program code:
+    // func main():
+    //     let a = 1
+    //     let b = 2
+    //     let c = a + b
+    //     return()
+    // end
+    // Memory taken from original vm
+    // {RelocatableValue(segment_index=0, offset=0): 2345108766317314046,
+    //  RelocatableValue(segment_index=1, offset=0): RelocatableValue(segment_index=2, offset=0),
+    //  RelocatableValue(segment_index=1, offset=1): RelocatableValue(segment_index=3, offset=0)}
+    // Current register values:
+    // AP 1:2
+    // FP 1:2
+    // PC 0:0
+
+    // Test setup
+    const allocator = std.testing.allocator;
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(
+        allocator,
+        .{ .proof_mode = false, .enable_trace = true },
+    );
+    defer vm.deinit();
+
+    vm.run_context.ap.* = Relocatable.init(1, 2);
+    vm.run_context.fp.* = Relocatable.init(1, 2);
+
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{2345108766317314046} },
+            .{ .{ 1, 0 }, .{ 2, 0 } },
+            .{ .{ 1, 1 }, .{ 3, 0 } },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    var exec_scopes = try ExecutionScopes.init(allocator);
+    defer exec_scopes.deinit();
+
+    var hint_datas = std.ArrayList(HintData).init(std.testing.allocator);
+    defer hint_datas.deinit();
+
+    var hint_ranges = std.AutoHashMap(Relocatable, HintRange).init(std.testing.allocator);
+    defer hint_ranges.deinit();
+
+    var constants = std.StringHashMap(Felt252).init(std.testing.allocator);
+    defer constants.deinit();
+
+    try vm.stepExtensive(
+        std.testing.allocator,
+        .{},
+        &exec_scopes,
+        &hint_datas,
+        &hint_ranges,
+        &constants,
+    );
+
+    try expectEqual(Relocatable.init(3, 0), vm.run_context.pc.*);
+    try expectEqual(Relocatable.init(1, 2), vm.run_context.ap.*);
+    try expectEqual(Relocatable.init(1, 0), vm.run_context.fp.*);
+
+    try expectEqualSlices(
+        TraceContext.Entry,
+        &[_]TraceContext.Entry{
+            .{
+                .pc = Relocatable.init(0, 0),
+                .ap = Relocatable.init(1, 2),
+                .fp = Relocatable.init(1, 2),
+            },
+        },
+        vm.trace_context.state.enabled.entries.items,
+    );
+
+    // Check that the following addresses have been accessed
+    try expect(vm.segments.memory.data.items[1].items[0].?.is_accessed);
+    try expect(vm.segments.memory.data.items[1].items[1].?.is_accessed);
 }
 
 test "CairoVM: relocateTrace and trace comparison (more complex use case)" {
@@ -1943,8 +2031,6 @@ test "CairoVM: compute operands JNZ" {
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
 
-    vm.run_context.ap.* = Relocatable.init(1, 0);
-
     // Test body
     try vm.segments.memory.setUpMemory(
         std.testing.allocator,
@@ -1985,10 +2071,30 @@ test "CairoVM: compute operands JNZ" {
     );
 
     // Test checks
-    try expectEqual(
-        expected_operands,
-        actual_operands,
+    try expectEqual(expected_operands, actual_operands);
+
+    var exec_scopes = try ExecutionScopes.init(allocator);
+    defer exec_scopes.deinit();
+
+    var hint_datas = std.ArrayList(HintData).init(std.testing.allocator);
+    defer hint_datas.deinit();
+
+    var hint_ranges = std.AutoHashMap(Relocatable, HintRange).init(std.testing.allocator);
+    defer hint_ranges.deinit();
+
+    var constants = std.StringHashMap(Felt252).init(std.testing.allocator);
+    defer constants.deinit();
+
+    try vm.stepExtensive(
+        std.testing.allocator,
+        .{},
+        &exec_scopes,
+        &hint_datas,
+        &hint_ranges,
+        &constants,
     );
+
+    try expectEqual(Relocatable.init(0, 4), vm.run_context.*.pc.*);
 }
 
 test "CairoVM: compute operands deduce dst none" {
@@ -4193,4 +4299,500 @@ test "CairoVM: runInstruction with Op0 being deduced" {
             try expect(cell.?.eql(expected_memory.data.items[i].items[j].?));
         }
     }
+}
+
+test "CairoVM: test step for preset memory 1" {
+    //Test for a simple program execution
+    //Used program code:
+    //    func myfunc(a: felt) -> (r: felt):
+    //        let b = a * 2
+    //        return(b)
+    //    end
+    //    func main():
+    //        let a = 1
+    //        let b = myfunc(a)
+    //        return()
+    //    end
+    //Memory taken from original vm:
+    //{RelocatableValue(segment_index=0, offset=0): 5207990763031199744,
+    //RelocatableValue(segment_index=0, offset=1): 2,
+    //RelocatableValue(segment_index=0, offset=2): 2345108766317314046,
+    //RelocatableValue(segment_index=0, offset=3): 5189976364521848832,
+    //RelocatableValue(segment_index=0, offset=4): 1,
+    //RelocatableValue(segment_index=0, offset=5): 1226245742482522112,
+    //RelocatableValue(segment_index=0, offset=6): 3618502788666131213697322783095070105623107215331596699973092056135872020476,
+    //RelocatableValue(segment_index=0, offset=7): 2345108766317314046,
+    //RelocatableValue(segment_index=1, offset=0): RelocatableValue(segment_index=2, offset=0),
+    //RelocatableValue(segment_index=1, offset=1): RelocatableValue(segment_index=3, offset=0)}
+    //Current register values:
+    //AP 1:2
+    //FP 1:2
+    //PC 0:3
+    //Final Pc (not executed): 3:0
+    //This program consists of 5 steps
+
+    // Test setup
+    const allocator = std.testing.allocator;
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(
+        allocator,
+        .{ .proof_mode = false, .enable_trace = true },
+    );
+    defer vm.deinit();
+
+    vm.run_context.pc.* = Relocatable.init(0, 3);
+    vm.run_context.ap.* = Relocatable.init(1, 2);
+    vm.run_context.fp.* = Relocatable.init(1, 2);
+
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{5207990763031199744} },
+            .{ .{ 0, 1 }, .{2} },
+            .{ .{ 0, 2 }, .{2345108766317314046} },
+            .{ .{ 0, 3 }, .{5189976364521848832} },
+            .{ .{ 0, 4 }, .{1} },
+            .{ .{ 0, 5 }, .{1226245742482522112} },
+            .{ .{ 0, 6 }, .{3618502788666131213697322783095070105623107215331596699973092056135872020476} },
+            .{ .{ 0, 7 }, .{2345108766317314046} },
+            .{ .{ 1, 0 }, .{ 2, 0 } },
+            .{ .{ 1, 1 }, .{ 3, 0 } },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    const final_pc = Relocatable.init(3, 0);
+
+    while (!vm.run_context.pc.eq(final_pc)) {
+        var exec_scopes = try ExecutionScopes.init(allocator);
+        defer exec_scopes.deinit();
+
+        var hint_datas = std.ArrayList(HintData).init(std.testing.allocator);
+        defer hint_datas.deinit();
+
+        var hint_ranges = std.AutoHashMap(Relocatable, HintRange).init(std.testing.allocator);
+        defer hint_ranges.deinit();
+
+        var constants = std.StringHashMap(Felt252).init(std.testing.allocator);
+        defer constants.deinit();
+
+        try vm.stepExtensive(
+            std.testing.allocator,
+            .{},
+            &exec_scopes,
+            &hint_datas,
+            &hint_ranges,
+            &constants,
+        );
+    }
+
+    try expectEqual(Relocatable.init(3, 0), vm.run_context.pc.*);
+    try expectEqual(Relocatable.init(1, 6), vm.run_context.ap.*);
+    try expectEqual(Relocatable.init(1, 0), vm.run_context.fp.*);
+
+    try expectEqualSlices(
+        TraceContext.Entry,
+        &[_]TraceContext.Entry{
+            .{
+                .pc = Relocatable.init(0, 3),
+                .ap = Relocatable.init(1, 2),
+                .fp = Relocatable.init(1, 2),
+            },
+            .{
+                .pc = Relocatable.init(0, 5),
+                .ap = Relocatable.init(1, 3),
+                .fp = Relocatable.init(1, 2),
+            },
+            .{
+                .pc = Relocatable.init(0, 0),
+                .ap = Relocatable.init(1, 5),
+                .fp = Relocatable.init(1, 5),
+            },
+            .{
+                .pc = Relocatable.init(0, 2),
+                .ap = Relocatable.init(1, 6),
+                .fp = Relocatable.init(1, 5),
+            },
+            .{
+                .pc = Relocatable.init(0, 7),
+                .ap = Relocatable.init(1, 6),
+                .fp = Relocatable.init(1, 2),
+            },
+        },
+        vm.trace_context.state.enabled.entries.items,
+    );
+
+    // Check that the following addresses have been accessed
+    try expect(vm.segments.memory.data.items[0].items[1].?.is_accessed);
+    try expect(vm.segments.memory.data.items[0].items[4].?.is_accessed);
+    try expect(vm.segments.memory.data.items[0].items[6].?.is_accessed);
+    try expect(vm.segments.memory.data.items[1].items[0].?.is_accessed);
+    try expect(vm.segments.memory.data.items[1].items[2].?.is_accessed);
+    try expect(vm.segments.memory.data.items[1].items[3].?.is_accessed);
+    try expect(vm.segments.memory.data.items[1].items[4].?.is_accessed);
+    try expect(vm.segments.memory.data.items[1].items[5].?.is_accessed);
+
+    try expectEqual(
+        @as(usize, 3),
+        vm.segments.memory.countAccessedAddressesInSegment(0),
+    );
+    try expectEqual(
+        @as(usize, 6),
+        vm.segments.memory.countAccessedAddressesInSegment(1),
+    );
+}
+
+test "CairoVM: test step for preset memory program loaded into user segment" {
+    // Test for a simple program execution
+    // Used program code:
+    // func main():
+    //     let a = 1
+    //     let b = 2
+    //     let c = a + b
+    //     return()
+    // end
+    // Memory taken from original vm
+    // {RelocatableValue(segment_index=0, offset=0): 2345108766317314046,
+    //  RelocatableValue(segment_index=1, offset=0): RelocatableValue(segment_index=2, offset=0),
+    //  RelocatableValue(segment_index=1, offset=1): RelocatableValue(segment_index=3, offset=0)}
+    // Current register values:
+    // AP 1:2
+    // FP 1:2
+    // PC 0:0
+
+    // Test setup
+    const allocator = std.testing.allocator;
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(
+        allocator,
+        .{ .proof_mode = false, .enable_trace = true },
+    );
+    defer vm.deinit();
+
+    vm.run_context.ap.* = Relocatable.init(1, 2);
+    vm.run_context.fp.* = Relocatable.init(1, 2);
+
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 2, 0 }, .{2345108766317314046} },
+            .{ .{ 1, 0 }, .{ 2, 0 } },
+            .{ .{ 1, 1 }, .{ 3, 0 } },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    vm.run_context.pc.segment_index = 2;
+
+    var exec_scopes = try ExecutionScopes.init(allocator);
+    defer exec_scopes.deinit();
+
+    var hint_datas = std.ArrayList(HintData).init(std.testing.allocator);
+    defer hint_datas.deinit();
+
+    var hint_ranges = std.AutoHashMap(Relocatable, HintRange).init(std.testing.allocator);
+    defer hint_ranges.deinit();
+
+    var constants = std.StringHashMap(Felt252).init(std.testing.allocator);
+    defer constants.deinit();
+
+    try vm.stepExtensive(
+        std.testing.allocator,
+        .{},
+        &exec_scopes,
+        &hint_datas,
+        &hint_ranges,
+        &constants,
+    );
+
+    try expectEqual(Relocatable.init(3, 0), vm.run_context.pc.*);
+    try expectEqual(Relocatable.init(1, 2), vm.run_context.ap.*);
+    try expectEqual(Relocatable.init(1, 0), vm.run_context.fp.*);
+
+    try expectEqualSlices(
+        TraceContext.Entry,
+        &[_]TraceContext.Entry{
+            .{
+                .pc = Relocatable.init(2, 0),
+                .ap = Relocatable.init(1, 2),
+                .fp = Relocatable.init(1, 2),
+            },
+        },
+        vm.trace_context.state.enabled.entries.items,
+    );
+
+    // Check that the following addresses have been accessed
+    try expect(vm.segments.memory.data.items[1].items[0].?.is_accessed);
+    try expect(vm.segments.memory.data.items[1].items[1].?.is_accessed);
+}
+
+test "CairoVM: test step for preset memory program loaded into user segment 1" {
+    //Test for a simple program execution
+    //Used program code:
+    //    func myfunc(a: felt) -> (r: felt):
+    //        let b = a * 2
+    //        return(b)
+    //    end
+    //    func main():
+    //        let a = 1
+    //        let b = myfunc(a)
+    //        return()
+    //    end
+    //Memory taken from original vm:
+    //{RelocatableValue(segment_index=0, offset=0): 5207990763031199744,
+    //RelocatableValue(segment_index=0, offset=1): 2,
+    //RelocatableValue(segment_index=0, offset=2): 2345108766317314046,
+    //RelocatableValue(segment_index=0, offset=3): 5189976364521848832,
+    //RelocatableValue(segment_index=0, offset=4): 1,
+    //RelocatableValue(segment_index=0, offset=5): 1226245742482522112,
+    //RelocatableValue(segment_index=0, offset=6): 3618502788666131213697322783095070105623107215331596699973092056135872020476,
+    //RelocatableValue(segment_index=0, offset=7): 2345108766317314046,
+    //RelocatableValue(segment_index=1, offset=0): RelocatableValue(segment_index=2, offset=0),
+    //RelocatableValue(segment_index=1, offset=1): RelocatableValue(segment_index=3, offset=0)}
+    //Current register values:
+    //AP 1:2
+    //FP 1:2
+    //PC 0:3
+    //Final Pc (not executed): 3:0
+    //This program consists of 5 steps
+
+    // Test setup
+    const allocator = std.testing.allocator;
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(
+        allocator,
+        .{ .proof_mode = false, .enable_trace = true },
+    );
+    defer vm.deinit();
+
+    vm.run_context.pc.* = Relocatable.init(0, 3);
+    vm.run_context.ap.* = Relocatable.init(1, 2);
+    vm.run_context.fp.* = Relocatable.init(1, 2);
+
+    vm.run_context.pc.segment_index = 4;
+
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 4, 0 }, .{5207990763031199744} },
+            .{ .{ 4, 1 }, .{2} },
+            .{ .{ 4, 2 }, .{2345108766317314046} },
+            .{ .{ 4, 3 }, .{5189976364521848832} },
+            .{ .{ 4, 4 }, .{1} },
+            .{ .{ 4, 5 }, .{1226245742482522112} },
+            .{ .{ 4, 6 }, .{3618502788666131213697322783095070105623107215331596699973092056135872020476} },
+            .{ .{ 4, 7 }, .{2345108766317314046} },
+            .{ .{ 1, 0 }, .{ 2, 0 } },
+            .{ .{ 1, 1 }, .{ 3, 0 } },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    const final_pc = Relocatable.init(3, 0);
+
+    while (!vm.run_context.pc.eq(final_pc)) {
+        var exec_scopes = try ExecutionScopes.init(allocator);
+        defer exec_scopes.deinit();
+
+        var hint_datas = std.ArrayList(HintData).init(std.testing.allocator);
+        defer hint_datas.deinit();
+
+        var hint_ranges = std.AutoHashMap(Relocatable, HintRange).init(std.testing.allocator);
+        defer hint_ranges.deinit();
+
+        var constants = std.StringHashMap(Felt252).init(std.testing.allocator);
+        defer constants.deinit();
+
+        try vm.stepExtensive(
+            std.testing.allocator,
+            .{},
+            &exec_scopes,
+            &hint_datas,
+            &hint_ranges,
+            &constants,
+        );
+    }
+
+    try expectEqual(Relocatable.init(3, 0), vm.run_context.pc.*);
+    try expectEqual(Relocatable.init(1, 6), vm.run_context.ap.*);
+    try expectEqual(Relocatable.init(1, 0), vm.run_context.fp.*);
+
+    try expectEqualSlices(
+        TraceContext.Entry,
+        &[_]TraceContext.Entry{
+            .{
+                .pc = Relocatable.init(4, 3),
+                .ap = Relocatable.init(1, 2),
+                .fp = Relocatable.init(1, 2),
+            },
+            .{
+                .pc = Relocatable.init(4, 5),
+                .ap = Relocatable.init(1, 3),
+                .fp = Relocatable.init(1, 2),
+            },
+            .{
+                .pc = Relocatable.init(4, 0),
+                .ap = Relocatable.init(1, 5),
+                .fp = Relocatable.init(1, 5),
+            },
+            .{
+                .pc = Relocatable.init(4, 2),
+                .ap = Relocatable.init(1, 6),
+                .fp = Relocatable.init(1, 5),
+            },
+            .{
+                .pc = Relocatable.init(4, 7),
+                .ap = Relocatable.init(1, 6),
+                .fp = Relocatable.init(1, 2),
+            },
+        },
+        vm.trace_context.state.enabled.entries.items,
+    );
+
+    // Check that the following addresses have been accessed
+    try expect(vm.segments.memory.data.items[4].items[1].?.is_accessed);
+    try expect(vm.segments.memory.data.items[4].items[4].?.is_accessed);
+    try expect(vm.segments.memory.data.items[4].items[6].?.is_accessed);
+    try expect(vm.segments.memory.data.items[1].items[0].?.is_accessed);
+    try expect(vm.segments.memory.data.items[1].items[2].?.is_accessed);
+    try expect(vm.segments.memory.data.items[1].items[3].?.is_accessed);
+    try expect(vm.segments.memory.data.items[1].items[4].?.is_accessed);
+    try expect(vm.segments.memory.data.items[1].items[5].?.is_accessed);
+
+    try expectEqual(
+        @as(usize, 3),
+        vm.segments.memory.countAccessedAddressesInSegment(4),
+    );
+    try expectEqual(
+        @as(usize, 6),
+        vm.segments.memory.countAccessedAddressesInSegment(1),
+    );
+}
+
+test "CairoVM: multiplication and different ap increase" {
+    // Test the following program:
+    // ...
+    // [ap] = 4
+    // ap += 1
+    // [ap] = 5; ap++
+    // [ap] = [ap - 1] * [ap - 2]
+    // ...
+    // Original vm memory:
+    // RelocatableValue(segment_index=0, offset=0): '0x400680017fff8000',
+    // RelocatableValue(segment_index=0, offset=1): '0x4',
+    // RelocatableValue(segment_index=0, offset=2): '0x40780017fff7fff',
+    // RelocatableValue(segment_index=0, offset=3): '0x1',
+    // RelocatableValue(segment_index=0, offset=4): '0x480680017fff8000',
+    // RelocatableValue(segment_index=0, offset=5): '0x5',
+    // RelocatableValue(segment_index=0, offset=6): '0x40507ffe7fff8000',
+    // RelocatableValue(segment_index=0, offset=7): '0x208b7fff7fff7ffe',
+    // RelocatableValue(segment_index=1, offset=0): RelocatableValue(segment_index=2, offset=0),
+    // RelocatableValue(segment_index=1, offset=1): RelocatableValue(segment_index=3, offset=0),
+    // RelocatableValue(segment_index=1, offset=2): '0x4',
+    // RelocatableValue(segment_index=1, offset=3): '0x5',
+    // RelocatableValue(segment_index=1, offset=4): '0x14'
+
+    // Test setup
+    const allocator = std.testing.allocator;
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(
+        allocator,
+        .{ .proof_mode = false, .enable_trace = true },
+    );
+    defer vm.deinit();
+
+    vm.run_context.ap.* = Relocatable.init(1, 2);
+    vm.run_context.fp.* = Relocatable.init(1, 2);
+
+    try expectEqual(Relocatable.init(0, 0), vm.run_context.pc.*);
+    try expectEqual(Relocatable.init(1, 2), vm.run_context.ap.*);
+
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{0x400680017fff8000} },
+            .{ .{ 0, 1 }, .{0x4} },
+            .{ .{ 0, 2 }, .{0x40780017fff7fff} },
+            .{ .{ 0, 3 }, .{0x1} },
+            .{ .{ 0, 4 }, .{0x480680017fff8000} },
+            .{ .{ 0, 5 }, .{0x5} },
+            .{ .{ 0, 6 }, .{0x40507ffe7fff8000} },
+            .{ .{ 0, 7 }, .{0x208b7fff7fff7ffe} },
+            .{ .{ 1, 0 }, .{ 2, 0 } },
+            .{ .{ 1, 1 }, .{ 3, 0 } },
+            .{ .{ 1, 2 }, .{0x4} },
+            .{ .{ 1, 3 }, .{0x5} },
+            .{ .{ 1, 4 }, .{0x14} },
+        },
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    try expectEqual(
+        MaybeRelocatable.fromInt(u256, 0x4),
+        vm.segments.memory.get(vm.run_context.getAP()).?,
+    );
+
+    var exec_scopes = try ExecutionScopes.init(allocator);
+    defer exec_scopes.deinit();
+
+    var hint_datas = std.ArrayList(HintData).init(std.testing.allocator);
+    defer hint_datas.deinit();
+
+    var hint_ranges = std.AutoHashMap(Relocatable, HintRange).init(std.testing.allocator);
+    defer hint_ranges.deinit();
+
+    var constants = std.StringHashMap(Felt252).init(std.testing.allocator);
+    defer constants.deinit();
+
+    try vm.stepExtensive(
+        std.testing.allocator,
+        .{},
+        &exec_scopes,
+        &hint_datas,
+        &hint_ranges,
+        &constants,
+    );
+
+    try expectEqual(Relocatable.init(0, 2), vm.run_context.pc.*);
+    try expectEqual(Relocatable.init(1, 2), vm.run_context.ap.*);
+    try expectEqual(
+        MaybeRelocatable.fromInt(u256, 0x4),
+        vm.segments.memory.get(vm.run_context.getAP()).?,
+    );
+
+    try vm.stepExtensive(
+        std.testing.allocator,
+        .{},
+        &exec_scopes,
+        &hint_datas,
+        &hint_ranges,
+        &constants,
+    );
+
+    try expectEqual(Relocatable.init(0, 4), vm.run_context.pc.*);
+    try expectEqual(Relocatable.init(1, 3), vm.run_context.ap.*);
+    try expectEqual(
+        MaybeRelocatable.fromInt(u256, 0x5),
+        vm.segments.memory.get(vm.run_context.getAP()).?,
+    );
+
+    try vm.stepExtensive(
+        std.testing.allocator,
+        .{},
+        &exec_scopes,
+        &hint_datas,
+        &hint_ranges,
+        &constants,
+    );
+
+    try expectEqual(Relocatable.init(0, 6), vm.run_context.pc.*);
+    try expectEqual(Relocatable.init(1, 4), vm.run_context.ap.*);
+    try expectEqual(
+        MaybeRelocatable.fromInt(u256, 0x14),
+        vm.segments.memory.get(vm.run_context.getAP()).?,
+    );
 }
