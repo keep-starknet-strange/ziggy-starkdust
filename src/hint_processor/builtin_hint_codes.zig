@@ -292,6 +292,7 @@ pub const SPLIT_64 =
     \\ids.high = ids.a >> 64
 ;
 
+
 pub const USORT_ENTER_SCOPE =
     "vm_enter_scope(dict(__usort_max_size = globals().get('__usort_max_size')))";
 pub const USORT_BODY =
@@ -327,3 +328,12 @@ pub const USORT_VERIFY_MULTIPLICITY_BODY =
     \\ids.next_item_index = current_pos - last_pos
     \\last_pos = current_pos + 1
 ;
+
+pub const MEMSET_ENTER_SCOPE = "vm_enter_scope({'n': ids.n})";
+pub const MEMSET_CONTINUE_LOOP =
+    \\n -= 1
+    \\ids.continue_loop = 1 if n > 0 else 0
+;
+
+pub const MEMCPY_CONTINUE_COPYING = "n -= 1 ids.continue_copying = 1 if n > 0 else 0";
+

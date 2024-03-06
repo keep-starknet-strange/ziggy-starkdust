@@ -311,3 +311,8 @@ pub const InsufficientAllocatedCellsError = error{
     // There are only cells to fill the memory address holes, but are required.
     MemoryAddresses,
 };
+
+pub const ExecScopeError = error{
+    ExitMainScopeError,
+    NoScopeError,
+};

@@ -19,6 +19,7 @@ pub const vm = struct {
     pub usingnamespace @import("vm/types/diluted_pool_instance_def.zig");
     pub usingnamespace @import("vm/types/cpu_instance_def.zig");
     pub usingnamespace @import("vm/types/layout.zig");
+    pub usingnamespace @import("vm/types/execution_scopes.zig");
     pub usingnamespace @import("vm/decoding/decoder.zig");
 };
 
@@ -49,6 +50,7 @@ pub const hint_processor = struct {
     pub usingnamespace @import("hint_processor/segments.zig");
     pub usingnamespace @import("hint_processor/uint256_utils.zig");
     pub usingnamespace @import("hint_processor/usort.zig");
+    pub usingnamespace @import("hint_processor/memset_utils.zig");
 };
 
 pub const parser = struct {
