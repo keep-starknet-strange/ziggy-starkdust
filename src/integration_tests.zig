@@ -18,6 +18,10 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/fibonacci.json", .layout = "plain" },
         .{ .pathname = "cairo_programs/bitwise_builtin_test.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/assert_lt_felt.json", .layout = "all_cairo" },
+        // .{ .pathname = "cairo_programs/keccak_compiled.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/keccak_builtin.json", .layout = "all_cairo" },
+        // .{ .pathname = "cairo_programs/keccak_integration_tests.json", .layout = "all_cairo" },
+        // .{ .pathname = "cairo_programs/keccak_copy_inputs.json", .layout = "all_cairo" },
     };
 
     var ok_count: usize = 0;
@@ -89,7 +93,7 @@ pub fn cairo_run(allocator: std.mem.Allocator, pathname: []const u8, layout: []c
     );
     defer runner.deinit(allocator);
 
-    const end = try runner.setupExecutionState();
+    const end = try runner.setupExecutionState(false);
     errdefer std.debug.print("failed on step: {}\n", .{runner.vm.current_step});
 
     // then

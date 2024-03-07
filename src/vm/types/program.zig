@@ -76,7 +76,7 @@ pub const HintsRanges = union(enum) {
     }
 
     pub fn isExtensive(self: Self) bool {
-        return @as(bool, self == Self.Extensive);
+        return self == .Extensive;
     }
 
     pub fn count(self: *Self) usize {
@@ -339,7 +339,7 @@ pub const Program = struct {
                 .identifiers = identifiers,
                 .reference_manager = try reference_manager.getReferenceList(allocator),
             },
-            .constants = try Self.extractConstants(identifiers, allocator),
+            .constants = try Self.getConstants(identifiers, allocator),
             .builtins = builtins,
         };
     }
@@ -369,7 +369,7 @@ pub const Program = struct {
     /// # Returns:
     ///   - A new `std.StringHashMap(Felt252)` instance containing extracted constants.
     ///   - Returns an error of type `ProgramError` if there's an issue processing constants.
-    pub fn extractConstants(
+    pub fn getConstants(
         identifiers: std.StringHashMap(Identifier),
         allocator: Allocator,
     ) !std.StringHashMap(Felt252) {
@@ -506,7 +506,7 @@ pub const Program = struct {
     }
 };
 
-test "Program: extractConstants should extract the constants from identifiers" {
+test "Program: getConstants should extract the constants from identifiers" {
     // Initialize a map to store identifiers.
     var identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
     // Defer deinitialization to ensure cleanup.
@@ -530,8 +530,8 @@ test "Program: extractConstants should extract the constants from identifiers" {
         },
     );
 
-    // Try to extract constants from the identifiers using the `extractConstants` function.
-    var constants = try Program.extractConstants(identifiers, std.testing.allocator);
+    // Try to extract constants from the identifiers using the `getConstants` function.
+    var constants = try Program.getConstants(identifiers, std.testing.allocator);
     // Defer deinitialization of the constants to ensure cleanup.
     defer constants.deinit();
 
@@ -542,7 +542,7 @@ test "Program: extractConstants should extract the constants from identifiers" {
     try expectEqual(Felt252.zero(), constants.get("__main__.main.SIZEOF_LOCALS").?);
 }
 
-test "Program: extractConstants should extract the constants from identifiers using large values" {
+test "Program: getConstants should extract the constants from identifiers using large values" {
     // Initialize a map to store identifiers.
     var identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
     // Defer deinitialization to ensure cleanup.
@@ -611,8 +611,8 @@ test "Program: extractConstants should extract the constants from identifiers us
         },
     );
 
-    // Try to extract constants from the identifiers using the `extractConstants` function.
-    var constants = try Program.extractConstants(identifiers, std.testing.allocator);
+    // Try to extract constants from the identifiers using the `getConstants` function.
+    var constants = try Program.getConstants(identifiers, std.testing.allocator);
     // Defer deinitialization of the constants to ensure cleanup.
     defer constants.deinit();
 

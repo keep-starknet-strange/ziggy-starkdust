@@ -139,7 +139,7 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
                     std.mem.writeInt(
                         u256,
                         lbe[0..],
-                        @as(u256, @intCast(num)) % Modulo,
+                        @as(u256, @intCast(num % Modulo)),
                         .little,
                     );
                     var nonMont: F.NonMontgomeryDomainFieldElement = undefined;
@@ -263,6 +263,18 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             }
 
             return ret;
+        }
+
+        /// Convert `self`'s representative into an array of `u64` digits,
+        /// least significant digits first.
+        pub fn toLeDigits(self: Self) [4]u64 {
+            var non_mont: F.NonMontgomeryDomainFieldElement = undefined;
+            F.fromMontgomery(
+                &non_mont,
+                self.fe,
+            );
+
+            return non_mont;
         }
 
         /// Convert the field element to a big-endian byte array.
@@ -477,6 +489,16 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             return self.mul(self);
         }
 
+        pub fn pow2Const(comptime exponent: u32) Self {
+            var base = Self.one();
+
+            inline for (exponent) |_| {
+                base = base.mul(Self.two());
+            }
+
+            return base;
+        }
+
         /// Raise a field element to a power of 2.
         ///
         /// Computes the current field element raised to the power of 2 to the `exponent` power.
@@ -590,7 +612,7 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             self: Self,
             rhs: Self,
         ) !struct { q: Self, r: Self } {
-            const qr = try helper.divRem(self.toInteger(), rhs.toInteger());
+            const qr = try helper.divRem(u256, self.toInteger(), rhs.toInteger());
 
             return .{
                 .q = Self.fromInt(u256, qr[0]),
@@ -667,7 +689,7 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
         /// Try to convert the field element to a u64 if its value is small enough.
         ///
         /// Attempts to convert the field element to a u64 if its value is within the representable range.
-        pub fn tryIntoU64(self: Self) !u64 {
+        pub fn intoU64(self: Self) !u64 {
             const asU256 = self.toInteger();
             // Check if the value is small enough to fit into a u64
             if (asU256 > @as(

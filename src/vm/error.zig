@@ -139,6 +139,14 @@ pub const CairoRunnerError = error{
 
 /// Represents different error conditions that occur in the built-in runners.
 pub const RunnerError = error{
+    // Given builtins are not in appropiate order
+    DisorderedBuiltins,
+    // Builtin(s) not present in layout
+    NoBuiltinForInstance,
+    //Initialization failure: No execution base
+    NoExecBase,
+    // Initialization failure: No program base
+    NoProgBase,
     /// Errors associated with computing the address of a stop pointer of RangeCheckBuiltinRunner
     /// Raised when underflow occurs (i.e., subtracting 1 from 0),
     /// or when it fails to get a value for the computed address.
@@ -170,6 +178,7 @@ pub const RunnerError = error{
     NoFP,
     /// Raised when there are errors related to memory validation in Cairo runner.
     MemoryValidationError,
+    MemoryInitializationError,
 };
 
 /// Represents different error conditions that occur during mathematical operations.
@@ -238,36 +247,75 @@ pub const VerifyError = error{
 };
 
 pub const HintError = error{
+    // Dict Error: No value found for key
+    NoValueForKey,
+    // unexpected verify multiplicity fail: couldn't pop positions
+    CouldntPopPositions,
+    // unexpected verify multiplicity fail: positions length != 0
+    PositionsLengthNotZero,
+    // unexpected usort fail: positions_dict or key value pair not found
+    UnexpectedPositionsDictFail,
+    // usort() can only be used with input_len
+    UsortOutOfRange,
+    BigintToUsizeFail,
+    // Math error
+    Math,
+    // unsafeKeccak() greater that keccak max size
+    KeccakMaxSize,
+    // Invalid word size
+    InvalidWordSize,
+    // Invalid input length
+    InvalidKeccakInputLength,
     AssertNNValueOutOfRange,
     ValueOutsideValidRange,
     AssertNotZero,
     // expected an integer
     IdentifierNotInteger,
+    IdentifierHasNoMember,
     IdentifierNotRelocatable,
     // unknown identifier in ids
     UnknownIdentifier,
     UnknownIdentifierInternal,
     WrongIdentifierTypeInternal,
     Memory,
-
     ValueOutside250BitRange,
     AssertNotEqualFail,
     // Div out of range
     OutOfValidRange,
-
     MissingConstant,
 
     NonLeFelt252,
     ArcTooBig,
-
     VariableNotInScopeError,
-
     ExcludedNot2,
-
     AssertLtFelt252,
-
     AssertionFailed,
-
     SplitIntNotZero,
     FromScopeError,
+
+    // DictManagerError: Tried to create tracker for a dictionary on segment: when there is already a tracker for a dictionary on this segment
+    CantCreateDictionaryOnTakenSegment,
+    // Dict Error: No dict tracker found for segment
+    NoDictTracker,
+
+    // Wrong dict pointer supplied.
+    MismatchedDictPtr,
+};
+
+pub const InsufficientAllocatedCellsError = error{
+    //  Number of steps must be at least for some builtin
+    MinStepNotReached,
+    // The builtin used cells but the capacity is wrong
+    BuiltinCells,
+    // There are only cells to fill the range checks holes, but potentially are required.
+    RangeCheckUnits,
+    // There are only cells to fill the diluted check holes, but potentially are required
+    DilutedCells,
+    // There are only cells to fill the memory address holes, but are required.
+    MemoryAddresses,
+};
+
+pub const ExecScopeError = error{
+    ExitMainScopeError,
+    NoScopeError,
 };

@@ -50,7 +50,7 @@ test "CairoVM: deduceMemoryCell no builtin" {
         @as(?MaybeRelocatable, null),
         try vm.deduceMemoryCell(
             std.testing.allocator,
-            Relocatable.init(0, 0),
+            .{},
         ),
     );
 }
@@ -955,7 +955,7 @@ test "CairoVM: relocateTrace and trace comparison (simple use case)" {
         config,
     );
     defer vm.deinit();
-    const pc = Relocatable.init(0, 0);
+    const pc = .{};
     const ap = Relocatable.init(2, 0);
     const fp = Relocatable.init(2, 0);
     try vm.trace_context.traceInstruction(.{ .pc = pc, .ap = ap, .fp = fp });
@@ -1043,7 +1043,7 @@ test "CairoVM: relocateTrace and trace comparison (more complex use case)" {
         .fp = Relocatable.init(1, 3),
     });
     try vm.trace_context.state.enabled.entries.append(.{
-        .pc = Relocatable.init(0, 0),
+        .pc = .{},
         .ap = Relocatable.init(1, 7),
         .fp = Relocatable.init(1, 7),
     });
@@ -1068,7 +1068,7 @@ test "CairoVM: relocateTrace and trace comparison (more complex use case)" {
         .fp = Relocatable.init(1, 3),
     });
     try vm.trace_context.state.enabled.entries.append(.{
-        .pc = Relocatable.init(0, 0),
+        .pc = .{},
         .ap = Relocatable.init(1, 11),
         .fp = Relocatable.init(1, 11),
     });
@@ -2455,7 +2455,7 @@ test "CairoVM: addMemorySegment should return a proper relocatable address for t
 
     // Test check
     try expectEqual(
-        Relocatable.init(0, 0),
+        Relocatable{},
         try vm.addMemorySegment(),
     );
 }
@@ -2484,7 +2484,7 @@ test "CairoVM: getRelocatable without value raises error" {
     // Test check
     try expectError(
         error.ExpectedRelocatable,
-        vm.getRelocatable(Relocatable.init(0, 0)),
+        vm.getRelocatable(.{}),
     );
 }
 
@@ -2930,7 +2930,7 @@ test "CairoVM: markAddressRangeAsAccessed should mark memory segments as accesse
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    try vm.markAddressRangeAsAccessed(Relocatable.init(0, 0), 3);
+    try vm.markAddressRangeAsAccessed(.{}, 3);
     try vm.markAddressRangeAsAccessed(Relocatable.init(0, 10), 2);
     try vm.markAddressRangeAsAccessed(Relocatable.init(1, 1), 1);
 
@@ -2958,7 +2958,7 @@ test "CairoVM: markAddressRangeAsAccessed should return an error if the run is n
 
     try expectError(
         CairoVMError.RunNotFinished,
-        vm.markAddressRangeAsAccessed(Relocatable.init(0, 0), 3),
+        vm.markAddressRangeAsAccessed(.{}, 3),
     );
 }
 
@@ -3208,7 +3208,7 @@ test "CairoVM: getFeltRange for Relocatable instead of Felt" {
     try expectError(
         MemoryError.ExpectedInteger,
         vm.getFeltRange(
-            Relocatable.init(0, 0),
+            .{},
             3,
         ),
     );
@@ -3395,21 +3395,21 @@ test "CairoVM: addRelocationRule should add new relocation rule to the VM memory
         MemoryError.AddressNotInTemporarySegment,
         vm.addRelocationRule(
             Relocatable.init(5, 0),
-            Relocatable.init(0, 0),
+            .{},
         ),
     );
     try expectError(
         MemoryError.NonZeroOffset,
         vm.addRelocationRule(
             Relocatable.init(-3, 6),
-            Relocatable.init(0, 0),
+            .{},
         ),
     );
     try expectError(
         MemoryError.DuplicatedRelocation,
         vm.addRelocationRule(
             Relocatable.init(-1, 0),
-            Relocatable.init(0, 0),
+            .{},
         ),
     );
 }
@@ -3736,7 +3736,7 @@ test "CairoVM: decode current instruction" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     const result = try vm.decodeCurrentInstruction();
-    try expectEqual(Instruction.initDefault(), result);
+    try expectEqual(Instruction{}, result);
 }
 
 test "CairoVM: decode current instruction expected integer" {
@@ -3818,11 +3818,14 @@ test "CairoVM: verifyAutoDeductions for keccak builtin runner" {
     const allocator = std.testing.allocator;
 
     var keccak_instance_def = try KeccakInstanceDef.initDefault(allocator);
-    const keccak_builtin = KeccakBuiltinRunner.init(
+    defer keccak_instance_def.deinit();
+
+    const keccak_builtin = try KeccakBuiltinRunner.init(
         allocator,
         &keccak_instance_def,
         true,
     );
+
     const builtin = BuiltinRunner{ .Keccak = keccak_builtin };
 
     var vm = try CairoVM.init(allocator, .{});
@@ -4130,7 +4133,7 @@ test "CairoVM: runInstruction with Op0 being deduced" {
     );
 
     // Ensure that registers are updated as expected after the instruction execution.
-    try expectEqual(Relocatable.init(0, 0), vm.run_context.pc.*);
+    try expectEqual(Relocatable{}, vm.run_context.pc.*);
     try expectEqual(Relocatable.init(1, 11), vm.run_context.ap.*);
     try expectEqual(Relocatable.init(1, 11), vm.run_context.fp.*);
 

@@ -159,22 +159,6 @@ pub fn assertNotEqual(
     }
 }
 
-fn isqrt(n: u256) !u256 {
-    var x = n;
-    var y = (n + 1) >> @as(u32, 1);
-
-    while (y < x) {
-        x = y;
-        y = (@divFloor(n, x) + x) >> @as(u32, 1);
-    }
-
-    if (!(std.math.pow(u256, x, 2) <= n and n < std.math.pow(u256, x + 1, 2))) {
-        return error.FailedToGetSqrt;
-    }
-
-    return x;
-}
-
 //Implements hint: from starkware.python.math_utils import isqrt
 //        value = ids.value % PRIME
 //        assert value < 2 ** 250, f"value={value} is outside of the range [0, 2**250)."
@@ -192,7 +176,7 @@ pub fn sqrt(
         return HintError.ValueOutside250BitRange;
     }
 
-    const root = Felt252.fromInt(u256, isqrt(mod_value.toInteger()) catch unreachable);
+    const root = Felt252.fromInt(u256, field_helper.isqrt(u256, mod_value.toInteger()) catch unreachable);
 
     try hint_utils.insertValueFromVarName(
         allocator,
@@ -225,7 +209,7 @@ pub fn unsignedDivRem(
         if (div.isZero() or div.gt(divPrimeByBound(b))) return HintError.OutOfValidRange;
     } else if (div.isZero()) return HintError.OutOfValidRange;
 
-    const qr = try (field_helper.divRem(value.toInteger(), div.toInteger()) catch MathError.DividedByZero);
+    const qr = try (field_helper.divRem(u256, value.toInteger(), div.toInteger()) catch MathError.DividedByZero);
 
     try hint_utils.insertValueFromVarName(allocator, "r", MaybeRelocatable.fromInt(u256, qr[1]), vm, ids_data, ap_tracking);
     try hint_utils.insertValueFromVarName(allocator, "q", MaybeRelocatable.fromInt(u256, qr[0]), vm, ids_data, ap_tracking);
@@ -312,8 +296,8 @@ pub fn assertLeFelt(
 
     try exec_scopes.assignOrUpdateVariable("excluded", .{ .felt = Felt252.fromInt(u256, excluded) });
 
-    const qr0 = try field_helper.divModFloor(lengths_and_indices[0][0], prime_over_3_high.toInteger());
-    const qr1 = try field_helper.divModFloor(lengths_and_indices[1][0], prime_over_2_high.toInteger());
+    const qr0 = try field_helper.divModFloor(u256, lengths_and_indices[0][0], prime_over_3_high.toInteger());
+    const qr1 = try field_helper.divModFloor(u256, lengths_and_indices[1][0], prime_over_2_high.toInteger());
 
     try vm.insertInMemory(allocator, range_check_ptr, MaybeRelocatable.fromFelt(Felt252.fromInt(u256, qr0[1])));
     try vm.insertInMemory(allocator, try range_check_ptr.addInt(1), MaybeRelocatable.fromFelt(Felt252.fromInt(u256, qr0[0])));
@@ -327,7 +311,7 @@ pub fn assertLeFeltExcluded0(
     vm: *CairoVM,
     exec_scopes: *const ExecutionScopes,
 ) !void {
-    const excluded = try exec_scopes.getFelt("excluded");
+    const excluded = try exec_scopes.getValue(.felt,"excluded");
 
     if (!excluded.isZero()) {
         try hint_utils.insertValueIntoAp(allocator, vm, MaybeRelocatable.fromFelt(Felt252.one()));
@@ -341,7 +325,7 @@ pub fn assertLeFeltExcluded1(
     vm: *CairoVM,
     exec_scopes: *ExecutionScopes,
 ) !void {
-    const excluded = try exec_scopes.getFelt("excluded");
+    const excluded = try exec_scopes.getValue(.felt, "excluded");
 
     if (!excluded.isOne()) {
         try hint_utils.insertValueIntoAp(allocator, vm, MaybeRelocatable.fromFelt(Felt252.one()));
@@ -351,7 +335,7 @@ pub fn assertLeFeltExcluded1(
 }
 
 pub fn assertLeFeltExcluded2(exec_scopes: *ExecutionScopes) !void {
-    const excluded = try exec_scopes.getFelt("excluded");
+    const excluded = try exec_scopes.getValue(.felt, "excluded");
 
     if (!excluded.equal(Felt252.fromInt(u256, 2))) {
         return HintError.ExcludedNot2;
@@ -576,9 +560,7 @@ test "MathHints: isPositive false" {
         },
         .{
             .name = "is_positive",
-            .elems = &.{
-                null,
-            },
+            .elems = &.{null},
         },
     }, &vm);
     defer ids_data.deinit();
@@ -938,7 +920,7 @@ test "MathHints: verifyEcdsaSignature valid" {
         .{
             .name = "ecdsa_ptr",
             .elems = &.{
-                MaybeRelocatable.fromRelocatable(Relocatable.init(0, 0)),
+                MaybeRelocatable.fromRelocatable(.{}),
             },
         },
     }, &vm);
@@ -1179,6 +1161,7 @@ test "MathHints: unsigned div rem  incorrect ids" {
         hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined),
     );
 }
+
 test "MathHints: assertLeFelt valid" {
     var vm = try CairoVM.init(
         std.testing.allocator,
@@ -1191,9 +1174,7 @@ test "MathHints: assertLeFelt valid" {
 
     var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();
-    try exec_scopes.assignOrUpdateVariable("exclued", .{
-        .u64 = 1,
-    });
+    try exec_scopes.assignOrUpdateVariable("exclued", .{ .u64 = 1 });
 
     var constants = std.StringHashMap(Felt252).init(std.testing.allocator);
     defer constants.deinit();
@@ -1219,7 +1200,7 @@ test "MathHints: assertLeFelt valid" {
         .{
             .name = "range_check_ptr",
             .elems = &.{
-                MaybeRelocatable.fromRelocatable(Relocatable.init(1, 0)),
+                MaybeRelocatable.fromRelocatable(Relocatable.init(2, 0)),
             },
         },
     }, &vm);

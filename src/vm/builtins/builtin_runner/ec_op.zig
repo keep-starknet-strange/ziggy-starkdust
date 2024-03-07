@@ -4,7 +4,7 @@ const EcOpInstanceDef = ec_op_instance_def.EcOpInstanceDef;
 const relocatable = @import("../../memory/relocatable.zig");
 const CoreVM = @import("../../../vm/core.zig");
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
-const EC = @import("../../../math/fields/elliptic_curve.zig");
+const EC = @import("../../../math/crypto/curve/ec_point.zig");
 const Error = @import("../../error.zig");
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
@@ -21,11 +21,11 @@ const insertAtIndex = @import("../../../utils/testing.zig").insertAtIndex;
 const RunnerError = Error.RunnerError;
 const Tuple = std.meta.Tuple;
 
-/// Array of `ECPoint` instances representing points on an elliptic curve.
-const EC_POINTS = [_]EC.ECPoint{
-    .{ .x = Felt252.zero(), .y = Felt252.one() },
-    .{ .x = Felt252.two(), .y = Felt252.three() },
-    .{ .x = Felt252.fromInt(u8, 5), .y = Felt252.fromInt(u8, 6) },
+// Array of `AffinePoint` instances representing points on an elliptic curve.
+const EC_POINTS = [_]EC.AffinePoint{
+    .{ .x = Felt252.zero(), .y = Felt252.one(), .alpha = Felt252.one(), .infinity = false },
+    .{ .x = Felt252.two(), .y = Felt252.three(), .alpha = Felt252.one(), .infinity = false },
+    .{ .x = Felt252.fromInt(u8, 5), .y = Felt252.fromInt(u8, 6), .alpha = Felt252.one(), .infinity = false },
 };
 
 /// Output indices referencing the third point in the `EC_POINTS` array.
@@ -158,15 +158,17 @@ pub const EcOpBuiltinRunner = struct {
         // All input cells should be filled, and be integer values.
         for (0..self.n_input_cells) |i| {
             if (memory.get(try instance.addFelt(Felt252.fromInt(u256, i)))) |cell| {
-                const felt = try cell.tryIntoFelt();
+                const felt = try cell.intoFelt();
                 try input_cells.append(felt);
             }
         }
 
         for (EC_POINTS[0..2]) |pair| {
-            if (!EC.ECPoint.init(
-                input_cells.items[try pair.x.tryIntoU64()],
-                input_cells.items[try pair.y.tryIntoU64()],
+            if (!EC.AffinePoint.initUnchecked(
+                input_cells.items[try pair.x.intoU64()],
+                input_cells.items[try pair.y.intoU64()],
+                EC.ALPHA,
+                false,
             ).pointOnCurve(EC.ALPHA, EC.BETA))
                 return error.PointNotOnCurve;
         }
@@ -174,10 +176,9 @@ pub const EcOpBuiltinRunner = struct {
         const height = 256;
 
         const result = try EC.ecOpImpl(
-            EC.ECPoint.init(input_cells.items[0], input_cells.items[1]),
-            EC.ECPoint.init(input_cells.items[2], input_cells.items[3]),
+            EC.AffinePoint.initUnchecked(input_cells.items[0], input_cells.items[1], EC.ALPHA, false),
+            EC.AffinePoint.initUnchecked(input_cells.items[2], input_cells.items[3], EC.ALPHA, false),
             input_cells.items[4],
-            EC.ALPHA,
             height,
         );
         try self.cache.put(x_addr, result.x);
@@ -198,7 +199,7 @@ pub const EcOpBuiltinRunner = struct {
     ///
     /// The number of used cells as a `u32`, or `MemoryError.MissingSegmentUsedSizes` if
     /// the size is not available.
-    pub fn getUsedCells(self: *Self, segments: *MemorySegmentManager) !u32 {
+    pub fn getUsedCells(self: *const Self, segments: *MemorySegmentManager) !u32 {
         return segments.getSegmentUsedSize(
             @intCast(self.base),
         ) orelse MemoryError.MissingSegmentUsedSizes;
@@ -283,7 +284,7 @@ pub const EcOpBuiltinRunner = struct {
     ) !Relocatable {
         if (self.included) {
             const stop_pointer_addr = pointer.subUint(1) catch return RunnerError.NoStopPointer;
-            const stop_pointer = try (segments.memory.get(stop_pointer_addr) orelse return RunnerError.NoStopPointer).tryIntoRelocatable();
+            const stop_pointer = try (segments.memory.get(stop_pointer_addr) orelse return RunnerError.NoStopPointer).intoRelocatable();
             if (self.base != stop_pointer.segment_index) {
                 return RunnerError.InvalidStopPointerIndex;
             }
