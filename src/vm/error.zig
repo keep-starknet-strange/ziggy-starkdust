@@ -247,6 +247,8 @@ pub const VerifyError = error{
 };
 
 pub const HintError = error{
+    // Dict Error: No value found for key
+    NoValueForKey,
     // Math error
     Math,
     // unsafeKeccak() greater that keccak max size
@@ -267,27 +269,28 @@ pub const HintError = error{
     UnknownIdentifierInternal,
     WrongIdentifierTypeInternal,
     Memory,
-
     ValueOutside250BitRange,
     AssertNotEqualFail,
     // Div out of range
     OutOfValidRange,
-
     MissingConstant,
 
     NonLeFelt252,
     ArcTooBig,
-
     VariableNotInScopeError,
-
     ExcludedNot2,
-
     AssertLtFelt252,
-
     AssertionFailed,
-
     SplitIntNotZero,
     FromScopeError,
+
+    // DictManagerError: Tried to create tracker for a dictionary on segment: when there is already a tracker for a dictionary on this segment
+    CantCreateDictionaryOnTakenSegment,
+    // Dict Error: No dict tracker found for segment
+    NoDictTracker,
+
+    // Wrong dict pointer supplied.
+    MismatchedDictPtr,
 };
 
 pub const InsufficientAllocatedCellsError = error{
