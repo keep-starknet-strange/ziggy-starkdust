@@ -19,12 +19,15 @@ const Relocatable = @import("../vm/memory/relocatable.zig").Relocatable;
 const hint_codes = @import("builtin_hint_codes.zig");
 const math_hints = @import("math_hints.zig");
 const memcpy_hint_utils = @import("memcpy_hint_utils.zig");
+const memset_utils = @import("memset_utils.zig");
 const uint256_utils = @import("uint256_utils.zig");
+const usort = @import("usort.zig");
 
 const poseidon_utils = @import("poseidon_utils.zig");
 const keccak_utils = @import("keccak_utils.zig");
 const felt_bit_length = @import("felt_bit_length.zig");
 const find_element = @import("find_element.zig");
+const segments = @import("segments.zig");
 
 const deserialize_utils = @import("../parser/deserialize_utils.zig");
 
@@ -235,6 +238,10 @@ pub const CairoVMHintProcessor = struct {
             try find_element.findElement(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.SEARCH_SORTED_LOWER, hint_data.code)) {
             try find_element.searchSortedLower(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.RELOCATE_SEGMENT, hint_data.code)) {
+            try segments.relocateSegment(vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.TEMPORARY_ARRAY, hint_data.code)) {
+            try segments.temporaryArray(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.UINT256_ADD, hint_data.code)) {
             try uint256_utils.uint256Add(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, false);
         } else if (std.mem.eql(u8, hint_codes.UINT256_ADD_LOW, hint_data.code)) {
@@ -257,6 +264,24 @@ pub const CairoVMHintProcessor = struct {
             try uint256_utils.uint256ExpandedUnsignedDivRem(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.UINT256_MUL_DIV_MOD, hint_data.code)) {
             try uint256_utils.uint256MulDivMod(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.USORT_ENTER_SCOPE, hint_data.code)) {
+            try usort.usortEnterScope(allocator, exec_scopes);
+        } else if (std.mem.eql(u8, hint_codes.USORT_BODY, hint_data.code)) {
+            try usort.usortBody(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.USORT_VERIFY, hint_data.code)) {
+            try usort.verifyUsort(vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.USORT_VERIFY_MULTIPLICITY_ASSERT, hint_data.code)) {
+            try usort.verifyMultiplicityAssert(exec_scopes);
+        } else if (std.mem.eql(u8, hint_codes.USORT_VERIFY_MULTIPLICITY_BODY, hint_data.code)) {
+            try usort.verifyMultiplicityBody(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.MEMSET_ENTER_SCOPE, hint_data.code)) {
+            try memset_utils.memsetEnterScope(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.MEMCPY_ENTER_SCOPE, hint_data.code)) {
+            try memset_utils.memsetEnterScope(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.MEMSET_CONTINUE_LOOP, hint_data.code)) {
+            try memset_utils.memsetStepLoop(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking, "continue_loop");
+        } else if (std.mem.eql(u8, hint_codes.MEMCPY_CONTINUE_COPYING, hint_data.code)) {
+            try memset_utils.memsetStepLoop(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking, "continue_copying");
         } else {}
     }
 

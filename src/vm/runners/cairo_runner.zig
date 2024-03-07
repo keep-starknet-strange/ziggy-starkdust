@@ -325,32 +325,47 @@ pub const CairoRunner = struct {
         }
     }
 
-    /// Initializes runner state for execution, as in:
-    /// Sets the proper initial program counter.
-    /// Loads instructions to the initialized program segment.
-    /// Loads the function call stack to the execution segment.
+    /// Initializes the runner state for execution.
+    ///
+    /// This function sets up the initial state of the Cairo runner for execution. It initializes
+    /// the program counter, loads instructions into the program segment, and loads the function
+    /// call stack into the execution segment.
+    ///
     /// # Arguments
-    /// - `entrypoint:` The address, relative to the program segment, where execution begins.
+    ///
+    /// - `entrypoint`: The address, relative to the program segment, where execution begins.
+    /// - `stack`: A pointer to the ArrayList(MaybeRelocatable) representing the function call stack.
+    ///
+    /// # Returns
+    ///
+    /// This function returns void.
     pub fn initState(self: *Self, entrypoint: usize, stack: *std.ArrayList(MaybeRelocatable)) !void {
-        if (self.program_base) |prog_base| {
-            self.initial_pc = try prog_base.addUint(entrypoint);
+        // Check if the program base is initialized.
+        if (self.program_base) |pb| {
+            // Set the initial program counter.
+            self.initial_pc = try pb.addInt(@intCast(entrypoint));
 
-            _ = try self.vm.segments.loadData(
+            // Load program data into the program base segment.
+            _ = self.vm.segments.loadData(
                 self.allocator,
-                prog_base,
+                pb,
                 self.program.shared_program_data.data.items,
-            );
+            ) catch return RunnerError.MemoryInitializationError;
 
+            // Mark memory addresses in the program base segment as accessed.
             for (0..self.program.shared_program_data.data.items.len) |i|
-                self.vm.segments.memory.markAsAccessed(try prog_base.addUint(i));
+                self.vm.segments.memory.markAsAccessed(try pb.addUint(i));
         }
-        if (self.execution_base) |exec_base| {
-            _ = try self.vm.segments.loadData(
-                self.allocator,
-                exec_base,
-                stack.items,
-            );
-        } else return RunnerError.NoProgBase;
+
+        // Check if the execution base is initialized.
+        if (self.execution_base) |eb| {
+            // Load the function call stack into the execution base segment.
+            _ = self.vm.segments.loadData(self.allocator, eb, stack.items) catch
+                return RunnerError.MemoryInitializationError;
+        } else {
+            // Return an error if the execution base is not initialized.
+            return RunnerError.NoProgBase;
+        }
     }
 
     pub fn initFunctionEntrypoint(
@@ -1934,4 +1949,327 @@ test "CairoRunner: getProgramBuiltins" {
         &[_]BuiltinName{ .output, .ec_op },
         cairo_runner.getProgramBuiltins().items,
     );
+}
+
+test "CairoRunner: initState with empty data and stack" {
+    // Initialize a list of built-ins.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.output);
+
+    // Initialize data structures required for a program.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a Program instance with the specified parameters.
+    const program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        null,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
+        true,
+    );
+
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    // Set program_base and execution_base fields of cairo_runner.
+    cairo_runner.program_base = Relocatable.init(1, 0);
+    cairo_runner.execution_base = Relocatable.init(2, 0);
+
+    // Initialize a stack.
+    var stack = ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    defer stack.deinit();
+
+    // Call initState function to initialize the runner state.
+    try cairo_runner.initState(1, &stack);
+
+    // Assert that the initial_pc field is correctly set.
+    try expectEqual(Relocatable.init(1, 1), cairo_runner.initial_pc);
+}
+
+test "CairoRunner: initState with some data and empty stack" {
+    // Initialize a list of built-ins.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.output);
+
+    // Initialize data array with some values.
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u8, 4)); // Add integer value 4 to data array.
+    try data.append(MaybeRelocatable.fromInt(u8, 6)); // Add integer value 6 to data array.
+
+    // Initialize data structures required for a program.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a Program instance with the specified parameters.
+    const program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        null,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
+        true,
+    );
+
+    // Initialize a CairoVM instance.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+
+    // Add memory segments to the CairoVM instance.
+    inline for (0..2) |_| _ = try vm.addMemorySegment();
+
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        vm,
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    // Set program base and execution base.
+    cairo_runner.program_base = Relocatable.init(1, 0);
+    cairo_runner.execution_base = Relocatable.init(2, 0);
+
+    // Initialize an empty stack.
+    var stack = ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    defer stack.deinit();
+
+    // Initialize the runner state.
+    try cairo_runner.initState(1, &stack);
+
+    // Deinitialize memory segments.
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Verify that the correct values were loaded into memory and accessed.
+    try expectEqual(
+        MaybeRelocatable.fromInt(u8, 4),
+        cairo_runner.vm.segments.memory.get(Relocatable.init(1, 0)).?,
+    );
+    try expect(cairo_runner.vm.segments.memory.data.items[1].items[0].?.is_accessed);
+    try expectEqual(
+        MaybeRelocatable.fromInt(u8, 6),
+        cairo_runner.vm.segments.memory.get(Relocatable.init(1, 1)).?,
+    );
+    try expect(cairo_runner.vm.segments.memory.data.items[1].items[1].?.is_accessed);
+}
+
+test "CairoRunner: initState with empty data and some stack" {
+    // Initialize a list of built-in functions.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.output);
+
+    // Initialize data structures required for a program.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+    const data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator); // Initialize empty data.
+
+    // Initialize a Program instance with the specified parameters.
+    const program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        null,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
+        true,
+    );
+
+    // Initialize a CairoVM instance.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+
+    // Add memory segments to the CairoVM instance.
+    inline for (0..3) |_| _ = try vm.addMemorySegment();
+
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        vm,
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    // Set program base and execution base.
+    cairo_runner.program_base = Relocatable.init(1, 0);
+    cairo_runner.execution_base = Relocatable.init(2, 0);
+
+    // Initialize a stack with some values.
+    var stack = ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    defer stack.deinit(); // Deallocate stack memory after the test.
+    try stack.append(MaybeRelocatable.fromInt(u8, 4)); // Add integer value 4 to the stack.
+    try stack.append(MaybeRelocatable.fromInt(u8, 6)); // Add integer value 6 to the stack.
+
+    // Initialize the runner state.
+    try cairo_runner.initState(1, &stack);
+
+    // Deinitialize memory segments.
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Verify that the correct values were loaded into memory and not accessed.
+    try expectEqual(
+        MaybeRelocatable.fromInt(u8, 4),
+        cairo_runner.vm.segments.memory.get(Relocatable.init(2, 0)).?,
+    );
+    try expect(!cairo_runner.vm.segments.memory.data.items[2].items[0].?.is_accessed);
+    try expectEqual(
+        MaybeRelocatable.fromInt(u8, 6),
+        cairo_runner.vm.segments.memory.get(Relocatable.init(2, 1)).?,
+    );
+    try expect(!cairo_runner.vm.segments.memory.data.items[2].items[1].?.is_accessed);
+}
+
+test "CairoRunner: initState with no program_base" {
+    // Initialize a list of built-in functions.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.output);
+
+    // Initialize data structures required for a program.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+    const data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+
+    // Initialize a Program instance with the specified parameters.
+    const program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        null,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
+        true,
+    );
+
+    // Initialize a CairoVM instance.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+
+    // Add memory segments to the CairoVM instance.
+    inline for (0..2) |_| _ = try vm.addMemorySegment();
+
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        vm,
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    // Set only execution base without program base.
+    cairo_runner.execution_base = Relocatable.init(2, 0);
+
+    // Initialize a stack with some values.
+    var stack = ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    defer stack.deinit(); // Deallocate stack memory after the test.
+    try stack.append(MaybeRelocatable.fromInt(u8, 4)); // Add integer value 4 to the stack.
+    try stack.append(MaybeRelocatable.fromInt(u8, 6)); // Add integer value 6 to the stack.
+
+    // Expect an error when trying to initialize the runner state without a program base.
+    try expectError(RunnerError.MemoryInitializationError, cairo_runner.initState(1, &stack));
+}
+
+test "CairoRunner: initState with no execution_base" {
+    // Initialize a list of built-in functions.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.output);
+
+    // Initialize data structures required for a program.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+    const data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+
+    // Initialize a Program instance with the specified parameters.
+    const program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        null,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
+        true,
+    );
+
+    // Initialize a CairoVM instance.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+
+    // Add memory segments to the CairoVM instance.
+    inline for (0..2) |_| _ = try vm.addMemorySegment();
+
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        vm,
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    // Set only program base without execution base.
+    cairo_runner.program_base = Relocatable.init(1, 0);
+
+    // Initialize a stack with some values.
+    var stack = ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    defer stack.deinit(); // Deallocate stack memory after the test.
+    try stack.append(MaybeRelocatable.fromInt(u8, 4)); // Add integer value 4 to the stack.
+    try stack.append(MaybeRelocatable.fromInt(u8, 6)); // Add integer value 6 to the stack.
+
+    // Expect an error when trying to initialize the runner state without an execution base.
+    try expectError(RunnerError.NoProgBase, cairo_runner.initState(1, &stack));
 }

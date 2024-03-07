@@ -52,6 +52,10 @@ pub const SEARCH_SORTED_LOWER =
     \\    ids.index = n_elms
 ;
 
+pub const TEMPORARY_ARRAY = "ids.temporary_array = segments.add_temp_segment()";
+
+pub const RELOCATE_SEGMENT = "memory.add_relocation_rule(src_ptr=ids.src_ptr, dest_ptr=ids.dest_ptr)";
+
 pub const GET_FELT_BIT_LENGTH =
     \\x = ids.x
     \\ids.bit_length = x.bit_length()
@@ -341,3 +345,49 @@ pub const SPLIT_64 =
     \\ids.low = ids.a & ((1<<64) - 1)
     \\ids.high = ids.a >> 64
 ;
+
+
+pub const USORT_ENTER_SCOPE =
+    "vm_enter_scope(dict(__usort_max_size = globals().get('__usort_max_size')))";
+pub const USORT_BODY =
+    \\from collections import defaultdict
+    \\
+    \\input_ptr = ids.input
+    \\input_len = int(ids.input_len)
+    \\if __usort_max_size is not None:
+    \\    assert input_len <= __usort_max_size, (
+    \\        f"usort() can only be used with input_len<={__usort_max_size}. "
+    \\        f"Got: input_len={input_len}."
+    \\    )
+    \\
+    \\positions_dict = defaultdict(list)
+    \\for i in range(input_len):
+    \\    val = memory[input_ptr + i]
+    \\    positions_dict[val].append(i)
+    \\
+    \\output = sorted(positions_dict.keys())
+    \\ids.output_len = len(output)
+    \\ids.output = segments.gen_arg(output)
+    \\ids.multiplicities = segments.gen_arg([len(positions_dict[k]) for k in output])
+;
+
+pub const USORT_VERIFY =
+    \\last_pos = 0
+    \\positions = positions_dict[ids.value][::-1]
+;
+
+pub const USORT_VERIFY_MULTIPLICITY_ASSERT = "assert len(positions) == 0";
+pub const USORT_VERIFY_MULTIPLICITY_BODY =
+    \\current_pos = positions.pop()
+    \\ids.next_item_index = current_pos - last_pos
+    \\last_pos = current_pos + 1
+;
+
+pub const MEMSET_ENTER_SCOPE = "vm_enter_scope({'n': ids.n})";
+pub const MEMSET_CONTINUE_LOOP =
+    \\n -= 1
+    \\ids.continue_loop = 1 if n > 0 else 0
+;
+
+pub const MEMCPY_CONTINUE_COPYING = "n -= 1 ids.continue_copying = 1 if n > 0 else 0";
+
