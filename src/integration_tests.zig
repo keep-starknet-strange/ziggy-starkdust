@@ -3,6 +3,7 @@ const ProgramJson = @import("vm/types/programjson.zig").ProgramJson;
 const Program = @import("vm/types/program.zig").Program;
 const CairoVM = @import("vm/core.zig").CairoVM;
 const CairoRunner = @import("vm/runners/cairo_runner.zig").CairoRunner;
+const HintProcessor = @import("./hint_processor/hint_processor_def.zig").CairoVMHintProcessor;
 
 pub fn main() void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
@@ -97,6 +98,7 @@ pub fn cairo_run(allocator: std.mem.Allocator, pathname: []const u8, layout: []c
     errdefer std.debug.print("failed on step: {}\n", .{runner.vm.current_step});
 
     // then
-    try runner.runUntilPC(end, extensive_hints);
+    var hint_processor: HintProcessor = .{};
+    try runner.runUntilPC(end, extensive_hints, &hint_processor);
     try runner.endRun();
 }

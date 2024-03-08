@@ -58,6 +58,7 @@ pub const CairoVM = struct {
     current_step: usize = 0,
     /// Rc limits
     rc_limits: ?struct { isize, isize } = null,
+    skip_instruction_execution: bool = false,
     /// Relocation table
     relocation_table: ?std.ArrayList(usize) = null,
     /// ArrayList containing instructions. May hold null elements.
@@ -301,58 +302,108 @@ pub const CairoVM = struct {
         }
     }
 
+    /// Executes the next instruction in the Cairo VM.
+    ///
+    /// This function retrieves the next instruction based on the program counter (PC) in the run context.
+    /// It checks whether the instruction cache contains the instruction corresponding to the PC.
+    /// If not, it decodes the current instruction and adds it to the cache.
+    /// Then, it executes the instruction using the `runInstruction` function.
+    /// If `skip_instruction_execution` is set to true, it advances the program counter accordingly.
+    ///
+    /// # Parameters
+    /// - `self`: A pointer to the Cairo VM instance.
+    /// - `allocator`: The allocator used for memory operations.
+    /// # Errors
+    /// - If accessing an unknown memory cell occurs.
     pub fn stepInstruction(self: *Self, allocator: Allocator) !void {
-        std.log.debug(
-            "Running instruction at pc: {}\n",
-            .{self.run_context.pc.*},
-        );
-        std.log.debug(
-            "Running instruction, ap: {}\n",
-            .{self.run_context.ap.*},
-        );
-        std.log.debug(
-            "Running instruction, fp: {}\n",
-            .{self.run_context.fp.*},
-        );
-        // ************************************************************
-        // *                    FETCH                                 *
-        // ************************************************************
+        if (self.run_context.pc.segment_index == 0) {
+            // Run instructions from the program segment, using the instruction cache.
+            const pc = self.run_context.pc.offset;
 
-        const encoded_instruction = self.segments.memory.get(self.run_context.pc.*);
+            // Ensure PC is within the bounds of the memory segment.
+            if (self.segments.memory.data.items[0].items.len <= pc)
+                return MemoryError.UnknownMemoryCell;
 
-        // ************************************************************
-        // *                    DECODE                                *
-        // ************************************************************
+            // Copy the instruction cache.
+            var inst_cache = try self.instruction_cache.clone();
+            defer inst_cache.deinit();
 
-        // First, we convert the encoded instruction to a u64.
-        // If the MaybeRelocatable is not a felt, this operation will fail.
-        // If the MaybeRelocatable is a felt but the value does not fit into a u64, this operation will fail.
-        const encoded_instruction_u64 = encoded_instruction.?.intoU64() catch {
-            return CairoVMError.InstructionEncodingError;
-        };
+            // Clear the old instruction cache.
+            self.instruction_cache.clearAndFree();
 
-        // Then, we decode the instruction.
-        const instruction = try decoder.decodeInstructions(encoded_instruction_u64);
+            // Resize the instruction cache if necessary.
+            const new_cache_len = @max(pc + 1, inst_cache.items.len);
+            if (inst_cache.items.len < new_cache_len) {
+                for (0..new_cache_len - inst_cache.items.len) |_| try inst_cache.append(null);
+            }
 
-        // ************************************************************
-        // *                    EXECUTE                               *
-        // ************************************************************
-        return self.runInstruction(allocator, &instruction);
+            // Get the instruction related to the PC.
+            const instruction = &inst_cache.items[pc];
+
+            // If the instruction does not exist in the cache, decode the current instruction.
+            if (instruction.* == null) instruction.* = try self.decodeCurrentInstruction();
+
+            // Execute the instruction if skip_instruction_execution is false.
+            if (!self.skip_instruction_execution) {
+                try self.runInstruction(allocator, &instruction.*.?);
+            } else {
+                // Advance the program counter if skip_instruction_execution is true.
+                self.run_context.pc.* = try self.run_context.pc.addUint(instruction.*.?.size());
+                self.skip_instruction_execution = false;
+            }
+            try self.instruction_cache.appendSlice(inst_cache.items);
+        } else {
+            // Decode and execute the current instruction if the program counter is not in the program segment.
+            const instruction = try self.decodeCurrentInstruction();
+
+            if (!self.skip_instruction_execution) {
+                try self.runInstruction(allocator, &instruction);
+            } else {
+                self.run_context.pc.* = try self.run_context.pc.addUint(instruction.size());
+                self.skip_instruction_execution = false;
+            }
+        }
     }
 
     /// Do a single step of the VM with not extensive hints.
     /// Process an instruction cycle using the typical fetch-decode-execute cycle.
-    pub fn stepNotExtensive(self: *Self, allocator: Allocator, hint_processor: HintProcessor, exec_scopes: *ExecutionScopes, hint_datas: []HintData, constants: *std.StringHashMap(Felt252)) !void {
-        try self.stepHintNotExtensive(allocator, hint_processor, exec_scopes, hint_datas, constants);
-
+    pub fn stepNotExtensive(
+        self: *Self,
+        allocator: Allocator,
+        hint_processor: HintProcessor,
+        exec_scopes: *ExecutionScopes,
+        hint_datas: []HintData,
+        constants: *std.StringHashMap(Felt252),
+    ) !void {
+        try self.stepHintNotExtensive(
+            allocator,
+            hint_processor,
+            exec_scopes,
+            hint_datas,
+            constants,
+        );
         try self.stepInstruction(allocator);
     }
 
     /// Do a single step of the VM with extensive hints.
     /// Process an instruction cycle using the typical fetch-decode-execute cycle.
-    pub fn stepExtensive(self: *Self, allocator: Allocator, hint_processor: HintProcessor, exec_scopes: *ExecutionScopes, hint_datas: *std.ArrayList(HintData), hint_ranges: *std.AutoHashMap(Relocatable, HintRange), constants: *std.StringHashMap(Felt252)) !void {
-        try self.stepHintExtensive(allocator, hint_processor, exec_scopes, hint_datas, hint_ranges, constants);
-
+    pub fn stepExtensive(
+        self: *Self,
+        allocator: Allocator,
+        hint_processor: HintProcessor,
+        exec_scopes: *ExecutionScopes,
+        hint_datas: *std.ArrayList(HintData),
+        hint_ranges: *std.AutoHashMap(Relocatable, HintRange),
+        constants: *std.StringHashMap(Felt252),
+    ) !void {
+        try self.stepHintExtensive(
+            allocator,
+            hint_processor,
+            exec_scopes,
+            hint_datas,
+            hint_ranges,
+            constants,
+        );
         try self.stepInstruction(allocator);
     }
 
@@ -1129,8 +1180,8 @@ pub const CairoVM = struct {
         lhs: Relocatable,
         rhs: Relocatable,
         len: usize,
-    ) std.meta.Tuple(&.{ std.math.Order, usize }) {
-        return self.segments.memory.memEq(lhs, rhs, len);
+    ) !bool {
+        return try self.segments.memory.memEq(lhs, rhs, len);
     }
 
     /// Retrieves return values from the VM's memory as a continuous range of memory values.
@@ -1529,24 +1580,12 @@ test "Core: test step for preset memory alloc hint not extensive" {
     }
 
     const expected_trace = [_][3][2]u64{
-        .{
-            .{ 0, 3 }, .{ 1, 2 }, .{ 1, 2 },
-        },
-        .{
-            .{ 0, 0 }, .{ 1, 4 }, .{ 1, 4 },
-        },
-        .{
-            .{ 0, 2 }, .{ 1, 5 }, .{ 1, 4 },
-        },
-        .{
-            .{ 0, 5 }, .{ 1, 5 }, .{ 1, 2 },
-        },
-        .{
-            .{ 0, 7 }, .{ 1, 6 }, .{ 1, 2 },
-        },
-        .{
-            .{ 0, 8 }, .{ 1, 6 }, .{ 1, 2 },
-        },
+        .{ .{ 0, 3 }, .{ 1, 2 }, .{ 1, 2 } },
+        .{ .{ 0, 0 }, .{ 1, 4 }, .{ 1, 4 } },
+        .{ .{ 0, 2 }, .{ 1, 5 }, .{ 1, 4 } },
+        .{ .{ 0, 5 }, .{ 1, 5 }, .{ 1, 2 } },
+        .{ .{ 0, 7 }, .{ 1, 6 }, .{ 1, 2 } },
+        .{ .{ 0, 8 }, .{ 1, 6 }, .{ 1, 2 } },
     };
 
     try std.testing.expectEqual(expected_trace.len, vm.trace_context.state.enabled.entries.items.len);

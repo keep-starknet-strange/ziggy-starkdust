@@ -1058,7 +1058,10 @@ pub const Memory = struct {
                 try self.set(
                     allocator,
                     Relocatable.init(row[0][0], row[0][1]),
-                    MaybeRelocatable.fromInt(u256, row[1][0]),
+                    if (row[1][0] >= 0)
+                        MaybeRelocatable.fromInt(u256, row[1][0])
+                    else
+                        MaybeRelocatable.fromFelt(Felt252.fromInt(u256, -row[1][0]).neg()),
                 );
             } else {
                 switch (@typeInfo(@TypeOf(row[1][0]))) {

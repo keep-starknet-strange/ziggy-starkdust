@@ -31,6 +31,7 @@ const RelocatedTraceEntry = trace_context.TraceContext.RelocatedTraceEntry;
 const starknet_felt = @import("../../math/fields/starknet.zig");
 const Felt252 = starknet_felt.Felt252;
 const ExecutionScopes = @import("../types/execution_scopes.zig").ExecutionScopes;
+const TraceContext = @import("../trace_context.zig").TraceContext;
 
 const OutputBuiltinRunner = @import("../builtins/builtin_runner/output.zig").OutputBuiltinRunner;
 const BitwiseBuiltinRunner = @import("../builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
@@ -443,7 +444,8 @@ pub const CairoRunner = struct {
             self.initial_fp = try (self.execution_base orelse return RunnerError.NoExecBase).addUint(target_offset);
             self.initial_ap = self.initial_fp;
 
-            return (self.program_base orelse return RunnerError.NoExecBase).addUint(try (self.program.shared_program_data.end orelse
+            return (self.program_base orelse
+                return RunnerError.NoExecBase).addUint(try (self.program.shared_program_data.end orelse
                 RunnerError.NoProgramEnd));
         }
 
@@ -517,15 +519,15 @@ pub const CairoRunner = struct {
         return result;
     }
 
-    pub fn runUntilPC(self: *Self, end: Relocatable, extensive_hints: bool) !void {
-        var hint_processor: HintProcessor = .{};
-
+    pub fn runUntilPC(
+        self: *Self,
+        end: Relocatable,
+        extensive_hints: bool,
+        hint_processor: *HintProcessor,
+    ) !void {
         const references = self.program.shared_program_data.reference_manager.items;
 
-        var hint_datas = try self.getHintData(
-            &hint_processor,
-            references,
-        );
+        var hint_datas = try self.getHintData(hint_processor, references);
         defer hint_datas.deinit();
 
         var hint_ranges: std.AutoHashMap(Relocatable, HintRange) = undefined;
@@ -533,22 +535,41 @@ pub const CairoRunner = struct {
             if (extensive_hints) hint_ranges.deinit();
         }
 
-        if (extensive_hints) hint_ranges = try self.program.shared_program_data.hints_collection.hints_ranges.Extensive.clone();
+        if (extensive_hints)
+            hint_ranges = try self.program.shared_program_data
+                .hints_collection.hints_ranges.Extensive.clone();
 
         while (!end.eq(self.vm.run_context.pc.*)) {
             if (extensive_hints) {
-                try self.vm.stepExtensive(self.allocator, .{}, &self.execution_scopes, &hint_datas, &hint_ranges, &self.program.constants);
+                try self.vm.stepExtensive(
+                    self.allocator,
+                    hint_processor.*,
+                    &self.execution_scopes,
+                    &hint_datas,
+                    &hint_ranges,
+                    &self.program.constants,
+                );
             } else {
                 // cfg not extensive hints feature
                 var hint_data_final: []HintData = &.{};
                 // TODO implement extensive hint data parse
-                if (self.program.shared_program_data.hints_collection.hints_ranges.NonExtensive.items.len > self.vm.run_context.pc.offset) {
-                    if (self.program.shared_program_data.hints_collection.hints_ranges.NonExtensive.items[self.vm.run_context.pc.offset]) |range| {
+                if (self.program.shared_program_data.hints_collection
+                    .hints_ranges.NonExtensive.items.len > self.vm.run_context.pc.offset)
+                {
+                    if (self.program.shared_program_data.hints_collection
+                        .hints_ranges.NonExtensive.items[self.vm.run_context.pc.offset]) |range|
+                    {
                         hint_data_final = hint_datas.items[range.start .. range.start + range.length];
                     }
                 }
 
-                try self.vm.stepNotExtensive(self.allocator, .{}, &self.execution_scopes, hint_data_final, &self.program.constants);
+                try self.vm.stepNotExtensive(
+                    self.allocator,
+                    hint_processor.*,
+                    &self.execution_scopes,
+                    hint_data_final,
+                    &self.program.constants,
+                );
             }
         }
     }
@@ -2272,4 +2293,124 @@ test "CairoRunner: initState with no execution_base" {
 
     // Expect an error when trying to initialize the runner state without an execution base.
     try expectError(RunnerError.NoProgBase, cairo_runner.initState(1, &stack));
+}
+
+test "CairoRunner: runUntilPC with function call" {
+
+    //Program used:
+    //func myfunc(a: felt) -> (r: felt):
+    //    let b = a * 2
+    //    return(b)
+    //end
+    //
+    //func main():
+    //    let a = 1
+    //    let b = myfunc(a)
+    //    return()
+    //end
+    //
+    //main = 3
+    //data = [5207990763031199744, 2, 2345108766317314046, 5189976364521848832, 1,
+    //1226245742482522112, 3618502788666131213697322783095070105623107215331596699973092056135872020476,
+    //2345108766317314046]
+
+    // Initialize a list of built-in functions.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.output);
+
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u64, 5207990763031199744));
+    try data.append(MaybeRelocatable.fromInt(u64, 2));
+    try data.append(MaybeRelocatable.fromInt(u64, 2345108766317314046));
+    try data.append(MaybeRelocatable.fromInt(u64, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u64, 1));
+    try data.append(MaybeRelocatable.fromInt(u64, 1226245742482522112));
+    try data.append(MaybeRelocatable.fromInt(u256, 3618502788666131213697322783095070105623107215331596699973092056135872020476));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize data structures required for a program.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a Program instance with the specified parameters.
+    const program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        3,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
+        false,
+    );
+
+    var hint_processor: HintProcessor = .{};
+
+    // Initialize a CairoVM instance.
+    const vm = try CairoVM.init(
+        std.testing.allocator,
+        .{ .proof_mode = false, .enable_trace = true },
+    );
+
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        vm,
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    try cairo_runner.initSegments(null);
+    const end = try cairo_runner.initMainEntrypoint();
+    try expectEqual(Relocatable.init(3, 0), end);
+
+    try cairo_runner.initVM();
+
+    try cairo_runner.runUntilPC(end, false, &hint_processor);
+
+    try expectEqual(Relocatable.init(3, 0), cairo_runner.vm.run_context.pc.*);
+    try expectEqual(Relocatable.init(1, 6), cairo_runner.vm.run_context.ap.*);
+    try expectEqual(Relocatable.init(1, 0), cairo_runner.vm.run_context.fp.*);
+
+    try expectEqualSlices(
+        TraceContext.Entry,
+        &[_]TraceContext.Entry{
+            .{
+                .pc = Relocatable.init(0, 3),
+                .ap = Relocatable.init(1, 2),
+                .fp = Relocatable.init(1, 2),
+            },
+            .{
+                .pc = Relocatable.init(0, 5),
+                .ap = Relocatable.init(1, 3),
+                .fp = Relocatable.init(1, 2),
+            },
+            .{
+                .pc = Relocatable.init(0, 0),
+                .ap = Relocatable.init(1, 5),
+                .fp = Relocatable.init(1, 5),
+            },
+            .{
+                .pc = Relocatable.init(0, 2),
+                .ap = Relocatable.init(1, 6),
+                .fp = Relocatable.init(1, 5),
+            },
+            .{
+                .pc = Relocatable.init(0, 7),
+                .ap = Relocatable.init(1, 6),
+                .fp = Relocatable.init(1, 2),
+            },
+        },
+        cairo_runner.vm.trace_context.state.enabled.entries.items,
+    );
 }

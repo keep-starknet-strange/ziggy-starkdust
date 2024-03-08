@@ -297,6 +297,7 @@ pub const HintError = error{
     InvalidIndex,
     FindElemMaxSize,
     NoValueForKeyFindElement,
+    InvalidSetRange,
     // DictManagerError: Tried to create tracker for a dictionary on segment: when there is already a tracker for a dictionary on this segment
     CantCreateDictionaryOnTakenSegment,
     // Dict Error: No dict tracker found for segment

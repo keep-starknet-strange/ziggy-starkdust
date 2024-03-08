@@ -52,6 +52,19 @@ pub const SEARCH_SORTED_LOWER =
     \\    ids.index = n_elms
 ;
 
+pub const SET_ADD =
+    \\assert ids.elm_size > 0
+    \\assert ids.set_ptr <= ids.set_end_ptr
+    \\elm_list = memory.get_range(ids.elm_ptr, ids.elm_size)
+    \\for i in range(0, ids.set_end_ptr - ids.set_ptr, ids.elm_size):
+    \\    if memory.get_range(ids.set_ptr + i, ids.elm_size) == elm_list:
+    \\        ids.index = i // ids.elm_size
+    \\        ids.is_elm_in_set = 1
+    \\        break
+    \\    else:
+    \\        ids.is_elm_in_set = 0
+;
+
 pub const TEMPORARY_ARRAY = "ids.temporary_array = segments.add_temp_segment()";
 
 pub const RELOCATE_SEGMENT = "memory.add_relocation_rule(src_ptr=ids.src_ptr, dest_ptr=ids.dest_ptr)";
@@ -60,6 +73,8 @@ pub const GET_FELT_BIT_LENGTH =
     \\x = ids.x
     \\ids.bit_length = x.bit_length()
 ;
+
+pub const POW = "ids.locs.bit = (ids.prev_locs.exp % PRIME) & 1";
 
 pub const ASSERT_NN = "from starkware.cairo.common.math_utils import assert_integer\nassert_integer(ids.a)\nassert 0 <= ids.a % PRIME < range_check_builtin.bound, f'a = {ids.a} is out of range.'";
 pub const VERIFY_ECDSA_SIGNATURE = "ecdsa_builtin.add_signature(ids.ecdsa_ptr.address_, (ids.signature_r, ids.signature_s))";
