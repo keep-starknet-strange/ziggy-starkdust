@@ -1180,8 +1180,8 @@ pub const CairoVM = struct {
         lhs: Relocatable,
         rhs: Relocatable,
         len: usize,
-    ) std.meta.Tuple(&.{ std.math.Order, usize }) {
-        return self.segments.memory.memEq(lhs, rhs, len);
+    ) !bool {
+        return try self.segments.memory.memEq(lhs, rhs, len);
     }
 
     /// Retrieves return values from the VM's memory as a continuous range of memory values.

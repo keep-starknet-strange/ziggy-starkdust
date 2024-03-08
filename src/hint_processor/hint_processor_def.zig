@@ -26,6 +26,7 @@ const usort = @import("usort.zig");
 const poseidon_utils = @import("poseidon_utils.zig");
 const keccak_utils = @import("keccak_utils.zig");
 const felt_bit_length = @import("felt_bit_length.zig");
+const set = @import("set.zig");
 const pow_utils = @import("pow_utils.zig");
 const segments = @import("segments.zig");
 
@@ -234,6 +235,8 @@ pub const CairoVMHintProcessor = struct {
             try keccak_utils.splitOutputMidLowHigh(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.GET_FELT_BIT_LENGTH, hint_data.code)) {
             try felt_bit_length.getFeltBitLength(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SET_ADD, hint_data.code)) {
+            try set.setAdd(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.POW, hint_data.code)) {
             try pow_utils.pow(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.RELOCATE_SEGMENT, hint_data.code)) {
@@ -281,7 +284,6 @@ pub const CairoVMHintProcessor = struct {
         } else if (std.mem.eql(u8, hint_codes.MEMCPY_CONTINUE_COPYING, hint_data.code)) {
             try memset_utils.memsetStepLoop(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking, "continue_copying");
         } else {}
-
     }
 
     // Executes the hint which's data is provided by a dynamic structure previously created by compile_hint
