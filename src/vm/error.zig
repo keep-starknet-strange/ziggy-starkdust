@@ -202,6 +202,7 @@ pub const MathError = error{
     RelocatableMul,
     ByteConversionError,
     DividedByZero,
+    Felt252ToUsizeConversion,
 };
 
 /// Represents different error conditions that occur in trace relocation
@@ -298,7 +299,7 @@ pub const HintError = error{
     AssertionFailed,
     SplitIntNotZero,
     FromScopeError,
-
+    InvalidSetRange,
     // DictManagerError: Tried to create tracker for a dictionary on segment: when there is already a tracker for a dictionary on this segment
     CantCreateDictionaryOnTakenSegment,
     // Dict Error: No dict tracker found for segment
