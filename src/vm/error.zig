@@ -299,6 +299,10 @@ pub const HintError = error{
     AssertionFailed,
     SplitIntNotZero,
     FromScopeError,
+    KeyNotFound,
+    InvalidIndex,
+    FindElemMaxSize,
+    NoValueForKeyFindElement,
     InvalidSetRange,
     // DictManagerError: Tried to create tracker for a dictionary on segment: when there is already a tracker for a dictionary on this segment
     CantCreateDictionaryOnTakenSegment,

@@ -14,6 +14,7 @@ const ReferenceManager = programjson.ReferenceManager;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const ExecutionScopes = @import("../vm/types/execution_scopes.zig").ExecutionScopes;
 const Relocatable = @import("../vm/memory/relocatable.zig").Relocatable;
+const RunResources = @import("../vm/runners/cairo_runner.zig").RunResources;
 
 /// import hint code
 const hint_codes = @import("builtin_hint_codes.zig");
@@ -27,6 +28,7 @@ const dict_hint_utils = @import("dict_hint_utils.zig");
 const poseidon_utils = @import("poseidon_utils.zig");
 const keccak_utils = @import("keccak_utils.zig");
 const felt_bit_length = @import("felt_bit_length.zig");
+const find_element = @import("find_element.zig");
 const set = @import("set.zig");
 const pow_utils = @import("pow_utils.zig");
 const segments = @import("segments.zig");
@@ -153,6 +155,8 @@ pub const HintExtension = std.AutoHashMap(Relocatable, std.ArrayList(HintData));
 pub const CairoVMHintProcessor = struct {
     const Self = @This();
 
+    run_resources: RunResources = .{},
+
     //Transforms hint data outputed by the VM into whichever format will be later used by execute_hint
     pub fn compileHint(_: *Self, allocator: Allocator, hint_code: []const u8, ap_tracking: ApTracking, reference_ids: StringHashMap(usize), references: []HintReference) !HintData {
         const ids_data = try getIdsData(allocator, reference_ids, references);
@@ -236,6 +240,10 @@ pub const CairoVMHintProcessor = struct {
             try keccak_utils.splitOutputMidLowHigh(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.GET_FELT_BIT_LENGTH, hint_data.code)) {
             try felt_bit_length.getFeltBitLength(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.FIND_ELEMENT, hint_data.code)) {
+            try find_element.findElement(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SEARCH_SORTED_LOWER, hint_data.code)) {
+            try find_element.searchSortedLower(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.SET_ADD, hint_data.code)) {
             try set.setAdd(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.POW, hint_data.code)) {
