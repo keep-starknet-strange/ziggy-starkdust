@@ -14,6 +14,7 @@ const ReferenceManager = programjson.ReferenceManager;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const ExecutionScopes = @import("../vm/types/execution_scopes.zig").ExecutionScopes;
 const Relocatable = @import("../vm/memory/relocatable.zig").Relocatable;
+const RunResources = @import("../vm/runners/cairo_runner.zig").RunResources;
 
 /// import hint code
 const hint_codes = @import("builtin_hint_codes.zig");
@@ -152,6 +153,8 @@ pub const HintExtension = std.AutoHashMap(Relocatable, std.ArrayList(HintData));
 
 pub const CairoVMHintProcessor = struct {
     const Self = @This();
+
+    run_resources: RunResources = .{},
 
     //Transforms hint data outputed by the VM into whichever format will be later used by execute_hint
     pub fn compileHint(_: *Self, allocator: Allocator, hint_code: []const u8, ap_tracking: ApTracking, reference_ids: StringHashMap(usize), references: []HintReference) !HintData {
