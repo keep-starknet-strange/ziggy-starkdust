@@ -22,6 +22,7 @@ const memcpy_hint_utils = @import("memcpy_hint_utils.zig");
 const memset_utils = @import("memset_utils.zig");
 const uint256_utils = @import("uint256_utils.zig");
 const usort = @import("usort.zig");
+const dict_hint_utils = @import("dict_hint_utils.zig");
 
 const poseidon_utils = @import("poseidon_utils.zig");
 const keccak_utils = @import("keccak_utils.zig");
@@ -277,6 +278,20 @@ pub const CairoVMHintProcessor = struct {
             try memset_utils.memsetStepLoop(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking, "continue_loop");
         } else if (std.mem.eql(u8, hint_codes.MEMCPY_CONTINUE_COPYING, hint_data.code)) {
             try memset_utils.memsetStepLoop(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking, "continue_copying");
+        } else if (std.mem.eql(u8, hint_codes.DICT_NEW, hint_data.code)) {
+            try dict_hint_utils.dictInit(allocator, vm, exec_scopes);
+        } else if (std.mem.eql(u8, hint_codes.DEFAULT_DICT_NEW, hint_data.code)) {
+            try dict_hint_utils.defaultDictNew(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.DICT_READ, hint_data.code)) {
+            try dict_hint_utils.dictRead(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.DICT_WRITE, hint_data.code)) {
+            try dict_hint_utils.dictWrite(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.DICT_UPDATE, hint_data.code)) {
+            try dict_hint_utils.dictUpdate(vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.DICT_SQUASH_COPY_DICT, hint_data.code)) {
+            try dict_hint_utils.dictSquashCopyDict(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.DICT_SQUASH_UPDATE_PTR, hint_data.code)) {
+            try dict_hint_utils.dictSquashUpdatePtr(vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         }
     }
 
