@@ -1,7 +1,80 @@
+pub const FIND_ELEMENT =
+    \\array_ptr = ids.array_ptr
+    \\elm_size = ids.elm_size
+    \\assert isinstance(elm_size, int) and elm_size > 0, \
+    \\    f'Invalid value for elm_size. Got: {elm_size}.'
+    \\key = ids.key
+    \\
+    \\if '__find_element_index' in globals():
+    \\    ids.index = __find_element_index
+    \\    found_key = memory[array_ptr + elm_size * __find_element_index]
+    \\    assert found_key == key, \
+    \\        f'Invalid index found in __find_element_index. index: {__find_element_index}, ' \
+    \\        f'expected key {key}, found key: {found_key}.'
+    \\    # Delete __find_element_index to make sure it's not used for the next calls.
+    \\    del __find_element_index
+    \\else:
+    \\    n_elms = ids.n_elms
+    \\    assert isinstance(n_elms, int) and n_elms >= 0, \
+    \\        f'Invalid value for n_elms. Got: {n_elms}.'
+    \\    if '__find_element_max_size' in globals():
+    \\        assert n_elms <= __find_element_max_size, \
+    \\            f'find_element() can only be used with n_elms<={__find_element_max_size}. ' \
+    \\            f'Got: n_elms={n_elms}.'
+    \\
+    \\    for i in range(n_elms):
+    \\        if memory[array_ptr + elm_size * i] == key:
+    \\            ids.index = i
+    \\            break
+    \\    else:
+    \\        raise ValueError(f'Key {key} was not found.')
+;
+
+pub const SEARCH_SORTED_LOWER =
+    \\array_ptr = ids.array_ptr
+    \\elm_size = ids.elm_size
+    \\assert isinstance(elm_size, int) and elm_size > 0, \
+    \\    f'Invalid value for elm_size. Got: {elm_size}.'
+    \\
+    \\n_elms = ids.n_elms
+    \\assert isinstance(n_elms, int) and n_elms >= 0, \
+    \\    f'Invalid value for n_elms. Got: {n_elms}.'
+    \\if '__find_element_max_size' in globals():
+    \\    assert n_elms <= __find_element_max_size, \
+    \\        f'find_element() can only be used with n_elms<={__find_element_max_size}. ' \
+    \\        f'Got: n_elms={n_elms}.'
+    \\
+    \\for i in range(n_elms):
+    \\    if memory[array_ptr + elm_size * i] >= ids.key:
+    \\        ids.index = i
+    \\        break
+    \\else:
+    \\    ids.index = n_elms
+;
+
+pub const SET_ADD =
+    \\assert ids.elm_size > 0
+    \\assert ids.set_ptr <= ids.set_end_ptr
+    \\elm_list = memory.get_range(ids.elm_ptr, ids.elm_size)
+    \\for i in range(0, ids.set_end_ptr - ids.set_ptr, ids.elm_size):
+    \\    if memory.get_range(ids.set_ptr + i, ids.elm_size) == elm_list:
+    \\        ids.index = i // ids.elm_size
+    \\        ids.is_elm_in_set = 1
+    \\        break
+    \\    else:
+    \\        ids.is_elm_in_set = 0
+;
+
+pub const TEMPORARY_ARRAY = "ids.temporary_array = segments.add_temp_segment()";
+
+pub const RELOCATE_SEGMENT = "memory.add_relocation_rule(src_ptr=ids.src_ptr, dest_ptr=ids.dest_ptr)";
+
 pub const GET_FELT_BIT_LENGTH =
     \\x = ids.x
     \\ids.bit_length = x.bit_length()
 ;
+
+pub const POW = "ids.locs.bit = (ids.prev_locs.exp % PRIME) & 1";
 
 pub const ASSERT_NN = "from starkware.cairo.common.math_utils import assert_integer\nassert_integer(ids.a)\nassert 0 <= ids.a % PRIME < range_check_builtin.bound, f'a = {ids.a} is out of range.'";
 pub const VERIFY_ECDSA_SIGNATURE = "ecdsa_builtin.add_signature(ids.ecdsa_ptr.address_, (ids.signature_r, ids.signature_s))";
@@ -189,3 +262,147 @@ pub const SPLIT_OUTPUT_MID_LOW_HIGH =
     \\tmp, ids.output1_low = divmod(ids.output1, 256 ** 7)
     \\ids.output1_high, ids.output1_mid = divmod(tmp, 2 ** 128)
 ;
+
+pub const BIGINT_TO_UINT256 = "ids.low = (ids.x.d0 + ids.x.d1 * ids.BASE) & ((1 << 128) - 1)";
+pub const UINT256_ADD =
+    \\sum_low = ids.a.low + ids.b.low
+    \\ids.carry_low = 1 if sum_low >= ids.SHIFT else 0
+    \\sum_high = ids.a.high + ids.b.high + ids.carry_low
+    \\ids.carry_high = 1 if sum_high >= ids.SHIFT else 0
+;
+
+pub const UINT256_ADD_LOW =
+    \\sum_low = ids.a.low + ids.b.low
+    \\ids.carry_low = 1 if sum_low >= ids.SHIFT else 0
+;
+
+pub const UINT128_ADD =
+    \\res = ids.a + ids.b
+    \\ids.carry = 1 if res >= ids.SHIFT else 0
+;
+
+pub const UINT256_SUB =
+    \\def split(num: int, num_bits_shift: int = 128, length: int = 2):
+    \\    a = []
+    \\    for _ in range(length):
+    \\        a.append( num & ((1 << num_bits_shift) - 1) )
+    \\        num = num >> num_bits_shift
+    \\    return tuple(a)
+    \\
+    \\def pack(z, num_bits_shift: int = 128) -> int:
+    \\    limbs = (z.low, z.high)
+    \\    return sum(limb << (num_bits_shift * i) for i, limb in enumerate(limbs))
+    \\
+    \\a = pack(ids.a)
+    \\b = pack(ids.b)
+    \\res = (a - b)%2**256
+    \\res_split = split(res)
+    \\ids.res.low = res_split[0]
+    \\ids.res.high = res_split[1]
+;
+
+pub const UINT256_SQRT =
+    \\from starkware.python.math_utils import isqrt
+    \\n = (ids.n.high << 128) + ids.n.low
+    \\root = isqrt(n)
+    \\assert 0 <= root < 2 ** 128
+    \\ids.root.low = root
+    \\ids.root.high = 0
+;
+
+pub const UINT256_SQRT_FELT =
+    \\from starkware.python.math_utils import isqrt
+    \\n = (ids.n.high << 128) + ids.n.low
+    \\root = isqrt(n)
+    \\assert 0 <= root < 2 ** 128
+    \\ids.root = root
+;
+
+pub const UINT256_SIGNED_NN = "memory[ap] = 1 if 0 <= (ids.a.high % PRIME) < 2 ** 127 else 0";
+
+pub const UINT256_UNSIGNED_DIV_REM =
+    \\a = (ids.a.high << 128) + ids.a.low
+    \\div = (ids.div.high << 128) + ids.div.low
+    \\quotient, remainder = divmod(a, div)
+    \\
+    \\ids.quotient.low = quotient & ((1 << 128) - 1)
+    \\ids.quotient.high = quotient >> 128
+    \\ids.remainder.low = remainder & ((1 << 128) - 1)
+    \\ids.remainder.high = remainder >> 128
+;
+
+pub const UINT256_EXPANDED_UNSIGNED_DIV_REM =
+    \\a = (ids.a.high << 128) + ids.a.low
+    \\div = (ids.div.b23 << 128) + ids.div.b01
+    \\quotient, remainder = divmod(a, div)
+    \\
+    \\ids.quotient.low = quotient & ((1 << 128) - 1)
+    \\ids.quotient.high = quotient >> 128
+    \\ids.remainder.low = remainder & ((1 << 128) - 1)
+    \\ids.remainder.high = remainder >> 128
+;
+
+pub const UINT256_MUL_DIV_MOD =
+    \\a = (ids.a.high << 128) + ids.a.low
+    \\b = (ids.b.high << 128) + ids.b.low
+    \\div = (ids.div.high << 128) + ids.div.low
+    \\quotient, remainder = divmod(a * b, div)
+    \\
+    \\ids.quotient_low.low = quotient & ((1 << 128) - 1)
+    \\ids.quotient_low.high = (quotient >> 128) & ((1 << 128) - 1)
+    \\ids.quotient_high.low = (quotient >> 256) & ((1 << 128) - 1)
+    \\ids.quotient_high.high = quotient >> 384
+    \\ids.remainder.low = remainder & ((1 << 128) - 1)
+    \\ids.remainder.high = remainder >> 128
+;
+
+pub const SPLIT_64 =
+    \\ids.low = ids.a & ((1<<64) - 1)
+    \\ids.high = ids.a >> 64
+;
+
+
+pub const USORT_ENTER_SCOPE =
+    "vm_enter_scope(dict(__usort_max_size = globals().get('__usort_max_size')))";
+pub const USORT_BODY =
+    \\from collections import defaultdict
+    \\
+    \\input_ptr = ids.input
+    \\input_len = int(ids.input_len)
+    \\if __usort_max_size is not None:
+    \\    assert input_len <= __usort_max_size, (
+    \\        f"usort() can only be used with input_len<={__usort_max_size}. "
+    \\        f"Got: input_len={input_len}."
+    \\    )
+    \\
+    \\positions_dict = defaultdict(list)
+    \\for i in range(input_len):
+    \\    val = memory[input_ptr + i]
+    \\    positions_dict[val].append(i)
+    \\
+    \\output = sorted(positions_dict.keys())
+    \\ids.output_len = len(output)
+    \\ids.output = segments.gen_arg(output)
+    \\ids.multiplicities = segments.gen_arg([len(positions_dict[k]) for k in output])
+;
+
+pub const USORT_VERIFY =
+    \\last_pos = 0
+    \\positions = positions_dict[ids.value][::-1]
+;
+
+pub const USORT_VERIFY_MULTIPLICITY_ASSERT = "assert len(positions) == 0";
+pub const USORT_VERIFY_MULTIPLICITY_BODY =
+    \\current_pos = positions.pop()
+    \\ids.next_item_index = current_pos - last_pos
+    \\last_pos = current_pos + 1
+;
+
+pub const MEMSET_ENTER_SCOPE = "vm_enter_scope({'n': ids.n})";
+pub const MEMSET_CONTINUE_LOOP =
+    \\n -= 1
+    \\ids.continue_loop = 1 if n > 0 else 0
+;
+
+pub const MEMCPY_CONTINUE_COPYING = "n -= 1 ids.continue_copying = 1 if n > 0 else 0";
+

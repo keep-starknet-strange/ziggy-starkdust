@@ -8,6 +8,7 @@ const Config = @import("./config.zig").Config;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const Program = @import("./types/program.zig").Program;
 const ProgramJson = @import("./types/programjson.zig").ProgramJson;
+const HintProcessor = @import("../hint_processor/hint_processor_def.zig").CairoVMHintProcessor;
 
 const trace_context = @import("./trace_context.zig");
 const RelocatedTraceEntry = trace_context.TraceContext.RelocatedTraceEntry;
@@ -71,7 +72,8 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
     defer runner.deinit(allocator);
     const end = try runner.setupExecutionState(config.allow_missing_builtins orelse config.proof_mode);
     // TODO: make flag for extensive_hints
-    try runner.runUntilPC(end, false);
+    var hint_processor: HintProcessor = .{};
+    try runner.runUntilPC(end, false, &hint_processor);
     try runner.endRun();
     // TODO readReturnValues necessary for builtins
 

@@ -1,5 +1,24 @@
 const std = @import("std");
 
+///Returns the integer square root of the nonnegative integer n.
+///This is the floor of the exact square root of n.
+///Unlike math.sqrt(), this function doesn't have rounding error issues.
+pub fn isqrt(comptime T: type, n: T) !T {
+    var x = n;
+    var y = (n + 1) >> @as(u32, 1);
+
+    while (y < x) {
+        x = y;
+        y = (@divFloor(n, x) + x) >> @as(u32, 1);
+    }
+
+    if (!(std.math.pow(T, x, 2) <= n and n < std.math.pow(T, x + 1, 2))) {
+        return error.FailedToGetSqrt;
+    }
+
+    return x;
+}
+
 pub fn multiplyModulus(a: u512, b: u512, modulus: u512) u512 {
     return (a * b) % modulus;
 }
@@ -114,7 +133,7 @@ pub fn divModFloor(comptime T: type, num: T, denominator: T) !struct { T, T } {
     return .{ @divFloor(num, denominator), @mod(num, denominator) };
 }
 
-pub fn divRem(num: u256, denominator: u256) !struct { u256, u256 } {
+pub fn divRem(comptime T: type, num: T, denominator: T) !struct { T, T } {
     if (denominator == 0) return error.DividedByZero;
 
     return .{

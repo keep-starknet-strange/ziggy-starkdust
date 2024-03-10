@@ -159,22 +159,6 @@ pub fn assertNotEqual(
     }
 }
 
-fn isqrt(n: u256) !u256 {
-    var x = n;
-    var y = (n + 1) >> @as(u32, 1);
-
-    while (y < x) {
-        x = y;
-        y = (@divFloor(n, x) + x) >> @as(u32, 1);
-    }
-
-    if (!(std.math.pow(u256, x, 2) <= n and n < std.math.pow(u256, x + 1, 2))) {
-        return error.FailedToGetSqrt;
-    }
-
-    return x;
-}
-
 //Implements hint: from starkware.python.math_utils import isqrt
 //        value = ids.value % PRIME
 //        assert value < 2 ** 250, f"value={value} is outside of the range [0, 2**250)."
@@ -192,7 +176,7 @@ pub fn sqrt(
         return HintError.ValueOutside250BitRange;
     }
 
-    const root = Felt252.fromInt(u256, isqrt(mod_value.toInteger()) catch unreachable);
+    const root = Felt252.fromInt(u256, field_helper.isqrt(u256, mod_value.toInteger()) catch unreachable);
 
     try hint_utils.insertValueFromVarName(
         allocator,
@@ -236,7 +220,7 @@ pub fn unsignedDivRem(
         if (div.isZero() or div.gt(divPrimeByBound(b))) return HintError.OutOfValidRange;
     } else if (div.isZero()) return HintError.OutOfValidRange;
 
-    const qr = try (field_helper.divRem(value.toInteger(), div.toInteger()) catch MathError.DividedByZero);
+    const qr = try (field_helper.divRem(u256, value.toInteger(), div.toInteger()) catch MathError.DividedByZero);
 
     try hint_utils.insertValueFromVarName(allocator, "r", MaybeRelocatable.fromInt(u256, qr[1]), vm, ids_data, ap_tracking);
     try hint_utils.insertValueFromVarName(allocator, "q", MaybeRelocatable.fromInt(u256, qr[0]), vm, ids_data, ap_tracking);
@@ -338,7 +322,7 @@ pub fn assertLeFeltExcluded0(
     vm: *CairoVM,
     exec_scopes: *const ExecutionScopes,
 ) !void {
-    const excluded = try exec_scopes.getFelt("excluded");
+    const excluded = try exec_scopes.getValue(.felt,"excluded");
 
     if (!excluded.isZero()) {
         try hint_utils.insertValueIntoAp(allocator, vm, MaybeRelocatable.fromFelt(Felt252.one()));
@@ -352,7 +336,7 @@ pub fn assertLeFeltExcluded1(
     vm: *CairoVM,
     exec_scopes: *ExecutionScopes,
 ) !void {
-    const excluded = try exec_scopes.getFelt("excluded");
+    const excluded = try exec_scopes.getValue(.felt, "excluded");
 
     if (!excluded.isOne()) {
         try hint_utils.insertValueIntoAp(allocator, vm, MaybeRelocatable.fromFelt(Felt252.one()));
@@ -362,7 +346,7 @@ pub fn assertLeFeltExcluded1(
 }
 
 pub fn assertLeFeltExcluded2(exec_scopes: *ExecutionScopes) !void {
-    const excluded = try exec_scopes.getFelt("excluded");
+    const excluded = try exec_scopes.getValue(.felt, "excluded");
 
     if (!excluded.equal(Felt252.fromInt(u256, 2))) {
         return HintError.ExcludedNot2;
