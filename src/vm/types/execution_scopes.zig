@@ -56,6 +56,17 @@ pub const ExecutionScopes = struct {
         };
     }
 
+    ///Returns a reference to the value in the current execution scope that matches the name and is of the given generic type
+    pub fn getRef(comptime T: type, self: *const Self, name: []const u8) !*T {
+        const variable = self.getLocalVariableMut() orelse return error.VariableNotInScopeError;
+        const value = variable.get(name) orelse return error.VariableNotInScopeError;
+
+        switch (@typeInfo(value)) {
+            T => return &value,
+            else => return error.VariableNotInScopeError,
+        }
+    }
+
     ///Returns a dictionary containing the variables present in the current scope
     pub fn getLocalVariableMut(self: *const Self) ?*std.StringHashMap(HintType) {
         if (self.data.items.len > 0) return &self.data.items[self.data.items.len - 1];
