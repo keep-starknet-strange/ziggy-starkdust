@@ -1,23 +1,37 @@
 const std = @import("std");
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
+const Int = std.math.big.int.Managed;
+pub fn split(num: Int, comptime N: usize, num_bits_shift: usize) ![N]Felt252 {
+    const allocator = std.heap.page_allocator;
+    const one = try Int.initSet(allocator, 1);
 
-pub fn split(num: u512, comptime N: usize, num_bits_shift: u32) [N]Felt252 {
-    var temp_num = num;
+    var temp_num: Int = try num.clone();
+    defer temp_num.deinit();
+
+    var bitmask = try Int.initSet(allocator, 1);
+    defer bitmask.deinit();
+
+    try bitmask.shiftLeft(&bitmask, num_bits_shift);
+    try bitmask.sub(&bitmask, &one);
+
+    var shifted = try Int.init(allocator);
+    defer shifted.deinit();
+
     var result: [N]Felt252 = undefined;
     for (0..N) |i| {
-        const bitmask = (@as(u512, 1) << @intCast(num_bits_shift)) - 1;
-        const shifted = temp_num & bitmask;
-        result[i] = Felt252.fromInt(u512, shifted);
-        temp_num >>= @intCast(num_bits_shift);
+        try shifted.bitAnd(&temp_num, &bitmask);
+        result[i] = Felt252.fromInt(u256, try shifted.to(u256));
     }
     return result;
 }
 
-pub fn pack(comptime N: usize, limbs: [N]Felt252, num_bits_shift: u32) u512 {
-    var result: u512 = 0;
-    for (0..N) |i| {
-        const limb_value = @as(u512, limbs[i]);
-        result |= (limb_value << @as(u32, i * num_bits_shift));
-    }
-    return result;
+test "uint256 split64 with uint utils" {
+    const allocator = std.testing.allocator;
+    var num = try Int.initSet(allocator, 850981239023189021389081239089023);
+    defer num.deinit();
+    const limbs = try split(num, 4, 64);
+    try std.testing.expectEqual(Felt252.fromInt(u64, 7249717543555297151), limbs[0]);
+    try std.testing.expectEqual(Felt252.fromInt(u64, 46131785404667), limbs[1]);
+    try std.testing.expectEqual(Felt252.fromInt(u64, 0), limbs[2]);
+    try std.testing.expectEqual(Felt252.fromInt(u64, 0), limbs[3]);
 }

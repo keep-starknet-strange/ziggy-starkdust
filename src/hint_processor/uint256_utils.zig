@@ -18,7 +18,7 @@ const HintError = @import("../vm/error.zig").HintError;
 const CairoVMError = @import("../vm/error.zig").CairoVMError;
 
 const RangeCheckBuiltinRunner = @import("../vm/builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
-const uint_utils = @import("./uint_utils.zig");
+
 pub const Uint256 = struct {
     const Self = @This();
 
@@ -53,10 +53,7 @@ pub const Uint256 = struct {
     }
 
     pub fn split(comptime T: type, num: T) Self {
-        // return Self.init(Felt252.fromInt(T, num & std.math.maxInt(u128)), Felt252.fromInt(T, num >> 128));
-        // use uint_utils.split to split the number
-        const low_high = uint_utils.split(num, 2, 128);
-        return Self.init(low_high[0], low_high[1]);
+        return Self.init(Felt252.fromInt(T, num & std.math.maxInt(u128)), Felt252.fromInt(T, num >> 128));
     }
     // converting self to biguint value
     // optimize by using biguint
