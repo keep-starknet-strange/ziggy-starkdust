@@ -6,9 +6,9 @@ const CairoRunner = @import("vm/runners/cairo_runner.zig").CairoRunner;
 const HintProcessor = @import("./hint_processor/hint_processor_def.zig").CairoVMHintProcessor;
 
 const CairoTestProgram = struct {
-        pathname: []const u8,
-        layout: []const u8,
-        extensive_hints: bool = false,
+    pathname: []const u8,
+    layout: []const u8,
+    extensive_hints: bool = false,
 };
 
 pub fn main() !void {
@@ -26,7 +26,7 @@ pub fn main() !void {
         test_files_list = args[1];
     }
 
-    var cairo_programs: []CairoTestProgram  = undefined; // This will be defined after reading from the test file or defaulting to all tests.
+    var cairo_programs: []CairoTestProgram = undefined; // This will be defined after reading from the test file or defaulting to all tests.
 
     // If there are specific tests to run, read them from the file.
     if (test_files_list) |list| {
@@ -35,7 +35,7 @@ pub fn main() !void {
         const fileSize = try file.getEndPos();
         const buffer = try allocator.alloc(u8, fileSize);
         defer allocator.free(buffer);
-        
+
         const bytes_read = try file.read(buffer);
         // TODO add error handing here for empty file case
         if (bytes_read == 0) return;
@@ -61,7 +61,6 @@ pub fn main() !void {
                 .extensive_hints = false,
             };
         }
-        
     } else {
         // Default set of cairo_programs if no command line arguments are provided
         // this is just for demonstration purposes
@@ -163,18 +162,14 @@ pub fn main() !void {
             .{ .pathname = "cairo_programs/if_list.json", .layout = "all_cairo" },
             // TODO: UnknownOp0 error
             // .{ .pathname = "cairo_programs/if_reloc_equal.json", .layout = "all_cairo" },
-            
+
             // .{ .pathname = "cairo_programs/keccak_compiled.json", .layout = "all_cairo" },
             .{ .pathname = "cairo_programs/keccak_builtin.json", .layout = "all_cairo" },
             // .{ .pathname = "cairo_programs/keccak_integration_tests.json", .layout = "all_cairo" },
             // .{ .pathname = "cairo_programs/keccak_copy_inputs.json", .layout = "all_cairo" },
         };
-        cairo_programs = temp_array[0..];        
-        
+        cairo_programs = temp_array[0..];
     }
-    
-
-
 
     var ok_count: usize = 0;
     var fail_count: usize = 0;
