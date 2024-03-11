@@ -26,7 +26,7 @@ pub const DictManager = struct {
     const Self = @This();
     trackers: std.AutoHashMap(isize, DictTracker),
 
-    pub fn init(allocator: std.mem.Allocator) Self {
+    pub fn init(allocator: std.mem.Allocator) !Self {
         return .{
             .trackers = std.AutoHashMap(isize, DictTracker).init(allocator),
         };
@@ -70,7 +70,7 @@ pub const DictManager = struct {
     }
 
     //Returns the tracker which's current_ptr matches with the given dict_ptr
-    pub fn getTrackerRef(self: *Self, dict_ptr: Relocatable) !*DictTracker {
+    pub fn getTrackerRef(self: Self, dict_ptr: Relocatable) !*DictTracker {
         const tracker = self.trackers.getPtr(dict_ptr.segment_index) orelse return HintError.NoDictTracker;
 
         if (!tracker.current_ptr.eq(dict_ptr)) return HintError.MismatchedDictPtr;
@@ -79,7 +79,7 @@ pub const DictManager = struct {
     }
 
     //Returns the tracker which's current_ptr matches with the given dict_ptr
-    pub fn getTracker(self: *const Self, dict_ptr: Relocatable) !DictTracker {
+    pub fn getTracker(self: Self, dict_ptr: Relocatable) !DictTracker {
         const tracker = self.trackers.get(dict_ptr.segment_index) orelse return HintError.NoDictTracker;
 
         if (!tracker.current_ptr.eq(dict_ptr)) return HintError.MismatchedDictPtr;
@@ -131,16 +131,16 @@ pub const DictTracker = struct {
     }
 
     //Returns a copy of the contained dictionary, losing the dictionary type in the process
-    pub fn getDictionaryCopy(self: Self) !std.AutoHashMap(MaybeRelocatable, MaybeRelocatable) {
-        return switch (self) {
+    pub fn getDictionaryCopy(self: *const Self) !std.AutoHashMap(MaybeRelocatable, MaybeRelocatable) {
+        return switch (self.data) {
             .SimpleDictionary => |dict| dict.clone(),
             .DefaultDictionary => |v| v.dict.clone(),
         };
     }
 
-    pub fn getValue(self: *const Self, key: MaybeRelocatable) !MaybeRelocatable {
-        self.data
-            .get(key) orelse HintError.NoValueForKey;
+    pub fn getValue(self: *Self, key: MaybeRelocatable) !MaybeRelocatable {
+        return (try self.data
+            .get(key)) orelse HintError.NoValueForKey;
     }
 
     pub fn insertValue(self: *Self, key: MaybeRelocatable, val: MaybeRelocatable) !void {
@@ -186,7 +186,7 @@ pub const Dictionary = union(enum) {
 };
 
 test "DictManager: create" {
-    var dict_manager = DictManager.init(std.testing.allocator);
+    var dict_manager = try DictManager.init(std.testing.allocator);
     defer dict_manager.deinit();
 
     try std.testing.expectEqual(0, dict_manager.trackers.count());
@@ -213,7 +213,7 @@ test "DictManager: initDictEmpty" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    var dict_manager = DictManager.init(std.testing.allocator);
+    var dict_manager = try DictManager.init(std.testing.allocator);
     defer dict_manager.deinit();
 
     const initial_dict = std.AutoHashMap(MaybeRelocatable, MaybeRelocatable).init(std.testing.allocator);
@@ -231,7 +231,7 @@ test "DictManager: initDictDefault" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    var dict_manager = DictManager.init(std.testing.allocator);
+    var dict_manager = try DictManager.init(std.testing.allocator);
     defer dict_manager.deinit();
 
     const base = try dict_manager.initDefaultDict(std.testing.allocator, &vm, MaybeRelocatable.fromInt(u8, 5), null);
@@ -249,7 +249,7 @@ test "DictManager: initDict with initial_dict" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    var dict_manager = DictManager.init(std.testing.allocator);
+    var dict_manager = try DictManager.init(std.testing.allocator);
     defer dict_manager.deinit();
 
     var initial_dict = std.AutoHashMap(MaybeRelocatable, MaybeRelocatable).init(std.testing.allocator);
@@ -274,7 +274,7 @@ test "DictManager: initDefaultDict with initial_dict" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    var dict_manager = DictManager.init(std.testing.allocator);
+    var dict_manager = try DictManager.init(std.testing.allocator);
     defer dict_manager.deinit();
 
     var initial_dict = std.AutoHashMap(MaybeRelocatable, MaybeRelocatable).init(std.testing.allocator);
@@ -297,7 +297,7 @@ test "DictManager: initDefaultDict with initial_dict" {
 }
 
 test "DictManager: dict_manager_new_dict_empty_same_segment" {
-    var dict_manager = DictManager.init(std.testing.allocator);
+    var dict_manager = try DictManager.init(std.testing.allocator);
     defer dict_manager.deinit();
     try dict_manager
         .trackers
@@ -310,7 +310,7 @@ test "DictManager: dict_manager_new_dict_empty_same_segment" {
 }
 
 test "DictManager: dict_manager_new_default_dict_empty_same_segment" {
-    var dict_manager = DictManager.init(std.testing.allocator);
+    var dict_manager = try DictManager.init(std.testing.allocator);
     defer dict_manager.deinit();
     try dict_manager
         .trackers

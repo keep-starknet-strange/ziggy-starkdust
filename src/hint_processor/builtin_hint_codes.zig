@@ -361,7 +361,6 @@ pub const SPLIT_64 =
     \\ids.high = ids.a >> 64
 ;
 
-
 pub const USORT_ENTER_SCOPE =
     "vm_enter_scope(dict(__usort_max_size = globals().get('__usort_max_size')))";
 pub const USORT_BODY =
@@ -406,3 +405,117 @@ pub const MEMSET_CONTINUE_LOOP =
 
 pub const MEMCPY_CONTINUE_COPYING = "n -= 1 ids.continue_copying = 1 if n > 0 else 0";
 
+pub const DEFAULT_DICT_NEW =
+    \\if '__dict_manager' not in globals():
+    \\    from starkware.cairo.common.dict import DictManager
+    \\    __dict_manager = DictManager()
+    \\
+    \\memory[ap] = __dict_manager.new_default_dict(segments, ids.default_value)
+;
+
+pub const DICT_NEW =
+    \\if '__dict_manager' not in globals():
+    \\    from starkware.cairo.common.dict import DictManager
+    \\    __dict_manager = DictManager()
+    \\
+    \\memory[ap] = __dict_manager.new_dict(segments, initial_dict)
+    \\del initial_dict
+;
+
+pub const DICT_READ =
+    \\dict_tracker = __dict_manager.get_tracker(ids.dict_ptr)
+    \\dict_tracker.current_ptr += ids.DictAccess.SIZE
+    \\ids.value = dict_tracker.data[ids.key]
+;
+
+pub const DICT_WRITE =
+    \\dict_tracker = __dict_manager.get_tracker(ids.dict_ptr)
+    \\dict_tracker.current_ptr += ids.DictAccess.SIZE
+    \\ids.dict_ptr.prev_value = dict_tracker.data[ids.key]
+    \\dict_tracker.data[ids.key] = ids.new_value
+;
+
+pub const DICT_UPDATE =
+    \\# Verify dict pointer and prev value.
+    \\dict_tracker = __dict_manager.get_tracker(ids.dict_ptr)
+    \\current_value = dict_tracker.data[ids.key]
+    \\assert current_value == ids.prev_value, \
+    \\    f'Wrong previous value in dict. Got {ids.prev_value}, expected {current_value}.'
+    \\
+    \\# Update value.
+    \\dict_tracker.data[ids.key] = ids.new_value
+    \\dict_tracker.current_ptr += ids.DictAccess.SIZE
+;
+
+pub const SQUASH_DICT =
+    \\dict_access_size = ids.DictAccess.SIZE
+    \\address = ids.dict_accesses.address_
+    \\assert ids.ptr_diff % dict_access_size == 0, \
+    \\    'Accesses array size must be divisible by DictAccess.SIZE'
+    \\n_accesses = ids.n_accesses
+    \\if '__squash_dict_max_size' in globals():
+    \\    assert n_accesses <= __squash_dict_max_size, \
+    \\        f'squash_dict() can only be used with n_accesses<={__squash_dict_max_size}. ' \
+    \\        f'Got: n_accesses={n_accesses}.'
+    \\# A map from key to the list of indices accessing it.
+    \\access_indices = {}
+    \\for i in range(n_accesses):
+    \\    key = memory[address + dict_access_size * i]
+    \\    access_indices.setdefault(key, []).append(i)
+    \\# Descending list of keys.
+    \\keys = sorted(access_indices.keys(), reverse=True)
+    \\# Are the keys used bigger than range_check bound.
+    \\ids.big_keys = 1 if keys[0] >= range_check_builtin.bound else 0
+    \\ids.first_key = key = keys.pop()
+;
+
+pub const SQUASH_DICT_INNER_SKIP_LOOP =
+    "ids.should_skip_loop = 0 if current_access_indices else 1";
+pub const SQUASH_DICT_INNER_FIRST_ITERATION =
+    \\current_access_indices = sorted(access_indices[key])[::-1]
+    \\current_access_index = current_access_indices.pop()
+    \\memory[ids.range_check_ptr] = current_access_index
+;
+
+pub const SQUASH_DICT_INNER_CHECK_ACCESS_INDEX =
+    \\new_access_index = current_access_indices.pop()
+    \\ids.loop_temps.index_delta_minus1 = new_access_index - current_access_index - 1
+    \\current_access_index = new_access_index
+;
+
+pub const SQUASH_DICT_INNER_CONTINUE_LOOP =
+    "ids.loop_temps.should_continue = 1 if current_access_indices else 0";
+pub const SQUASH_DICT_INNER_ASSERT_LEN_KEYS = "assert len(keys) == 0";
+pub const SQUASH_DICT_INNER_LEN_ASSERT = "assert len(current_access_indices) == 0";
+pub const SQUASH_DICT_INNER_USED_ACCESSES_ASSERT =
+    "assert ids.n_used_accesses == len(access_indices[key])";
+pub const SQUASH_DICT_INNER_NEXT_KEY =
+    \\assert len(keys) > 0, 'No keys left but remaining_accesses > 0.'
+    \\ids.next_key = key = keys.pop()"#;
+    \\
+    \\pub const DICT_SQUASH_COPY_DICT: &str = r#"# Prepare arguments for dict_new. In particular, the same dictionary values should be copied
+    \\# to the new (squashed) dictionary.
+    \\vm_enter_scope({
+    \\    # Make __dict_manager accessible.
+    \\    '__dict_manager': __dict_manager,
+    \\    # Create a copy of the dict, in case it changes in the future.
+    \\    'initial_dict': dict(__dict_manager.get_dict(ids.dict_accesses_end)),
+    \\})
+;
+
+pub const DICT_SQUASH_UPDATE_PTR =
+    \\# Update the DictTracker's current_ptr to point to the end of the squashed dict.
+    \\__dict_manager.get_tracker(ids.squashed_dict_start).current_ptr = \
+    \\    ids.squashed_dict_end.address_
+;
+
+pub const DICT_SQUASH_COPY_DICT =
+    \\# Prepare arguments for dict_new. In particular, the same dictionary values should be copied
+    \\# to the new (squashed) dictionary.
+    \\vm_enter_scope({
+    \\    # Make __dict_manager accessible.
+    \\    '__dict_manager': __dict_manager,
+    \\    # Create a copy of the dict, in case it changes in the future.
+    \\    'initial_dict': dict(__dict_manager.get_dict(ids.dict_accesses_end)),
+    \\})
+;

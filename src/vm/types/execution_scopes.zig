@@ -8,6 +8,244 @@ const Allocator = std.mem.Allocator;
 const Felt252 = @import("../../math/fields/starknet.zig").Felt252;
 const HintError = @import("../error.zig").HintError;
 const ExecScopeError = @import("../error.zig").ExecScopeError;
+const MaybeRelocatable = @import("../memory/relocatable.zig").MaybeRelocatable;
+const DictManager = @import("../../hint_processor/dict_manager.zig").DictManager;
+
+/// A single threaded, strong reference to a reference-counted value.
+pub fn Rc(comptime T: type) type {
+    return struct {
+        value: *T,
+        alloc: std.mem.Allocator,
+
+        const Self = @This();
+        const Inner = struct {
+            strong: usize,
+            weak: usize,
+            value: T,
+
+            fn innerSize() comptime_int {
+                return @sizeOf(@This());
+            }
+
+            fn innerAlign() comptime_int {
+                return @alignOf(@This());
+            }
+        };
+
+        /// Creates a new reference-counted value.
+        pub fn init(alloc: std.mem.Allocator, t: T) std.mem.Allocator.Error!Self {
+            const inner = try alloc.create(Inner);
+            inner.* = Inner{ .strong = 1, .weak = 1, .value = t };
+            return Self{ .value = &inner.value, .alloc = alloc };
+        }
+
+        /// Constructs a new `Rc` while giving you a `Weak` to the allocation,
+        /// to allow you to construct a `T` which holds a weak pointer to itself.
+        pub fn initCyclic(alloc: std.mem.Allocator, comptime data_fn: fn (*Weak) T) std.mem.Allocator.Error!Self {
+            const inner = try alloc.create(Inner);
+            inner.* = Inner{ .strong = 0, .weak = 1, .value = undefined };
+
+            // Strong references should collectively own a shared weak reference,
+            // so don't run the destructor for our old weak reference.
+            var weak = Weak{ .inner = inner, .alloc = alloc };
+
+            // It's important we don't give up ownership of the weak pointer, or
+            // else the memory might be freed by the time `data_fn` returns. If
+            // we really wanted to pass ownership, we could create an additional
+            // weak pointer for ourselves, but this would result in additional
+            // updates to the weak reference count which might not be necessary
+            // otherwise.
+            inner.value = data_fn(&weak);
+
+            std.debug.assert(inner.strong == 0);
+            inner.strong = 1;
+
+            return Self{ .value = &inner.value, .alloc = alloc };
+        }
+
+        /// Gets the number of strong references to this value.
+        pub fn strongCount(self: *const Self) usize {
+            return self.innerPtr().strong;
+        }
+
+        /// Gets the number of weak references to this value.
+        pub fn weakCount(self: *const Self) usize {
+            return self.innerPtr().weak - 1;
+        }
+
+        /// Increments the strong count.
+        pub fn retain(self: *Self) Self {
+            self.innerPtr().strong += 1;
+            return self.*;
+        }
+
+        /// Creates a new weak reference to the pointed value
+        pub fn downgrade(self: *Self) Weak {
+            return Weak.init(self);
+        }
+
+        /// Decrements the reference count, deallocating if the weak count reaches zero.
+        /// The continued use of the pointer after calling `release` is undefined behaviour.
+        pub fn release(self: Self) void {
+            const ptr = self.innerPtr();
+
+            ptr.strong -= 1;
+            if (ptr.strong == 0) {
+                ptr.weak -= 1;
+                if (ptr.weak == 0) {
+                    self.alloc.destroy(ptr);
+                }
+            }
+        }
+
+        /// Decrements the reference count, deallocating the weak count reaches zero,
+        /// and executing `f` if the strong count reaches zero.
+        /// The continued use of the pointer after calling `release` is undefined behaviour.
+        pub fn releaseWithFn(self: Self, comptime f: fn (*T) void) void {
+            const ptr = self.innerPtr();
+
+            ptr.strong -= 1;
+            if (ptr.strong == 0) {
+                f(self.value);
+                ptr.weak -= 1;
+                if (ptr.weak == 0) {
+                    self.alloc.destroy(ptr);
+                }
+            }
+        }
+
+        /// Returns the inner value, if the `Rc` has exactly one strong reference.
+        /// Otherwise, `null` is returned.
+        /// This will succeed even if there are outstanding weak references.
+        /// The continued use of the pointer if the method successfully returns `T` is undefined behaviour.
+        pub fn tryUnwrap(self: Self) ?T {
+            const ptr = self.innerPtr();
+
+            if (ptr.strong == 1) {
+                ptr.strong = 0;
+                const tmp = self.value.*;
+
+                ptr.weak -= 1;
+                if (ptr.weak == 0) {
+                    self.alloc.destroy(ptr);
+                }
+
+                return tmp;
+            }
+
+            return null;
+        }
+
+        /// Total size (in bytes) of the reference counted value on the heap.
+        /// This value accounts for the extra memory required to count the references.
+        pub fn innerSize() comptime_int {
+            return Inner.innerSize();
+        }
+
+        /// Alignment (in bytes) of the reference counted value on the heap.
+        /// This value accounts for the extra memory required to count the references.
+        pub fn innerAlign() comptime_int {
+            return Inner.innerAlign();
+        }
+
+        inline fn innerPtr(self: *const Self) *Inner {
+            return @fieldParentPtr(Inner, "value", self.value);
+        }
+
+        /// A single threaded, weak reference to a reference-counted value.
+        pub const Weak = struct {
+            inner: ?*Inner = null,
+            alloc: std.mem.Allocator,
+
+            /// Creates a new weak reference.
+            pub fn init(parent: *Rc(T)) Weak {
+                const ptr = parent.innerPtr();
+                ptr.weak += 1;
+                return Weak{ .inner = ptr, .alloc = parent.alloc };
+            }
+
+            /// Creates a new weak reference object from a pointer to it's underlying value,
+            /// without increasing the weak count.
+            pub fn fromValuePtr(value: *T, alloc: std.mem.Allocator) Weak {
+                return .{ .inner = @fieldParentPtr(Inner, "value", value), .alloc = alloc };
+            }
+
+            /// Gets the number of strong references to this value.
+            pub fn strongCount(self: *const Weak) usize {
+                return (self.innerPtr() orelse return 0).strong;
+            }
+
+            /// Gets the number of weak references to this value.
+            pub fn weakCount(self: *const Weak) usize {
+                const ptr = self.innerPtr() orelse return 1;
+                if (ptr.strong == 0) {
+                    return ptr.weak;
+                } else {
+                    return ptr.weak - 1;
+                }
+            }
+
+            /// Increments the weak count.
+            pub fn retain(self: *Weak) Weak {
+                if (self.innerPtr()) |ptr| {
+                    ptr.weak += 1;
+                }
+                return self.*;
+            }
+
+            /// Attempts to upgrade the weak pointer to an `Rc`, delaying dropping of the inner value if successful.
+            ///
+            /// Returns `null` if the inner value has since been dropped.
+            pub fn upgrade(self: *Weak) ?Rc(T) {
+                const ptr = self.innerPtr() orelse return null;
+
+                if (ptr.strong == 0) {
+                    ptr.weak -= 1;
+                    if (ptr.weak == 0) {
+                        self.alloc.destroy(ptr);
+                        self.inner = null;
+                    }
+                    return null;
+                }
+
+                ptr.strong += 1;
+                return Rc(T){
+                    .value = &ptr.value,
+                    .alloc = self.alloc,
+                };
+            }
+
+            /// Decrements the weak reference count, deallocating if it reaches zero.
+            /// The continued use of the pointer after calling `release` is undefined behaviour.
+            pub fn release(self: Weak) void {
+                if (self.innerPtr()) |ptr| {
+                    ptr.weak -= 1;
+                    if (ptr.weak == 0) {
+                        self.alloc.destroy(ptr);
+                    }
+                }
+            }
+
+            /// Total size (in bytes) of the reference counted value on the heap.
+            /// This value accounts for the extra memory required to count the references,
+            /// and is valid for single and multi-threaded refrence counters.
+            pub fn innerSize() comptime_int {
+                return Inner.innerSize();
+            }
+
+            /// Alignment (in bytes) of the reference counted value on the heap.
+            /// This value accounts for the extra memory required to count the references,
+            /// and is valid for single and multi-threaded refrence counters.
+            pub fn innerAlign() comptime_int {
+                return Inner.innerAlign();
+            }
+
+            inline fn innerPtr(self: *const Weak) ?*Inner {
+                return @as(?*Inner, @ptrCast(self.inner));
+            }
+        };
+    };
+}
 
 /// Represents the possible types of variables in the hint scope.
 pub const HintType = union(enum) {
@@ -17,6 +255,8 @@ pub const HintType = union(enum) {
     u64: u64,
     u64_list: ArrayList(u64),
     felt_map_of_u64_list: std.AutoHashMap(Felt252, std.ArrayList(u64)),
+    maybe_relocatable_map: std.AutoHashMap(MaybeRelocatable, MaybeRelocatable),
+    dict_manager: Rc(DictManager),
 
     pub fn deinit(self: *Self) void {
         switch (self.*) {
@@ -26,9 +266,9 @@ pub const HintType = union(enum) {
 
                 d.deinit();
             },
-            .u64_list => |d| {
-                d.deinit();
-            },
+            .maybe_relocatable_map => |*m| m.deinit(),
+            .u64_list => |*a| a.deinit(),
+            .dict_manager => |d| d.releaseWithFn(DictManager.deinit),
             else => {},
         }
     }
@@ -54,7 +294,9 @@ pub const ExecutionScopes = struct {
         for (self.data.items) |*m| {
             var it = m.valueIterator();
 
-            while (it.next()) |h| h.deinit();
+            while (it.next()) |h| {
+                h.deinit();
+            }
 
             m.deinit();
         }
@@ -97,57 +339,35 @@ pub const ExecutionScopes = struct {
         };
     }
 
+    pub fn getDictManager(self: *Self) !Rc(DictManager) {
+        var dict_manager_rc = try self.getValue(.dict_manager, "dict_manager");
+        return dict_manager_rc.retain();
+    }
+
     /// Returns the value in the current execution scope that matches the name and is of the given type.
     pub fn getValue(
         self: *const Self,
-        comptime T: @typeInfo(HintType).Union.tag_type.?,
+        comptime T: std.meta.Tag(HintType),
         name: []const u8,
-    ) !@typeInfo(HintType).Union.fields[@intFromEnum(T)].type {
-        return switch (T) {
-            .felt => switch (try self.get(name)) {
-                .felt => |f| f,
-                else => HintError.VariableNotInScopeError,
-            },
-            .u64 => switch (try self.get(name)) {
-                .u64 => |v| v,
-                else => HintError.VariableNotInScopeError,
-            },
-            .u64_list => switch (try self.get(name)) {
-                .u64_list => |list| try list.clone(),
-                else => HintError.VariableNotInScopeError,
-            },
-            .felt_map_of_u64_list => switch (try self.get(name)) {
-                .felt_map_of_u64_list => |v| v,
-                else => HintError.VariableNotInScopeError,
-            },
-        };
+    ) !std.meta.TagPayload(HintType, T) {
+        const val = try self.get(name);
+
+        if (std.meta.activeTag(val) == T) return @field(val, @tagName(T));
+
+        return HintError.VariableNotInScopeError;
     }
 
     /// Returns a reference to the value in the current execution scope that matches the name and is of the given type.
     pub fn getValueRef(
         self: *const Self,
-        comptime T: @typeInfo(HintType).Union.tag_type.?,
+        comptime T: std.meta.Tag(HintType),
         name: []const u8,
-    ) !*@typeInfo(HintType).Union.fields[@intFromEnum(T)].type {
-        const r = try self.getRef(name);
-        return switch (T) {
-            .felt => switch (r.*) {
-                .felt => &r.felt,
-                else => HintError.VariableNotInScopeError,
-            },
-            .u64 => switch (r.*) {
-                .u64 => &r.u64,
-                else => HintError.VariableNotInScopeError,
-            },
-            .u64_list => switch (r.*) {
-                .u64_list => &r.u64_list,
-                else => HintError.VariableNotInScopeError,
-            },
-            .felt_map_of_u64_list => switch (r.*) {
-                .felt_map_of_u64_list => &r.felt_map_of_u64_list,
-                else => HintError.VariableNotInScopeError,
-            },
-        };
+    ) !*std.meta.TagPayload(HintType, T) {
+        const val = try self.getRef(name);
+
+        if (std.meta.activeTag(val.*) == T) return &@field(val.*, @tagName(T));
+
+        return HintError.VariableNotInScopeError;
     }
 
     /// Returns a dictionary containing the variables present in the current scope.
@@ -378,15 +598,17 @@ test "ExecutionScopes: get list of u64" {
     try scopes.data.append(scope);
 
     // Get the list of u64 from execution scopes.
-    const list = try scopes.getValue(.u64_list, "list_u64");
-    // Defer the deinitialization of the list.
-    defer list.deinit();
+    var list = try scopes.getValueRef(.u64_list, "list_u64");
+    // verifing get value by ref
+    try list.append(17);
+    try list.append(16);
 
+    const list_val = try scopes.getValue(.u64_list, "list_u64");
     // Expect the retrieved list to match the expected values.
     try expectEqualSlices(
         u64,
-        &[_]u64{ 20, 18 },
-        list.items,
+        &[_]u64{ 20, 18, 17, 16 },
+        list_val.items,
     );
 
     // Expect an error when trying to retrieve a non-existent variable.
@@ -401,7 +623,8 @@ test "ExecutionScopes: get list of u64" {
     // Expect the retrieved reference list to match the expected values.
     try expectEqualSlices(
         u64,
-        &[_]u64{ 20, 18 },
+        &[_]u64{ 20, 18, 17, 16 },
+
         list_ref.*.items,
     );
 
