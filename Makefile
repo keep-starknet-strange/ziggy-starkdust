@@ -8,6 +8,9 @@ $(CAIRO_VM_CLI):
 
 build_cairo_vm_cli: | $(CAIRO_VM_CLI)
 BENCH_DIR=cairo_programs/benchmarks
+# Define the directory containing your Cairo programs
+CAIRO_PROGRAMS_DIR := cairo_programs
+
 
 # Creates a pyenv and installs cairo-lang
 deps:
@@ -38,6 +41,19 @@ test-filter:
 
 build-integration-test:
 	@zig build integration_test
+
+
+# Task for running the custom integration process
+run-custom-integration-test:
+	# Find all 'math*.cairo' files and write them to a list
+	@find $(CAIRO_PROGRAMS_DIR) -name "math*.cairo" | sed 's|.*/||' | sed 's|\.cairo$$||' > $(CAIRO_PROGRAMS_DIR)/math_programs_list.txt
+
+	# Iterate over the list and compile each program
+	@while read file; do \
+		cairo-compile --cairo_path="$(CAIRO_PROGRAMS_DIR)" "$(CAIRO_PROGRAMS_DIR)/$$file.cairo" --output "$(CAIRO_PROGRAMS_DIR)/$$file.json" --proof_mode; \
+	done < $(CAIRO_PROGRAMS_DIR)/math_programs_list.txt
+	./zig-out/bin/integration_test $(CAIRO_PROGRAMS_DIR)/math_programs_list.txt
+
 
 run-integration-test:
 	@zig build integration_test

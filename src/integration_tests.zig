@@ -5,119 +5,176 @@ const CairoVM = @import("vm/core.zig").CairoVM;
 const CairoRunner = @import("vm/runners/cairo_runner.zig").CairoRunner;
 const HintProcessor = @import("./hint_processor/hint_processor_def.zig").CairoVMHintProcessor;
 
-pub fn main() void {
+const CairoTestProgram = struct {
+        pathname: []const u8,
+        layout: []const u8,
+        extensive_hints: bool = false,
+};
+
+pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     // Given
     const allocator = gpa.allocator();
 
-    const cairo_programs = [_]struct {
-        pathname: []const u8,
-        layout: []const u8,
-        extensive_hints: bool = false,
-    }{
-        .{ .pathname = "cairo_programs/abs_value_array_compiled.json", .layout = "all_cairo" },
-        // TODO: UnknownOp0 error
-        // .{ .pathname = "cairo_programs/array_sum_compiled.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/assert_lt_felt.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/assert_250_bit_element_array_compiled.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/assert_le_felt_hint_compiled.json", .layout = "all_cairo" },
-        // .{ .pathname = "cairo_programs/assert_le_felt_old_compiled.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/assert_nn_compiled.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/assert_not_zero_compiled.json", .layout = "all_cairo" },
-        // TODO: merge bigint hint
-        // .{ .pathname = "cairo_programs/bigint_compiled.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/big_struct_compiled.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/bitand_hint_compiled.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/bitwise_output_compiled.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/bitwise_builtin_test.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/bitwise_recursion_compiled.json", .layout = "all_cairo" },
-        // TODO: merge blake hint
-        // .{ .pathname = "cairo_programs/blake2s_felts.json", .layout = "all_cairo" },
-        // .{ .pathname = "cairo_programs/blake2s_hello_world_hash.json", .layout = "all_cairo" },
-        // .{ .pathname = "cairo_programs/blake2s_integration_tests.json", .layout = "all_cairo" },
-        // TODO: implement cairo keccak
-        // .{ .pathname = "cairo_programs/cairo_finalize_keccak_compiled.json", .layout = "all_cairo" },
-        // .{ .pathname = "cairo_programs/cairo_finalize_keccak_block_size_1000.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/call_function_assign_param_by_name.json", .layout = "all_cairo" },
-        // TODO: FailedToComputeOp1 error
-        // .{ .pathname = "cairo_programs/chained_ec_op.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/common_signature.json", .layout = "all_cairo" },
-        // TODO: FailedToComputeOp1 error
-        // .{ .pathname = "cairo_programs/compare_arrays.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/compare_different_arrays.json", .layout = "all_cairo" },
-        // TODO: NoDst error
-        // .{ .pathname = "cairo_programs/compare_greater_array.json", .layout = "all_cairo" },
-        // TODO: NoDst error
-        // .{ .pathname = "cairo_programs/compare_lesser_array.json", .layout = "all_cairo" },
-        // TODO: FailedToComputeOp0
-        // .{ .pathname = "cairo_programs/compute_doubling_slope_v2.json", .layout = "all_cairo" },
-        // TODO: FailedToComputeOp0
-        // .{ .pathname = "cairo_programs/compute_slope_v2.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/dict.json", .layout = "all_cairo" },
-        // TODO: RelocatableAdd error
-        // .{ .pathname = "cairo_programs/dict_integration_tests.json", .layout = "all_cairo" },
-        // TODO: RelocatableAdd error
-        // .{ .pathname = "cairo_programs/dict_squash.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/dict_store_cast_ptr.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/dict_update.json", .layout = "all_cairo" },
-        // TODO: FailedToComputeOp0 error
-        // .{ .pathname = "cairo_programs/div_mod_n.json", .layout = "all_cairo" },
-        // TODO: FailedToComputeOp0 error
-        // .{ .pathname = "cairo_programs/ec_double_assign_new_x_v3.json", .layout = "all_cairo" },
-        // TODO: FailedToComputeOp0 error
-        // .{ .pathname = "cairo_programs/ec_double_slope.json", .layout = "all_cairo" },
-        // TODO: FailedToComputeOp0 error
-        // .{ .pathname = "cairo_programs/ec_double_v4.json", .layout = "all_cairo" },
-        // TODO: FailedToComputeOp0 error
-        // .{ .pathname = "cairo_programs/ec_negate.json", .layout = "all_cairo" },
-        // TODO: FailedToComputeOp1 error
-        // .{ .pathname = "cairo_programs/ec_op.json", .layout = "all_cairo" },
-        // TODO: FailedToComputeOp0 error
-        // .{ .pathname = "cairo_programs/ec_recover.json", .layout = "all_cairo" },
-        // TODO: FailedToComputeOp0 error
-        // .{ .pathname = "cairo_programs/ed25519_ec.json", .layout = "all_cairo" },
-        // TODO: FailedToComputeOp0 error
-        // .{ .pathname = "cairo_programs/ed25519_field.json", .layout = "all_cairo" },
-        // TODO: FailedToComputeOp0 error
-        // .{ .pathname = "cairo_programs/efficient_secp256r1_ec.json", .layout = "all_cairo" },
-        // TODO: merge blake hint
-        // .{ .pathname = "cairo_programs/example_blake2s.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/example_program.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/factorial.json", .layout = "plain" },
-        // TODO: FailedToComputeOp0 error
-        // .{ .pathname = "cairo_programs/fast_ec_add_v2.json", .layout = "all_cairo" },
-        // TODO: FailedToComputeOp0 error
-        // .{ .pathname = "cairo_programs/fast_ec_add_v3.json", .layout = "all_cairo" },
-        // TODO: FailedToComputeOp0 error
-        // .{ .pathname = "cairo_programs/field_arithmetic.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/fibonacci.json", .layout = "plain" },
-        // TODO: FailedToComputeOp0 error
-        // .{ .pathname = "cairo_programs/field_arithmetic.json", .layout = "all_cairo" },
-        // TODO: merge blake hint
-        // .{ .pathname = "cairo_programs/finalize_blake2s.json", .layout = "all_cairo" },
-        // TODO: merge blake hint
-        // .{ .pathname = "cairo_programs/finalize_blake2s_v2_hint.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/find_element.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/fq.json", .layout = "all_cairo" },
-        // TODO: FailedToComputeOp1 error
-        // .{ .pathname = "cairo_programs/fq_test.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/function_return.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/function_return_if_print.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/function_return_to_variable.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/garaga.json", .layout = "all_cairo" },
-        // TODO: FailedToComputeOp1 error
-        // .{ .pathname = "cairo_programs/highest_bitlen.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/if_and_prime.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/if_in_function.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/if_list.json", .layout = "all_cairo" },
-        // TODO: UnknownOp0 error
-        // .{ .pathname = "cairo_programs/if_reloc_equal.json", .layout = "all_cairo" },
+    // Refactor: Handle command line arguments
+    const args = try std.process.argsAlloc(allocator);
+    defer std.process.argsFree(allocator, args);
 
-        // .{ .pathname = "cairo_programs/keccak_compiled.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/keccak_builtin.json", .layout = "all_cairo" },
-        // .{ .pathname = "cairo_programs/keccak_integration_tests.json", .layout = "all_cairo" },
-        // .{ .pathname = "cairo_programs/keccak_copy_inputs.json", .layout = "all_cairo" },
-    };
+    var test_files_list: ?[]const u8 = null;
+    if (args.len > 1) {
+        // TODO: Parse command-line arguments more rigorously with a CLI utility
+        test_files_list = args[1];
+    }
+
+    var cairo_programs: []CairoTestProgram  = undefined; // This will be defined after reading from the test file or defaulting to all tests.
+
+    // If there are specific tests to run, read them from the file.
+    if (test_files_list) |list| {
+        var file = try std.fs.cwd().openFile(list, .{});
+        defer file.close();
+        const fileSize = try file.getEndPos();
+        const buffer = try allocator.alloc(u8, fileSize);
+        defer allocator.free(buffer);
+        
+        const bytes_read = try file.read(buffer);
+        // TODO add error handing here for empty file case
+        if (bytes_read == 0) return;
+
+        // Split the buffer by new lines and create cairo_programs array.
+        // Split the buffer by new lines and collect lines into a vector because we can't get .len from an iterator.
+        var lines = std.ArrayList([]const u8).init(allocator);
+        defer lines.deinit(); // Ensure allocated memory is freed appropriately
+
+        // Splitting the buffer into lines and adding them to 'lines' ArrayList.
+        var splitIterator = std.mem.split(u8, buffer, "\n");
+        while (splitIterator.next()) |line| {
+            try lines.append(line);
+        }
+
+        // Now, lines.items gives us the array and lines.len gives us the count.
+        cairo_programs = try allocator.alloc(CairoTestProgram, lines.items.len);
+
+        for (lines.items, 0..) |line, i| {
+            cairo_programs[i] = CairoTestProgram{
+                .pathname = try std.fmt.allocPrint(allocator, "cairo_programs/{s}.json", .{line}),
+                .layout = "all_cairo", // Assuming 'all_cairo' layout for simplicity; adjust if necessary.
+                .extensive_hints = false,
+            };
+        }
+        
+    } else {
+        // Default set of cairo_programs if no command line arguments are provided
+        // this is just for demonstration purposes
+        var temp_array = [_]CairoTestProgram{
+            .{ .pathname = "cairo_programs/abs_value_array_compiled.json", .layout = "all_cairo" },
+            // TODO: UnknownOp0 error
+            // .{ .pathname = "cairo_programs/array_sum_compiled.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/assert_lt_felt.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/assert_250_bit_element_array_compiled.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/assert_le_felt_hint_compiled.json", .layout = "all_cairo" },
+            // .{ .pathname = "cairo_programs/assert_le_felt_old_compiled.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/assert_nn_compiled.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/assert_not_zero_compiled.json", .layout = "all_cairo" },
+            // TODO: merge bigint hint
+            // .{ .pathname = "cairo_programs/bigint_compiled.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/big_struct_compiled.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/bitand_hint_compiled.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/bitwise_output_compiled.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/bitwise_builtin_test.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/bitwise_recursion_compiled.json", .layout = "all_cairo" },
+            // TODO: merge blake hint
+            // .{ .pathname = "cairo_programs/blake2s_felts.json", .layout = "all_cairo" },
+            // .{ .pathname = "cairo_programs/blake2s_hello_world_hash.json", .layout = "all_cairo" },
+            // .{ .pathname = "cairo_programs/blake2s_integration_tests.json", .layout = "all_cairo" },
+            // TODO: implement cairo keccak
+            // .{ .pathname = "cairo_programs/cairo_finalize_keccak_compiled.json", .layout = "all_cairo" },
+            // .{ .pathname = "cairo_programs/cairo_finalize_keccak_block_size_1000.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/call_function_assign_param_by_name.json", .layout = "all_cairo" },
+            // TODO: FailedToComputeOp1 error
+            // .{ .pathname = "cairo_programs/chained_ec_op.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/common_signature.json", .layout = "all_cairo" },
+            // TODO: FailedToComputeOp1 error
+            // .{ .pathname = "cairo_programs/compare_arrays.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/compare_different_arrays.json", .layout = "all_cairo" },
+            // TODO: NoDst error
+            // .{ .pathname = "cairo_programs/compare_greater_array.json", .layout = "all_cairo" },
+            // TODO: NoDst error
+            // .{ .pathname = "cairo_programs/compare_lesser_array.json", .layout = "all_cairo" },
+            // TODO: FailedToComputeOp0
+            // .{ .pathname = "cairo_programs/compute_doubling_slope_v2.json", .layout = "all_cairo" },
+            // TODO: FailedToComputeOp0
+            // .{ .pathname = "cairo_programs/compute_slope_v2.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/dict.json", .layout = "all_cairo" },
+            // TODO: RelocatableAdd error
+            // .{ .pathname = "cairo_programs/dict_integration_tests.json", .layout = "all_cairo" },
+            // TODO: RelocatableAdd error
+            // .{ .pathname = "cairo_programs/dict_squash.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/dict_store_cast_ptr.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/dict_update.json", .layout = "all_cairo" },
+            // TODO: FailedToComputeOp0 error
+            // .{ .pathname = "cairo_programs/div_mod_n.json", .layout = "all_cairo" },
+            // TODO: FailedToComputeOp0 error
+            // .{ .pathname = "cairo_programs/ec_double_assign_new_x_v3.json", .layout = "all_cairo" },
+            // TODO: FailedToComputeOp0 error
+            // .{ .pathname = "cairo_programs/ec_double_slope.json", .layout = "all_cairo" },
+            // TODO: FailedToComputeOp0 error
+            // .{ .pathname = "cairo_programs/ec_double_v4.json", .layout = "all_cairo" },
+            // TODO: FailedToComputeOp0 error
+            // .{ .pathname = "cairo_programs/ec_negate.json", .layout = "all_cairo" },
+            // TODO: FailedToComputeOp1 error
+            // .{ .pathname = "cairo_programs/ec_op.json", .layout = "all_cairo" },
+            // TODO: FailedToComputeOp0 error
+            // .{ .pathname = "cairo_programs/ec_recover.json", .layout = "all_cairo" },
+            // TODO: FailedToComputeOp0 error
+            // .{ .pathname = "cairo_programs/ed25519_ec.json", .layout = "all_cairo" },
+            // TODO: FailedToComputeOp0 error
+            // .{ .pathname = "cairo_programs/ed25519_field.json", .layout = "all_cairo" },
+            // TODO: FailedToComputeOp0 error
+            // .{ .pathname = "cairo_programs/efficient_secp256r1_ec.json", .layout = "all_cairo" },
+            // TODO: merge blake hint
+            // .{ .pathname = "cairo_programs/example_blake2s.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/example_program.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/factorial.json", .layout = "plain" },
+            // TODO: FailedToComputeOp0 error
+            // .{ .pathname = "cairo_programs/fast_ec_add_v2.json", .layout = "all_cairo" },
+            // TODO: FailedToComputeOp0 error
+            // .{ .pathname = "cairo_programs/fast_ec_add_v3.json", .layout = "all_cairo" },
+            // TODO: FailedToComputeOp0 error
+            // .{ .pathname = "cairo_programs/field_arithmetic.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/fibonacci.json", .layout = "plain" },
+            // TODO: FailedToComputeOp0 error
+            // .{ .pathname = "cairo_programs/field_arithmetic.json", .layout = "all_cairo" },
+            // TODO: merge blake hint
+            // .{ .pathname = "cairo_programs/finalize_blake2s.json", .layout = "all_cairo" },
+            // TODO: merge blake hint
+            // .{ .pathname = "cairo_programs/finalize_blake2s_v2_hint.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/find_element.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/fq.json", .layout = "all_cairo" },
+            // TODO: FailedToComputeOp1 error
+            // .{ .pathname = "cairo_programs/fq_test.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/function_return.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/function_return_if_print.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/function_return_to_variable.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/garaga.json", .layout = "all_cairo" },
+            // TODO: FailedToComputeOp1 error
+            // .{ .pathname = "cairo_programs/highest_bitlen.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/if_and_prime.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/if_in_function.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/if_list.json", .layout = "all_cairo" },
+            // TODO: UnknownOp0 error
+            // .{ .pathname = "cairo_programs/if_reloc_equal.json", .layout = "all_cairo" },
+            
+            // .{ .pathname = "cairo_programs/keccak_compiled.json", .layout = "all_cairo" },
+            .{ .pathname = "cairo_programs/keccak_builtin.json", .layout = "all_cairo" },
+            // .{ .pathname = "cairo_programs/keccak_integration_tests.json", .layout = "all_cairo" },
+            // .{ .pathname = "cairo_programs/keccak_copy_inputs.json", .layout = "all_cairo" },
+        };
+        cairo_programs = temp_array[0..];        
+        
+    }
+    
+
+
 
     var ok_count: usize = 0;
     var fail_count: usize = 0;
