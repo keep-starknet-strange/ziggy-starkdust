@@ -2,7 +2,10 @@
 const std = @import("std");
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const CairoVMError = @import("./error.zig").CairoVMError;
+const MathError = @import("./error.zig").MathError;
 const decoder = @import("./decoding/decoder.zig");
+const MaybeRelocatable = @import("./memory/relocatable.zig").MaybeRelocatable;
+const Relocatable = @import("./memory/relocatable.zig").Relocatable;
 
 //  Structure of the 63-bit that form the first word of each instruction.
 //  See Cairo whitepaper, page 32 - https://eprint.iacr.org/2021/1063.pdf.
@@ -181,6 +184,66 @@ pub const Instruction = struct {
             self.fp_update == .APPlus2 and
             self.opcode == .Call;
     }
+
+    /// Attempts to deduce `op1` and `res` for an instruction, given `dst` and `op0`.
+    ///
+    /// # Arguments
+    /// - `inst`: The instruction to deduce `op1` and `res` for.
+    /// - `dst`: The destination of the instruction.
+    /// - `op0`: The first operand of the instruction.
+    ///
+    /// # Returns
+    /// - `Tuple`: A tuple containing the deduced `op1` and `res`.
+    pub fn deduceOp1(
+        inst: *const Self,
+        dst: *const ?MaybeRelocatable,
+        op0: *const ?MaybeRelocatable,
+    ) !struct {
+        /// The computed operand Op1.
+        op_1: ?MaybeRelocatable = null,
+        /// The result of the operation involving Op1.
+        res: ?MaybeRelocatable = null,
+    } {
+        if (inst.opcode != .AssertEq) return .{};
+
+        switch (inst.res_logic) {
+            .Op1 => if (dst.*) |dst_val| return .{ .op_1 = dst_val, .res = dst_val },
+            .Add => if (dst.*) |d|
+                if (op0.*) |op| return .{ .op_1 = try d.sub(op), .res = d },
+            .Mul => if (dst.*) |d| {
+                if (op0.*) |op| {
+                    if (d.isFelt() and op.isFelt() and !op.felt.isZero())
+                        return .{
+                            .op_1 = MaybeRelocatable.fromFelt(try d.felt.div(op.felt)),
+                            .res = d,
+                        };
+                }
+            },
+            else => {},
+        }
+
+        return .{};
+    }
+
+    /// Compute the result operand for a given instruction on op 0 and op 1.
+    /// # Arguments
+    /// - `instruction`: The instruction to compute the operands for.
+    /// - `op_0`: The operand 0.
+    /// - `op_1`: The operand 1.
+    /// # Returns
+    /// - `res`: The result of the operation.
+    pub fn computeRes(
+        instruction: *const Self,
+        op_0: MaybeRelocatable,
+        op_1: MaybeRelocatable,
+    ) !?MaybeRelocatable {
+        return switch (instruction.res_logic) {
+            .Op1 => op_1,
+            .Add => try op_0.add(op_1),
+            .Mul => try op_0.mul(op_1),
+            .Unconstrained => null,
+        };
+    }
 };
 
 /// Parse opcode from a 3-bit integer field.
@@ -307,8 +370,393 @@ const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
 
+// This instruction is used in the functions that test the `deduceOp1` function. Only the
+// `opcode` and `res_logic` fields are usually changed.
+const deduceOpTestInstr = Instruction{
+    .off_0 = 1,
+    .off_1 = 2,
+    .off_2 = 3,
+    .dst_reg = .FP,
+    .op_0_reg = .AP,
+    .op_1_addr = .AP,
+    .res_logic = .Add,
+    .pc_update = .Jump,
+    .ap_update = .Regular,
+    .fp_update = .Regular,
+    .opcode = .Call,
+};
+
 test "isCallInstruction" {
     try expect(isCallInstruction(Felt252.fromInt(u256, 1226245742482522112)));
     try expect(!isCallInstruction(Felt252.fromInt(u256, 4612671187288031229)));
     try expect(!isCallInstruction(Felt252.fromInt(u256, 1 << 63)));
+}
+
+test "deduceOp1 when opcode == .Call" {
+    // Setup test context
+    // Nothing.
+
+    // Test body
+    var instr = deduceOpTestInstr;
+    instr.opcode = .Call;
+
+    const op1Deduction = try instr.deduceOp1(&null, &null);
+
+    // Test checks
+    const expected_op_1: ?MaybeRelocatable = null; // temp var needed for type inference
+    const expected_res: ?MaybeRelocatable = null;
+    try expectEqual(expected_op_1, op1Deduction.op_1);
+    try expectEqual(expected_res, op1Deduction.res);
+}
+
+test "deduceOp1 when opcode == .AssertEq, res_logic == .Add, input is felt" {
+    // Setup test context
+    // Nothing.
+
+    // Test body
+    var instr = deduceOpTestInstr;
+    instr.opcode = .AssertEq;
+    instr.res_logic = .Add;
+
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 3);
+    const op0: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 2);
+
+    const op1Deduction = try instr.deduceOp1(&dst, &op0);
+
+    // Test checks
+    try expect(op1Deduction.op_1.?.eq(MaybeRelocatable.fromInt(u64, 1)));
+    try expect(op1Deduction.res.?.eq(MaybeRelocatable.fromInt(u64, 3)));
+}
+
+test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, non-zero op0" {
+    // Setup test context
+    // Nothing.
+
+    // Test body
+    var instr = deduceOpTestInstr;
+    instr.opcode = .AssertEq;
+    instr.res_logic = .Mul;
+
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 4);
+    const op0: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 2);
+
+    const op1Deduction = try instr.deduceOp1(&dst, &op0);
+
+    // Test checks
+    try expect(op1Deduction.op_1.?.eq(MaybeRelocatable.fromInt(u64, 2)));
+    try expect(op1Deduction.res.?.eq(MaybeRelocatable.fromInt(u64, 4)));
+}
+
+test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
+    // Setup test context
+    // Nothing.
+
+    // Test body
+    var instr = deduceOpTestInstr;
+    instr.opcode = .AssertEq;
+    instr.res_logic = .Mul;
+
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 4);
+    const op0: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 0);
+
+    const op1Deduction = try instr.deduceOp1(&dst, &op0);
+
+    // Test checks
+    const expected_op_1: ?MaybeRelocatable = null; // temp var needed for type inference
+    const expected_res: ?MaybeRelocatable = null;
+    try expectEqual(expected_op_1, op1Deduction.op_1);
+    try expectEqual(expected_res, op1Deduction.res);
+}
+
+test "deduceOp1 when opcode == .AssertEq, res_logic = .Mul, no input" {
+    // Setup test context
+    // Nothing.
+
+    // Test body
+    var instr = deduceOpTestInstr;
+    instr.opcode = .AssertEq;
+    instr.res_logic = .Mul;
+
+    const op1Deduction = try instr.deduceOp1(&null, &null);
+
+    // Test checks
+    const expected_op_1: ?MaybeRelocatable = null; // temp var needed for type inference
+    const expected_res: ?MaybeRelocatable = null;
+    try expectEqual(expected_op_1, op1Deduction.op_1);
+    try expectEqual(expected_res, op1Deduction.res);
+}
+
+test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
+    // Setup test context
+    // Nothing.
+
+    // Test body
+    var instr = deduceOpTestInstr;
+    instr.opcode = .AssertEq;
+    instr.res_logic = .Op1;
+
+    const op0: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 0);
+
+    const op1Deduction = try instr.deduceOp1(&null, &op0);
+
+    // Test checks
+    const expected_op_1: ?MaybeRelocatable = null; // temp var needed for type inference
+    const expected_res: ?MaybeRelocatable = null;
+    try expectEqual(expected_op_1, op1Deduction.op_1);
+    try expectEqual(expected_res, op1Deduction.res);
+}
+
+test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no op0" {
+    // Setup test context
+    // Nothing/
+
+    // Test body
+    var instr = deduceOpTestInstr;
+    instr.opcode = .AssertEq;
+    instr.res_logic = .Op1;
+
+    const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 7);
+
+    const op1Deduction = try instr.deduceOp1(&dst, &null);
+
+    // Test checks
+    try expect(op1Deduction.op_1.?.eq(MaybeRelocatable.fromInt(u64, 7)));
+    try expect(op1Deduction.res.?.eq(MaybeRelocatable.fromInt(u64, 7)));
+}
+
+test "compute res op1 works" {
+    // Test body
+    const value_op0 = MaybeRelocatable.fromFelt(Felt252.two());
+    const value_op1 = MaybeRelocatable.fromFelt(Felt252.three());
+
+    const instruction: Instruction = .{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Op1,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
+    };
+
+    // Call with Op1 res logic
+    const actual_res = try instruction.computeRes(value_op0, value_op1);
+    const expected_res = value_op1;
+
+    // Test checks
+    try expectEqual(
+        expected_res,
+        actual_res.?,
+    );
+}
+
+test "compute res add felts works" {
+    // Test body
+    const value_op0 = MaybeRelocatable.fromFelt(Felt252.two());
+    const value_op1 = MaybeRelocatable.fromFelt(Felt252.three());
+
+    const instruction: Instruction = .{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
+    };
+
+    const actual_res = try instruction.computeRes(value_op0, value_op1);
+    const expected_res = MaybeRelocatable.fromFelt(Felt252.fromInt(u8, 5));
+
+    // Test checks
+    try expectEqual(
+        expected_res,
+        actual_res.?,
+    );
+}
+
+test "compute res add felt to offset works" {
+    // Test body
+    const value_op0 = Relocatable.init(1, 1);
+    const op0 = MaybeRelocatable.fromRelocatable(value_op0);
+
+    const op1 = MaybeRelocatable.fromFelt(Felt252.three());
+
+    const instruction: Instruction = .{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
+    };
+
+    const actual_res = try instruction.computeRes(op0, op1);
+    const res = Relocatable.init(1, 4);
+    const expected_res = MaybeRelocatable.fromRelocatable(res);
+
+    // Test checks
+    try expectEqual(
+        expected_res,
+        actual_res.?,
+    );
+}
+
+test "compute res add fails two relocs" {
+
+    // Test body
+    const value_op0 = Relocatable.init(1, 0);
+    const value_op1 = Relocatable.init(1, 1);
+
+    const op0 = MaybeRelocatable.fromRelocatable(value_op0);
+    const op1 = MaybeRelocatable.fromRelocatable(value_op1);
+
+    const instruction: Instruction = .{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Add,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
+    };
+
+    // Test checks
+    try expectError(
+        MathError.RelocatableAdd,
+        instruction.computeRes(op0, op1),
+    );
+}
+
+test "compute res mul works" {
+    // Test body
+    const value_op0 = MaybeRelocatable.fromFelt(Felt252.two());
+    const value_op1 = MaybeRelocatable.fromFelt(Felt252.three());
+
+    const instruction: Instruction = .{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Mul,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
+    };
+
+    // Call with Mul res logic
+    const actual_res = try instruction.computeRes(value_op0, value_op1);
+    const expected_res = MaybeRelocatable.fromFelt(Felt252.fromInt(u8, 6));
+
+    // Test checks
+    try expectEqual(
+        expected_res,
+        actual_res.?,
+    );
+}
+
+test "compute res mul fails two relocs" {
+    // Test bod
+    const value_op0 = Relocatable.init(1, 0);
+    const value_op1 = Relocatable.init(1, 1);
+
+    const op0 = MaybeRelocatable.fromRelocatable(value_op0);
+    const op1 = MaybeRelocatable.fromRelocatable(value_op1);
+
+    const instruction: Instruction = .{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Mul,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
+    };
+
+    // Test checks
+    try expectError(
+        MathError.RelocatableMul,
+        instruction.computeRes(op0, op1),
+    );
+}
+
+test "compute res mul fails felt and reloc" {
+    // Test body
+    const value_op0 = Relocatable.init(1, 0);
+    const op0 = MaybeRelocatable.fromRelocatable(value_op0);
+    const op1 = MaybeRelocatable.fromFelt(Felt252.two());
+
+    const instruction: Instruction = .{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Mul,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
+    };
+
+    // Test checks
+    try expectError(
+        MathError.RelocatableMul,
+        instruction.computeRes(op0, op1),
+    );
+}
+
+test "compute res Unconstrained should return null" {
+    // Test body
+    const value_op0 = MaybeRelocatable.fromFelt(Felt252.two());
+    const value_op1 = MaybeRelocatable.fromFelt(Felt252.three());
+
+    const instruction: Instruction = .{
+        .off_0 = 0,
+        .off_1 = 1,
+        .off_2 = 2,
+        .dst_reg = .AP,
+        .op_0_reg = .AP,
+        .op_1_addr = .AP,
+        .res_logic = .Unconstrained,
+        .pc_update = .Regular,
+        .ap_update = .Regular,
+        .fp_update = .Regular,
+        .opcode = .NOp,
+    };
+
+    // Call with unconstrained res logic
+    const actual_res = try instruction.computeRes(value_op0, value_op1);
+    const expected_res: ?MaybeRelocatable = null;
+
+    // Test checks
+    try expectEqual(
+        expected_res,
+        actual_res,
+    );
 }
