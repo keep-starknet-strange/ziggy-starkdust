@@ -3,8 +3,52 @@ const relocatable = @import("../vm/memory/relocatable.zig");
 
 const CairoVM = @import("../vm/core.zig").CairoVM;
 const MaybeRelocatable = relocatable.MaybeRelocatable;
+const dict_manager_lib = @import("dict_manager.zig");
 const IdsManager = @import("hint_utils.zig").IdsManager;
 const HintReference = @import("../hint_processor/hint_processor_def.zig").HintReference;
+const ExecutionScopes = @import("../vm/types/execution_scopes.zig").ExecutionScopes;
+const Rc = @import("../vm/types/execution_scopes.zig").Rc;
+
+pub fn initDictManagerDefault(allocator: std.mem.Allocator, exec_scopes: *ExecutionScopes, tracker_num: i64, default: u64, data: []const struct { usize, usize }) !void {
+    var tracker = try dict_manager_lib.DictTracker.initDefaultDict(allocator, relocatable.Relocatable.init(tracker_num, 0), MaybeRelocatable.fromInt(u64, default), null);
+    errdefer tracker.deinit();
+
+    for (data) |d| try tracker.insertValue(MaybeRelocatable.fromInt(usize, d[0]), MaybeRelocatable.fromInt(usize, d[1]));
+
+    var dict_manager = try dict_manager_lib.DictManager.init(allocator);
+    errdefer dict_manager.deinit();
+    try dict_manager.trackers.put(2, tracker);
+
+    try exec_scopes.assignOrUpdateVariable("dict_manager", .{ .dict_manager = try Rc(dict_manager_lib.DictManager).init(allocator, dict_manager) });
+}
+
+pub fn initDictManager(allocator: std.mem.Allocator, exec_scopes: *ExecutionScopes, tracker_num: i64, data: []const struct { usize, usize }) !void {
+    var tracker = dict_manager_lib.DictTracker.initEmpty(allocator, relocatable.Relocatable.init(tracker_num, 0));
+    errdefer tracker.deinit();
+
+    for (data) |d| try tracker.insertValue(MaybeRelocatable.fromInt(usize, d[0]), MaybeRelocatable.fromInt(usize, d[1]));
+
+    var dict_manager = try dict_manager_lib.DictManager.init(allocator);
+    errdefer dict_manager.deinit();
+    try dict_manager.trackers.put(2, tracker);
+
+    try exec_scopes.assignOrUpdateVariable("dict_manager", .{ .dict_manager = try Rc(dict_manager_lib.DictManager).init(allocator, dict_manager) });
+}
+
+pub fn checkDictionary(exec_scopes: *ExecutionScopes, tracker_num: isize, data: []const struct { usize, usize }) !void {
+    var dict_manager_rc = try exec_scopes.getDictManager();
+    defer dict_manager_rc.releaseWithFn(dict_manager_lib.DictManager.deinit);
+
+    var tracker = dict_manager_rc.value.trackers.get(tracker_num).?;
+
+    for (data) |d| try std.testing.expectEqual(MaybeRelocatable.fromInt(usize, d[1]), try tracker.getValue(MaybeRelocatable.fromInt(usize, d[0])));
+}
+
+pub fn checkDictPtr(exec_scopes: *ExecutionScopes, tracker_num: isize, expected_ptr: relocatable.Relocatable) !void {
+    const dict_manager_rc = try exec_scopes.getDictManager();
+    defer dict_manager_rc.releaseWithFn(dict_manager_lib.DictManager.deinit);
+    try std.testing.expectEqual(expected_ptr, dict_manager_rc.value.trackers.get(tracker_num).?.current_ptr);
+}
 
 pub fn setupIdsNonContinuousIdsData(allocator: std.mem.Allocator, data: []const struct { []const u8, i32 }) !std.StringHashMap(HintReference) {
     var ids_data = std.StringHashMap(HintReference).init(allocator);
