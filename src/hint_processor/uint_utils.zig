@@ -10,7 +10,6 @@ pub fn split(num: Int, comptime N: usize, num_bits_shift: usize) ![N]Felt252 {
 
     var bitmask = try Int.initSet(allocator, 1);
     defer bitmask.deinit();
-
     try bitmask.shiftLeft(&bitmask, num_bits_shift);
     try bitmask.sub(&bitmask, &one);
 
@@ -18,9 +17,10 @@ pub fn split(num: Int, comptime N: usize, num_bits_shift: usize) ![N]Felt252 {
     defer shifted.deinit();
 
     var result: [N]Felt252 = undefined;
-    for (0..N) |i| {
+    for (&result) |*r| {
         try shifted.bitAnd(&temp_num, &bitmask);
-        result[i] = Felt252.fromInt(u256, try shifted.to(u256));
+        r.* = Felt252.fromInt(u256, try shifted.to(u256));
+        try temp_num.shiftRight(&temp_num, num_bits_shift);
     }
     return result;
 }
