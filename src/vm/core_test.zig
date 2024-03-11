@@ -15,6 +15,7 @@ const Relocatable = relocatable.Relocatable;
 const instructions = @import("instructions.zig");
 const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
+const ExecScopeError = @import("error.zig").ExecScopeError;
 const TraceError = @import("error.zig").TraceError;
 const MemoryError = @import("error.zig").MemoryError;
 const MathError = @import("error.zig").MathError;
@@ -36,6 +37,7 @@ const OperandsResult = @import("core.zig").OperandsResult;
 const deduceOp1 = @import("core.zig").deduceOp1;
 const HintData = @import("../hint_processor/hint_processor_def.zig").HintData;
 const HintRange = @import("./types/program.zig").HintRange;
+const HintType = @import("./types/execution_scopes.zig").HintType;
 const ExecutionScopes = @import("./types/execution_scopes.zig").ExecutionScopes;
 const HintProcessor = @import("../hint_processor/hint_processor_def.zig").CairoVMHintProcessor;
 
@@ -4794,5 +4796,32 @@ test "CairoVM: multiplication and different ap increase" {
     try expectEqual(
         MaybeRelocatable.fromInt(u256, 0x14),
         vm.segments.memory.get(vm.run_context.getAP()).?,
+    );
+}
+
+test "CairoVM: endRun with a no scope error" {
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    // Deallocate the VM resources after the test.
+    defer vm.deinit();
+
+    // Initialize execution scopes using the testing allocator.
+    var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
+    // Deallocate the execution scopes after the test.
+    defer exec_scopes.deinit();
+
+    // Initialize a new scope using the testing allocator.
+    var new_scope = std.StringHashMap(HintType).init(std.testing.allocator);
+    // Deallocate the new scope after the test.
+    defer new_scope.deinit();
+
+    // Enter the newly created scope.
+    try exec_scopes.enterScope(new_scope);
+
+    // Expect an error of type NoScopeError.
+    try expectError(
+        ExecScopeError.NoScopeError,
+        vm.endRun(std.testing.allocator, &exec_scopes),
     );
 }
