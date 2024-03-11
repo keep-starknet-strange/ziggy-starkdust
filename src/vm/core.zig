@@ -14,6 +14,7 @@ const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
 const MemoryError = @import("error.zig").MemoryError;
 const TraceError = @import("error.zig").TraceError;
+const ExecScopeError = @import("error.zig").ExecScopeError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
@@ -1372,6 +1373,37 @@ pub const CairoVM = struct {
             return CairoVMError.InvalidInstructionEncoding;
 
         return decoder.decodeInstructions(instruction);
+    }
+
+    /// Marks the end of the execution run in the Cairo Virtual Machine.
+    ///
+    /// This function finalizes the execution run by verifying auto deductions and marking the run as finished.
+    /// It also checks if there is only one execution scope remaining, returning `ExecScopeError.NoScopeError` if so.
+    ///
+    /// Parameters:
+    /// - `allocator`: The allocator to be used for any necessary memory allocations.
+    /// - `exec_scopes`: Pointer to the execution scopes.
+    ///
+    /// Returns:
+    /// - If there is only one execution scope remaining, returns `ExecScopeError.NoScopeError`.
+    /// - Otherwise, returns `void`.
+    ///
+    /// Errors:
+    /// - Returns an error if there is only one execution scope remaining (`ExecScopeError.NoScopeError`).
+    pub fn endRun(self: *Self, allocator: Allocator, exec_scopes: *ExecutionScopes) !void {
+        // Verify auto deductions before ending the run
+        try self.verifyAutoDeductions(allocator);
+
+        // Mark the run as finished
+        self.is_run_finished = true;
+
+        // If there is only one execution scope remaining, return immediately
+        if (exec_scopes.data.items.len == 1) {
+            return;
+        }
+
+        // Otherwise, return an error indicating no scope error
+        return ExecScopeError.NoScopeError;
     }
 };
 
