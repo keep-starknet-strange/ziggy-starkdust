@@ -31,6 +31,7 @@ const RelocatedTraceEntry = trace_context.TraceContext.RelocatedTraceEntry;
 const starknet_felt = @import("../../math/fields/starknet.zig");
 const Felt252 = starknet_felt.Felt252;
 const ExecutionScopes = @import("../types/execution_scopes.zig").ExecutionScopes;
+const TraceContext = @import("../trace_context.zig").TraceContext;
 
 const OutputBuiltinRunner = @import("../builtins/builtin_runner/output.zig").OutputBuiltinRunner;
 const BitwiseBuiltinRunner = @import("../builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
@@ -47,7 +48,7 @@ const expectError = std.testing.expectError;
 const expectEqualSlices = std.testing.expectEqualSlices;
 
 /// Tracks the step resources of a cairo execution run.
-const RunResources = struct {
+pub const RunResources = struct {
     const Self = @This();
     // We consider the 'default' mode of RunResources having infinite steps.
     n_steps: ?usize = null,
@@ -443,7 +444,8 @@ pub const CairoRunner = struct {
             self.initial_fp = try (self.execution_base orelse return RunnerError.NoExecBase).addUint(target_offset);
             self.initial_ap = self.initial_fp;
 
-            return (self.program_base orelse return RunnerError.NoExecBase).addUint(try (self.program.shared_program_data.end orelse
+            return (self.program_base orelse
+                return RunnerError.NoExecBase).addUint(try (self.program.shared_program_data.end orelse
                 RunnerError.NoProgramEnd));
         }
 
@@ -517,15 +519,15 @@ pub const CairoRunner = struct {
         return result;
     }
 
-    pub fn runUntilPC(self: *Self, end: Relocatable, extensive_hints: bool) !void {
-        var hint_processor: HintProcessor = .{};
-
+    pub fn runUntilPC(
+        self: *Self,
+        end: Relocatable,
+        extensive_hints: bool,
+        hint_processor: *HintProcessor,
+    ) !void {
         const references = self.program.shared_program_data.reference_manager.items;
 
-        var hint_datas = try self.getHintData(
-            &hint_processor,
-            references,
-        );
+        var hint_datas = try self.getHintData(hint_processor, references);
         defer hint_datas.deinit();
 
         var hint_ranges: std.AutoHashMap(Relocatable, HintRange) = undefined;
@@ -533,23 +535,44 @@ pub const CairoRunner = struct {
             if (extensive_hints) hint_ranges.deinit();
         }
 
-        if (extensive_hints) hint_ranges = try self.program.shared_program_data.hints_collection.hints_ranges.Extensive.clone();
+        if (extensive_hints)
+            hint_ranges = try self.program.shared_program_data
+                .hints_collection.hints_ranges.Extensive.clone();
 
-        while (!end.eq(self.vm.run_context.pc.*)) {
+        while (!end.eq(self.vm.run_context.pc.*) and !hint_processor.run_resources.consumed()) {
             if (extensive_hints) {
-                try self.vm.stepExtensive(self.allocator, .{}, &self.execution_scopes, &hint_datas, &hint_ranges, &self.program.constants);
+                try self.vm.stepExtensive(
+                    self.allocator,
+                    hint_processor.*,
+                    &self.execution_scopes,
+                    &hint_datas,
+                    &hint_ranges,
+                    &self.program.constants,
+                );
             } else {
                 // cfg not extensive hints feature
                 var hint_data_final: []HintData = &.{};
                 // TODO implement extensive hint data parse
-                if (self.program.shared_program_data.hints_collection.hints_ranges.NonExtensive.items.len > self.vm.run_context.pc.offset) {
-                    if (self.program.shared_program_data.hints_collection.hints_ranges.NonExtensive.items[self.vm.run_context.pc.offset]) |range| {
+                if (self.program.shared_program_data.hints_collection
+                    .hints_ranges.NonExtensive.items.len > self.vm.run_context.pc.offset)
+                {
+                    if (self.program.shared_program_data.hints_collection
+                        .hints_ranges.NonExtensive.items[self.vm.run_context.pc.offset]) |range|
+                    {
                         hint_data_final = hint_datas.items[range.start .. range.start + range.length];
                     }
                 }
 
-                try self.vm.stepNotExtensive(self.allocator, .{}, &self.execution_scopes, hint_data_final, &self.program.constants);
+                try self.vm.stepNotExtensive(
+                    self.allocator,
+                    hint_processor.*,
+                    &self.execution_scopes,
+                    hint_data_final,
+                    &self.program.constants,
+                );
             }
+
+            hint_processor.run_resources.consumeStep();
         }
     }
 
@@ -2272,4 +2295,771 @@ test "CairoRunner: initState with no execution_base" {
 
     // Expect an error when trying to initialize the runner state without an execution base.
     try expectError(RunnerError.NoProgBase, cairo_runner.initState(1, &stack));
+}
+
+test "CairoRunner: runUntilPC with function call" {
+
+    //Program used:
+    //func myfunc(a: felt) -> (r: felt):
+    //    let b = a * 2
+    //    return(b)
+    //end
+    //
+    //func main():
+    //    let a = 1
+    //    let b = myfunc(a)
+    //    return()
+    //end
+    //
+    //main = 3
+    //data = [5207990763031199744, 2, 2345108766317314046, 5189976364521848832, 1,
+    //1226245742482522112, 3618502788666131213697322783095070105623107215331596699973092056135872020476,
+    //2345108766317314046]
+
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u64, 5207990763031199744));
+    try data.append(MaybeRelocatable.fromInt(u64, 2));
+    try data.append(MaybeRelocatable.fromInt(u64, 2345108766317314046));
+    try data.append(MaybeRelocatable.fromInt(u64, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u64, 1));
+    try data.append(MaybeRelocatable.fromInt(u64, 1226245742482522112));
+    try data.append(MaybeRelocatable.fromInt(u256, 3618502788666131213697322783095070105623107215331596699973092056135872020476));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize data structures required for a program.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+    const builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+
+    // Initialize a Program instance with the specified parameters.
+    const program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        3,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
+        false,
+    );
+
+    var hint_processor: HintProcessor = .{};
+
+    // Initialize a CairoVM instance.
+    const vm = try CairoVM.init(
+        std.testing.allocator,
+        .{ .proof_mode = false, .enable_trace = true },
+    );
+
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        vm,
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    try cairo_runner.initSegments(null);
+    const end = try cairo_runner.initMainEntrypoint();
+    try expectEqual(Relocatable.init(3, 0), end);
+
+    try cairo_runner.initVM();
+
+    try cairo_runner.runUntilPC(end, false, &hint_processor);
+
+    try expectEqual(Relocatable.init(3, 0), cairo_runner.vm.run_context.pc.*);
+    try expectEqual(Relocatable.init(1, 6), cairo_runner.vm.run_context.ap.*);
+    try expectEqual(Relocatable.init(1, 0), cairo_runner.vm.run_context.fp.*);
+
+    try expectEqualSlices(
+        TraceContext.Entry,
+        &[_]TraceContext.Entry{
+            .{
+                .pc = Relocatable.init(0, 3),
+                .ap = Relocatable.init(1, 2),
+                .fp = Relocatable.init(1, 2),
+            },
+            .{
+                .pc = Relocatable.init(0, 5),
+                .ap = Relocatable.init(1, 3),
+                .fp = Relocatable.init(1, 2),
+            },
+            .{
+                .pc = Relocatable.init(0, 0),
+                .ap = Relocatable.init(1, 5),
+                .fp = Relocatable.init(1, 5),
+            },
+            .{
+                .pc = Relocatable.init(0, 2),
+                .ap = Relocatable.init(1, 6),
+                .fp = Relocatable.init(1, 5),
+            },
+            .{
+                .pc = Relocatable.init(0, 7),
+                .ap = Relocatable.init(1, 6),
+                .fp = Relocatable.init(1, 2),
+            },
+        },
+        cairo_runner.vm.trace_context.state.enabled.entries.items,
+    );
+}
+
+test "CairoRunner: runUntilPC with range check builtin" {
+
+    //Program used:
+    //%builtins range_check
+    //
+    //func check_range{range_check_ptr}(num):
+
+    //    # Check that 0 <= num < 2**64.
+    //    [range_check_ptr] = num
+    //    assert [range_check_ptr + 1] = 2 ** 64 - 1 - num
+    //    let range_check_ptr = range_check_ptr + 2
+    //    return()
+    // end
+    //
+    //func main{range_check_ptr}():
+    //    check_range(7)
+    //    return()
+    //end
+    //
+    //main = 8
+    //data = [4612671182993129469, 5189976364521848832, 18446744073709551615,
+    // 5199546496550207487, 4612389712311386111, 5198983563776393216, 2,
+    // 2345108766317314046, 5191102247248822272, 5189976364521848832, 7,
+    // 1226245742482522112,
+    // 3618502788666131213697322783095070105623107215331596699973092056135872020470,
+    // 2345108766317314046]
+
+    // Initialize a list of built-in functions.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.range_check);
+
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u64, 4612671182993129469));
+    try data.append(MaybeRelocatable.fromInt(u64, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u64, 18446744073709551615));
+    try data.append(MaybeRelocatable.fromInt(u64, 5199546496550207487));
+    try data.append(MaybeRelocatable.fromInt(u64, 4612389712311386111));
+    try data.append(MaybeRelocatable.fromInt(u64, 5198983563776393216));
+    try data.append(MaybeRelocatable.fromInt(u256, 2));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+    try data.append(MaybeRelocatable.fromInt(u256, 5191102247248822272));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 7));
+    try data.append(MaybeRelocatable.fromInt(u256, 1226245742482522112));
+    try data.append(MaybeRelocatable.fromInt(u256, 3618502788666131213697322783095070105623107215331596699973092056135872020470));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize data structures required for a program.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a Program instance with the specified parameters.
+    const program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        8,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
+        false,
+    );
+
+    // Initialize a CairoVM instance.
+    const vm = try CairoVM.init(
+        std.testing.allocator,
+        .{ .proof_mode = false, .enable_trace = true },
+    );
+
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        vm,
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    try cairo_runner.initBuiltins(true);
+    try cairo_runner.initSegments(null);
+    const end = try cairo_runner.initMainEntrypoint();
+    try expectEqual(Relocatable.init(4, 0), end);
+
+    try cairo_runner.initVM();
+
+    var hint_processor: HintProcessor = .{};
+    try cairo_runner.runUntilPC(end, false, &hint_processor);
+
+    try expectEqual(Relocatable.init(4, 0), cairo_runner.vm.run_context.pc.*);
+    try expectEqual(Relocatable.init(1, 10), cairo_runner.vm.run_context.ap.*);
+    try expectEqual(Relocatable.init(1, 0), cairo_runner.vm.run_context.fp.*);
+
+    try expectEqualSlices(
+        TraceContext.Entry,
+        &[_]TraceContext.Entry{
+            .{
+                .pc = Relocatable.init(0, 8),
+                .ap = Relocatable.init(1, 3),
+                .fp = Relocatable.init(1, 3),
+            },
+            .{
+                .pc = Relocatable.init(0, 9),
+                .ap = Relocatable.init(1, 4),
+                .fp = Relocatable.init(1, 3),
+            },
+            .{
+                .pc = Relocatable.init(0, 11),
+                .ap = Relocatable.init(1, 5),
+                .fp = Relocatable.init(1, 3),
+            },
+            .{
+                .pc = Relocatable.init(0, 0),
+                .ap = Relocatable.init(1, 7),
+                .fp = Relocatable.init(1, 7),
+            },
+            .{
+                .pc = Relocatable.init(0, 1),
+                .ap = Relocatable.init(1, 7),
+                .fp = Relocatable.init(1, 7),
+            },
+            .{
+                .pc = Relocatable.init(0, 3),
+                .ap = Relocatable.init(1, 8),
+                .fp = Relocatable.init(1, 7),
+            },
+            .{
+                .pc = Relocatable.init(0, 4),
+                .ap = Relocatable.init(1, 9),
+                .fp = Relocatable.init(1, 7),
+            },
+            .{
+                .pc = Relocatable.init(0, 5),
+                .ap = Relocatable.init(1, 9),
+                .fp = Relocatable.init(1, 7),
+            },
+            .{
+                .pc = Relocatable.init(0, 7),
+                .ap = Relocatable.init(1, 10),
+                .fp = Relocatable.init(1, 7),
+            },
+            .{
+                .pc = Relocatable.init(0, 13),
+                .ap = Relocatable.init(1, 10),
+                .fp = Relocatable.init(1, 3),
+            },
+        },
+        cairo_runner.vm.trace_context.state.enabled.entries.items,
+    );
+
+    try expectEqual(
+        builtin_runner_import.RANGE_CHECK_BUILTIN_NAME,
+        cairo_runner.vm.builtin_runners.items[0].name(),
+    );
+    try expectEqual(
+        @as(usize, 2),
+        cairo_runner.vm.builtin_runners.items[0].base(),
+    );
+
+    try expectEqual(
+        MaybeRelocatable.fromInt(u8, 7),
+        cairo_runner.vm.segments.memory.data.items[2].items[0].?.maybe_relocatable,
+    );
+    try expectEqual(
+        MaybeRelocatable.fromInt(u256, 18446744073709551608),
+        cairo_runner.vm.segments.memory.data.items[2].items[1].?.maybe_relocatable,
+    );
+
+    try expectEqual(
+        null,
+        cairo_runner.vm.segments.memory.get(Relocatable.init(2, 2)),
+    );
+}
+
+test "CairoRunner: initialize and run with output builtin" {
+    //Program used:
+    //%builtins output
+    //
+    //from starkware.cairo.common.serialize import serialize_word
+    //
+    //func main{output_ptr: felt*}():
+    //    let a = 1
+    //    serialize_word(a)
+    //    let b = 17 * a
+    //    serialize_word(b)
+    //    return()
+    //end
+    //
+    //main = 4
+    //data = [
+    //4612671182993129469,
+    //5198983563776393216,
+    //1,
+    //2345108766317314046,
+    //5191102247248822272,
+    //5189976364521848832,
+    //1,
+    //1226245742482522112,
+    //3618502788666131213697322783095070105623107215331596699973092056135872020474,
+    //5189976364521848832,
+    //17,
+    //1226245742482522112,
+    //3618502788666131213697322783095070105623107215331596699973092056135872020470,
+    //2345108766317314046
+    //]
+
+    // Initialize a list of built-in functions.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.output);
+
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u256, 4612671182993129469));
+    try data.append(MaybeRelocatable.fromInt(u256, 5198983563776393216));
+    try data.append(MaybeRelocatable.fromInt(u256, 1));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+    try data.append(MaybeRelocatable.fromInt(u256, 5191102247248822272));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 1));
+    try data.append(MaybeRelocatable.fromInt(u256, 1226245742482522112));
+    try data.append(MaybeRelocatable.fromInt(u256, 3618502788666131213697322783095070105623107215331596699973092056135872020474));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 17));
+    try data.append(MaybeRelocatable.fromInt(u256, 1226245742482522112));
+    try data.append(MaybeRelocatable.fromInt(u256, 3618502788666131213697322783095070105623107215331596699973092056135872020470));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize data structures required for a program.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a Program instance with the specified parameters.
+    const program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        4,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
+        false,
+    );
+
+    // Initialize a CairoVM instance.
+    const vm = try CairoVM.init(
+        std.testing.allocator,
+        .{ .proof_mode = false, .enable_trace = true },
+    );
+
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        vm,
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    try cairo_runner.initBuiltins(true);
+    try cairo_runner.initSegments(null);
+    const end = try cairo_runner.initMainEntrypoint();
+    try expectEqual(Relocatable.init(4, 0), end);
+
+    try cairo_runner.initVM();
+
+    var hint_processor: HintProcessor = .{};
+    try cairo_runner.runUntilPC(end, false, &hint_processor);
+
+    try expectEqual(Relocatable.init(4, 0), cairo_runner.vm.run_context.pc.*);
+    try expectEqual(Relocatable.init(1, 12), cairo_runner.vm.run_context.ap.*);
+    try expectEqual(Relocatable.init(1, 0), cairo_runner.vm.run_context.fp.*);
+
+    try expectEqualSlices(
+        TraceContext.Entry,
+        &[_]TraceContext.Entry{
+            .{
+                .pc = Relocatable.init(0, 4),
+                .ap = Relocatable.init(1, 3),
+                .fp = Relocatable.init(1, 3),
+            },
+            .{
+                .pc = Relocatable.init(0, 5),
+                .ap = Relocatable.init(1, 4),
+                .fp = Relocatable.init(1, 3),
+            },
+            .{
+                .pc = Relocatable.init(0, 7),
+                .ap = Relocatable.init(1, 5),
+                .fp = Relocatable.init(1, 3),
+            },
+            .{
+                .pc = Relocatable.init(0, 0),
+                .ap = Relocatable.init(1, 7),
+                .fp = Relocatable.init(1, 7),
+            },
+            .{
+                .pc = Relocatable.init(0, 1),
+                .ap = Relocatable.init(1, 7),
+                .fp = Relocatable.init(1, 7),
+            },
+            .{
+                .pc = Relocatable.init(0, 3),
+                .ap = Relocatable.init(1, 8),
+                .fp = Relocatable.init(1, 7),
+            },
+            .{
+                .pc = Relocatable.init(0, 9),
+                .ap = Relocatable.init(1, 8),
+                .fp = Relocatable.init(1, 3),
+            },
+            .{
+                .pc = Relocatable.init(0, 11),
+                .ap = Relocatable.init(1, 9),
+                .fp = Relocatable.init(1, 3),
+            },
+            .{
+                .pc = Relocatable.init(0, 0),
+                .ap = Relocatable.init(1, 11),
+                .fp = Relocatable.init(1, 11),
+            },
+            .{
+                .pc = Relocatable.init(0, 1),
+                .ap = Relocatable.init(1, 11),
+                .fp = Relocatable.init(1, 11),
+            },
+            .{
+                .pc = Relocatable.init(0, 3),
+                .ap = Relocatable.init(1, 12),
+                .fp = Relocatable.init(1, 11),
+            },
+            .{
+                .pc = Relocatable.init(0, 13),
+                .ap = Relocatable.init(1, 12),
+                .fp = Relocatable.init(1, 3),
+            },
+        },
+        cairo_runner.vm.trace_context.state.enabled.entries.items,
+    );
+
+    try expectEqual(
+        builtin_runner_import.OUTPUT_BUILTIN_NAME,
+        cairo_runner.vm.builtin_runners.items[0].name(),
+    );
+    try expectEqual(
+        @as(usize, 2),
+        cairo_runner.vm.builtin_runners.items[0].base(),
+    );
+
+    try expectEqual(
+        MaybeRelocatable.fromInt(u8, 1),
+        cairo_runner.vm.segments.memory.data.items[2].items[0].?.maybe_relocatable,
+    );
+    try expectEqual(
+        MaybeRelocatable.fromInt(u256, 17),
+        cairo_runner.vm.segments.memory.data.items[2].items[1].?.maybe_relocatable,
+    );
+
+    try expectEqual(
+        null,
+        cairo_runner.vm.segments.memory.get(Relocatable.init(2, 2)),
+    );
+}
+
+test "CairoRunner: initialize and run with range check and output builtins" {
+    //Program used:
+    //%builtins output range_check
+    //
+    //from starkware.cairo.common.serialize import serialize_word
+    //
+    //func check_range{range_check_ptr}(num) -> (num : felt):
+    //
+    //# Check that 0 <= num < 2**64.
+    //[range_check_ptr] = num
+    //assert [range_check_ptr + 1] = 2 ** 64 - 1 - num
+    //let range_check_ptr = range_check_ptr + 2
+    //return(num)
+    //end
+    //
+    //func main{output_ptr: felt*, range_check_ptr: felt}():
+    //let num: felt = check_range(7)
+    //serialize_word(num)
+    //return()
+    //end
+    //
+    //main = 13
+    //data = [
+    //4612671182993129469,
+    //5198983563776393216,
+    //1,
+    //2345108766317314046,
+    //4612671182993129469,
+    //5189976364521848832,
+    //18446744073709551615,
+    //5199546496550207487,
+    //4612389712311386111,
+    //5198983563776393216,
+    //2,
+    //5191102247248822272,
+    //2345108766317314046,
+    //5191102247248822272,
+    //5189976364521848832,
+    //7,
+    //1226245742482522112,
+    //3618502788666131213697322783095070105623107215331596699973092056135872020469,
+    //5191102242953854976,
+    //5193354051357474816,
+    //1226245742482522112,
+    //3618502788666131213697322783095070105623107215331596699973092056135872020461,
+    //5193354029882638336,
+    //2345108766317314046]
+
+    // Initialize a list of built-in functions.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.output);
+    try builtins.append(BuiltinName.range_check);
+
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u256, 4612671182993129469));
+    try data.append(MaybeRelocatable.fromInt(u256, 5198983563776393216));
+    try data.append(MaybeRelocatable.fromInt(u256, 1));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+    try data.append(MaybeRelocatable.fromInt(u256, 4612671182993129469));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 18446744073709551615));
+    try data.append(MaybeRelocatable.fromInt(u256, 5199546496550207487));
+    try data.append(MaybeRelocatable.fromInt(u256, 4612389712311386111));
+    try data.append(MaybeRelocatable.fromInt(u256, 5198983563776393216));
+    try data.append(MaybeRelocatable.fromInt(u256, 2));
+    try data.append(MaybeRelocatable.fromInt(u256, 5191102247248822272));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+    try data.append(MaybeRelocatable.fromInt(u256, 5191102247248822272));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 7));
+    try data.append(MaybeRelocatable.fromInt(u256, 1226245742482522112));
+    try data.append(MaybeRelocatable.fromInt(u256, 3618502788666131213697322783095070105623107215331596699973092056135872020469));
+    try data.append(MaybeRelocatable.fromInt(u256, 5191102242953854976));
+    try data.append(MaybeRelocatable.fromInt(u256, 5193354051357474816));
+    try data.append(MaybeRelocatable.fromInt(u256, 1226245742482522112));
+    try data.append(MaybeRelocatable.fromInt(u256, 3618502788666131213697322783095070105623107215331596699973092056135872020461));
+    try data.append(MaybeRelocatable.fromInt(u256, 5193354029882638336));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize data structures required for a program.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a Program instance with the specified parameters.
+    const program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        13,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
+        false,
+    );
+
+    // Initialize a CairoVM instance.
+    const vm = try CairoVM.init(
+        std.testing.allocator,
+        .{ .proof_mode = false, .enable_trace = true },
+    );
+
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        vm,
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    try cairo_runner.initBuiltins(true);
+    try cairo_runner.initSegments(null);
+    const end = try cairo_runner.initMainEntrypoint();
+    try expectEqual(Relocatable.init(5, 0), end);
+
+    try cairo_runner.initVM();
+
+    var hint_processor: HintProcessor = .{};
+    try cairo_runner.runUntilPC(end, false, &hint_processor);
+
+    try expectEqual(Relocatable.init(5, 0), cairo_runner.vm.run_context.pc.*);
+    try expectEqual(Relocatable.init(1, 18), cairo_runner.vm.run_context.ap.*);
+    try expectEqual(Relocatable.init(1, 0), cairo_runner.vm.run_context.fp.*);
+
+    try expectEqualSlices(
+        TraceContext.Entry,
+        &[_]TraceContext.Entry{
+            .{
+                .pc = Relocatable.init(0, 13),
+                .ap = Relocatable.init(1, 4),
+                .fp = Relocatable.init(1, 4),
+            },
+            .{
+                .pc = Relocatable.init(0, 14),
+                .ap = Relocatable.init(1, 5),
+                .fp = Relocatable.init(1, 4),
+            },
+            .{
+                .pc = Relocatable.init(0, 16),
+                .ap = Relocatable.init(1, 6),
+                .fp = Relocatable.init(1, 4),
+            },
+            .{
+                .pc = Relocatable.init(0, 4),
+                .ap = Relocatable.init(1, 8),
+                .fp = Relocatable.init(1, 8),
+            },
+            .{
+                .pc = Relocatable.init(0, 5),
+                .ap = Relocatable.init(1, 8),
+                .fp = Relocatable.init(1, 8),
+            },
+            .{
+                .pc = Relocatable.init(0, 7),
+                .ap = Relocatable.init(1, 9),
+                .fp = Relocatable.init(1, 8),
+            },
+            .{
+                .pc = Relocatable.init(0, 8),
+                .ap = Relocatable.init(1, 10),
+                .fp = Relocatable.init(1, 8),
+            },
+            .{
+                .pc = Relocatable.init(0, 9),
+                .ap = Relocatable.init(1, 10),
+                .fp = Relocatable.init(1, 8),
+            },
+            .{
+                .pc = Relocatable.init(0, 11),
+                .ap = Relocatable.init(1, 11),
+                .fp = Relocatable.init(1, 8),
+            },
+            .{
+                .pc = Relocatable.init(0, 12),
+                .ap = Relocatable.init(1, 12),
+                .fp = Relocatable.init(1, 8),
+            },
+            .{
+                .pc = Relocatable.init(0, 18),
+                .ap = Relocatable.init(1, 12),
+                .fp = Relocatable.init(1, 4),
+            },
+            .{
+                .pc = Relocatable.init(0, 19),
+                .ap = Relocatable.init(1, 13),
+                .fp = Relocatable.init(1, 4),
+            },
+            .{
+                .pc = Relocatable.init(0, 20),
+                .ap = Relocatable.init(1, 14),
+                .fp = Relocatable.init(1, 4),
+            },
+            .{
+                .pc = Relocatable.init(0, 0),
+                .ap = Relocatable.init(1, 16),
+                .fp = Relocatable.init(1, 16),
+            },
+            .{
+                .pc = Relocatable.init(0, 1),
+                .ap = Relocatable.init(1, 16),
+                .fp = Relocatable.init(1, 16),
+            },
+            .{
+                .pc = Relocatable.init(0, 3),
+                .ap = Relocatable.init(1, 17),
+                .fp = Relocatable.init(1, 16),
+            },
+            .{
+                .pc = Relocatable.init(0, 22),
+                .ap = Relocatable.init(1, 17),
+                .fp = Relocatable.init(1, 4),
+            },
+            .{
+                .pc = Relocatable.init(0, 23),
+                .ap = Relocatable.init(1, 18),
+                .fp = Relocatable.init(1, 4),
+            },
+        },
+        cairo_runner.vm.trace_context.state.enabled.entries.items,
+    );
+
+    try expectEqual(
+        builtin_runner_import.RANGE_CHECK_BUILTIN_NAME,
+        cairo_runner.vm.builtin_runners.items[1].name(),
+    );
+    try expectEqual(
+        @as(usize, 3),
+        cairo_runner.vm.builtin_runners.items[1].base(),
+    );
+
+    try expectEqual(
+        MaybeRelocatable.fromInt(u8, 7),
+        cairo_runner.vm.segments.memory.data.items[3].items[0].?.maybe_relocatable,
+    );
+    try expectEqual(
+        MaybeRelocatable.fromInt(u256, 18446744073709551608),
+        cairo_runner.vm.segments.memory.data.items[3].items[1].?.maybe_relocatable,
+    );
+    try expectEqual(
+        null,
+        cairo_runner.vm.segments.memory.get(Relocatable.init(2, 2)),
+    );
+
+    try expectEqual(
+        builtin_runner_import.OUTPUT_BUILTIN_NAME,
+        cairo_runner.vm.builtin_runners.items[0].name(),
+    );
+    try expectEqual(
+        @as(usize, 2),
+        cairo_runner.vm.builtin_runners.items[0].base(),
+    );
+
+    try expectEqual(
+        MaybeRelocatable.fromInt(u8, 7),
+        cairo_runner.vm.segments.memory.data.items[2].items[0].?.maybe_relocatable,
+    );
+    try expectEqual(
+        null,
+        cairo_runner.vm.segments.memory.get(Relocatable.init(2, 1)),
+    );
 }
