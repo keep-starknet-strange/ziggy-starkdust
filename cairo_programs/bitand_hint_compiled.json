@@ -1,0 +1,287 @@
+{
+    "attributes": [],
+    "builtins": [],
+    "compiler_version": "0.12.2",
+    "data": [
+        "0x40780017fff7fff",
+        "0x2",
+        "0x400780017fff8000",
+        "0x1",
+        "0x400780017fff8001",
+        "0x1",
+        "0x208b7fff7fff7ffe"
+    ],
+    "debug_info": {
+        "file_contents": {},
+        "instruction_locations": {
+            "0": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "reference_ids": {}
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 18,
+                    "end_line": 2,
+                    "input_file": {
+                        "filename": "cairo_programs/bitand_hint.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 2
+                }
+            },
+            "2": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "__main__.main.a": 0,
+                        "__main__.main.a_lsb": 2,
+                        "__main__.main.b": 1,
+                        "__main__.main.b_lsb": 3
+                    }
+                },
+                "hints": [
+                    {
+                        "location": {
+                            "end_col": 6,
+                            "end_line": 12,
+                            "input_file": {
+                                "filename": "cairo_programs/bitand_hint.cairo"
+                            },
+                            "start_col": 5,
+                            "start_line": 9
+                        },
+                        "n_prefix_newlines": 1
+                    }
+                ],
+                "inst": {
+                    "end_col": 22,
+                    "end_line": 14,
+                    "input_file": {
+                        "filename": "cairo_programs/bitand_hint.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 14
+                }
+            },
+            "4": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "__main__.main.a": 0,
+                        "__main__.main.a_lsb": 2,
+                        "__main__.main.b": 1,
+                        "__main__.main.b_lsb": 3
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 22,
+                    "end_line": 15,
+                    "input_file": {
+                        "filename": "cairo_programs/bitand_hint.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 15
+                }
+            },
+            "6": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "__main__.main.a": 0,
+                        "__main__.main.a_lsb": 2,
+                        "__main__.main.b": 1,
+                        "__main__.main.b_lsb": 3
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 14,
+                    "end_line": 17,
+                    "input_file": {
+                        "filename": "cairo_programs/bitand_hint.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 17
+                }
+            }
+        }
+    },
+    "hints": {
+        "2": [
+            {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "code": "ids.a_lsb = ids.a & 1\nids.b_lsb = ids.b & 1",
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "__main__.main.a": 0,
+                        "__main__.main.a_lsb": 2,
+                        "__main__.main.b": 1,
+                        "__main__.main.b_lsb": 3
+                    }
+                }
+            }
+        ]
+    },
+    "identifiers": {
+        "__main__.main": {
+            "decorators": [],
+            "pc": 0,
+            "type": "function"
+        },
+        "__main__.main.Args": {
+            "full_name": "__main__.main.Args",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "__main__.main.ImplicitArgs": {
+            "full_name": "__main__.main.ImplicitArgs",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "__main__.main.Return": {
+            "cairo_type": "()",
+            "type": "type_definition"
+        },
+        "__main__.main.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 2
+        },
+        "__main__.main.a": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.a",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 2
+                    },
+                    "pc": 2,
+                    "value": "cast(7, felt)"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.a_lsb": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.a_lsb",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 2
+                    },
+                    "pc": 2,
+                    "value": "[cast(fp, felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.b": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.b",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 2
+                    },
+                    "pc": 2,
+                    "value": "cast(999, felt)"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.b_lsb": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.b_lsb",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 2
+                    },
+                    "pc": 2,
+                    "value": "[cast(fp + 1, felt*)]"
+                }
+            ],
+            "type": "reference"
+        }
+    },
+    "main_scope": "__main__",
+    "prime": "0x800000000000011000000000000000000000000000000000000000000000001",
+    "reference_manager": {
+        "references": [
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 2
+                },
+                "pc": 2,
+                "value": "cast(7, felt)"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 2
+                },
+                "pc": 2,
+                "value": "cast(999, felt)"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 2
+                },
+                "pc": 2,
+                "value": "[cast(fp, felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 2
+                },
+                "pc": 2,
+                "value": "[cast(fp + 1, felt*)]"
+            }
+        ]
+    }
+}
