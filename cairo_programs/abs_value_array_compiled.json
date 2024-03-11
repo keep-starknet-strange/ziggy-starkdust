@@ -1,0 +1,4196 @@
+{
+    "attributes": [],
+    "builtins": [
+        "range_check"
+    ],
+    "compiler_version": "0.12.2",
+    "data": [
+        "0x40780017fff7fff",
+        "0x1",
+        "0x208b7fff7fff7ffe",
+        "0x40780017fff7fff",
+        "0x1",
+        "0x20680017fff7fff",
+        "0x8",
+        "0x482680017ffc8000",
+        "0x1",
+        "0x484680017ffd8000",
+        "0x800000000000011000000000000000000000000000000000000000000000000",
+        "0x400280007ffc7fff",
+        "0x208b7fff7fff7ffe",
+        "0x400380007ffc7ffd",
+        "0x482680017ffc8000",
+        "0x1",
+        "0x480a7ffd7fff8000",
+        "0x208b7fff7fff7ffe",
+        "0x48297ffc80007ffd",
+        "0x20680017fff7fff",
+        "0x6",
+        "0x480a7ff97fff8000",
+        "0x480680017fff8000",
+        "0x1",
+        "0x208b7fff7fff7ffe",
+        "0x482a7ffd7ffa8000",
+        "0x480a7ff97fff8000",
+        "0x480080007ffe8000",
+        "0x1104800180018000",
+        "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffe8",
+        "0x482a7ffd7ffb8000",
+        "0x48127ffd7fff8000",
+        "0x480080007ffe8000",
+        "0x1104800180018000",
+        "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffe3",
+        "0x48307fff80007ff7",
+        "0x20680017fff7fff",
+        "0x4",
+        "0x10780017fff7fff",
+        "0x6",
+        "0x48127ffd7fff8000",
+        "0x480680017fff8000",
+        "0x0",
+        "0x208b7fff7fff7ffe",
+        "0x48127ffd7fff8000",
+        "0x480a7ffa7fff8000",
+        "0x480a7ffb7fff8000",
+        "0x480a7ffc7fff8000",
+        "0x482680017ffd8000",
+        "0x1",
+        "0x1104800180018000",
+        "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffe1",
+        "0x208b7fff7fff7ffe",
+        "0x48297ffc80007ffd",
+        "0x20680017fff7fff",
+        "0x3",
+        "0x208b7fff7fff7ffe",
+        "0x482a7ffd7ff98000",
+        "0x484a7ffd7ffb8000",
+        "0x48327fff7ffa8000",
+        "0x400080007ffd7fff",
+        "0x480a7ff97fff8000",
+        "0x480a7ffa7fff8000",
+        "0x480a7ffb7fff8000",
+        "0x480a7ffc7fff8000",
+        "0x482680017ffd8000",
+        "0x1",
+        "0x1104800180018000",
+        "0x800000000000010fffffffffffffffffffffffffffffffffffffffffffffff3",
+        "0x208b7fff7fff7ffe",
+        "0x40780017fff7fff",
+        "0x3",
+        "0x480680017fff8000",
+        "0xa",
+        "0x40137fff7fff8000",
+        "0x1104800180018000",
+        "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffb6",
+        "0x40137fff7fff8001",
+        "0x1104800180018000",
+        "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffb3",
+        "0x40137fff7fff8002",
+        "0x480a80017fff8000",
+        "0x480680017fff8000",
+        "0x800000000000010fffffffffffffffffffffffffffffffffffffffffffffffa",
+        "0x480680017fff8000",
+        "0x800000000000010fffffffffffffffffffffffffffffffffffffffffffffffe",
+        "0x480a80007fff8000",
+        "0x480680017fff8000",
+        "0x0",
+        "0x1104800180018000",
+        "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffdd",
+        "0x480a80027fff8000",
+        "0x480680017fff8000",
+        "0x7",
+        "0x480680017fff8000",
+        "0x3",
+        "0x480a80007fff8000",
+        "0x480680017fff8000",
+        "0x0",
+        "0x1104800180018000",
+        "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffd3",
+        "0x480a7ffd7fff8000",
+        "0x480a80017fff8000",
+        "0x480a80027fff8000",
+        "0x480a80007fff8000",
+        "0x480680017fff8000",
+        "0x0",
+        "0x1104800180018000",
+        "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffa8",
+        "0x400680017fff7fff",
+        "0x1",
+        "0x48127ffe7fff8000",
+        "0x208b7fff7fff7ffe"
+    ],
+    "debug_info": {
+        "file_contents": {},
+        "instruction_locations": {
+            "0": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.alloc",
+                    "starkware.cairo.common.alloc.alloc"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "reference_ids": {}
+                },
+                "hints": [
+                    {
+                        "location": {
+                            "end_col": 38,
+                            "end_line": 3,
+                            "input_file": {
+                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/alloc.cairo"
+                            },
+                            "start_col": 5,
+                            "start_line": 3
+                        },
+                        "n_prefix_newlines": 0
+                    }
+                ],
+                "inst": {
+                    "end_col": 12,
+                    "end_line": 4,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/alloc.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 4
+                }
+            },
+            "2": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.alloc",
+                    "starkware.cairo.common.alloc.alloc"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 1
+                    },
+                    "reference_ids": {}
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 40,
+                    "end_line": 5,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/alloc.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 5
+                }
+            },
+            "3": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.abs_value"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.abs_value.range_check_ptr": 1,
+                        "starkware.cairo.common.math.abs_value.value": 0
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 31,
+                    "end_line": 243,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 243
+                }
+            },
+            "5": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.abs_value"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.abs_value.is_positive": 2,
+                        "starkware.cairo.common.math.abs_value.range_check_ptr": 1,
+                        "starkware.cairo.common.math.abs_value.value": 0
+                    }
+                },
+                "hints": [
+                    {
+                        "location": {
+                            "end_col": 7,
+                            "end_line": 248,
+                            "input_file": {
+                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                            },
+                            "start_col": 5,
+                            "start_line": 244
+                        },
+                        "n_prefix_newlines": 1
+                    }
+                ],
+                "inst": {
+                    "end_col": 7,
+                    "end_line": 249,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 249
+                }
+            },
+            "7": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.abs_value"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.abs_value.is_positive": 2,
+                        "starkware.cairo.common.math.abs_value.range_check_ptr": 1,
+                        "starkware.cairo.common.math.abs_value.value": 0
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 58,
+                    "end_line": 250,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "start_col": 39,
+                    "start_line": 250
+                }
+            },
+            "9": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.abs_value"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.abs_value.is_positive": 2,
+                        "starkware.cairo.common.math.abs_value.new_range_check_ptr": 3,
+                        "starkware.cairo.common.math.abs_value.range_check_ptr": 1,
+                        "starkware.cairo.common.math.abs_value.value": 0
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 41,
+                    "end_line": 251,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "start_col": 29,
+                    "start_line": 251
+                }
+            },
+            "11": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.abs_value"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 3
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.abs_value.abs_value": 4,
+                        "starkware.cairo.common.math.abs_value.is_positive": 2,
+                        "starkware.cairo.common.math.abs_value.new_range_check_ptr": 3,
+                        "starkware.cairo.common.math.abs_value.range_check_ptr": 1,
+                        "starkware.cairo.common.math.abs_value.value": 0
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 38,
+                    "end_line": 252,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "start_col": 9,
+                    "start_line": 252
+                }
+            },
+            "12": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.abs_value"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 3
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.abs_value.abs_value": 4,
+                        "starkware.cairo.common.math.abs_value.is_positive": 2,
+                        "starkware.cairo.common.math.abs_value.new_range_check_ptr": 3,
+                        "starkware.cairo.common.math.abs_value.range_check_ptr": 5,
+                        "starkware.cairo.common.math.abs_value.value": 0
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 26,
+                    "end_line": 254,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "start_col": 9,
+                    "start_line": 254
+                }
+            },
+            "13": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.abs_value"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.abs_value.is_positive": 2,
+                        "starkware.cairo.common.math.abs_value.range_check_ptr": 1,
+                        "starkware.cairo.common.math.abs_value.value": 0
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 34,
+                    "end_line": 256,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "start_col": 9,
+                    "start_line": 256
+                }
+            },
+            "14": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.abs_value"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.abs_value.is_positive": 2,
+                        "starkware.cairo.common.math.abs_value.range_check_ptr": 6,
+                        "starkware.cairo.common.math.abs_value.value": 0
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 50,
+                    "end_line": 257,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 31,
+                            "end_line": 242,
+                            "input_file": {
+                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 22,
+                                    "end_line": 258,
+                                    "input_file": {
+                                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                                    },
+                                    "start_col": 9,
+                                    "start_line": 258
+                                },
+                                "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                            ],
+                            "start_col": 16,
+                            "start_line": 242
+                        },
+                        "While expanding the reference 'range_check_ptr' in:"
+                    ],
+                    "start_col": 31,
+                    "start_line": 257
+                }
+            },
+            "16": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.abs_value"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.abs_value.is_positive": 2,
+                        "starkware.cairo.common.math.abs_value.range_check_ptr": 6,
+                        "starkware.cairo.common.math.abs_value.value": 0
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 38,
+                    "end_line": 242,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 21,
+                            "end_line": 258,
+                            "input_file": {
+                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                            },
+                            "start_col": 16,
+                            "start_line": 258
+                        },
+                        "While expanding the reference 'value' in:"
+                    ],
+                    "start_col": 33,
+                    "start_line": 242
+                }
+            },
+            "17": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.abs_value"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 3
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.abs_value.is_positive": 2,
+                        "starkware.cairo.common.math.abs_value.range_check_ptr": 6,
+                        "starkware.cairo.common.math.abs_value.value": 0
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 22,
+                    "end_line": 258,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "start_col": 9,
+                    "start_line": 258
+                }
+            },
+            "18": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 11
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 33,
+                    "end_line": 10,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 9,
+                    "start_line": 10
+                }
+            },
+            "19": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 11
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 7,
+                    "end_line": 10,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 10
+                }
+            },
+            "21": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 11
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 46,
+                    "end_line": 7,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 46,
+                            "end_line": 7,
+                            "input_file": {
+                                "filename": "cairo_programs/abs_value_array.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 24,
+                                    "end_line": 11,
+                                    "input_file": {
+                                        "filename": "cairo_programs/abs_value_array.cairo"
+                                    },
+                                    "start_col": 9,
+                                    "start_line": 11
+                                },
+                                "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                            ],
+                            "start_col": 25,
+                            "start_line": 7
+                        },
+                        "While expanding the reference 'range_check_ptr' in:"
+                    ],
+                    "start_col": 25,
+                    "start_line": 7
+                }
+            },
+            "22": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 11
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 21,
+                    "end_line": 11,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 17,
+                    "start_line": 11
+                }
+            },
+            "24": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 3
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 11
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 24,
+                    "end_line": 11,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 9,
+                    "start_line": 11
+                }
+            },
+            "25": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 11
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 44,
+                    "end_line": 13,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 27,
+                    "start_line": 13
+                }
+            },
+            "26": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.__temp1": 13,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 11
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 46,
+                    "end_line": 7,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 31,
+                            "end_line": 242,
+                            "input_file": {
+                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 45,
+                                    "end_line": 13,
+                                    "input_file": {
+                                        "filename": "cairo_programs/abs_value_array.cairo"
+                                    },
+                                    "start_col": 17,
+                                    "start_line": 13
+                                },
+                                "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                            ],
+                            "start_col": 16,
+                            "start_line": 242
+                        },
+                        "While expanding the reference 'range_check_ptr' in:"
+                    ],
+                    "start_col": 25,
+                    "start_line": 7
+                }
+            },
+            "27": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 3
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.__temp1": 13,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 11
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 44,
+                    "end_line": 13,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 27,
+                    "start_line": 13
+                }
+            },
+            "28": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 4
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.__temp1": 13,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 11
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 45,
+                    "end_line": 13,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 17,
+                    "start_line": 13
+                }
+            },
+            "30": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 9
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.__temp1": 13,
+                        "__main__.compare_abs_arrays.abs_a": 15,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 14
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 44,
+                    "end_line": 14,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 27,
+                    "start_line": 14
+                }
+            },
+            "31": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 10
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.__temp1": 13,
+                        "__main__.compare_abs_arrays.__temp2": 16,
+                        "__main__.compare_abs_arrays.abs_a": 15,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 14
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 31,
+                    "end_line": 242,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 45,
+                            "end_line": 13,
+                            "input_file": {
+                                "filename": "cairo_programs/abs_value_array.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 31,
+                                    "end_line": 242,
+                                    "input_file": {
+                                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                                    },
+                                    "parent_location": [
+                                        {
+                                            "end_col": 45,
+                                            "end_line": 14,
+                                            "input_file": {
+                                                "filename": "cairo_programs/abs_value_array.cairo"
+                                            },
+                                            "start_col": 17,
+                                            "start_line": 14
+                                        },
+                                        "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                                    ],
+                                    "start_col": 16,
+                                    "start_line": 242
+                                },
+                                "While expanding the reference 'range_check_ptr' in:"
+                            ],
+                            "start_col": 17,
+                            "start_line": 13
+                        },
+                        "While trying to update the implicit return value 'range_check_ptr' in:"
+                    ],
+                    "start_col": 16,
+                    "start_line": 242
+                }
+            },
+            "32": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 11
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.__temp1": 13,
+                        "__main__.compare_abs_arrays.__temp2": 16,
+                        "__main__.compare_abs_arrays.abs_a": 15,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 14
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 44,
+                    "end_line": 14,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 27,
+                    "start_line": 14
+                }
+            },
+            "33": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 12
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.__temp1": 13,
+                        "__main__.compare_abs_arrays.__temp2": 16,
+                        "__main__.compare_abs_arrays.abs_a": 15,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 14
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 45,
+                    "end_line": 14,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 17,
+                    "start_line": 14
+                }
+            },
+            "35": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 17
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.__temp1": 13,
+                        "__main__.compare_abs_arrays.__temp2": 16,
+                        "__main__.compare_abs_arrays.abs_a": 15,
+                        "__main__.compare_abs_arrays.abs_b": 18,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 17
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 23,
+                    "end_line": 15,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 9,
+                    "start_line": 15
+                }
+            },
+            "36": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 18
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.__temp1": 13,
+                        "__main__.compare_abs_arrays.__temp2": 16,
+                        "__main__.compare_abs_arrays.__temp3": 19,
+                        "__main__.compare_abs_arrays.abs_a": 15,
+                        "__main__.compare_abs_arrays.abs_b": 18,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 17
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 7,
+                    "end_line": 15,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 15
+                }
+            },
+            "38": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 18
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.__temp1": 13,
+                        "__main__.compare_abs_arrays.__temp2": 16,
+                        "__main__.compare_abs_arrays.__temp3": 19,
+                        "__main__.compare_abs_arrays.abs_a": 15,
+                        "__main__.compare_abs_arrays.abs_b": 18,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 17
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 7,
+                    "end_line": 15,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 15
+                }
+            },
+            "40": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 18
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.__temp1": 13,
+                        "__main__.compare_abs_arrays.__temp2": 16,
+                        "__main__.compare_abs_arrays.__temp3": 19,
+                        "__main__.compare_abs_arrays.abs_a": 15,
+                        "__main__.compare_abs_arrays.abs_b": 18,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 17
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 31,
+                    "end_line": 242,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 45,
+                            "end_line": 14,
+                            "input_file": {
+                                "filename": "cairo_programs/abs_value_array.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 46,
+                                    "end_line": 7,
+                                    "input_file": {
+                                        "filename": "cairo_programs/abs_value_array.cairo"
+                                    },
+                                    "parent_location": [
+                                        {
+                                            "end_col": 25,
+                                            "end_line": 16,
+                                            "input_file": {
+                                                "filename": "cairo_programs/abs_value_array.cairo"
+                                            },
+                                            "start_col": 9,
+                                            "start_line": 16
+                                        },
+                                        "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                                    ],
+                                    "start_col": 25,
+                                    "start_line": 7
+                                },
+                                "While expanding the reference 'range_check_ptr' in:"
+                            ],
+                            "start_col": 17,
+                            "start_line": 14
+                        },
+                        "While trying to update the implicit return value 'range_check_ptr' in:"
+                    ],
+                    "start_col": 16,
+                    "start_line": 242
+                }
+            },
+            "41": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 19
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.__temp1": 13,
+                        "__main__.compare_abs_arrays.__temp2": 16,
+                        "__main__.compare_abs_arrays.__temp3": 19,
+                        "__main__.compare_abs_arrays.abs_a": 15,
+                        "__main__.compare_abs_arrays.abs_b": 18,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 17
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 22,
+                    "end_line": 16,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 17,
+                    "start_line": 16
+                }
+            },
+            "43": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 20
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.__temp1": 13,
+                        "__main__.compare_abs_arrays.__temp2": 16,
+                        "__main__.compare_abs_arrays.__temp3": 19,
+                        "__main__.compare_abs_arrays.abs_a": 15,
+                        "__main__.compare_abs_arrays.abs_b": 18,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 17
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 25,
+                    "end_line": 16,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 9,
+                    "start_line": 16
+                }
+            },
+            "44": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 18
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.__temp1": 13,
+                        "__main__.compare_abs_arrays.__temp2": 16,
+                        "__main__.compare_abs_arrays.__temp3": 19,
+                        "__main__.compare_abs_arrays.abs_a": 15,
+                        "__main__.compare_abs_arrays.abs_b": 18,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 17
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 31,
+                    "end_line": 242,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 45,
+                            "end_line": 14,
+                            "input_file": {
+                                "filename": "cairo_programs/abs_value_array.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 46,
+                                    "end_line": 7,
+                                    "input_file": {
+                                        "filename": "cairo_programs/abs_value_array.cairo"
+                                    },
+                                    "parent_location": [
+                                        {
+                                            "end_col": 76,
+                                            "end_line": 18,
+                                            "input_file": {
+                                                "filename": "cairo_programs/abs_value_array.cairo"
+                                            },
+                                            "start_col": 12,
+                                            "start_line": 18
+                                        },
+                                        "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                                    ],
+                                    "start_col": 25,
+                                    "start_line": 7
+                                },
+                                "While expanding the reference 'range_check_ptr' in:"
+                            ],
+                            "start_col": 17,
+                            "start_line": 14
+                        },
+                        "While trying to update the implicit return value 'range_check_ptr' in:"
+                    ],
+                    "start_col": 16,
+                    "start_line": 242
+                }
+            },
+            "45": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 19
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.__temp1": 13,
+                        "__main__.compare_abs_arrays.__temp2": 16,
+                        "__main__.compare_abs_arrays.__temp3": 19,
+                        "__main__.compare_abs_arrays.abs_a": 15,
+                        "__main__.compare_abs_arrays.abs_b": 18,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 17
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 19,
+                    "end_line": 8,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 38,
+                            "end_line": 18,
+                            "input_file": {
+                                "filename": "cairo_programs/abs_value_array.cairo"
+                            },
+                            "start_col": 31,
+                            "start_line": 18
+                        },
+                        "While expanding the reference 'array_a' in:"
+                    ],
+                    "start_col": 5,
+                    "start_line": 8
+                }
+            },
+            "46": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 20
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.__temp1": 13,
+                        "__main__.compare_abs_arrays.__temp2": 16,
+                        "__main__.compare_abs_arrays.__temp3": 19,
+                        "__main__.compare_abs_arrays.abs_a": 15,
+                        "__main__.compare_abs_arrays.abs_b": 18,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 17
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 35,
+                    "end_line": 8,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 47,
+                            "end_line": 18,
+                            "input_file": {
+                                "filename": "cairo_programs/abs_value_array.cairo"
+                            },
+                            "start_col": 40,
+                            "start_line": 18
+                        },
+                        "While expanding the reference 'array_b' in:"
+                    ],
+                    "start_col": 21,
+                    "start_line": 8
+                }
+            },
+            "47": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 21
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.__temp1": 13,
+                        "__main__.compare_abs_arrays.__temp2": 16,
+                        "__main__.compare_abs_arrays.__temp3": 19,
+                        "__main__.compare_abs_arrays.abs_a": 15,
+                        "__main__.compare_abs_arrays.abs_b": 18,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 17
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 55,
+                    "end_line": 8,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 61,
+                            "end_line": 18,
+                            "input_file": {
+                                "filename": "cairo_programs/abs_value_array.cairo"
+                            },
+                            "start_col": 49,
+                            "start_line": 18
+                        },
+                        "While expanding the reference 'array_length' in:"
+                    ],
+                    "start_col": 37,
+                    "start_line": 8
+                }
+            },
+            "48": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 22
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.__temp1": 13,
+                        "__main__.compare_abs_arrays.__temp2": 16,
+                        "__main__.compare_abs_arrays.__temp3": 19,
+                        "__main__.compare_abs_arrays.abs_a": 15,
+                        "__main__.compare_abs_arrays.abs_b": 18,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 17
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 75,
+                    "end_line": 18,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 63,
+                    "start_line": 18
+                }
+            },
+            "50": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 23
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.__temp1": 13,
+                        "__main__.compare_abs_arrays.__temp2": 16,
+                        "__main__.compare_abs_arrays.__temp3": 19,
+                        "__main__.compare_abs_arrays.abs_a": 15,
+                        "__main__.compare_abs_arrays.abs_b": 18,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 17
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 76,
+                    "end_line": 18,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 12,
+                    "start_line": 18
+                }
+            },
+            "52": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.compare_abs_arrays"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.compare_abs_arrays.__temp0": 12,
+                        "__main__.compare_abs_arrays.__temp1": 13,
+                        "__main__.compare_abs_arrays.__temp2": 16,
+                        "__main__.compare_abs_arrays.__temp3": 19,
+                        "__main__.compare_abs_arrays.abs_a": 15,
+                        "__main__.compare_abs_arrays.abs_b": 18,
+                        "__main__.compare_abs_arrays.array_a": 7,
+                        "__main__.compare_abs_arrays.array_b": 8,
+                        "__main__.compare_abs_arrays.array_length": 9,
+                        "__main__.compare_abs_arrays.iterator": 10,
+                        "__main__.compare_abs_arrays.range_check_ptr": 20
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 77,
+                    "end_line": 18,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 18
+                }
+            },
+            "53": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.fill_array"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.fill_array.array": 21,
+                        "__main__.fill_array.array_length": 24,
+                        "__main__.fill_array.base": 22,
+                        "__main__.fill_array.iterator": 25,
+                        "__main__.fill_array.step": 23
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 33,
+                    "end_line": 22,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 9,
+                    "start_line": 22
+                }
+            },
+            "54": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.fill_array"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "__main__.fill_array.__temp4": 26,
+                        "__main__.fill_array.array": 21,
+                        "__main__.fill_array.array_length": 24,
+                        "__main__.fill_array.base": 22,
+                        "__main__.fill_array.iterator": 25,
+                        "__main__.fill_array.step": 23
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 7,
+                    "end_line": 22,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 22
+                }
+            },
+            "56": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.fill_array"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "__main__.fill_array.__temp4": 26,
+                        "__main__.fill_array.array": 21,
+                        "__main__.fill_array.array_length": 24,
+                        "__main__.fill_array.base": 22,
+                        "__main__.fill_array.iterator": 25,
+                        "__main__.fill_array.step": 23
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 19,
+                    "end_line": 23,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 9,
+                    "start_line": 23
+                }
+            },
+            "57": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.fill_array"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "__main__.fill_array.__temp4": 26,
+                        "__main__.fill_array.array": 21,
+                        "__main__.fill_array.array_length": 24,
+                        "__main__.fill_array.base": 22,
+                        "__main__.fill_array.iterator": 25,
+                        "__main__.fill_array.step": 23
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 27,
+                    "end_line": 25,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 12,
+                    "start_line": 25
+                }
+            },
+            "58": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.fill_array"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "__main__.fill_array.__temp4": 26,
+                        "__main__.fill_array.__temp5": 27,
+                        "__main__.fill_array.array": 21,
+                        "__main__.fill_array.array_length": 24,
+                        "__main__.fill_array.base": 22,
+                        "__main__.fill_array.iterator": 25,
+                        "__main__.fill_array.step": 23
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 52,
+                    "end_line": 25,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 37,
+                    "start_line": 25
+                }
+            },
+            "59": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.fill_array"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 3
+                    },
+                    "reference_ids": {
+                        "__main__.fill_array.__temp4": 26,
+                        "__main__.fill_array.__temp5": 27,
+                        "__main__.fill_array.__temp6": 28,
+                        "__main__.fill_array.array": 21,
+                        "__main__.fill_array.array_length": 24,
+                        "__main__.fill_array.base": 22,
+                        "__main__.fill_array.iterator": 25,
+                        "__main__.fill_array.step": 23
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 52,
+                    "end_line": 25,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 30,
+                    "start_line": 25
+                }
+            },
+            "60": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.fill_array"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 4
+                    },
+                    "reference_ids": {
+                        "__main__.fill_array.__temp4": 26,
+                        "__main__.fill_array.__temp5": 27,
+                        "__main__.fill_array.__temp6": 28,
+                        "__main__.fill_array.__temp7": 29,
+                        "__main__.fill_array.array": 21,
+                        "__main__.fill_array.array_length": 24,
+                        "__main__.fill_array.base": 22,
+                        "__main__.fill_array.iterator": 25,
+                        "__main__.fill_array.step": 23
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 53,
+                    "end_line": 25,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 25
+                }
+            },
+            "61": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.fill_array"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 4
+                    },
+                    "reference_ids": {
+                        "__main__.fill_array.__temp4": 26,
+                        "__main__.fill_array.__temp5": 27,
+                        "__main__.fill_array.__temp6": 28,
+                        "__main__.fill_array.__temp7": 29,
+                        "__main__.fill_array.array": 21,
+                        "__main__.fill_array.array_length": 24,
+                        "__main__.fill_array.base": 22,
+                        "__main__.fill_array.iterator": 25,
+                        "__main__.fill_array.step": 23
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 29,
+                    "end_line": 21,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 28,
+                            "end_line": 26,
+                            "input_file": {
+                                "filename": "cairo_programs/abs_value_array.cairo"
+                            },
+                            "start_col": 23,
+                            "start_line": 26
+                        },
+                        "While expanding the reference 'array' in:"
+                    ],
+                    "start_col": 17,
+                    "start_line": 21
+                }
+            },
+            "62": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.fill_array"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 5
+                    },
+                    "reference_ids": {
+                        "__main__.fill_array.__temp4": 26,
+                        "__main__.fill_array.__temp5": 27,
+                        "__main__.fill_array.__temp6": 28,
+                        "__main__.fill_array.__temp7": 29,
+                        "__main__.fill_array.array": 21,
+                        "__main__.fill_array.array_length": 24,
+                        "__main__.fill_array.base": 22,
+                        "__main__.fill_array.iterator": 25,
+                        "__main__.fill_array.step": 23
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 41,
+                    "end_line": 21,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 34,
+                            "end_line": 26,
+                            "input_file": {
+                                "filename": "cairo_programs/abs_value_array.cairo"
+                            },
+                            "start_col": 30,
+                            "start_line": 26
+                        },
+                        "While expanding the reference 'base' in:"
+                    ],
+                    "start_col": 31,
+                    "start_line": 21
+                }
+            },
+            "63": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.fill_array"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 6
+                    },
+                    "reference_ids": {
+                        "__main__.fill_array.__temp4": 26,
+                        "__main__.fill_array.__temp5": 27,
+                        "__main__.fill_array.__temp6": 28,
+                        "__main__.fill_array.__temp7": 29,
+                        "__main__.fill_array.array": 21,
+                        "__main__.fill_array.array_length": 24,
+                        "__main__.fill_array.base": 22,
+                        "__main__.fill_array.iterator": 25,
+                        "__main__.fill_array.step": 23
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 53,
+                    "end_line": 21,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 40,
+                            "end_line": 26,
+                            "input_file": {
+                                "filename": "cairo_programs/abs_value_array.cairo"
+                            },
+                            "start_col": 36,
+                            "start_line": 26
+                        },
+                        "While expanding the reference 'step' in:"
+                    ],
+                    "start_col": 43,
+                    "start_line": 21
+                }
+            },
+            "64": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.fill_array"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 7
+                    },
+                    "reference_ids": {
+                        "__main__.fill_array.__temp4": 26,
+                        "__main__.fill_array.__temp5": 27,
+                        "__main__.fill_array.__temp6": 28,
+                        "__main__.fill_array.__temp7": 29,
+                        "__main__.fill_array.array": 21,
+                        "__main__.fill_array.array_length": 24,
+                        "__main__.fill_array.base": 22,
+                        "__main__.fill_array.iterator": 25,
+                        "__main__.fill_array.step": 23
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 73,
+                    "end_line": 21,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 54,
+                            "end_line": 26,
+                            "input_file": {
+                                "filename": "cairo_programs/abs_value_array.cairo"
+                            },
+                            "start_col": 42,
+                            "start_line": 26
+                        },
+                        "While expanding the reference 'array_length' in:"
+                    ],
+                    "start_col": 55,
+                    "start_line": 21
+                }
+            },
+            "65": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.fill_array"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 8
+                    },
+                    "reference_ids": {
+                        "__main__.fill_array.__temp4": 26,
+                        "__main__.fill_array.__temp5": 27,
+                        "__main__.fill_array.__temp6": 28,
+                        "__main__.fill_array.__temp7": 29,
+                        "__main__.fill_array.array": 21,
+                        "__main__.fill_array.array_length": 24,
+                        "__main__.fill_array.base": 22,
+                        "__main__.fill_array.iterator": 25,
+                        "__main__.fill_array.step": 23
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 68,
+                    "end_line": 26,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 56,
+                    "start_line": 26
+                }
+            },
+            "67": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.fill_array"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 9
+                    },
+                    "reference_ids": {
+                        "__main__.fill_array.__temp4": 26,
+                        "__main__.fill_array.__temp5": 27,
+                        "__main__.fill_array.__temp6": 28,
+                        "__main__.fill_array.__temp7": 29,
+                        "__main__.fill_array.array": 21,
+                        "__main__.fill_array.array_length": 24,
+                        "__main__.fill_array.base": 22,
+                        "__main__.fill_array.iterator": 25,
+                        "__main__.fill_array.step": 23
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 69,
+                    "end_line": 26,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 12,
+                    "start_line": 26
+                }
+            },
+            "69": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.fill_array"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 5,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.fill_array.__temp4": 26,
+                        "__main__.fill_array.__temp5": 27,
+                        "__main__.fill_array.__temp6": 28,
+                        "__main__.fill_array.__temp7": 29,
+                        "__main__.fill_array.array": 21,
+                        "__main__.fill_array.array_length": 24,
+                        "__main__.fill_array.base": 22,
+                        "__main__.fill_array.iterator": 25,
+                        "__main__.fill_array.step": 23
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 70,
+                    "end_line": 26,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 26
+                }
+            },
+            "70": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 6,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 18,
+                    "end_line": 30,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 30
+                }
+            },
+            "72": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 6,
+                        "offset": 3
+                    },
+                    "reference_ids": {
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 30,
+                    "end_line": 31,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 28,
+                    "start_line": 31
+                }
+            },
+            "74": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 6,
+                        "offset": 4
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_length": 31,
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 25,
+                    "end_line": 31,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 25,
+                            "end_line": 31,
+                            "input_file": {
+                                "filename": "cairo_programs/abs_value_array.cairo"
+                            },
+                            "start_col": 13,
+                            "start_line": 31
+                        },
+                        "While auto generating local variable for 'array_length'."
+                    ],
+                    "start_col": 13,
+                    "start_line": 31
+                }
+            },
+            "75": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 6,
+                        "offset": 4
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 35,
+                    "end_line": 32,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 28,
+                    "start_line": 32
+                }
+            },
+            "77": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 6,
+                        "offset": 7
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_a": 33,
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 24,
+                    "end_line": 32,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 24,
+                            "end_line": 32,
+                            "input_file": {
+                                "filename": "cairo_programs/abs_value_array.cairo"
+                            },
+                            "start_col": 10,
+                            "start_line": 32
+                        },
+                        "While auto generating local variable for 'array_a'."
+                    ],
+                    "start_col": 10,
+                    "start_line": 32
+                }
+            },
+            "78": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 6,
+                        "offset": 7
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_a": 34,
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 35,
+                    "end_line": 34,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 28,
+                    "start_line": 34
+                }
+            },
+            "80": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 6,
+                        "offset": 10
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_a": 34,
+                        "__main__.main.array_b": 35,
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 24,
+                    "end_line": 34,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 24,
+                            "end_line": 34,
+                            "input_file": {
+                                "filename": "cairo_programs/abs_value_array.cairo"
+                            },
+                            "start_col": 10,
+                            "start_line": 34
+                        },
+                        "While auto generating local variable for 'array_b'."
+                    ],
+                    "start_col": 10,
+                    "start_line": 34
+                }
+            },
+            "81": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 6,
+                        "offset": 10
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_a": 34,
+                        "__main__.main.array_b": 36,
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 24,
+                    "end_line": 32,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 24,
+                            "end_line": 32,
+                            "input_file": {
+                                "filename": "cairo_programs/abs_value_array.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 23,
+                                    "end_line": 35,
+                                    "input_file": {
+                                        "filename": "cairo_programs/abs_value_array.cairo"
+                                    },
+                                    "start_col": 16,
+                                    "start_line": 35
+                                },
+                                "While expanding the reference 'array_a' in:"
+                            ],
+                            "start_col": 10,
+                            "start_line": 32
+                        },
+                        "While auto generating local variable for 'array_a'."
+                    ],
+                    "start_col": 10,
+                    "start_line": 32
+                }
+            },
+            "82": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 6,
+                        "offset": 11
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_a": 34,
+                        "__main__.main.array_b": 36,
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 27,
+                    "end_line": 35,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 25,
+                    "start_line": 35
+                }
+            },
+            "84": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 6,
+                        "offset": 12
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_a": 34,
+                        "__main__.main.array_b": 36,
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 31,
+                    "end_line": 35,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 29,
+                    "start_line": 35
+                }
+            },
+            "86": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 6,
+                        "offset": 13
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_a": 34,
+                        "__main__.main.array_b": 36,
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 25,
+                    "end_line": 31,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 25,
+                            "end_line": 31,
+                            "input_file": {
+                                "filename": "cairo_programs/abs_value_array.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 45,
+                                    "end_line": 35,
+                                    "input_file": {
+                                        "filename": "cairo_programs/abs_value_array.cairo"
+                                    },
+                                    "start_col": 33,
+                                    "start_line": 35
+                                },
+                                "While expanding the reference 'array_length' in:"
+                            ],
+                            "start_col": 13,
+                            "start_line": 31
+                        },
+                        "While auto generating local variable for 'array_length'."
+                    ],
+                    "start_col": 13,
+                    "start_line": 31
+                }
+            },
+            "87": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 6,
+                        "offset": 14
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_a": 34,
+                        "__main__.main.array_b": 36,
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 48,
+                    "end_line": 35,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 47,
+                    "start_line": 35
+                }
+            },
+            "89": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 6,
+                        "offset": 15
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_a": 34,
+                        "__main__.main.array_b": 36,
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 49,
+                    "end_line": 35,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 35
+                }
+            },
+            "91": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 7,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_a": 34,
+                        "__main__.main.array_b": 36,
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 24,
+                    "end_line": 34,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 24,
+                            "end_line": 34,
+                            "input_file": {
+                                "filename": "cairo_programs/abs_value_array.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 23,
+                                    "end_line": 36,
+                                    "input_file": {
+                                        "filename": "cairo_programs/abs_value_array.cairo"
+                                    },
+                                    "start_col": 16,
+                                    "start_line": 36
+                                },
+                                "While expanding the reference 'array_b' in:"
+                            ],
+                            "start_col": 10,
+                            "start_line": 34
+                        },
+                        "While auto generating local variable for 'array_b'."
+                    ],
+                    "start_col": 10,
+                    "start_line": 34
+                }
+            },
+            "92": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 7,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_a": 34,
+                        "__main__.main.array_b": 36,
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 26,
+                    "end_line": 36,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 25,
+                    "start_line": 36
+                }
+            },
+            "94": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 7,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_a": 34,
+                        "__main__.main.array_b": 36,
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 29,
+                    "end_line": 36,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 28,
+                    "start_line": 36
+                }
+            },
+            "96": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 7,
+                        "offset": 3
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_a": 34,
+                        "__main__.main.array_b": 36,
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 25,
+                    "end_line": 31,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 25,
+                            "end_line": 31,
+                            "input_file": {
+                                "filename": "cairo_programs/abs_value_array.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 43,
+                                    "end_line": 36,
+                                    "input_file": {
+                                        "filename": "cairo_programs/abs_value_array.cairo"
+                                    },
+                                    "start_col": 31,
+                                    "start_line": 36
+                                },
+                                "While expanding the reference 'array_length' in:"
+                            ],
+                            "start_col": 13,
+                            "start_line": 31
+                        },
+                        "While auto generating local variable for 'array_length'."
+                    ],
+                    "start_col": 13,
+                    "start_line": 31
+                }
+            },
+            "97": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 7,
+                        "offset": 4
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_a": 34,
+                        "__main__.main.array_b": 36,
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 46,
+                    "end_line": 36,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 45,
+                    "start_line": 36
+                }
+            },
+            "99": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 7,
+                        "offset": 5
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_a": 34,
+                        "__main__.main.array_b": 36,
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 47,
+                    "end_line": 36,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 36
+                }
+            },
+            "101": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 8,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_a": 34,
+                        "__main__.main.array_b": 36,
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 32,
+                    "end_line": 29,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 46,
+                            "end_line": 7,
+                            "input_file": {
+                                "filename": "cairo_programs/abs_value_array.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 77,
+                                    "end_line": 37,
+                                    "input_file": {
+                                        "filename": "cairo_programs/abs_value_array.cairo"
+                                    },
+                                    "start_col": 24,
+                                    "start_line": 37
+                                },
+                                "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                            ],
+                            "start_col": 25,
+                            "start_line": 7
+                        },
+                        "While expanding the reference 'range_check_ptr' in:"
+                    ],
+                    "start_col": 11,
+                    "start_line": 29
+                }
+            },
+            "102": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 8,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_a": 34,
+                        "__main__.main.array_b": 36,
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 24,
+                    "end_line": 32,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 24,
+                            "end_line": 32,
+                            "input_file": {
+                                "filename": "cairo_programs/abs_value_array.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 50,
+                                    "end_line": 37,
+                                    "input_file": {
+                                        "filename": "cairo_programs/abs_value_array.cairo"
+                                    },
+                                    "start_col": 43,
+                                    "start_line": 37
+                                },
+                                "While expanding the reference 'array_a' in:"
+                            ],
+                            "start_col": 10,
+                            "start_line": 32
+                        },
+                        "While auto generating local variable for 'array_a'."
+                    ],
+                    "start_col": 10,
+                    "start_line": 32
+                }
+            },
+            "103": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 8,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_a": 34,
+                        "__main__.main.array_b": 36,
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 24,
+                    "end_line": 34,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 24,
+                            "end_line": 34,
+                            "input_file": {
+                                "filename": "cairo_programs/abs_value_array.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 59,
+                                    "end_line": 37,
+                                    "input_file": {
+                                        "filename": "cairo_programs/abs_value_array.cairo"
+                                    },
+                                    "start_col": 52,
+                                    "start_line": 37
+                                },
+                                "While expanding the reference 'array_b' in:"
+                            ],
+                            "start_col": 10,
+                            "start_line": 34
+                        },
+                        "While auto generating local variable for 'array_b'."
+                    ],
+                    "start_col": 10,
+                    "start_line": 34
+                }
+            },
+            "104": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 8,
+                        "offset": 3
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_a": 34,
+                        "__main__.main.array_b": 36,
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 25,
+                    "end_line": 31,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 25,
+                            "end_line": 31,
+                            "input_file": {
+                                "filename": "cairo_programs/abs_value_array.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 73,
+                                    "end_line": 37,
+                                    "input_file": {
+                                        "filename": "cairo_programs/abs_value_array.cairo"
+                                    },
+                                    "start_col": 61,
+                                    "start_line": 37
+                                },
+                                "While expanding the reference 'array_length' in:"
+                            ],
+                            "start_col": 13,
+                            "start_line": 31
+                        },
+                        "While auto generating local variable for 'array_length'."
+                    ],
+                    "start_col": 13,
+                    "start_line": 31
+                }
+            },
+            "105": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 8,
+                        "offset": 4
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_a": 34,
+                        "__main__.main.array_b": 36,
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 76,
+                    "end_line": 37,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 75,
+                    "start_line": 37
+                }
+            },
+            "107": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 8,
+                        "offset": 5
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_a": 34,
+                        "__main__.main.array_b": 36,
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 30
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 77,
+                    "end_line": 37,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 24,
+                    "start_line": 37
+                }
+            },
+            "109": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 9,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_a": 34,
+                        "__main__.main.array_b": 36,
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 37,
+                        "__main__.main.result": 38
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 26,
+                    "end_line": 38,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 38
+                }
+            },
+            "111": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 9,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_a": 34,
+                        "__main__.main.array_b": 36,
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 37,
+                        "__main__.main.result": 38
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 46,
+                    "end_line": 7,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 77,
+                            "end_line": 37,
+                            "input_file": {
+                                "filename": "cairo_programs/abs_value_array.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 32,
+                                    "end_line": 29,
+                                    "input_file": {
+                                        "filename": "cairo_programs/abs_value_array.cairo"
+                                    },
+                                    "parent_location": [
+                                        {
+                                            "end_col": 15,
+                                            "end_line": 39,
+                                            "input_file": {
+                                                "filename": "cairo_programs/abs_value_array.cairo"
+                                            },
+                                            "start_col": 5,
+                                            "start_line": 39
+                                        },
+                                        "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                                    ],
+                                    "start_col": 11,
+                                    "start_line": 29
+                                },
+                                "While expanding the reference 'range_check_ptr' in:"
+                            ],
+                            "start_col": 24,
+                            "start_line": 37
+                        },
+                        "While trying to update the implicit return value 'range_check_ptr' in:"
+                    ],
+                    "start_col": 25,
+                    "start_line": 7
+                }
+            },
+            "112": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 9,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "__main__.main.array_a": 34,
+                        "__main__.main.array_b": 36,
+                        "__main__.main.array_length": 32,
+                        "__main__.main.range_check_ptr": 37,
+                        "__main__.main.result": 38
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 15,
+                    "end_line": 39,
+                    "input_file": {
+                        "filename": "cairo_programs/abs_value_array.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 39
+                }
+            }
+        }
+    },
+    "hints": {
+        "0": [
+            {
+                "accessible_scopes": [
+                    "starkware.cairo.common.alloc",
+                    "starkware.cairo.common.alloc.alloc"
+                ],
+                "code": "memory[ap] = segments.add()",
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "reference_ids": {}
+                }
+            }
+        ],
+        "5": [
+            {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.abs_value"
+                ],
+                "code": "from starkware.cairo.common.math_utils import is_positive\nids.is_positive = 1 if is_positive(\n    value=ids.value, prime=PRIME, rc_bound=range_check_builtin.bound) else 0",
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.abs_value.is_positive": 2,
+                        "starkware.cairo.common.math.abs_value.range_check_ptr": 1,
+                        "starkware.cairo.common.math.abs_value.value": 0
+                    }
+                }
+            }
+        ]
+    },
+    "identifiers": {
+        "__main__.FALSE": {
+            "destination": "starkware.cairo.common.bool.FALSE",
+            "type": "alias"
+        },
+        "__main__.TRUE": {
+            "destination": "starkware.cairo.common.bool.TRUE",
+            "type": "alias"
+        },
+        "__main__.abs_value": {
+            "destination": "starkware.cairo.common.math.abs_value",
+            "type": "alias"
+        },
+        "__main__.alloc": {
+            "destination": "starkware.cairo.common.alloc.alloc",
+            "type": "alias"
+        },
+        "__main__.compare_abs_arrays": {
+            "decorators": [],
+            "pc": 18,
+            "type": "function"
+        },
+        "__main__.compare_abs_arrays.Args": {
+            "full_name": "__main__.compare_abs_arrays.Args",
+            "members": {
+                "array_a": {
+                    "cairo_type": "felt*",
+                    "offset": 0
+                },
+                "array_b": {
+                    "cairo_type": "felt*",
+                    "offset": 1
+                },
+                "array_length": {
+                    "cairo_type": "felt",
+                    "offset": 2
+                },
+                "iterator": {
+                    "cairo_type": "felt",
+                    "offset": 3
+                }
+            },
+            "size": 4,
+            "type": "struct"
+        },
+        "__main__.compare_abs_arrays.ImplicitArgs": {
+            "full_name": "__main__.compare_abs_arrays.ImplicitArgs",
+            "members": {
+                "range_check_ptr": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                }
+            },
+            "size": 1,
+            "type": "struct"
+        },
+        "__main__.compare_abs_arrays.Return": {
+            "cairo_type": "(r: felt)",
+            "type": "type_definition"
+        },
+        "__main__.compare_abs_arrays.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 0
+        },
+        "__main__.compare_abs_arrays.__temp0": {
+            "cairo_type": "felt",
+            "full_name": "__main__.compare_abs_arrays.__temp0",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 1
+                    },
+                    "pc": 19,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.compare_abs_arrays.__temp1": {
+            "cairo_type": "felt",
+            "full_name": "__main__.compare_abs_arrays.__temp1",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 2
+                    },
+                    "pc": 26,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.compare_abs_arrays.__temp2": {
+            "cairo_type": "felt",
+            "full_name": "__main__.compare_abs_arrays.__temp2",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 10
+                    },
+                    "pc": 31,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.compare_abs_arrays.__temp3": {
+            "cairo_type": "felt",
+            "full_name": "__main__.compare_abs_arrays.__temp3",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 18
+                    },
+                    "pc": 36,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.compare_abs_arrays.abs_a": {
+            "cairo_type": "felt",
+            "full_name": "__main__.compare_abs_arrays.abs_a",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 9
+                    },
+                    "pc": 30,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.compare_abs_arrays.abs_b": {
+            "cairo_type": "felt",
+            "full_name": "__main__.compare_abs_arrays.abs_b",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 17
+                    },
+                    "pc": 35,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.compare_abs_arrays.array_a": {
+            "cairo_type": "felt*",
+            "full_name": "__main__.compare_abs_arrays.array_a",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 0
+                    },
+                    "pc": 18,
+                    "value": "[cast(fp + (-6), felt**)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.compare_abs_arrays.array_b": {
+            "cairo_type": "felt*",
+            "full_name": "__main__.compare_abs_arrays.array_b",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 0
+                    },
+                    "pc": 18,
+                    "value": "[cast(fp + (-5), felt**)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.compare_abs_arrays.array_length": {
+            "cairo_type": "felt",
+            "full_name": "__main__.compare_abs_arrays.array_length",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 0
+                    },
+                    "pc": 18,
+                    "value": "[cast(fp + (-4), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.compare_abs_arrays.iterator": {
+            "cairo_type": "felt",
+            "full_name": "__main__.compare_abs_arrays.iterator",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 0
+                    },
+                    "pc": 18,
+                    "value": "[cast(fp + (-3), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.compare_abs_arrays.range_check_ptr": {
+            "cairo_type": "felt",
+            "full_name": "__main__.compare_abs_arrays.range_check_ptr",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 0
+                    },
+                    "pc": 18,
+                    "value": "[cast(fp + (-7), felt*)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 9
+                    },
+                    "pc": 30,
+                    "value": "[cast(ap + (-2), felt*)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 17
+                    },
+                    "pc": 35,
+                    "value": "[cast(ap + (-2), felt*)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 0
+                    },
+                    "pc": 52,
+                    "value": "[cast(ap + (-2), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.fill_array": {
+            "decorators": [],
+            "pc": 53,
+            "type": "function"
+        },
+        "__main__.fill_array.Args": {
+            "full_name": "__main__.fill_array.Args",
+            "members": {
+                "array": {
+                    "cairo_type": "felt*",
+                    "offset": 0
+                },
+                "array_length": {
+                    "cairo_type": "felt",
+                    "offset": 3
+                },
+                "base": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                },
+                "iterator": {
+                    "cairo_type": "felt",
+                    "offset": 4
+                },
+                "step": {
+                    "cairo_type": "felt",
+                    "offset": 2
+                }
+            },
+            "size": 5,
+            "type": "struct"
+        },
+        "__main__.fill_array.ImplicitArgs": {
+            "full_name": "__main__.fill_array.ImplicitArgs",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "__main__.fill_array.Return": {
+            "cairo_type": "()",
+            "type": "type_definition"
+        },
+        "__main__.fill_array.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 0
+        },
+        "__main__.fill_array.__temp4": {
+            "cairo_type": "felt",
+            "full_name": "__main__.fill_array.__temp4",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 4,
+                        "offset": 1
+                    },
+                    "pc": 54,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.fill_array.__temp5": {
+            "cairo_type": "felt",
+            "full_name": "__main__.fill_array.__temp5",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 4,
+                        "offset": 2
+                    },
+                    "pc": 58,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.fill_array.__temp6": {
+            "cairo_type": "felt",
+            "full_name": "__main__.fill_array.__temp6",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 4,
+                        "offset": 3
+                    },
+                    "pc": 59,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.fill_array.__temp7": {
+            "cairo_type": "felt",
+            "full_name": "__main__.fill_array.__temp7",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 4,
+                        "offset": 4
+                    },
+                    "pc": 60,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.fill_array.array": {
+            "cairo_type": "felt*",
+            "full_name": "__main__.fill_array.array",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 4,
+                        "offset": 0
+                    },
+                    "pc": 53,
+                    "value": "[cast(fp + (-7), felt**)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.fill_array.array_length": {
+            "cairo_type": "felt",
+            "full_name": "__main__.fill_array.array_length",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 4,
+                        "offset": 0
+                    },
+                    "pc": 53,
+                    "value": "[cast(fp + (-4), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.fill_array.base": {
+            "cairo_type": "felt",
+            "full_name": "__main__.fill_array.base",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 4,
+                        "offset": 0
+                    },
+                    "pc": 53,
+                    "value": "[cast(fp + (-6), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.fill_array.iterator": {
+            "cairo_type": "felt",
+            "full_name": "__main__.fill_array.iterator",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 4,
+                        "offset": 0
+                    },
+                    "pc": 53,
+                    "value": "[cast(fp + (-3), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.fill_array.step": {
+            "cairo_type": "felt",
+            "full_name": "__main__.fill_array.step",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 4,
+                        "offset": 0
+                    },
+                    "pc": 53,
+                    "value": "[cast(fp + (-5), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main": {
+            "decorators": [],
+            "pc": 70,
+            "type": "function"
+        },
+        "__main__.main.Args": {
+            "full_name": "__main__.main.Args",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "__main__.main.ImplicitArgs": {
+            "full_name": "__main__.main.ImplicitArgs",
+            "members": {
+                "range_check_ptr": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                }
+            },
+            "size": 1,
+            "type": "struct"
+        },
+        "__main__.main.Return": {
+            "cairo_type": "()",
+            "type": "type_definition"
+        },
+        "__main__.main.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 3
+        },
+        "__main__.main.array_a": {
+            "cairo_type": "felt*",
+            "full_name": "__main__.main.array_a",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 6,
+                        "offset": 7
+                    },
+                    "pc": 77,
+                    "value": "[cast(ap + (-1), felt**)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 6,
+                        "offset": 7
+                    },
+                    "pc": 78,
+                    "value": "[cast(fp + 1, felt**)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.array_b": {
+            "cairo_type": "felt*",
+            "full_name": "__main__.main.array_b",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 6,
+                        "offset": 10
+                    },
+                    "pc": 80,
+                    "value": "[cast(ap + (-1), felt**)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 6,
+                        "offset": 10
+                    },
+                    "pc": 81,
+                    "value": "[cast(fp + 2, felt**)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.array_length": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.array_length",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 6,
+                        "offset": 4
+                    },
+                    "pc": 74,
+                    "value": "[cast(ap + (-1), felt*)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 6,
+                        "offset": 4
+                    },
+                    "pc": 75,
+                    "value": "[cast(fp, felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.range_check_ptr": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.range_check_ptr",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 6,
+                        "offset": 0
+                    },
+                    "pc": 70,
+                    "value": "[cast(fp + (-3), felt*)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 9,
+                        "offset": 0
+                    },
+                    "pc": 106,
+                    "value": "[cast(ap + (-2), felt*)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 9,
+                        "offset": 0
+                    },
+                    "pc": 109,
+                    "value": "[cast(ap + (-2), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.result": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.result",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 9,
+                        "offset": 0
+                    },
+                    "pc": 109,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.alloc.alloc": {
+            "decorators": [],
+            "pc": 0,
+            "type": "function"
+        },
+        "starkware.cairo.common.alloc.alloc.Args": {
+            "full_name": "starkware.cairo.common.alloc.alloc.Args",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "starkware.cairo.common.alloc.alloc.ImplicitArgs": {
+            "full_name": "starkware.cairo.common.alloc.alloc.ImplicitArgs",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "starkware.cairo.common.alloc.alloc.Return": {
+            "cairo_type": "(ptr: felt*)",
+            "type": "type_definition"
+        },
+        "starkware.cairo.common.alloc.alloc.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 0
+        },
+        "starkware.cairo.common.bool.FALSE": {
+            "type": "const",
+            "value": 0
+        },
+        "starkware.cairo.common.bool.TRUE": {
+            "type": "const",
+            "value": 1
+        },
+        "starkware.cairo.common.math.FALSE": {
+            "destination": "starkware.cairo.common.bool.FALSE",
+            "type": "alias"
+        },
+        "starkware.cairo.common.math.TRUE": {
+            "destination": "starkware.cairo.common.bool.TRUE",
+            "type": "alias"
+        },
+        "starkware.cairo.common.math.abs_value": {
+            "decorators": [
+                "known_ap_change"
+            ],
+            "pc": 3,
+            "type": "function"
+        },
+        "starkware.cairo.common.math.abs_value.Args": {
+            "full_name": "starkware.cairo.common.math.abs_value.Args",
+            "members": {
+                "value": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                }
+            },
+            "size": 1,
+            "type": "struct"
+        },
+        "starkware.cairo.common.math.abs_value.ImplicitArgs": {
+            "full_name": "starkware.cairo.common.math.abs_value.ImplicitArgs",
+            "members": {
+                "range_check_ptr": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                }
+            },
+            "size": 1,
+            "type": "struct"
+        },
+        "starkware.cairo.common.math.abs_value.Return": {
+            "cairo_type": "felt",
+            "type": "type_definition"
+        },
+        "starkware.cairo.common.math.abs_value.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 0
+        },
+        "starkware.cairo.common.math.abs_value.abs_value": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.math.abs_value.abs_value",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 3
+                    },
+                    "pc": 11,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.math.abs_value.is_positive": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.math.abs_value.is_positive",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 1
+                    },
+                    "pc": 5,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.math.abs_value.new_range_check_ptr": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.math.abs_value.new_range_check_ptr",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 2
+                    },
+                    "pc": 9,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.math.abs_value.range_check_ptr": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.math.abs_value.range_check_ptr",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 0
+                    },
+                    "pc": 3,
+                    "value": "[cast(fp + (-4), felt*)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 3
+                    },
+                    "pc": 12,
+                    "value": "[cast(ap + (-2), felt*)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 1
+                    },
+                    "pc": 14,
+                    "value": "cast([fp + (-4)] + 1, felt)"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.math.abs_value.value": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.math.abs_value.value",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 0
+                    },
+                    "pc": 3,
+                    "value": "[cast(fp + (-3), felt*)]"
+                }
+            ],
+            "type": "reference"
+        }
+    },
+    "main_scope": "__main__",
+    "prime": "0x800000000000011000000000000000000000000000000000000000000000001",
+    "reference_manager": {
+        "references": [
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 0
+                },
+                "pc": 3,
+                "value": "[cast(fp + (-3), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 0
+                },
+                "pc": 3,
+                "value": "[cast(fp + (-4), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 1
+                },
+                "pc": 5,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 2
+                },
+                "pc": 9,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 3
+                },
+                "pc": 11,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 3
+                },
+                "pc": 12,
+                "value": "[cast(ap + (-2), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 1
+                },
+                "pc": 14,
+                "value": "cast([fp + (-4)] + 1, felt)"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 0
+                },
+                "pc": 18,
+                "value": "[cast(fp + (-6), felt**)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 0
+                },
+                "pc": 18,
+                "value": "[cast(fp + (-5), felt**)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 0
+                },
+                "pc": 18,
+                "value": "[cast(fp + (-4), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 0
+                },
+                "pc": 18,
+                "value": "[cast(fp + (-3), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 0
+                },
+                "pc": 18,
+                "value": "[cast(fp + (-7), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 1
+                },
+                "pc": 19,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 2
+                },
+                "pc": 26,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 9
+                },
+                "pc": 30,
+                "value": "[cast(ap + (-2), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 9
+                },
+                "pc": 30,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 10
+                },
+                "pc": 31,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 17
+                },
+                "pc": 35,
+                "value": "[cast(ap + (-2), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 17
+                },
+                "pc": 35,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 18
+                },
+                "pc": 36,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 0
+                },
+                "pc": 52,
+                "value": "[cast(ap + (-2), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 4,
+                    "offset": 0
+                },
+                "pc": 53,
+                "value": "[cast(fp + (-7), felt**)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 4,
+                    "offset": 0
+                },
+                "pc": 53,
+                "value": "[cast(fp + (-6), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 4,
+                    "offset": 0
+                },
+                "pc": 53,
+                "value": "[cast(fp + (-5), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 4,
+                    "offset": 0
+                },
+                "pc": 53,
+                "value": "[cast(fp + (-4), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 4,
+                    "offset": 0
+                },
+                "pc": 53,
+                "value": "[cast(fp + (-3), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 4,
+                    "offset": 1
+                },
+                "pc": 54,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 4,
+                    "offset": 2
+                },
+                "pc": 58,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 4,
+                    "offset": 3
+                },
+                "pc": 59,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 4,
+                    "offset": 4
+                },
+                "pc": 60,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 6,
+                    "offset": 0
+                },
+                "pc": 70,
+                "value": "[cast(fp + (-3), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 6,
+                    "offset": 4
+                },
+                "pc": 74,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 6,
+                    "offset": 4
+                },
+                "pc": 75,
+                "value": "[cast(fp, felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 6,
+                    "offset": 7
+                },
+                "pc": 77,
+                "value": "[cast(ap + (-1), felt**)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 6,
+                    "offset": 7
+                },
+                "pc": 78,
+                "value": "[cast(fp + 1, felt**)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 6,
+                    "offset": 10
+                },
+                "pc": 80,
+                "value": "[cast(ap + (-1), felt**)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 6,
+                    "offset": 10
+                },
+                "pc": 81,
+                "value": "[cast(fp + 2, felt**)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 9,
+                    "offset": 0
+                },
+                "pc": 109,
+                "value": "[cast(ap + (-2), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 9,
+                    "offset": 0
+                },
+                "pc": 109,
+                "value": "[cast(ap + (-1), felt*)]"
+            }
+        ]
+    }
+}
