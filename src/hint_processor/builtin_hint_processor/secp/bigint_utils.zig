@@ -19,45 +19,48 @@ pub const Uint768 = BigIntN(6);
 
 pub fn BigIntN(comptime NUM_LIMBS: usize) type {
     return struct {
+        const Self = @This();
+
         limbs: [NUM_LIMBS]Felt252 = undefined,
-        pub fn fromBaseAddr(self: BigIntN(NUM_LIMBS), addr: Relocatable, vm: *CairoVM) !BigIntN(NUM_LIMBS) {
-            for (0..NUM_LIMBS) |i| {
+
+        pub fn fromBaseAddr(self: *Self, addr: Relocatable, vm: *CairoVM) !Self {
+            inline for (0..NUM_LIMBS) |i| {
                 self.limbs[i] = vm.getFelt(addr + i) catch return HintError.IdentifierHasNoMember;
             }
-            return BigIntN{ .limbs = self.limbs };
+            return .{ .limbs = self.limbs };
         }
 
-        pub fn fromVarName(self: BigIntN(NUM_LIMBS), name: []const u8, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !BigIntN(NUM_LIMBS) {
+        pub fn fromVarName(self: *Self, name: []const u8, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !Self {
             const baseAddress = try hint_utils.getRelocatableFromVarName(name, vm, ids_data, ap_tracking);
             return self.fromBaseAddr(baseAddress, vm);
         }
 
-        pub fn fromValues(limbs: [NUM_LIMBS]Felt252) !BigIntN(NUM_LIMBS) {
-            return BigIntN{ .limbs = limbs };
+        pub fn fromValues(limbs: [NUM_LIMBS]Felt252) !Self {
+            return .{ .limbs = limbs };
         }
 
-        pub fn insertFromVarName(allocator: std.mem.allocator, var_name: []const u8, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {
+        pub fn insertFromVarName(self: *Self, allocator: std.mem.allocator, var_name: []const u8, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {
             const addr = try hint_utils.getRelocatableFromVarName(var_name, vm, ids_data, ap_tracking);
-            for (0..NUM_LIMBS) |i| {
-                try vm.insertInMemory(allocator, addr.offset(i), .limbs[i]);
+            inline for (0..NUM_LIMBS) |i| {
+                try vm.insertInMemory(allocator, addr + i, self.limbs[i]);
             }
         }
 
-        pub fn pack() u256 {
-            const result = packBigInt(.limbs, 128);
+        pub fn pack(self: *Self) u256 {
+            const result = packBigInt(self.limbs, 128);
             return result;
         }
 
-        pub fn pack86() Felt252 {
+        pub fn pack86(self: *Self) Felt252 {
             var result = Felt252.zero();
-            for (0..NUM_LIMBS) |i| {
-                result = result + (.limbs[i] << (i * 86));
+            inline for (0..NUM_LIMBS) |i| {
+                result = result + (self.limbs[i] << (i * 86));
             }
 
             return result;
         }
 
-        pub fn split(self: BigIntN(NUM_LIMBS), num: *std.big.Int) BigIntN(NUM_LIMBS) {
+        pub fn split(self: *Self, num: *std.big.Int) Self {
             const limbs = splitBigInt(num, 128);
             return self.fromValues(limbs);
         }
