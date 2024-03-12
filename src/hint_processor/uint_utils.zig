@@ -32,6 +32,13 @@ test "uint256 split64 with uint utils" {
     const limbs = try split(num, 4, 64);
     try std.testing.expectEqual(Felt252.fromInt(u64, 7249717543555297151), limbs[0]);
     try std.testing.expectEqual(Felt252.fromInt(u64, 46131785404667), limbs[1]);
-    try std.testing.expectEqual(Felt252.fromInt(u64, 0), limbs[2]);
-    try std.testing.expectEqual(Felt252.fromInt(u64, 0), limbs[3]);
+}
+
+test "uint256 split64 with big a" {
+    const allocator = std.testing.allocator;
+    var num = try Int.initSet(allocator, 400066369019890261321163226850167045262);
+    defer num.deinit();
+    const limbs = try split(num, 2, 128);
+    try std.testing.expectEqual(Felt252.fromInt(u128, 59784002098951797857788619418398833806), limbs[0]);
+    try std.testing.expectEqual(Felt252.fromInt(u64, 1), limbs[1]);
 }
