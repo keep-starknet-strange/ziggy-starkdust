@@ -24,6 +24,7 @@ const memset_utils = @import("memset_utils.zig");
 const uint256_utils = @import("uint256_utils.zig");
 const usort = @import("usort.zig");
 const dict_hint_utils = @import("dict_hint_utils.zig");
+const squash_dict_utils = @import("squash_dict_utils.zig");
 
 const poseidon_utils = @import("poseidon_utils.zig");
 const keccak_utils = @import("keccak_utils.zig");
@@ -306,6 +307,12 @@ pub const CairoVMHintProcessor = struct {
             try dict_hint_utils.dictSquashCopyDict(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.DICT_SQUASH_UPDATE_PTR, hint_data.code)) {
             try dict_hint_utils.dictSquashUpdatePtr(vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_FIRST_ITERATION, hint_data.code)) {
+            try squash_dict_utils.squashDictInnerFirstIteration(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_SKIP_LOOP, hint_data.code)) {
+            try squash_dict_utils.squashDictInnerSkipLoop(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_CHECK_ACCESS_INDEX, hint_data.code)) {
+            try squash_dict_utils.squashDictInnerCheckAccessIndex(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         }
     }
 

@@ -311,7 +311,7 @@ pub fn assertLeFeltExcluded0(
     vm: *CairoVM,
     exec_scopes: *const ExecutionScopes,
 ) !void {
-    const excluded = try exec_scopes.getValue(.felt,"excluded");
+    const excluded = try exec_scopes.getValue(Felt252, "excluded");
 
     if (!excluded.isZero()) {
         try hint_utils.insertValueIntoAp(allocator, vm, MaybeRelocatable.fromFelt(Felt252.one()));
@@ -325,7 +325,7 @@ pub fn assertLeFeltExcluded1(
     vm: *CairoVM,
     exec_scopes: *ExecutionScopes,
 ) !void {
-    const excluded = try exec_scopes.getValue(.felt, "excluded");
+    const excluded = try exec_scopes.getValue(Felt252, "excluded");
 
     if (!excluded.isOne()) {
         try hint_utils.insertValueIntoAp(allocator, vm, MaybeRelocatable.fromFelt(Felt252.one()));
@@ -335,7 +335,7 @@ pub fn assertLeFeltExcluded1(
 }
 
 pub fn assertLeFeltExcluded2(exec_scopes: *ExecutionScopes) !void {
-    const excluded = try exec_scopes.getValue(.felt, "excluded");
+    const excluded = try exec_scopes.getValue(Felt252, "excluded");
 
     if (!excluded.equal(Felt252.fromInt(u256, 2))) {
         return HintError.ExcludedNot2;

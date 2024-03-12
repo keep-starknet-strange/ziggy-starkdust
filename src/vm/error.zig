@@ -248,6 +248,15 @@ pub const VerifyError = error{
 };
 
 pub const HintError = error{
+    // squash_dict_inner fail: couldnt find key  in accesses_indices
+    NoKeyInAccessIndices,
+    // squash_dict_inner fail: local accessed_indices is empty
+    EmptyAccessIndices,
+    // squash_dict_inner fail: local current_accessed_indices is empty
+    EmptyCurrentAccessIndices,
+    // squash_dict_inner fail: local current_accessed_indices not empty, loop ended with remaining unaccounted elements
+    CurrentAccessIndicesNotEmpty,
+
     // Dict Error: Got the wrong value for dict_update
     WrongPrevValue,
 
