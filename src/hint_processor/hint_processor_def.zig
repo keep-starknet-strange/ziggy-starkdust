@@ -313,6 +313,8 @@ pub const CairoVMHintProcessor = struct {
             try squash_dict_utils.squashDictInnerSkipLoop(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_CHECK_ACCESS_INDEX, hint_data.code)) {
             try squash_dict_utils.squashDictInnerCheckAccessIndex(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_CONTINUE_LOOP, hint_data.code)) {
+            try squash_dict_utils.squashDictInnerContinueLoop(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         }
     }
 
