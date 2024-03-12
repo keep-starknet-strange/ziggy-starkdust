@@ -35,6 +35,8 @@ const segments = @import("segments.zig");
 
 const deserialize_utils = @import("../parser/deserialize_utils.zig");
 
+const HintError = @import("../vm/error.zig").HintError;
+
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
@@ -306,6 +308,8 @@ pub const CairoVMHintProcessor = struct {
             try dict_hint_utils.dictSquashCopyDict(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.DICT_SQUASH_UPDATE_PTR, hint_data.code)) {
             try dict_hint_utils.dictSquashUpdatePtr(vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else {
+            return HintError.HintNotImplemented;
         }
     }
 
