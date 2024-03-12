@@ -1409,6 +1409,57 @@ pub const CairoVM = struct {
         // Otherwise, return an error indicating no scope error
         return ExecScopeError.NoScopeError;
     }
+
+    /// Writes output to the specified writer.
+    ///
+    /// This method writes output to the provided writer based on the output specified
+    /// by the built-in runner. It iterates through the built-in runners to find the output
+    /// runner, then writes the output to the writer based on the segment sizes and content.
+    ///
+    /// # Arguments
+    ///
+    /// - `self`: A pointer to the CairoVM instance.
+    /// - `writer`: A writer to which the output is written.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if writing the output fails.
+    pub fn writeOutput(self: *Self, writer: anytype) !void {
+        var builtin: ?*BuiltinRunner = null;
+
+        // Iterate through the built-in runners to find the output runner.
+        for (self.builtin_runners.items) |*runner| {
+            if (runner.* == .Output) {
+                builtin = runner;
+                break;
+            }
+        }
+
+        // If no output runner is found, return.
+        if (builtin == null) return;
+
+        // Compute effective sizes of memory segments.
+        const segment_used_sizes = try self.segments.computeEffectiveSize(false);
+        const segment_index = builtin.?.base();
+
+        // Iterate through the memory segments and write output based on their content.
+        for (0..segment_used_sizes.get(@intCast(segment_index)).?) |i| {
+            if (self.segments.memory.get(Relocatable.init(@intCast(segment_index), i))) |v| {
+                switch (v) {
+                    // Write felt value.
+                    .felt => |f| std.fmt.format(writer, "{}\n", .{f.toSignedInt()}) catch
+                        return CairoVMError.FailedToWriteOutput,
+                    // Write relocatable value.
+                    .relocatable => |r| std.fmt.format(writer, "{}:{}\n", .{ r.segment_index, r.offset }) catch
+                        return CairoVMError.FailedToWriteOutput,
+                }
+            } else {
+                // Write "<missing>" if no value is found.
+                writer.writeAll("<missing>\n") catch
+                    return CairoVMError.FailedToWriteOutput;
+            }
+        }
+    }
 };
 
 /// Represents the operands for an instruction.
