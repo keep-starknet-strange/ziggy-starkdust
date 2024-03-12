@@ -311,6 +311,9 @@ pub const HintError = error{
 
     // Wrong dict pointer supplied.
     MismatchedDictPtr,
+
+    /// Occurs when a hint is attempting to be executed that is not yet implemented
+    HintNotImplemented,
 };
 
 pub const InsufficientAllocatedCellsError = error{
