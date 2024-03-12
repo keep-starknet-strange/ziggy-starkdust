@@ -1,0 +1,3998 @@
+{
+    "attributes": [],
+    "builtins": [
+        "range_check"
+    ],
+    "compiler_version": "0.12.2",
+    "data": [
+        "0x480680017fff8000",
+        "0xbffffffffffffffffffffd",
+        "0x4830800580048000",
+        "0x483080057fff8000",
+        "0x48307fff80007ffd",
+        "0x400280007ffd7fff",
+        "0x482680017ffd8000",
+        "0x4",
+        "0x48007ffd7fff8000",
+        "0x48007ffe7ffe8000",
+        "0x48007fff7ffd8000",
+        "0x208b7fff7fff7ffe",
+        "0x4824800180008001",
+        "0x80000000000000000000000000000000",
+        "0x480280007ffa8000",
+        "0x484480017ffe8000",
+        "0x13",
+        "0x48327fff7ffb8000",
+        "0x484480017fff8000",
+        "0x800000000000010ffffffdfffffffffffffbc00000000000000000000000001",
+        "0x482480017fff8000",
+        "0x80000000000000000000000000000000",
+        "0x400280017ffa7fff",
+        "0x48327ffe7ffc8000",
+        "0x484480017fff8000",
+        "0x800000000000010ffffffdfffffffffffffbc00000000000000000000000001",
+        "0x482480017fff8000",
+        "0x80000000000000000000000000000000",
+        "0x400280027ffa7fff",
+        "0x484480017ff78000",
+        "0x800000000000000000000",
+        "0x40327ffd7ffd7fff",
+        "0x482680017ffa8000",
+        "0x3",
+        "0x208b7fff7fff7ffe",
+        "0x40780017fff7fff",
+        "0x0",
+        "0x480a7ff77fff8000",
+        "0x1104800180018000",
+        "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffdb",
+        "0x48127ffc7fff8000",
+        "0x480a7ff87fff8000",
+        "0x480a7ff97fff8000",
+        "0x480a7ffa7fff8000",
+        "0x48127ff97fff8000",
+        "0x48127ff97fff8000",
+        "0x48127ff97fff8000",
+        "0x208b7fff7fff7ffe",
+        "0x480a7ffd7fff8000",
+        "0x480680017fff8000",
+        "0x1",
+        "0x480680017fff8000",
+        "0x2",
+        "0x480680017fff8000",
+        "0x3",
+        "0x480680017fff8000",
+        "0x1",
+        "0x480680017fff8000",
+        "0x2",
+        "0x480680017fff8000",
+        "0x3",
+        "0x1104800180018000",
+        "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffe7",
+        "0x400680017fff7ffa",
+        "0x1",
+        "0x400680017fff7ffb",
+        "0x2",
+        "0x400680017fff7ffc",
+        "0x3",
+        "0x400680017fff7ffd",
+        "0x3fffffffffffffffffffec",
+        "0x400680017fff7ffe",
+        "0x3ffffffffffffffffffffd",
+        "0x400680017fff7fff",
+        "0x7fffffffffffffffffffc",
+        "0x48127ff97fff8000",
+        "0x480680017fff8000",
+        "0x3088",
+        "0x480680017fff8000",
+        "0xcf9f",
+        "0x480680017fff8000",
+        "0x58cd9",
+        "0x480680017fff8000",
+        "0x3fffffffffffffffffffec",
+        "0x480680017fff8000",
+        "0x3ffffffffffffffffffffd",
+        "0x480680017fff8000",
+        "0x7fffffffffffffffffffc",
+        "0x1104800180018000",
+        "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffcc",
+        "0x400680017fff7ffa",
+        "0x3088",
+        "0x400680017fff7ffb",
+        "0xcf9f",
+        "0x400680017fff7ffc",
+        "0x58cd9",
+        "0x400680017fff7ffd",
+        "0x1",
+        "0x400680017fff7ffe",
+        "0x2",
+        "0x400680017fff7fff",
+        "0x3",
+        "0x48127ff97fff8000",
+        "0x208b7fff7fff7ffe",
+        "0x480a7ffd7fff8000",
+        "0x1104800180018000",
+        "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffc8",
+        "0x208b7fff7fff7ffe"
+    ],
+    "debug_info": {
+        "file_contents": {},
+        "instruction_locations": {
+            "0": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.cairo_secp.bigint",
+                    "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.range_check_ptr": 0,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.res": 1
+                    }
+                },
+                "hints": [
+                    {
+                        "location": {
+                            "end_col": 7,
+                            "end_line": 73,
+                            "input_file": {
+                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                            },
+                            "start_col": 5,
+                            "start_line": 69
+                        },
+                        "n_prefix_newlines": 1
+                    }
+                ],
+                "inst": {
+                    "end_col": 39,
+                    "end_line": 76,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                    },
+                    "start_col": 32,
+                    "start_line": 76
+                }
+            },
+            "2": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.cairo_secp.bigint",
+                    "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp0": 2,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.range_check_ptr": 0,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.res": 1
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 58,
+                    "end_line": 76,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                    },
+                    "start_col": 43,
+                    "start_line": 76
+                }
+            },
+            "3": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.cairo_secp.bigint",
+                    "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp0": 2,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp1": 3,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.range_check_ptr": 0,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.res": 1
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 67,
+                    "end_line": 76,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                    },
+                    "start_col": 43,
+                    "start_line": 76
+                }
+            },
+            "4": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.cairo_secp.bigint",
+                    "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 3
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp0": 2,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp1": 3,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp2": 4,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.range_check_ptr": 0,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.res": 1
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 68,
+                    "end_line": 76,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                    },
+                    "start_col": 32,
+                    "start_line": 76
+                }
+            },
+            "5": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.cairo_secp.bigint",
+                    "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 4
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp0": 2,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp1": 3,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp2": 4,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp3": 5,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.range_check_ptr": 0,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.res": 1
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 69,
+                    "end_line": 76,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 76
+                }
+            },
+            "6": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.cairo_secp.bigint",
+                    "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 4
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp0": 2,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp1": 3,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp2": 4,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp3": 5,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.range_check_ptr": 0,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.res": 1
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 50,
+                    "end_line": 79,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                    },
+                    "start_col": 31,
+                    "start_line": 79
+                }
+            },
+            "8": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.cairo_secp.bigint",
+                    "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 5
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp0": 2,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp1": 3,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp2": 4,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp3": 5,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.range_check_ptr": 6,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.res": 1
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 41,
+                    "end_line": 80,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 80
+                }
+            },
+            "9": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.cairo_secp.bigint",
+                    "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 6
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp0": 2,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp1": 3,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp2": 4,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp3": 5,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.range_check_ptr": 6,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.res": 1
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 41,
+                    "end_line": 81,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 81
+                }
+            },
+            "10": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.cairo_secp.bigint",
+                    "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 7
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp0": 2,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp1": 3,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp2": 4,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp3": 5,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.range_check_ptr": 6,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.res": 1
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 41,
+                    "end_line": 82,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 82
+                }
+            },
+            "11": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.cairo_secp.bigint",
+                    "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 8
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp0": 2,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp1": 3,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp2": 4,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp3": 5,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.range_check_ptr": 6,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.res": 1
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 22,
+                    "end_line": 84,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 84
+                }
+            },
+            "12": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.verify_zero"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.verify_zero.q": 9,
+                        "__main__.verify_zero.q_biased": 10,
+                        "__main__.verify_zero.range_check_ptr": 8,
+                        "__main__.verify_zero.val": 7
+                    }
+                },
+                "hints": [
+                    {
+                        "location": {
+                            "end_col": 7,
+                            "end_line": 19,
+                            "input_file": {
+                                "filename": "cairo_programs/ec_negate.cairo"
+                            },
+                            "start_col": 5,
+                            "start_line": 12
+                        },
+                        "n_prefix_newlines": 1
+                    }
+                ],
+                "inst": {
+                    "end_col": 34,
+                    "end_line": 21,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 21
+                }
+            },
+            "14": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.verify_zero"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "__main__.verify_zero.q": 9,
+                        "__main__.verify_zero.q_biased": 10,
+                        "__main__.verify_zero.range_check_ptr": 8,
+                        "__main__.verify_zero.val": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 39,
+                    "end_line": 22,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 22
+                }
+            },
+            "15": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.verify_zero"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "__main__.verify_zero.q": 9,
+                        "__main__.verify_zero.q_biased": 10,
+                        "__main__.verify_zero.range_check_ptr": 8,
+                        "__main__.verify_zero.val": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 40,
+                    "end_line": 25,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 28,
+                    "start_line": 25
+                }
+            },
+            "17": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.verify_zero"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 3
+                    },
+                    "reference_ids": {
+                        "__main__.verify_zero.__temp4": 11,
+                        "__main__.verify_zero.q": 9,
+                        "__main__.verify_zero.q_biased": 10,
+                        "__main__.verify_zero.range_check_ptr": 8,
+                        "__main__.verify_zero.val": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 40,
+                    "end_line": 25,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 19,
+                    "start_line": 25
+                }
+            },
+            "18": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.verify_zero"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 4
+                    },
+                    "reference_ids": {
+                        "__main__.verify_zero.__temp4": 11,
+                        "__main__.verify_zero.__temp5": 12,
+                        "__main__.verify_zero.q": 9,
+                        "__main__.verify_zero.q_biased": 10,
+                        "__main__.verify_zero.range_check_ptr": 8,
+                        "__main__.verify_zero.val": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 48,
+                    "end_line": 25,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 18,
+                    "start_line": 25
+                }
+            },
+            "20": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.verify_zero"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 5
+                    },
+                    "reference_ids": {
+                        "__main__.verify_zero.__temp4": 11,
+                        "__main__.verify_zero.__temp5": 12,
+                        "__main__.verify_zero.q": 9,
+                        "__main__.verify_zero.q_biased": 10,
+                        "__main__.verify_zero.r1": 13,
+                        "__main__.verify_zero.range_check_ptr": 8,
+                        "__main__.verify_zero.val": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 49,
+                    "end_line": 26,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 36,
+                    "start_line": 26
+                }
+            },
+            "22": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.verify_zero"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 6
+                    },
+                    "reference_ids": {
+                        "__main__.verify_zero.__temp4": 11,
+                        "__main__.verify_zero.__temp5": 12,
+                        "__main__.verify_zero.__temp6": 14,
+                        "__main__.verify_zero.q": 9,
+                        "__main__.verify_zero.q_biased": 10,
+                        "__main__.verify_zero.r1": 13,
+                        "__main__.verify_zero.range_check_ptr": 8,
+                        "__main__.verify_zero.val": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 50,
+                    "end_line": 26,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 26
+                }
+            },
+            "23": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.verify_zero"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 6
+                    },
+                    "reference_ids": {
+                        "__main__.verify_zero.__temp4": 11,
+                        "__main__.verify_zero.__temp5": 12,
+                        "__main__.verify_zero.__temp6": 14,
+                        "__main__.verify_zero.q": 9,
+                        "__main__.verify_zero.q_biased": 10,
+                        "__main__.verify_zero.r1": 13,
+                        "__main__.verify_zero.range_check_ptr": 8,
+                        "__main__.verify_zero.val": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 30,
+                    "end_line": 32,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 19,
+                    "start_line": 32
+                }
+            },
+            "24": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.verify_zero"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 7
+                    },
+                    "reference_ids": {
+                        "__main__.verify_zero.__temp4": 11,
+                        "__main__.verify_zero.__temp5": 12,
+                        "__main__.verify_zero.__temp6": 14,
+                        "__main__.verify_zero.__temp7": 15,
+                        "__main__.verify_zero.q": 9,
+                        "__main__.verify_zero.q_biased": 10,
+                        "__main__.verify_zero.r1": 13,
+                        "__main__.verify_zero.range_check_ptr": 8,
+                        "__main__.verify_zero.val": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 38,
+                    "end_line": 32,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 18,
+                    "start_line": 32
+                }
+            },
+            "26": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.verify_zero"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 8
+                    },
+                    "reference_ids": {
+                        "__main__.verify_zero.__temp4": 11,
+                        "__main__.verify_zero.__temp5": 12,
+                        "__main__.verify_zero.__temp6": 14,
+                        "__main__.verify_zero.__temp7": 15,
+                        "__main__.verify_zero.q": 9,
+                        "__main__.verify_zero.q_biased": 10,
+                        "__main__.verify_zero.r1": 13,
+                        "__main__.verify_zero.r2": 16,
+                        "__main__.verify_zero.range_check_ptr": 8,
+                        "__main__.verify_zero.val": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 49,
+                    "end_line": 33,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 36,
+                    "start_line": 33
+                }
+            },
+            "28": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.verify_zero"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 9
+                    },
+                    "reference_ids": {
+                        "__main__.verify_zero.__temp4": 11,
+                        "__main__.verify_zero.__temp5": 12,
+                        "__main__.verify_zero.__temp6": 14,
+                        "__main__.verify_zero.__temp7": 15,
+                        "__main__.verify_zero.__temp8": 17,
+                        "__main__.verify_zero.q": 9,
+                        "__main__.verify_zero.q_biased": 10,
+                        "__main__.verify_zero.r1": 13,
+                        "__main__.verify_zero.r2": 16,
+                        "__main__.verify_zero.range_check_ptr": 8,
+                        "__main__.verify_zero.val": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 50,
+                    "end_line": 33,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 33
+                }
+            },
+            "29": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.verify_zero"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 9
+                    },
+                    "reference_ids": {
+                        "__main__.verify_zero.__temp4": 11,
+                        "__main__.verify_zero.__temp5": 12,
+                        "__main__.verify_zero.__temp6": 14,
+                        "__main__.verify_zero.__temp7": 15,
+                        "__main__.verify_zero.__temp8": 17,
+                        "__main__.verify_zero.q": 9,
+                        "__main__.verify_zero.q_biased": 10,
+                        "__main__.verify_zero.r1": 13,
+                        "__main__.verify_zero.r2": 16,
+                        "__main__.verify_zero.range_check_ptr": 8,
+                        "__main__.verify_zero.val": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 35,
+                    "end_line": 37,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 21,
+                    "start_line": 37
+                }
+            },
+            "31": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.verify_zero"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 10
+                    },
+                    "reference_ids": {
+                        "__main__.verify_zero.__temp4": 11,
+                        "__main__.verify_zero.__temp5": 12,
+                        "__main__.verify_zero.__temp6": 14,
+                        "__main__.verify_zero.__temp7": 15,
+                        "__main__.verify_zero.__temp8": 17,
+                        "__main__.verify_zero.__temp9": 18,
+                        "__main__.verify_zero.q": 9,
+                        "__main__.verify_zero.q_biased": 10,
+                        "__main__.verify_zero.r1": 13,
+                        "__main__.verify_zero.r2": 16,
+                        "__main__.verify_zero.range_check_ptr": 8,
+                        "__main__.verify_zero.val": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 41,
+                    "end_line": 37,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 37
+                }
+            },
+            "32": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.verify_zero"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 10
+                    },
+                    "reference_ids": {
+                        "__main__.verify_zero.__temp4": 11,
+                        "__main__.verify_zero.__temp5": 12,
+                        "__main__.verify_zero.__temp6": 14,
+                        "__main__.verify_zero.__temp7": 15,
+                        "__main__.verify_zero.__temp8": 17,
+                        "__main__.verify_zero.__temp9": 18,
+                        "__main__.verify_zero.q": 9,
+                        "__main__.verify_zero.q_biased": 10,
+                        "__main__.verify_zero.r1": 13,
+                        "__main__.verify_zero.r2": 16,
+                        "__main__.verify_zero.range_check_ptr": 19,
+                        "__main__.verify_zero.val": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 46,
+                    "end_line": 46,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 33,
+                            "end_line": 10,
+                            "input_file": {
+                                "filename": "cairo_programs/ec_negate.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 15,
+                                    "end_line": 47,
+                                    "input_file": {
+                                        "filename": "cairo_programs/ec_negate.cairo"
+                                    },
+                                    "start_col": 5,
+                                    "start_line": 47
+                                },
+                                "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                            ],
+                            "start_col": 18,
+                            "start_line": 10
+                        },
+                        "While expanding the reference 'range_check_ptr' in:"
+                    ],
+                    "start_col": 27,
+                    "start_line": 46
+                }
+            },
+            "34": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.verify_zero"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 11
+                    },
+                    "reference_ids": {
+                        "__main__.verify_zero.__temp4": 11,
+                        "__main__.verify_zero.__temp5": 12,
+                        "__main__.verify_zero.__temp6": 14,
+                        "__main__.verify_zero.__temp7": 15,
+                        "__main__.verify_zero.__temp8": 17,
+                        "__main__.verify_zero.__temp9": 18,
+                        "__main__.verify_zero.q": 9,
+                        "__main__.verify_zero.q_biased": 10,
+                        "__main__.verify_zero.r1": 13,
+                        "__main__.verify_zero.r2": 16,
+                        "__main__.verify_zero.range_check_ptr": 19,
+                        "__main__.verify_zero.val": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 15,
+                    "end_line": 47,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 47
+                }
+            },
+            "35": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.ec_negate.point": 20,
+                        "__main__.ec_negate.range_check_ptr": 21
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 18,
+                    "end_line": 59,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 59
+                }
+            },
+            "37": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.ec_negate.point": 20,
+                        "__main__.ec_negate.range_check_ptr": 21
+                    }
+                },
+                "hints": [
+                    {
+                        "location": {
+                            "end_col": 7,
+                            "end_line": 67,
+                            "input_file": {
+                                "filename": "cairo_programs/ec_negate.cairo"
+                            },
+                            "start_col": 5,
+                            "start_line": 60
+                        },
+                        "n_prefix_newlines": 1
+                    }
+                ],
+                "inst": {
+                    "end_col": 31,
+                    "end_line": 58,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 36,
+                            "end_line": 66,
+                            "input_file": {
+                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 37,
+                                    "end_line": 68,
+                                    "input_file": {
+                                        "filename": "cairo_programs/ec_negate.cairo"
+                                    },
+                                    "start_col": 21,
+                                    "start_line": 68
+                                },
+                                "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                            ],
+                            "start_col": 21,
+                            "start_line": 66
+                        },
+                        "While expanding the reference 'range_check_ptr' in:"
+                    ],
+                    "start_col": 16,
+                    "start_line": 58
+                }
+            },
+            "38": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "__main__.ec_negate.point": 20,
+                        "__main__.ec_negate.range_check_ptr": 21
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 37,
+                    "end_line": 68,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 21,
+                    "start_line": 68
+                }
+            },
+            "40": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 11
+                    },
+                    "reference_ids": {
+                        "__main__.ec_negate.minus_y": 23,
+                        "__main__.ec_negate.point": 20,
+                        "__main__.ec_negate.range_check_ptr": 22
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 36,
+                    "end_line": 66,
+                    "input_file": {
+                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 37,
+                            "end_line": 68,
+                            "input_file": {
+                                "filename": "cairo_programs/ec_negate.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 31,
+                                    "end_line": 58,
+                                    "input_file": {
+                                        "filename": "cairo_programs/ec_negate.cairo"
+                                    },
+                                    "parent_location": [
+                                        {
+                                            "end_col": 50,
+                                            "end_line": 78,
+                                            "input_file": {
+                                                "filename": "cairo_programs/ec_negate.cairo"
+                                            },
+                                            "start_col": 5,
+                                            "start_line": 78
+                                        },
+                                        "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                                    ],
+                                    "start_col": 16,
+                                    "start_line": 58
+                                },
+                                "While expanding the reference 'range_check_ptr' in:"
+                            ],
+                            "start_col": 21,
+                            "start_line": 68
+                        },
+                        "While trying to update the implicit return value 'range_check_ptr' in:"
+                    ],
+                    "start_col": 21,
+                    "start_line": 66
+                }
+            },
+            "41": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 12
+                    },
+                    "reference_ids": {
+                        "__main__.ec_negate.minus_y": 23,
+                        "__main__.ec_negate.point": 20,
+                        "__main__.ec_negate.range_check_ptr": 22
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 36,
+                    "end_line": 78,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 29,
+                    "start_line": 78
+                }
+            },
+            "42": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 13
+                    },
+                    "reference_ids": {
+                        "__main__.ec_negate.minus_y": 23,
+                        "__main__.ec_negate.point": 20,
+                        "__main__.ec_negate.range_check_ptr": 22
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 36,
+                    "end_line": 78,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 29,
+                    "start_line": 78
+                }
+            },
+            "43": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 14
+                    },
+                    "reference_ids": {
+                        "__main__.ec_negate.minus_y": 23,
+                        "__main__.ec_negate.point": 20,
+                        "__main__.ec_negate.range_check_ptr": 22
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 36,
+                    "end_line": 78,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 29,
+                    "start_line": 78
+                }
+            },
+            "44": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 15
+                    },
+                    "reference_ids": {
+                        "__main__.ec_negate.minus_y": 23,
+                        "__main__.ec_negate.point": 20,
+                        "__main__.ec_negate.range_check_ptr": 22
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 17,
+                    "end_line": 68,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 47,
+                            "end_line": 78,
+                            "input_file": {
+                                "filename": "cairo_programs/ec_negate.cairo"
+                            },
+                            "start_col": 40,
+                            "start_line": 78
+                        },
+                        "While expanding the reference 'minus_y' in:"
+                    ],
+                    "start_col": 10,
+                    "start_line": 68
+                }
+            },
+            "45": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 16
+                    },
+                    "reference_ids": {
+                        "__main__.ec_negate.minus_y": 23,
+                        "__main__.ec_negate.point": 20,
+                        "__main__.ec_negate.range_check_ptr": 22
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 17,
+                    "end_line": 68,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 47,
+                            "end_line": 78,
+                            "input_file": {
+                                "filename": "cairo_programs/ec_negate.cairo"
+                            },
+                            "start_col": 40,
+                            "start_line": 78
+                        },
+                        "While expanding the reference 'minus_y' in:"
+                    ],
+                    "start_col": 10,
+                    "start_line": 68
+                }
+            },
+            "46": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 17
+                    },
+                    "reference_ids": {
+                        "__main__.ec_negate.minus_y": 23,
+                        "__main__.ec_negate.point": 20,
+                        "__main__.ec_negate.range_check_ptr": 22
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 17,
+                    "end_line": 68,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 47,
+                            "end_line": 78,
+                            "input_file": {
+                                "filename": "cairo_programs/ec_negate.cairo"
+                            },
+                            "start_col": 40,
+                            "start_line": 78
+                        },
+                        "While expanding the reference 'minus_y' in:"
+                    ],
+                    "start_col": 10,
+                    "start_line": 68
+                }
+            },
+            "47": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 18
+                    },
+                    "reference_ids": {
+                        "__main__.ec_negate.minus_y": 23,
+                        "__main__.ec_negate.point": 20,
+                        "__main__.ec_negate.range_check_ptr": 22
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 50,
+                    "end_line": 78,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 78
+                }
+            },
+            "48": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.p": 25,
+                        "__main__.test_ec_negate.range_check_ptr": 24
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 36,
+                    "end_line": 81,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 31,
+                            "end_line": 58,
+                            "input_file": {
+                                "filename": "cairo_programs/ec_negate.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 33,
+                                    "end_line": 84,
+                                    "input_file": {
+                                        "filename": "cairo_programs/ec_negate.cairo"
+                                    },
+                                    "start_col": 21,
+                                    "start_line": 84
+                                },
+                                "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                            ],
+                            "start_col": 16,
+                            "start_line": 58
+                        },
+                        "While expanding the reference 'range_check_ptr' in:"
+                    ],
+                    "start_col": 21,
+                    "start_line": 81
+                }
+            },
+            "49": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.p": 25,
+                        "__main__.test_ec_negate.range_check_ptr": 24
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 30,
+                    "end_line": 82,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 32,
+                            "end_line": 84,
+                            "input_file": {
+                                "filename": "cairo_programs/ec_negate.cairo"
+                            },
+                            "start_col": 31,
+                            "start_line": 84
+                        },
+                        "While expanding the reference 'p' in:"
+                    ],
+                    "start_col": 29,
+                    "start_line": 82
+                }
+            },
+            "51": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.p": 25,
+                        "__main__.test_ec_negate.range_check_ptr": 24
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 33,
+                    "end_line": 82,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 32,
+                            "end_line": 84,
+                            "input_file": {
+                                "filename": "cairo_programs/ec_negate.cairo"
+                            },
+                            "start_col": 31,
+                            "start_line": 84
+                        },
+                        "While expanding the reference 'p' in:"
+                    ],
+                    "start_col": 32,
+                    "start_line": 82
+                }
+            },
+            "53": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 3
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.p": 25,
+                        "__main__.test_ec_negate.range_check_ptr": 24
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 36,
+                    "end_line": 82,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 32,
+                            "end_line": 84,
+                            "input_file": {
+                                "filename": "cairo_programs/ec_negate.cairo"
+                            },
+                            "start_col": 31,
+                            "start_line": 84
+                        },
+                        "While expanding the reference 'p' in:"
+                    ],
+                    "start_col": 35,
+                    "start_line": 82
+                }
+            },
+            "55": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 4
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.p": 25,
+                        "__main__.test_ec_negate.range_check_ptr": 24
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 48,
+                    "end_line": 82,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 32,
+                            "end_line": 84,
+                            "input_file": {
+                                "filename": "cairo_programs/ec_negate.cairo"
+                            },
+                            "start_col": 31,
+                            "start_line": 84
+                        },
+                        "While expanding the reference 'p' in:"
+                    ],
+                    "start_col": 47,
+                    "start_line": 82
+                }
+            },
+            "57": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 5
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.p": 25,
+                        "__main__.test_ec_negate.range_check_ptr": 24
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 51,
+                    "end_line": 82,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 32,
+                            "end_line": 84,
+                            "input_file": {
+                                "filename": "cairo_programs/ec_negate.cairo"
+                            },
+                            "start_col": 31,
+                            "start_line": 84
+                        },
+                        "While expanding the reference 'p' in:"
+                    ],
+                    "start_col": 50,
+                    "start_line": 82
+                }
+            },
+            "59": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 6
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.p": 25,
+                        "__main__.test_ec_negate.range_check_ptr": 24
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 54,
+                    "end_line": 82,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 32,
+                            "end_line": 84,
+                            "input_file": {
+                                "filename": "cairo_programs/ec_negate.cairo"
+                            },
+                            "start_col": 31,
+                            "start_line": 84
+                        },
+                        "While expanding the reference 'p' in:"
+                    ],
+                    "start_col": 53,
+                    "start_line": 82
+                }
+            },
+            "61": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 7
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.p": 25,
+                        "__main__.test_ec_negate.range_check_ptr": 24
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 33,
+                    "end_line": 84,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 21,
+                    "start_line": 84
+                }
+            },
+            "63": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 27
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.minus_p": 27,
+                        "__main__.test_ec_negate.p": 25,
+                        "__main__.test_ec_negate.range_check_ptr": 26
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 29,
+                    "end_line": 86,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 86
+                }
+            },
+            "65": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 27
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.minus_p": 27,
+                        "__main__.test_ec_negate.p": 25,
+                        "__main__.test_ec_negate.range_check_ptr": 26
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 29,
+                    "end_line": 87,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 87
+                }
+            },
+            "67": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 27
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.minus_p": 27,
+                        "__main__.test_ec_negate.p": 25,
+                        "__main__.test_ec_negate.range_check_ptr": 26
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 29,
+                    "end_line": 88,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 88
+                }
+            },
+            "69": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 27
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.minus_p": 27,
+                        "__main__.test_ec_negate.p": 25,
+                        "__main__.test_ec_negate.range_check_ptr": 26
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 54,
+                    "end_line": 90,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 90
+                }
+            },
+            "71": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 27
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.minus_p": 27,
+                        "__main__.test_ec_negate.p": 25,
+                        "__main__.test_ec_negate.range_check_ptr": 26
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 54,
+                    "end_line": 91,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 91
+                }
+            },
+            "73": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 27
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.minus_p": 27,
+                        "__main__.test_ec_negate.p": 25,
+                        "__main__.test_ec_negate.range_check_ptr": 26
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 53,
+                    "end_line": 92,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 92
+                }
+            },
+            "75": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 27
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.minus_p": 27,
+                        "__main__.test_ec_negate.p": 28,
+                        "__main__.test_ec_negate.range_check_ptr": 26
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 31,
+                    "end_line": 58,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 33,
+                            "end_line": 84,
+                            "input_file": {
+                                "filename": "cairo_programs/ec_negate.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 31,
+                                    "end_line": 58,
+                                    "input_file": {
+                                        "filename": "cairo_programs/ec_negate.cairo"
+                                    },
+                                    "parent_location": [
+                                        {
+                                            "end_col": 33,
+                                            "end_line": 99,
+                                            "input_file": {
+                                                "filename": "cairo_programs/ec_negate.cairo"
+                                            },
+                                            "start_col": 21,
+                                            "start_line": 99
+                                        },
+                                        "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                                    ],
+                                    "start_col": 16,
+                                    "start_line": 58
+                                },
+                                "While expanding the reference 'range_check_ptr' in:"
+                            ],
+                            "start_col": 21,
+                            "start_line": 84
+                        },
+                        "While trying to update the implicit return value 'range_check_ptr' in:"
+                    ],
+                    "start_col": 16,
+                    "start_line": 58
+                }
+            },
+            "76": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 28
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.minus_p": 27,
+                        "__main__.test_ec_negate.p": 28,
+                        "__main__.test_ec_negate.range_check_ptr": 26
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 22,
+                    "end_line": 95,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 32,
+                            "end_line": 99,
+                            "input_file": {
+                                "filename": "cairo_programs/ec_negate.cairo"
+                            },
+                            "start_col": 31,
+                            "start_line": 99
+                        },
+                        "While expanding the reference 'p' in:"
+                    ],
+                    "start_col": 17,
+                    "start_line": 95
+                }
+            },
+            "78": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 29
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.minus_p": 27,
+                        "__main__.test_ec_negate.p": 28,
+                        "__main__.test_ec_negate.range_check_ptr": 26
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 29,
+                    "end_line": 95,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 32,
+                            "end_line": 99,
+                            "input_file": {
+                                "filename": "cairo_programs/ec_negate.cairo"
+                            },
+                            "start_col": 31,
+                            "start_line": 99
+                        },
+                        "While expanding the reference 'p' in:"
+                    ],
+                    "start_col": 24,
+                    "start_line": 95
+                }
+            },
+            "80": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 30
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.minus_p": 27,
+                        "__main__.test_ec_negate.p": 28,
+                        "__main__.test_ec_negate.range_check_ptr": 26
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 37,
+                    "end_line": 95,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 32,
+                            "end_line": 99,
+                            "input_file": {
+                                "filename": "cairo_programs/ec_negate.cairo"
+                            },
+                            "start_col": 31,
+                            "start_line": 99
+                        },
+                        "While expanding the reference 'p' in:"
+                    ],
+                    "start_col": 31,
+                    "start_line": 95
+                }
+            },
+            "82": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 31
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.minus_p": 27,
+                        "__main__.test_ec_negate.p": 28,
+                        "__main__.test_ec_negate.range_check_ptr": 26
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 43,
+                    "end_line": 96,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 32,
+                            "end_line": 99,
+                            "input_file": {
+                                "filename": "cairo_programs/ec_negate.cairo"
+                            },
+                            "start_col": 31,
+                            "start_line": 99
+                        },
+                        "While expanding the reference 'p' in:"
+                    ],
+                    "start_col": 17,
+                    "start_line": 96
+                }
+            },
+            "84": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 32
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.minus_p": 27,
+                        "__main__.test_ec_negate.p": 28,
+                        "__main__.test_ec_negate.range_check_ptr": 26
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 71,
+                    "end_line": 96,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 32,
+                            "end_line": 99,
+                            "input_file": {
+                                "filename": "cairo_programs/ec_negate.cairo"
+                            },
+                            "start_col": 31,
+                            "start_line": 99
+                        },
+                        "While expanding the reference 'p' in:"
+                    ],
+                    "start_col": 45,
+                    "start_line": 96
+                }
+            },
+            "86": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 33
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.minus_p": 27,
+                        "__main__.test_ec_negate.p": 28,
+                        "__main__.test_ec_negate.range_check_ptr": 26
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 98,
+                    "end_line": 96,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 32,
+                            "end_line": 99,
+                            "input_file": {
+                                "filename": "cairo_programs/ec_negate.cairo"
+                            },
+                            "start_col": 31,
+                            "start_line": 99
+                        },
+                        "While expanding the reference 'p' in:"
+                    ],
+                    "start_col": 73,
+                    "start_line": 96
+                }
+            },
+            "88": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 34
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.minus_p": 27,
+                        "__main__.test_ec_negate.p": 28,
+                        "__main__.test_ec_negate.range_check_ptr": 26
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 33,
+                    "end_line": 99,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 21,
+                    "start_line": 99
+                }
+            },
+            "90": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 54
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.minus_p": 30,
+                        "__main__.test_ec_negate.p": 28,
+                        "__main__.test_ec_negate.range_check_ptr": 29
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 33,
+                    "end_line": 101,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 101
+                }
+            },
+            "92": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 54
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.minus_p": 30,
+                        "__main__.test_ec_negate.p": 28,
+                        "__main__.test_ec_negate.range_check_ptr": 29
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 33,
+                    "end_line": 102,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 102
+                }
+            },
+            "94": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 54
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.minus_p": 30,
+                        "__main__.test_ec_negate.p": 28,
+                        "__main__.test_ec_negate.range_check_ptr": 29
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 34,
+                    "end_line": 103,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 103
+                }
+            },
+            "96": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 54
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.minus_p": 30,
+                        "__main__.test_ec_negate.p": 28,
+                        "__main__.test_ec_negate.range_check_ptr": 29
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 29,
+                    "end_line": 105,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 105
+                }
+            },
+            "98": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 54
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.minus_p": 30,
+                        "__main__.test_ec_negate.p": 28,
+                        "__main__.test_ec_negate.range_check_ptr": 29
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 29,
+                    "end_line": 106,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 106
+                }
+            },
+            "100": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 54
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.minus_p": 30,
+                        "__main__.test_ec_negate.p": 28,
+                        "__main__.test_ec_negate.range_check_ptr": 29
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 29,
+                    "end_line": 107,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 107
+                }
+            },
+            "102": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 54
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.minus_p": 30,
+                        "__main__.test_ec_negate.p": 28,
+                        "__main__.test_ec_negate.range_check_ptr": 29
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 31,
+                    "end_line": 58,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 33,
+                            "end_line": 99,
+                            "input_file": {
+                                "filename": "cairo_programs/ec_negate.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 36,
+                                    "end_line": 81,
+                                    "input_file": {
+                                        "filename": "cairo_programs/ec_negate.cairo"
+                                    },
+                                    "parent_location": [
+                                        {
+                                            "end_col": 15,
+                                            "end_line": 109,
+                                            "input_file": {
+                                                "filename": "cairo_programs/ec_negate.cairo"
+                                            },
+                                            "start_col": 5,
+                                            "start_line": 109
+                                        },
+                                        "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                                    ],
+                                    "start_col": 21,
+                                    "start_line": 81
+                                },
+                                "While expanding the reference 'range_check_ptr' in:"
+                            ],
+                            "start_col": 21,
+                            "start_line": 99
+                        },
+                        "While trying to update the implicit return value 'range_check_ptr' in:"
+                    ],
+                    "start_col": 16,
+                    "start_line": 58
+                }
+            },
+            "103": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.test_ec_negate"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 55
+                    },
+                    "reference_ids": {
+                        "__main__.test_ec_negate.minus_p": 30,
+                        "__main__.test_ec_negate.p": 28,
+                        "__main__.test_ec_negate.range_check_ptr": 29
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 15,
+                    "end_line": 109,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 109
+                }
+            },
+            "104": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.main.range_check_ptr": 31
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 26,
+                    "end_line": 112,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 36,
+                            "end_line": 81,
+                            "input_file": {
+                                "filename": "cairo_programs/ec_negate.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 21,
+                                    "end_line": 113,
+                                    "input_file": {
+                                        "filename": "cairo_programs/ec_negate.cairo"
+                                    },
+                                    "start_col": 5,
+                                    "start_line": 113
+                                },
+                                "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                            ],
+                            "start_col": 21,
+                            "start_line": 81
+                        },
+                        "While expanding the reference 'range_check_ptr' in:"
+                    ],
+                    "start_col": 11,
+                    "start_line": 112
+                }
+            },
+            "105": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "__main__.main.range_check_ptr": 31
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 21,
+                    "end_line": 113,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 113
+                }
+            },
+            "107": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 58
+                    },
+                    "reference_ids": {
+                        "__main__.main.range_check_ptr": 32
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 15,
+                    "end_line": 114,
+                    "input_file": {
+                        "filename": "cairo_programs/ec_negate.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 114
+                }
+            }
+        }
+    },
+    "hints": {
+        "0": [
+            {
+                "accessible_scopes": [
+                    "starkware.cairo.common.cairo_secp.bigint",
+                    "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3"
+                ],
+                "code": "from starkware.cairo.common.cairo_secp.secp_utils import split\n\nsegments.write_arg(ids.res.address_, split(value))",
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.range_check_ptr": 0,
+                        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.res": 1
+                    }
+                }
+            }
+        ],
+        "12": [
+            {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.verify_zero"
+                ],
+                "code": "from starkware.cairo.common.cairo_secp.secp_utils import pack\nSECP_P = 2**255-19\nto_assert = pack(ids.val, PRIME)\nq, r = divmod(pack(ids.val, PRIME), SECP_P)\nassert r == 0, f\"verify_zero: Invalid input {ids.val.d0, ids.val.d1, ids.val.d2}.\"\nids.q = q % PRIME",
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.verify_zero.q": 9,
+                        "__main__.verify_zero.range_check_ptr": 8,
+                        "__main__.verify_zero.val": 7
+                    }
+                }
+            }
+        ],
+        "37": [
+            {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.ec_negate"
+                ],
+                "code": "from starkware.cairo.common.cairo_secp.secp_utils import pack\nSECP_P = 2**255-19\n\ny = pack(ids.point.y, PRIME) % SECP_P\n# The modulo operation in python always returns a nonnegative number.\nvalue = (-y) % SECP_P",
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.ec_negate.point": 20,
+                        "__main__.ec_negate.range_check_ptr": 21
+                    }
+                }
+            }
+        ]
+    },
+    "identifiers": {
+        "__main__.BASE": {
+            "type": "const",
+            "value": 77371252455336267181195264
+        },
+        "__main__.BigInt3": {
+            "destination": "starkware.cairo.common.cairo_secp.bigint.BigInt3",
+            "type": "alias"
+        },
+        "__main__.EcPoint": {
+            "destination": "starkware.cairo.common.cairo_secp.ec.EcPoint",
+            "type": "alias"
+        },
+        "__main__.SECP_REM": {
+            "type": "const",
+            "value": 19
+        },
+        "__main__.UnreducedBigInt3": {
+            "destination": "starkware.cairo.common.cairo_secp.bigint.UnreducedBigInt3",
+            "type": "alias"
+        },
+        "__main__.ec_negate": {
+            "decorators": [],
+            "pc": 35,
+            "type": "function"
+        },
+        "__main__.ec_negate.Args": {
+            "full_name": "__main__.ec_negate.Args",
+            "members": {
+                "point": {
+                    "cairo_type": "starkware.cairo.common.cairo_secp.ec.EcPoint",
+                    "offset": 0
+                }
+            },
+            "size": 6,
+            "type": "struct"
+        },
+        "__main__.ec_negate.ImplicitArgs": {
+            "full_name": "__main__.ec_negate.ImplicitArgs",
+            "members": {
+                "range_check_ptr": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                }
+            },
+            "size": 1,
+            "type": "struct"
+        },
+        "__main__.ec_negate.Return": {
+            "cairo_type": "(point: starkware.cairo.common.cairo_secp.ec.EcPoint)",
+            "type": "type_definition"
+        },
+        "__main__.ec_negate.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 0
+        },
+        "__main__.ec_negate.minus_y": {
+            "cairo_type": "starkware.cairo.common.cairo_secp.bigint.BigInt3",
+            "full_name": "__main__.ec_negate.minus_y",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 11
+                    },
+                    "pc": 40,
+                    "value": "[cast(ap + (-3), starkware.cairo.common.cairo_secp.bigint.BigInt3*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.ec_negate.point": {
+            "cairo_type": "starkware.cairo.common.cairo_secp.ec.EcPoint",
+            "full_name": "__main__.ec_negate.point",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 0
+                    },
+                    "pc": 35,
+                    "value": "[cast(fp + (-8), starkware.cairo.common.cairo_secp.ec.EcPoint*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.ec_negate.range_check_ptr": {
+            "cairo_type": "felt",
+            "full_name": "__main__.ec_negate.range_check_ptr",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 0
+                    },
+                    "pc": 35,
+                    "value": "[cast(fp + (-9), felt*)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 11
+                    },
+                    "pc": 40,
+                    "value": "[cast(ap + (-4), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main": {
+            "decorators": [],
+            "pc": 104,
+            "type": "function"
+        },
+        "__main__.main.Args": {
+            "full_name": "__main__.main.Args",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "__main__.main.ImplicitArgs": {
+            "full_name": "__main__.main.ImplicitArgs",
+            "members": {
+                "range_check_ptr": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                }
+            },
+            "size": 1,
+            "type": "struct"
+        },
+        "__main__.main.Return": {
+            "cairo_type": "()",
+            "type": "type_definition"
+        },
+        "__main__.main.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 0
+        },
+        "__main__.main.range_check_ptr": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.range_check_ptr",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 4,
+                        "offset": 0
+                    },
+                    "pc": 104,
+                    "value": "[cast(fp + (-3), felt*)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 4,
+                        "offset": 58
+                    },
+                    "pc": 107,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.nondet_bigint3": {
+            "destination": "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3",
+            "type": "alias"
+        },
+        "__main__.test_ec_negate": {
+            "decorators": [],
+            "pc": 48,
+            "type": "function"
+        },
+        "__main__.test_ec_negate.Args": {
+            "full_name": "__main__.test_ec_negate.Args",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "__main__.test_ec_negate.ImplicitArgs": {
+            "full_name": "__main__.test_ec_negate.ImplicitArgs",
+            "members": {
+                "range_check_ptr": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                }
+            },
+            "size": 1,
+            "type": "struct"
+        },
+        "__main__.test_ec_negate.Return": {
+            "cairo_type": "()",
+            "type": "type_definition"
+        },
+        "__main__.test_ec_negate.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 0
+        },
+        "__main__.test_ec_negate.minus_p": {
+            "cairo_type": "starkware.cairo.common.cairo_secp.ec.EcPoint",
+            "full_name": "__main__.test_ec_negate.minus_p",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 27
+                    },
+                    "pc": 63,
+                    "value": "[cast(ap + (-6), starkware.cairo.common.cairo_secp.ec.EcPoint*)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 54
+                    },
+                    "pc": 90,
+                    "value": "[cast(ap + (-6), starkware.cairo.common.cairo_secp.ec.EcPoint*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.test_ec_negate.p": {
+            "cairo_type": "starkware.cairo.common.cairo_secp.ec.EcPoint",
+            "full_name": "__main__.test_ec_negate.p",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 0
+                    },
+                    "pc": 48,
+                    "value": "cast(((1, 2, 3), (1, 2, 3)), starkware.cairo.common.cairo_secp.ec.EcPoint)"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 27
+                    },
+                    "pc": 75,
+                    "value": "cast((\n    (12424, 53151, 363737),\n    (77371252455336267181195244, 77371252455336267181195261, 9671406556917033397649404),\n    ), starkware.cairo.common.cairo_secp.ec.EcPoint)"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.test_ec_negate.range_check_ptr": {
+            "cairo_type": "felt",
+            "full_name": "__main__.test_ec_negate.range_check_ptr",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 0
+                    },
+                    "pc": 48,
+                    "value": "[cast(fp + (-3), felt*)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 27
+                    },
+                    "pc": 63,
+                    "value": "[cast(ap + (-7), felt*)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 54
+                    },
+                    "pc": 90,
+                    "value": "[cast(ap + (-7), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.verify_zero": {
+            "decorators": [],
+            "pc": 12,
+            "type": "function"
+        },
+        "__main__.verify_zero.Args": {
+            "full_name": "__main__.verify_zero.Args",
+            "members": {
+                "val": {
+                    "cairo_type": "starkware.cairo.common.cairo_secp.bigint.UnreducedBigInt3",
+                    "offset": 0
+                }
+            },
+            "size": 3,
+            "type": "struct"
+        },
+        "__main__.verify_zero.ImplicitArgs": {
+            "full_name": "__main__.verify_zero.ImplicitArgs",
+            "members": {
+                "range_check_ptr": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                }
+            },
+            "size": 1,
+            "type": "struct"
+        },
+        "__main__.verify_zero.Return": {
+            "cairo_type": "()",
+            "type": "type_definition"
+        },
+        "__main__.verify_zero.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 0
+        },
+        "__main__.verify_zero.__temp4": {
+            "cairo_type": "felt",
+            "full_name": "__main__.verify_zero.__temp4",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 3
+                    },
+                    "pc": 17,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.verify_zero.__temp5": {
+            "cairo_type": "felt",
+            "full_name": "__main__.verify_zero.__temp5",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 4
+                    },
+                    "pc": 18,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.verify_zero.__temp6": {
+            "cairo_type": "felt",
+            "full_name": "__main__.verify_zero.__temp6",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 6
+                    },
+                    "pc": 22,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.verify_zero.__temp7": {
+            "cairo_type": "felt",
+            "full_name": "__main__.verify_zero.__temp7",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 7
+                    },
+                    "pc": 24,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.verify_zero.__temp8": {
+            "cairo_type": "felt",
+            "full_name": "__main__.verify_zero.__temp8",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 9
+                    },
+                    "pc": 28,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.verify_zero.__temp9": {
+            "cairo_type": "felt",
+            "full_name": "__main__.verify_zero.__temp9",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 10
+                    },
+                    "pc": 31,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.verify_zero.q": {
+            "cairo_type": "felt",
+            "full_name": "__main__.verify_zero.q",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 0
+                    },
+                    "pc": 12,
+                    "value": "[cast(ap, felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.verify_zero.q_biased": {
+            "cairo_type": "felt",
+            "full_name": "__main__.verify_zero.q_biased",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 0
+                    },
+                    "pc": 12,
+                    "value": "[cast(ap + 1, felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.verify_zero.r1": {
+            "cairo_type": "felt",
+            "full_name": "__main__.verify_zero.r1",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 5
+                    },
+                    "pc": 20,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.verify_zero.r2": {
+            "cairo_type": "felt",
+            "full_name": "__main__.verify_zero.r2",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 8
+                    },
+                    "pc": 26,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.verify_zero.range_check_ptr": {
+            "cairo_type": "felt",
+            "full_name": "__main__.verify_zero.range_check_ptr",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 0
+                    },
+                    "pc": 12,
+                    "value": "[cast(fp + (-6), felt*)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 10
+                    },
+                    "pc": 32,
+                    "value": "cast([fp + (-6)] + 3, felt)"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.verify_zero.val": {
+            "cairo_type": "starkware.cairo.common.cairo_secp.bigint.UnreducedBigInt3",
+            "full_name": "__main__.verify_zero.val",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 0
+                    },
+                    "pc": 12,
+                    "value": "[cast(fp + (-5), starkware.cairo.common.cairo_secp.bigint.UnreducedBigInt3*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.bitwise.ALL_ONES": {
+            "type": "const",
+            "value": -106710729501573572985208420194530329073740042555888586719234
+        },
+        "starkware.cairo.common.bitwise.BitwiseBuiltin": {
+            "destination": "starkware.cairo.common.cairo_builtins.BitwiseBuiltin",
+            "type": "alias"
+        },
+        "starkware.cairo.common.bool.FALSE": {
+            "type": "const",
+            "value": 0
+        },
+        "starkware.cairo.common.bool.TRUE": {
+            "type": "const",
+            "value": 1
+        },
+        "starkware.cairo.common.cairo_builtins.BitwiseBuiltin": {
+            "full_name": "starkware.cairo.common.cairo_builtins.BitwiseBuiltin",
+            "members": {
+                "x": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                },
+                "x_and_y": {
+                    "cairo_type": "felt",
+                    "offset": 2
+                },
+                "x_or_y": {
+                    "cairo_type": "felt",
+                    "offset": 4
+                },
+                "x_xor_y": {
+                    "cairo_type": "felt",
+                    "offset": 3
+                },
+                "y": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                }
+            },
+            "size": 5,
+            "type": "struct"
+        },
+        "starkware.cairo.common.cairo_builtins.EcOpBuiltin": {
+            "full_name": "starkware.cairo.common.cairo_builtins.EcOpBuiltin",
+            "members": {
+                "m": {
+                    "cairo_type": "felt",
+                    "offset": 4
+                },
+                "p": {
+                    "cairo_type": "starkware.cairo.common.ec_point.EcPoint",
+                    "offset": 0
+                },
+                "q": {
+                    "cairo_type": "starkware.cairo.common.ec_point.EcPoint",
+                    "offset": 2
+                },
+                "r": {
+                    "cairo_type": "starkware.cairo.common.ec_point.EcPoint",
+                    "offset": 5
+                }
+            },
+            "size": 7,
+            "type": "struct"
+        },
+        "starkware.cairo.common.cairo_builtins.EcPoint": {
+            "destination": "starkware.cairo.common.ec_point.EcPoint",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_builtins.HashBuiltin": {
+            "full_name": "starkware.cairo.common.cairo_builtins.HashBuiltin",
+            "members": {
+                "result": {
+                    "cairo_type": "felt",
+                    "offset": 2
+                },
+                "x": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                },
+                "y": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                }
+            },
+            "size": 3,
+            "type": "struct"
+        },
+        "starkware.cairo.common.cairo_builtins.KeccakBuiltin": {
+            "full_name": "starkware.cairo.common.cairo_builtins.KeccakBuiltin",
+            "members": {
+                "input": {
+                    "cairo_type": "starkware.cairo.common.keccak_state.KeccakBuiltinState",
+                    "offset": 0
+                },
+                "output": {
+                    "cairo_type": "starkware.cairo.common.keccak_state.KeccakBuiltinState",
+                    "offset": 8
+                }
+            },
+            "size": 16,
+            "type": "struct"
+        },
+        "starkware.cairo.common.cairo_builtins.KeccakBuiltinState": {
+            "destination": "starkware.cairo.common.keccak_state.KeccakBuiltinState",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_builtins.PoseidonBuiltin": {
+            "full_name": "starkware.cairo.common.cairo_builtins.PoseidonBuiltin",
+            "members": {
+                "input": {
+                    "cairo_type": "starkware.cairo.common.poseidon_state.PoseidonBuiltinState",
+                    "offset": 0
+                },
+                "output": {
+                    "cairo_type": "starkware.cairo.common.poseidon_state.PoseidonBuiltinState",
+                    "offset": 3
+                }
+            },
+            "size": 6,
+            "type": "struct"
+        },
+        "starkware.cairo.common.cairo_builtins.PoseidonBuiltinState": {
+            "destination": "starkware.cairo.common.poseidon_state.PoseidonBuiltinState",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_builtins.SignatureBuiltin": {
+            "full_name": "starkware.cairo.common.cairo_builtins.SignatureBuiltin",
+            "members": {
+                "message": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                },
+                "pub_key": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                }
+            },
+            "size": 2,
+            "type": "struct"
+        },
+        "starkware.cairo.common.cairo_secp.bigint.BASE": {
+            "destination": "starkware.cairo.common.cairo_secp.constants.BASE",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_secp.bigint.BigInt3": {
+            "full_name": "starkware.cairo.common.cairo_secp.bigint.BigInt3",
+            "members": {
+                "d0": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                },
+                "d1": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                },
+                "d2": {
+                    "cairo_type": "felt",
+                    "offset": 2
+                }
+            },
+            "size": 3,
+            "type": "struct"
+        },
+        "starkware.cairo.common.cairo_secp.bigint.RC_BOUND": {
+            "destination": "starkware.cairo.common.math_cmp.RC_BOUND",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_secp.bigint.Uint256": {
+            "destination": "starkware.cairo.common.uint256.Uint256",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_secp.bigint.UnreducedBigInt3": {
+            "full_name": "starkware.cairo.common.cairo_secp.bigint.UnreducedBigInt3",
+            "members": {
+                "d0": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                },
+                "d1": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                },
+                "d2": {
+                    "cairo_type": "felt",
+                    "offset": 2
+                }
+            },
+            "size": 3,
+            "type": "struct"
+        },
+        "starkware.cairo.common.cairo_secp.bigint.UnreducedBigInt5": {
+            "full_name": "starkware.cairo.common.cairo_secp.bigint.UnreducedBigInt5",
+            "members": {
+                "d0": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                },
+                "d1": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                },
+                "d2": {
+                    "cairo_type": "felt",
+                    "offset": 2
+                },
+                "d3": {
+                    "cairo_type": "felt",
+                    "offset": 3
+                },
+                "d4": {
+                    "cairo_type": "felt",
+                    "offset": 4
+                }
+            },
+            "size": 5,
+            "type": "struct"
+        },
+        "starkware.cairo.common.cairo_secp.bigint.assert_nn": {
+            "destination": "starkware.cairo.common.math.assert_nn",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_secp.bigint.assert_nn_le": {
+            "destination": "starkware.cairo.common.math.assert_nn_le",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3": {
+            "decorators": [],
+            "pc": 0,
+            "type": "function"
+        },
+        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.Args": {
+            "full_name": "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.Args",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.ImplicitArgs": {
+            "full_name": "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.ImplicitArgs",
+            "members": {
+                "range_check_ptr": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                }
+            },
+            "size": 1,
+            "type": "struct"
+        },
+        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.MAX_SUM": {
+            "type": "const",
+            "value": 232113757366008801543585789
+        },
+        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.Return": {
+            "cairo_type": "(res: starkware.cairo.common.cairo_secp.bigint.BigInt3)",
+            "type": "type_definition"
+        },
+        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 0
+        },
+        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp0": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp0",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 1
+                    },
+                    "pc": 2,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp1": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp1",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 2
+                    },
+                    "pc": 3,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp2": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp2",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 3
+                    },
+                    "pc": 4,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp3": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.__temp3",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 4
+                    },
+                    "pc": 5,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.range_check_ptr": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.range_check_ptr",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "pc": 0,
+                    "value": "[cast(fp + (-3), felt*)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 5
+                    },
+                    "pc": 8,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.res": {
+            "cairo_type": "starkware.cairo.common.cairo_secp.bigint.BigInt3",
+            "full_name": "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3.res",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "pc": 0,
+                    "value": "[cast(ap + 5, starkware.cairo.common.cairo_secp.bigint.BigInt3*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.cairo_secp.bigint.unsigned_div_rem": {
+            "destination": "starkware.cairo.common.math.unsigned_div_rem",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_secp.constants.BASE": {
+            "type": "const",
+            "value": 77371252455336267181195264
+        },
+        "starkware.cairo.common.cairo_secp.constants.BETA": {
+            "type": "const",
+            "value": 7
+        },
+        "starkware.cairo.common.cairo_secp.constants.N0": {
+            "type": "const",
+            "value": 10428087374290690730508609
+        },
+        "starkware.cairo.common.cairo_secp.constants.N1": {
+            "type": "const",
+            "value": 77371252455330678278691517
+        },
+        "starkware.cairo.common.cairo_secp.constants.N2": {
+            "type": "const",
+            "value": 19342813113834066795298815
+        },
+        "starkware.cairo.common.cairo_secp.constants.P0": {
+            "type": "const",
+            "value": 77371252455336262886226991
+        },
+        "starkware.cairo.common.cairo_secp.constants.P1": {
+            "type": "const",
+            "value": 77371252455336267181195263
+        },
+        "starkware.cairo.common.cairo_secp.constants.P2": {
+            "type": "const",
+            "value": 19342813113834066795298815
+        },
+        "starkware.cairo.common.cairo_secp.constants.SECP_PRIME_HIGH": {
+            "type": "const",
+            "value": 340282366920938463463374607431768211455
+        },
+        "starkware.cairo.common.cairo_secp.constants.SECP_PRIME_LOW": {
+            "type": "const",
+            "value": 340282366920938463463374607427473243183
+        },
+        "starkware.cairo.common.cairo_secp.constants.SECP_REM": {
+            "type": "const",
+            "value": 4294968273
+        },
+        "starkware.cairo.common.cairo_secp.ec.BigInt3": {
+            "destination": "starkware.cairo.common.cairo_secp.bigint.BigInt3",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_secp.ec.EcPoint": {
+            "full_name": "starkware.cairo.common.cairo_secp.ec.EcPoint",
+            "members": {
+                "x": {
+                    "cairo_type": "starkware.cairo.common.cairo_secp.bigint.BigInt3",
+                    "offset": 0
+                },
+                "y": {
+                    "cairo_type": "starkware.cairo.common.cairo_secp.bigint.BigInt3",
+                    "offset": 3
+                }
+            },
+            "size": 6,
+            "type": "struct"
+        },
+        "starkware.cairo.common.cairo_secp.ec.Uint256": {
+            "destination": "starkware.cairo.common.uint256.Uint256",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_secp.ec.UnreducedBigInt3": {
+            "destination": "starkware.cairo.common.cairo_secp.bigint.UnreducedBigInt3",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_secp.ec.is_zero": {
+            "destination": "starkware.cairo.common.cairo_secp.field.is_zero",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_secp.ec.nondet_bigint3": {
+            "destination": "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_secp.ec.unreduced_mul": {
+            "destination": "starkware.cairo.common.cairo_secp.field.unreduced_mul",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_secp.ec.unreduced_sqr": {
+            "destination": "starkware.cairo.common.cairo_secp.field.unreduced_sqr",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_secp.ec.verify_zero": {
+            "destination": "starkware.cairo.common.cairo_secp.field.verify_zero",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_secp.field.BASE": {
+            "destination": "starkware.cairo.common.cairo_secp.constants.BASE",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_secp.field.BigInt3": {
+            "destination": "starkware.cairo.common.cairo_secp.bigint.BigInt3",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_secp.field.P0": {
+            "destination": "starkware.cairo.common.cairo_secp.constants.P0",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_secp.field.P1": {
+            "destination": "starkware.cairo.common.cairo_secp.constants.P1",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_secp.field.P2": {
+            "destination": "starkware.cairo.common.cairo_secp.constants.P2",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_secp.field.SECP_REM": {
+            "destination": "starkware.cairo.common.cairo_secp.constants.SECP_REM",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_secp.field.UnreducedBigInt3": {
+            "destination": "starkware.cairo.common.cairo_secp.bigint.UnreducedBigInt3",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_secp.field.assert_nn_le": {
+            "destination": "starkware.cairo.common.math.assert_nn_le",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_secp.field.nondet_bigint3": {
+            "destination": "starkware.cairo.common.cairo_secp.bigint.nondet_bigint3",
+            "type": "alias"
+        },
+        "starkware.cairo.common.ec_point.EcPoint": {
+            "full_name": "starkware.cairo.common.ec_point.EcPoint",
+            "members": {
+                "x": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                },
+                "y": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                }
+            },
+            "size": 2,
+            "type": "struct"
+        },
+        "starkware.cairo.common.keccak_state.KeccakBuiltinState": {
+            "full_name": "starkware.cairo.common.keccak_state.KeccakBuiltinState",
+            "members": {
+                "s0": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                },
+                "s1": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                },
+                "s2": {
+                    "cairo_type": "felt",
+                    "offset": 2
+                },
+                "s3": {
+                    "cairo_type": "felt",
+                    "offset": 3
+                },
+                "s4": {
+                    "cairo_type": "felt",
+                    "offset": 4
+                },
+                "s5": {
+                    "cairo_type": "felt",
+                    "offset": 5
+                },
+                "s6": {
+                    "cairo_type": "felt",
+                    "offset": 6
+                },
+                "s7": {
+                    "cairo_type": "felt",
+                    "offset": 7
+                }
+            },
+            "size": 8,
+            "type": "struct"
+        },
+        "starkware.cairo.common.math.FALSE": {
+            "destination": "starkware.cairo.common.bool.FALSE",
+            "type": "alias"
+        },
+        "starkware.cairo.common.math.TRUE": {
+            "destination": "starkware.cairo.common.bool.TRUE",
+            "type": "alias"
+        },
+        "starkware.cairo.common.math_cmp.RC_BOUND": {
+            "type": "const",
+            "value": 340282366920938463463374607431768211456
+        },
+        "starkware.cairo.common.math_cmp.assert_le_felt": {
+            "destination": "starkware.cairo.common.math.assert_le_felt",
+            "type": "alias"
+        },
+        "starkware.cairo.common.math_cmp.assert_lt_felt": {
+            "destination": "starkware.cairo.common.math.assert_lt_felt",
+            "type": "alias"
+        },
+        "starkware.cairo.common.poseidon_state.PoseidonBuiltinState": {
+            "full_name": "starkware.cairo.common.poseidon_state.PoseidonBuiltinState",
+            "members": {
+                "s0": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                },
+                "s1": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                },
+                "s2": {
+                    "cairo_type": "felt",
+                    "offset": 2
+                }
+            },
+            "size": 3,
+            "type": "struct"
+        },
+        "starkware.cairo.common.pow.assert_le": {
+            "destination": "starkware.cairo.common.math.assert_le",
+            "type": "alias"
+        },
+        "starkware.cairo.common.pow.get_ap": {
+            "destination": "starkware.cairo.common.registers.get_ap",
+            "type": "alias"
+        },
+        "starkware.cairo.common.pow.get_fp_and_pc": {
+            "destination": "starkware.cairo.common.registers.get_fp_and_pc",
+            "type": "alias"
+        },
+        "starkware.cairo.common.registers.get_ap": {
+            "destination": "starkware.cairo.lang.compiler.lib.registers.get_ap",
+            "type": "alias"
+        },
+        "starkware.cairo.common.registers.get_fp_and_pc": {
+            "destination": "starkware.cairo.lang.compiler.lib.registers.get_fp_and_pc",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.ALL_ONES": {
+            "type": "const",
+            "value": 340282366920938463463374607431768211455
+        },
+        "starkware.cairo.common.uint256.BitwiseBuiltin": {
+            "destination": "starkware.cairo.common.cairo_builtins.BitwiseBuiltin",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.HALF_SHIFT": {
+            "type": "const",
+            "value": 18446744073709551616
+        },
+        "starkware.cairo.common.uint256.SHIFT": {
+            "type": "const",
+            "value": 340282366920938463463374607431768211456
+        },
+        "starkware.cairo.common.uint256.Uint256": {
+            "full_name": "starkware.cairo.common.uint256.Uint256",
+            "members": {
+                "high": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                },
+                "low": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                }
+            },
+            "size": 2,
+            "type": "struct"
+        },
+        "starkware.cairo.common.uint256.assert_in_range": {
+            "destination": "starkware.cairo.common.math.assert_in_range",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.assert_le": {
+            "destination": "starkware.cairo.common.math.assert_le",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.assert_nn_le": {
+            "destination": "starkware.cairo.common.math.assert_nn_le",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.assert_not_zero": {
+            "destination": "starkware.cairo.common.math.assert_not_zero",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.bitwise_and": {
+            "destination": "starkware.cairo.common.bitwise.bitwise_and",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.bitwise_or": {
+            "destination": "starkware.cairo.common.bitwise.bitwise_or",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.bitwise_xor": {
+            "destination": "starkware.cairo.common.bitwise.bitwise_xor",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.get_ap": {
+            "destination": "starkware.cairo.common.registers.get_ap",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.get_fp_and_pc": {
+            "destination": "starkware.cairo.common.registers.get_fp_and_pc",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.is_le": {
+            "destination": "starkware.cairo.common.math_cmp.is_le",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.pow": {
+            "destination": "starkware.cairo.common.pow.pow",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.split_felt": {
+            "destination": "starkware.cairo.common.math.split_felt",
+            "type": "alias"
+        }
+    },
+    "main_scope": "__main__",
+    "prime": "0x800000000000011000000000000000000000000000000000000000000000001",
+    "reference_manager": {
+        "references": [
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 0
+                },
+                "pc": 0,
+                "value": "[cast(fp + (-3), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 0
+                },
+                "pc": 0,
+                "value": "[cast(ap + 5, starkware.cairo.common.cairo_secp.bigint.BigInt3*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 1
+                },
+                "pc": 2,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 2
+                },
+                "pc": 3,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 3
+                },
+                "pc": 4,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 4
+                },
+                "pc": 5,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 5
+                },
+                "pc": 8,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 0
+                },
+                "pc": 12,
+                "value": "[cast(fp + (-5), starkware.cairo.common.cairo_secp.bigint.UnreducedBigInt3*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 0
+                },
+                "pc": 12,
+                "value": "[cast(fp + (-6), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 0
+                },
+                "pc": 12,
+                "value": "[cast(ap, felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 0
+                },
+                "pc": 12,
+                "value": "[cast(ap + 1, felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 3
+                },
+                "pc": 17,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 4
+                },
+                "pc": 18,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 5
+                },
+                "pc": 20,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 6
+                },
+                "pc": 22,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 7
+                },
+                "pc": 24,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 8
+                },
+                "pc": 26,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 9
+                },
+                "pc": 28,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 10
+                },
+                "pc": 31,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 10
+                },
+                "pc": 32,
+                "value": "cast([fp + (-6)] + 3, felt)"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 0
+                },
+                "pc": 35,
+                "value": "[cast(fp + (-8), starkware.cairo.common.cairo_secp.ec.EcPoint*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 0
+                },
+                "pc": 35,
+                "value": "[cast(fp + (-9), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 11
+                },
+                "pc": 40,
+                "value": "[cast(ap + (-4), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 11
+                },
+                "pc": 40,
+                "value": "[cast(ap + (-3), starkware.cairo.common.cairo_secp.bigint.BigInt3*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 0
+                },
+                "pc": 48,
+                "value": "[cast(fp + (-3), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 0
+                },
+                "pc": 48,
+                "value": "cast(((1, 2, 3), (1, 2, 3)), starkware.cairo.common.cairo_secp.ec.EcPoint)"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 27
+                },
+                "pc": 63,
+                "value": "[cast(ap + (-7), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 27
+                },
+                "pc": 63,
+                "value": "[cast(ap + (-6), starkware.cairo.common.cairo_secp.ec.EcPoint*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 27
+                },
+                "pc": 75,
+                "value": "cast((\n    (12424, 53151, 363737),\n    (77371252455336267181195244, 77371252455336267181195261, 9671406556917033397649404),\n    ), starkware.cairo.common.cairo_secp.ec.EcPoint)"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 54
+                },
+                "pc": 90,
+                "value": "[cast(ap + (-7), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 54
+                },
+                "pc": 90,
+                "value": "[cast(ap + (-6), starkware.cairo.common.cairo_secp.ec.EcPoint*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 4,
+                    "offset": 0
+                },
+                "pc": 104,
+                "value": "[cast(fp + (-3), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 4,
+                    "offset": 58
+                },
+                "pc": 107,
+                "value": "[cast(ap + (-1), felt*)]"
+            }
+        ]
+    }
+}
