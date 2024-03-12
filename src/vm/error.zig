@@ -305,6 +305,8 @@ pub const HintError = error{
 
     // Wrong dict pointer supplied.
     MismatchedDictPtr,
+
+    MemoryHasNoValue,
 };
 
 pub const InsufficientAllocatedCellsError = error{
