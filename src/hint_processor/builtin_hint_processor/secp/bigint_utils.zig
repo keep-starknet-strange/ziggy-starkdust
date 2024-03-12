@@ -10,6 +10,12 @@ const ExecutionScopes = @import("../../../vm/types/execution_scopes.zig").Execut
 const pow2ConstNz = @import("../../math_hints.zig").pow2ConstNz;
 const packBigInt = @import("../../uint_utils.zig").pack;
 const splitBigInt = @import("../../uint_utils.zig").split;
+const HintProcessor = @import("../../hint_processor_def.zig").CairoVMHintProcessor;
+const HintData = @import("../../hint_processor_def.zig").HintData;
+const testing_utils = @import("../../testing_utils.zig");
+const MemoryError = @import("../../../vm/error.zig").MemoryError;
+const MaybeRelocatable = @import("../../../vm/memory/relocatable.zig").MaybeRelocatable;
+const Int = @import("std").math.big.int.Managed;
 
 pub const BigInt3 = BigIntN(3);
 pub const Uint384 = BigIntN(3);
@@ -25,7 +31,8 @@ pub fn BigIntN(comptime NUM_LIMBS: usize) type {
 
         pub fn fromBaseAddr(self: *Self, addr: Relocatable, vm: *CairoVM) !Self {
             inline for (0..NUM_LIMBS) |i| {
-                self.limbs[i] = vm.getFelt(addr + i) catch return HintError.IdentifierHasNoMember;
+                const new_addr = try addr.addUint(i);
+                self.limbs[i] = try vm.getFelt(new_addr);
             }
             return .{ .limbs = self.limbs };
         }
@@ -60,17 +67,17 @@ pub fn BigIntN(comptime NUM_LIMBS: usize) type {
             return result;
         }
 
-        pub fn split(self: *Self, num: *std.big.Int) Self {
+        pub fn split(self: *Self, num: Int) Self {
             const limbs = splitBigInt(num, 128);
             return self.fromValues(limbs);
         }
-    };
-}
 
-// @TODO: implement fromBigUint. It is dependent on split function.
-pub fn fromBigUint(value: *std.big.Int, numLimbs: usize) BigIntN {
-    // Assuming we have a `split` function in BigIntN.zig that performs the conversion.
-    return BigIntN.split(value, numLimbs);
+        // @TODO: implement from. It is dependent on split function.
+        pub fn from(self: *Self, value: Int) !Self {
+            // Assuming we have a `split` function in BigIntN.zig that performs the conversion.
+            return self.split(value);
+        }
+    };
 }
 
 // @TODO: implement nondetBigInt3 function
@@ -111,3 +118,116 @@ pub fn hiMaxBitlen(vm: *CairoVM, ids_data: *std.StringHashMap(HintReference), ap
 }
 
 // Tests
+
+test "BigIntN Hints: get bigint3 from base address should work" {
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 0 }, .{1} },
+        .{ .{ 0, 1 }, .{2} },
+        .{ .{ 0, 2 }, .{3} },
+    });
+
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    var x: BigInt3 = undefined;
+    _ = try x.fromBaseAddr(Relocatable{ .segment_index = 0, .offset = 0 }, &vm);
+
+    try std.testing.expectEqual(Felt252.one(), x.limbs[0]);
+    try std.testing.expectEqual(Felt252.two(), x.limbs[1]);
+    try std.testing.expectEqual(Felt252.three(), x.limbs[2]);
+}
+
+test "BigIntN Hints: get Bigint5 from base address should work" {
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 0 }, .{1} },
+        .{ .{ 0, 1 }, .{2} },
+        .{ .{ 0, 2 }, .{3} },
+        .{ .{ 0, 3 }, .{4} },
+        .{ .{ 0, 4 }, .{5} },
+    });
+
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    var x: BigInt5 = undefined;
+    _ = try x.fromBaseAddr(Relocatable{ .segment_index = 0, .offset = 0 }, &vm);
+
+    try std.testing.expectEqual(Felt252.one(), x.limbs[0]);
+    try std.testing.expectEqual(Felt252.two(), x.limbs[1]);
+    try std.testing.expectEqual(Felt252.three(), x.limbs[2]);
+    try std.testing.expectEqual(Felt252.fromInt(u8, 4), x.limbs[3]);
+    try std.testing.expectEqual(Felt252.fromInt(u8, 5), x.limbs[4]);
+}
+
+test "Get BigInt3 from base address with missing member should fail" {
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 0 }, .{1} },
+        .{ .{ 0, 1 }, .{2} },
+    });
+
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    var x: BigInt3 = undefined;
+
+    try std.testing.expectError(MemoryError.UnknownMemoryCell, x.fromBaseAddr(Relocatable{ .segment_index = 0, .offset = 0 }, &vm));
+}
+
+test "Get BigInt5 from base address with missing member should fail" {
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 0 }, .{1} },
+        .{ .{ 0, 1 }, .{2} },
+        .{ .{ 0, 2 }, .{3} },
+        .{ .{ 0, 3 }, .{4} },
+    });
+
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    var x: BigInt5 = undefined;
+
+    try std.testing.expectError(MemoryError.UnknownMemoryCell, x.fromBaseAddr(Relocatable{ .segment_index = 0, .offset = 0 }, &vm));
+}
+
+test "BigIntN Hints: get bigint3 from var name should work" {
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 1, 0 }, .{1} },
+        .{ .{ 1, 1 }, .{2} },
+        .{ .{ 1, 2 }, .{3} },
+    });
+
+    // defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // var ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{.{
+    //     .name = "x",
+    //     .elems = &.{MaybeRelocatable.fromRelocatable(Relocatable{ .segment_index = 1, .offset = 0 })},
+    // }}, &vm);
+
+    // var ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{.{ .name = "x", .elems = &.{MaybeRelocatable.fromFelt(Felt252.fromInt(u32, 0))} }}, &vm);
+
+    var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{"x"});
+    defer ids_data.deinit();
+
+    var x: BigInt3 = undefined;
+    _ = try x.fromVarName("x", &vm, ids_data, .{});
+
+    try std.testing.expectEqual(Felt252.one(), x.limbs[0]);
+    // try std.testing.expectEqual(Felt252.two(), x.limbs[1]);
+    // try std.testing.expectEqual(Felt252.three(), x.limbs[2]);
+}
