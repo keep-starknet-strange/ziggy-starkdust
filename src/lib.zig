@@ -56,6 +56,7 @@ pub const hint_processor = struct {
     pub usingnamespace @import("hint_processor/dict_manager.zig");
     pub usingnamespace @import("hint_processor/usort.zig");
     pub usingnamespace @import("hint_processor/memset_utils.zig");
+    pub usingnamespace @import("hint_processor/builtin_hint_processor/secp/bigint_utils.zig");
 };
 
 pub const parser = struct {
