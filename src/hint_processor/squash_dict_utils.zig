@@ -65,7 +65,7 @@ pub fn squashDictInnerFirstIteration(
     var current_access_indices = try (access_indices.get(key) orelse return HintError.NoKeyInAccessIndices).clone();
     errdefer current_access_indices.deinit();
 
-    std.sort.block(Felt252, current_access_indices.items[0..], {}, cmpByValue);
+    std.sort.block(Felt252, current_access_indices.items, {}, cmpByValue);
 
     {
         // reverse array

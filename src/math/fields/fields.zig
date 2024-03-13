@@ -700,10 +700,7 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             }
 
             // Otherwise, it's safe to cast
-            return @as(
-                usize,
-                @intCast(asU256),
-            );
+            return @intCast(asU256);
         }
 
         /// Try to convert the field element to a u64 if its value is small enough.

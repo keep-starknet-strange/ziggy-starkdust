@@ -363,12 +363,10 @@ pub const ExecutionScopes = struct {
 
         inline for (@typeInfo(HintType).Union.fields) |field| {
             if (field.type == T) {
-                const field_val = @field(val, field.name);
-                if (@TypeOf(field_val) == T) {
-                    return field_val;
-                }
-
-                return HintError.VariableNotInScopeError;
+                return if (std.mem.eql(u8, @tagName(val), field.name))
+                    @field(val, field.name)
+                else
+                    return HintError.VariableNotInScopeError;
             }
         }
 
@@ -385,11 +383,10 @@ pub const ExecutionScopes = struct {
 
         inline for (@typeInfo(HintType).Union.fields) |field| {
             if (field.type == T) {
-                if (std.mem.eql(u8, @tagName(val.*), field.name)) {
-                    return &@field(val.*, field.name);
-                }
-
-                return HintError.VariableNotInScopeError;
+                return if (std.mem.eql(u8, @tagName(val.*), field.name))
+                    &@field(val.*, field.name)
+                else
+                    return HintError.VariableNotInScopeError;
             }
         }
 
