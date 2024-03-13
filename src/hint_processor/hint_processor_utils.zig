@@ -59,9 +59,27 @@ pub fn getIntegerFromReference(
         HintError.UnknownIdentifierInternal;
 }
 
-///Returns the Relocatable value stored in the given ids variable
-pub fn getPtrFromReference(hint_reference: HintReference, ap_tracking: ApTracking, vm: *CairoVM) !Relocatable {
-    const var_addr = computeAddrFromReference(hint_reference, ap_tracking, vm) orelse return HintError.UnknownIdentifierInternal;
+/// Retrieves the Relocatable value stored in the given ids variable.
+///
+/// This function retrieves the Relocatable value stored in the given ids variable indicated by the provided `hint_reference`.
+/// If the value is stored as an immediate, it returns the value directly.
+/// Otherwise, it computes the memory address of the variable and retrieves the Relocatable value from memory.
+///
+/// # Parameters
+/// - `hint_reference`: The hint reference indicating the variable.
+/// - `ap_tracking`: The AP tracking data.
+/// - `vm`: A pointer to the Cairo virtual machine.
+///
+/// # Returns
+/// Returns the Relocatable value stored in the variable indicated by the hint reference.
+/// If the variable is not found or if there's an error retrieving the value, it returns an error of type `HintError`.
+pub fn getPtrFromReference(
+    hint_reference: HintReference,
+    ap_tracking: ApTracking,
+    vm: *CairoVM,
+) !Relocatable {
+    const var_addr = computeAddrFromReference(hint_reference, ap_tracking, vm) orelse
+        return HintError.UnknownIdentifierInternal;
 
     return if (hint_reference.dereference)
         vm.getRelocatable(var_addr) catch HintError.WrongIdentifierTypeInternal
@@ -243,5 +261,58 @@ test "getIntegerFromReference: with immediate value" {
     try expectEqual(
         Felt252.fromInt(u8, 2),
         getIntegerFromReference(&vm, hint_reference, .{}),
+    );
+}
+
+test "getPtrFromReference: short path" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    // Verify that the function returns the expected Relocatable value for a short path.
+    try expectEqual(
+        Relocatable.init(1, 0),
+        try getPtrFromReference(HintReference.init(0, 0, false, false), .{}, &vm),
+    );
+}
+
+test "getPtrFromReference: with dereference" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    // Set up memory segments in the virtual machine.
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{.{ .{ 1, 0 }, .{ 3, 0 } }},
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator); // Clean up memory data.
+
+    // Verify that the function returns the expected Relocatable value with dereference.
+    try expectEqual(
+        Relocatable.init(3, 0),
+        try getPtrFromReference(HintReference.init(0, 0, false, true), .{}, &vm),
+    );
+}
+
+test "getPtrFromReference: with dereference and immediate value" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    // Set up memory segments in the virtual machine.
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{.{ .{ 1, 0 }, .{ 4, 0 } }},
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator); // Clean up memory data.
+
+    // Create a hint reference with immediate value and verify the function returns the expected Relocatable value.
+    var hint_ref = HintReference.init(0, 0, true, false);
+    hint_ref.offset2 = .{ .value = 2 };
+
+    try expectEqual(
+        Relocatable.init(4, 2),
+        try getPtrFromReference(hint_ref, .{}, &vm),
     );
 }
