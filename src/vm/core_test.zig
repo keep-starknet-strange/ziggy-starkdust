@@ -15,6 +15,7 @@ const Relocatable = relocatable.Relocatable;
 const instructions = @import("instructions.zig");
 const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
+const ExecScopeError = @import("error.zig").ExecScopeError;
 const TraceError = @import("error.zig").TraceError;
 const MemoryError = @import("error.zig").MemoryError;
 const MathError = @import("error.zig").MathError;
@@ -31,13 +32,13 @@ const HashBuiltinRunner = @import("./builtins/builtin_runner/hash.zig").HashBuil
 const EcOpBuiltinRunner = @import("./builtins/builtin_runner/ec_op.zig").EcOpBuiltinRunner;
 const Instruction = @import("instructions.zig").Instruction;
 const CairoVM = @import("core.zig").CairoVM;
-const computeRes = @import("core.zig").computeRes;
 const OperandsResult = @import("core.zig").OperandsResult;
-const deduceOp1 = @import("core.zig").deduceOp1;
 const HintData = @import("../hint_processor/hint_processor_def.zig").HintData;
 const HintRange = @import("./types/program.zig").HintRange;
+const HintType = @import("./types/execution_scopes.zig").HintType;
 const ExecutionScopes = @import("./types/execution_scopes.zig").ExecutionScopes;
 const HintProcessor = @import("../hint_processor/hint_processor_def.zig").CairoVMHintProcessor;
+const HintReference = @import("../hint_processor/hint_processor_def.zig").HintReference;
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -1434,138 +1435,6 @@ test "deduceOp0 when opcode == .Ret, res_logic == .Mul, input is felt" {
     try expectEqual(expected_res, deduceOp0.res);
 }
 
-test "deduceOp1 when opcode == .Call" {
-    // Setup test context
-    // Nothing.
-
-    // Test body
-    var instr = deduceOpTestInstr;
-    instr.opcode = .Call;
-
-    const op1Deduction = try deduceOp1(&instr, &null, &null);
-
-    // Test checks
-    const expected_op_1: ?MaybeRelocatable = null; // temp var needed for type inference
-    const expected_res: ?MaybeRelocatable = null;
-    try expectEqual(expected_op_1, op1Deduction.op_1);
-    try expectEqual(expected_res, op1Deduction.res);
-}
-
-test "deduceOp1 when opcode == .AssertEq, res_logic == .Add, input is felt" {
-    // Setup test context
-    // Nothing.
-
-    // Test body
-    var instr = deduceOpTestInstr;
-    instr.opcode = .AssertEq;
-    instr.res_logic = .Add;
-
-    const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 3);
-    const op0: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 2);
-
-    const op1Deduction = try deduceOp1(&instr, &dst, &op0);
-
-    // Test checks
-    try expect(op1Deduction.op_1.?.eq(MaybeRelocatable.fromInt(u64, 1)));
-    try expect(op1Deduction.res.?.eq(MaybeRelocatable.fromInt(u64, 3)));
-}
-
-test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, non-zero op0" {
-    // Setup test context
-    // Nothing.
-
-    // Test body
-    var instr = deduceOpTestInstr;
-    instr.opcode = .AssertEq;
-    instr.res_logic = .Mul;
-
-    const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 4);
-    const op0: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 2);
-
-    const op1Deduction = try deduceOp1(&instr, &dst, &op0);
-
-    // Test checks
-    try expect(op1Deduction.op_1.?.eq(MaybeRelocatable.fromInt(u64, 2)));
-    try expect(op1Deduction.res.?.eq(MaybeRelocatable.fromInt(u64, 4)));
-}
-
-test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
-    // Setup test context
-    // Nothing.
-
-    // Test body
-    var instr = deduceOpTestInstr;
-    instr.opcode = .AssertEq;
-    instr.res_logic = .Mul;
-
-    const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 4);
-    const op0: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 0);
-
-    const op1Deduction = try deduceOp1(&instr, &dst, &op0);
-
-    // Test checks
-    const expected_op_1: ?MaybeRelocatable = null; // temp var needed for type inference
-    const expected_res: ?MaybeRelocatable = null;
-    try expectEqual(expected_op_1, op1Deduction.op_1);
-    try expectEqual(expected_res, op1Deduction.res);
-}
-
-test "deduceOp1 when opcode == .AssertEq, res_logic = .Mul, no input" {
-    // Setup test context
-    // Nothing.
-
-    // Test body
-    var instr = deduceOpTestInstr;
-    instr.opcode = .AssertEq;
-    instr.res_logic = .Mul;
-
-    const op1Deduction = try deduceOp1(&instr, &null, &null);
-
-    // Test checks
-    const expected_op_1: ?MaybeRelocatable = null; // temp var needed for type inference
-    const expected_res: ?MaybeRelocatable = null;
-    try expectEqual(expected_op_1, op1Deduction.op_1);
-    try expectEqual(expected_res, op1Deduction.res);
-}
-
-test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
-    // Setup test context
-    // Nothing.
-
-    // Test body
-    var instr = deduceOpTestInstr;
-    instr.opcode = .AssertEq;
-    instr.res_logic = .Op1;
-
-    const op0: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 0);
-
-    const op1Deduction = try deduceOp1(&instr, &null, &op0);
-
-    // Test checks
-    const expected_op_1: ?MaybeRelocatable = null; // temp var needed for type inference
-    const expected_res: ?MaybeRelocatable = null;
-    try expectEqual(expected_op_1, op1Deduction.op_1);
-    try expectEqual(expected_res, op1Deduction.res);
-}
-
-test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no op0" {
-    // Setup test context
-    // Nothing/
-
-    // Test body
-    var instr = deduceOpTestInstr;
-    instr.opcode = .AssertEq;
-    instr.res_logic = .Op1;
-
-    const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 7);
-
-    const op1Deduction = try deduceOp1(&instr, &dst, &null);
-
-    // Test checks
-    try expect(op1Deduction.op_1.?.eq(MaybeRelocatable.fromInt(u64, 7)));
-    try expect(op1Deduction.res.?.eq(MaybeRelocatable.fromInt(u64, 7)));
-}
-
 test "set get value in vm memory" {
     // Test setup
     const allocator = std.testing.allocator;
@@ -1590,324 +1459,6 @@ test "set get value in vm memory" {
     try expectEqual(
         expected_value,
         actual_value.?,
-    );
-}
-
-test "compute res op1 works" {
-    // Test setup
-    const allocator = std.testing.allocator;
-
-    // Create a new VM instance.
-    var vm = try CairoVM.init(allocator, .{});
-    defer vm.deinit();
-
-    vm.run_context.ap.* = Relocatable.init(1, 0);
-    // Test body
-
-    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.two());
-    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.three());
-
-    // Call with Op1 res logic
-    const actual_res = try computeRes(
-        &.{
-            .off_0 = 0,
-            .off_1 = 1,
-            .off_2 = 2,
-            .dst_reg = .AP,
-            .op_0_reg = .AP,
-            .op_1_addr = .AP,
-            .res_logic = .Op1,
-            .pc_update = .Regular,
-            .ap_update = .Regular,
-            .fp_update = .Regular,
-            .opcode = .NOp,
-        },
-        value_op0,
-        value_op1,
-    );
-    const expected_res = value_op1;
-
-    // Test checks
-    try expectEqual(
-        expected_res,
-        actual_res.?,
-    );
-}
-
-test "compute res add felts works" {
-    // Test setup
-    const allocator = std.testing.allocator;
-
-    // Create a new VM instance.
-    var vm = try CairoVM.init(allocator, .{});
-    defer vm.deinit();
-
-    vm.run_context.ap.* = Relocatable.init(1, 0);
-    // Test body
-
-    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.two());
-    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.three());
-
-    const actual_res = try computeRes(
-        &.{
-            .off_0 = 0,
-            .off_1 = 1,
-            .off_2 = 2,
-            .dst_reg = .AP,
-            .op_0_reg = .AP,
-            .op_1_addr = .AP,
-            .res_logic = .Add,
-            .pc_update = .Regular,
-            .ap_update = .Regular,
-            .fp_update = .Regular,
-            .opcode = .NOp,
-        },
-        value_op0,
-        value_op1,
-    );
-    const expected_res = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInt(u8, 5));
-
-    // Test checks
-    try expectEqual(
-        expected_res,
-        actual_res.?,
-    );
-}
-
-test "compute res add felt to offset works" {
-    // Test setup
-    const allocator = std.testing.allocator;
-
-    // Create a new VM instance.
-    var vm = try CairoVM.init(allocator, .{});
-    defer vm.deinit();
-
-    vm.run_context.ap.* = Relocatable.init(1, 0);
-    // Test body
-
-    const value_op0 = Relocatable.init(1, 1);
-    const op0 = MaybeRelocatable.fromRelocatable(value_op0);
-
-    const op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.three());
-
-    const actual_res = try computeRes(
-        &.{
-            .off_0 = 0,
-            .off_1 = 1,
-            .off_2 = 2,
-            .dst_reg = .AP,
-            .op_0_reg = .AP,
-            .op_1_addr = .AP,
-            .res_logic = .Add,
-            .pc_update = .Regular,
-            .ap_update = .Regular,
-            .fp_update = .Regular,
-            .opcode = .NOp,
-        },
-        op0,
-        op1,
-    );
-    const res = Relocatable.init(1, 4);
-    const expected_res = MaybeRelocatable.fromRelocatable(res);
-
-    // Test checks
-    try expectEqual(
-        expected_res,
-        actual_res.?,
-    );
-}
-
-test "compute res add fails two relocs" {
-    // Test setup
-    const allocator = std.testing.allocator;
-
-    // Create a new VM instance.
-    var vm = try CairoVM.init(allocator, .{});
-    defer vm.deinit();
-
-    vm.run_context.ap.* = Relocatable.init(1, 0);
-    // Test body
-
-    const value_op0 = Relocatable.init(1, 0);
-    const value_op1 = Relocatable.init(1, 1);
-
-    const op0 = MaybeRelocatable.fromRelocatable(value_op0);
-    const op1 = MaybeRelocatable.fromRelocatable(value_op1);
-
-    // Test checks
-    try expectError(
-        MathError.RelocatableAdd,
-        computeRes(
-            &.{
-                .off_0 = 0,
-                .off_1 = 1,
-                .off_2 = 2,
-                .dst_reg = .AP,
-                .op_0_reg = .AP,
-                .op_1_addr = .AP,
-                .res_logic = .Add,
-                .pc_update = .Regular,
-                .ap_update = .Regular,
-                .fp_update = .Regular,
-                .opcode = .NOp,
-            },
-            op0,
-            op1,
-        ),
-    );
-}
-
-test "compute res mul works" {
-    // Test setup
-    const allocator = std.testing.allocator;
-
-    // Create a new VM instance.
-    var vm = try CairoVM.init(allocator, .{});
-    defer vm.deinit();
-
-    vm.run_context.ap.* = Relocatable.init(1, 0);
-    // Test body
-
-    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.two());
-    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.three());
-
-    // Call with Mul res logic
-    const actual_res = try computeRes(
-        &.{
-            .off_0 = 0,
-            .off_1 = 1,
-            .off_2 = 2,
-            .dst_reg = .AP,
-            .op_0_reg = .AP,
-            .op_1_addr = .AP,
-            .res_logic = .Mul,
-            .pc_update = .Regular,
-            .ap_update = .Regular,
-            .fp_update = .Regular,
-            .opcode = .NOp,
-        },
-        value_op0,
-        value_op1,
-    );
-    const expected_res = MaybeRelocatable.fromFelt(starknet_felt.Felt252.fromInt(u8, 6));
-
-    // Test checks
-    try expectEqual(
-        expected_res,
-        actual_res.?,
-    );
-}
-
-test "compute res mul fails two relocs" {
-    // Test setup
-    const allocator = std.testing.allocator;
-
-    // Create a new VM instance.
-    var vm = try CairoVM.init(allocator, .{});
-    defer vm.deinit();
-
-    vm.run_context.ap.* = Relocatable.init(1, 0);
-    // Test body
-
-    const value_op0 = Relocatable.init(1, 0);
-    const value_op1 = Relocatable.init(1, 1);
-
-    const op0 = MaybeRelocatable.fromRelocatable(value_op0);
-    const op1 = MaybeRelocatable.fromRelocatable(value_op1);
-
-    // Test checks
-    try expectError(
-        MathError.RelocatableMul,
-        computeRes(
-            &.{
-                .off_0 = 0,
-                .off_1 = 1,
-                .off_2 = 2,
-                .dst_reg = .AP,
-                .op_0_reg = .AP,
-                .op_1_addr = .AP,
-                .res_logic = .Mul,
-                .pc_update = .Regular,
-                .ap_update = .Regular,
-                .fp_update = .Regular,
-                .opcode = .NOp,
-            },
-            op0,
-            op1,
-        ),
-    );
-}
-
-test "compute res mul fails felt and reloc" {
-    // Test setup
-    const allocator = std.testing.allocator;
-
-    // Create a new VM instance.
-    var vm = try CairoVM.init(allocator, .{});
-    defer vm.deinit();
-    // Test body
-
-    const value_op0 = Relocatable.init(1, 0);
-    const op0 = MaybeRelocatable.fromRelocatable(value_op0);
-    const op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.two());
-
-    // Test checks
-    try expectError(
-        MathError.RelocatableMul,
-        computeRes(&.{
-            .off_0 = 0,
-            .off_1 = 1,
-            .off_2 = 2,
-            .dst_reg = .AP,
-            .op_0_reg = .AP,
-            .op_1_addr = .AP,
-            .res_logic = .Mul,
-            .pc_update = .Regular,
-            .ap_update = .Regular,
-            .fp_update = .Regular,
-            .opcode = .NOp,
-        }, op0, op1),
-    );
-}
-
-test "compute res Unconstrained should return null" {
-    // Test setup
-    const allocator = std.testing.allocator;
-
-    // Create a new VM instance.
-    var vm = try CairoVM.init(allocator, .{});
-    defer vm.deinit();
-
-    vm.run_context.ap.* = Relocatable.init(1, 0);
-    // Test body
-
-    const value_op0 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.two());
-    const value_op1 = MaybeRelocatable.fromFelt(starknet_felt.Felt252.three());
-
-    // Call with unconstrained res logic
-    const actual_res = try computeRes(
-        &.{
-            .off_0 = 0,
-            .off_1 = 1,
-            .off_2 = 2,
-            .dst_reg = .AP,
-            .op_0_reg = .AP,
-            .op_1_addr = .AP,
-            .res_logic = .Unconstrained,
-            .pc_update = .Regular,
-            .ap_update = .Regular,
-            .fp_update = .Regular,
-            .opcode = .NOp,
-        },
-        value_op0,
-        value_op1,
-    );
-    const expected_res: ?MaybeRelocatable = null;
-
-    // Test checks
-    try expectEqual(
-        expected_res,
-        actual_res,
     );
 }
 
@@ -4795,4 +4346,176 @@ test "CairoVM: multiplication and different ap increase" {
         MaybeRelocatable.fromInt(u256, 0x14),
         vm.segments.memory.get(vm.run_context.getAP()).?,
     );
+}
+
+test "CairoVM: endRun with a no scope error" {
+
+    // Create a new VM instance.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    // Deallocate the VM resources after the test.
+    defer vm.deinit();
+
+    // Initialize execution scopes using the testing allocator.
+    var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
+    // Deallocate the execution scopes after the test.
+    defer exec_scopes.deinit();
+
+    // Initialize a new scope using the testing allocator.
+    var new_scope = std.StringHashMap(HintType).init(std.testing.allocator);
+    // Deallocate the new scope after the test.
+    defer new_scope.deinit();
+
+    // Enter the newly created scope.
+    try exec_scopes.enterScope(new_scope);
+
+    // Expect an error of type NoScopeError.
+    try expectError(
+        ExecScopeError.NoScopeError,
+        vm.endRun(std.testing.allocator, &exec_scopes),
+    );
+}
+
+test "Core: test step for preset memory alloc hint not extensive" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{
+            .enable_trace = true,
+        },
+    );
+    defer vm.deinit();
+
+    vm.run_context.pc.* = Relocatable.init(0, 3);
+    vm.run_context.ap.* = Relocatable.init(1, 2);
+    vm.run_context.fp.* = Relocatable.init(1, 2);
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 0 }, .{290341444919459839} },
+        .{ .{ 0, 1 }, .{1} },
+        .{ .{ 0, 2 }, .{2345108766317314046} },
+        .{ .{ 0, 3 }, .{1226245742482522112} },
+        .{ .{ 0, 4 }, .{3618502788666131213697322783095070105623107215331596699973092056135872020478} },
+        .{ .{ 0, 5 }, .{5189976364521848832} },
+        .{ .{ 0, 6 }, .{1} },
+        .{ .{ 0, 7 }, .{4611826758063128575} },
+        .{ .{ 0, 8 }, .{2345108766317314046} },
+        .{ .{ 1, 0 }, .{ 2, 0 } },
+        .{ .{ 1, 1 }, .{ 3, 0 } },
+    });
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    const hint_processor: HintProcessor = .{};
+    var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
+    defer ids_data.deinit();
+
+    var hint_datas = std.ArrayList(HintData).init(std.testing.allocator);
+    defer hint_datas.deinit();
+
+    try hint_datas.append(
+        HintData.init("memory[ap] = segments.add()", ids_data, .{}),
+    );
+
+    var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
+    defer exec_scopes.deinit();
+    var constants = std.StringHashMap(Felt252).init(std.testing.allocator);
+    defer constants.deinit();
+
+    inline for (0..6) |_| {
+        const hint_data = if (vm.run_context.pc.eq(Relocatable.init(0, 0))) hint_datas.items[0..] else hint_datas.items[0..0];
+
+        try vm.stepNotExtensive(std.testing.allocator, hint_processor, &exec_scopes, hint_data, &constants);
+    }
+
+    const expected_trace = [_][3][2]u64{
+        .{ .{ 0, 3 }, .{ 1, 2 }, .{ 1, 2 } },
+        .{ .{ 0, 0 }, .{ 1, 4 }, .{ 1, 4 } },
+        .{ .{ 0, 2 }, .{ 1, 5 }, .{ 1, 4 } },
+        .{ .{ 0, 5 }, .{ 1, 5 }, .{ 1, 2 } },
+        .{ .{ 0, 7 }, .{ 1, 6 }, .{ 1, 2 } },
+        .{ .{ 0, 8 }, .{ 1, 6 }, .{ 1, 2 } },
+    };
+
+    try std.testing.expectEqual(expected_trace.len, vm.trace_context.state.enabled.entries.items.len);
+
+    for (expected_trace, 0..) |trace_entry, idx| {
+        // pc, ap, fp
+        const trace_entry_a = vm.trace_context.state.enabled.entries.items[idx];
+        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[0][0]), trace_entry[0][1]), trace_entry_a.pc);
+        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[1][0]), trace_entry[1][1]), trace_entry_a.ap);
+        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[2][0]), trace_entry[2][1]), trace_entry_a.fp);
+    }
+}
+
+test "Core: test step for preset memory alloc hint extensive" {
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{
+            .enable_trace = true,
+        },
+    );
+    defer vm.deinit();
+
+    vm.run_context.pc.* = Relocatable.init(0, 3);
+    vm.run_context.ap.* = Relocatable.init(1, 2);
+    vm.run_context.fp.* = Relocatable.init(1, 2);
+
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 0 }, .{290341444919459839} },
+        .{ .{ 0, 1 }, .{1} },
+        .{ .{ 0, 2 }, .{2345108766317314046} },
+        .{ .{ 0, 3 }, .{1226245742482522112} },
+        .{ .{ 0, 4 }, .{3618502788666131213697322783095070105623107215331596699973092056135872020478} },
+        .{ .{ 0, 5 }, .{5189976364521848832} },
+        .{ .{ 0, 6 }, .{1} },
+        .{ .{ 0, 7 }, .{4611826758063128575} },
+        .{ .{ 0, 8 }, .{2345108766317314046} },
+        .{ .{ 1, 0 }, .{ 2, 0 } },
+        .{ .{ 1, 1 }, .{ 3, 0 } },
+    });
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    const hint_processor: HintProcessor = .{};
+    var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
+    defer ids_data.deinit();
+
+    var hint_datas = std.ArrayList(HintData).init(std.testing.allocator);
+    defer hint_datas.deinit();
+
+    try hint_datas.append(
+        HintData.init("memory[ap] = segments.add()", ids_data, .{}),
+    );
+
+    var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
+    defer exec_scopes.deinit();
+    var constants = std.StringHashMap(Felt252).init(std.testing.allocator);
+    defer constants.deinit();
+
+    inline for (0..6) |_| {
+        var hint_ranges = std.AutoHashMap(Relocatable, HintRange).init(std.testing.allocator);
+        defer hint_ranges.deinit();
+
+        try hint_ranges.put(Relocatable.init(0, 0), .{
+            .start = 0,
+            .length = 1,
+        });
+
+        try vm.stepExtensive(std.testing.allocator, hint_processor, &exec_scopes, &hint_datas, &hint_ranges, &constants);
+    }
+
+    const expected_trace = [_][3][2]u64{
+        .{ .{ 0, 3 }, .{ 1, 2 }, .{ 1, 2 } },
+        .{ .{ 0, 0 }, .{ 1, 4 }, .{ 1, 4 } },
+        .{ .{ 0, 2 }, .{ 1, 5 }, .{ 1, 4 } },
+        .{ .{ 0, 5 }, .{ 1, 5 }, .{ 1, 2 } },
+        .{ .{ 0, 7 }, .{ 1, 6 }, .{ 1, 2 } },
+        .{ .{ 0, 8 }, .{ 1, 6 }, .{ 1, 2 } },
+    };
+
+    try std.testing.expectEqual(expected_trace.len, vm.trace_context.state.enabled.entries.items.len);
+
+    for (expected_trace, 0..) |trace_entry, idx| {
+        // pc, ap, fp
+        const trace_entry_a = vm.trace_context.state.enabled.entries.items[idx];
+        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[0][0]), trace_entry[0][1]), trace_entry_a.pc);
+        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[1][0]), trace_entry[1][1]), trace_entry_a.ap);
+        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[2][0]), trace_entry[2][1]), trace_entry_a.fp);
+    }
 }

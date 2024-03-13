@@ -14,6 +14,7 @@ const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
 const MemoryError = @import("error.zig").MemoryError;
 const TraceError = @import("error.zig").TraceError;
+const ExecScopeError = @import("error.zig").ExecScopeError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
@@ -596,7 +597,7 @@ pub const CairoVM = struct {
 
         // Compute the result if it hasn't been computed.
         if (op_res.res == null) {
-            op_res.res = try computeRes(instruction, op_res.op_0, op_res.op_1);
+            op_res.res = try instruction.computeRes(op_res.op_0, op_res.op_1);
         }
 
         // Retrieve the destination if not already available.
@@ -667,13 +668,12 @@ pub const CairoVM = struct {
         dst_op: *const ?MaybeRelocatable,
         op0: *const ?MaybeRelocatable,
     ) !MaybeRelocatable {
-        if (try self.deduceMemoryCell(allocator, op1_addr)) |op1| {
+        if (try self.deduceMemoryCell(allocator, op1_addr)) |op1|
             return op1;
-        } else {
-            const op1_deductions = try deduceOp1(instruction, dst_op, op0);
-            if (res.* == null) res.* = op1_deductions.res;
-            return op1_deductions.op_1 orelse CairoVMError.FailedToComputeOp1;
-        }
+
+        const op1_deductions = try instruction.deduceOp1(dst_op, op0);
+        if (res.* == null) res.* = op1_deductions.res;
+        return op1_deductions.op_1 orelse CairoVMError.FailedToComputeOp1;
     }
 
     /// Verifies the auto deductions for all memory cells managed by the VM's builtins.
@@ -748,7 +748,12 @@ pub const CairoVM = struct {
         inst: *const Instruction,
         dst: *const ?MaybeRelocatable,
         op1: *const ?MaybeRelocatable,
-    ) !Op0Result {
+    ) !struct {
+        /// The computed operand Op0.
+        op_0: ?MaybeRelocatable = null,
+        /// The result of the operation involving Op0.
+        res: ?MaybeRelocatable = null,
+    } {
         switch (inst.opcode) {
             .Call => {
                 return .{
@@ -1373,66 +1378,38 @@ pub const CairoVM = struct {
 
         return decoder.decodeInstructions(instruction);
     }
-};
 
-/// Compute the result operand for a given instruction on op 0 and op 1.
-/// # Arguments
-/// - `instruction`: The instruction to compute the operands for.
-/// - `op_0`: The operand 0.
-/// - `op_1`: The operand 1.
-/// # Returns
-/// - `res`: The result of the operation.
-pub fn computeRes(
-    instruction: *const Instruction,
-    op_0: MaybeRelocatable,
-    op_1: MaybeRelocatable,
-) !?MaybeRelocatable {
-    return switch (instruction.res_logic) {
-        .Op1 => op_1,
-        .Add => try op_0.add(op_1),
-        .Mul => try op_0.mul(op_1),
-        .Unconstrained => null,
-    };
-}
+    /// Marks the end of the execution run in the Cairo Virtual Machine.
+    ///
+    /// This function finalizes the execution run by verifying auto deductions and marking the run as finished.
+    /// It also checks if there is only one execution scope remaining, returning `ExecScopeError.NoScopeError` if so.
+    ///
+    /// Parameters:
+    /// - `allocator`: The allocator to be used for any necessary memory allocations.
+    /// - `exec_scopes`: Pointer to the execution scopes.
+    ///
+    /// Returns:
+    /// - If there is only one execution scope remaining, returns `ExecScopeError.NoScopeError`.
+    /// - Otherwise, returns `void`.
+    ///
+    /// Errors:
+    /// - Returns an error if there is only one execution scope remaining (`ExecScopeError.NoScopeError`).
+    pub fn endRun(self: *Self, allocator: Allocator, exec_scopes: *ExecutionScopes) !void {
+        // Verify auto deductions before ending the run
+        try self.verifyAutoDeductions(allocator);
 
-/// Attempts to deduce `op1` and `res` for an instruction, given `dst` and `op0`.
-///
-/// # Arguments
-/// - `inst`: The instruction to deduce `op1` and `res` for.
-/// - `dst`: The destination of the instruction.
-/// - `op0`: The first operand of the instruction.
-///
-/// # Returns
-/// - `Tuple`: A tuple containing the deduced `op1` and `res`.
-pub fn deduceOp1(
-    inst: *const Instruction,
-    dst: *const ?MaybeRelocatable,
-    op0: *const ?MaybeRelocatable,
-) !Op1Result {
-    if (inst.opcode != .AssertEq) return .{};
+        // Mark the run as finished
+        self.is_run_finished = true;
 
-    switch (inst.res_logic) {
-        .Op1 => if (dst.*) |dst_val| return .{ .op_1 = dst_val, .res = dst_val },
-        .Add => if (dst.*) |d|
-            if (op0.*) |op| return .{ .op_1 = try d.sub(op), .res = d },
-        .Mul => if (dst.*) |d| {
-            if (op0.*) |op| {
-                if (d.isFelt() and op.isFelt() and !op.felt.isZero())
-                    return .{
-                        .op_1 = MaybeRelocatable.fromFelt(try d.felt.div(op.felt)),
-                        .res = d,
-                    };
-            }
-        },
-        else => {},
+        // If there is only one execution scope remaining, return immediately
+        if (exec_scopes.data.items.len == 1) {
+            return;
+        }
+
+        // Otherwise, return an error indicating no scope error
+        return ExecScopeError.NoScopeError;
     }
-
-    return .{};
-}
-
-// *****************************************************************************
-// *                       CUSTOM TYPES                                        *
-// *****************************************************************************
+};
 
 /// Represents the operands for an instruction.
 pub const OperandsResult = struct {
@@ -1509,168 +1486,3 @@ pub const OperandsResult = struct {
         return self.deduced_operands & (1 << 2) != 0;
     }
 };
-
-/// Represents the result of deduce Op0 operation.
-const Op0Result = struct {
-    const Self = @This();
-    /// The computed operand Op0.
-    op_0: ?MaybeRelocatable = null,
-    /// The result of the operation involving Op0.
-    res: ?MaybeRelocatable = null,
-};
-
-/// Represents the result of deduce Op1 operation.
-const Op1Result = struct {
-    const Self = @This();
-    /// The computed operand Op1.
-    op_1: ?MaybeRelocatable = null,
-    /// The result of the operation involving Op1.
-    res: ?MaybeRelocatable = null,
-};
-
-const HintReference = @import("../hint_processor/hint_processor_def.zig").HintReference;
-
-test "Core: test step for preset memory alloc hint not extensive" {
-    var vm = try CairoVM.init(
-        std.testing.allocator,
-        .{
-            .enable_trace = true,
-        },
-    );
-    defer vm.deinit();
-
-    vm.run_context.pc.* = Relocatable.init(0, 3);
-    vm.run_context.ap.* = Relocatable.init(1, 2);
-    vm.run_context.fp.* = Relocatable.init(1, 2);
-    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
-        .{ .{ 0, 0 }, .{290341444919459839} },
-        .{ .{ 0, 1 }, .{1} },
-        .{ .{ 0, 2 }, .{2345108766317314046} },
-        .{ .{ 0, 3 }, .{1226245742482522112} },
-        .{ .{ 0, 4 }, .{3618502788666131213697322783095070105623107215331596699973092056135872020478} },
-        .{ .{ 0, 5 }, .{5189976364521848832} },
-        .{ .{ 0, 6 }, .{1} },
-        .{ .{ 0, 7 }, .{4611826758063128575} },
-        .{ .{ 0, 8 }, .{2345108766317314046} },
-        .{ .{ 1, 0 }, .{ 2, 0 } },
-        .{ .{ 1, 1 }, .{ 3, 0 } },
-    });
-    defer vm.segments.memory.deinitData(std.testing.allocator);
-
-    const hint_processor: HintProcessor = .{};
-    var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
-    defer ids_data.deinit();
-
-    var hint_datas = std.ArrayList(HintData).init(std.testing.allocator);
-    defer hint_datas.deinit();
-
-    try hint_datas.append(
-        HintData.init("memory[ap] = segments.add()", ids_data, .{}),
-    );
-
-    var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
-    defer exec_scopes.deinit();
-    var constants = std.StringHashMap(Felt252).init(std.testing.allocator);
-    defer constants.deinit();
-
-    inline for (0..6) |_| {
-        const hint_data = if (vm.run_context.pc.eq(Relocatable.init(0, 0))) hint_datas.items[0..] else hint_datas.items[0..0];
-
-        try vm.stepNotExtensive(std.testing.allocator, hint_processor, &exec_scopes, hint_data, &constants);
-    }
-
-    const expected_trace = [_][3][2]u64{
-        .{ .{ 0, 3 }, .{ 1, 2 }, .{ 1, 2 } },
-        .{ .{ 0, 0 }, .{ 1, 4 }, .{ 1, 4 } },
-        .{ .{ 0, 2 }, .{ 1, 5 }, .{ 1, 4 } },
-        .{ .{ 0, 5 }, .{ 1, 5 }, .{ 1, 2 } },
-        .{ .{ 0, 7 }, .{ 1, 6 }, .{ 1, 2 } },
-        .{ .{ 0, 8 }, .{ 1, 6 }, .{ 1, 2 } },
-    };
-
-    try std.testing.expectEqual(expected_trace.len, vm.trace_context.state.enabled.entries.items.len);
-
-    for (expected_trace, 0..) |trace_entry, idx| {
-        // pc, ap, fp
-        const trace_entry_a = vm.trace_context.state.enabled.entries.items[idx];
-        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[0][0]), trace_entry[0][1]), trace_entry_a.pc);
-        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[1][0]), trace_entry[1][1]), trace_entry_a.ap);
-        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[2][0]), trace_entry[2][1]), trace_entry_a.fp);
-    }
-}
-
-test "Core: test step for preset memory alloc hint extensive" {
-    var vm = try CairoVM.init(
-        std.testing.allocator,
-        .{
-            .enable_trace = true,
-        },
-    );
-    defer vm.deinit();
-
-    vm.run_context.pc.* = Relocatable.init(0, 3);
-    vm.run_context.ap.* = Relocatable.init(1, 2);
-    vm.run_context.fp.* = Relocatable.init(1, 2);
-
-    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
-        .{ .{ 0, 0 }, .{290341444919459839} },
-        .{ .{ 0, 1 }, .{1} },
-        .{ .{ 0, 2 }, .{2345108766317314046} },
-        .{ .{ 0, 3 }, .{1226245742482522112} },
-        .{ .{ 0, 4 }, .{3618502788666131213697322783095070105623107215331596699973092056135872020478} },
-        .{ .{ 0, 5 }, .{5189976364521848832} },
-        .{ .{ 0, 6 }, .{1} },
-        .{ .{ 0, 7 }, .{4611826758063128575} },
-        .{ .{ 0, 8 }, .{2345108766317314046} },
-        .{ .{ 1, 0 }, .{ 2, 0 } },
-        .{ .{ 1, 1 }, .{ 3, 0 } },
-    });
-    defer vm.segments.memory.deinitData(std.testing.allocator);
-
-    const hint_processor: HintProcessor = .{};
-    var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
-    defer ids_data.deinit();
-
-    var hint_datas = std.ArrayList(HintData).init(std.testing.allocator);
-    defer hint_datas.deinit();
-
-    try hint_datas.append(
-        HintData.init("memory[ap] = segments.add()", ids_data, .{}),
-    );
-
-    var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
-    defer exec_scopes.deinit();
-    var constants = std.StringHashMap(Felt252).init(std.testing.allocator);
-    defer constants.deinit();
-
-    inline for (0..6) |_| {
-        var hint_ranges = std.AutoHashMap(Relocatable, HintRange).init(std.testing.allocator);
-        defer hint_ranges.deinit();
-
-        try hint_ranges.put(Relocatable.init(0, 0), .{
-            .start = 0,
-            .length = 1,
-        });
-
-        try vm.stepExtensive(std.testing.allocator, hint_processor, &exec_scopes, &hint_datas, &hint_ranges, &constants);
-    }
-
-    const expected_trace = [_][3][2]u64{
-        .{ .{ 0, 3 }, .{ 1, 2 }, .{ 1, 2 } },
-        .{ .{ 0, 0 }, .{ 1, 4 }, .{ 1, 4 } },
-        .{ .{ 0, 2 }, .{ 1, 5 }, .{ 1, 4 } },
-        .{ .{ 0, 5 }, .{ 1, 5 }, .{ 1, 2 } },
-        .{ .{ 0, 7 }, .{ 1, 6 }, .{ 1, 2 } },
-        .{ .{ 0, 8 }, .{ 1, 6 }, .{ 1, 2 } },
-    };
-
-    try std.testing.expectEqual(expected_trace.len, vm.trace_context.state.enabled.entries.items.len);
-
-    for (expected_trace, 0..) |trace_entry, idx| {
-        // pc, ap, fp
-        const trace_entry_a = vm.trace_context.state.enabled.entries.items[idx];
-        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[0][0]), trace_entry[0][1]), trace_entry_a.pc);
-        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[1][0]), trace_entry[1][1]), trace_entry_a.ap);
-        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[2][0]), trace_entry[2][1]), trace_entry_a.fp);
-    }
-}

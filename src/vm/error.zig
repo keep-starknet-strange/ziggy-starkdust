@@ -248,6 +248,12 @@ pub const VerifyError = error{
 };
 
 pub const HintError = error{
+    // Dict Error: Got the wrong value for dict_update
+    WrongPrevValue,
+
+    //Dict Error: Tried to create a dict without an initial dict
+    NoInitialDict,
+
     // Dict Error: No value found for key
     NoValueForKey,
     // unexpected verify multiplicity fail: couldn't pop positions
@@ -305,6 +311,9 @@ pub const HintError = error{
 
     // Wrong dict pointer supplied.
     MismatchedDictPtr,
+
+    /// Occurs when a hint is attempting to be executed that is not yet implemented
+    HintNotImplemented,
 };
 
 pub const InsufficientAllocatedCellsError = error{
