@@ -48,7 +48,6 @@ pub const HintsRanges = union(enum) {
 
     pub fn init(
         allocator: Allocator,
-        max_hint_pc: usize,
         extensive_hints: bool,
     ) !Self {
         return switch (extensive_hints) {
@@ -57,12 +56,7 @@ pub const HintsRanges = union(enum) {
                 .NonExtensive = blk: {
                     var res = std.ArrayList(?HintRange).init(allocator);
                     errdefer res.deinit();
-                    const append_result = res.appendNTimes(null, max_hint_pc + 1);
-                    if (append_result) {
-                        break :blk res;
-                    } else |err| {
-                        return err;
-                    }
+                    break :blk res;
                 },
             },
         };
@@ -110,7 +104,12 @@ pub const HintsCollection = struct {
     ///
     /// # Params:
     ///   - `allocator`: The allocator used to initialize the collection.
-    pub fn init(allocator: Allocator, hints: std.AutoHashMap(usize, []const HintParams), program_length: usize, extensive_hints: bool) !Self {
+    pub fn init(
+        allocator: Allocator,
+        hints: std.AutoHashMap(usize, []const HintParams),
+        program_length: usize,
+        extensive_hints: bool,
+    ) !Self {
         var max_hint_pc: usize = 0;
         var total_hints_len: usize = 0;
         var it = hints.iterator();
@@ -130,7 +129,10 @@ pub const HintsCollection = struct {
         var hints_values = try std.ArrayList(HintParams).initCapacity(allocator, total_hints_len);
         errdefer hints_values.deinit();
 
-        var hints_ranges = try HintsRanges.init(allocator, max_hint_pc, extensive_hints);
+        var hints_ranges = try HintsRanges.init(allocator, extensive_hints);
+
+        if (!extensive_hints)
+            try hints_ranges.NonExtensive.appendNTimes(null, max_hint_pc + 1);
 
         it = hints.iterator();
         while (it.next()) |*kv| {
@@ -156,7 +158,7 @@ pub const HintsCollection = struct {
     pub fn initDefault(allocator: Allocator, extensive_hints: bool) !Self {
         return .{
             .hints = std.ArrayList(HintParams).init(allocator),
-            .hints_ranges = try HintsRanges.init(allocator, 0, extensive_hints),
+            .hints_ranges = try HintsRanges.init(allocator, extensive_hints),
         };
     }
 
