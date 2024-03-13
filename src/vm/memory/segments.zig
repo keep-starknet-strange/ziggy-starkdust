@@ -404,6 +404,14 @@ pub const MemorySegmentManager = struct {
                     arg.items,
                 ),
             ),
+            std.ArrayList(Felt252) => {
+                var tmp = std.ArrayList(MaybeRelocatable).init(self.allocator);
+                defer tmp.deinit();
+
+                for (arg.*.items) |r| try tmp.append(MaybeRelocatable.fromFelt(r));
+
+                return self.writeArg(std.ArrayList(MaybeRelocatable), ptr, &tmp);
+            },
             std.ArrayList(Relocatable) => {
                 // Prepare to load Relocatable data into memory
                 var tmp = std.ArrayList(MaybeRelocatable).init(self.allocator);

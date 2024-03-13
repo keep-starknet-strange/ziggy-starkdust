@@ -326,16 +326,13 @@ pub const CairoVM = struct {
                 return MemoryError.UnknownMemoryCell;
 
             // Copy the instruction cache.
-            var inst_cache = try self.instruction_cache.clone();
+            var inst_cache = std.ArrayList(?Instruction).fromOwnedSlice(allocator, try self.instruction_cache.toOwnedSlice());
             defer inst_cache.deinit();
-
-            // Clear the old instruction cache.
-            self.instruction_cache.clearAndFree();
 
             // Resize the instruction cache if necessary.
             const new_cache_len = @max(pc + 1, inst_cache.items.len);
             if (inst_cache.items.len < new_cache_len) {
-                for (0..new_cache_len - inst_cache.items.len) |_| try inst_cache.append(null);
+                try inst_cache.appendNTimes(null, new_cache_len - inst_cache.items.len);
             }
 
             // Get the instruction related to the PC.

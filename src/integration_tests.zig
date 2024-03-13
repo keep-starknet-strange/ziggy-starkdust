@@ -113,7 +113,7 @@ pub fn main() void {
         // TODO: UnknownOp0 error
         // .{ .pathname = "cairo_programs/if_reloc_equal.json", .layout = "all_cairo" },
 
-        // .{ .pathname = "cairo_programs/keccak_compiled.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/keccak_compiled.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/keccak_builtin.json", .layout = "all_cairo" },
         // .{ .pathname = "cairo_programs/keccak_integration_tests.json", .layout = "all_cairo" },
         // .{ .pathname = "cairo_programs/keccak_copy_inputs.json", .layout = "all_cairo" },

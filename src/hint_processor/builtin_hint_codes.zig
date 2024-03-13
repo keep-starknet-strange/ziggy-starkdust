@@ -519,3 +519,45 @@ pub const DICT_SQUASH_COPY_DICT =
     \\    'initial_dict': dict(__dict_manager.get_dict(ids.dict_accesses_end)),
     \\})
 ;
+
+// Constants in package "starkware.cairo.common.cairo_keccak.keccak".
+pub const BYTES_IN_WORD = "starkware.cairo.common.cairo_keccak.keccak.BYTES_IN_WORD";
+
+pub const KECCAK_FULL_RATE_IN_BYTES_CAIRO_KECCAK = "starkware.cairo.common.cairo_keccak.keccak.KECCAK_FULL_RATE_IN_BYTES";
+pub const KECCAK_FULL_RATE_IN_BYTES_BUILTIN_KECCAK = "starkware.cairo.common.builtin_keccak.keccak.KECCAK_FULL_RATE_IN_BYTES";
+pub const KECCAK_FULL_RATE_IN_BYTES = "KECCAK_FULL_RATE_IN_BYTES";
+
+pub const KECCAK_STATE_SIZE_FELTS = "starkware.cairo.common.cairo_keccak.keccak.KECCAK_STATE_SIZE_FELTS";
+
+pub const BLOCK_SIZE = "starkware.cairo.common.cairo_keccak.packed_keccak.BLOCK_SIZE";
+
+pub const BLOCK_PERMUTATION =
+    \\from starkware.cairo.common.keccak_utils.keccak_utils import keccak_func
+    \\_keccak_state_size_felts = int(ids.KECCAK_STATE_SIZE_FELTS)
+    \\assert 0 <= _keccak_state_size_felts < 100
+    \\
+    \\output_values = keccak_func(memory.get_range(
+    \\    ids.keccak_ptr - _keccak_state_size_felts, _keccak_state_size_felts))
+    \\segments.write_arg(ids.keccak_ptr, output_values)
+;
+
+// The 0.10.3 whitelist uses this variant (instead of the one used by the common library), but both hints have the same behaviour
+// We should check for future refactors that may discard one of the variants
+pub const BLOCK_PERMUTATION_WHITELIST_V1 =
+    \\from starkware.cairo.common.cairo_keccak.keccak_utils import keccak_func
+    \\_keccak_state_size_felts = int(ids.KECCAK_STATE_SIZE_FELTS)
+    \\assert 0 <= _keccak_state_size_felts < 100
+    \\
+    \\output_values = keccak_func(memory.get_range(
+    \\    ids.keccak_ptr - _keccak_state_size_felts, _keccak_state_size_felts))
+    \\segments.write_arg(ids.keccak_ptr, output_values)
+;
+
+pub const BLOCK_PERMUTATION_WHITELIST_V2 =
+    \\from starkware.cairo.common.cairo_keccak.keccak_utils import keccak_func
+    \\_keccak_state_size_felts = int(ids.KECCAK_STATE_SIZE_FELTS)
+    \\assert 0 <= _keccak_state_size_felts < 100
+    \\output_values = keccak_func(memory.get_range(
+    \\    ids.keccak_ptr_start, _keccak_state_size_felts))
+    \\segments.write_arg(ids.output, output_values)
+;
