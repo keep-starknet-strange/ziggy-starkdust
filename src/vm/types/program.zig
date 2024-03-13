@@ -10,6 +10,7 @@ const Instruction = @import("./programjson.zig").Instruction;
 const InstructionLocation = @import("./programjson.zig").InstructionLocation;
 const Identifier = @import("./programjson.zig").Identifier;
 pub const BuiltinName = @import("./programjson.zig").BuiltinName;
+pub const HintLocation = @import("./programjson.zig").HintLocation;
 const ReferenceManager = @import("./programjson.zig").ReferenceManager;
 const OffsetValue = @import("./programjson.zig").OffsetValue;
 const Reference = @import("./programjson.zig").Reference;
@@ -493,6 +494,46 @@ pub const Program = struct {
     ///   - The number of built-ins in the program.
     pub fn builtinsLen(self: *Self) usize {
         return self.builtins.items.len;
+    }
+
+    /// Retrieves the relocated instruction locations based on the provided relocation table.
+    ///
+    /// This function iterates over the instruction locations stored in the program's shared data.
+    /// It applies the relocation specified in the relocation table to each instruction location's key
+    /// (represented as a string containing the instruction index) and returns the relocated instruction locations.
+    /// The relocation table contains offsets to be added to each instruction index to obtain the relocated index.
+    ///
+    /// # Params:
+    ///   - `allocator`: The allocator used to initialize the relocated instruction locations.
+    ///   - `relocation_table`: A slice containing offsets for relocating instruction indices.
+    ///
+    /// # Returns:
+    ///   - An optional `std.AutoArrayHashMap(usize, InstructionLocation)` containing relocated instruction locations,
+    ///     if the original instruction locations exist; otherwise, `null`.
+    ///
+    /// # Errors:
+    ///   - Returns `null` if the instruction locations are not present in the shared program data.
+    pub fn getRelocatedInstructionLocations(
+        self: *Self,
+        allocator: Allocator,
+        relocation_table: []const usize,
+    ) !?std.AutoArrayHashMap(usize, InstructionLocation) {
+        if (self.shared_program_data.instruction_locations) |il| {
+            var res = std.AutoArrayHashMap(usize, InstructionLocation).init(allocator);
+            errdefer res.deinit();
+
+            var it = il.iterator();
+
+            while (it.next()) |kv|
+                try res.put(
+                    try std.fmt.parseInt(usize, kv.key_ptr.*, 10) + relocation_table[0],
+                    kv.value_ptr.*,
+                );
+
+            return res;
+        }
+
+        return null;
     }
 
     /// Deinitializes the `Program` instance, freeing allocated memory.
@@ -1223,4 +1264,135 @@ test "Program: new program with non-extensive hints" {
 
     try expect(hints.get(4).?.len == 1);
     try expectEqualDeep(hints.get(4).?[0], program_hints.get(4).?[0]);
+}
+
+test "Program: get relocated instruction locations" {
+    const allocator = std.testing.allocator;
+
+    const reference_manager = ReferenceManager.init(allocator);
+    const builtins = std.ArrayList(BuiltinName).init(allocator);
+    const data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+
+    var hints = std.AutoHashMap(usize, []const HintParams).init(allocator);
+    defer hints.deinit();
+
+    const identifiers = std.StringHashMap(Identifier).init(allocator);
+
+    var instruction_locations = std.StringHashMap(InstructionLocation).init(allocator);
+    try instruction_locations.put(
+        "5",
+        .{
+            .inst = .{
+                .end_line = 0,
+                .end_col = 0,
+                .input_file = .{ .filename = "test" },
+                .parent_location = null,
+                .start_line = 0,
+                .start_col = 0,
+            },
+            .hints = &[_]HintLocation{},
+            .accessible_scopes = &[_][]const u8{},
+        },
+    );
+
+    try instruction_locations.put(
+        "10",
+        .{
+            .inst = .{
+                .end_line = 0,
+                .end_col = 0,
+                .input_file = .{ .filename = "test" },
+                .parent_location = null,
+                .start_line = 2,
+                .start_col = 0,
+            },
+            .hints = &[_]HintLocation{},
+            .accessible_scopes = &[_][]const u8{},
+        },
+    );
+
+    try instruction_locations.put(
+        "12",
+        .{
+            .inst = .{
+                .end_line = 0,
+                .end_col = 0,
+                .input_file = .{ .filename = "test" },
+                .parent_location = null,
+                .start_line = 3,
+                .start_col = 0,
+            },
+            .hints = &[_]HintLocation{},
+            .accessible_scopes = &[_][]const u8{},
+        },
+    );
+
+    var program = try Program.init(
+        allocator,
+        builtins,
+        data,
+        null,
+        hints,
+        reference_manager,
+        identifiers,
+        std.ArrayList(Attribute).init(allocator),
+        instruction_locations,
+        false,
+    );
+
+    defer program.deinit(allocator);
+
+    var relocated_instructions = try program.getRelocatedInstructionLocations(
+        std.testing.allocator,
+        &[_]usize{2},
+    );
+
+    defer relocated_instructions.?.deinit();
+
+    try expectEqual(@as(usize, 3), relocated_instructions.?.count());
+    try expectEqual(
+        InstructionLocation{
+            .inst = .{
+                .end_line = 0,
+                .end_col = 0,
+                .input_file = .{ .filename = "test" },
+                .parent_location = null,
+                .start_line = 0,
+                .start_col = 0,
+            },
+            .hints = &[_]HintLocation{},
+            .accessible_scopes = &[_][]const u8{},
+        },
+        relocated_instructions.?.get(7),
+    );
+    try expectEqual(
+        InstructionLocation{
+            .inst = .{
+                .end_line = 0,
+                .end_col = 0,
+                .input_file = .{ .filename = "test" },
+                .parent_location = null,
+                .start_line = 2,
+                .start_col = 0,
+            },
+            .hints = &[_]HintLocation{},
+            .accessible_scopes = &[_][]const u8{},
+        },
+        relocated_instructions.?.get(12),
+    );
+    try expectEqual(
+        InstructionLocation{
+            .inst = .{
+                .end_line = 0,
+                .end_col = 0,
+                .input_file = .{ .filename = "test" },
+                .parent_location = null,
+                .start_line = 3,
+                .start_col = 0,
+            },
+            .hints = &[_]HintLocation{},
+            .accessible_scopes = &[_][]const u8{},
+        },
+        relocated_instructions.?.get(14),
+    );
 }
