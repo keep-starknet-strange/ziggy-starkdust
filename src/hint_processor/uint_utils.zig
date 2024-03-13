@@ -1,10 +1,11 @@
 const std = @import("std");
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const Int = std.math.big.int.Managed;
-pub fn split(num: Int, comptime N: usize, num_bits_shift: usize) ![N]Felt252 {
-    const allocator = std.heap.page_allocator;
-    const one = try Int.initSet(allocator, 1);
+const testing = std.testing;
 
+pub fn split(allocator: std.mem.Allocator, num: Int, comptime N: usize, num_bits_shift: usize) ![N]Felt252 {
+    var one = try Int.initSet(allocator, 1);
+    defer one.deinit();
     var temp_num: Int = try num.clone();
     defer temp_num.deinit();
 
@@ -26,19 +27,17 @@ pub fn split(num: Int, comptime N: usize, num_bits_shift: usize) ![N]Felt252 {
 }
 
 test "uint256 split64 with uint utils" {
-    const allocator = std.testing.allocator;
-    var num = try Int.initSet(allocator, 850981239023189021389081239089023);
+    var num = try Int.initSet(testing.allocator, 850981239023189021389081239089023);
     defer num.deinit();
-    const limbs = try split(num, 4, 64);
-    try std.testing.expectEqual(Felt252.fromInt(u64, 7249717543555297151), limbs[0]);
-    try std.testing.expectEqual(Felt252.fromInt(u64, 46131785404667), limbs[1]);
+    const limbs = try split(testing.allocator, num, 2, 64);
+
+    try std.testing.expectEqualSlices(Felt252, &[2]Felt252{ Felt252.fromInt(u64, 7249717543555297151), Felt252.fromInt(u64, 46131785404667) }, &limbs);
 }
 
 test "uint256 split64 with big a" {
-    const allocator = std.testing.allocator;
-    var num = try Int.initSet(allocator, 400066369019890261321163226850167045262);
+    var num = try Int.initSet(testing.allocator, 400066369019890261321163226850167045262);
     defer num.deinit();
-    const limbs = try split(num, 2, 128);
-    try std.testing.expectEqual(Felt252.fromInt(u128, 59784002098951797857788619418398833806), limbs[0]);
-    try std.testing.expectEqual(Felt252.fromInt(u64, 1), limbs[1]);
+    const limbs = try split(testing.allocator, num, 2, 128);
+
+    try std.testing.expectEqualSlices(Felt252, &[2]Felt252{ Felt252.fromInt(u128, 59784002098951797857788619418398833806), Felt252.fromInt(u64, 1) }, &limbs);
 }
