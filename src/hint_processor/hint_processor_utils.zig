@@ -113,31 +113,49 @@ pub fn applyApTrackingCorrection(
         null;
 }
 
+/// Retrieves the memory value from a reference with an offset.
+///
+/// This function retrieves the memory value indicated by the provided `hint_reference` with the specified `offset_value`.
+/// It calculates the memory address based on the offset value and AP tracking information.
+/// If the offset value is a reference, it ensures it's within bounds and calculates the base address accordingly.
+/// Then, it retrieves the memory value from the calculated address.
+///
+/// # Parameters
+/// - `vm`: A pointer to the Cairo virtual machine.
+/// - `hint_reference`: The hint reference indicating the variable.
+/// - `hint_ap_tracking`: The AP tracking data for the hint reference.
+/// - `offset_value`: The offset value to apply to the reference.
+///
+/// # Returns
+/// Returns the memory value indicated by the hint reference with the specified offset value as a `MaybeRelocatable`.
+/// If the reference is not valid or if there's an error retrieving the value, it returns `null`.
 pub fn getOffsetValueReference(
     vm: *CairoVM,
     hint_reference: HintReference,
     hint_ap_tracking: ApTracking,
     offset_value: OffsetValue,
 ) ?MaybeRelocatable {
+    // Extract the reference from the offset value.
     const refer = switch (offset_value) {
         .reference => |ref| ref,
         else => return null,
     };
 
+    // Calculate the base address based on the reference type.
     const base_addr = switch (refer[0]) {
         .FP => vm.run_context.fp.*,
-        else => applyApTrackingCorrection(vm.run_context.getAP(), hint_reference.ap_tracking_data.?, hint_ap_tracking).?,
+        else => applyApTrackingCorrection(
+            vm.run_context.getAP(),
+            hint_reference.ap_tracking_data orelse return null,
+            hint_ap_tracking,
+        ) orelse return null,
     };
 
-    if (refer[1] < 0 and base_addr.offset < @as(u64, @intCast(@abs(refer[1])))) {
-        return null;
-    }
-
-    if (refer[2]) {
-        return vm.segments.memory.get(base_addr.addInt(@as(i64, @intCast(refer[1]))) catch unreachable).?;
-    } else {
-        return MaybeRelocatable.fromRelocatable(base_addr.addInt(@as(i64, @intCast(refer[1]))) catch unreachable);
-    }
+    // Calculate the final memory address and retrieve the value.
+    return if (refer[2])
+        vm.segments.memory.get(base_addr.addInt(@intCast(refer[1])) catch return null) orelse null
+    else
+        MaybeRelocatable.fromRelocatable(base_addr.addInt(@intCast(refer[1])) catch return null);
 }
 
 /// Computes the memory address indicated by the provided hint reference.
@@ -433,5 +451,96 @@ test "getMaybeRelocatableFromReference: invalid" {
     try expectEqual(
         null,
         getMaybeRelocatableFromReference(&vm, HintReference.initSimple(0), .{}),
+    );
+}
+
+test "getOffsetValueReference: valid" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    // Set up memory segments in the virtual machine.
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{.{ .{ 1, 0 }, .{0} }},
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator); // Clean up memory data.
+
+    var hint_reference = HintReference.init(0, 0, false, true);
+    hint_reference.offset1 = .{ .reference = .{ .FP, 2, false } };
+
+    // Verify that the function returns the expected `MaybeRelocatable` value.
+    try expectEqual(
+        MaybeRelocatable.fromSegment(1, 2),
+        getOffsetValueReference(&vm, hint_reference, .{}, hint_reference.offset1),
+    );
+}
+
+test "getOffsetValueReference: invalid" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    // Set up memory segments in the virtual machine.
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{.{ .{ 1, 0 }, .{0} }},
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator); // Clean up memory data.
+
+    var hint_reference = HintReference.init(0, 0, false, true);
+    hint_reference.offset1 = .{ .reference = .{ .FP, -2, false } };
+
+    // Verify that the function returns `null` when provided with invalid input.
+    try expectEqual(
+        null,
+        getOffsetValueReference(&vm, hint_reference, .{}, hint_reference.offset1),
+    );
+}
+
+test "getOffsetValueReference: null hint reference AP tracking data" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    var hint_reference = HintReference.init(0, 0, false, true);
+    hint_reference.offset1 = .{ .reference = .{ .AP, 2, false } };
+
+    // Verify that the function returns `null` when the hint reference AP tracking data is null.
+    try expectEqual(
+        null,
+        getOffsetValueReference(&vm, hint_reference, .{}, hint_reference.offset1),
+    );
+}
+
+test "getOffsetValueReference: with null applyApTrackingCorrection" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    var hint_reference = HintReference.init(0, 0, false, true);
+    hint_reference.offset1 = .{ .reference = .{ .AP, 2, false } };
+    hint_reference.ap_tracking_data = .{};
+    hint_reference.ap_tracking_data.?.group = 10;
+
+    // Verify that the function returns `null` when `applyApTrackingCorrection` returns null.
+    try expectEqual(
+        null,
+        getOffsetValueReference(&vm, hint_reference, .{}, hint_reference.offset1),
+    );
+}
+
+test "getOffsetValueReference: valid but nothing in memory" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    var hint_reference = HintReference.init(0, 0, false, true);
+    hint_reference.offset1 = .{ .reference = .{ .FP, 2, true } };
+
+    // Verify that the function returns `null` when there is no data in memory.
+    try expectEqual(
+        null,
+        getOffsetValueReference(&vm, hint_reference, .{}, hint_reference.offset1),
     );
 }
