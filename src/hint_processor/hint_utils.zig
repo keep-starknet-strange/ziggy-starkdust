@@ -129,7 +129,20 @@ pub fn getAddressFromVarName(
     );
 }
 
-//Gets the address, as a Relocatable of the variable given by the ids name
+/// Retrieves the memory address, as a `Relocatable`, of the variable indicated by its name.
+///
+/// This function retrieves the memory address of the variable indicated by the provided `var_name`.
+/// It looks up the variable name in the `ids_data` hashmap, then calculates the memory address based on the hint reference and AP tracking information.
+///
+/// # Parameters
+/// - `var_name`: The name of the variable to retrieve.
+/// - `vm`: A pointer to the Cairo virtual machine.
+/// - `ids_data`: A hashmap containing variable names and their corresponding hint references.
+/// - `ap_tracking`: The AP tracking data.
+///
+/// # Returns
+/// Returns the memory address of the variable indicated by the variable name as a `Relocatable`.
+/// If the variable is not found or if there's an error retrieving the address, it returns an error of type `Relocatable`.
 pub fn getRelocatableFromVarName(
     var_name: []const u8,
     vm: *CairoVM,
@@ -339,5 +352,57 @@ test "getPtrFromVarName: invalid" {
     try expectError(
         HintError.IdentifierNotRelocatable,
         getPtrFromVarName("value", &vm, ids_data, .{}),
+    );
+}
+
+test "getRelocatableFromVarName: valid" {
+    // Initializes the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    // Sets up memory segments in the virtual machine with an invalid configuration.
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{.{ .{ 1, 0 }, .{0} }},
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator); // Clean up memory data.
+
+    // Creates a hashmap containing variable references.
+    var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
+    defer ids_data.deinit();
+
+    // Inserts a valid variable reference into the hashmap.
+    try ids_data.put("value", HintReference.initSimple(0));
+
+    // Invokes `getPtrFromVarName` to retrieve the pointer from the "value" variable, expecting an error.
+    try expectEqual(
+        Relocatable.init(1, 0),
+        try getRelocatableFromVarName("value", &vm, ids_data, .{}),
+    );
+}
+
+test "getRelocatableFromVarName: invalid" {
+    // Initializes the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    // Sets up memory segments in the virtual machine with an invalid configuration.
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{.{ .{ 1, 0 }, .{0} }},
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator); // Clean up memory data.
+
+    // Creates a hashmap containing variable references.
+    var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
+    defer ids_data.deinit();
+
+    // Inserts a valid variable reference into the hashmap.
+    try ids_data.put("value", HintReference.initSimple(-8));
+
+    // Invokes `getPtrFromVarName` to retrieve the pointer from the "value" variable, expecting an error.
+    try expectEqual(
+        HintError.UnknownIdentifier,
+        getRelocatableFromVarName("value", &vm, ids_data, .{}),
     );
 }
