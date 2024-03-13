@@ -16,6 +16,19 @@ const Allocator = std.mem.Allocator;
 const HintError = @import("../vm/error.zig").HintError;
 const hint_processor_utils = @import("hint_processor_utils.zig");
 
+/// Retrieves a constant value based on its variable name.
+///
+/// This function searches for a constant with a variable name suffix in the provided hashmap of constants.
+/// It iterates over the hashmap keys, comparing them with the variable name suffix.
+/// If a match is found, it returns the corresponding constant value.
+///
+/// # Parameters
+/// - `var_name`: The suffix of the variable name associated with the constant.
+/// - `constants`: A pointer to the hashmap containing constant names and their corresponding values.
+///
+/// # Returns
+/// Returns the constant value associated with the variable name suffix.
+/// If no matching constant is found, it returns an error of type `HintError`.
 pub fn getConstantFromVarName(
     var_name: []const u8,
     constants: *const std.StringHashMap(Felt252),
@@ -404,5 +417,44 @@ test "getRelocatableFromVarName: invalid" {
     try expectEqual(
         HintError.UnknownIdentifier,
         getRelocatableFromVarName("value", &vm, ids_data, .{}),
+    );
+}
+
+test "getConstantFromVarName: valid without point in the middle of var name" {
+    var constants = std.StringHashMap(Felt252).init(std.testing.allocator);
+    defer constants.deinit();
+
+    try constants.put("value", Felt252.fromInt(u256, 2));
+    try constants.put("ids.MAX_LOW", Felt252.fromInt(u256, 20));
+
+    try expectEqual(
+        Felt252.fromInt(u256, 2),
+        getConstantFromVarName("value", &constants),
+    );
+}
+
+test "getConstantFromVarName: valid with a point in the middle of var name" {
+    var constants = std.StringHashMap(Felt252).init(std.testing.allocator);
+    defer constants.deinit();
+
+    try constants.put("value", Felt252.fromInt(u256, 2));
+    try constants.put("ids.MAX_LOW", Felt252.fromInt(u256, 20));
+
+    try expectEqual(
+        Felt252.fromInt(u256, 20),
+        getConstantFromVarName("MAX_LOW", &constants),
+    );
+}
+
+test "getConstantFromVarName: invalid" {
+    var constants = std.StringHashMap(Felt252).init(std.testing.allocator);
+    defer constants.deinit();
+
+    try constants.put("value", Felt252.fromInt(u256, 2));
+    try constants.put("ids.MAX_LOW", Felt252.fromInt(u256, 20));
+
+    try expectError(
+        HintError.MissingConstant,
+        getConstantFromVarName("MAX_HIGH", &constants),
     );
 }
