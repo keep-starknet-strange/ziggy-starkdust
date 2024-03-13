@@ -53,6 +53,7 @@ pub const hint_processor = struct {
     pub usingnamespace @import("hint_processor/pow_utils.zig");
     pub usingnamespace @import("hint_processor/segments.zig");
     pub usingnamespace @import("hint_processor/uint256_utils.zig");
+    pub usingnamespace @import("hint_processor/uint_utils.zig");
     pub usingnamespace @import("hint_processor/dict_manager.zig");
     pub usingnamespace @import("hint_processor/dict_hint_utils.zig");
     pub usingnamespace @import("hint_processor/squash_dict_utils.zig");
