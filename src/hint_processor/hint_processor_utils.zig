@@ -196,19 +196,32 @@ pub fn computeAddrFromReference(
     };
 }
 
-///Returns the value given by a reference as [MaybeRelocatable]
+/// Returns the value given by a reference as `MaybeRelocatable`.
+///
+/// This function retrieves the value indicated by the provided `hint_reference` as a `MaybeRelocatable`.
+/// If the value is stored as an immediate, it returns the value directly.
+/// Otherwise, it computes the memory address of the variable and retrieves the value from memory.
+///
+/// # Parameters
+/// - `vm`: A pointer to the Cairo virtual machine.
+/// - `hint_reference`: The hint reference indicating the variable.
+/// - `ap_tracking`: The AP tracking data.
+///
+/// # Returns
+/// Returns the value indicated by the hint reference as a `MaybeRelocatable`.
+/// If the variable is not found or if there's an error retrieving the value, it returns `null`.
 pub fn getMaybeRelocatableFromReference(
     vm: *CairoVM,
     hint_reference: HintReference,
     ap_tracking: ApTracking,
 ) ?MaybeRelocatable {
-    //First handle case on only immediate
+    // First handle the case of an immediate value.
     switch (hint_reference.offset1) {
         .immediate => |num| return MaybeRelocatable.fromFelt(num),
         else => {},
     }
 
-    //Then calculate address
+    // Then calculate the memory address.
     return if (computeAddrFromReference(hint_reference, ap_tracking, vm)) |var_addr|
         if (hint_reference.dereference)
             vm.segments.memory.get(var_addr)
@@ -389,5 +402,36 @@ test "applyApTrackingCorrection: with valid group but invalid address subtractio
     try expectEqual(
         null,
         applyApTrackingCorrection(Relocatable.init(1, 0), ref_ap_tracking, hint_ap_tracking),
+    );
+}
+
+test "getMaybeRelocatableFromReference: valid" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    // Set up memory segments in the virtual machine.
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{.{ .{ 1, 0 }, .{ 0, 0 } }},
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator); // Clean up memory data.
+
+    // Verify that the function returns the expected `MaybeRelocatable` value.
+    try expectEqual(
+        MaybeRelocatable.fromSegment(0, 0),
+        getMaybeRelocatableFromReference(&vm, HintReference.initSimple(0), .{}),
+    );
+}
+
+test "getMaybeRelocatableFromReference: invalid" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    // Verify that the function returns `null` when provided with invalid input.
+    try expectEqual(
+        null,
+        getMaybeRelocatableFromReference(&vm, HintReference.initSimple(0), .{}),
     );
 }
