@@ -87,11 +87,30 @@ pub fn getPtrFromReference(
         var_addr;
 }
 
-pub fn applyApTrackingCorrection(addr: Relocatable, ref_ap_tracking: ApTracking, hint_ap_tracking: ApTracking) ?Relocatable {
-    if (ref_ap_tracking.group == hint_ap_tracking.group) {
-        return addr.subUint(hint_ap_tracking.offset - ref_ap_tracking.offset) catch unreachable;
-    }
-    return null;
+/// Adjusts the memory address using AP tracking correction.
+///
+/// This function adjusts the memory address `addr` based on the AP tracking information provided.
+/// It calculates the correction by subtracting the offset of the reference AP tracking from the offset of the hint AP tracking.
+/// If both AP trackings belong to the same group, it returns the adjusted address.
+/// Otherwise, it returns `null`.
+///
+/// # Parameters
+/// - `addr`: The original memory address.
+/// - `ref_ap_tracking`: The AP tracking data of the reference.
+/// - `hint_ap_tracking`: The AP tracking data of the hint.
+///
+/// # Returns
+/// Returns the adjusted memory address if both AP trackings belong to the same group.
+/// Otherwise, returns `null`.
+pub fn applyApTrackingCorrection(
+    addr: Relocatable,
+    ref_ap_tracking: ApTracking,
+    hint_ap_tracking: ApTracking,
+) ?Relocatable {
+    return if (ref_ap_tracking.group == hint_ap_tracking.group)
+        addr.subUint(hint_ap_tracking.offset - ref_ap_tracking.offset) catch null
+    else
+        null;
 }
 
 pub fn getOffsetValueReference(
@@ -314,5 +333,61 @@ test "getPtrFromReference: with dereference and immediate value" {
     try expectEqual(
         Relocatable.init(4, 2),
         try getPtrFromReference(hint_ref, .{}, &vm),
+    );
+}
+
+test "applyApTrackingCorrection: with valid correction" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    // Set up reference and hint AP tracking with the same group.
+    var ref_ap_tracking: ApTracking = .{};
+    ref_ap_tracking.group = 1;
+    var hint_ap_tracking: ApTracking = .{};
+    hint_ap_tracking.group = 1;
+
+    // Verify that the function returns the adjusted address when both AP trackings have the same group.
+    try expectEqual(
+        Relocatable.init(1, 0),
+        applyApTrackingCorrection(Relocatable.init(1, 0), ref_ap_tracking, hint_ap_tracking),
+    );
+}
+
+test "applyApTrackingCorrection: with invalid group" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    // Set up reference and hint AP tracking with different groups.
+    var ref_ap_tracking: ApTracking = .{};
+    ref_ap_tracking.group = 1;
+    var hint_ap_tracking: ApTracking = .{};
+    hint_ap_tracking.group = 2;
+
+    // Verify that the function returns `null` when both AP trackings have different groups.
+    try expectEqual(
+        null,
+        applyApTrackingCorrection(Relocatable.init(1, 0), ref_ap_tracking, hint_ap_tracking),
+    );
+}
+
+test "applyApTrackingCorrection: with valid group but invalid address subtraction" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    // Set up reference and hint AP tracking with the same group but incompatible offsets.
+    var ref_ap_tracking: ApTracking = .{};
+    ref_ap_tracking.group = 2;
+    ref_ap_tracking.offset = 5;
+    var hint_ap_tracking: ApTracking = .{};
+    hint_ap_tracking.group = 2;
+    hint_ap_tracking.offset = 10;
+
+    // Verify that the function returns `null` when both AP trackings have the same group but incompatible offsets.
+    try expectEqual(
+        null,
+        applyApTrackingCorrection(Relocatable.init(1, 0), ref_ap_tracking, hint_ap_tracking),
     );
 }
