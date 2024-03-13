@@ -315,6 +315,16 @@ pub const CairoVMHintProcessor = struct {
             try squash_dict_utils.squashDictInnerCheckAccessIndex(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_CONTINUE_LOOP, hint_data.code)) {
             try squash_dict_utils.squashDictInnerContinueLoop(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_LEN_ASSERT, hint_data.code)) {
+            try squash_dict_utils.squashDictInnerLenAssert(exec_scopes);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_USED_ACCESSES_ASSERT, hint_data.code)) {
+            try squash_dict_utils.squashDictInnerUsedAccessesAssert(vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_ASSERT_LEN_KEYS, hint_data.code)) {
+            try squash_dict_utils.squashDictInnerAssertLenKeys(exec_scopes);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_NEXT_KEY, hint_data.code)) {
+            try squash_dict_utils.squashDictInnerNextKey(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT, hint_data.code)) {
+            try squash_dict_utils.squashDict(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         }
     }
 

@@ -686,6 +686,26 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             );
         }
 
+        /// Try to convert the field element to a usize if its value is small enough.
+        ///
+        /// Attempts to convert the field element to a usize if its value is within the representable range.
+        pub fn intoUsize(self: Self) !usize {
+            const asU256 = self.toInteger();
+            // Check if the value is small enough to fit into a usize
+            if (asU256 > @as(
+                u256,
+                @intCast(std.math.maxInt(usize)),
+            )) {
+                return error.ValueTooLarge;
+            }
+
+            // Otherwise, it's safe to cast
+            return @as(
+                usize,
+                @intCast(asU256),
+            );
+        }
+
         /// Try to convert the field element to a u64 if its value is small enough.
         ///
         /// Attempts to convert the field element to a u64 if its value is within the representable range.
