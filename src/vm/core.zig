@@ -572,6 +572,7 @@ pub const CairoVM = struct {
             op_res.op_0 = try self.computeOp0Deductions(
                 allocator,
                 op_res.op_0_addr,
+                &op_res.res,
                 instruction,
                 &dst_op,
                 &op_1_op,
@@ -600,7 +601,7 @@ pub const CairoVM = struct {
             op_res.res = try instruction.computeRes(op_res.op_0, op_res.op_1);
         }
 
-        // Retrieve the destination if not already available.
+        // Retrieve the destination if not already available.op_0_op
         if (dst_op) |dst| {
             op_res.dst = dst;
         } else {
@@ -631,18 +632,18 @@ pub const CairoVM = struct {
         self: *Self,
         allocator: Allocator,
         op_0_addr: Relocatable,
+        res: *?MaybeRelocatable,
         instruction: *const Instruction,
         dst: *const ?MaybeRelocatable,
         op1: *const ?MaybeRelocatable,
     ) !MaybeRelocatable {
-        const op0_op = try self.deduceMemoryCell(allocator, op_0_addr) orelse
-            (try self.deduceOp0(
-            instruction,
-            dst,
-            op1,
-        )).op_0;
+        if (try self.deduceMemoryCell(allocator, op_0_addr)) |op0| {
+            return op0;
+        }
+        const op0_deductions = try self.deduceOp0(instruction, dst, op1);
+        if (res.* == null) res.* = op0_deductions.res;
 
-        return op0_op orelse CairoVMError.FailedToComputeOp0;
+        return op0_deductions.op_0 orelse CairoVMError.FailedToComputeOp0;
     }
 
     /// Compute Op1 deductions based on the provided instruction, destination, and Op0.

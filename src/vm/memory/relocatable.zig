@@ -549,7 +549,13 @@ pub const MaybeRelocatable = union(enum) {
             // If `self` is of type `relocatable`
             .relocatable => |self_value| switch (other) {
                 // If `other` is also `relocatable`, call `sub` method on `self_value`
-                .relocatable => |r| .{ .relocatable = try self_value.sub(r) },
+                .relocatable => |r| blk: {
+                    if (self_value.segment_index == r.segment_index) {
+                        break :blk MaybeRelocatable.fromInt(u64, self_value.offset - r.offset);
+                    }
+
+                    break :blk error.RelocatableSubDiffIndex;
+                },
                 // If `other` is `felt`, call `subFelt` method on `self_value`
                 .felt => |fe| .{ .relocatable = try self_value.subFelt(fe) },
             },
