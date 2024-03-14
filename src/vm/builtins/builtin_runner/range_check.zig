@@ -19,7 +19,6 @@ const RunnerError = Error.RunnerError;
 
 const N_PARTS: u64 = 8;
 const INNER_RC_BOUND_SHIFT: u64 = 16;
-// const BOUND = Felt252.one().saturating_shl(16 * N_PARTS);
 const BOUND = Felt252.two().pow(16 * N_PARTS);
 
 /// Range check built-in runner
@@ -64,7 +63,7 @@ pub const RangeCheckBuiltinRunner = struct {
         n_parts: u32,
         included: bool,
     ) Self {
-        const bound: Felt252 = Felt252.one().saturating_shl(16 * n_parts);
+        const bound = Felt252.two().pow(16 * n_parts);
         return .{
             .ratio = ratio,
             .bound = if (n_parts != 0 and bound.isZero()) null else bound,
@@ -292,6 +291,27 @@ pub fn rangeCheckValidationRule(allocator: Allocator, memory: *Memory, address: 
     } else {
         return MemoryError.RangeCheckNumberOutOfBounds;
     }
+}
+
+test "Range Check: initialize builtin" {
+    // given
+    const builtin = RangeCheckBuiltinRunner.init(8, 8, true);
+
+    // assert
+    try std.testing.expectEqual(
+        RangeCheckBuiltinRunner{
+            .ratio = 8,
+            .base = 0,
+            .stop_ptr = null,
+            .cells_per_instance = 1,
+            .n_input_cells = 1,
+            .bound = Felt252.fromInt(u256, 340282366920938463463374607431768211456),
+            .included = true,
+            .n_parts = 8,
+            .instances_per_component = 1,
+        },
+        builtin,
+    );
 }
 
 test "initialize segments for range check" {

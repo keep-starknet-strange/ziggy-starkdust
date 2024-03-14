@@ -231,7 +231,7 @@ pub const SharedProgramData = struct {
     /// List of error message attributes.
     error_message_attributes: std.ArrayList(Attribute),
     /// Map of `usize` to `InstructionLocation`.
-    instruction_locations: ?std.StringHashMap(InstructionLocation),
+    instruction_locations: ?std.StringHashMap(InstructionLocation) = null,
     /// Map of `[]u8` to `Identifier`.
     identifiers: std.StringHashMap(Identifier),
     /// List of `HintReference` items.
@@ -246,7 +246,6 @@ pub const SharedProgramData = struct {
             .data = std.ArrayList(MaybeRelocatable).init(allocator),
             .hints_collection = try HintsCollection.initDefault(allocator, extensive_hints),
             .error_message_attributes = std.ArrayList(Attribute).init(allocator),
-            .instruction_locations = std.StringHashMap(InstructionLocation).init(allocator),
             .identifiers = std.StringHashMap(Identifier).init(allocator),
             .reference_manager = std.ArrayList(HintReference).init(allocator),
         };
@@ -1225,4 +1224,20 @@ test "Program: new program with non-extensive hints" {
 
     try expect(hints.get(4).?.len == 1);
     try expectEqualDeep(hints.get(4).?[0], program_hints.get(4).?[0]);
+}
+
+test "Program: new default program" {
+    var program = try Program.initDefault(std.testing.allocator, false);
+    defer program.deinit(std.testing.allocator);
+
+    try expect(program.shared_program_data.data.items.len == 0);
+    try expect(program.shared_program_data.hints_collection.hints.items.len == 0);
+    try expect(program.shared_program_data.hints_collection.hints_ranges == .NonExtensive);
+    try expect(program.shared_program_data.main == null);
+    try expect(program.shared_program_data.start == null);
+    try expect(program.shared_program_data.end == null);
+    try expect(program.shared_program_data.error_message_attributes.items.len == 0);
+    try expect(program.shared_program_data.instruction_locations == null);
+    try expectEqual(@as(usize, 0), program.shared_program_data.identifiers.count());
+    try expect(program.shared_program_data.reference_manager.items.len == 0);
 }
