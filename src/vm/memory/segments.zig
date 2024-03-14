@@ -287,15 +287,10 @@ pub const MemorySegmentManager = struct {
         ptr: Relocatable,
         data: []const MaybeRelocatable,
     ) !Relocatable {
-        var idx = data.len;
-        while (idx > 0) : (idx -= 1) {
-            const i = idx - 1;
-            try self.memory.set(
-                allocator,
-                try ptr.addUint(i),
-                data[i],
-            );
+        for (data, 0..) |d, i| {
+            try self.memory.set(allocator, try (ptr.addUint(i) catch MemoryError.Math), d);
         }
+
         return ptr.addUint(data.len) catch MemoryError.Math;
     }
 

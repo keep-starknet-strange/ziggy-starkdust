@@ -24,6 +24,7 @@ const memset_utils = @import("memset_utils.zig");
 const uint256_utils = @import("uint256_utils.zig");
 const usort = @import("usort.zig");
 const dict_hint_utils = @import("dict_hint_utils.zig");
+const cairo_keccak_hints = @import("cairo_keccak_hints.zig");
 
 const poseidon_utils = @import("poseidon_utils.zig");
 const keccak_utils = @import("keccak_utils.zig");
@@ -306,6 +307,24 @@ pub const CairoVMHintProcessor = struct {
             try dict_hint_utils.dictSquashCopyDict(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.DICT_SQUASH_UPDATE_PTR, hint_data.code)) {
             try dict_hint_utils.dictSquashUpdatePtr(vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.CAIRO_KECCAK_INPUT_IS_FULL_WORD, hint_data.code)) {
+            try cairo_keccak_hints.cairoKeccakIsFullWord(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.KECCAK_WRITE_ARGS, hint_data.code)) {
+            try cairo_keccak_hints.keccakWriteArgs(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.COMPARE_BYTES_IN_WORD_NONDET, hint_data.code)) {
+            try cairo_keccak_hints.compareBytesInWordNondet(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.COMPARE_KECCAK_FULL_RATE_IN_BYTES_NONDET, hint_data.code)) {
+            try cairo_keccak_hints.compareKeccakFullRateInBytesNondet(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.BLOCK_PERMUTATION, hint_data.code)) {
+            try cairo_keccak_hints.blockPermutationV1(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.BLOCK_PERMUTATION_WHITELIST_V1, hint_data.code)) {
+            try cairo_keccak_hints.blockPermutationV1(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.BLOCK_PERMUTATION_WHITELIST_V2, hint_data.code)) {
+            try cairo_keccak_hints.blockPermutationV2(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.CAIRO_KECCAK_FINALIZE_V1, hint_data.code)) {
+            try cairo_keccak_hints.cairoKeccakFinalizeV1(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.CAIRO_KECCAK_FINALIZE_V2, hint_data.code)) {
+            try cairo_keccak_hints.cairoKeccakFinalizeV2(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
         }
     }
 

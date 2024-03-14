@@ -3,11 +3,25 @@ const relocatable = @import("../vm/memory/relocatable.zig");
 
 const CairoVM = @import("../vm/core.zig").CairoVM;
 const MaybeRelocatable = relocatable.MaybeRelocatable;
+const Relocatable = relocatable.Relocatable;
 const dict_manager_lib = @import("dict_manager.zig");
 const IdsManager = @import("hint_utils.zig").IdsManager;
 const HintReference = @import("../hint_processor/hint_processor_def.zig").HintReference;
 const ExecutionScopes = @import("../vm/types/execution_scopes.zig").ExecutionScopes;
 const Rc = @import("../vm/types/execution_scopes.zig").Rc;
+const Memory = @import("../vm/memory/memory.zig").Memory;
+
+pub fn checkMemory(mem: *Memory, comptime rows: anytype) !void {
+    inline for (rows) |row| {
+        try checkMemoryAddress(mem, row);
+    }
+}
+
+pub fn checkMemoryAddress(mem: *Memory, data: anytype) !void {
+    const expected = if (data[1].len == 2) MaybeRelocatable.fromRelocatable(Relocatable.init(data[1][0], data[1][1])) else MaybeRelocatable.fromInt(u256, data[1][0]);
+
+    try std.testing.expectEqual(expected, mem.get(Relocatable.init(data[0][0], data[0][1])));
+}
 
 pub fn initDictManagerDefault(allocator: std.mem.Allocator, exec_scopes: *ExecutionScopes, tracker_num: i64, default: u64, data: []const struct { usize, usize }) !void {
     var tracker = try dict_manager_lib.DictTracker.initDefaultDict(allocator, relocatable.Relocatable.init(tracker_num, 0), MaybeRelocatable.fromInt(u64, default), null);

@@ -520,17 +520,6 @@ pub const DICT_SQUASH_COPY_DICT =
     \\})
 ;
 
-// Constants in package "starkware.cairo.common.cairo_keccak.keccak".
-pub const BYTES_IN_WORD = "starkware.cairo.common.cairo_keccak.keccak.BYTES_IN_WORD";
-
-pub const KECCAK_FULL_RATE_IN_BYTES_CAIRO_KECCAK = "starkware.cairo.common.cairo_keccak.keccak.KECCAK_FULL_RATE_IN_BYTES";
-pub const KECCAK_FULL_RATE_IN_BYTES_BUILTIN_KECCAK = "starkware.cairo.common.builtin_keccak.keccak.KECCAK_FULL_RATE_IN_BYTES";
-pub const KECCAK_FULL_RATE_IN_BYTES = "KECCAK_FULL_RATE_IN_BYTES";
-
-pub const KECCAK_STATE_SIZE_FELTS = "starkware.cairo.common.cairo_keccak.keccak.KECCAK_STATE_SIZE_FELTS";
-
-pub const BLOCK_SIZE = "starkware.cairo.common.cairo_keccak.packed_keccak.BLOCK_SIZE";
-
 pub const BLOCK_PERMUTATION =
     \\from starkware.cairo.common.keccak_utils.keccak_utils import keccak_func
     \\_keccak_state_size_felts = int(ids.KECCAK_STATE_SIZE_FELTS)
@@ -560,4 +549,39 @@ pub const BLOCK_PERMUTATION_WHITELIST_V2 =
     \\output_values = keccak_func(memory.get_range(
     \\    ids.keccak_ptr_start, _keccak_state_size_felts))
     \\segments.write_arg(ids.output, output_values)
+;
+
+pub const KECCAK_WRITE_ARGS =
+    \\segments.write_arg(ids.inputs, [ids.low % 2 ** 64, ids.low // 2 ** 64])
+    \\segments.write_arg(ids.inputs + 2, [ids.high % 2 ** 64, ids.high // 2 ** 64])
+;
+
+pub const COMPARE_BYTES_IN_WORD_NONDET =
+    "memory[ap] = to_felt_or_relocatable(ids.n_bytes < ids.BYTES_IN_WORD)";
+
+pub const COMPARE_KECCAK_FULL_RATE_IN_BYTES_NONDET =
+    "memory[ap] = to_felt_or_relocatable(ids.n_bytes >= ids.KECCAK_FULL_RATE_IN_BYTES)";
+
+pub const CAIRO_KECCAK_INPUT_IS_FULL_WORD = "ids.full_word = int(ids.n_bytes >= 8)";
+
+pub const CAIRO_KECCAK_FINALIZE_V1 =
+    \\# Add dummy pairs of input and output.
+    \\_keccak_state_size_felts = int(ids.KECCAK_STATE_SIZE_FELTS)
+    \\_block_size = int(ids.BLOCK_SIZE)
+    \\assert 0 <= _keccak_state_size_felts < 100
+    \\assert 0 <= _block_size < 10
+    \\inp = [0] * _keccak_state_size_felts
+    \\padding = (inp + keccak_func(inp)) * _block_size
+    \\segments.write_arg(ids.keccak_ptr_end, padding)
+;
+
+pub const CAIRO_KECCAK_FINALIZE_V2 =
+    \\# Add dummy pairs of input and output.
+    \\_keccak_state_size_felts = int(ids.KECCAK_STATE_SIZE_FELTS)
+    \\_block_size = int(ids.BLOCK_SIZE)
+    \\assert 0 <= _keccak_state_size_felts < 100
+    \\assert 0 <= _block_size < 1000
+    \\inp = [0] * _keccak_state_size_felts
+    \\padding = (inp + keccak_func(inp)) * _block_size
+    \\segments.write_arg(ids.keccak_ptr_end, padding)
 ;

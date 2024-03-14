@@ -18,7 +18,6 @@ const vm_error = @import("../vm/error.zig");
 //Implements hint: memory[ap] = segments.add()
 pub fn addSegment(allocator: Allocator, vm: *CairoVM) !void {
     const new_segment_base = try vm.addMemorySegment();
-    std.debug.print("I AM ADDING A SEGMENT {}\n", .{new_segment_base});
     try hint_utils.insertValueIntoAp(allocator, vm, MaybeRelocatable.fromRelocatable(new_segment_base));
 }
 
