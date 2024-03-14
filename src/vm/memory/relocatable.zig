@@ -554,7 +554,7 @@ pub const MaybeRelocatable = union(enum) {
                         break :blk MaybeRelocatable.fromInt(u64, self_value.offset - r.offset);
                     }
 
-                    break :blk error.RelocatableSubDiffIndex;
+                    break :blk CairoVMError.TypeMismatchNotRelocatable;
                 },
                 // If `other` is `felt`, call `subFelt` method on `self_value`
                 .felt => |fe| .{ .relocatable = try self_value.subFelt(fe) },
@@ -1325,7 +1325,7 @@ test "MaybeRelocatable: add between a Felt252 and a Relocatable should return a 
 
 test "MaybeRelocatable: sub between two Relocatable should return a proper MaybeRelocatable" {
     try expectEqual(
-        MaybeRelocatable.fromSegment(0, 10),
+        MaybeRelocatable.fromInt(u8, 10),
         try MaybeRelocatable.fromSegment(0, 20).sub(MaybeRelocatable.fromSegment(0, 10)),
     );
 }
