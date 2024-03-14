@@ -491,16 +491,7 @@ pub const SQUASH_DICT_INNER_USED_ACCESSES_ASSERT =
     "assert ids.n_used_accesses == len(access_indices[key])";
 pub const SQUASH_DICT_INNER_NEXT_KEY =
     \\assert len(keys) > 0, 'No keys left but remaining_accesses > 0.'
-    \\ids.next_key = key = keys.pop()"#;
-    \\
-    \\pub const DICT_SQUASH_COPY_DICT: &str = r#"# Prepare arguments for dict_new. In particular, the same dictionary values should be copied
-    \\# to the new (squashed) dictionary.
-    \\vm_enter_scope({
-    \\    # Make __dict_manager accessible.
-    \\    '__dict_manager': __dict_manager,
-    \\    # Create a copy of the dict, in case it changes in the future.
-    \\    'initial_dict': dict(__dict_manager.get_dict(ids.dict_accesses_end)),
-    \\})
+    \\ids.next_key = key = keys.pop()
 ;
 
 pub const DICT_SQUASH_UPDATE_PTR =

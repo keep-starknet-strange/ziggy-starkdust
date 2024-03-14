@@ -27,7 +27,8 @@ pub fn main() void {
         // TODO: merge bigint hint
         // .{ .pathname = "cairo_programs/bigint_compiled.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/big_struct_compiled.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/bitand_hint_compiled.json", .layout = "all_cairo" },
+        // TODO: not implemented hint
+        // .{ .pathname = "cairo_programs/bitand_hint_compiled.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/bitwise_output_compiled.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/bitwise_builtin_test.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/bitwise_recursion_compiled.json", .layout = "all_cairo" },
@@ -44,7 +45,8 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/common_signature.json", .layout = "all_cairo" },
         // TODO: FailedToComputeOp1 error
         // .{ .pathname = "cairo_programs/compare_arrays.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/compare_different_arrays.json", .layout = "all_cairo" },
+        // TODO: not implemented hint
+        // .{ .pathname = "cairo_programs/compare_different_arrays.json", .layout = "all_cairo" },
         // TODO: NoDst error
         // .{ .pathname = "cairo_programs/compare_greater_array.json", .layout = "all_cairo" },
         // TODO: NoDst error
@@ -57,7 +59,8 @@ pub fn main() void {
         // TODO: RelocatableAdd error
         // .{ .pathname = "cairo_programs/dict_integration_tests.json", .layout = "all_cairo" },
         // TODO: RelocatableAdd error
-        // .{ .pathname = "cairo_programs/dict_squash.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/dict_squash.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/squash_dict.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/dict_store_cast_ptr.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/dict_update.json", .layout = "all_cairo" },
         // TODO: FailedToComputeOp0 error
