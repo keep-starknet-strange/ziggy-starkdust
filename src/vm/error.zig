@@ -68,6 +68,7 @@ pub const CairoVMError = error{
     /// getBuiltin by name, if not exist error
     NotFoundBuiltin,
     ReferenceNotFound,
+    FailedToWriteOutput,
 };
 
 /// Represents different error conditions that are memory-related.
@@ -311,6 +312,9 @@ pub const HintError = error{
 
     // Wrong dict pointer supplied.
     MismatchedDictPtr,
+
+    /// Occurs when a hint is attempting to be executed that is not yet implemented
+    HintNotImplemented,
 };
 
 pub const InsufficientAllocatedCellsError = error{
