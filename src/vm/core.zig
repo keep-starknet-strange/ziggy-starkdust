@@ -1101,8 +1101,7 @@ pub const CairoVM = struct {
     /// Loads data into the memory managed by CairoVM.
     ///
     /// This function ensures memory allocation in the CairoVM's segments, particularly in the instruction cache.
-    /// It checks if the provided pointer (`ptr`) is pointing to the first segment and if the instruction cache
-    /// is smaller than the incoming data. If so, it extends the instruction cache to accommodate the new data.
+    /// It checks if the provided pointer (`ptr`) is pointing to the first segment. If so, it extends the instruction cache to accommodate the new data.
     ///
     /// After the cache is prepared, the function delegates the actual data loading to the segments, using the CairoVM's
     /// allocator and the provided pointer and data.
@@ -1121,12 +1120,12 @@ pub const CairoVM = struct {
         ptr: Relocatable,
         data: *std.ArrayList(MaybeRelocatable),
     ) !Relocatable {
-        // Check if the pointer is in the first segment and the cache needs expansion.
-        if (ptr.segment_index == 0 and self.instruction_cache.items.len < data.items.len) {
+        // Check if the pointer is in the first segment.
+        if (ptr.segment_index == 0) {
             // Extend the instruction cache to match the incoming data length.
             try self.instruction_cache.appendNTimes(
                 null,
-                data.items.len - self.instruction_cache.items.len,
+                data.items.len,
             );
         }
         // Delegate the data loading operation to the segments' loadData method and return the result.

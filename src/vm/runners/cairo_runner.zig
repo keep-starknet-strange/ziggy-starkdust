@@ -347,10 +347,9 @@ pub const CairoRunner = struct {
             self.initial_pc = try pb.addInt(@intCast(entrypoint));
 
             // Load program data into the program base segment.
-            _ = self.vm.segments.loadData(
-                self.allocator,
+            _ = self.vm.loadData(
                 pb,
-                self.program.shared_program_data.data.items,
+                &self.program.shared_program_data.data,
             ) catch return RunnerError.MemoryInitializationError;
 
             // Mark memory addresses in the program base segment as accessed.
