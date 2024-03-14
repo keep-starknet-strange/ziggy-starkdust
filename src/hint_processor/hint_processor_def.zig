@@ -25,6 +25,7 @@ const uint256_utils = @import("uint256_utils.zig");
 const usort = @import("usort.zig");
 const dict_hint_utils = @import("dict_hint_utils.zig");
 const cairo_keccak_hints = @import("cairo_keccak_hints.zig");
+const squash_dict_utils = @import("squash_dict_utils.zig");
 
 const poseidon_utils = @import("poseidon_utils.zig");
 const keccak_utils = @import("keccak_utils.zig");
@@ -35,6 +36,8 @@ const pow_utils = @import("pow_utils.zig");
 const segments = @import("segments.zig");
 
 const deserialize_utils = @import("../parser/deserialize_utils.zig");
+
+const HintError = @import("../vm/error.zig").HintError;
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -325,6 +328,26 @@ pub const CairoVMHintProcessor = struct {
             try cairo_keccak_hints.cairoKeccakFinalizeV1(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
         } else if (std.mem.eql(u8, hint_codes.CAIRO_KECCAK_FINALIZE_V2, hint_data.code)) {
             try cairo_keccak_hints.cairoKeccakFinalizeV2(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_FIRST_ITERATION, hint_data.code)) {
+            try squash_dict_utils.squashDictInnerFirstIteration(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_SKIP_LOOP, hint_data.code)) {
+            try squash_dict_utils.squashDictInnerSkipLoop(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_CHECK_ACCESS_INDEX, hint_data.code)) {
+            try squash_dict_utils.squashDictInnerCheckAccessIndex(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_CONTINUE_LOOP, hint_data.code)) {
+            try squash_dict_utils.squashDictInnerContinueLoop(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_LEN_ASSERT, hint_data.code)) {
+            try squash_dict_utils.squashDictInnerLenAssert(exec_scopes);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_USED_ACCESSES_ASSERT, hint_data.code)) {
+            try squash_dict_utils.squashDictInnerUsedAccessesAssert(vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_ASSERT_LEN_KEYS, hint_data.code)) {
+            try squash_dict_utils.squashDictInnerAssertLenKeys(exec_scopes);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_NEXT_KEY, hint_data.code)) {
+            try squash_dict_utils.squashDictInnerNextKey(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT, hint_data.code)) {
+            try squash_dict_utils.squashDict(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else {
+            return HintError.HintNotImplemented;
         }
     }
 
