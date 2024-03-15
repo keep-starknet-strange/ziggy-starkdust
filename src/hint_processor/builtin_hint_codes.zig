@@ -525,3 +525,5 @@ pub const BIGINT_SAFE_DIV =
     \\ value = k if k > 0 else 0 - k
     \\ ids.flag = 1 if k > 0 else 0
 ;
+
+pub const HI_MAX_BIT_LEN = "ids.len_hi = max(ids.scalar_u.d2.bit_length(), ids.scalar_v.d2.bit_length())-1";
