@@ -69,6 +69,7 @@ pub const CairoVMError = error{
     NotFoundBuiltin,
     ReferenceNotFound,
     FailedToWriteOutput,
+    EndOfProgram,
 };
 
 /// Represents different error conditions that are memory-related.
