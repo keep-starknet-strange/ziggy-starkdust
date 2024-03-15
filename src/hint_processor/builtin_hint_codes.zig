@@ -361,7 +361,6 @@ pub const SPLIT_64 =
     \\ids.high = ids.a >> 64
 ;
 
-
 pub const USORT_ENTER_SCOPE =
     "vm_enter_scope(dict(__usort_max_size = globals().get('__usort_max_size')))";
 pub const USORT_BODY =
@@ -406,3 +405,18 @@ pub const MEMSET_CONTINUE_LOOP =
 
 pub const MEMCPY_CONTINUE_COPYING = "n -= 1 ids.continue_copying = 1 if n > 0 else 0";
 
+pub const BIGINT_PACK_DIV_MOD_HINT =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import pack
+    \\from starkware.cairo.common.math_utils import as_int
+    \\from starkware.python.math_utils import div_mod, safe_div
+    \\p = pack(ids.P, PRIME)
+    \\x = pack(ids.x, PRIME) + as_int(ids.x.d3, PRIME) * ids.BASE ** 3 + as_int(ids.x.d4, PRIME) * ids.BASE ** 4
+    \\y = pack(ids.y, PRIME)
+    \\value = res = div_mod(x, y, p)
+;
+
+pub const BIGINT_SAFE_DIV =
+    \\ k = safe_div(res * y - x, p)
+    \\ value = k if k > 0 else 0 - k
+    \\ ids.flag = 1 if k > 0 else 0
+;
