@@ -637,10 +637,10 @@ pub const CairoRunner = struct {
     pub fn relocate(self: *Self) !void {
         // Presuming the default case of `allow_tmp_segments` in python version
         _ = try self.vm.segments.computeEffectiveSize(false);
-
         const relocation_table = try self.vm.segments.relocateSegments(self.allocator);
-        try self.vm.relocateTrace(relocation_table);
+        defer self.allocator.free(relocation_table);
         try self.relocateMemory(relocation_table);
+        try self.vm.relocateTrace(relocation_table);
         self.relocated_trace = try self.vm.getRelocatedTrace();
     }
 
@@ -1735,7 +1735,7 @@ test "CairoRunner: initial FP with a simple program" {
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
         program,
-        "plain",
+        "all_cairo",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         vm,
         false,
@@ -1958,7 +1958,7 @@ test "CairoRunner: getProgramBuiltins" {
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
         program,
-        "plain",
+        "all_cairo",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(std.testing.allocator, .{}),
         false,
@@ -2004,7 +2004,7 @@ test "CairoRunner: initState with empty data and stack" {
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
         program,
-        "plain",
+        "all_cairo",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
             std.testing.allocator,
@@ -2071,7 +2071,7 @@ test "CairoRunner: initState with some data and empty stack" {
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
         program,
-        "plain",
+        "all_cairo",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         vm,
         false,
@@ -2143,7 +2143,7 @@ test "CairoRunner: initState with empty data and some stack" {
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
         program,
-        "plain",
+        "all_cairo",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         vm,
         false,
@@ -2217,7 +2217,7 @@ test "CairoRunner: initState with no program_base" {
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
         program,
-        "plain",
+        "all_cairo",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         vm,
         false,
@@ -2275,7 +2275,7 @@ test "CairoRunner: initState with no execution_base" {
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
         program,
-        "plain",
+        "all_cairo",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         vm,
         false,
@@ -3062,4 +3062,710 @@ test "CairoRunner: initialize and run with range check and output builtins" {
         null,
         cairo_runner.vm.segments.memory.get(Relocatable.init(2, 1)),
     );
+}
+
+test "CairoRunner: initialize and run relocate with output builtin" {
+
+    //Program used:
+    //%builtins output
+    //
+    //from starkware.cairo.common.serialize import serialize_word
+    //
+    //func main{output_ptr: felt*}():
+    //  let a = 1
+    //  serialize_word(a)
+    //  let b = 17 * a
+    //  serialize_word(b)
+    //  return()
+    //end
+    //Relocated Memory:
+    //    1     4612671182993129469
+    //    2     5198983563776393216
+    //    3     1
+    //    4     2345108766317314046
+    //    5     5191102247248822272
+    //    6     5189976364521848832
+    //    7     1
+    //    8     1226245742482522112
+    //    9     -7
+    //    10    5189976364521848832
+    //    11    17
+    //    12    1226245742482522112
+    //    13    -11
+    //    14    2345108766317314046
+    //    15    27
+    //    16    29
+    //    17    29
+    //    18    27
+    //    19    1
+    //    20    18
+    //    21    10
+    //    22    28
+    //    23    17
+    //    24    18
+    //    25    14
+    //    26    29
+    //    27    1
+    //    28    17
+
+    // Initialize a list of built-in functions.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.output);
+
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u256, 4612671182993129469));
+    try data.append(MaybeRelocatable.fromInt(u256, 5198983563776393216));
+    try data.append(MaybeRelocatable.fromInt(u256, 1));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+    try data.append(MaybeRelocatable.fromInt(u256, 5191102247248822272));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 1));
+    try data.append(MaybeRelocatable.fromInt(u256, 1226245742482522112));
+    try data.append(MaybeRelocatable.fromInt(u256, 3618502788666131213697322783095070105623107215331596699973092056135872020474));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 17));
+    try data.append(MaybeRelocatable.fromInt(u256, 1226245742482522112));
+    try data.append(MaybeRelocatable.fromInt(u256, 3618502788666131213697322783095070105623107215331596699973092056135872020470));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize data structures required for a program.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a Program instance with the specified parameters.
+    const program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        4,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
+        false,
+    );
+
+    // Initialize a CairoVM instance.
+    const vm = try CairoVM.init(
+        std.testing.allocator,
+        .{ .proof_mode = false, .enable_trace = true },
+    );
+
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        vm,
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    try cairo_runner.initBuiltins(true);
+    try cairo_runner.initSegments(null);
+    const end = try cairo_runner.initMainEntrypoint();
+    try expectEqual(Relocatable.init(4, 0), end);
+
+    try cairo_runner.initVM();
+
+    var hint_processor: HintProcessor = .{};
+    try cairo_runner.runUntilPC(end, false, &hint_processor);
+
+    _ = try cairo_runner.vm.computeSegmentsEffectiveSizes(false);
+
+    const relocation_table = try cairo_runner.vm.segments.relocateSegments(std.testing.allocator);
+    defer std.testing.allocator.free(relocation_table);
+
+    try cairo_runner.relocateMemory(relocation_table);
+
+    // Perform assertions to check if memory relocation is correct.
+    try expectEqualSlices(
+        ?Felt252,
+        &[_]?Felt252{
+            null,
+            Felt252.fromInt(u256, 4612671182993129469),
+            Felt252.fromInt(u256, 5198983563776393216),
+            Felt252.fromInt(u256, 1),
+            Felt252.fromInt(u256, 2345108766317314046),
+            Felt252.fromInt(u256, 5191102247248822272),
+            Felt252.fromInt(u256, 5189976364521848832),
+            Felt252.fromInt(u256, 1),
+            Felt252.fromInt(u256, 1226245742482522112),
+            Felt252.fromInt(u256, 0x800000000000010fffffffffffffffffffffffffffffffffffffffffffffffa),
+            Felt252.fromInt(u256, 5189976364521848832),
+            Felt252.fromInt(u256, 17),
+            Felt252.fromInt(u256, 1226245742482522112),
+            Felt252.fromInt(u256, 0x800000000000010fffffffffffffffffffffffffffffffffffffffffffffff6),
+            Felt252.fromInt(u256, 2345108766317314046),
+            Felt252.fromInt(u256, 27),
+            Felt252.fromInt(u256, 29),
+            Felt252.fromInt(u256, 29),
+            Felt252.fromInt(u256, 27),
+            Felt252.fromInt(u256, 1),
+            Felt252.fromInt(u256, 18),
+            Felt252.fromInt(u256, 10),
+            Felt252.fromInt(u256, 28),
+            Felt252.fromInt(u256, 17),
+            Felt252.fromInt(u256, 18),
+            Felt252.fromInt(u256, 14),
+            Felt252.fromInt(u256, 29),
+            Felt252.fromInt(u256, 1),
+            Felt252.fromInt(u256, 17),
+        },
+        cairo_runner.relocated_memory.items,
+    );
+}
+
+test "CairoRunner: initialize and run relocate trace with output builtin" {
+
+    //Program used:
+    //%builtins output
+    //
+    //from starkware.cairo.common.serialize import serialize_word
+    //
+    //func main{output_ptr: felt*}():
+    //    let a = 1
+    //    serialize_word(a)
+    //    let b = 17 * a
+    //    serialize_word(b)
+    //    return()
+    //end
+    //
+    //Relocated Trace:
+    //[TraceEntry(pc=5, ap=18, fp=18),
+    //    TraceEntry(pc=6, ap=19, fp=18),
+    //    TraceEntry(pc=8, ap=20, fp=18),
+    //    TraceEntry(pc=1, ap=22, fp=22),
+    //    TraceEntry(pc=2, ap=22, fp=22),
+    //    TraceEntry(pc=4, ap=23, fp=22),
+    //    TraceEntry(pc=10, ap=23, fp=18),
+
+    // Initialize a list of built-in functions.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.output);
+
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u256, 4612671182993129469));
+    try data.append(MaybeRelocatable.fromInt(u256, 5198983563776393216));
+    try data.append(MaybeRelocatable.fromInt(u256, 1));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+    try data.append(MaybeRelocatable.fromInt(u256, 5191102247248822272));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 1));
+    try data.append(MaybeRelocatable.fromInt(u256, 1226245742482522112));
+    try data.append(MaybeRelocatable.fromInt(u256, 3618502788666131213697322783095070105623107215331596699973092056135872020474));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 17));
+    try data.append(MaybeRelocatable.fromInt(u256, 1226245742482522112));
+    try data.append(MaybeRelocatable.fromInt(u256, 3618502788666131213697322783095070105623107215331596699973092056135872020470));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize data structures required for a program.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a Program instance with the specified parameters.
+    const program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        4,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
+        false,
+    );
+
+    // Initialize a CairoVM instance.
+    const vm = try CairoVM.init(
+        std.testing.allocator,
+        .{ .proof_mode = false, .enable_trace = true },
+    );
+
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        vm,
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    try cairo_runner.initBuiltins(true);
+    try cairo_runner.initSegments(null);
+    const end = try cairo_runner.initMainEntrypoint();
+    try expectEqual(Relocatable.init(4, 0), end);
+
+    try cairo_runner.initVM();
+
+    var hint_processor: HintProcessor = .{};
+    try cairo_runner.runUntilPC(end, false, &hint_processor);
+
+    try cairo_runner.relocate();
+
+    // Perform assertions to check if memory relocation is correct.
+    try expectEqualSlices(
+        RelocatedTraceEntry,
+        &[_]RelocatedTraceEntry{
+            .{ .pc = Felt252.fromInt(u64, 5), .ap = Felt252.fromInt(u64, 18), .fp = Felt252.fromInt(u64, 18) },
+            .{ .pc = Felt252.fromInt(u64, 6), .ap = Felt252.fromInt(u64, 19), .fp = Felt252.fromInt(u64, 18) },
+            .{ .pc = Felt252.fromInt(u64, 8), .ap = Felt252.fromInt(u64, 20), .fp = Felt252.fromInt(u64, 18) },
+            .{ .pc = Felt252.fromInt(u64, 1), .ap = Felt252.fromInt(u64, 22), .fp = Felt252.fromInt(u64, 22) },
+            .{ .pc = Felt252.fromInt(u64, 2), .ap = Felt252.fromInt(u64, 22), .fp = Felt252.fromInt(u64, 22) },
+            .{ .pc = Felt252.fromInt(u64, 4), .ap = Felt252.fromInt(u64, 23), .fp = Felt252.fromInt(u64, 22) },
+            .{ .pc = Felt252.fromInt(u64, 10), .ap = Felt252.fromInt(u64, 23), .fp = Felt252.fromInt(u64, 18) },
+            .{ .pc = Felt252.fromInt(u64, 12), .ap = Felt252.fromInt(u64, 24), .fp = Felt252.fromInt(u64, 18) },
+            .{ .pc = Felt252.fromInt(u64, 1), .ap = Felt252.fromInt(u64, 26), .fp = Felt252.fromInt(u64, 26) },
+            .{ .pc = Felt252.fromInt(u64, 2), .ap = Felt252.fromInt(u64, 26), .fp = Felt252.fromInt(u64, 26) },
+            .{ .pc = Felt252.fromInt(u64, 4), .ap = Felt252.fromInt(u64, 27), .fp = Felt252.fromInt(u64, 26) },
+            .{ .pc = Felt252.fromInt(u64, 14), .ap = Felt252.fromInt(u64, 27), .fp = Felt252.fromInt(u64, 18) },
+        },
+        cairo_runner.relocated_trace,
+    );
+}
+
+test "CairoRunner: write output from preset memory" {
+    // Initialize a list of built-in functions.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.output);
+
+    // Initialize data structures required for a program.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a Program instance with the specified parameters.
+    const program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        null,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
+        true,
+    );
+
+    // Initialize a CairoVM instance.
+    const vm = try CairoVM.init(std.testing.allocator, .{});
+
+    // Initialize a CairoRunner instance with the created Program and CairoVM instances.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        vm,
+        false,
+    );
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    try cairo_runner.initBuiltins(false);
+    try cairo_runner.initSegments(null);
+
+    // Assert the name and base of the output builtin runner.
+    try expectEqual(
+        builtin_runner_import.OUTPUT_BUILTIN_NAME,
+        cairo_runner.vm.builtin_runners.items[0].name(),
+    );
+    try expectEqual(
+        @as(usize, 2),
+        cairo_runner.vm.builtin_runners.items[0].base(),
+    );
+
+    // Set up memory with preset data.
+    try cairo_runner.vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 2, 0 }, .{1} },
+            .{ .{ 2, 1 }, .{2} },
+        },
+    );
+    // Defer memory cleanup
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Initialize segment used sizes.
+    try cairo_runner.vm.segments.segment_used_sizes.put(0, 0);
+    try cairo_runner.vm.segments.segment_used_sizes.put(1, 0);
+    try cairo_runner.vm.segments.segment_used_sizes.put(2, 2);
+
+    // Initialize output buffer.
+    var output = std.ArrayList(u8).init(std.testing.allocator);
+    defer output.deinit();
+
+    // Write output to the output buffer.
+    try cairo_runner.vm.writeOutput(output.writer());
+
+    // Assert the output buffer content.
+    try expectEqualSlices(u8, "1\n2\n", output.items);
+}
+
+test "CairoRunner: get output from a program" {
+
+    //Program used:
+    //%builtins output
+    //
+    //from starkware.cairo.common.serialize import serialize_word
+    //
+    //func main{output_ptr: felt*}():
+    //    let a = 1
+    //    serialize_word(a)
+    //    return()
+    //end
+
+    // Initialize a list of built-in functions.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.output);
+
+    // Initialize data with preset values.
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u256, 4612671182993129469));
+    try data.append(MaybeRelocatable.fromInt(u256, 5198983563776393216));
+    try data.append(MaybeRelocatable.fromInt(u256, 1));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+    try data.append(MaybeRelocatable.fromInt(u256, 5191102247248822272));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 1));
+    try data.append(MaybeRelocatable.fromInt(u256, 1226245742482522112));
+    try data.append(MaybeRelocatable.fromInt(u256, 3618502788666131213697322783095070105623107215331596699973092056135872020474));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 17));
+    try data.append(MaybeRelocatable.fromInt(u256, 1226245742482522112));
+    try data.append(MaybeRelocatable.fromInt(u256, 3618502788666131213697322783095070105623107215331596699973092056135872020470));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize data structures required for a program.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a Program instance with the specified parameters.
+    const program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        4,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
+        false,
+    );
+
+    // Initialize a CairoVM instance.
+    const vm = try CairoVM.init(
+        std.testing.allocator,
+        .{ .proof_mode = false, .enable_trace = true },
+    );
+
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        vm,
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    try cairo_runner.initBuiltins(true);
+    try cairo_runner.initSegments(null);
+    const end = try cairo_runner.initMainEntrypoint();
+    try expectEqual(Relocatable.init(4, 0), end);
+
+    try cairo_runner.initVM();
+
+    // Run the program.
+    var hint_processor: HintProcessor = .{};
+    try cairo_runner.runUntilPC(end, false, &hint_processor);
+
+    // Initialize output buffer.
+    var output = std.ArrayList(u8).init(std.testing.allocator);
+    defer output.deinit();
+
+    // Write output to the output buffer.
+    try cairo_runner.vm.writeOutput(output.writer());
+
+    // Assert the output buffer content.
+    try expectEqualSlices(u8, "1\n17\n", output.items);
+}
+
+test "CairoRunner: write output from a program with gap and relocatable output" {
+
+    //Program used:
+    //%builtins output
+    //
+    //func main{output_ptr: felt*}() {
+    //    //Memory Gap + Relocatable value
+    //    assert [output_ptr + 1] = cast(output_ptr, felt);
+    //    let output_ptr = output_ptr + 2;
+    //    return ();
+    //}
+
+    // Initialize a list of built-in functions.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.output);
+
+    // Initialize data with preset values.
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u256, 4612671187288162301));
+    try data.append(MaybeRelocatable.fromInt(u256, 5198983563776458752));
+    try data.append(MaybeRelocatable.fromInt(u256, 2));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize data structures required for a program.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a Program instance with the specified parameters.
+    const program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        0,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
+        false,
+    );
+
+    // Initialize a CairoVM instance.
+    const vm = try CairoVM.init(
+        std.testing.allocator,
+        .{ .proof_mode = false, .enable_trace = true },
+    );
+
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        vm,
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    try cairo_runner.initBuiltins(true);
+    try cairo_runner.initSegments(null);
+    const end = try cairo_runner.initMainEntrypoint();
+    try expectEqual(Relocatable.init(4, 0), end);
+
+    try cairo_runner.initVM();
+
+    // Run the program.
+    var hint_processor: HintProcessor = .{};
+    try cairo_runner.runUntilPC(end, false, &hint_processor);
+
+    // Initialize output buffer.
+    var output = std.ArrayList(u8).init(std.testing.allocator);
+    defer output.deinit();
+
+    // Write output to the output buffer.
+    try cairo_runner.vm.writeOutput(output.writer());
+
+    // Assert the output buffer content.
+    try expectEqualSlices(u8, "<missing>\n2:0\n", output.items);
+}
+
+test "CairoRunner: write output from preset memory with negative output" {
+    // Initialize a list of built-in functions.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.output);
+
+    // Initialize data structures required for a program.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a Program instance with the specified parameters.
+    const program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        null,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
+        true,
+    );
+
+    // Initialize a CairoVM instance.
+    const vm = try CairoVM.init(std.testing.allocator, .{});
+
+    // Initialize a CairoRunner instance with the created Program and CairoVM instances.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        vm,
+        false,
+    );
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    try cairo_runner.initBuiltins(false);
+    try cairo_runner.initSegments(null);
+
+    // Assert the name and base of the output builtin runner.
+    try expectEqual(
+        builtin_runner_import.OUTPUT_BUILTIN_NAME,
+        cairo_runner.vm.builtin_runners.items[0].name(),
+    );
+    try expectEqual(
+        @as(usize, 2),
+        cairo_runner.vm.builtin_runners.items[0].base(),
+    );
+
+    // Set up memory with preset data.
+    try cairo_runner.vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 2, 0 }, .{0x800000000000011000000000000000000000000000000000000000000000000} },
+        },
+    );
+    // Defer memory cleanup
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Initialize segment used sizes.
+    try cairo_runner.vm.segments.segment_used_sizes.put(0, 0);
+    try cairo_runner.vm.segments.segment_used_sizes.put(1, 0);
+    try cairo_runner.vm.segments.segment_used_sizes.put(2, 1);
+
+    // Initialize output buffer.
+    var output = std.ArrayList(u8).init(std.testing.allocator);
+    defer output.deinit();
+
+    // Write output to the output buffer.
+    try cairo_runner.vm.writeOutput(output.writer());
+
+    // Assert the output buffer content.
+    try expectEqualSlices(u8, "-1\n", output.items);
+}
+
+test "CairoRunner: get output with unordered builtins" {
+
+    // Initialize a list of built-in functions.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.output);
+    try builtins.append(BuiltinName.bitwise);
+
+    // Initialize data with preset values.
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u256, 4612671182993129469));
+    try data.append(MaybeRelocatable.fromInt(u256, 5198983563776393216));
+    try data.append(MaybeRelocatable.fromInt(u256, 1));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+    try data.append(MaybeRelocatable.fromInt(u256, 5191102247248822272));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 1));
+    try data.append(MaybeRelocatable.fromInt(u256, 1226245742482522112));
+    try data.append(MaybeRelocatable.fromInt(u256, 3618502788666131213697322783095070105623107215331596699973092056135872020474));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 17));
+    try data.append(MaybeRelocatable.fromInt(u256, 1226245742482522112));
+    try data.append(MaybeRelocatable.fromInt(u256, 3618502788666131213697322783095070105623107215331596699973092056135872020470));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize data structures required for a program.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a Program instance with the specified parameters.
+    const program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        4,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
+        false,
+    );
+
+    // Initialize a CairoVM instance.
+    const vm = try CairoVM.init(
+        std.testing.allocator,
+        .{ .proof_mode = false, .enable_trace = true },
+    );
+
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        vm,
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    try cairo_runner.initBuiltins(true);
+
+    // Exchange builtins order to make them unordered
+    try cairo_runner.vm.builtin_runners.append(cairo_runner.vm.builtin_runners.swapRemove(0));
+
+    try cairo_runner.initSegments(null);
+    const end = try cairo_runner.initMainEntrypoint();
+    try expectEqual(Relocatable.init(5, 0), end);
+
+    try cairo_runner.initVM();
+
+    // Run the program.
+    var hint_processor: HintProcessor = .{};
+    try cairo_runner.runUntilPC(end, false, &hint_processor);
+
+    // Initialize output buffer.
+    var output = std.ArrayList(u8).init(std.testing.allocator);
+    defer output.deinit();
+
+    // Write output to the output buffer.
+    try cairo_runner.vm.writeOutput(output.writer());
+
+    // Assert the output buffer content.
+    try expectEqualSlices(u8, "1\n17\n", output.items);
 }
