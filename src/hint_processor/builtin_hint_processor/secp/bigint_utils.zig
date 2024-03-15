@@ -19,6 +19,7 @@ const Int = @import("std").math.big.int.Managed;
 const bigInt3Split = @import("../secp/secp_utils.zig").bigInt3Split;
 const BigInt = std.math.big.int.Managed;
 const BASE = @import("../../../math//fields/constants.zig").BASE;
+const hint_codes = @import("../../builtin_hint_codes.zig");
 
 pub const BigInt3 = BigIntN(3);
 pub const Uint384 = BigIntN(3);
@@ -33,9 +34,13 @@ pub fn BigIntN(comptime NUM_LIMBS: usize) type {
         limbs: [NUM_LIMBS]Felt252 = undefined,
 
         pub fn fromBaseAddr(self: *Self, addr: Relocatable, vm: *CairoVM) !Self {
+            std.debug.print("addr: {}\n", .{addr});
             inline for (0..NUM_LIMBS) |i| {
+                std.debug.print("🌈🌈🌈🌈🌈 {any} \n", .{i});
                 const new_addr = try addr.addUint(i);
+                std.debug.print("✨✨✨✨new_addr: {}\n", .{new_addr});
                 self.limbs[i] = try vm.getFelt(new_addr);
+                std.debug.print("🎯🎯🎯🎯🎯🎯 {any} \n", .{self.limbs[i]});
             }
             return .{ .limbs = self.limbs };
         }
@@ -57,7 +62,7 @@ pub fn BigIntN(comptime NUM_LIMBS: usize) type {
         }
 
         pub fn pack(self: *Self) u256 {
-            const result = packBigInt(self.limbs, 128);
+            const result = packBigInt(std.mem.allocator, self.limbs.len, self.limbs, 128);
             return result;
         }
 
@@ -71,7 +76,7 @@ pub fn BigIntN(comptime NUM_LIMBS: usize) type {
         }
 
         pub fn split(self: *Self, num: Int) Self {
-            const limbs = splitBigInt(num, 128);
+            const limbs = splitBigInt(std.mem.Allocator, num, self.limbs.len, 128);
             return self.fromValues(limbs);
         }
 
@@ -111,20 +116,23 @@ pub fn bigintToUint256(vm: *CairoVM, ids_data: std.StringHashMap(HintReference),
 
 // Implements hint
 // %{ ids.len_hi = max(ids.scalar_u.d2.bit_length(), ids.scalar_v.d2.bit_length())-1 %}
-pub fn hiMaxBitlen(vm: *CairoVM, ids_data: *std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {
-    const scalar_u = try BigInt3.fromVarName("scalar_u", vm, ids_data, ap_tracking);
-    const scalar_v = try BigInt3.fromVarName("scalar_v", vm, ids_data, ap_tracking);
+pub fn hiMaxBitlen(vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {
+    var scalar_u: BigInt3 = undefined;
+    var scalar_v: BigInt3 = undefined;
+    scalar_u = try scalar_u.fromVarName("scalar_u", vm, ids_data, ap_tracking);
+    std.debug.print("🎉🎉🎉🎉🎉🎉  {} \n", .{scalar_u});
+    scalar_v = try scalar_v.fromVarName("scalar_v", vm, ids_data, ap_tracking);
 
     // get number of bits in the highest limb
     const len_hi_u = scalar_u.limbs[2].numBits();
     const len_hi_v = scalar_v.limbs[2].numBits();
 
-    const len_hi = std.math.max(len_hi_u, len_hi_v);
+    const len_hi = @max(len_hi_u, len_hi_v);
 
     // equal to `len_hi.wrapping_sub(1)`
-    const res = if (len_hi == 0) Felt252.Max else len_hi - 1;
+    const res = if (len_hi == 0) Felt252.Max.toInteger() else len_hi - 1;
 
-    try hint_utils.insertValueFromVarName("len_hi", res, vm, ids_data, ap_tracking);
+    try hint_utils.insertValueFromVarName(std.testing.allocator, "len_hi", MaybeRelocatable.fromInt(u256, res), vm, ids_data, ap_tracking);
 }
 
 // Tests
@@ -358,8 +366,6 @@ test "BigIntN Hints: get bigint5 from varname invalid reference should fail" {
 }
 
 test "Run hiMaxBitlen ok" {
-    const hint_code = "%{ ids.len_hi = max(ids.scalar_u.d2.bit_length(), ids.scalar_v.d2.bit_length())-1 %}";
-
     var vm = try CairoVM.init(std.testing.allocator, .{});
 
     defer vm.deinit();
@@ -375,7 +381,7 @@ test "Run hiMaxBitlen ok" {
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = Relocatable.init(1, 6);
+    vm.run_context.fp.* = Relocatable.init(1, 7);
 
     var ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{ .{
         .name = "scalar_u",
@@ -394,7 +400,7 @@ test "Run hiMaxBitlen ok" {
 
     //Execute the hint
     const hint_processor = HintProcessor{};
-    var hint_data = HintData.init(hint_code, ids_data, .{});
+    var hint_data = HintData.init(hint_codes.HI_MAX_BIT_LEN, ids_data, .{});
 
     try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
 
