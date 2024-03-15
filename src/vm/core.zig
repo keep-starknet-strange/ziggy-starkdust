@@ -572,6 +572,7 @@ pub const CairoVM = struct {
             op_res.op_0 = try self.computeOp0Deductions(
                 allocator,
                 op_res.op_0_addr,
+                &op_res.res,
                 instruction,
                 &dst_op,
                 &op_1_op,
@@ -600,7 +601,7 @@ pub const CairoVM = struct {
             op_res.res = try instruction.computeRes(op_res.op_0, op_res.op_1);
         }
 
-        // Retrieve the destination if not already available.
+        // Retrieve the destination if not already available.op_0_op
         if (dst_op) |dst| {
             op_res.dst = dst;
         } else {
@@ -631,18 +632,18 @@ pub const CairoVM = struct {
         self: *Self,
         allocator: Allocator,
         op_0_addr: Relocatable,
+        res: *?MaybeRelocatable,
         instruction: *const Instruction,
         dst: *const ?MaybeRelocatable,
         op1: *const ?MaybeRelocatable,
     ) !MaybeRelocatable {
-        const op0_op = try self.deduceMemoryCell(allocator, op_0_addr) orelse
-            (try self.deduceOp0(
-            instruction,
-            dst,
-            op1,
-        )).op_0;
+        if (try self.deduceMemoryCell(allocator, op_0_addr)) |op0| {
+            return op0;
+        }
+        const op0_deductions = try self.deduceOp0(instruction, dst, op1);
+        if (res.* == null) res.* = op0_deductions.res;
 
-        return op0_op orelse CairoVMError.FailedToComputeOp0;
+        return op0_deductions.op_0 orelse CairoVMError.FailedToComputeOp0;
     }
 
     /// Compute Op1 deductions based on the provided instruction, destination, and Op0.
@@ -1101,7 +1102,8 @@ pub const CairoVM = struct {
     /// Loads data into the memory managed by CairoVM.
     ///
     /// This function ensures memory allocation in the CairoVM's segments, particularly in the instruction cache.
-    /// It checks if the provided pointer (`ptr`) is pointing to the first segment. If so, it extends the instruction cache to accommodate the new data.
+    /// It checks if the provided pointer (`ptr`) is pointing to the first segment and if the instruction cache
+    /// is smaller than the incoming data. If so, it extends the instruction cache to accommodate the new data.
     ///
     /// After the cache is prepared, the function delegates the actual data loading to the segments, using the CairoVM's
     /// allocator and the provided pointer and data.
@@ -1120,12 +1122,12 @@ pub const CairoVM = struct {
         ptr: Relocatable,
         data: *std.ArrayList(MaybeRelocatable),
     ) !Relocatable {
-        // Check if the pointer is in the first segment.
-        if (ptr.segment_index == 0) {
+        // Check if the pointer is in the first segment and the cache needs expansion.
+        if (ptr.segment_index == 0 and self.instruction_cache.items.len < data.items.len) {
             // Extend the instruction cache to match the incoming data length.
             try self.instruction_cache.appendNTimes(
                 null,
-                data.items.len,
+                data.items.len - self.instruction_cache.items.len,
             );
         }
         // Delegate the data loading operation to the segments' loadData method and return the result.
