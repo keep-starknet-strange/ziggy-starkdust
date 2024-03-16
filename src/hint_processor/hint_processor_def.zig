@@ -347,6 +347,7 @@ pub const CairoVMHintProcessor = struct {
         } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT, hint_data.code)) {
             try squash_dict_utils.squashDict(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else {
+            std.log.err("not implemented: {s}\n", .{hint_data.code});
             return HintError.HintNotImplemented;
         }
     }

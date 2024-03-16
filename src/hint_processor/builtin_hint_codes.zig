@@ -403,7 +403,10 @@ pub const MEMSET_CONTINUE_LOOP =
     \\ids.continue_loop = 1 if n > 0 else 0
 ;
 
-pub const MEMCPY_CONTINUE_COPYING = "n -= 1 ids.continue_copying = 1 if n > 0 else 0";
+pub const MEMCPY_CONTINUE_COPYING =
+    \\n -= 1
+    \\ids.continue_copying = 1 if n > 0 else 0
+;
 
 pub const DEFAULT_DICT_NEW =
     \\if '__dict_manager' not in globals():

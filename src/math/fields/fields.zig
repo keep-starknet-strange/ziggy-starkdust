@@ -723,26 +723,6 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             );
         }
 
-        /// Try to convert the field element to a usize if its value is small enough.
-        ///
-        /// Attempts to convert the field element to a usize if its value is within the representable range.
-        pub fn intoUsize(self: Self) !usize {
-            const asU256 = self.toInteger();
-            // Check if the value is small enough to fit into a u64
-            if (asU256 > @as(
-                u256,
-                @intCast(std.math.maxInt(usize)),
-            )) {
-                return error.ValueTooLarge;
-            }
-
-            // Otherwise, it's safe to cast
-            return @as(
-                usize,
-                @intCast(asU256),
-            );
-        }
-
         /// Calculate the Legendre symbol of a field element.
         ///
         /// Computes the Legendre symbol of the field element using Euler's criterion.

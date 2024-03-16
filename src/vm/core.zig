@@ -486,6 +486,8 @@ pub const CairoVM = struct {
             );
         }
 
+        std.log.debug("instruction {any}, {any}, {any}, {any}\n", .{ self.current_step, self.run_context.pc.*, self.run_context.ap.*, self.run_context.fp.* });
+
         // Compute operands for the instruction.
         const operands_result = try self.computeOperands(allocator, instruction);
 

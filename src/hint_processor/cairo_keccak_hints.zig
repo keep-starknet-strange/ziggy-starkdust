@@ -138,6 +138,10 @@ pub fn blockPermutationV1(
     ap_tracking: ApTracking,
     constants: *std.StringHashMap(Felt252),
 ) !void {
+    std.log.debug("zahoju bratik\n", .{});
+    if (1 == 1) {
+        @panic("tye");
+    }
     const keccak_state_size_felts = try (constants
         .get(KECCAK_STATE_SIZE_FELTS) orelse return HintError.MissingConstant).intoU64();
 
@@ -150,6 +154,7 @@ pub fn blockPermutationV1(
         try keccak_ptr.subUint(keccak_state_size_felts),
         keccak_state_size_felts,
     );
+    defer values.deinit();
 
     const u64_values = try maybeRelocVecToU64Array(allocator, values.items);
     defer u64_values.deinit();
@@ -204,6 +209,7 @@ pub fn blockPermutationV2(
     ap_tracking: ApTracking,
     constants: *std.StringHashMap(Felt252),
 ) !void {
+    if (1 == 1) @panic("cairo keccak");
     const keccak_state_size_felts = try (constants
         .get(KECCAK_STATE_SIZE_FELTS) orelse return HintError.MissingConstant).intoUsize();
 
@@ -525,7 +531,7 @@ test "CairoKeccakHints: blockPermutation valid" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    try vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true) });
+    // try vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true) });
 
     _ = try vm.segments.addSegment();
     const keccak_ptr = try vm.segments.addSegment();
@@ -533,7 +539,7 @@ test "CairoKeccakHints: blockPermutation valid" {
     const ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{
         .{
             .name = "keccak_ptr",
-            .elems = &.{MaybeRelocatable.fromRelocatable(try keccak_ptr.addUint(25))},
+            .elems = &.{MaybeRelocatable.fromRelocatable(try keccak_ptr.addUint(26))},
         },
     }, &vm);
 
@@ -542,7 +548,7 @@ test "CairoKeccakHints: blockPermutation valid" {
 
     try data.appendNTimes(MaybeRelocatable.fromFelt(Felt252.zero()), 25);
 
-    _ = try vm.segments.loadData(std.testing.allocator, keccak_ptr, data.items);
+    _ = try vm.segments.loadData(std.testing.allocator, try keccak_ptr.addUint(1), data.items);
 
     var hint_data = HintData.init(hint_codes.BLOCK_PERMUTATION, ids_data, .{});
     defer hint_data.deinit();
