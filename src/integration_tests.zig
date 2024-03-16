@@ -190,5 +190,5 @@ pub fn cairo_run(allocator: std.mem.Allocator, pathname: []const u8, layout: []c
     // then
     var hint_processor: HintProcessor = .{};
     try runner.runUntilPC(end, extensive_hints, &hint_processor);
-    try runner.endRun();
+    try runner.endRun(allocator, true, false, &hint_processor);
 }

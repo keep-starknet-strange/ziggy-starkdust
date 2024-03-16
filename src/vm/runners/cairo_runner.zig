@@ -576,14 +576,28 @@ pub const CairoRunner = struct {
         }
     }
 
-    pub fn endRun(self: *Self) !void {
-        // TODO relocate memory
-        // TODO call end_run in vm for builtins
-        if (self.run_ended) {
+    pub fn endRun(
+        self: *Self,
+        allocator: Allocator,
+        disable_trace_padding: bool,
+        disable_finalize_all: bool,
+        hint_processor: *HintProcessor,
+    ) !void {
+        if (self.run_ended)
             return CairoRunnerError.EndRunAlreadyCalled;
+
+        try self.vm.segments.memory.relocateMemory();
+        try self.vm.endRun(allocator, &self.execution_scopes);
+
+        if (disable_finalize_all) return;
+
+        _ = try self.vm.computeSegmentsEffectiveSizes(false);
+
+        if (self.isProofMode() and !disable_trace_padding) {
+            // TODO : complete proof mode
+            _ = hint_processor;
         }
 
-        // TODO handle proof_mode case
         self.run_ended = true;
     }
 
@@ -3768,4 +3782,57 @@ test "CairoRunner: get output with unordered builtins" {
 
     // Assert the output buffer content.
     try expectEqualSlices(u8, "1\n17\n", output.items);
+}
+
+test "CairoRunner: endRun with a run that is already finished" {
+    // Create a CairoRunner instance for testing.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator, true),
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    cairo_runner.run_ended = true;
+
+    var hint_processor: HintProcessor = .{};
+
+    try expectError(
+        CairoRunnerError.EndRunAlreadyCalled,
+        cairo_runner.endRun(std.testing.allocator, true, false, &hint_processor),
+    );
+}
+
+test "CairoRunner: endRun with a simple test" {
+    // Create a CairoRunner instance for testing.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator, true),
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    var hint_processor: HintProcessor = .{};
+
+    try cairo_runner.endRun(std.testing.allocator, true, false, &hint_processor);
+
+    cairo_runner.run_ended = false;
+
+    cairo_runner.relocated_memory.clearAndFree();
+
+    try cairo_runner.endRun(std.testing.allocator, true, true, &hint_processor);
+
+    try expect(!cairo_runner.run_ended);
 }
