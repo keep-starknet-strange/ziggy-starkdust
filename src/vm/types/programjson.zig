@@ -837,8 +837,8 @@ pub const ProgramJson = struct {
     ///   - A `HintsCollection` containing organized hint information.
     pub fn getHintsCollections(self: *Self, allocator: Allocator, extensive_hints: bool) !HintsCollection {
         // Initialize variables to track maximum hint PC and total length of hints.
-        var max_hint_pc: usize = 0;
-        var full_len: usize = 0;
+        var max_hint_pc: ?usize = null;
+        var full_len: ?usize = null;
 
         // Iterate over the hints map to calculate max_hint_pc and full_len.
         if (self.hints) |hints| {
@@ -846,17 +846,17 @@ pub const ProgramJson = struct {
 
             while (it.next()) |entry| {
                 max_hint_pc = @max(
-                    max_hint_pc,
+                    max_hint_pc orelse 0,
                     try std.fmt.parseInt(usize, entry.key_ptr.*, 10),
                 );
-                full_len = full_len + entry.value_ptr.len;
+                full_len = full_len orelse 0 + entry.value_ptr.len;
             }
         }
 
         // Check if there are valid hints to collect.
-        if (max_hint_pc > 0 and full_len > 0) {
+        if (max_hint_pc != null and full_len != null) {
             // Check for invalid max_hint_pc value.
-            if (max_hint_pc >= self.data.?.len) return ProgramError.InvalidHintPc;
+            if (max_hint_pc.? >= self.data.?.len) return ProgramError.InvalidHintPc;
 
             // Initialize a new HintsCollection.
 
@@ -864,7 +864,7 @@ pub const ProgramJson = struct {
             errdefer hints_collection.deinit();
 
             if (!extensive_hints) {
-                try hints_collection.hints_ranges.NonExtensive.appendNTimes(null, max_hint_pc + 1);
+                try hints_collection.hints_ranges.NonExtensive.appendNTimes(null, max_hint_pc.? + 1);
             }
 
             // Iterate over the hints map to populate the HintsCollection.

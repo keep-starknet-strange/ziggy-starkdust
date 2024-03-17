@@ -326,16 +326,13 @@ pub const CairoVM = struct {
                 return MemoryError.UnknownMemoryCell;
 
             // Copy the instruction cache.
-            var inst_cache = try self.instruction_cache.clone();
+            var inst_cache = std.ArrayList(?Instruction).fromOwnedSlice(allocator, try self.instruction_cache.toOwnedSlice());
             defer inst_cache.deinit();
-
-            // Clear the old instruction cache.
-            self.instruction_cache.clearAndFree();
 
             // Resize the instruction cache if necessary.
             const new_cache_len = @max(pc + 1, inst_cache.items.len);
             if (inst_cache.items.len < new_cache_len) {
-                for (0..new_cache_len - inst_cache.items.len) |_| try inst_cache.append(null);
+                try inst_cache.appendNTimes(null, new_cache_len - inst_cache.items.len);
             }
 
             // Get the instruction related to the PC.
@@ -553,6 +550,7 @@ pub const CairoVM = struct {
 
         // Compute the first operand address.
         op_res.op_0_addr = try self.run_context.computeOp0Addr(instruction);
+
         const op_0_op = self.segments.memory.get(op_res.op_0_addr);
 
         // Compute the second operand address based on the first operand.
@@ -572,6 +570,7 @@ pub const CairoVM = struct {
             op_res.op_0 = try self.computeOp0Deductions(
                 allocator,
                 op_res.op_0_addr,
+                &op_res.res,
                 instruction,
                 &dst_op,
                 &op_1_op,
@@ -600,7 +599,7 @@ pub const CairoVM = struct {
             op_res.res = try instruction.computeRes(op_res.op_0, op_res.op_1);
         }
 
-        // Retrieve the destination if not already available.
+        // Retrieve the destination if not already available.op_0_op
         if (dst_op) |dst| {
             op_res.dst = dst;
         } else {
@@ -631,18 +630,18 @@ pub const CairoVM = struct {
         self: *Self,
         allocator: Allocator,
         op_0_addr: Relocatable,
+        res: *?MaybeRelocatable,
         instruction: *const Instruction,
         dst: *const ?MaybeRelocatable,
         op1: *const ?MaybeRelocatable,
     ) !MaybeRelocatable {
-        const op0_op = try self.deduceMemoryCell(allocator, op_0_addr) orelse
-            (try self.deduceOp0(
-            instruction,
-            dst,
-            op1,
-        )).op_0;
+        if (try self.deduceMemoryCell(allocator, op_0_addr)) |op0| {
+            return op0;
+        }
+        const op0_deductions = try self.deduceOp0(instruction, dst, op1);
+        if (res.* == null) res.* = op0_deductions.res;
 
-        return op0_op orelse CairoVMError.FailedToComputeOp0;
+        return op0_deductions.op_0 orelse CairoVMError.FailedToComputeOp0;
     }
 
     /// Compute Op1 deductions based on the provided instruction, destination, and Op0.
@@ -818,6 +817,7 @@ pub const CairoVM = struct {
             // PC update Jnz
             .Jnz => {
                 if (operands.dst.isZero()) {
+
                     // Update the PC.
                     self.run_context.pc.*.addUintInPlace(instruction.size());
                 } else {
@@ -1408,6 +1408,57 @@ pub const CairoVM = struct {
 
         // Otherwise, return an error indicating no scope error
         return ExecScopeError.NoScopeError;
+    }
+
+    /// Writes output to the specified writer.
+    ///
+    /// This method writes output to the provided writer based on the output specified
+    /// by the built-in runner. It iterates through the built-in runners to find the output
+    /// runner, then writes the output to the writer based on the segment sizes and content.
+    ///
+    /// # Arguments
+    ///
+    /// - `self`: A pointer to the CairoVM instance.
+    /// - `writer`: A writer to which the output is written.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if writing the output fails.
+    pub fn writeOutput(self: *Self, writer: anytype) !void {
+        var builtin: ?*BuiltinRunner = null;
+
+        // Iterate through the built-in runners to find the output runner.
+        for (self.builtin_runners.items) |*runner| {
+            if (runner.* == .Output) {
+                builtin = runner;
+                break;
+            }
+        }
+
+        // If no output runner is found, return.
+        if (builtin == null) return;
+
+        // Compute effective sizes of memory segments.
+        const segment_used_sizes = try self.segments.computeEffectiveSize(false);
+        const segment_index = builtin.?.base();
+
+        // Iterate through the memory segments and write output based on their content.
+        for (0..segment_used_sizes.get(@intCast(segment_index)).?) |i| {
+            if (self.segments.memory.get(Relocatable.init(@intCast(segment_index), i))) |v| {
+                switch (v) {
+                    // Write felt value.
+                    .felt => |f| std.fmt.format(writer, "{}\n", .{f.toSignedInt()}) catch
+                        return CairoVMError.FailedToWriteOutput,
+                    // Write relocatable value.
+                    .relocatable => |r| std.fmt.format(writer, "{}:{}\n", .{ r.segment_index, r.offset }) catch
+                        return CairoVMError.FailedToWriteOutput,
+                }
+            } else {
+                // Write "<missing>" if no value is found.
+                writer.writeAll("<missing>\n") catch
+                    return CairoVMError.FailedToWriteOutput;
+            }
+        }
     }
 };
 

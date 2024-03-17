@@ -24,6 +24,8 @@ const memset_utils = @import("memset_utils.zig");
 const uint256_utils = @import("uint256_utils.zig");
 const usort = @import("usort.zig");
 const dict_hint_utils = @import("dict_hint_utils.zig");
+const cairo_keccak_hints = @import("cairo_keccak_hints.zig");
+const squash_dict_utils = @import("squash_dict_utils.zig");
 
 const poseidon_utils = @import("poseidon_utils.zig");
 const keccak_utils = @import("keccak_utils.zig");
@@ -34,6 +36,10 @@ const pow_utils = @import("pow_utils.zig");
 const segments = @import("segments.zig");
 
 const deserialize_utils = @import("../parser/deserialize_utils.zig");
+
+const testing_utils = @import("testing_utils.zig");
+
+const HintError = @import("../vm/error.zig").HintError;
 
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
@@ -306,6 +312,45 @@ pub const CairoVMHintProcessor = struct {
             try dict_hint_utils.dictSquashCopyDict(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.DICT_SQUASH_UPDATE_PTR, hint_data.code)) {
             try dict_hint_utils.dictSquashUpdatePtr(vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.CAIRO_KECCAK_INPUT_IS_FULL_WORD, hint_data.code)) {
+            try cairo_keccak_hints.cairoKeccakIsFullWord(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.KECCAK_WRITE_ARGS, hint_data.code)) {
+            try cairo_keccak_hints.keccakWriteArgs(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.COMPARE_BYTES_IN_WORD_NONDET, hint_data.code)) {
+            try cairo_keccak_hints.compareBytesInWordNondet(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.COMPARE_KECCAK_FULL_RATE_IN_BYTES_NONDET, hint_data.code)) {
+            try cairo_keccak_hints.compareKeccakFullRateInBytesNondet(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.BLOCK_PERMUTATION, hint_data.code)) {
+            try cairo_keccak_hints.blockPermutationV1(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.BLOCK_PERMUTATION_WHITELIST_V1, hint_data.code)) {
+            try cairo_keccak_hints.blockPermutationV1(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.BLOCK_PERMUTATION_WHITELIST_V2, hint_data.code)) {
+            try cairo_keccak_hints.blockPermutationV2(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.CAIRO_KECCAK_FINALIZE_V1, hint_data.code)) {
+            try cairo_keccak_hints.cairoKeccakFinalizeV1(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.CAIRO_KECCAK_FINALIZE_V2, hint_data.code)) {
+            try cairo_keccak_hints.cairoKeccakFinalizeV2(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_FIRST_ITERATION, hint_data.code)) {
+            try squash_dict_utils.squashDictInnerFirstIteration(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_SKIP_LOOP, hint_data.code)) {
+            try squash_dict_utils.squashDictInnerSkipLoop(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_CHECK_ACCESS_INDEX, hint_data.code)) {
+            try squash_dict_utils.squashDictInnerCheckAccessIndex(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_CONTINUE_LOOP, hint_data.code)) {
+            try squash_dict_utils.squashDictInnerContinueLoop(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_LEN_ASSERT, hint_data.code)) {
+            try squash_dict_utils.squashDictInnerLenAssert(exec_scopes);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_USED_ACCESSES_ASSERT, hint_data.code)) {
+            try squash_dict_utils.squashDictInnerUsedAccessesAssert(vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_ASSERT_LEN_KEYS, hint_data.code)) {
+            try squash_dict_utils.squashDictInnerAssertLenKeys(exec_scopes);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT_INNER_NEXT_KEY, hint_data.code)) {
+            try squash_dict_utils.squashDictInnerNextKey(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT, hint_data.code)) {
+            try squash_dict_utils.squashDict(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else {
+            std.log.err("not implemented: {s}\n", .{hint_data.code});
+            return HintError.HintNotImplemented;
         }
     }
 
@@ -432,4 +477,37 @@ test "getIdsData: should throw Unexpected when there is no ref data correspondin
         CairoVMError.Unexpected,
         getIdsData(allocator, reference_ids, references.items),
     );
+}
+
+test "memcpyContinueCopying valid" {
+    const hint_code = "n -= 1\nids.continue_copying = 1 if n > 0 else 0";
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // initialize memory segments
+    _ = try vm.segments.addSegment();
+    _ = try vm.segments.addSegment();
+    _ = try vm.segments.addSegment();
+    // initialize fp
+    vm.run_context.fp.* = Relocatable.init(1, 2);
+    // initialize vm scope with variable `n`
+    var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
+    defer exec_scopes.deinit();
+
+    try exec_scopes.assignOrUpdateVariable("n", .{ .felt = Felt252.one() });
+    // initialize ids.continue_copying
+    // we create a memory gap so that there is None in (1, 0), the actual addr of continue_copying
+    try vm.segments.memory.setUpMemory(std.testing.allocator, &.{
+        .{ .{ 1, 2 }, .{5} },
+    });
+
+    const ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
+        "continue_copying",
+    });
+    var hint_data = HintData.init(hint_code, ids_data, .{});
+    defer hint_data.deinit();
+
+    const hint_processor = CairoVMHintProcessor{};
+    try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, &exec_scopes);
 }
