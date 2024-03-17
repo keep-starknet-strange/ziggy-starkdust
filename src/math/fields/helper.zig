@@ -151,7 +151,7 @@ pub fn divMod(n: i256, m: i256, p: i256) !i256 {
 
     var result = n * igcdex_result.x;
     if (result < 0) {
-        result = result + p;
+        result += p;
     }
 
     return result % p;
