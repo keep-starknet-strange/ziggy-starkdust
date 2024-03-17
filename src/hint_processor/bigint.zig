@@ -14,10 +14,12 @@ const ExecutionScopes = @import("../vm/types/execution_scopes.zig").ExecutionSco
 const BigInt3 = @import("builtin_hint_processor/secp/bigint_utils.zig").BigInt3;
 const BigInt5 = @import("builtin_hint_processor/secp/bigint_utils.zig").BigInt5;
 const BigIntN = @import("builtin_hint_processor/secp/bigint_utils.zig").BigIntN;
+const Int = @import("std").math.big.int.Managed;
 const BASE = @import("../math/fields/constants.zig").BASE;
 const divMod = @import("../math/fields/helper.zig").divMod;
 const safeDivBigInt = @import("../math/fields/helper.zig").safeDivBigInt;
 const insertValueFromVarName = @import("../hint_processor/hint_utils.zig").insertValueFromVarName;
+
 /// Implements hint:
 /// ```python
 /// from starkware.cairo.common.cairo_secp.secp_utils import pack
@@ -30,8 +32,8 @@ const insertValueFromVarName = @import("../hint_processor/hint_utils.zig").inser
 ///
 /// value = res = div_mod(x, y, p)
 /// ```
-pub fn bigintPackDivModHint(vm: *CairoVM, exec_scopes: *ExecutionScopes, idsData: *std.HashMap(std.hash_map.DefaultHashFn, []const u8, HintReference, std.hash_map.DefaultMaxLoad), apTracking: *ApTracking) !void {
-    var p: BigIntN = try BigInt3.fromVarName("P", vm, idsData, apTracking).pack86();
+pub fn bigintPackDivModHint(vm: *CairoVM, exec_scopes: *ExecutionScopes, idsData: std.StringHashMap(HintReference), apTracking: ApTracking) !void {
+    var p: BigInt3 = try BigInt3.fromVarName("P", vm, idsData, apTracking).pack86();
 
     var x: BigIntN = try {
         var x_bigint5 = try BigInt5.fromVarName("x", vm, idsData, apTracking);

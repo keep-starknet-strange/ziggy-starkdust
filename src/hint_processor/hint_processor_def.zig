@@ -35,6 +35,7 @@ const pow_utils = @import("pow_utils.zig");
 const segments = @import("segments.zig");
 
 const bigint_utils = @import("../hint_processor/builtin_hint_processor/secp/bigint_utils.zig");
+const bigint = @import("bigint.zig");
 
 const deserialize_utils = @import("../parser/deserialize_utils.zig");
 
@@ -330,7 +331,11 @@ pub const CairoVMHintProcessor = struct {
         } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT, hint_data.code)) {
             try squash_dict_utils.squashDict(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.HI_MAX_BIT_LEN, hint_data.code)) {
-            try bigint_utils.hiMaxBitlen(vm, hint_data.ids_data, hint_data.ap_tracking);
+            try bigint_utils.hiMaxBitlen(vm, allocator, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.BIGINT_PACK_DIV_MOD_HINT, hint_data.code)) {
+            try bigint.bigintPackDivModHint(vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.BIGINT_SAFE_DIV, hint_data.code)) {
+            try bigint.bigIntSafeDivHint(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else {
             return HintError.HintNotImplemented;
         }
