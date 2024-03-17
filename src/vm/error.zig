@@ -128,6 +128,7 @@ pub const MemoryError = error{
     SignatureNotFound,
     // Invalid signature
     InvalidSignature,
+    InsufficientAllocatedCells,
 };
 
 /// Represents the error conditions that are related to the `CairoRunner`.

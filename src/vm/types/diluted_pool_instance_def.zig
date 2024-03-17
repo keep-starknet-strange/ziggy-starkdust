@@ -8,7 +8,7 @@ pub const DilutedPoolInstanceDef = struct {
     /// Logarithm of the ratio between diluted cells in the pool and CPU steps.
     ///
     /// Can be negative for scenarios with few builtins requiring diluted units (e.g., bitwise and Keccak).
-    units_per_step: ?i32 = 16,
+    units_per_step: i32 = 16,
 
     /// Represents the spacing between consecutive information-carrying bits in diluted form.
     spacing: u32 = 4,
