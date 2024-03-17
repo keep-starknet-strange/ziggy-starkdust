@@ -1,5 +1,7 @@
 /// Represents different error conditions that occur in the Cairo VM.
 pub const CairoVMError = error{
+    // Expected integer, found
+    ExpectedIntAtRange,
     // Failed to compile hint
     CompileHintFail,
     /// Adding two relocatables is forbidden.
@@ -249,6 +251,11 @@ pub const VerifyError = error{
 };
 
 pub const HintError = error{
+    // Expected size to be in range from [0, 10)
+    InvalidBlockSize,
+
+    // Expected size to be in the range from
+    InvalidKeccakStateSizeFelt252s,
     // squash_dict() can only be used with n_accesses<={}.
     SquashDictMaxSizeExceeded,
     // squash_dict fail: n_accesses: is too big to be converted into an iterator

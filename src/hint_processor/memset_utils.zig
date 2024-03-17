@@ -53,9 +53,9 @@ pub fn memsetStepLoop(
     i_name: []const u8,
 ) !void {
     // get `n` variable from vm scope
-    var n = try exec_scopes.getFelt("n");
+    var n = try exec_scopes.getValueRef(Felt252, "n");
     // this variable will hold the value of `n - 1`
-    n = n.sub(Felt252.one());
+    n.* = n.sub(Felt252.one());
     // if `new_n` is positive, insert 1 in the address of `continue_loop`
     // else, insert 0
     const flag = if (n.gt(Felt252.zero())) Felt252.one() else Felt252.zero();
