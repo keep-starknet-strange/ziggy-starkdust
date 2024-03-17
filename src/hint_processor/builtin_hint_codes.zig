@@ -510,3 +510,9 @@ pub const DICT_SQUASH_COPY_DICT =
     \\    'initial_dict': dict(__dict_manager.get_dict(ids.dict_accesses_end)),
     \\})
 ;
+
+pub const PRINT_ARR =
+    \\print(bytes.fromhex(f"{ids.name:062x}").decode().replace('\x00',''))
+    \\arr = [memory[ids.arr + i] for i in range(ids.arr_len)]
+    \\print(arr)
+;

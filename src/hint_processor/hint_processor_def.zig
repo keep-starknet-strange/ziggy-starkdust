@@ -35,6 +35,7 @@ const pow_utils = @import("pow_utils.zig");
 const segments = @import("segments.zig");
 
 const deserialize_utils = @import("../parser/deserialize_utils.zig");
+const print_utils = @import("./print.zig");
 
 const HintError = @import("../vm/error.zig").HintError;
 
@@ -327,6 +328,8 @@ pub const CairoVMHintProcessor = struct {
             try squash_dict_utils.squashDictInnerNextKey(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT, hint_data.code)) {
             try squash_dict_utils.squashDict(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.PRINT_ARR, hint_data.code)) {
+            try print_utils.printArray(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else {
             return HintError.HintNotImplemented;
         }
