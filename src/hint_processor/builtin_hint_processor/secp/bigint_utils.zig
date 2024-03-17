@@ -34,13 +34,9 @@ pub fn BigIntN(comptime NUM_LIMBS: usize) type {
         limbs: [NUM_LIMBS]Felt252 = undefined,
 
         pub fn fromBaseAddr(self: *Self, addr: Relocatable, vm: *CairoVM) !Self {
-            std.debug.print("addr: {}\n", .{addr});
             inline for (0..NUM_LIMBS) |i| {
-                std.debug.print("🌈🌈🌈🌈🌈 {any} \n", .{i});
                 const new_addr = try addr.addUint(i);
-                std.debug.print("✨✨✨✨new_addr: {}\n", .{new_addr});
                 self.limbs[i] = try vm.getFelt(new_addr);
-                std.debug.print("🎯🎯🎯🎯🎯🎯 {any} \n", .{self.limbs[i]});
             }
             return .{ .limbs = self.limbs };
         }
@@ -61,8 +57,8 @@ pub fn BigIntN(comptime NUM_LIMBS: usize) type {
             }
         }
 
-        pub fn pack(self: *Self) u256 {
-            const result = packBigInt(std.mem.allocator, self.limbs.len, self.limbs, 128);
+        pub fn pack(self: *Self, allocator: std.mem.Allocator) !BigInt {
+            const result = packBigInt(allocator, NUM_LIMBS, self.limbs, 128);
             return result;
         }
 
@@ -116,11 +112,10 @@ pub fn bigintToUint256(vm: *CairoVM, ids_data: std.StringHashMap(HintReference),
 
 // Implements hint
 // %{ ids.len_hi = max(ids.scalar_u.d2.bit_length(), ids.scalar_v.d2.bit_length())-1 %}
-pub fn hiMaxBitlen(vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {
+pub fn hiMaxBitlen(vm: *CairoVM, allocator: std.mem.Allocator, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {
     var scalar_u: BigInt3 = undefined;
     var scalar_v: BigInt3 = undefined;
     scalar_u = try scalar_u.fromVarName("scalar_u", vm, ids_data, ap_tracking);
-    std.debug.print("🎉🎉🎉🎉🎉🎉  {} \n", .{scalar_u});
     scalar_v = try scalar_v.fromVarName("scalar_v", vm, ids_data, ap_tracking);
 
     // get number of bits in the highest limb
@@ -132,7 +127,7 @@ pub fn hiMaxBitlen(vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_
     // equal to `len_hi.wrapping_sub(1)`
     const res = if (len_hi == 0) Felt252.Max.toInteger() else len_hi - 1;
 
-    try hint_utils.insertValueFromVarName(std.testing.allocator, "len_hi", MaybeRelocatable.fromInt(u256, res), vm, ids_data, ap_tracking);
+    try hint_utils.insertValueFromVarName(allocator, "len_hi", MaybeRelocatable.fromInt(u256, res), vm, ids_data, ap_tracking);
 }
 
 // Tests
@@ -370,33 +365,31 @@ test "Run hiMaxBitlen ok" {
 
     defer vm.deinit();
 
+    var ids_data = try testing_utils.setupIdsNonContinuousIdsData(
+        std.testing.allocator,
+        &.{
+            .{ "scalar_u", 0 },
+            .{ "scalar_v", 3 },
+            .{
+                "len_hi",
+                6,
+            },
+        },
+    );
+    defer ids_data.deinit();
+
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{0} },
         .{ .{ 1, 1 }, .{0} },
-        .{ .{ 1, 2 }, .{1} },
+        .{ .{ 1, 2 }, .{10} },
         .{ .{ 1, 3 }, .{0} },
         .{ .{ 1, 4 }, .{0} },
         .{ .{ 1, 5 }, .{1} },
+        .{ .{ 1, 6 }, .{3} },
     });
-
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = Relocatable.init(1, 7);
-
-    var ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{ .{
-        .name = "scalar_u",
-        .elems = &.{
-            MaybeRelocatable.fromFelt(Felt252.zero()),
-        },
-    }, .{
-        .name = "scalar_v",
-        .elems = &.{MaybeRelocatable.fromFelt(Felt252.three())},
-    }, .{
-        .name = "len_hi",
-        .elems = &.{MaybeRelocatable.fromFelt(Felt252.fromInt(u32, 6))},
-    } }, &vm);
-
-    defer ids_data.deinit();
+    vm.run_context.fp.* = Relocatable.init(1, 0);
 
     //Execute the hint
     const hint_processor = HintProcessor{};
@@ -405,9 +398,7 @@ test "Run hiMaxBitlen ok" {
     try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
 
     const len_hi = try hint_utils.getRelocatableFromVarName("len_hi", &vm, ids_data, .{});
+    const result = try vm.getFelt(len_hi);
 
-    const result = try vm.getFelt(Relocatable{ .segment_index = 1, .offset = 1 });
-
-    try std.testing.expectEqual(Felt252.zero(), result);
-    try std.testing.expectEqual(Felt252.fromInt(u32, 6), vm.getFelt(len_hi));
+    try std.testing.expectEqual(Felt252.three(), result);
 }
