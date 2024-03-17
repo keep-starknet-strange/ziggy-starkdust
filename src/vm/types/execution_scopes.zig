@@ -257,6 +257,8 @@ pub const HintType = union(enum) {
     felt_map_of_u64_list: std.AutoHashMap(Felt252, std.ArrayList(u64)),
     maybe_relocatable_map: std.AutoHashMap(MaybeRelocatable, MaybeRelocatable),
     dict_manager: Rc(DictManager),
+    felt_map_of_felt_list: std.AutoHashMap(Felt252, std.ArrayList(Felt252)),
+    felt_list: ArrayList(Felt252),
 
     pub fn deinit(self: *Self) void {
         switch (self.*) {
@@ -266,8 +268,15 @@ pub const HintType = union(enum) {
 
                 d.deinit();
             },
+            .felt_map_of_felt_list => |*d| {
+                var it = d.valueIterator();
+                while (it.next()) |v| v.deinit();
+
+                d.deinit();
+            },
             .maybe_relocatable_map => |*m| m.deinit(),
             .u64_list => |*a| a.deinit(),
+            .felt_list => |*a| a.deinit(),
             .dict_manager => |d| d.releaseWithFn(DictManager.deinit),
             else => {},
         }
@@ -340,34 +349,48 @@ pub const ExecutionScopes = struct {
     }
 
     pub fn getDictManager(self: *Self) !Rc(DictManager) {
-        var dict_manager_rc = try self.getValue(.dict_manager, "dict_manager");
+        var dict_manager_rc = try self.getValue(Rc(DictManager), "dict_manager");
         return dict_manager_rc.retain();
     }
 
     /// Returns the value in the current execution scope that matches the name and is of the given type.
     pub fn getValue(
         self: *const Self,
-        comptime T: std.meta.Tag(HintType),
+        comptime T: type,
         name: []const u8,
-    ) !std.meta.TagPayload(HintType, T) {
+    ) !T {
         const val = try self.get(name);
 
-        if (std.meta.activeTag(val) == T) return @field(val, @tagName(T));
+        inline for (@typeInfo(HintType).Union.fields) |field| {
+            if (field.type == T) {
+                return if (std.mem.eql(u8, @tagName(val), field.name))
+                    @field(val, field.name)
+                else
+                    return HintError.VariableNotInScopeError;
+            }
+        }
 
-        return HintError.VariableNotInScopeError;
+        @compileError("wrong type of T, expected type presented in Union list");
     }
 
     /// Returns a reference to the value in the current execution scope that matches the name and is of the given type.
     pub fn getValueRef(
         self: *const Self,
-        comptime T: std.meta.Tag(HintType),
+        comptime T: type,
         name: []const u8,
-    ) !*std.meta.TagPayload(HintType, T) {
+    ) !*T {
         const val = try self.getRef(name);
 
-        if (std.meta.activeTag(val.*) == T) return &@field(val.*, @tagName(T));
+        inline for (@typeInfo(HintType).Union.fields) |field| {
+            if (field.type == T) {
+                return if (std.mem.eql(u8, @tagName(val.*), field.name))
+                    &@field(val.*, field.name)
+                else
+                    return HintError.VariableNotInScopeError;
+            }
+        }
 
-        return HintError.VariableNotInScopeError;
+        @compileError("wrong type of T, expected type presented in Union list");
     }
 
     /// Returns a dictionary containing the variables present in the current scope.
@@ -598,12 +621,12 @@ test "ExecutionScopes: get list of u64" {
     try scopes.data.append(scope);
 
     // Get the list of u64 from execution scopes.
-    var list = try scopes.getValueRef(.u64_list, "list_u64");
+    var list = try scopes.getValueRef(std.ArrayList(u64), "list_u64");
     // verifing get value by ref
     try list.append(17);
     try list.append(16);
 
-    const list_val = try scopes.getValue(.u64_list, "list_u64");
+    const list_val = try scopes.getValue(std.ArrayList(u64), "list_u64");
     // Expect the retrieved list to match the expected values.
     try expectEqualSlices(
         u64,
@@ -614,11 +637,11 @@ test "ExecutionScopes: get list of u64" {
     // Expect an error when trying to retrieve a non-existent variable.
     try expectError(
         HintError.VariableNotInScopeError,
-        scopes.getValue(.u64_list, "no_variable"),
+        scopes.getValue(std.ArrayList(u64), "no_variable"),
     );
 
     // Get a reference to the list of u64 from execution scopes.
-    const list_ref = try scopes.getValueRef(.u64_list, "list_u64");
+    const list_ref = try scopes.getValueRef(std.ArrayList(u64), "list_u64");
 
     // Expect the retrieved reference list to match the expected values.
     try expectEqualSlices(
@@ -631,7 +654,7 @@ test "ExecutionScopes: get list of u64" {
     // Expect an error when trying to retrieve a reference to a non-existent variable.
     try expectError(
         HintError.VariableNotInScopeError,
-        scopes.getValueRef(.u64_list, "no_variable"),
+        scopes.getValueRef(std.ArrayList(u64), "no_variable"),
     );
 }
 
@@ -649,12 +672,12 @@ test "ExecutionScopes: get u64" {
     try scopes.data.append(scope);
 
     // Expect to retrieve the u64 value from execution scopes.
-    try expectEqual(@as(u64, 9), try scopes.getValue(.u64, "u64"));
+    try expectEqual(@as(u64, 9), try scopes.getValue(u64, "u64"));
     // Expect an error when trying to retrieve a non-existent variable.
-    try expectError(HintError.VariableNotInScopeError, scopes.getValue(.u64, "no_variable"));
+    try expectError(HintError.VariableNotInScopeError, scopes.getValue(u64, "no_variable"));
 
     // Get a reference to the u64 value from execution scopes.
-    try expectEqual(@as(u64, 9), (try scopes.getValueRef(.u64, "u64")).*);
+    try expectEqual(@as(u64, 9), (try scopes.getValueRef(u64, "u64")).*);
     // Expect an error when trying to retrieve a reference to a non-existent variable.
-    try expectError(HintError.VariableNotInScopeError, scopes.getValueRef(.u64, "no_variable"));
+    try expectError(HintError.VariableNotInScopeError, scopes.getValueRef(u64, "no_variable"));
 }
