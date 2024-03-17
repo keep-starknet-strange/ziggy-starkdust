@@ -31,7 +31,7 @@ const CairoVMError = @import("../vm/error.zig").CairoVMError;
 pub const DICT_ACCESS_SIZE = 3;
 
 pub fn copyInitialDict(exec_scopes: *ExecutionScopes) !?std.AutoHashMap(MaybeRelocatable, MaybeRelocatable) {
-    const dict = exec_scopes.getValue(.maybe_relocatable_map, "initial_dict") catch return null;
+    const dict = exec_scopes.getValue(std.AutoHashMap(MaybeRelocatable, MaybeRelocatable), "initial_dict") catch return null;
 
     return try dict.clone();
 }

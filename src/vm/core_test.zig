@@ -1903,12 +1903,15 @@ test "CairoVM: computeOp0Deductions should return op0 from deduceOp0 if deduceMe
     var instr = deduceOpTestInstr;
     instr.opcode = .Call;
 
+    var res: ?MaybeRelocatable = null;
+
     // Test check
     try expectEqual(
         MaybeRelocatable.fromSegment(0, 1),
         try vm.computeOp0Deductions(
             std.testing.allocator,
             Relocatable.init(0, 7),
+            &res,
             &instr,
             &null,
             &null,
@@ -1938,12 +1941,15 @@ test "CairoVM: computeOp0Deductions with a valid built in and non null deduceMem
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
+    var res: ?MaybeRelocatable = null;
+
     // Test check
     try expectEqual(
         MaybeRelocatable.fromInt(u8, 8),
         try vm.computeOp0Deductions(
             std.testing.allocator,
             Relocatable.init(0, 7),
+            &res,
             &deduceOpTestInstr,
             &.{ .relocatable = .{} },
             &.{ .relocatable = .{} },
@@ -1960,12 +1966,15 @@ test "CairoVM: computeOp0Deductions should return VM error if deduceOp0 and dedu
     instr.opcode = .Ret;
     instr.res_logic = .Mul;
 
+    var res: ?MaybeRelocatable = null;
+
     // Test check
     try expectError(
         CairoVMError.FailedToComputeOp0,
         vm.computeOp0Deductions(
             std.testing.allocator,
             Relocatable.init(0, 7),
+            &res,
             &instr,
             &MaybeRelocatable.fromInt(u64, 4),
             &MaybeRelocatable.fromInt(u64, 0),
