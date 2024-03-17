@@ -138,10 +138,6 @@ pub fn blockPermutationV1(
     ap_tracking: ApTracking,
     constants: *std.StringHashMap(Felt252),
 ) !void {
-    std.log.debug("zahoju bratik\n", .{});
-    if (1 == 1) {
-        @panic("tye");
-    }
     const keccak_state_size_felts = try (constants
         .get(KECCAK_STATE_SIZE_FELTS) orelse return HintError.MissingConstant).intoU64();
 
@@ -209,7 +205,6 @@ pub fn blockPermutationV2(
     ap_tracking: ApTracking,
     constants: *std.StringHashMap(Felt252),
 ) !void {
-    if (1 == 1) @panic("cairo keccak");
     const keccak_state_size_felts = try (constants
         .get(KECCAK_STATE_SIZE_FELTS) orelse return HintError.MissingConstant).intoUsize();
 

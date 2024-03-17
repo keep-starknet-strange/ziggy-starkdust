@@ -37,6 +37,8 @@ const segments = @import("segments.zig");
 
 const deserialize_utils = @import("../parser/deserialize_utils.zig");
 
+const testing_utils = @import("testing_utils.zig");
+
 const HintError = @import("../vm/error.zig").HintError;
 
 const expect = std.testing.expect;
@@ -475,4 +477,37 @@ test "getIdsData: should throw Unexpected when there is no ref data correspondin
         CairoVMError.Unexpected,
         getIdsData(allocator, reference_ids, references.items),
     );
+}
+
+test "memcpyContinueCopying valid" {
+    const hint_code = "n -= 1\nids.continue_copying = 1 if n > 0 else 0";
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // initialize memory segments
+    _ = try vm.segments.addSegment();
+    _ = try vm.segments.addSegment();
+    _ = try vm.segments.addSegment();
+    // initialize fp
+    vm.run_context.fp.* = Relocatable.init(1, 2);
+    // initialize vm scope with variable `n`
+    var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
+    defer exec_scopes.deinit();
+
+    try exec_scopes.assignOrUpdateVariable("n", .{ .felt = Felt252.one() });
+    // initialize ids.continue_copying
+    // we create a memory gap so that there is None in (1, 0), the actual addr of continue_copying
+    try vm.segments.memory.setUpMemory(std.testing.allocator, &.{
+        .{ .{ 1, 2 }, .{5} },
+    });
+
+    const ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
+        "continue_copying",
+    });
+    var hint_data = HintData.init(hint_code, ids_data, .{});
+    defer hint_data.deinit();
+
+    const hint_processor = CairoVMHintProcessor{};
+    try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, &exec_scopes);
 }

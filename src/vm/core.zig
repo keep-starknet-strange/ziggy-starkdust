@@ -486,8 +486,6 @@ pub const CairoVM = struct {
             );
         }
 
-        std.log.debug("instruction {any}, {any}, {any}, {any}\n", .{ self.current_step, self.run_context.pc.*, self.run_context.ap.*, self.run_context.fp.* });
-
         // Compute operands for the instruction.
         const operands_result = try self.computeOperands(allocator, instruction);
 
@@ -552,6 +550,7 @@ pub const CairoVM = struct {
 
         // Compute the first operand address.
         op_res.op_0_addr = try self.run_context.computeOp0Addr(instruction);
+
         const op_0_op = self.segments.memory.get(op_res.op_0_addr);
 
         // Compute the second operand address based on the first operand.
@@ -818,6 +817,7 @@ pub const CairoVM = struct {
             // PC update Jnz
             .Jnz => {
                 if (operands.dst.isZero()) {
+
                     // Update the PC.
                     self.run_context.pc.*.addUintInPlace(instruction.size());
                 } else {
