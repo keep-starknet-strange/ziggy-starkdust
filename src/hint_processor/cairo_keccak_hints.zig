@@ -326,9 +326,9 @@ pub fn maybeRelocVecToU64Array(allocator: std.mem.Allocator, vec: []const ?Maybe
     var array = std.ArrayList(u64).init(allocator);
     errdefer array.deinit();
 
-    for (vec) |n| {
-        if (n != null) {
-            switch (n.?) {
+    for (vec) |maybe_relocatable| {
+        if (maybe_relocatable) |n| {
+            switch (n) {
                 .felt => |num| try array.append(try num.intoU64()),
                 else => {},
             }
@@ -342,6 +342,7 @@ pub fn maybeRelocVecToU64Array(allocator: std.mem.Allocator, vec: []const ?Maybe
 
 pub fn u64ArrayToMayberelocatableVec(allocator: std.mem.Allocator, array: []const u64) !std.ArrayList(MaybeRelocatable) {
     var arr = std.ArrayList(MaybeRelocatable).init(allocator);
+    errdefer arr.deinit();
 
     for (array) |v| try arr.append(MaybeRelocatable.fromInt(u64, v));
 
