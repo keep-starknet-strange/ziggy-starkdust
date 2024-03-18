@@ -299,7 +299,6 @@ pub const BuiltinRunner = union(BuiltinName) {
     /// - An optional stop address of the memory segment (may be `null`).
     pub fn getMemorySegmentAddresses(self: *Self) Tuple(&.{ usize, ?usize }) {
         return switch (self.*) {
-            .SegmentArena => .{ 0, 0 },
             inline else => |*builtin| builtin.getMemorySegmentAddresses(),
         };
     }
@@ -612,6 +611,35 @@ pub const BuiltinRunner = union(BuiltinName) {
         };
     }
 
+    /// Sets the stop pointer for the built-in runner.
+    ///
+    /// This method sets the stop pointer for the specific type of built-in runner.
+    /// The stop pointer is used to control execution flow or terminate execution
+    /// based on certain conditions.
+    ///
+    /// # Arguments
+    ///
+    /// - `stop_ptr`: The stop pointer value to set.
+    ///
+    /// # Remarks
+    ///
+    /// This method is part of the `BuiltinRunner` union(enum) and is used to
+    /// set the stop pointer for various built-in runners.
+    pub fn setStopPtr(self: *Self, stop_ptr: usize) void {
+        switch (self.*) {
+            inline else => |*builtin| builtin.stop_ptr = stop_ptr,
+        }
+    }
+
+    /// Deinitializes the built-in runner.
+    ///
+    /// This method is used to deinitialize the specific type of built-in runner,
+    /// performing cleanup operations and releasing any allocated resources.
+    ///
+    /// # Remarks
+    ///
+    /// This method should be called when the built-in runner is no longer needed
+    /// to properly release resources and prevent memory leaks.
     pub fn deinit(self: *Self) void {
         switch (self.*) {
             .EcOp => |*ec_op| ec_op.deinit(),
@@ -1836,4 +1864,80 @@ test "BuiltinRunner: getMemorySegmentAddresses" {
         Tuple(&.{ usize, ?usize }){ 0, null },
         poseidon_builtin.getMemorySegmentAddresses(),
     );
+}
+
+test "BuiltinRunner: getMemorySegmentAddresses after set stop ptr" {
+
+    // Initialize an array list of `BuiltinRunner` instances
+    var builtins = std.ArrayList(BuiltinRunner).init(std.testing.allocator);
+
+    // Defer the deinitialization of the array list to ensure cleanup
+    defer builtins.deinit();
+
+    // Append various types of built-in runners to the array list
+
+    // Append a BitwiseBuiltinRunner instance
+    try builtins.append(.{
+        .Bitwise = BitwiseBuiltinRunner.init(&.{}, false),
+    });
+
+    // Append an EcOpBuiltinRunner instance
+    try builtins.append(.{
+        .EcOp = EcOpBuiltinRunner.init(std.testing.allocator, .{}, false),
+    });
+
+    // Append a HashBuiltinRunner instance
+    try builtins.append(.{
+        .Hash = HashBuiltinRunner.init(std.testing.allocator, 1, false),
+    });
+
+    // Append an OutputBuiltinRunner instance
+    try builtins.append(.{
+        .Output = OutputBuiltinRunner.init(std.testing.allocator, false),
+    });
+
+    // Append a RangeCheckBuiltinRunner instance
+    try builtins.append(.{
+        .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, false),
+    });
+
+    // Initialize a KeccakInstanceDef instance and defer its deinitialization
+    var keccak_instance_def = try KeccakInstanceDef.initDefault(std.testing.allocator);
+    defer keccak_instance_def.deinit();
+
+    // Append a KeccakBuiltinRunner instance
+    try builtins.append(.{
+        .Keccak = try KeccakBuiltinRunner.init(std.testing.allocator, &keccak_instance_def, false),
+    });
+
+    // Append a SignatureBuiltinRunner instance
+    try builtins.append(.{
+        .Signature = SignatureBuiltinRunner.init(std.testing.allocator, &.{}, false),
+    });
+
+    // Append a PoseidonBuiltinRunner instance
+    try builtins.append(.{
+        .Poseidon = PoseidonBuiltinRunner.init(std.testing.allocator, 32, false),
+    });
+
+    // Append a SegmentArenaBuiltinRunner instance
+    try builtins.append(.{
+        .SegmentArena = SegmentArenaBuiltinRunner.init(false),
+    });
+
+    // Define a constant pointer value `ptr`
+    const ptr: usize = 3;
+
+    // Iterate over each item in the `builtins` array list
+    for (builtins.items) |*builtin| {
+
+        // Deinitialize the current built-in runner
+        builtin.deinit();
+
+        // Set the stop pointer for the current built-in runner
+        builtin.setStopPtr(ptr);
+
+        // Expect that the second element of the result of `getMemorySegmentAddresses` is equal to `ptr`
+        try expectEqual(ptr, builtin.getMemorySegmentAddresses()[1]);
+    }
 }

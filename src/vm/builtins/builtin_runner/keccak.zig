@@ -75,14 +75,20 @@ pub const KeccakBuiltinRunner = struct {
         instance_def: *const KeccakInstanceDef,
         included: bool,
     ) !Self {
+        var state_rep = try instance_def.state_rep.clone();
+        errdefer state_rep.deinit();
+
+        var cache = AutoHashMap(Relocatable, Felt252).init(allocator);
+        errdefer cache.deinit();
+
         return .{
             .ratio = instance_def.ratio,
             .n_input_cells = @intCast(instance_def.state_rep.items.len),
             .cells_per_instance = instance_def.cellsPerBuiltin(),
             .included = included,
-            .state_rep = try instance_def.state_rep.clone(),
+            .state_rep = state_rep,
             .instances_per_component = instance_def.instance_per_component,
-            .cache = AutoHashMap(Relocatable, Felt252).init(allocator),
+            .cache = cache,
         };
     }
 
