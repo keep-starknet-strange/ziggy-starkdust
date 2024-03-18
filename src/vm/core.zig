@@ -14,6 +14,7 @@ const RunContext = @import("run_context.zig").RunContext;
 const CairoVMError = @import("error.zig").CairoVMError;
 const MemoryError = @import("error.zig").MemoryError;
 const TraceError = @import("error.zig").TraceError;
+const ExecScopeError = @import("error.zig").ExecScopeError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const build_options = @import("../build_options.zig");
@@ -58,6 +59,7 @@ pub const CairoVM = struct {
     current_step: usize = 0,
     /// Rc limits
     rc_limits: ?struct { isize, isize } = null,
+    skip_instruction_execution: bool = false,
     /// Relocation table
     relocation_table: ?std.ArrayList(usize) = null,
     /// ArrayList containing instructions. May hold null elements.
@@ -301,58 +303,105 @@ pub const CairoVM = struct {
         }
     }
 
+    /// Executes the next instruction in the Cairo VM.
+    ///
+    /// This function retrieves the next instruction based on the program counter (PC) in the run context.
+    /// It checks whether the instruction cache contains the instruction corresponding to the PC.
+    /// If not, it decodes the current instruction and adds it to the cache.
+    /// Then, it executes the instruction using the `runInstruction` function.
+    /// If `skip_instruction_execution` is set to true, it advances the program counter accordingly.
+    ///
+    /// # Parameters
+    /// - `self`: A pointer to the Cairo VM instance.
+    /// - `allocator`: The allocator used for memory operations.
+    /// # Errors
+    /// - If accessing an unknown memory cell occurs.
     pub fn stepInstruction(self: *Self, allocator: Allocator) !void {
-        std.log.debug(
-            "Running instruction at pc: {}\n",
-            .{self.run_context.pc.*},
-        );
-        std.log.debug(
-            "Running instruction, ap: {}\n",
-            .{self.run_context.ap.*},
-        );
-        std.log.debug(
-            "Running instruction, fp: {}\n",
-            .{self.run_context.fp.*},
-        );
-        // ************************************************************
-        // *                    FETCH                                 *
-        // ************************************************************
+        if (self.run_context.pc.segment_index == 0) {
+            // Run instructions from the program segment, using the instruction cache.
+            const pc = self.run_context.pc.offset;
 
-        const encoded_instruction = self.segments.memory.get(self.run_context.pc.*);
+            // Ensure PC is within the bounds of the memory segment.
+            if (self.segments.memory.data.items[0].items.len <= pc)
+                return MemoryError.UnknownMemoryCell;
 
-        // ************************************************************
-        // *                    DECODE                                *
-        // ************************************************************
+            // Copy the instruction cache.
+            var inst_cache = std.ArrayList(?Instruction).fromOwnedSlice(allocator, try self.instruction_cache.toOwnedSlice());
+            defer inst_cache.deinit();
 
-        // First, we convert the encoded instruction to a u64.
-        // If the MaybeRelocatable is not a felt, this operation will fail.
-        // If the MaybeRelocatable is a felt but the value does not fit into a u64, this operation will fail.
-        const encoded_instruction_u64 = encoded_instruction.?.intoU64() catch {
-            return CairoVMError.InstructionEncodingError;
-        };
+            // Resize the instruction cache if necessary.
+            const new_cache_len = @max(pc + 1, inst_cache.items.len);
+            if (inst_cache.items.len < new_cache_len) {
+                try inst_cache.appendNTimes(null, new_cache_len - inst_cache.items.len);
+            }
 
-        // Then, we decode the instruction.
-        const instruction = try decoder.decodeInstructions(encoded_instruction_u64);
+            // Get the instruction related to the PC.
+            const instruction = &inst_cache.items[pc];
 
-        // ************************************************************
-        // *                    EXECUTE                               *
-        // ************************************************************
-        return self.runInstruction(allocator, &instruction);
+            // If the instruction does not exist in the cache, decode the current instruction.
+            if (instruction.* == null) instruction.* = try self.decodeCurrentInstruction();
+
+            // Execute the instruction if skip_instruction_execution is false.
+            if (!self.skip_instruction_execution) {
+                try self.runInstruction(allocator, &instruction.*.?);
+            } else {
+                // Advance the program counter if skip_instruction_execution is true.
+                self.run_context.pc.* = try self.run_context.pc.addUint(instruction.*.?.size());
+                self.skip_instruction_execution = false;
+            }
+            try self.instruction_cache.appendSlice(inst_cache.items);
+        } else {
+            // Decode and execute the current instruction if the program counter is not in the program segment.
+            const instruction = try self.decodeCurrentInstruction();
+
+            if (!self.skip_instruction_execution) {
+                try self.runInstruction(allocator, &instruction);
+            } else {
+                self.run_context.pc.* = try self.run_context.pc.addUint(instruction.size());
+                self.skip_instruction_execution = false;
+            }
+        }
     }
 
     /// Do a single step of the VM with not extensive hints.
     /// Process an instruction cycle using the typical fetch-decode-execute cycle.
-    pub fn stepNotExtensive(self: *Self, allocator: Allocator, hint_processor: HintProcessor, exec_scopes: *ExecutionScopes, hint_datas: []HintData, constants: *std.StringHashMap(Felt252)) !void {
-        try self.stepHintNotExtensive(allocator, hint_processor, exec_scopes, hint_datas, constants);
-
+    pub fn stepNotExtensive(
+        self: *Self,
+        allocator: Allocator,
+        hint_processor: HintProcessor,
+        exec_scopes: *ExecutionScopes,
+        hint_datas: []HintData,
+        constants: *std.StringHashMap(Felt252),
+    ) !void {
+        try self.stepHintNotExtensive(
+            allocator,
+            hint_processor,
+            exec_scopes,
+            hint_datas,
+            constants,
+        );
         try self.stepInstruction(allocator);
     }
 
     /// Do a single step of the VM with extensive hints.
     /// Process an instruction cycle using the typical fetch-decode-execute cycle.
-    pub fn stepExtensive(self: *Self, allocator: Allocator, hint_processor: HintProcessor, exec_scopes: *ExecutionScopes, hint_datas: *std.ArrayList(HintData), hint_ranges: *std.AutoHashMap(Relocatable, HintRange), constants: *std.StringHashMap(Felt252)) !void {
-        try self.stepHintExtensive(allocator, hint_processor, exec_scopes, hint_datas, hint_ranges, constants);
-
+    pub fn stepExtensive(
+        self: *Self,
+        allocator: Allocator,
+        hint_processor: HintProcessor,
+        exec_scopes: *ExecutionScopes,
+        hint_datas: *std.ArrayList(HintData),
+        hint_ranges: *std.AutoHashMap(Relocatable, HintRange),
+        constants: *std.StringHashMap(Felt252),
+    ) !void {
+        try self.stepHintExtensive(
+            allocator,
+            hint_processor,
+            exec_scopes,
+            hint_datas,
+            hint_ranges,
+            constants,
+        );
         try self.stepInstruction(allocator);
     }
 
@@ -501,6 +550,7 @@ pub const CairoVM = struct {
 
         // Compute the first operand address.
         op_res.op_0_addr = try self.run_context.computeOp0Addr(instruction);
+
         const op_0_op = self.segments.memory.get(op_res.op_0_addr);
 
         // Compute the second operand address based on the first operand.
@@ -520,6 +570,7 @@ pub const CairoVM = struct {
             op_res.op_0 = try self.computeOp0Deductions(
                 allocator,
                 op_res.op_0_addr,
+                &op_res.res,
                 instruction,
                 &dst_op,
                 &op_1_op,
@@ -545,10 +596,10 @@ pub const CairoVM = struct {
 
         // Compute the result if it hasn't been computed.
         if (op_res.res == null) {
-            op_res.res = try computeRes(instruction, op_res.op_0, op_res.op_1);
+            op_res.res = try instruction.computeRes(op_res.op_0, op_res.op_1);
         }
 
-        // Retrieve the destination if not already available.
+        // Retrieve the destination if not already available.op_0_op
         if (dst_op) |dst| {
             op_res.dst = dst;
         } else {
@@ -579,18 +630,18 @@ pub const CairoVM = struct {
         self: *Self,
         allocator: Allocator,
         op_0_addr: Relocatable,
+        res: *?MaybeRelocatable,
         instruction: *const Instruction,
         dst: *const ?MaybeRelocatable,
         op1: *const ?MaybeRelocatable,
     ) !MaybeRelocatable {
-        const op0_op = try self.deduceMemoryCell(allocator, op_0_addr) orelse
-            (try self.deduceOp0(
-            instruction,
-            dst,
-            op1,
-        )).op_0;
+        if (try self.deduceMemoryCell(allocator, op_0_addr)) |op0| {
+            return op0;
+        }
+        const op0_deductions = try self.deduceOp0(instruction, dst, op1);
+        if (res.* == null) res.* = op0_deductions.res;
 
-        return op0_op orelse CairoVMError.FailedToComputeOp0;
+        return op0_deductions.op_0 orelse CairoVMError.FailedToComputeOp0;
     }
 
     /// Compute Op1 deductions based on the provided instruction, destination, and Op0.
@@ -616,13 +667,12 @@ pub const CairoVM = struct {
         dst_op: *const ?MaybeRelocatable,
         op0: *const ?MaybeRelocatable,
     ) !MaybeRelocatable {
-        if (try self.deduceMemoryCell(allocator, op1_addr)) |op1| {
+        if (try self.deduceMemoryCell(allocator, op1_addr)) |op1|
             return op1;
-        } else {
-            const op1_deductions = try deduceOp1(instruction, dst_op, op0);
-            if (res.* == null) res.* = op1_deductions.res;
-            return op1_deductions.op_1 orelse CairoVMError.FailedToComputeOp1;
-        }
+
+        const op1_deductions = try instruction.deduceOp1(dst_op, op0);
+        if (res.* == null) res.* = op1_deductions.res;
+        return op1_deductions.op_1 orelse CairoVMError.FailedToComputeOp1;
     }
 
     /// Verifies the auto deductions for all memory cells managed by the VM's builtins.
@@ -697,7 +747,12 @@ pub const CairoVM = struct {
         inst: *const Instruction,
         dst: *const ?MaybeRelocatable,
         op1: *const ?MaybeRelocatable,
-    ) !Op0Result {
+    ) !struct {
+        /// The computed operand Op0.
+        op_0: ?MaybeRelocatable = null,
+        /// The result of the operation involving Op0.
+        res: ?MaybeRelocatable = null,
+    } {
         switch (inst.opcode) {
             .Call => {
                 return .{
@@ -762,6 +817,7 @@ pub const CairoVM = struct {
             // PC update Jnz
             .Jnz => {
                 if (operands.dst.isZero()) {
+
                     // Update the PC.
                     self.run_context.pc.*.addUintInPlace(instruction.size());
                 } else {
@@ -1129,8 +1185,8 @@ pub const CairoVM = struct {
         lhs: Relocatable,
         rhs: Relocatable,
         len: usize,
-    ) std.meta.Tuple(&.{ std.math.Order, usize }) {
-        return self.segments.memory.memEq(lhs, rhs, len);
+    ) !bool {
+        return try self.segments.memory.memEq(lhs, rhs, len);
     }
 
     /// Retrieves return values from the VM's memory as a continuous range of memory values.
@@ -1322,66 +1378,89 @@ pub const CairoVM = struct {
 
         return decoder.decodeInstructions(instruction);
     }
-};
 
-/// Compute the result operand for a given instruction on op 0 and op 1.
-/// # Arguments
-/// - `instruction`: The instruction to compute the operands for.
-/// - `op_0`: The operand 0.
-/// - `op_1`: The operand 1.
-/// # Returns
-/// - `res`: The result of the operation.
-pub fn computeRes(
-    instruction: *const Instruction,
-    op_0: MaybeRelocatable,
-    op_1: MaybeRelocatable,
-) !?MaybeRelocatable {
-    return switch (instruction.res_logic) {
-        .Op1 => op_1,
-        .Add => try op_0.add(op_1),
-        .Mul => try op_0.mul(op_1),
-        .Unconstrained => null,
-    };
-}
+    /// Marks the end of the execution run in the Cairo Virtual Machine.
+    ///
+    /// This function finalizes the execution run by verifying auto deductions and marking the run as finished.
+    /// It also checks if there is only one execution scope remaining, returning `ExecScopeError.NoScopeError` if so.
+    ///
+    /// Parameters:
+    /// - `allocator`: The allocator to be used for any necessary memory allocations.
+    /// - `exec_scopes`: Pointer to the execution scopes.
+    ///
+    /// Returns:
+    /// - If there is only one execution scope remaining, returns `ExecScopeError.NoScopeError`.
+    /// - Otherwise, returns `void`.
+    ///
+    /// Errors:
+    /// - Returns an error if there is only one execution scope remaining (`ExecScopeError.NoScopeError`).
+    pub fn endRun(self: *Self, allocator: Allocator, exec_scopes: *ExecutionScopes) !void {
+        // Verify auto deductions before ending the run
+        try self.verifyAutoDeductions(allocator);
 
-/// Attempts to deduce `op1` and `res` for an instruction, given `dst` and `op0`.
-///
-/// # Arguments
-/// - `inst`: The instruction to deduce `op1` and `res` for.
-/// - `dst`: The destination of the instruction.
-/// - `op0`: The first operand of the instruction.
-///
-/// # Returns
-/// - `Tuple`: A tuple containing the deduced `op1` and `res`.
-pub fn deduceOp1(
-    inst: *const Instruction,
-    dst: *const ?MaybeRelocatable,
-    op0: *const ?MaybeRelocatable,
-) !Op1Result {
-    if (inst.opcode != .AssertEq) return .{};
+        // Mark the run as finished
+        self.is_run_finished = true;
 
-    switch (inst.res_logic) {
-        .Op1 => if (dst.*) |dst_val| return .{ .op_1 = dst_val, .res = dst_val },
-        .Add => if (dst.*) |d|
-            if (op0.*) |op| return .{ .op_1 = try d.sub(op), .res = d },
-        .Mul => if (dst.*) |d| {
-            if (op0.*) |op| {
-                if (d.isFelt() and op.isFelt() and !op.felt.isZero())
-                    return .{
-                        .op_1 = MaybeRelocatable.fromFelt(try d.felt.div(op.felt)),
-                        .res = d,
-                    };
-            }
-        },
-        else => {},
+        // If there is only one execution scope remaining, return immediately
+        if (exec_scopes.data.items.len == 1) {
+            return;
+        }
+
+        // Otherwise, return an error indicating no scope error
+        return ExecScopeError.NoScopeError;
     }
 
-    return .{};
-}
+    /// Writes output to the specified writer.
+    ///
+    /// This method writes output to the provided writer based on the output specified
+    /// by the built-in runner. It iterates through the built-in runners to find the output
+    /// runner, then writes the output to the writer based on the segment sizes and content.
+    ///
+    /// # Arguments
+    ///
+    /// - `self`: A pointer to the CairoVM instance.
+    /// - `writer`: A writer to which the output is written.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if writing the output fails.
+    pub fn writeOutput(self: *Self, writer: anytype) !void {
+        var builtin: ?*BuiltinRunner = null;
 
-// *****************************************************************************
-// *                       CUSTOM TYPES                                        *
-// *****************************************************************************
+        // Iterate through the built-in runners to find the output runner.
+        for (self.builtin_runners.items) |*runner| {
+            if (runner.* == .Output) {
+                builtin = runner;
+                break;
+            }
+        }
+
+        // If no output runner is found, return.
+        if (builtin == null) return;
+
+        // Compute effective sizes of memory segments.
+        const segment_used_sizes = try self.segments.computeEffectiveSize(false);
+        const segment_index = builtin.?.base();
+
+        // Iterate through the memory segments and write output based on their content.
+        for (0..segment_used_sizes.get(@intCast(segment_index)).?) |i| {
+            if (self.segments.memory.get(Relocatable.init(@intCast(segment_index), i))) |v| {
+                switch (v) {
+                    // Write felt value.
+                    .felt => |f| std.fmt.format(writer, "{}\n", .{f.toSignedInt()}) catch
+                        return CairoVMError.FailedToWriteOutput,
+                    // Write relocatable value.
+                    .relocatable => |r| std.fmt.format(writer, "{}:{}\n", .{ r.segment_index, r.offset }) catch
+                        return CairoVMError.FailedToWriteOutput,
+                }
+            } else {
+                // Write "<missing>" if no value is found.
+                writer.writeAll("<missing>\n") catch
+                    return CairoVMError.FailedToWriteOutput;
+            }
+        }
+    }
+};
 
 /// Represents the operands for an instruction.
 pub const OperandsResult = struct {
@@ -1458,180 +1537,3 @@ pub const OperandsResult = struct {
         return self.deduced_operands & (1 << 2) != 0;
     }
 };
-
-/// Represents the result of deduce Op0 operation.
-const Op0Result = struct {
-    const Self = @This();
-    /// The computed operand Op0.
-    op_0: ?MaybeRelocatable = null,
-    /// The result of the operation involving Op0.
-    res: ?MaybeRelocatable = null,
-};
-
-/// Represents the result of deduce Op1 operation.
-const Op1Result = struct {
-    const Self = @This();
-    /// The computed operand Op1.
-    op_1: ?MaybeRelocatable = null,
-    /// The result of the operation involving Op1.
-    res: ?MaybeRelocatable = null,
-};
-
-const HintReference = @import("../hint_processor/hint_processor_def.zig").HintReference;
-
-test "Core: test step for preset memory alloc hint not extensive" {
-    var vm = try CairoVM.init(
-        std.testing.allocator,
-        .{
-            .enable_trace = true,
-        },
-    );
-    defer vm.deinit();
-
-    vm.run_context.pc.* = Relocatable.init(0, 3);
-    vm.run_context.ap.* = Relocatable.init(1, 2);
-    vm.run_context.fp.* = Relocatable.init(1, 2);
-    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
-        .{ .{ 0, 0 }, .{290341444919459839} },
-        .{ .{ 0, 1 }, .{1} },
-        .{ .{ 0, 2 }, .{2345108766317314046} },
-        .{ .{ 0, 3 }, .{1226245742482522112} },
-        .{ .{ 0, 4 }, .{3618502788666131213697322783095070105623107215331596699973092056135872020478} },
-        .{ .{ 0, 5 }, .{5189976364521848832} },
-        .{ .{ 0, 6 }, .{1} },
-        .{ .{ 0, 7 }, .{4611826758063128575} },
-        .{ .{ 0, 8 }, .{2345108766317314046} },
-        .{ .{ 1, 0 }, .{ 2, 0 } },
-        .{ .{ 1, 1 }, .{ 3, 0 } },
-    });
-    defer vm.segments.memory.deinitData(std.testing.allocator);
-
-    const hint_processor: HintProcessor = .{};
-    var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
-    defer ids_data.deinit();
-
-    var hint_datas = std.ArrayList(HintData).init(std.testing.allocator);
-    defer hint_datas.deinit();
-
-    try hint_datas.append(
-        HintData.init("memory[ap] = segments.add()", ids_data, .{}),
-    );
-
-    var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
-    defer exec_scopes.deinit();
-    var constants = std.StringHashMap(Felt252).init(std.testing.allocator);
-    defer constants.deinit();
-
-    inline for (0..6) |_| {
-        const hint_data = if (vm.run_context.pc.eq(Relocatable.init(0, 0))) hint_datas.items[0..] else hint_datas.items[0..0];
-
-        try vm.stepNotExtensive(std.testing.allocator, hint_processor, &exec_scopes, hint_data, &constants);
-    }
-
-    const expected_trace = [_][3][2]u64{
-        .{
-            .{ 0, 3 }, .{ 1, 2 }, .{ 1, 2 },
-        },
-        .{
-            .{ 0, 0 }, .{ 1, 4 }, .{ 1, 4 },
-        },
-        .{
-            .{ 0, 2 }, .{ 1, 5 }, .{ 1, 4 },
-        },
-        .{
-            .{ 0, 5 }, .{ 1, 5 }, .{ 1, 2 },
-        },
-        .{
-            .{ 0, 7 }, .{ 1, 6 }, .{ 1, 2 },
-        },
-        .{
-            .{ 0, 8 }, .{ 1, 6 }, .{ 1, 2 },
-        },
-    };
-
-    try std.testing.expectEqual(expected_trace.len, vm.trace_context.state.enabled.entries.items.len);
-
-    for (expected_trace, 0..) |trace_entry, idx| {
-        // pc, ap, fp
-        const trace_entry_a = vm.trace_context.state.enabled.entries.items[idx];
-        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[0][0]), trace_entry[0][1]), trace_entry_a.pc);
-        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[1][0]), trace_entry[1][1]), trace_entry_a.ap);
-        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[2][0]), trace_entry[2][1]), trace_entry_a.fp);
-    }
-}
-
-test "Core: test step for preset memory alloc hint extensive" {
-    var vm = try CairoVM.init(
-        std.testing.allocator,
-        .{
-            .enable_trace = true,
-        },
-    );
-    defer vm.deinit();
-
-    vm.run_context.pc.* = Relocatable.init(0, 3);
-    vm.run_context.ap.* = Relocatable.init(1, 2);
-    vm.run_context.fp.* = Relocatable.init(1, 2);
-
-    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
-        .{ .{ 0, 0 }, .{290341444919459839} },
-        .{ .{ 0, 1 }, .{1} },
-        .{ .{ 0, 2 }, .{2345108766317314046} },
-        .{ .{ 0, 3 }, .{1226245742482522112} },
-        .{ .{ 0, 4 }, .{3618502788666131213697322783095070105623107215331596699973092056135872020478} },
-        .{ .{ 0, 5 }, .{5189976364521848832} },
-        .{ .{ 0, 6 }, .{1} },
-        .{ .{ 0, 7 }, .{4611826758063128575} },
-        .{ .{ 0, 8 }, .{2345108766317314046} },
-        .{ .{ 1, 0 }, .{ 2, 0 } },
-        .{ .{ 1, 1 }, .{ 3, 0 } },
-    });
-    defer vm.segments.memory.deinitData(std.testing.allocator);
-
-    const hint_processor: HintProcessor = .{};
-    var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
-    defer ids_data.deinit();
-
-    var hint_datas = std.ArrayList(HintData).init(std.testing.allocator);
-    defer hint_datas.deinit();
-
-    try hint_datas.append(
-        HintData.init("memory[ap] = segments.add()", ids_data, .{}),
-    );
-
-    var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
-    defer exec_scopes.deinit();
-    var constants = std.StringHashMap(Felt252).init(std.testing.allocator);
-    defer constants.deinit();
-
-    inline for (0..6) |_| {
-        var hint_ranges = std.AutoHashMap(Relocatable, HintRange).init(std.testing.allocator);
-        defer hint_ranges.deinit();
-
-        try hint_ranges.put(Relocatable.init(0, 0), .{
-            .start = 0,
-            .length = 1,
-        });
-
-        try vm.stepExtensive(std.testing.allocator, hint_processor, &exec_scopes, &hint_datas, &hint_ranges, &constants);
-    }
-
-    const expected_trace = [_][3][2]u64{
-        .{ .{ 0, 3 }, .{ 1, 2 }, .{ 1, 2 } },
-        .{ .{ 0, 0 }, .{ 1, 4 }, .{ 1, 4 } },
-        .{ .{ 0, 2 }, .{ 1, 5 }, .{ 1, 4 } },
-        .{ .{ 0, 5 }, .{ 1, 5 }, .{ 1, 2 } },
-        .{ .{ 0, 7 }, .{ 1, 6 }, .{ 1, 2 } },
-        .{ .{ 0, 8 }, .{ 1, 6 }, .{ 1, 2 } },
-    };
-
-    try std.testing.expectEqual(expected_trace.len, vm.trace_context.state.enabled.entries.items.len);
-
-    for (expected_trace, 0..) |trace_entry, idx| {
-        // pc, ap, fp
-        const trace_entry_a = vm.trace_context.state.enabled.entries.items[idx];
-        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[0][0]), trace_entry[0][1]), trace_entry_a.pc);
-        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[1][0]), trace_entry[1][1]), trace_entry_a.ap);
-        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[2][0]), trace_entry[2][1]), trace_entry_a.fp);
-    }
-}

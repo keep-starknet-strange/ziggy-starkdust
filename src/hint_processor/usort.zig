@@ -81,7 +81,7 @@ pub fn usortBody(
     const input_len = try hint_utils.getIntegerFromVarName("input_len", vm, ids_data, ap_tracking);
     const input_len_u64 = input_len.intoU64() catch return HintError.BigintToUsizeFail;
 
-    if (exec_scopes.getValue(.u64, "usort_max_size")) |usort_max_size| {
+    if (exec_scopes.getValue(u64, "usort_max_size")) |usort_max_size| {
         if (input_len_u64 > usort_max_size) return HintError.UsortOutOfRange;
     } else |_| {}
 
@@ -163,7 +163,7 @@ pub fn verifyUsort(
     ap_tracking: ApTracking,
 ) !void {
     const value = try hint_utils.getIntegerFromVarName("value", vm, ids_data, ap_tracking);
-    var positions = ((try exec_scopes.getValueRef(.felt_map_of_u64_list, "positions_dict")).fetchRemove(value) orelse return HintError.UnexpectedPositionsDictFail).value;
+    var positions = ((try exec_scopes.getValueRef(std.AutoHashMap(Felt252, std.ArrayList(u64)), "positions_dict")).fetchRemove(value) orelse return HintError.UnexpectedPositionsDictFail).value;
 
     // reverse array
     var tmp: u64 = 0;
@@ -178,7 +178,7 @@ pub fn verifyUsort(
 }
 
 pub fn verifyMultiplicityAssert(exec_scopes: *ExecutionScopes) !void {
-    const positions_len = (try exec_scopes.getValueRef(.u64_list, "positions")).items.len;
+    const positions_len = (try exec_scopes.getValueRef(std.ArrayList(u64), "positions")).items.len;
 
     if (positions_len != 0) return HintError.PositionsLengthNotZero;
 }
@@ -191,7 +191,7 @@ pub fn verifyMultiplicityBody(
     ap_tracking: ApTracking,
 ) !void {
     const current_pos = (try exec_scopes
-        .getValueRef(.u64_list, "positions")).popOrNull() orelse return HintError.CouldntPopPositions;
+        .getValueRef(std.ArrayList(u64), "positions")).popOrNull() orelse return HintError.CouldntPopPositions;
 
     const pos_diff = Felt252.fromInt(u64, current_pos).sub(try exec_scopes.getFelt("last_pos"));
     try hint_utils.insertValueFromVarName(allocator, "next_item_index", MaybeRelocatable.fromFelt(pos_diff), vm, ids_data, ap_tracking);
@@ -299,7 +299,7 @@ test "Usort: usortVerify ok" {
 
     try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, &exec_scopes);
 
-    try std.testing.expectEqualSlices(u64, &.{2}, (try exec_scopes.getValueRef(.u64_list, "positions")).items);
+    try std.testing.expectEqualSlices(u64, &.{2}, (try exec_scopes.getValueRef(std.ArrayList(u64), "positions")).items);
     try std.testing.expectEqual(try exec_scopes.getFelt("last_pos"), Felt252.zero());
 }
 
@@ -386,7 +386,7 @@ test "Usort: usortVerifyMultiplicityBody ok" {
 
     try std.testing.expectEqualSlices(
         u64,
-        (try exec_scopes.getValueRef(.u64_list, "positions")).items,
+        (try exec_scopes.getValueRef(std.ArrayList(u64), "positions")).items,
         &.{ 1, 0, 4, 7 },
     );
     try std.testing.expectEqual(Felt252.fromInt(u8, 11), try exec_scopes.getFelt("last_pos"));

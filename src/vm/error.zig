@@ -1,5 +1,7 @@
 /// Represents different error conditions that occur in the Cairo VM.
 pub const CairoVMError = error{
+    // Expected integer, found
+    ExpectedIntAtRange,
     // Failed to compile hint
     CompileHintFail,
     /// Adding two relocatables is forbidden.
@@ -68,6 +70,7 @@ pub const CairoVMError = error{
     /// getBuiltin by name, if not exist error
     NotFoundBuiltin,
     ReferenceNotFound,
+    FailedToWriteOutput,
 };
 
 /// Represents different error conditions that are memory-related.
@@ -202,6 +205,7 @@ pub const MathError = error{
     RelocatableMul,
     ByteConversionError,
     DividedByZero,
+    Felt252ToUsizeConversion,
 };
 
 /// Represents different error conditions that occur in trace relocation
@@ -247,6 +251,43 @@ pub const VerifyError = error{
 };
 
 pub const HintError = error{
+    // Expected size to be in range from [0, 10)
+    InvalidBlockSize,
+
+    // Expected size to be in the range from
+    InvalidKeccakStateSizeFelt252s,
+    // squash_dict() can only be used with n_accesses<={}.
+    SquashDictMaxSizeExceeded,
+    // squash_dict fail: n_accesses: is too big to be converted into an iterator
+    NAccessesTooBig,
+
+    // squash_dict fail: Accesses array size must be divisible by DictAccess.SIZE
+    PtrDiffNotDivisibleByDictAccessSize,
+
+    // squash_dict_inner fail: No keys left but remaining_accesses > 0
+    EmptyKeys,
+
+    // squash_dict_inner fail: local keys is not empty
+    KeysNotEmpty,
+
+    //squash_dict_inner fail: Number of used accesses doesnt match the lengh of the access_indices at key
+    NumUsedAccessesAssertFail,
+
+    // squash_dict_inner fail: couldnt find key  in accesses_indices
+    NoKeyInAccessIndices,
+    // squash_dict_inner fail: local accessed_indices is empty
+    EmptyAccessIndices,
+    // squash_dict_inner fail: local current_accessed_indices is empty
+    EmptyCurrentAccessIndices,
+    // squash_dict_inner fail: local current_accessed_indices not empty, loop ended with remaining unaccounted elements
+    CurrentAccessIndicesNotEmpty,
+
+    // Dict Error: Got the wrong value for dict_update
+    WrongPrevValue,
+
+    //Dict Error: Tried to create a dict without an initial dict
+    NoInitialDict,
+
     // Dict Error: No value found for key
     NoValueForKey,
     // unexpected verify multiplicity fail: couldn't pop positions
@@ -292,7 +333,11 @@ pub const HintError = error{
     AssertionFailed,
     SplitIntNotZero,
     FromScopeError,
-
+    KeyNotFound,
+    InvalidIndex,
+    FindElemMaxSize,
+    NoValueForKeyFindElement,
+    InvalidSetRange,
     // DictManagerError: Tried to create tracker for a dictionary on segment: when there is already a tracker for a dictionary on this segment
     CantCreateDictionaryOnTakenSegment,
     // Dict Error: No dict tracker found for segment
@@ -300,6 +345,9 @@ pub const HintError = error{
 
     // Wrong dict pointer supplied.
     MismatchedDictPtr,
+
+    /// Occurs when a hint is attempting to be executed that is not yet implemented
+    HintNotImplemented,
 };
 
 pub const InsufficientAllocatedCellsError = error{

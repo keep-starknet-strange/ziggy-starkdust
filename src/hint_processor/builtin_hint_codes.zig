@@ -1,3 +1,70 @@
+pub const FIND_ELEMENT =
+    \\array_ptr = ids.array_ptr
+    \\elm_size = ids.elm_size
+    \\assert isinstance(elm_size, int) and elm_size > 0, \
+    \\    f'Invalid value for elm_size. Got: {elm_size}.'
+    \\key = ids.key
+    \\
+    \\if '__find_element_index' in globals():
+    \\    ids.index = __find_element_index
+    \\    found_key = memory[array_ptr + elm_size * __find_element_index]
+    \\    assert found_key == key, \
+    \\        f'Invalid index found in __find_element_index. index: {__find_element_index}, ' \
+    \\        f'expected key {key}, found key: {found_key}.'
+    \\    # Delete __find_element_index to make sure it's not used for the next calls.
+    \\    del __find_element_index
+    \\else:
+    \\    n_elms = ids.n_elms
+    \\    assert isinstance(n_elms, int) and n_elms >= 0, \
+    \\        f'Invalid value for n_elms. Got: {n_elms}.'
+    \\    if '__find_element_max_size' in globals():
+    \\        assert n_elms <= __find_element_max_size, \
+    \\            f'find_element() can only be used with n_elms<={__find_element_max_size}. ' \
+    \\            f'Got: n_elms={n_elms}.'
+    \\
+    \\    for i in range(n_elms):
+    \\        if memory[array_ptr + elm_size * i] == key:
+    \\            ids.index = i
+    \\            break
+    \\    else:
+    \\        raise ValueError(f'Key {key} was not found.')
+;
+
+pub const SEARCH_SORTED_LOWER =
+    \\array_ptr = ids.array_ptr
+    \\elm_size = ids.elm_size
+    \\assert isinstance(elm_size, int) and elm_size > 0, \
+    \\    f'Invalid value for elm_size. Got: {elm_size}.'
+    \\
+    \\n_elms = ids.n_elms
+    \\assert isinstance(n_elms, int) and n_elms >= 0, \
+    \\    f'Invalid value for n_elms. Got: {n_elms}.'
+    \\if '__find_element_max_size' in globals():
+    \\    assert n_elms <= __find_element_max_size, \
+    \\        f'find_element() can only be used with n_elms<={__find_element_max_size}. ' \
+    \\        f'Got: n_elms={n_elms}.'
+    \\
+    \\for i in range(n_elms):
+    \\    if memory[array_ptr + elm_size * i] >= ids.key:
+    \\        ids.index = i
+    \\        break
+    \\else:
+    \\    ids.index = n_elms
+;
+
+pub const SET_ADD =
+    \\assert ids.elm_size > 0
+    \\assert ids.set_ptr <= ids.set_end_ptr
+    \\elm_list = memory.get_range(ids.elm_ptr, ids.elm_size)
+    \\for i in range(0, ids.set_end_ptr - ids.set_ptr, ids.elm_size):
+    \\    if memory.get_range(ids.set_ptr + i, ids.elm_size) == elm_list:
+    \\        ids.index = i // ids.elm_size
+    \\        ids.is_elm_in_set = 1
+    \\        break
+    \\    else:
+    \\        ids.is_elm_in_set = 0
+;
+
 pub const TEMPORARY_ARRAY = "ids.temporary_array = segments.add_temp_segment()";
 
 pub const RELOCATE_SEGMENT = "memory.add_relocation_rule(src_ptr=ids.src_ptr, dest_ptr=ids.dest_ptr)";
@@ -294,7 +361,6 @@ pub const SPLIT_64 =
     \\ids.high = ids.a >> 64
 ;
 
-
 pub const USORT_ENTER_SCOPE =
     "vm_enter_scope(dict(__usort_max_size = globals().get('__usort_max_size')))";
 pub const USORT_BODY =
@@ -337,5 +403,179 @@ pub const MEMSET_CONTINUE_LOOP =
     \\ids.continue_loop = 1 if n > 0 else 0
 ;
 
-pub const MEMCPY_CONTINUE_COPYING = "n -= 1 ids.continue_copying = 1 if n > 0 else 0";
+pub const MEMCPY_CONTINUE_COPYING =
+    \\n -= 1
+    \\ids.continue_copying = 1 if n > 0 else 0
+;
 
+pub const DEFAULT_DICT_NEW =
+    \\if '__dict_manager' not in globals():
+    \\    from starkware.cairo.common.dict import DictManager
+    \\    __dict_manager = DictManager()
+    \\
+    \\memory[ap] = __dict_manager.new_default_dict(segments, ids.default_value)
+;
+
+pub const DICT_NEW =
+    \\if '__dict_manager' not in globals():
+    \\    from starkware.cairo.common.dict import DictManager
+    \\    __dict_manager = DictManager()
+    \\
+    \\memory[ap] = __dict_manager.new_dict(segments, initial_dict)
+    \\del initial_dict
+;
+
+pub const DICT_READ =
+    \\dict_tracker = __dict_manager.get_tracker(ids.dict_ptr)
+    \\dict_tracker.current_ptr += ids.DictAccess.SIZE
+    \\ids.value = dict_tracker.data[ids.key]
+;
+
+pub const DICT_WRITE =
+    \\dict_tracker = __dict_manager.get_tracker(ids.dict_ptr)
+    \\dict_tracker.current_ptr += ids.DictAccess.SIZE
+    \\ids.dict_ptr.prev_value = dict_tracker.data[ids.key]
+    \\dict_tracker.data[ids.key] = ids.new_value
+;
+
+pub const DICT_UPDATE =
+    \\# Verify dict pointer and prev value.
+    \\dict_tracker = __dict_manager.get_tracker(ids.dict_ptr)
+    \\current_value = dict_tracker.data[ids.key]
+    \\assert current_value == ids.prev_value, \
+    \\    f'Wrong previous value in dict. Got {ids.prev_value}, expected {current_value}.'
+    \\
+    \\# Update value.
+    \\dict_tracker.data[ids.key] = ids.new_value
+    \\dict_tracker.current_ptr += ids.DictAccess.SIZE
+;
+
+pub const SQUASH_DICT =
+    \\dict_access_size = ids.DictAccess.SIZE
+    \\address = ids.dict_accesses.address_
+    \\assert ids.ptr_diff % dict_access_size == 0, \
+    \\    'Accesses array size must be divisible by DictAccess.SIZE'
+    \\n_accesses = ids.n_accesses
+    \\if '__squash_dict_max_size' in globals():
+    \\    assert n_accesses <= __squash_dict_max_size, \
+    \\        f'squash_dict() can only be used with n_accesses<={__squash_dict_max_size}. ' \
+    \\        f'Got: n_accesses={n_accesses}.'
+    \\# A map from key to the list of indices accessing it.
+    \\access_indices = {}
+    \\for i in range(n_accesses):
+    \\    key = memory[address + dict_access_size * i]
+    \\    access_indices.setdefault(key, []).append(i)
+    \\# Descending list of keys.
+    \\keys = sorted(access_indices.keys(), reverse=True)
+    \\# Are the keys used bigger than range_check bound.
+    \\ids.big_keys = 1 if keys[0] >= range_check_builtin.bound else 0
+    \\ids.first_key = key = keys.pop()
+;
+
+pub const SQUASH_DICT_INNER_SKIP_LOOP =
+    "ids.should_skip_loop = 0 if current_access_indices else 1";
+pub const SQUASH_DICT_INNER_FIRST_ITERATION =
+    \\current_access_indices = sorted(access_indices[key])[::-1]
+    \\current_access_index = current_access_indices.pop()
+    \\memory[ids.range_check_ptr] = current_access_index
+;
+
+pub const SQUASH_DICT_INNER_CHECK_ACCESS_INDEX =
+    \\new_access_index = current_access_indices.pop()
+    \\ids.loop_temps.index_delta_minus1 = new_access_index - current_access_index - 1
+    \\current_access_index = new_access_index
+;
+
+pub const SQUASH_DICT_INNER_CONTINUE_LOOP =
+    "ids.loop_temps.should_continue = 1 if current_access_indices else 0";
+pub const SQUASH_DICT_INNER_ASSERT_LEN_KEYS = "assert len(keys) == 0";
+pub const SQUASH_DICT_INNER_LEN_ASSERT = "assert len(current_access_indices) == 0";
+pub const SQUASH_DICT_INNER_USED_ACCESSES_ASSERT =
+    "assert ids.n_used_accesses == len(access_indices[key])";
+pub const SQUASH_DICT_INNER_NEXT_KEY =
+    \\assert len(keys) > 0, 'No keys left but remaining_accesses > 0.'
+    \\ids.next_key = key = keys.pop()
+;
+
+pub const DICT_SQUASH_UPDATE_PTR =
+    \\# Update the DictTracker's current_ptr to point to the end of the squashed dict.
+    \\__dict_manager.get_tracker(ids.squashed_dict_start).current_ptr = \
+    \\    ids.squashed_dict_end.address_
+;
+
+pub const DICT_SQUASH_COPY_DICT =
+    \\# Prepare arguments for dict_new. In particular, the same dictionary values should be copied
+    \\# to the new (squashed) dictionary.
+    \\vm_enter_scope({
+    \\    # Make __dict_manager accessible.
+    \\    '__dict_manager': __dict_manager,
+    \\    # Create a copy of the dict, in case it changes in the future.
+    \\    'initial_dict': dict(__dict_manager.get_dict(ids.dict_accesses_end)),
+    \\})
+;
+
+pub const BLOCK_PERMUTATION =
+    \\from starkware.cairo.common.keccak_utils.keccak_utils import keccak_func
+    \\_keccak_state_size_felts = int(ids.KECCAK_STATE_SIZE_FELTS)
+    \\assert 0 <= _keccak_state_size_felts < 100
+    \\
+    \\output_values = keccak_func(memory.get_range(
+    \\    ids.keccak_ptr - _keccak_state_size_felts, _keccak_state_size_felts))
+    \\segments.write_arg(ids.keccak_ptr, output_values)
+;
+
+// The 0.10.3 whitelist uses this variant (instead of the one used by the common library), but both hints have the same behaviour
+// We should check for future refactors that may discard one of the variants
+pub const BLOCK_PERMUTATION_WHITELIST_V1 =
+    \\from starkware.cairo.common.cairo_keccak.keccak_utils import keccak_func
+    \\_keccak_state_size_felts = int(ids.KECCAK_STATE_SIZE_FELTS)
+    \\assert 0 <= _keccak_state_size_felts < 100
+    \\
+    \\output_values = keccak_func(memory.get_range(
+    \\    ids.keccak_ptr - _keccak_state_size_felts, _keccak_state_size_felts))
+    \\segments.write_arg(ids.keccak_ptr, output_values)
+;
+
+pub const BLOCK_PERMUTATION_WHITELIST_V2 =
+    \\from starkware.cairo.common.cairo_keccak.keccak_utils import keccak_func
+    \\_keccak_state_size_felts = int(ids.KECCAK_STATE_SIZE_FELTS)
+    \\assert 0 <= _keccak_state_size_felts < 100
+    \\output_values = keccak_func(memory.get_range(
+    \\    ids.keccak_ptr_start, _keccak_state_size_felts))
+    \\segments.write_arg(ids.output, output_values)
+;
+
+pub const KECCAK_WRITE_ARGS =
+    \\segments.write_arg(ids.inputs, [ids.low % 2 ** 64, ids.low // 2 ** 64])
+    \\segments.write_arg(ids.inputs + 2, [ids.high % 2 ** 64, ids.high // 2 ** 64])
+;
+
+pub const COMPARE_BYTES_IN_WORD_NONDET =
+    "memory[ap] = to_felt_or_relocatable(ids.n_bytes < ids.BYTES_IN_WORD)";
+
+pub const COMPARE_KECCAK_FULL_RATE_IN_BYTES_NONDET =
+    "memory[ap] = to_felt_or_relocatable(ids.n_bytes >= ids.KECCAK_FULL_RATE_IN_BYTES)";
+
+pub const CAIRO_KECCAK_INPUT_IS_FULL_WORD = "ids.full_word = int(ids.n_bytes >= 8)";
+
+pub const CAIRO_KECCAK_FINALIZE_V1 =
+    \\# Add dummy pairs of input and output.
+    \\_keccak_state_size_felts = int(ids.KECCAK_STATE_SIZE_FELTS)
+    \\_block_size = int(ids.BLOCK_SIZE)
+    \\assert 0 <= _keccak_state_size_felts < 100
+    \\assert 0 <= _block_size < 10
+    \\inp = [0] * _keccak_state_size_felts
+    \\padding = (inp + keccak_func(inp)) * _block_size
+    \\segments.write_arg(ids.keccak_ptr_end, padding)
+;
+
+pub const CAIRO_KECCAK_FINALIZE_V2 =
+    \\# Add dummy pairs of input and output.
+    \\_keccak_state_size_felts = int(ids.KECCAK_STATE_SIZE_FELTS)
+    \\_block_size = int(ids.BLOCK_SIZE)
+    \\assert 0 <= _keccak_state_size_felts < 100
+    \\assert 0 <= _block_size < 1000
+    \\inp = [0] * _keccak_state_size_felts
+    \\padding = (inp + keccak_func(inp)) * _block_size
+    \\segments.write_arg(ids.keccak_ptr_end, padding)
+;

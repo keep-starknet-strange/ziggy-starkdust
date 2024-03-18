@@ -18,9 +18,21 @@ pub const vm = struct {
     pub usingnamespace @import("vm/types/builtins_instance_def.zig");
     pub usingnamespace @import("vm/types/diluted_pool_instance_def.zig");
     pub usingnamespace @import("vm/types/cpu_instance_def.zig");
+    pub usingnamespace @import("vm/types/execution_scopes.zig");
     pub usingnamespace @import("vm/types/layout.zig");
     pub usingnamespace @import("vm/types/execution_scopes.zig");
     pub usingnamespace @import("vm/decoding/decoder.zig");
+
+    pub usingnamespace @import("vm/builtins/builtin_runner/bitwise.zig");
+    pub usingnamespace @import("vm/builtins/builtin_runner/builtin_runner.zig");
+    pub usingnamespace @import("vm/builtins/builtin_runner/ec_op.zig");
+    pub usingnamespace @import("vm/builtins/builtin_runner/hash.zig");
+    pub usingnamespace @import("vm/builtins/builtin_runner/keccak.zig");
+    pub usingnamespace @import("vm/builtins/builtin_runner/output.zig");
+    pub usingnamespace @import("vm/builtins/builtin_runner/poseidon.zig");
+    pub usingnamespace @import("vm/builtins/builtin_runner/range_check.zig");
+    pub usingnamespace @import("vm/builtins/builtin_runner/segment_arena.zig");
+    pub usingnamespace @import("vm/builtins/builtin_runner/signature.zig");
 };
 
 pub const math = struct {
@@ -47,12 +59,18 @@ pub const hint_processor = struct {
     pub usingnamespace @import("hint_processor/keccak_utils.zig");
     pub usingnamespace @import("hint_processor/poseidon_utils.zig");
     pub usingnamespace @import("hint_processor/felt_bit_length.zig");
+    pub usingnamespace @import("hint_processor/find_element.zig");
+    pub usingnamespace @import("hint_processor/set.zig");
     pub usingnamespace @import("hint_processor/pow_utils.zig");
     pub usingnamespace @import("hint_processor/segments.zig");
     pub usingnamespace @import("hint_processor/uint256_utils.zig");
+    pub usingnamespace @import("hint_processor/uint_utils.zig");
     pub usingnamespace @import("hint_processor/dict_manager.zig");
+    pub usingnamespace @import("hint_processor/dict_hint_utils.zig");
+    pub usingnamespace @import("hint_processor/squash_dict_utils.zig");
     pub usingnamespace @import("hint_processor/usort.zig");
     pub usingnamespace @import("hint_processor/memset_utils.zig");
+    pub usingnamespace @import("hint_processor/cairo_keccak_hints.zig");
 };
 
 pub const parser = struct {
