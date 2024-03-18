@@ -79,7 +79,7 @@ test "FeltBitLength: simple test" {
     // Set up memory segments in the virtual machine.
     try vm.segments.memory.setUpMemory(
         std.testing.allocator,
-        .{.{ .{ 0, 0 }, .{7} }},
+        .{.{ .{ 1, 0 }, .{7} }},
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
@@ -93,7 +93,7 @@ test "FeltBitLength: simple test" {
     try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
 
     // Retrieve the result from the memory location of `ids.bit_length`.
-    const res = try vm.getFelt(Relocatable.init(0, 1));
+    const res = try vm.getFelt(Relocatable.init(1, 1));
 
     // Ensure that the result matches the expected value.
     try expectEqual(Felt252.fromInt(u8, 3), res);
@@ -124,7 +124,7 @@ test "FeltBitLength: range test" {
         // Set the value of `ids.x` to 2^i.
         try vm.segments.memory.set(
             std.testing.allocator,
-            .{},
+            Relocatable.init(1, 0),
             MaybeRelocatable.fromFelt(Felt252.two().pow(i)),
         );
         defer vm.segments.memory.deinitData(std.testing.allocator);
@@ -139,7 +139,7 @@ test "FeltBitLength: range test" {
         try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
 
         // Retrieve the result from the memory location of `ids.bit_length`.
-        const res = try vm.getFelt(Relocatable.init(0, 1));
+        const res = try vm.getFelt(Relocatable.init(1, 1));
 
         // Ensure that the result matches the expected value.
         try expectEqual(Felt252.fromInt(u256, i + 1), res);
@@ -169,7 +169,7 @@ test "FeltBitLength: wrap around" {
     // Set the value of `ids.x` to (Felt252.Modulo - 1) + 1, causing wrap around.
     try vm.segments.memory.set(
         std.testing.allocator,
-        .{},
+        Relocatable.init(1, 0),
         MaybeRelocatable.fromFelt(
             Felt252.fromInt(u256, Felt252.Modulo - 1).add(Felt252.one()),
         ),
@@ -186,7 +186,7 @@ test "FeltBitLength: wrap around" {
     try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
 
     // Retrieve the result from the memory location of `ids.bit_length`.
-    const res = try vm.getFelt(Relocatable.init(0, 1));
+    const res = try vm.getFelt(Relocatable.init(1, 1));
 
     // Ensure that the result matches the expected value (0).
     try expectEqual(Felt252.zero(), res);
