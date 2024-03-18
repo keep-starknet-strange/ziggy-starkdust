@@ -11,6 +11,8 @@ const HintReference = @import("hint_processor_def.zig").HintReference;
 const MaybeRelocatable = @import("../vm/memory/relocatable.zig").MaybeRelocatable;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const HintError = @import("../vm/error.zig").HintError;
+const HintProcessor = @import("hint_processor_def.zig").CairoVMHintProcessor;
+const HintData = @import("hint_processor_def.zig").HintData;
 const vm_error = @import("../vm/error.zig");
 
 //Implements hint: memory[ap] = segments.add()
