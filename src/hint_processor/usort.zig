@@ -219,7 +219,7 @@ test "Usort: usort out of range" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 2);
+    vm.run_context.fp.* = 2;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsForTestWithoutMemory(
