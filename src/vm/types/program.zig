@@ -38,12 +38,7 @@ pub const HintRange = struct {
 pub const HintsRanges = union(enum) {
     const Self = @This();
 
-    Extensive: std.HashMap(
-        Relocatable,
-        HintRange,
-        std.hash_map.AutoContext(Relocatable),
-        std.hash_map.default_max_load_percentage,
-    ),
+    Extensive: std.AutoHashMap(Relocatable, HintRange),
     NonExtensive: std.ArrayList(?HintRange),
 
     pub fn init(
