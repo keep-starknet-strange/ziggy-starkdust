@@ -253,12 +253,15 @@ pub const HintType = union(enum) {
     // TODO: Add missing types
     felt: Felt252,
     u64: u64,
+    i256: i256,
     u64_list: ArrayList(u64),
     felt_map_of_u64_list: std.AutoHashMap(Felt252, std.ArrayList(u64)),
     maybe_relocatable_map: std.AutoHashMap(MaybeRelocatable, MaybeRelocatable),
     dict_manager: Rc(DictManager),
     felt_map_of_felt_list: std.AutoHashMap(Felt252, std.ArrayList(Felt252)),
     felt_list: ArrayList(Felt252),
+    i512: i512,
+    u256: u256,
 
     pub fn deinit(self: *Self) void {
         switch (self.*) {
