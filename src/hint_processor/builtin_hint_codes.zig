@@ -596,3 +596,4 @@ pub const PRINT_DICT =
     \\print(
     \\    {k: v if isinstance(v, int) else [memory[v + i] for i in range(ids.pointer_size)] for k, v in data.items()}
     \\)
+;
