@@ -516,3 +516,23 @@ pub const PRINT_ARR =
     \\arr = [memory[ids.arr + i] for i in range(ids.arr_len)]
     \\print(arr)
 ;
+
+pub const PRINT_FELT =
+    \\print(ids.x)
+;
+
+pub const PRINT_DICT_FELT =
+    \\print(bytes.fromhex(f"{ids.name:062x}").decode().replace('\x00',''))
+    \\data = __dict_manager.get_dict(ids.dict_ptr)
+    \\print(
+    \\{k: v if isinstance(v, int) else [memory[v + i] for i in range(ids.pointer_size)] for k, v in data.items()}
+    \\)
+;
+
+pub const PRINT_DICT_ARR =
+    \\print(bytes.fromhex(f"{ids.name:062x}").decode().replace('\x00',''))
+    \\data = __dict_manager.get_dict(ids.dict_ptr)
+    \\print(
+    \\{k: v if isinstance(v, int) else [memory[v + i] for i in range(ids.pointer_size)] for k, v in data.items()}
+    \\)
+;

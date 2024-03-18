@@ -114,6 +114,7 @@ pub fn main() void {
         // .{ .pathname = "cairo_programs/keccak_integration_tests.json", .layout = "all_cairo" },
         // .{ .pathname = "cairo_programs/keccak_copy_inputs.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/print_features/print_array.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/print_features/print_felt.json", .layout = "all_cairo" },
     };
 
     var ok_count: usize = 0;

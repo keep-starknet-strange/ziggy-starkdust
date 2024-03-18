@@ -330,6 +330,8 @@ pub const CairoVMHintProcessor = struct {
             try squash_dict_utils.squashDict(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.PRINT_ARR, hint_data.code)) {
             try print_utils.printArray(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.PRINT_FELT, hint_data.code)) {
+            try print_utils.printFelt(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else {
             return HintError.HintNotImplemented;
         }
