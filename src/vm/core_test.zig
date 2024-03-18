@@ -1796,13 +1796,13 @@ test "updateRegisters all regular" {
 
     // Verify the AP offset was incremented by 5.
     try expectEqual(
-        Relocatable.init(0, 5),
+        Relocatable.init(1, 5),
         vm.run_context.getAP(),
     );
 
     // Verify the FP offset was incremented by 6.
     try expectEqual(
-        Relocatable.init(0, 6),
+        Relocatable.init(1, 6),
         vm.run_context.getFP(),
     );
 }
@@ -1854,7 +1854,7 @@ test "updateRegisters with mixed types" {
 
     // Verify the AP offset was incremented by 7.
     try expectEqual(
-        Relocatable.init(0, 7),
+        Relocatable.init(1, 7),
         vm.run_context.getAP(),
     );
 
@@ -2037,7 +2037,7 @@ test "CairoVM: deduceDst should return fp Relocatable if Call opcode" {
 
     // Test check
     try expectEqual(
-        MaybeRelocatable.fromSegment(3, 23),
+        MaybeRelocatable.fromSegment(1, 23),
         try vm.deduceDst(
             &.{
                 .off_0 = 0,
