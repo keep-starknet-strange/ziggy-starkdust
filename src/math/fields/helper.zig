@@ -98,16 +98,16 @@ pub fn tonelliShanks(n: u512, p: u512) struct { u512, u512, bool } {
     return .{ result, p - result, true };
 }
 
-pub fn extendedGCD(self: i256, other: i256) struct { gcd: i256, x: i256, y: i256 } {
-    var s = [_]i256{ 0, 1 };
-    var t = [_]i256{ 1, 0 };
-    var r = [_]i256{ other, self };
+pub fn extendedGCD(self: i512, other: i512) struct { gcd: i512, x: i512, y: i512 } {
+    var s = [_]i512{ 0, 1 };
+    var t = [_]i512{ 1, 0 };
+    var r = [_]i512{ other, self };
 
     while (r[0] != 0) {
         const q = @divFloor(r[1], r[0]);
-        std.mem.swap(i256, &r[0], &r[1]);
-        std.mem.swap(i256, &s[0], &s[1]);
-        std.mem.swap(i256, &t[0], &t[1]);
+        std.mem.swap(i512, &r[0], &r[1]);
+        std.mem.swap(i512, &s[0], &s[1]);
+        std.mem.swap(i512, &t[0], &t[1]);
         r[0] = r[0] - q * r[1];
         s[0] = s[0] - q * s[1];
         t[0] = t[0] - q * t[1];
@@ -143,8 +143,8 @@ pub fn divRem(comptime T: type, num: T, denominator: T) !struct { T, T } {
     };
 }
 
-pub fn divMod(n: i256, m: i256, p: i256) !i256 {
-    const igcdex_result = try extendedGCD(m, p);
+pub fn divMod(n: i512, m: i512, p: i512) !i512 {
+    const igcdex_result = extendedGCD(m, p);
     if (igcdex_result.gcd != 1) {
         return MathError.DivModIgcdexNotZero;
     }
@@ -154,7 +154,7 @@ pub fn divMod(n: i256, m: i256, p: i256) !i256 {
         result += p;
     }
 
-    return result % p;
+    return @rem(result, p);
 }
 
 /// Performs integer division between x and y; fails if x is not divisible by y.
@@ -163,7 +163,7 @@ pub fn safeDivBigInt(x: i256, y: i256) !i256 {
         return MathError.DividedByZero;
     }
 
-    const result = divModFloor(i256, x, y);
+    const result = try divModFloor(i256, x, y);
 
     if (result[1] != 0) {
         return MathError.SafeDivFailBigInt;
