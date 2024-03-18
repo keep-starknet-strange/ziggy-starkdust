@@ -34,6 +34,7 @@ pub fn BigIntN(comptime NUM_LIMBS: usize) type {
         limbs: [NUM_LIMBS]Felt252 = undefined,
 
         pub fn fromBaseAddr(self: *Self, addr: Relocatable, vm: *CairoVM) !Self {
+            std.debug.print(" |||||| NUM_LIMBS: {} ||||||||| \n", .{NUM_LIMBS});
             inline for (0..NUM_LIMBS) |i| {
                 const new_addr = try addr.addUint(i);
                 self.limbs[i] = try vm.getFelt(new_addr);
@@ -43,6 +44,7 @@ pub fn BigIntN(comptime NUM_LIMBS: usize) type {
 
         pub fn fromVarName(self: *Self, name: []const u8, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !Self {
             const baseAddress = try hint_utils.getRelocatableFromVarName(name, vm, ids_data, ap_tracking);
+            std.debug.print(" |||||| baseAddress: {} ||||||||| \n", .{baseAddress});
             return self.fromBaseAddr(baseAddress, vm);
         }
 
@@ -57,12 +59,12 @@ pub fn BigIntN(comptime NUM_LIMBS: usize) type {
             }
         }
 
-        pub fn pack(self: *Self, allocator: std.mem.Allocator) !BigInt {
+        pub fn pack(self: *Self, allocator: std.mem.Allocator) !Int {
             const result = packBigInt(allocator, NUM_LIMBS, self.limbs, 128);
             return result;
         }
 
-        pub fn pack86(self: *Self) Felt252 {
+        pub fn pack86(self: *Self) !Felt252 {
             var result = Felt252.zero();
             inline for (0..NUM_LIMBS) |i| {
                 result = result + (self.limbs[i] << (i * 86));

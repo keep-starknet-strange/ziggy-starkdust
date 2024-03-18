@@ -32,28 +32,63 @@ const insertValueFromVarName = @import("../hint_processor/hint_utils.zig").inser
 ///
 /// value = res = div_mod(x, y, p)
 /// ```
-pub fn bigintPackDivModHint(vm: *CairoVM, exec_scopes: *ExecutionScopes, idsData: std.StringHashMap(HintReference), apTracking: ApTracking) !void {
-    var p: BigInt3 = try BigInt3.fromVarName("P", vm, idsData, apTracking).pack86();
+pub fn bigintPackDivModHint(vm: *CairoVM, allocator: std.mem.Allocator, exec_scopes: *ExecutionScopes, idsData: std.StringHashMap(HintReference), apTracking: ApTracking) !void {
+    // Initiate BigInt default element
+    var p: BigInt3 = .{};
+    p = try p.fromVarName("P", vm, idsData, apTracking);
+    var p_packed = try p.pack(allocator);
 
-    var x: BigIntN = try {
-        var x_bigint5 = try BigInt5.fromVarName("x", vm, idsData, apTracking);
-        var x_lower = BigInt3{
-            .limbs = x_bigint5.limbs[0..3],
-        };
-        x_lower = try x_lower.pack86();
-        const d3 = x_bigint5.limbs[3];
-        const d4 = x_bigint5.limbs[4];
-        x_lower + d3 * BigIntN.from(BASE.pow(3)) + d4 * BigIntN.from(BASE.pow(4));
-    };
+    std.debug.print("p_packed: {}\n", .{p_packed});
 
-    var y: BigIntN = try BigInt3.fromVarName("y", vm, idsData, apTracking).pack86();
+    const p_packed_i256 = try p_packed.to(i256);
+    std.debug.print("p_packed_i256: {}\n", .{p_packed_i256});
 
-    const res = try divMod(&x, &y, &p);
-    try exec_scopes.assignOrUpdateVariable("res", res);
-    try exec_scopes.assignOrUpdateVariable("value", res);
-    try exec_scopes.assignOrUpdateVariable("x", x);
-    try exec_scopes.assignOrUpdateVariable("y", y);
-    try exec_scopes.assignOrUpdateVariable("p", p);
+    var x: BigInt5 = .{};
+
+    const x_bigint5 = try x.fromVarName("x", vm, idsData, apTracking);
+    var x_lower: BigInt3 = .{};
+
+    // take first three limbs of x_bigint5 and pack them into x_lower
+    for (x_bigint5.limbs, 0..) |limb, i| {
+        if (i < 3) {
+            x_lower.limbs[i] = limb;
+        }
+    }
+
+    const x_lower_packed = try x_lower.pack(allocator);
+    std.debug.print("x_lower_packed: {}\n", .{x_lower_packed});
+    const d3 = x_bigint5.limbs[3].toInteger();
+    const d4 = x_bigint5.limbs[4].toInteger();
+    const x_lower_packed_256 = try x_lower_packed.to(i256);
+    std.debug.print("xxx: {}\n", .{x_lower_packed_256});
+    const c = x_lower_packed_256 + @as(i512, @intCast(d3)) * @as(i512, @intCast(std.math.pow(u512, BASE, 3))) + @as(i512, @intCast(d4)) * @as(i512, @intCast(std.math.pow(u512, BASE, 4)));
+    std.debug.print("c: {}\n", .{c});
+    const x_packed = c;
+
+    var y: BigInt3 = .{};
+
+    y = try y.fromVarName("y", vm, idsData, apTracking);
+
+    var y_packed = try y.pack(allocator);
+
+    const y_packed_i256 = try y_packed.to(i256);
+    const res = try divMod(x_packed, y_packed_i256, p_packed_i256);
+
+    try exec_scopes.assignOrUpdateVariable("res", .{
+        .i512 = res,
+    });
+    try exec_scopes.assignOrUpdateVariable("value", .{
+        .i512 = res,
+    });
+    try exec_scopes.assignOrUpdateVariable("x", .{
+        .i512 = x_packed,
+    });
+    try exec_scopes.assignOrUpdateVariable("y", .{
+        .i512 = y_packed_i256,
+    });
+    try exec_scopes.assignOrUpdateVariable("p", .{
+        .i512 = p_packed_i256,
+    });
 }
 
 /// Implements hint:
@@ -62,24 +97,29 @@ pub fn bigintPackDivModHint(vm: *CairoVM, exec_scopes: *ExecutionScopes, idsData
 /// value = k if k > 0 else 0 - k
 /// ids.flag = 1 if k > 0 else 0
 /// ```
-pub fn bigIntSafeDivHint(allocator: std.mem.Allocator, vm: *CairoVM, exec_scopes: *ExecutionScopes, idsData: *std.HashMap(std.hash_map.DefaultHashFn, []const u8, HintReference, std.hash_map.DefaultMaxLoad), apTracking: *ApTracking) !void {
-    const res = exec_scopes.get("res");
-    const x = exec_scopes.get("x");
-    const y = exec_scopes.get("y");
-    const p = exec_scopes.get("p");
+pub fn bigIntSafeDivHint(allocator: std.mem.Allocator, vm: *CairoVM, exec_scopes: *ExecutionScopes, ids_data: std.StringHashMap(HintReference), apTracking: ApTracking) !void {
+    const res = (try exec_scopes.getFelt("res")).toInteger();
+    const x = (try exec_scopes.getFelt("x")).toInteger();
+    const y = (try exec_scopes.getFelt("y")).toInteger();
+    const p = (try exec_scopes.getFelt("p")).toInteger();
 
-    const k = safeDivBigInt(res * y - x, p);
+    const k = try safeDivBigInt(@as(i256, @intCast(res * y - x)), @as(i256, @intCast(p)));
 
-    const result = if (k >= 0) {
-        .{ k, Felt252.one() };
+    var result: struct { value: i256, flag: Felt252 } = undefined;
+
+    if (k >= 0) {
+        result = .{ .value = k, .flag = Felt252.one() };
     } else {
-        .{ -k, Felt252.zero() };
-    };
+        result = .{ .value = -k, .flag = Felt252.zero() };
+    }
+
+    const resultValue = result.value;
+    const flag = result.flag;
 
     try exec_scopes.assignOrUpdateVariable("k", k);
-    try exec_scopes.assignOrUpdateVariable("value", result[0]);
+    try exec_scopes.assignOrUpdateVariable("value", resultValue);
 
-    insertValueFromVarName(allocator, "flag", result[1], vm, idsData, apTracking);
+    insertValueFromVarName(allocator, "flag", flag, vm, ids_data, apTracking);
 }
 
 // Input:
@@ -92,23 +132,21 @@ test "big int pack div mod hint" {
 
     defer vm.deinit();
 
-    var ids_data = testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
-        .{ "x", 0 },
-        .{ "y", 5 },
-        .{ "P", 8 },
-    });
+    var ids_data = try testing_utils.setupIdsNonContinuousIdsData(
+        std.testing.allocator,
+        &.{
+            .{ "x", 0 },
+            .{ "y", 5 },
+            .{ "P", 8 },
+        },
+    );
 
     defer ids_data.deinit();
-
-    vm.run_context.fp.* = Relocatable{
-        .offset = 0,
-        .segment_index = 0,
-    };
 
     // Set up memory segments in the virtual machine.
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{0x38a23ca66202c8c2a72277} },
-        .{ .{ 1, 1 }, .{0x38a23ca66202c8c2a72277} },
+        .{ .{ 1, 1 }, .{0x6730e765376ff17ea8385} },
         .{ .{ 1, 2 }, .{0xca1ad489ab60ea581e6c1} },
         .{ .{ 1, 3 }, .{0} },
         .{ .{ 1, 4 }, .{0} },
@@ -120,31 +158,37 @@ test "big int pack div mod hint" {
         .{ .{ 1, 10 }, .{0xfffffffffffffffffffff} },
     });
 
+    vm.run_context.fp.* = Relocatable.init(1, 0);
+
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
     const hint_processor = HintProcessor{};
     var hint_data = HintData.init(hint_codes.BIGINT_PACK_DIV_MOD_HINT, ids_data, .{});
 
     try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
 
     const res_loc = try hint_utils.getRelocatableFromVarName("res", &vm, ids_data, .{});
-    const res_value = try hint_utils.getBigIntFromRelocatable(&vm, res_loc);
+    const res_value = try vm.getFelt(res_loc);
+
+    std.debug.print("res: {}\n", .{res_value});
 
     const value_loc = try hint_utils.getRelocatableFromVarName("value", &vm, ids_data, .{});
-    const value = try hint_utils.getBigIntFromRelocatable(&vm, value_loc);
+    const value = try vm.getFelt(value_loc);
 
     const y_loc = try hint_utils.getRelocatableFromVarName("y", &vm, ids_data, .{});
-    const y = try hint_utils.getBigIntFromRelocatable(&vm, y_loc);
+    const y = try vm.getFelt(y_loc);
 
     const x_loc = try hint_utils.getRelocatableFromVarName("x", &vm, ids_data, .{});
-    const x = try hint_utils.getBigIntFromRelocatable(&vm, x_loc);
+    const x = try vm.getFelt(x_loc);
 
-    const p_loc = try hint_utils.getRelocatableFromVarName("p", &vm, ids_data, .{});
-    const p = try hint_utils.getBigIntFromRelocatable(&vm, p_loc);
+    const p_loc = try hint_utils.getRelocatableFromVarName("P", &vm, ids_data, .{});
+    const p = try vm.getFelt(p_loc);
 
-    try std.testing.expectEqual(109567829260688255124154626727441144629993228404337546799996747905569082729709, res_value);
-    try std.testing.expectEqual(109567829260688255124154626727441144629993228404337546799996747905569082729709, value);
-    try std.testing.expectEqual(38047400353360331012910998489219098987968251547384484838080352663220422975266, y);
-    try std.testing.expectEqual(91414600319290532004473480113251693728834511388719905794310982800988866814583, x);
-    try std.testing.expectEqual(115792089237316195423570985008687907852837564279074904382605163141518161494337, p);
+    try std.testing.expectEqual(109567829260688255124154626727441144629993228404337546799996747905569082729709, res_value.toInteger());
+    try std.testing.expectEqual(109567829260688255124154626727441144629993228404337546799996747905569082729709, value.toInteger());
+    try std.testing.expectEqual(38047400353360331012910998489219098987968251547384484838080352663220422975266, y.toInteger());
+    try std.testing.expectEqual(91414600319290532004473480113251693728834511388719905794310982800988866814583, x.toInteger());
+    try std.testing.expectEqual(115792089237316195423570985008687907852837564279074904382605163141518161494337, p.toInteger());
 }
 
 // Input:
@@ -161,13 +205,16 @@ test "big int safe div hint" {
 
     defer vm.deinit();
 
-    var ids_data = testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
-        .{ "res", 109567829260688255124154626727441144629993228404337546799996747905569082729709 },
-        .{ "x", 91414600319290532004473480113251693728834511388719905794310982800988866814583 },
-        .{ "y", 38047400353360331012910998489219098987968251547384484838080352663220422975266 },
-        .{ "P", 115792089237316195423570985008687907852837564279074904382605163141518161494337 },
-        .{ "flag", 0 },
-    });
+    var ids_data = testing_utils.setupIdsNonContinuousIdsData(
+        std.testing.allocator,
+        &.{
+            .{ "res", 109567829260688255124154626727441144629993228404337546799996747905569082729709 },
+            .{ "x", 91414600319290532004473480113251693728834511388719905794310982800988866814583 },
+            .{ "y", 38047400353360331012910998489219098987968251547384484838080352663220422975266 },
+            .{ "P", 115792089237316195423570985008687907852837564279074904382605163141518161494337 },
+            .{ "flag", 0 },
+        },
+    );
 
     defer ids_data.deinit();
 
