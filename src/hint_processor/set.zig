@@ -124,7 +124,7 @@ pub fn initVmIdsData(
     try vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true) });
 
     // Set the fp pointer in run_context.
-    vm.run_context.*.fp.* = 6;
+    vm.run_context.fp.* = 6;
 
     // Set default values if not provided.
     const _set_ptr: std.meta.Tuple(&.{ isize, usize }) = set_ptr orelse .{ 2, 0 };

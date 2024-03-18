@@ -71,7 +71,7 @@ test "FeltBitLength: simple test" {
     defer vm.deinit();
 
     // Set the frame pointer to point to the beginning of the stack.
-    vm.run_context.*.fp.* = 0;
+    vm.run_context.fp.* = 0;
 
     // Allocate memory space for variables `ids.x` and `ids.bit_length`.
     inline for (0..2) |_| _ = try vm.addMemorySegment();
@@ -116,7 +116,7 @@ test "FeltBitLength: range test" {
         defer vm.deinit();
 
         // Set the frame pointer to point to the beginning of the stack.
-        vm.run_context.*.fp.* = 0;
+        vm.run_context.fp.* = 0;
 
         // Allocate memory space for variables `ids.x` and `ids.bit_length`.
         inline for (0..2) |_| _ = try vm.addMemorySegment();
@@ -161,7 +161,7 @@ test "FeltBitLength: wrap around" {
     defer vm.deinit();
 
     // Set the frame pointer to point to the beginning of the stack.
-    vm.run_context.*.fp.* = 0;
+    vm.run_context.fp.* = 0;
 
     // Allocate memory space for variables `ids.x` and `ids.bit_length`.
     inline for (0..2) |_| _ = try vm.addMemorySegment();

@@ -217,7 +217,7 @@ pub fn initVmIdsData(
 
     // Set the starting offset for the frame pointer.
     const fp_offset_start: usize = 4;
-    vm.run_context.*.fp.* = fp_offset_start;
+    vm.run_context.fp.* = fp_offset_start;
 
     // Allocate memory space.
     inline for (0..3) |_| _ = try vm.addMemorySegment();
@@ -397,7 +397,7 @@ test "Find element failed ids get from memory" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    vm.run_context.*.fp.* = 5;
+    vm.run_context.fp.* = 5;
 
     // Initialize a hashmap to store variable references.
     var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
