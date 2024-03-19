@@ -2332,7 +2332,7 @@ test "CairoRunner: initFunctionEntrypoint with empty stack" {
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
         program,
-        "plain",
+        "all_cairo",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         vm,
         false,
@@ -2396,7 +2396,7 @@ test "CairoRunner: initFunctionEntrypoint with some stack" {
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
         program,
-        "plain",
+        "all_cairo",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         vm,
         false,
@@ -2462,7 +2462,7 @@ test "CairoRunner: initFunctionEntrypoint with no execution base" {
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
         program,
-        "plain",
+        "all_cairo",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         vm,
         false,
