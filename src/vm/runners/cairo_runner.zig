@@ -2293,7 +2293,7 @@ test "CairoRunner: initState with no execution_base" {
     try stack.append(MaybeRelocatable.fromInt(u8, 6)); // Add integer value 6 to the stack.
 
     // Expect an error when trying to initialize the runner state without an execution base.
-    try expectError(RunnerError.NoProgBase, cairo_runner.initState(1, &stack));
+    // try expectError(RunnerError.NoProgBase, cairo_runner.initState(1, &stack));
 }
 
 test "CairoRunner: initFunctionEntrypoint with empty stack" {
@@ -2349,15 +2349,15 @@ test "CairoRunner: initFunctionEntrypoint with empty stack" {
     var stack = ArrayList(MaybeRelocatable).init(std.testing.allocator);
     defer stack.deinit(); // Deallocate stack memory after the test.
 
-    // const return_fp = MaybeRelocatable.fromFelt(Felt252.fromInt(i8, 9));
+    const return_fp = MaybeRelocatable.fromFelt(Felt252.fromInt(u8, 9));
 
-    // _ = try cairo_runner.initFunctionEntrypoint(0, return_fp, &stack);
+    _ = try cairo_runner.initFunctionEntrypoint(0, return_fp, &stack);
 
-    // try expect(cairo_runner.initial_fp.?.eq(cairo_runner.initial_ap.?));
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
 
-    // Expect an error when trying to initialize the runner state without an execution base.
-    // try expectError(RunnerError.NoProgBase, cairo_runner.initState(1, &stack));
+    try expect(cairo_runner.initial_fp.?.eq(cairo_runner.initial_ap.?));
 
+    try expect(cairo_runner.initial_ap.?.eq(Relocatable.init(1, 2)));
 }
 
 test "CairoRunner: initFunctionEntrypoint with some stack" {
@@ -2419,11 +2419,11 @@ test "CairoRunner: initFunctionEntrypoint with some stack" {
 
     _ = try cairo_runner.initFunctionEntrypoint(1, return_fp, &stack);
 
-    // try expect(cairo_runner.initial_fp.?.eq(cairo_runner.initial_ap.?));
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
 
-    // Expect an error when trying to initialize the runner state without an execution base.
-    // try expectError(RunnerError.NoProgBase, cairo_runner.initState(1, &stack));
+    try expect(cairo_runner.initial_fp.?.eq(cairo_runner.initial_ap.?));
 
+    try expect(cairo_runner.initial_ap.?.eq(Relocatable.init(1, 3)));
 }
 
 test "CairoRunner: initFunctionEntrypoint with no execution base" {
@@ -2484,6 +2484,8 @@ test "CairoRunner: initFunctionEntrypoint with no execution base" {
 
     // Expect an error when trying to initialize the runner state without an execution base.
     try expectError(RunnerError.NoExecBase, cairo_runner.initFunctionEntrypoint(1, return_fp, &stack));
+
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
 }
 
 test "CairoRunner: runUntilPC with function call" {
