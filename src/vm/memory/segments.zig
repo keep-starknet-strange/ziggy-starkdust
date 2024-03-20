@@ -287,15 +287,10 @@ pub const MemorySegmentManager = struct {
         ptr: Relocatable,
         data: []const MaybeRelocatable,
     ) !Relocatable {
-        var idx = data.len;
-        while (idx > 0) : (idx -= 1) {
-            const i = idx - 1;
-            try self.memory.set(
-                allocator,
-                try ptr.addUint(i),
-                data[i],
-            );
+        for (data, 0..) |d, i| {
+            try self.memory.set(allocator, try (ptr.addUint(i) catch MemoryError.Math), d);
         }
+
         return ptr.addUint(data.len) catch MemoryError.Math;
     }
 
@@ -404,6 +399,14 @@ pub const MemorySegmentManager = struct {
                     arg.items,
                 ),
             ),
+            std.ArrayList(Felt252) => {
+                var tmp = std.ArrayList(MaybeRelocatable).init(self.allocator);
+                defer tmp.deinit();
+
+                for (arg.*.items) |r| try tmp.append(MaybeRelocatable.fromFelt(r));
+
+                return self.writeArg(std.ArrayList(MaybeRelocatable), ptr, &tmp);
+            },
             std.ArrayList(Relocatable) => {
                 // Prepare to load Relocatable data into memory
                 var tmp = std.ArrayList(MaybeRelocatable).init(self.allocator);
