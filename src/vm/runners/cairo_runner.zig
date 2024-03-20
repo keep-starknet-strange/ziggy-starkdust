@@ -549,24 +549,17 @@ pub const CairoRunner = struct {
                     &self.program.constants,
                 );
             } else {
-                // cfg not extensive hints feature
-                var hint_data_final: []HintData = &.{};
-                // TODO implement extensive hint data parse
-                if (self.program.shared_program_data.hints_collection
-                    .hints_ranges.NonExtensive.items.len > self.vm.run_context.pc.offset)
-                {
-                    if (self.program.shared_program_data.hints_collection
-                        .hints_ranges.NonExtensive.items[self.vm.run_context.pc.offset]) |range|
-                    {
-                        hint_data_final = hint_datas.items[range.start .. range.start + range.length];
-                    }
-                }
-
                 try self.vm.stepNotExtensive(
                     self.allocator,
                     hint_processor.*,
                     &self.execution_scopes,
-                    hint_data_final,
+                    if (self.program
+                        .shared_program_data
+                        .hints_collection
+                        .getHintRangeForPC(self.vm.run_context.pc.offset)) |range|
+                        hint_datas.items[range.start .. range.start + range.length]
+                    else
+                        &.{},
                     &self.program.constants,
                 );
             }
