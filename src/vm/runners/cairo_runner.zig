@@ -575,7 +575,6 @@ pub const CairoRunner = struct {
         }
     }
 
-
     /// Executes the Cairo program until the number of steps reaches the next power of two.
     ///
     /// This function runs the Cairo program until the number of executed steps reaches the next power of two.
@@ -723,10 +722,14 @@ pub const CairoRunner = struct {
         }
     }
 
-    pub fn endRun(self: *Self) !void {
-        // TODO relocate memory
-        // TODO call end_run in vm for builtins
-        if (self.run_ended) {
+    pub fn endRun(
+        self: *Self,
+        allocator: Allocator,
+        disable_trace_padding: bool,
+        disable_finalize_all: bool,
+        hint_processor: *HintProcessor,
+    ) !void {
+        if (self.run_ended)
             return CairoRunnerError.EndRunAlreadyCalled;
 
         try self.vm.segments.memory.relocateMemory();
@@ -4172,4 +4175,57 @@ test "CairoRunner: run until next power of 2" {
 
     // Assert that the current step count is 10.
     try expectEqual(@as(usize, 10), cairo_runner.vm.current_step);
+}
+
+test "CairoRunner: endRun with a run that is already finished" {
+    // Create a CairoRunner instance for testing.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator, true),
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    cairo_runner.run_ended = true;
+
+    var hint_processor: HintProcessor = .{};
+
+    try expectError(
+        CairoRunnerError.EndRunAlreadyCalled,
+        cairo_runner.endRun(std.testing.allocator, true, false, &hint_processor),
+    );
+}
+
+test "CairoRunner: endRun with a simple test" {
+    // Create a CairoRunner instance for testing.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator, true),
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    var hint_processor: HintProcessor = .{};
+
+    try cairo_runner.endRun(std.testing.allocator, true, false, &hint_processor);
+
+    cairo_runner.run_ended = false;
+
+    cairo_runner.relocated_memory.clearAndFree();
+
+    try cairo_runner.endRun(std.testing.allocator, true, true, &hint_processor);
+
+    try expect(!cairo_runner.run_ended);
 }
