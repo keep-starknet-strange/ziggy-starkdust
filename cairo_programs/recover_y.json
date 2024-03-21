@@ -1,0 +1,1381 @@
+{
+    "attributes": [],
+    "builtins": [
+        "ec_op"
+    ],
+    "compiler_version": "0.12.2",
+    "data": [
+        "0x20780017fff7ffd",
+        "0x5",
+        "0x400780017fff7ffc",
+        "0x0",
+        "0x208b7fff7fff7ffe",
+        "0x484a7ffc7ffc8000",
+        "0x482480017fff8000",
+        "0x1",
+        "0x48487ffc7fff8000",
+        "0x482480017fff8000",
+        "0x6f21413efbe40de150e596d72f7a8c5609ad26c15c915c1f4cdfcb99cee9e89",
+        "0x404a7ffd7ffd7fff",
+        "0x208b7fff7fff7ffe",
+        "0x40780017fff7fff",
+        "0x2",
+        "0x400b7ffd7fff8000",
+        "0x480a80007fff8000",
+        "0x480a80017fff8000",
+        "0x1104800180018000",
+        "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffef",
+        "0x480a80007fff8000",
+        "0x480a80017fff8000",
+        "0x208b7fff7fff7ffe",
+        "0x480680017fff8000",
+        "0x6a4beaef5a93425b973179cdba0c9d42f30e01a5f1e2db73da0884b8d6756fc",
+        "0x1104800180018000",
+        "0x800000000000010fffffffffffffffffffffffffffffffffffffffffffffff5",
+        "0x400680017fff7ffe",
+        "0x6a4beaef5a93425b973179cdba0c9d42f30e01a5f1e2db73da0884b8d6756fc",
+        "0x400680017fff7fff",
+        "0xda9a137e43f611ac0405266cdb56d55a4c604a7d981c6a17541c9d6f140db2",
+        "0x480a7ffd7fff8000",
+        "0x208b7fff7fff7ffe"
+    ],
+    "debug_info": {
+        "file_contents": {},
+        "instruction_locations": {
+            "0": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.ec",
+                    "starkware.cairo.common.ec.assert_on_curve"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.ec.assert_on_curve.p": 0
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 7,
+                    "end_line": 25,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/ec.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 25
+                }
+            },
+            "2": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.ec",
+                    "starkware.cairo.common.ec.assert_on_curve"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.ec.assert_on_curve.p": 0
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 24,
+                    "end_line": 26,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/ec.cairo"
+                    },
+                    "start_col": 9,
+                    "start_line": 26
+                }
+            },
+            "4": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.ec",
+                    "starkware.cairo.common.ec.assert_on_curve"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.ec.assert_on_curve.p": 0
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 19,
+                    "end_line": 27,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/ec.cairo"
+                    },
+                    "start_col": 9,
+                    "start_line": 27
+                }
+            },
+            "5": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.ec",
+                    "starkware.cairo.common.ec.assert_on_curve"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.ec.assert_on_curve.p": 0
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 29,
+                    "end_line": 29,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/ec.cairo"
+                    },
+                    "start_col": 20,
+                    "start_line": 29
+                }
+            },
+            "6": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.ec",
+                    "starkware.cairo.common.ec.assert_on_curve"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.ec.assert_on_curve.__temp0": 1,
+                        "starkware.cairo.common.ec.assert_on_curve.p": 0
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 48,
+                    "end_line": 29,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/ec.cairo"
+                    },
+                    "start_col": 20,
+                    "start_line": 29
+                }
+            },
+            "8": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.ec",
+                    "starkware.cairo.common.ec.assert_on_curve"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.ec.assert_on_curve.__temp0": 1,
+                        "starkware.cairo.common.ec.assert_on_curve.__temp1": 2,
+                        "starkware.cairo.common.ec.assert_on_curve.p": 0
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 55,
+                    "end_line": 29,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/ec.cairo"
+                    },
+                    "start_col": 19,
+                    "start_line": 29
+                }
+            },
+            "9": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.ec",
+                    "starkware.cairo.common.ec.assert_on_curve"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 3
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.ec.assert_on_curve.__temp0": 1,
+                        "starkware.cairo.common.ec.assert_on_curve.__temp1": 2,
+                        "starkware.cairo.common.ec.assert_on_curve.__temp2": 3,
+                        "starkware.cairo.common.ec.assert_on_curve.p": 0
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 73,
+                    "end_line": 29,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/ec.cairo"
+                    },
+                    "start_col": 19,
+                    "start_line": 29
+                }
+            },
+            "11": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.ec",
+                    "starkware.cairo.common.ec.assert_on_curve"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 4
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.ec.assert_on_curve.__temp0": 1,
+                        "starkware.cairo.common.ec.assert_on_curve.__temp1": 2,
+                        "starkware.cairo.common.ec.assert_on_curve.__temp2": 3,
+                        "starkware.cairo.common.ec.assert_on_curve.p": 0,
+                        "starkware.cairo.common.ec.assert_on_curve.rhs": 4
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 28,
+                    "end_line": 30,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/ec.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 30
+                }
+            },
+            "12": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.ec",
+                    "starkware.cairo.common.ec.assert_on_curve"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 4
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.ec.assert_on_curve.__temp0": 1,
+                        "starkware.cairo.common.ec.assert_on_curve.__temp1": 2,
+                        "starkware.cairo.common.ec.assert_on_curve.__temp2": 3,
+                        "starkware.cairo.common.ec.assert_on_curve.p": 0,
+                        "starkware.cairo.common.ec.assert_on_curve.rhs": 4
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 15,
+                    "end_line": 31,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/ec.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 31
+                }
+            },
+            "13": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.ec",
+                    "starkware.cairo.common.ec.recover_y"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.ec.recover_y.x": 5
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 18,
+                    "end_line": 260,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/ec.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 260
+                }
+            },
+            "15": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.ec",
+                    "starkware.cairo.common.ec.recover_y"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.ec.recover_y.p": 6,
+                        "starkware.cairo.common.ec.recover_y.x": 5
+                    }
+                },
+                "hints": [
+                    {
+                        "location": {
+                            "end_col": 7,
+                            "end_line": 268,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/ec.cairo"
+                            },
+                            "start_col": 5,
+                            "start_line": 262
+                        },
+                        "n_prefix_newlines": 1
+                    }
+                ],
+                "inst": {
+                    "end_col": 20,
+                    "end_line": 269,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/ec.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 269
+                }
+            },
+            "16": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.ec",
+                    "starkware.cairo.common.ec.recover_y"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.ec.recover_y.p": 6,
+                        "starkware.cairo.common.ec.recover_y.x": 5
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 12,
+                    "end_line": 261,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/ec.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 22,
+                            "end_line": 270,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/ec.cairo"
+                            },
+                            "start_col": 21,
+                            "start_line": 270
+                        },
+                        "While expanding the reference 'p' in:"
+                    ],
+                    "start_col": 11,
+                    "start_line": 261
+                }
+            },
+            "17": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.ec",
+                    "starkware.cairo.common.ec.recover_y"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 3
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.ec.recover_y.p": 6,
+                        "starkware.cairo.common.ec.recover_y.x": 5
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 12,
+                    "end_line": 261,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/ec.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 22,
+                            "end_line": 270,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/ec.cairo"
+                            },
+                            "start_col": 21,
+                            "start_line": 270
+                        },
+                        "While expanding the reference 'p' in:"
+                    ],
+                    "start_col": 11,
+                    "start_line": 261
+                }
+            },
+            "18": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.ec",
+                    "starkware.cairo.common.ec.recover_y"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 4
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.ec.recover_y.p": 6,
+                        "starkware.cairo.common.ec.recover_y.x": 5
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 23,
+                    "end_line": 270,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/ec.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 270
+                }
+            },
+            "20": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.ec",
+                    "starkware.cairo.common.ec.recover_y"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.ec.recover_y.p": 6,
+                        "starkware.cairo.common.ec.recover_y.x": 5
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 12,
+                    "end_line": 261,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/ec.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 16,
+                            "end_line": 271,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/ec.cairo"
+                            },
+                            "start_col": 15,
+                            "start_line": 271
+                        },
+                        "While expanding the reference 'p' in:"
+                    ],
+                    "start_col": 11,
+                    "start_line": 261
+                }
+            },
+            "21": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.ec",
+                    "starkware.cairo.common.ec.recover_y"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.ec.recover_y.p": 6,
+                        "starkware.cairo.common.ec.recover_y.x": 5
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 12,
+                    "end_line": 261,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/ec.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 16,
+                            "end_line": 271,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/ec.cairo"
+                            },
+                            "start_col": 15,
+                            "start_line": 271
+                        },
+                        "While expanding the reference 'p' in:"
+                    ],
+                    "start_col": 11,
+                    "start_line": 261
+                }
+            },
+            "22": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.ec",
+                    "starkware.cairo.common.ec.recover_y"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.ec.recover_y.p": 6,
+                        "starkware.cairo.common.ec.recover_y.x": 5
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 18,
+                    "end_line": 271,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/ec.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 271
+                }
+            },
+            "23": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.main.ec_op_ptr": 7,
+                        "__main__.main.x": 8
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 78,
+                    "end_line": 8,
+                    "input_file": {
+                        "filename": "cairo_programs/recover_y.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 33,
+                            "end_line": 9,
+                            "input_file": {
+                                "filename": "cairo_programs/recover_y.cairo"
+                            },
+                            "start_col": 32,
+                            "start_line": 9
+                        },
+                        "While expanding the reference 'x' in:"
+                    ],
+                    "start_col": 13,
+                    "start_line": 8
+                }
+            },
+            "25": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "__main__.main.ec_op_ptr": 7,
+                        "__main__.main.x": 8
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 34,
+                    "end_line": 9,
+                    "input_file": {
+                        "filename": "cairo_programs/recover_y.cairo"
+                    },
+                    "start_col": 22,
+                    "start_line": 9
+                }
+            },
+            "27": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.main.ec_op_ptr": 7,
+                        "__main__.main.r": 9,
+                        "__main__.main.x": 8
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 84,
+                    "end_line": 10,
+                    "input_file": {
+                        "filename": "cairo_programs/recover_y.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 10
+                }
+            },
+            "29": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.main.ec_op_ptr": 7,
+                        "__main__.main.r": 9,
+                        "__main__.main.x": 8
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 83,
+                    "end_line": 11,
+                    "input_file": {
+                        "filename": "cairo_programs/recover_y.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 11
+                }
+            },
+            "31": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.main.ec_op_ptr": 7,
+                        "__main__.main.r": 9,
+                        "__main__.main.x": 8
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 34,
+                    "end_line": 7,
+                    "input_file": {
+                        "filename": "cairo_programs/recover_y.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 34,
+                            "end_line": 7,
+                            "input_file": {
+                                "filename": "cairo_programs/recover_y.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 15,
+                                    "end_line": 12,
+                                    "input_file": {
+                                        "filename": "cairo_programs/recover_y.cairo"
+                                    },
+                                    "start_col": 5,
+                                    "start_line": 12
+                                },
+                                "While trying to retrieve the implicit argument 'ec_op_ptr' in:"
+                            ],
+                            "start_col": 11,
+                            "start_line": 7
+                        },
+                        "While expanding the reference 'ec_op_ptr' in:"
+                    ],
+                    "start_col": 11,
+                    "start_line": 7
+                }
+            },
+            "32": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "__main__.main.ec_op_ptr": 7,
+                        "__main__.main.r": 9,
+                        "__main__.main.x": 8
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 15,
+                    "end_line": 12,
+                    "input_file": {
+                        "filename": "cairo_programs/recover_y.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 12
+                }
+            }
+        }
+    },
+    "hints": {
+        "15": [
+            {
+                "accessible_scopes": [
+                    "starkware.cairo.common.ec",
+                    "starkware.cairo.common.ec.recover_y"
+                ],
+                "code": "from starkware.crypto.signature.signature import ALPHA, BETA, FIELD_PRIME\nfrom starkware.python.math_utils import recover_y\nids.p.x = ids.x\n# This raises an exception if `x` is not on the curve.\nids.p.y = recover_y(ids.x, ALPHA, BETA, FIELD_PRIME)",
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.ec.recover_y.p": 6,
+                        "starkware.cairo.common.ec.recover_y.x": 5
+                    }
+                }
+            }
+        ]
+    },
+    "identifiers": {
+        "__main__.EcOpBuiltin": {
+            "destination": "starkware.cairo.common.cairo_builtins.EcOpBuiltin",
+            "type": "alias"
+        },
+        "__main__.EcPoint": {
+            "destination": "starkware.cairo.common.ec_point.EcPoint",
+            "type": "alias"
+        },
+        "__main__.main": {
+            "decorators": [],
+            "pc": 23,
+            "type": "function"
+        },
+        "__main__.main.Args": {
+            "full_name": "__main__.main.Args",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "__main__.main.ImplicitArgs": {
+            "full_name": "__main__.main.ImplicitArgs",
+            "members": {
+                "ec_op_ptr": {
+                    "cairo_type": "starkware.cairo.common.cairo_builtins.EcOpBuiltin*",
+                    "offset": 0
+                }
+            },
+            "size": 1,
+            "type": "struct"
+        },
+        "__main__.main.Return": {
+            "cairo_type": "()",
+            "type": "type_definition"
+        },
+        "__main__.main.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 0
+        },
+        "__main__.main.ec_op_ptr": {
+            "cairo_type": "starkware.cairo.common.cairo_builtins.EcOpBuiltin*",
+            "full_name": "__main__.main.ec_op_ptr",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 0
+                    },
+                    "pc": 23,
+                    "value": "[cast(fp + (-3), starkware.cairo.common.cairo_builtins.EcOpBuiltin**)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.r": {
+            "cairo_type": "starkware.cairo.common.ec_point.EcPoint",
+            "full_name": "__main__.main.r",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 4,
+                        "offset": 0
+                    },
+                    "pc": 27,
+                    "value": "[cast(ap + (-2), starkware.cairo.common.ec_point.EcPoint*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.x": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.x",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 0
+                    },
+                    "pc": 23,
+                    "value": "cast(-613546729835149738153172335852414873347724530319251923384994262514641971461, felt)"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.recover_y": {
+            "destination": "starkware.cairo.common.ec.recover_y",
+            "type": "alias"
+        },
+        "starkware.cairo.common.bool.FALSE": {
+            "type": "const",
+            "value": 0
+        },
+        "starkware.cairo.common.bool.TRUE": {
+            "type": "const",
+            "value": 1
+        },
+        "starkware.cairo.common.cairo_builtins.BitwiseBuiltin": {
+            "full_name": "starkware.cairo.common.cairo_builtins.BitwiseBuiltin",
+            "members": {
+                "x": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                },
+                "x_and_y": {
+                    "cairo_type": "felt",
+                    "offset": 2
+                },
+                "x_or_y": {
+                    "cairo_type": "felt",
+                    "offset": 4
+                },
+                "x_xor_y": {
+                    "cairo_type": "felt",
+                    "offset": 3
+                },
+                "y": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                }
+            },
+            "size": 5,
+            "type": "struct"
+        },
+        "starkware.cairo.common.cairo_builtins.EcOpBuiltin": {
+            "full_name": "starkware.cairo.common.cairo_builtins.EcOpBuiltin",
+            "members": {
+                "m": {
+                    "cairo_type": "felt",
+                    "offset": 4
+                },
+                "p": {
+                    "cairo_type": "starkware.cairo.common.ec_point.EcPoint",
+                    "offset": 0
+                },
+                "q": {
+                    "cairo_type": "starkware.cairo.common.ec_point.EcPoint",
+                    "offset": 2
+                },
+                "r": {
+                    "cairo_type": "starkware.cairo.common.ec_point.EcPoint",
+                    "offset": 5
+                }
+            },
+            "size": 7,
+            "type": "struct"
+        },
+        "starkware.cairo.common.cairo_builtins.EcPoint": {
+            "destination": "starkware.cairo.common.ec_point.EcPoint",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_builtins.HashBuiltin": {
+            "full_name": "starkware.cairo.common.cairo_builtins.HashBuiltin",
+            "members": {
+                "result": {
+                    "cairo_type": "felt",
+                    "offset": 2
+                },
+                "x": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                },
+                "y": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                }
+            },
+            "size": 3,
+            "type": "struct"
+        },
+        "starkware.cairo.common.cairo_builtins.KeccakBuiltin": {
+            "full_name": "starkware.cairo.common.cairo_builtins.KeccakBuiltin",
+            "members": {
+                "input": {
+                    "cairo_type": "starkware.cairo.common.keccak_state.KeccakBuiltinState",
+                    "offset": 0
+                },
+                "output": {
+                    "cairo_type": "starkware.cairo.common.keccak_state.KeccakBuiltinState",
+                    "offset": 8
+                }
+            },
+            "size": 16,
+            "type": "struct"
+        },
+        "starkware.cairo.common.cairo_builtins.KeccakBuiltinState": {
+            "destination": "starkware.cairo.common.keccak_state.KeccakBuiltinState",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_builtins.PoseidonBuiltin": {
+            "full_name": "starkware.cairo.common.cairo_builtins.PoseidonBuiltin",
+            "members": {
+                "input": {
+                    "cairo_type": "starkware.cairo.common.poseidon_state.PoseidonBuiltinState",
+                    "offset": 0
+                },
+                "output": {
+                    "cairo_type": "starkware.cairo.common.poseidon_state.PoseidonBuiltinState",
+                    "offset": 3
+                }
+            },
+            "size": 6,
+            "type": "struct"
+        },
+        "starkware.cairo.common.cairo_builtins.PoseidonBuiltinState": {
+            "destination": "starkware.cairo.common.poseidon_state.PoseidonBuiltinState",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_builtins.SignatureBuiltin": {
+            "full_name": "starkware.cairo.common.cairo_builtins.SignatureBuiltin",
+            "members": {
+                "message": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                },
+                "pub_key": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                }
+            },
+            "size": 2,
+            "type": "struct"
+        },
+        "starkware.cairo.common.ec.EcOpBuiltin": {
+            "destination": "starkware.cairo.common.cairo_builtins.EcOpBuiltin",
+            "type": "alias"
+        },
+        "starkware.cairo.common.ec.EcPoint": {
+            "destination": "starkware.cairo.common.ec_point.EcPoint",
+            "type": "alias"
+        },
+        "starkware.cairo.common.ec.StarkCurve": {
+            "type": "namespace"
+        },
+        "starkware.cairo.common.ec.StarkCurve.ALPHA": {
+            "type": "const",
+            "value": 1
+        },
+        "starkware.cairo.common.ec.StarkCurve.Args": {
+            "full_name": "starkware.cairo.common.ec.StarkCurve.Args",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "starkware.cairo.common.ec.StarkCurve.BETA": {
+            "type": "const",
+            "value": -476910135076337975234679399815567221425937815956490878998147463828055613816
+        },
+        "starkware.cairo.common.ec.StarkCurve.GEN_X": {
+            "type": "const",
+            "value": 874739451078007766457464989774322083649278607533249481151382481072868806602
+        },
+        "starkware.cairo.common.ec.StarkCurve.GEN_Y": {
+            "type": "const",
+            "value": 152666792071518830868575557812948353041420400780739481342941381225525861407
+        },
+        "starkware.cairo.common.ec.StarkCurve.ImplicitArgs": {
+            "full_name": "starkware.cairo.common.ec.StarkCurve.ImplicitArgs",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "starkware.cairo.common.ec.StarkCurve.ORDER": {
+            "type": "const",
+            "value": -96363463615509210819012598251359154898
+        },
+        "starkware.cairo.common.ec.StarkCurve.Return": {
+            "cairo_type": "()",
+            "type": "type_definition"
+        },
+        "starkware.cairo.common.ec.StarkCurve.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 0
+        },
+        "starkware.cairo.common.ec.assert_on_curve": {
+            "decorators": [],
+            "pc": 0,
+            "type": "function"
+        },
+        "starkware.cairo.common.ec.assert_on_curve.Args": {
+            "full_name": "starkware.cairo.common.ec.assert_on_curve.Args",
+            "members": {
+                "p": {
+                    "cairo_type": "starkware.cairo.common.ec_point.EcPoint",
+                    "offset": 0
+                }
+            },
+            "size": 2,
+            "type": "struct"
+        },
+        "starkware.cairo.common.ec.assert_on_curve.ImplicitArgs": {
+            "full_name": "starkware.cairo.common.ec.assert_on_curve.ImplicitArgs",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "starkware.cairo.common.ec.assert_on_curve.Return": {
+            "cairo_type": "()",
+            "type": "type_definition"
+        },
+        "starkware.cairo.common.ec.assert_on_curve.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 0
+        },
+        "starkware.cairo.common.ec.assert_on_curve.__temp0": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.ec.assert_on_curve.__temp0",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 1
+                    },
+                    "pc": 6,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.ec.assert_on_curve.__temp1": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.ec.assert_on_curve.__temp1",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 2
+                    },
+                    "pc": 8,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.ec.assert_on_curve.__temp2": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.ec.assert_on_curve.__temp2",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 3
+                    },
+                    "pc": 9,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.ec.assert_on_curve.p": {
+            "cairo_type": "starkware.cairo.common.ec_point.EcPoint",
+            "full_name": "starkware.cairo.common.ec.assert_on_curve.p",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "pc": 0,
+                    "value": "[cast(fp + (-4), starkware.cairo.common.ec_point.EcPoint*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.ec.assert_on_curve.rhs": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.ec.assert_on_curve.rhs",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 4
+                    },
+                    "pc": 11,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.ec.is_quad_residue": {
+            "destination": "starkware.cairo.common.math.is_quad_residue",
+            "type": "alias"
+        },
+        "starkware.cairo.common.ec.recover_y": {
+            "decorators": [],
+            "pc": 13,
+            "type": "function"
+        },
+        "starkware.cairo.common.ec.recover_y.Args": {
+            "full_name": "starkware.cairo.common.ec.recover_y.Args",
+            "members": {
+                "x": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                }
+            },
+            "size": 1,
+            "type": "struct"
+        },
+        "starkware.cairo.common.ec.recover_y.ImplicitArgs": {
+            "full_name": "starkware.cairo.common.ec.recover_y.ImplicitArgs",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "starkware.cairo.common.ec.recover_y.Return": {
+            "cairo_type": "(p: starkware.cairo.common.ec_point.EcPoint)",
+            "type": "type_definition"
+        },
+        "starkware.cairo.common.ec.recover_y.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 2
+        },
+        "starkware.cairo.common.ec.recover_y.p": {
+            "cairo_type": "starkware.cairo.common.ec_point.EcPoint",
+            "full_name": "starkware.cairo.common.ec.recover_y.p",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 2
+                    },
+                    "pc": 15,
+                    "value": "[cast(fp, starkware.cairo.common.ec_point.EcPoint*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.ec.recover_y.x": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.ec.recover_y.x",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 0
+                    },
+                    "pc": 13,
+                    "value": "[cast(fp + (-3), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.ec_point.EcPoint": {
+            "full_name": "starkware.cairo.common.ec_point.EcPoint",
+            "members": {
+                "x": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                },
+                "y": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                }
+            },
+            "size": 2,
+            "type": "struct"
+        },
+        "starkware.cairo.common.keccak_state.KeccakBuiltinState": {
+            "full_name": "starkware.cairo.common.keccak_state.KeccakBuiltinState",
+            "members": {
+                "s0": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                },
+                "s1": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                },
+                "s2": {
+                    "cairo_type": "felt",
+                    "offset": 2
+                },
+                "s3": {
+                    "cairo_type": "felt",
+                    "offset": 3
+                },
+                "s4": {
+                    "cairo_type": "felt",
+                    "offset": 4
+                },
+                "s5": {
+                    "cairo_type": "felt",
+                    "offset": 5
+                },
+                "s6": {
+                    "cairo_type": "felt",
+                    "offset": 6
+                },
+                "s7": {
+                    "cairo_type": "felt",
+                    "offset": 7
+                }
+            },
+            "size": 8,
+            "type": "struct"
+        },
+        "starkware.cairo.common.math.FALSE": {
+            "destination": "starkware.cairo.common.bool.FALSE",
+            "type": "alias"
+        },
+        "starkware.cairo.common.math.TRUE": {
+            "destination": "starkware.cairo.common.bool.TRUE",
+            "type": "alias"
+        },
+        "starkware.cairo.common.poseidon_state.PoseidonBuiltinState": {
+            "full_name": "starkware.cairo.common.poseidon_state.PoseidonBuiltinState",
+            "members": {
+                "s0": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                },
+                "s1": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                },
+                "s2": {
+                    "cairo_type": "felt",
+                    "offset": 2
+                }
+            },
+            "size": 3,
+            "type": "struct"
+        }
+    },
+    "main_scope": "__main__",
+    "prime": "0x800000000000011000000000000000000000000000000000000000000000001",
+    "reference_manager": {
+        "references": [
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 0
+                },
+                "pc": 0,
+                "value": "[cast(fp + (-4), starkware.cairo.common.ec_point.EcPoint*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 1
+                },
+                "pc": 6,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 2
+                },
+                "pc": 8,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 3
+                },
+                "pc": 9,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 4
+                },
+                "pc": 11,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 0
+                },
+                "pc": 13,
+                "value": "[cast(fp + (-3), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 2
+                },
+                "pc": 15,
+                "value": "[cast(fp, starkware.cairo.common.ec_point.EcPoint*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 0
+                },
+                "pc": 23,
+                "value": "[cast(fp + (-3), starkware.cairo.common.cairo_builtins.EcOpBuiltin**)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 0
+                },
+                "pc": 23,
+                "value": "cast(-613546729835149738153172335852414873347724530319251923384994262514641971461, felt)"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 4,
+                    "offset": 0
+                },
+                "pc": 27,
+                "value": "[cast(ap + (-2), starkware.cairo.common.ec_point.EcPoint*)]"
+            }
+        ]
+    }
+}
