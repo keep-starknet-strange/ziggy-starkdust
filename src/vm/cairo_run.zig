@@ -111,7 +111,7 @@ test "EncodedMemory: can round trip from valid memory binary" {
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
     // where  `cairo_memory_struct` is sourced (graciously) from
     // https://github.com/lambdaclass/cairo-vm/blob/main/cairo_programs/trace_memory/cairo_trace_struct#L1
-    const path = try std.os.realpath("cairo_programs/trace_memory/cairo_memory_struct", &buffer);
+    const path = try std.posix.realpath("cairo_programs/trace_memory/cairo_memory_struct", &buffer);
 
     const file = try std.fs.cwd().openFile(path, .{});
     defer file.close();
