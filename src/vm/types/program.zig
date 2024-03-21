@@ -10,6 +10,7 @@ const Instruction = @import("./programjson.zig").Instruction;
 const InstructionLocation = @import("./programjson.zig").InstructionLocation;
 const Identifier = @import("./programjson.zig").Identifier;
 pub const BuiltinName = @import("./programjson.zig").BuiltinName;
+pub const HintLocation = @import("./programjson.zig").HintLocation;
 const ReferenceManager = @import("./programjson.zig").ReferenceManager;
 const OffsetValue = @import("./programjson.zig").OffsetValue;
 const Reference = @import("./programjson.zig").Reference;
@@ -35,12 +36,22 @@ pub const HintRange = struct {
     length: usize,
 };
 
+/// Represents a collection of hint ranges.
 pub const HintsRanges = union(enum) {
     const Self = @This();
 
+    /// Represents an extensive collection of hint ranges stored in an AutoHashMap.
     Extensive: std.AutoHashMap(Relocatable, HintRange),
+
+    /// Represents a non-extensive collection of hint ranges stored in an ArrayList.
     NonExtensive: std.ArrayList(?HintRange),
 
+    /// Initializes a new HintsRanges instance.
+    ///
+    /// - `allocator`: The allocator to use for memory allocation.
+    /// - `extensive_hints`: Indicates whether the hints are extensive.
+    ///
+    /// Returns: A new HintsRanges instance.
     pub fn init(
         allocator: Allocator,
         extensive_hints: bool,
@@ -57,6 +68,12 @@ pub const HintsRanges = union(enum) {
         };
     }
 
+    /// Adds a hint range to the collection.
+    ///
+    /// - `offset`: The offset of the hint range.
+    /// - `range`: The hint range to add.
+    ///
+    /// Returns: Error if any.
     pub fn add(self: *Self, offset: usize, range: HintRange) !void {
         return switch (self.*) {
             .Extensive => |*extensive| try extensive.put(Relocatable.init(0, offset), range),
@@ -64,10 +81,31 @@ pub const HintsRanges = union(enum) {
         };
     }
 
+    /// Retrieves the hint range at the specified offset.
+    ///
+    /// - `offset`: The offset of the hint range to retrieve.
+    ///
+    /// Returns: The hint range at the specified offset, or null if not found.
+    pub fn get(self: *Self, offset: usize) ?HintRange {
+        return switch (self.*) {
+            .Extensive => |*extensive| extensive.get(Relocatable.init(0, offset)),
+            .NonExtensive => |*non_extensive| if (offset < non_extensive.items.len)
+                non_extensive.items[offset]
+            else
+                null,
+        };
+    }
+
+    /// Checks whether the hints are extensive.
+    ///
+    /// Returns: `true` if the hints are extensive, otherwise `false`.
     pub fn isExtensive(self: Self) bool {
         return self == .Extensive;
     }
 
+    /// Retrieves the count of hint ranges in the collection.
+    ///
+    /// Returns: The count of hint ranges.
     pub fn count(self: *Self) usize {
         return switch (self.*) {
             .Extensive => |*extensive| extensive.count(),
@@ -75,6 +113,7 @@ pub const HintsRanges = union(enum) {
         };
     }
 
+    /// Deinitializes the collection, releasing associated resources.
     pub fn deinit(self: *Self) void {
         switch (self.*) {
             .Extensive => |*extensive| extensive.deinit(),
@@ -201,6 +240,22 @@ pub const HintsCollection = struct {
         }
 
         return res;
+    }
+
+    /// Retrieves the hint range for a given program counter (PC).
+    ///
+    /// This method returns the hint range associated with the provided program counter.
+    ///
+    /// # Params:
+    ///   - `pc`: The program counter for which to retrieve the hint range.
+    ///
+    /// # Returns:
+    ///   - The hint range corresponding to the provided program counter, or null if not found.
+    pub fn getHintRangeForPC(self: *Self, pc: usize) ?HintRange {
+        if (self.hints_ranges.isExtensive())
+            return null;
+
+        return self.hints_ranges.get(pc);
     }
 
     /// Deinitializes the HintsCollection, freeing allocated memory.
@@ -489,6 +544,46 @@ pub const Program = struct {
     ///   - The number of built-ins in the program.
     pub fn builtinsLen(self: *Self) usize {
         return self.builtins.items.len;
+    }
+
+    /// Retrieves the relocated instruction locations based on the provided relocation table.
+    ///
+    /// This function iterates over the instruction locations stored in the program's shared data.
+    /// It applies the relocation specified in the relocation table to each instruction location's key
+    /// (represented as a string containing the instruction index) and returns the relocated instruction locations.
+    /// The relocation table contains offsets to be added to each instruction index to obtain the relocated index.
+    ///
+    /// # Params:
+    ///   - `allocator`: The allocator used to initialize the relocated instruction locations.
+    ///   - `relocation_table`: A slice containing offsets for relocating instruction indices.
+    ///
+    /// # Returns:
+    ///   - An optional `std.AutoArrayHashMap(usize, InstructionLocation)` containing relocated instruction locations,
+    ///     if the original instruction locations exist; otherwise, `null`.
+    ///
+    /// # Errors:
+    ///   - Returns `null` if the instruction locations are not present in the shared program data.
+    pub fn getRelocatedInstructionLocations(
+        self: *Self,
+        allocator: Allocator,
+        relocation_table: []const usize,
+    ) !?std.AutoArrayHashMap(usize, InstructionLocation) {
+        if (self.shared_program_data.instruction_locations) |il| {
+            var res = std.AutoArrayHashMap(usize, InstructionLocation).init(allocator);
+            errdefer res.deinit();
+
+            var it = il.iterator();
+
+            while (it.next()) |kv|
+                try res.put(
+                    try std.fmt.parseInt(usize, kv.key_ptr.*, 10) + relocation_table[0],
+                    kv.value_ptr.*,
+                );
+
+            return res;
+        }
+
+        return null;
     }
 
     /// Deinitializes the `Program` instance, freeing allocated memory.
@@ -1221,6 +1316,137 @@ test "Program: new program with non-extensive hints" {
     try expectEqualDeep(hints.get(4).?[0], program_hints.get(4).?[0]);
 }
 
+test "Program: get relocated instruction locations" {
+    const allocator = std.testing.allocator;
+
+    const reference_manager = ReferenceManager.init(allocator);
+    const builtins = std.ArrayList(BuiltinName).init(allocator);
+    const data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+
+    var hints = std.AutoHashMap(usize, []const HintParams).init(allocator);
+    defer hints.deinit();
+
+    const identifiers = std.StringHashMap(Identifier).init(allocator);
+
+    var instruction_locations = std.StringHashMap(InstructionLocation).init(allocator);
+    try instruction_locations.put(
+        "5",
+        .{
+            .inst = .{
+                .end_line = 0,
+                .end_col = 0,
+                .input_file = .{ .filename = "test" },
+                .parent_location = null,
+                .start_line = 0,
+                .start_col = 0,
+            },
+            .hints = &[_]HintLocation{},
+            .accessible_scopes = &[_][]const u8{},
+        },
+    );
+
+    try instruction_locations.put(
+        "10",
+        .{
+            .inst = .{
+                .end_line = 0,
+                .end_col = 0,
+                .input_file = .{ .filename = "test" },
+                .parent_location = null,
+                .start_line = 2,
+                .start_col = 0,
+            },
+            .hints = &[_]HintLocation{},
+            .accessible_scopes = &[_][]const u8{},
+        },
+    );
+
+    try instruction_locations.put(
+        "12",
+        .{
+            .inst = .{
+                .end_line = 0,
+                .end_col = 0,
+                .input_file = .{ .filename = "test" },
+                .parent_location = null,
+                .start_line = 3,
+                .start_col = 0,
+            },
+            .hints = &[_]HintLocation{},
+            .accessible_scopes = &[_][]const u8{},
+        },
+    );
+
+    var program = try Program.init(
+        allocator,
+        builtins,
+        data,
+        null,
+        hints,
+        reference_manager,
+        identifiers,
+        std.ArrayList(Attribute).init(allocator),
+        instruction_locations,
+        false,
+    );
+
+    defer program.deinit(allocator);
+
+    var relocated_instructions = try program.getRelocatedInstructionLocations(
+        std.testing.allocator,
+        &[_]usize{2},
+    );
+
+    defer relocated_instructions.?.deinit();
+
+    try expectEqual(@as(usize, 3), relocated_instructions.?.count());
+    try expectEqual(
+        InstructionLocation{
+            .inst = .{
+                .end_line = 0,
+                .end_col = 0,
+                .input_file = .{ .filename = "test" },
+                .parent_location = null,
+                .start_line = 0,
+                .start_col = 0,
+            },
+            .hints = &[_]HintLocation{},
+            .accessible_scopes = &[_][]const u8{},
+        },
+        relocated_instructions.?.get(7),
+    );
+    try expectEqual(
+        InstructionLocation{
+            .inst = .{
+                .end_line = 0,
+                .end_col = 0,
+                .input_file = .{ .filename = "test" },
+                .parent_location = null,
+                .start_line = 2,
+                .start_col = 0,
+            },
+            .hints = &[_]HintLocation{},
+            .accessible_scopes = &[_][]const u8{},
+        },
+        relocated_instructions.?.get(12),
+    );
+    try expectEqual(
+        InstructionLocation{
+            .inst = .{
+                .end_line = 0,
+                .end_col = 0,
+                .input_file = .{ .filename = "test" },
+                .parent_location = null,
+                .start_line = 3,
+                .start_col = 0,
+            },
+            .hints = &[_]HintLocation{},
+            .accessible_scopes = &[_][]const u8{},
+        },
+        relocated_instructions.?.get(14),
+    );
+}
+
 test "Program: new default program" {
     var program = try Program.initDefault(std.testing.allocator, false);
     defer program.deinit(std.testing.allocator);
@@ -1235,4 +1461,174 @@ test "Program: new default program" {
     try expect(program.shared_program_data.instruction_locations == null);
     try expectEqual(@as(usize, 0), program.shared_program_data.identifiers.count());
     try expect(program.shared_program_data.reference_manager.items.len == 0);
+}
+
+test "Program: getHintRangeForPc with non-extensive hints" {
+    // Initialize allocator for testing purposes.
+    const allocator = std.testing.allocator;
+
+    // Initialize reference manager.
+    const reference_manager = ReferenceManager.init(allocator);
+
+    // Initialize list of builtins.
+    const builtins = std.ArrayList(BuiltinName).init(allocator);
+
+    // Initialize list of MaybeRelocatable data.
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+
+    // Append data to the list.
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 1000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 2000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5201798304953696256));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize AutoHashMap for hints.
+    var hints = std.AutoHashMap(usize, []const HintParams).init(allocator);
+    defer hints.deinit();
+
+    // Initialize default scopes and flow tracking data.
+    const default_scopes = &[_][]const u8{};
+    const default_flow_tracking_data = .{ .ap_tracking = .{ .offset = 0, .group = 0 }, .reference_ids = null };
+
+    // Populate hints map with test data.
+    try hints.put(
+        5,
+        &[_]HintParams{
+            HintParams.init("c", default_scopes, default_flow_tracking_data),
+            HintParams.init("d", default_scopes, default_flow_tracking_data),
+        },
+    );
+    try hints.put(
+        1,
+        &[_]HintParams{
+            HintParams.init("a", default_scopes, default_flow_tracking_data),
+        },
+    );
+    try hints.put(
+        4,
+        &[_]HintParams{
+            HintParams.init("b", default_scopes, default_flow_tracking_data),
+        },
+    );
+
+    // Initialize StringHashMap for identifiers.
+    const identifiers = std.StringHashMap(Identifier).init(allocator);
+
+    // Initialize Program instance.
+    var program = try Program.init(
+        allocator,
+        builtins,
+        data,
+        null,
+        hints,
+        reference_manager,
+        identifiers,
+        std.ArrayList(Attribute).init(allocator),
+        null,
+        false,
+    );
+
+    // Defer deallocation of program resources.
+    defer program.deinit(allocator);
+
+    // Test retrieving hint ranges for specific program counters.
+    try expectEqual(
+        HintRange{ .start = 3, .length = 1 },
+        program.shared_program_data.hints_collection.getHintRangeForPC(4),
+    );
+    try expectEqual(
+        HintRange{ .start = 1, .length = 2 },
+        program.shared_program_data.hints_collection.getHintRangeForPC(5),
+    );
+    try expectEqual(
+        null,
+        program.shared_program_data.hints_collection.getHintRangeForPC(0),
+    );
+}
+
+test "Program: getHintRangeForPc with extensive hints" {
+    // Initialize allocator for testing purposes.
+    const allocator = std.testing.allocator;
+
+    // Initialize reference manager.
+    const reference_manager = ReferenceManager.init(allocator);
+
+    // Initialize list of builtins.
+    const builtins = std.ArrayList(BuiltinName).init(allocator);
+
+    // Initialize list of MaybeRelocatable data.
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+
+    // Append data to the list.
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 1000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 2000));
+    try data.append(MaybeRelocatable.fromInt(u256, 5201798304953696256));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize AutoHashMap for hints.
+    var hints = std.AutoHashMap(usize, []const HintParams).init(allocator);
+    defer hints.deinit();
+
+    // Initialize default scopes and flow tracking data.
+    const default_scopes = &[_][]const u8{};
+    const default_flow_tracking_data = .{ .ap_tracking = .{ .offset = 0, .group = 0 }, .reference_ids = null };
+
+    // Populate hints map with test data.
+    try hints.put(
+        5,
+        &[_]HintParams{
+            HintParams.init("c", default_scopes, default_flow_tracking_data),
+            HintParams.init("d", default_scopes, default_flow_tracking_data),
+        },
+    );
+    try hints.put(
+        1,
+        &[_]HintParams{
+            HintParams.init("a", default_scopes, default_flow_tracking_data),
+        },
+    );
+    try hints.put(
+        4,
+        &[_]HintParams{
+            HintParams.init("b", default_scopes, default_flow_tracking_data),
+        },
+    );
+
+    // Initialize StringHashMap for identifiers.
+    const identifiers = std.StringHashMap(Identifier).init(allocator);
+
+    // Initialize Program instance with extensive hints.
+    var program = try Program.init(
+        allocator,
+        builtins,
+        data,
+        null,
+        hints,
+        reference_manager,
+        identifiers,
+        std.ArrayList(Attribute).init(allocator),
+        null,
+        true,
+    );
+
+    // Defer deallocation of program resources.
+    defer program.deinit(allocator);
+
+    // Initialize a pseudo-random number generator (PRNG) with a seed of 0.
+    var prng = std.Random.DefaultPrng.init(0);
+    // Generate a random number using the PRNG.
+    const random = prng.random();
+
+    // Iterate 100 times to test random program counters.
+    for (0..100) |_| {
+        // Test retrieving null hint ranges for random program counters.
+        try expectEqual(
+            null,
+            program.shared_program_data.hints_collection.getHintRangeForPC(random.int(usize)),
+        );
+    }
 }

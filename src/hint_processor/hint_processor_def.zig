@@ -19,6 +19,7 @@ const RunResources = @import("../vm/runners/cairo_runner.zig").RunResources;
 /// import hint code
 const hint_codes = @import("builtin_hint_codes.zig");
 const math_hints = @import("math_hints.zig");
+const math_utils = @import("math_utils.zig");
 const memcpy_hint_utils = @import("memcpy_hint_utils.zig");
 const memset_utils = @import("memset_utils.zig");
 const uint256_utils = @import("uint256_utils.zig");
@@ -182,12 +183,34 @@ pub const CairoVMHintProcessor = struct {
             try math_hints.assertNN(vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.VERIFY_ECDSA_SIGNATURE, hint_data.code)) {
             try math_hints.verifyEcdsaSignature(vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.ASSERT_NOT_EQUAL, hint_data.code)) {
+            try math_hints.assertNotEqual(vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.IS_NN, hint_data.code)) {
+            try math_utils.isNn(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.IS_NN_OUT_OF_RANGE, hint_data.code)) {
+            try math_utils.isNnOutOfRange(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.ASSERT_LE_FELT_V_0_6, hint_data.code)) {
+            try math_utils.assertLeFeltV06(vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.ASSERT_LE_FELT_V_0_8, hint_data.code)) {
+            try math_utils.assertLeFeltV08(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.IS_LE_FELT, hint_data.code)) {
+            try math_utils.isLeFelt(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.A_B_BITAND_1, hint_data.code)) {
+            try math_utils.abBitand1(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_INT, hint_data.code)) {
+            try math_utils.splitInt(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.IS_250_BITS, hint_data.code)) {
+            try math_utils.is250Bits(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SPLIT_XX, hint_data.code)) {
+            try math_utils.splitXx(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.IS_ADDR_BOUNDED, hint_data.code)) {
+            try math_utils.isAddrBounded(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
         } else if (std.mem.eql(u8, hint_codes.IS_POSITIVE, hint_data.code)) {
             try math_hints.isPositive(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.ASSERT_NOT_ZERO, hint_data.code)) {
             try math_hints.assertNonZero(vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.IS_QUAD_RESIDUE, hint_data.code)) {
-            try math_hints.isQuadResidue(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+            try math_utils.isQuadResidue(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.SQRT, hint_data.code)) {
             try math_hints.sqrt(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.UNSIGNED_DIV_REM, hint_data.code)) {
