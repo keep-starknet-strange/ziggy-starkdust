@@ -80,6 +80,7 @@ pub const ASSERT_NN = "from starkware.cairo.common.math_utils import assert_inte
 pub const VERIFY_ECDSA_SIGNATURE = "ecdsa_builtin.add_signature(ids.ecdsa_ptr.address_, (ids.signature_r, ids.signature_s))";
 pub const IS_POSITIVE = "from starkware.cairo.common.math_utils import is_positive\nids.is_positive = 1 if is_positive(\n    value=ids.value, prime=PRIME, rc_bound=range_check_builtin.bound) else 0";
 pub const ASSERT_NOT_ZERO = "from starkware.cairo.common.math_utils import assert_integer\nassert_integer(ids.value)\nassert ids.value % PRIME != 0, f'assert_not_zero failed: {ids.value} = 0.'";
+
 pub const IS_QUAD_RESIDUE =
     \\from starkware.crypto.signature.signature import FIELD_PRIME
     \\from starkware.python.math_utils import div_mod, is_quad_residue, sqrt
@@ -88,7 +89,7 @@ pub const IS_QUAD_RESIDUE =
     \\if is_quad_residue(x, FIELD_PRIME):
     \\    ids.y = sqrt(x, FIELD_PRIME)
     \\else:
-    \\    ids.y = sqrt(div_mod(x, 3, FIELD_PRIME), FIELD_PRIME)`
+    \\    ids.y = sqrt(div_mod(x, 3, FIELD_PRIME), FIELD_PRIME)
 ;
 
 pub const ASSERT_NOT_EQUAL =
@@ -173,6 +174,8 @@ pub const ASSERT_LT_FELT =
     \\assert (ids.a % PRIME) < (ids.b % PRIME), \
     \\    f'a = {ids.a % PRIME} is not less than b = {ids.b % PRIME}.'
 ;
+
+pub const IS_250_BITS = "ids.is_250 = 1 if ids.addr < 2**250 else 0";
 
 pub const ASSERT_250_BITS =
     \\from starkware.cairo.common.math_utils import as_int
@@ -578,4 +581,58 @@ pub const CAIRO_KECCAK_FINALIZE_V2 =
     \\inp = [0] * _keccak_state_size_felts
     \\padding = (inp + keccak_func(inp)) * _block_size
     \\segments.write_arg(ids.keccak_ptr_end, padding)
+;
+
+pub const IS_NN = "memory[ap] = 0 if 0 <= (ids.a % PRIME) < range_check_builtin.bound else 1";
+
+pub const IS_NN_OUT_OF_RANGE = "memory[ap] = 0 if 0 <= ((-ids.a - 1) % PRIME) < range_check_builtin.bound else 1";
+
+pub const ASSERT_LE_FELT_V_0_6 =
+    \\from starkware.cairo.common.math_utils import assert_integer
+    \\assert_integer(ids.a)
+    \\assert_integer(ids.b)
+    \\assert (ids.a % PRIME) <= (ids.b % PRIME), \
+    \\    f'a = {ids.a % PRIME} is not less than or equal to b = {ids.b % PRIME}.'
+;
+
+pub const ASSERT_LE_FELT_V_0_8 =
+    \\from starkware.cairo.common.math_utils import assert_integer
+    \\assert_integer(ids.a)
+    \\assert_integer(ids.b)
+    \\a = ids.a % PRIME
+    \\b = ids.b % PRIME
+    \\assert a <= b, f'a = {a} is not less than or equal to b = {b}.'
+    \\
+    \\ids.small_inputs = int(
+    \\    a < range_check_builtin.bound and (b - a) < range_check_builtin.bound)
+;
+
+pub const A_B_BITAND_1 =
+    \\ids.a_lsb = ids.a & 1
+    \\ids.b_lsb = ids.b & 1
+;
+
+pub const IS_LE_FELT = "memory[ap] = 0 if (ids.a % PRIME) <= (ids.b % PRIME) else 1";
+
+pub const IS_ADDR_BOUNDED =
+    \\# Verify the assumptions on the relationship between 2**250, ADDR_BOUND and PRIME.
+    \\ADDR_BOUND = ids.ADDR_BOUND % PRIME
+    \\assert (2**250 < ADDR_BOUND <= 2**251) and (2 * 2**250 < PRIME) and (
+    \\        ADDR_BOUND * 2 > PRIME), \
+    \\    'normalize_address() cannot be used with the current constants.'
+    \\ids.is_small = 1 if ids.addr < ADDR_BOUND else 0
+;
+
+pub const SPLIT_XX =
+    \\PRIME = 2**255 - 19
+    \\II = pow(2, (PRIME - 1) // 4, PRIME)
+    \\
+    \\xx = ids.xx.low + (ids.xx.high<<128)
+    \\x = pow(xx, (PRIME + 3) // 8, PRIME)
+    \\if (x * x - xx) % PRIME != 0:
+    \\    x = (x * II) % PRIME
+    \\if x % 2 != 0:
+    \\    x = PRIME - x
+    \\ids.x.low = x & ((1<<128)-1)
+    \\ids.x.high = x >> 128
 ;

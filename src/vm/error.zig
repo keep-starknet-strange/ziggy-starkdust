@@ -43,6 +43,10 @@ pub const CairoVMError = error{
     UnconstrainedResAssertEq,
     /// Different result and destination operands values for Opcode.ASSERT_EQ
     DiffAssertValues,
+    /// Failed to compare , cant compare two relocatable values of different segment indexes
+    DiffIndexComp,
+    /// Failed to compar,  cant compare a relocatable to an integer value
+    DiffTypeComparison,
     /// Cannot return ProgramJson Counter
     CantWriteReturnPc,
     /// Cannot return Frame Pointer
@@ -332,6 +336,9 @@ pub const HintError = error{
     AssertLtFelt252,
     AssertionFailed,
     SplitIntNotZero,
+    // split_int(): Limb is out of range.
+    SplitIntLimbOutOfRange,
+
     FromScopeError,
     KeyNotFound,
     InvalidIndex,
