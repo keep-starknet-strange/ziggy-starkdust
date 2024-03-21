@@ -1,0 +1,1102 @@
+{
+    "attributes": [],
+    "builtins": [],
+    "compiler_version": "0.12.2",
+    "data": [
+        "0x400b7ffd7fff7ffc",
+        "0x208b7fff7fff7ffe",
+        "0x40780017fff7fff",
+        "0x1",
+        "0x208b7fff7fff7ffe",
+        "0x40780017fff7fff",
+        "0x1",
+        "0x1104800180018000",
+        "0x800000000000010fffffffffffffffffffffffffffffffffffffffffffffffc",
+        "0x480680017fff8000",
+        "0x32",
+        "0x400080007ffe7fff",
+        "0x480680017fff8000",
+        "0x33",
+        "0x400080017ffd7fff",
+        "0x480a80007fff8000",
+        "0x48127ffc7fff8000",
+        "0x1104800180018000",
+        "0x800000000000010fffffffffffffffffffffffffffffffffffffffffffffff0",
+        "0x480680017fff8000",
+        "0x32",
+        "0x4002800080007fff",
+        "0x480680017fff8000",
+        "0x33",
+        "0x4002800180007fff",
+        "0x480680017fff8000",
+        "0x34",
+        "0x400080027ff67fff",
+        "0x480680017fff8000",
+        "0x34",
+        "0x4002800280007fff",
+        "0x208b7fff7fff7ffe"
+    ],
+    "debug_info": {
+        "file_contents": {},
+        "instruction_locations": {
+            "0": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.segments",
+                    "starkware.cairo.common.segments.relocate_segment"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.segments.relocate_segment.dest_ptr": 1,
+                        "starkware.cairo.common.segments.relocate_segment.src_ptr": 0
+                    }
+                },
+                "hints": [
+                    {
+                        "location": {
+                            "end_col": 81,
+                            "end_line": 6,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/segments.cairo"
+                            },
+                            "start_col": 5,
+                            "start_line": 6
+                        },
+                        "n_prefix_newlines": 0
+                    }
+                ],
+                "inst": {
+                    "end_col": 31,
+                    "end_line": 9,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/segments.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 9
+                }
+            },
+            "1": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.segments",
+                    "starkware.cairo.common.segments.relocate_segment"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.segments.relocate_segment.dest_ptr": 1,
+                        "starkware.cairo.common.segments.relocate_segment.src_ptr": 0
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 15,
+                    "end_line": 10,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/segments.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 10
+                }
+            },
+            "2": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.alloc",
+                    "starkware.cairo.common.alloc.alloc"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 0
+                    },
+                    "reference_ids": {}
+                },
+                "hints": [
+                    {
+                        "location": {
+                            "end_col": 38,
+                            "end_line": 3,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/alloc.cairo"
+                            },
+                            "start_col": 5,
+                            "start_line": 3
+                        },
+                        "n_prefix_newlines": 0
+                    }
+                ],
+                "inst": {
+                    "end_col": 12,
+                    "end_line": 4,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/alloc.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 4
+                }
+            },
+            "4": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.alloc",
+                    "starkware.cairo.common.alloc.alloc"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 1
+                    },
+                    "reference_ids": {}
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 40,
+                    "end_line": 5,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/alloc.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 5
+                }
+            },
+            "5": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 0
+                    },
+                    "reference_ids": {}
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 18,
+                    "end_line": 5,
+                    "input_file": {
+                        "filename": "cairo_programs/relocate_segments.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 5
+                }
+            },
+            "7": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "__main__.main.temporary_array": 2
+                    }
+                },
+                "hints": [
+                    {
+                        "location": {
+                            "end_col": 60,
+                            "end_line": 8,
+                            "input_file": {
+                                "filename": "cairo_programs/relocate_segments.cairo"
+                            },
+                            "start_col": 5,
+                            "start_line": 8
+                        },
+                        "n_prefix_newlines": 0
+                    }
+                ],
+                "inst": {
+                    "end_col": 33,
+                    "end_line": 11,
+                    "input_file": {
+                        "filename": "cairo_programs/relocate_segments.cairo"
+                    },
+                    "start_col": 26,
+                    "start_line": 11
+                }
+            },
+            "9": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 4
+                    },
+                    "reference_ids": {
+                        "__main__.main.array": 3,
+                        "__main__.main.temporary_array": 2
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 25,
+                    "end_line": 14,
+                    "input_file": {
+                        "filename": "cairo_programs/relocate_segments.cairo"
+                    },
+                    "start_col": 23,
+                    "start_line": 14
+                }
+            },
+            "11": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 5
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 4,
+                        "__main__.main.array": 3,
+                        "__main__.main.temporary_array": 2
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 26,
+                    "end_line": 14,
+                    "input_file": {
+                        "filename": "cairo_programs/relocate_segments.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 14
+                }
+            },
+            "12": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 5
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 4,
+                        "__main__.main.array": 3,
+                        "__main__.main.temporary_array": 2
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 25,
+                    "end_line": 15,
+                    "input_file": {
+                        "filename": "cairo_programs/relocate_segments.cairo"
+                    },
+                    "start_col": 23,
+                    "start_line": 15
+                }
+            },
+            "14": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 6
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 4,
+                        "__main__.main.__temp1": 5,
+                        "__main__.main.array": 3,
+                        "__main__.main.temporary_array": 2
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 26,
+                    "end_line": 15,
+                    "input_file": {
+                        "filename": "cairo_programs/relocate_segments.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 15
+                }
+            },
+            "15": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 6
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 4,
+                        "__main__.main.__temp1": 5,
+                        "__main__.main.array": 3,
+                        "__main__.main.temporary_array": 2
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 26,
+                    "end_line": 7,
+                    "input_file": {
+                        "filename": "cairo_programs/relocate_segments.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 45,
+                            "end_line": 18,
+                            "input_file": {
+                                "filename": "cairo_programs/relocate_segments.cairo"
+                            },
+                            "start_col": 30,
+                            "start_line": 18
+                        },
+                        "While expanding the reference 'temporary_array' in:"
+                    ],
+                    "start_col": 11,
+                    "start_line": 7
+                }
+            },
+            "16": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 7
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 4,
+                        "__main__.main.__temp1": 5,
+                        "__main__.main.array": 3,
+                        "__main__.main.temporary_array": 2
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 22,
+                    "end_line": 11,
+                    "input_file": {
+                        "filename": "cairo_programs/relocate_segments.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 61,
+                            "end_line": 18,
+                            "input_file": {
+                                "filename": "cairo_programs/relocate_segments.cairo"
+                            },
+                            "start_col": 56,
+                            "start_line": 18
+                        },
+                        "While expanding the reference 'array' in:"
+                    ],
+                    "start_col": 10,
+                    "start_line": 11
+                }
+            },
+            "17": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 8
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 4,
+                        "__main__.main.__temp1": 5,
+                        "__main__.main.array": 3,
+                        "__main__.main.temporary_array": 2
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 62,
+                    "end_line": 18,
+                    "input_file": {
+                        "filename": "cairo_programs/relocate_segments.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 18
+                }
+            },
+            "19": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 10
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 4,
+                        "__main__.main.__temp1": 5,
+                        "__main__.main.array": 3,
+                        "__main__.main.temporary_array": 2
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 35,
+                    "end_line": 21,
+                    "input_file": {
+                        "filename": "cairo_programs/relocate_segments.cairo"
+                    },
+                    "start_col": 33,
+                    "start_line": 21
+                }
+            },
+            "21": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 11
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 4,
+                        "__main__.main.__temp1": 5,
+                        "__main__.main.__temp2": 6,
+                        "__main__.main.array": 3,
+                        "__main__.main.temporary_array": 2
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 36,
+                    "end_line": 21,
+                    "input_file": {
+                        "filename": "cairo_programs/relocate_segments.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 21
+                }
+            },
+            "22": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 11
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 4,
+                        "__main__.main.__temp1": 5,
+                        "__main__.main.__temp2": 6,
+                        "__main__.main.array": 3,
+                        "__main__.main.temporary_array": 2
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 35,
+                    "end_line": 22,
+                    "input_file": {
+                        "filename": "cairo_programs/relocate_segments.cairo"
+                    },
+                    "start_col": 33,
+                    "start_line": 22
+                }
+            },
+            "24": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 12
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 4,
+                        "__main__.main.__temp1": 5,
+                        "__main__.main.__temp2": 6,
+                        "__main__.main.__temp3": 7,
+                        "__main__.main.array": 3,
+                        "__main__.main.temporary_array": 2
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 36,
+                    "end_line": 22,
+                    "input_file": {
+                        "filename": "cairo_programs/relocate_segments.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 22
+                }
+            },
+            "25": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 12
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 4,
+                        "__main__.main.__temp1": 5,
+                        "__main__.main.__temp2": 6,
+                        "__main__.main.__temp3": 7,
+                        "__main__.main.array": 3,
+                        "__main__.main.temporary_array": 2
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 25,
+                    "end_line": 23,
+                    "input_file": {
+                        "filename": "cairo_programs/relocate_segments.cairo"
+                    },
+                    "start_col": 23,
+                    "start_line": 23
+                }
+            },
+            "27": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 13
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 4,
+                        "__main__.main.__temp1": 5,
+                        "__main__.main.__temp2": 6,
+                        "__main__.main.__temp3": 7,
+                        "__main__.main.__temp4": 8,
+                        "__main__.main.array": 3,
+                        "__main__.main.temporary_array": 2
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 26,
+                    "end_line": 23,
+                    "input_file": {
+                        "filename": "cairo_programs/relocate_segments.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 23
+                }
+            },
+            "28": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 13
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 4,
+                        "__main__.main.__temp1": 5,
+                        "__main__.main.__temp2": 6,
+                        "__main__.main.__temp3": 7,
+                        "__main__.main.__temp4": 8,
+                        "__main__.main.array": 3,
+                        "__main__.main.temporary_array": 2
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 35,
+                    "end_line": 24,
+                    "input_file": {
+                        "filename": "cairo_programs/relocate_segments.cairo"
+                    },
+                    "start_col": 33,
+                    "start_line": 24
+                }
+            },
+            "30": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 14
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 4,
+                        "__main__.main.__temp1": 5,
+                        "__main__.main.__temp2": 6,
+                        "__main__.main.__temp3": 7,
+                        "__main__.main.__temp4": 8,
+                        "__main__.main.__temp5": 9,
+                        "__main__.main.array": 3,
+                        "__main__.main.temporary_array": 2
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 36,
+                    "end_line": 24,
+                    "input_file": {
+                        "filename": "cairo_programs/relocate_segments.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 24
+                }
+            },
+            "31": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 14
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 4,
+                        "__main__.main.__temp1": 5,
+                        "__main__.main.__temp2": 6,
+                        "__main__.main.__temp3": 7,
+                        "__main__.main.__temp4": 8,
+                        "__main__.main.__temp5": 9,
+                        "__main__.main.array": 3,
+                        "__main__.main.temporary_array": 2
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 15,
+                    "end_line": 26,
+                    "input_file": {
+                        "filename": "cairo_programs/relocate_segments.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 26
+                }
+            }
+        }
+    },
+    "hints": {
+        "0": [
+            {
+                "accessible_scopes": [
+                    "starkware.cairo.common.segments",
+                    "starkware.cairo.common.segments.relocate_segment"
+                ],
+                "code": "memory.add_relocation_rule(src_ptr=ids.src_ptr, dest_ptr=ids.dest_ptr)",
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.segments.relocate_segment.dest_ptr": 1,
+                        "starkware.cairo.common.segments.relocate_segment.src_ptr": 0
+                    }
+                }
+            }
+        ],
+        "2": [
+            {
+                "accessible_scopes": [
+                    "starkware.cairo.common.alloc",
+                    "starkware.cairo.common.alloc.alloc"
+                ],
+                "code": "memory[ap] = segments.add()",
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 0
+                    },
+                    "reference_ids": {}
+                }
+            }
+        ],
+        "7": [
+            {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "code": "ids.temporary_array = segments.add_temp_segment()",
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "__main__.main.temporary_array": 2
+                    }
+                }
+            }
+        ]
+    },
+    "identifiers": {
+        "__main__.alloc": {
+            "destination": "starkware.cairo.common.alloc.alloc",
+            "type": "alias"
+        },
+        "__main__.main": {
+            "decorators": [],
+            "pc": 5,
+            "type": "function"
+        },
+        "__main__.main.Args": {
+            "full_name": "__main__.main.Args",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "__main__.main.ImplicitArgs": {
+            "full_name": "__main__.main.ImplicitArgs",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "__main__.main.Return": {
+            "cairo_type": "()",
+            "type": "type_definition"
+        },
+        "__main__.main.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 1
+        },
+        "__main__.main.__temp0": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.__temp0",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 5
+                    },
+                    "pc": 11,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.__temp1": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.__temp1",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 6
+                    },
+                    "pc": 14,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.__temp2": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.__temp2",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 11
+                    },
+                    "pc": 21,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.__temp3": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.__temp3",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 12
+                    },
+                    "pc": 24,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.__temp4": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.__temp4",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 13
+                    },
+                    "pc": 27,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.__temp5": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.__temp5",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 14
+                    },
+                    "pc": 30,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.array": {
+            "cairo_type": "felt*",
+            "full_name": "__main__.main.array",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 4
+                    },
+                    "pc": 9,
+                    "value": "[cast(ap + (-1), felt**)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.temporary_array": {
+            "cairo_type": "felt*",
+            "full_name": "__main__.main.temporary_array",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 1
+                    },
+                    "pc": 7,
+                    "value": "[cast(fp, felt**)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.relocate_segment": {
+            "destination": "starkware.cairo.common.segments.relocate_segment",
+            "type": "alias"
+        },
+        "starkware.cairo.common.alloc.alloc": {
+            "decorators": [],
+            "pc": 2,
+            "type": "function"
+        },
+        "starkware.cairo.common.alloc.alloc.Args": {
+            "full_name": "starkware.cairo.common.alloc.alloc.Args",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "starkware.cairo.common.alloc.alloc.ImplicitArgs": {
+            "full_name": "starkware.cairo.common.alloc.alloc.ImplicitArgs",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "starkware.cairo.common.alloc.alloc.Return": {
+            "cairo_type": "(ptr: felt*)",
+            "type": "type_definition"
+        },
+        "starkware.cairo.common.alloc.alloc.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 0
+        },
+        "starkware.cairo.common.segments.relocate_segment": {
+            "decorators": [],
+            "pc": 0,
+            "type": "function"
+        },
+        "starkware.cairo.common.segments.relocate_segment.Args": {
+            "full_name": "starkware.cairo.common.segments.relocate_segment.Args",
+            "members": {
+                "dest_ptr": {
+                    "cairo_type": "felt*",
+                    "offset": 1
+                },
+                "src_ptr": {
+                    "cairo_type": "felt*",
+                    "offset": 0
+                }
+            },
+            "size": 2,
+            "type": "struct"
+        },
+        "starkware.cairo.common.segments.relocate_segment.ImplicitArgs": {
+            "full_name": "starkware.cairo.common.segments.relocate_segment.ImplicitArgs",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "starkware.cairo.common.segments.relocate_segment.Return": {
+            "cairo_type": "()",
+            "type": "type_definition"
+        },
+        "starkware.cairo.common.segments.relocate_segment.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 0
+        },
+        "starkware.cairo.common.segments.relocate_segment.dest_ptr": {
+            "cairo_type": "felt*",
+            "full_name": "starkware.cairo.common.segments.relocate_segment.dest_ptr",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "pc": 0,
+                    "value": "[cast(fp + (-3), felt**)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.segments.relocate_segment.src_ptr": {
+            "cairo_type": "felt*",
+            "full_name": "starkware.cairo.common.segments.relocate_segment.src_ptr",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "pc": 0,
+                    "value": "[cast(fp + (-4), felt**)]"
+                }
+            ],
+            "type": "reference"
+        }
+    },
+    "main_scope": "__main__",
+    "prime": "0x800000000000011000000000000000000000000000000000000000000000001",
+    "reference_manager": {
+        "references": [
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 0
+                },
+                "pc": 0,
+                "value": "[cast(fp + (-4), felt**)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 0
+                },
+                "pc": 0,
+                "value": "[cast(fp + (-3), felt**)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 1
+                },
+                "pc": 7,
+                "value": "[cast(fp, felt**)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 4
+                },
+                "pc": 9,
+                "value": "[cast(ap + (-1), felt**)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 5
+                },
+                "pc": 11,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 6
+                },
+                "pc": 14,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 11
+                },
+                "pc": 21,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 12
+                },
+                "pc": 24,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 13
+                },
+                "pc": 27,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 14
+                },
+                "pc": 30,
+                "value": "[cast(ap + (-1), felt*)]"
+            }
+        ]
+    }
+}
