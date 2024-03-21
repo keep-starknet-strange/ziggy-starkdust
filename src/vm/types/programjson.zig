@@ -149,7 +149,7 @@ pub const Instruction = struct {
 ///
 /// This structure defines a hint location, incorporating location information
 /// and the count of newlines following the "%{" symbol.
-const HintLocation = struct {
+pub const HintLocation = struct {
     /// Location details of the hint.
     location: Instruction,
     /// Number of newlines following the "%{" symbol.
