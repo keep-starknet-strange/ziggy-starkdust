@@ -11,6 +11,7 @@ const Relocatable = @import("../vm/memory/relocatable.zig").Relocatable;
 const Allocator = std.mem.Allocator;
 const hint_codes = @import("builtin_hint_codes.zig");
 const hint_utils = @import("hint_utils.zig");
+const testing_utils = @import("testing_utils.zig");
 const HintProcessor = @import("hint_processor_def.zig").CairoVMHintProcessor;
 const HintData = @import("hint_processor_def.zig").HintData;
 
@@ -81,7 +82,7 @@ test "Segments: run relocate segments" {
     defer vm.deinit(); // Ensure cleanup.
 
     // Sets the frame pointer within the virtual machine to a specific relocatable value.
-    vm.run_context.*.fp.* = Relocatable.init(1, 2);
+    vm.run_context.fp.* = Relocatable.init(1, 2);
 
     // Sets up memory segments in the virtual machine with predefined configurations.
     try vm.segments.memory.setUpMemory(
@@ -94,24 +95,15 @@ test "Segments: run relocate segments" {
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    // Creates a hashmap containing variable references.
-    var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
+    // Creates a hashmap containing variable references and insert data.
+
+    var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "src_ptr", "dest_ptr" });
     defer ids_data.deinit();
 
-    // Inserts a valid variable reference into the hashmap.
-    try ids_data.put("src_ptr", HintReference.initSimple(-2));
-    try ids_data.put("dest_ptr", HintReference.initSimple(-1));
-
-    // Initialize a HintProcessor instance.
-    const hint_processor: HintProcessor = .{};
-
-    // Creates a HintData instance representing the hint to relocate segments.
-    var hint_data = HintData.init(hint_codes.RELOCATE_SEGMENT, ids_data, .{});
-
     // Executes the hint using the HintProcessor.
-    try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
+    try testing_utils.runHint(std.testing.allocator, &vm, ids_data, hint_codes.RELOCATE_SEGMENT, undefined, undefined);
 
-    // Verifies that the memory relocation operation completes successfully.
+    // Initialize a HintProcessor instance.    // Verifies that the memory relocation operation completes successfully.
     try vm.segments.memory.relocateMemory();
 }
 
@@ -119,6 +111,8 @@ test "Segments: run temporary array" {
     // Initializes the Cairo virtual machine.
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit(); // Ensure cleanup.
+    // Ensure cleanup of memory data after execution.
+    defer vm.segments.memory.deinitData(std.testing.allocator);
 
     // Sets the frame pointer within the virtual machine to a specific relocatable value.
     vm.run_context.*.fp.* = Relocatable.init(1, 1);
@@ -127,23 +121,11 @@ test "Segments: run temporary array" {
     inline for (0..2) |_| _ = try vm.addMemorySegment();
 
     // Creates a hashmap containing variable references.
-    var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
+    var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{"temporary_array"});
     defer ids_data.deinit();
 
-    // Inserts a valid variable reference into the hashmap.
-    try ids_data.put("temporary_array", HintReference.initSimple(-1));
-
-    // Initialize a HintProcessor instance.
-    const hint_processor: HintProcessor = .{};
-
-    // Creates a HintData instance representing the hint to create a temporary array.
-    var hint_data = HintData.init(hint_codes.TEMPORARY_ARRAY, ids_data, .{});
-
     // Executes the hint using the HintProcessor.
-    try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
-
-    // Ensure cleanup of memory data after execution.
-    defer vm.segments.memory.deinitData(std.testing.allocator);
+    try testing_utils.runHint(std.testing.allocator, &vm, ids_data, hint_codes.TEMPORARY_ARRAY, undefined, undefined);
 
     // Verifies that the temporary array was successfully created in the memory segments.
     try expectEqual(
