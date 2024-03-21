@@ -35,14 +35,7 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
         /// The smallest value that can be represented by this integer type.
         pub const Min = Self.zero();
         /// The largest value that can be represented by this integer type.
-        pub const Max: Self = .{
-            .fe = .{
-                std.math.maxInt(u64),
-                std.math.maxInt(u64),
-                std.math.maxInt(u64),
-                std.math.maxInt(u64),
-            },
-        };
+        pub const Max: Self = Self.fromInt(u256, modulo - 1);
 
         const base_zero = val: {
             var bz: F.MontgomeryDomainFieldElement = undefined;

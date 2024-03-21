@@ -1,0 +1,3387 @@
+{
+    "attributes": [],
+    "builtins": [
+        "range_check"
+    ],
+    "compiler_version": "0.12.2",
+    "data": [
+        "0x400380007ffc7ffd",
+        "0x482680017ffc8000",
+        "0x1",
+        "0x208b7fff7fff7ffe",
+        "0x480a7ffb7fff8000",
+        "0x48297ffc80007ffd",
+        "0x1104800180018000",
+        "0x800000000000010fffffffffffffffffffffffffffffffffffffffffffffffb",
+        "0x208b7fff7fff7ffe",
+        "0x480280017ffc8000",
+        "0x484480017fff8000",
+        "0x100000000000000000000000000000000",
+        "0x480280007ffc8000",
+        "0x40317fff7ffe7ffd",
+        "0x480280017ffc8000",
+        "0x482480017fff8000",
+        "0x800000000000010fffffffffffffffff7ffffffffffffef0000000000000001",
+        "0x20680017fff7fff",
+        "0xb",
+        "0x482680017ffc8000",
+        "0x2",
+        "0x480280007ffc8000",
+        "0x480680017fff8000",
+        "0x0",
+        "0x1104800180018000",
+        "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffed",
+        "0x10780017fff7fff",
+        "0x9",
+        "0x482680017ffc8000",
+        "0x2",
+        "0x480280017ffc8000",
+        "0x480680017fff8000",
+        "0x800000000000010ffffffffffffffff",
+        "0x1104800180018000",
+        "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffe4",
+        "0x480280017ffc8000",
+        "0x480280007ffc8000",
+        "0x208b7fff7fff7ffe",
+        "0x480280017ffc8000",
+        "0x484480017fff8000",
+        "0x100000000000000000000000000000000",
+        "0x480280007ffc8000",
+        "0x40317fff7ffe7ffd",
+        "0x480280017ffc8000",
+        "0x482480017fff8000",
+        "0x800000000000010fffffffffffffffff7ffffffffffffef0000000000000001",
+        "0x20680017fff7fff",
+        "0xb",
+        "0x482680017ffc8000",
+        "0x2",
+        "0x480280007ffc8000",
+        "0x480680017fff8000",
+        "0x0",
+        "0x1104800180018000",
+        "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffd0",
+        "0x10780017fff7fff",
+        "0x9",
+        "0x482680017ffc8000",
+        "0x2",
+        "0x480280017ffc8000",
+        "0x480680017fff8000",
+        "0x800000000000010ffffffffffffffff",
+        "0x1104800180018000",
+        "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffc7",
+        "0x480280017ffc8000",
+        "0x480280007ffc8000",
+        "0x208b7fff7fff7ffe",
+        "0x480a7ffd7fff8000",
+        "0x480680017fff8000",
+        "0x1100000000000000000000000000000008",
+        "0x1104800180018000",
+        "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffe1",
+        "0x400680017fff7ffe",
+        "0x11",
+        "0x400680017fff7fff",
+        "0x8",
+        "0x48127ffd7fff8000",
+        "0x480680017fff8000",
+        "0x1100000000000000000000000000000008",
+        "0x1104800180018000",
+        "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffbb",
+        "0x400680017fff7ffe",
+        "0x11",
+        "0x400680017fff7fff",
+        "0x8",
+        "0x48127ffd7fff8000",
+        "0x208b7fff7fff7ffe"
+    ],
+    "debug_info": {
+        "file_contents": {},
+        "instruction_locations": {
+            "0": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.assert_nn"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.assert_nn.a": 0,
+                        "starkware.cairo.common.math.assert_nn.range_check_ptr": 1
+                    }
+                },
+                "hints": [
+                    {
+                        "location": {
+                            "end_col": 7,
+                            "end_line": 46,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                            },
+                            "start_col": 5,
+                            "start_line": 42
+                        },
+                        "n_prefix_newlines": 1
+                    }
+                ],
+                "inst": {
+                    "end_col": 26,
+                    "end_line": 47,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 47
+                }
+            },
+            "1": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.assert_nn"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.assert_nn.a": 0,
+                        "starkware.cairo.common.math.assert_nn.range_check_ptr": 2
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 46,
+                    "end_line": 48,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 31,
+                            "end_line": 41,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 15,
+                                    "end_line": 49,
+                                    "input_file": {
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                                    },
+                                    "start_col": 5,
+                                    "start_line": 49
+                                },
+                                "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                            ],
+                            "start_col": 16,
+                            "start_line": 41
+                        },
+                        "While expanding the reference 'range_check_ptr' in:"
+                    ],
+                    "start_col": 27,
+                    "start_line": 48
+                }
+            },
+            "3": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.assert_nn"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.assert_nn.a": 0,
+                        "starkware.cairo.common.math.assert_nn.range_check_ptr": 2
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 15,
+                    "end_line": 49,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 49
+                }
+            },
+            "4": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.assert_le"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.assert_le.a": 3,
+                        "starkware.cairo.common.math.assert_le.b": 4,
+                        "starkware.cairo.common.math.assert_le.range_check_ptr": 5
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 31,
+                    "end_line": 53,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 31,
+                            "end_line": 41,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 21,
+                                    "end_line": 54,
+                                    "input_file": {
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                                    },
+                                    "start_col": 5,
+                                    "start_line": 54
+                                },
+                                "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                            ],
+                            "start_col": 16,
+                            "start_line": 41
+                        },
+                        "While expanding the reference 'range_check_ptr' in:"
+                    ],
+                    "start_col": 16,
+                    "start_line": 53
+                }
+            },
+            "5": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.assert_le"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.assert_le.a": 3,
+                        "starkware.cairo.common.math.assert_le.b": 4,
+                        "starkware.cairo.common.math.assert_le.range_check_ptr": 5
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 20,
+                    "end_line": 54,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "start_col": 15,
+                    "start_line": 54
+                }
+            },
+            "6": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.assert_le"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.assert_le.a": 3,
+                        "starkware.cairo.common.math.assert_le.b": 4,
+                        "starkware.cairo.common.math.assert_le.range_check_ptr": 5
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 21,
+                    "end_line": 54,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 54
+                }
+            },
+            "8": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.assert_le"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 5
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.assert_le.a": 3,
+                        "starkware.cairo.common.math.assert_le.b": 4,
+                        "starkware.cairo.common.math.assert_le.range_check_ptr": 6
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 15,
+                    "end_line": 55,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 55
+                }
+            },
+            "9": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.split_felt"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.split_felt.high": 10,
+                        "starkware.cairo.common.math.split_felt.low": 9,
+                        "starkware.cairo.common.math.split_felt.range_check_ptr": 11,
+                        "starkware.cairo.common.math.split_felt.value": 7
+                    }
+                },
+                "hints": [
+                    {
+                        "location": {
+                            "end_col": 7,
+                            "end_line": 141,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                            },
+                            "start_col": 5,
+                            "start_line": 134
+                        },
+                        "n_prefix_newlines": 1
+                    }
+                ],
+                "inst": {
+                    "end_col": 37,
+                    "end_line": 131,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 24,
+                            "end_line": 142,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                            },
+                            "start_col": 20,
+                            "start_line": 142
+                        },
+                        "While expanding the reference 'high' in:"
+                    ],
+                    "start_col": 16,
+                    "start_line": 131
+                }
+            },
+            "10": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.split_felt"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.split_felt.__temp0": 12,
+                        "starkware.cairo.common.math.split_felt.high": 10,
+                        "starkware.cairo.common.math.split_felt.low": 9,
+                        "starkware.cairo.common.math.split_felt.range_check_ptr": 11,
+                        "starkware.cairo.common.math.split_felt.value": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 37,
+                    "end_line": 142,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "start_col": 20,
+                    "start_line": 142
+                }
+            },
+            "12": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.split_felt"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.split_felt.__temp0": 12,
+                        "starkware.cairo.common.math.split_felt.__temp1": 13,
+                        "starkware.cairo.common.math.split_felt.high": 10,
+                        "starkware.cairo.common.math.split_felt.low": 9,
+                        "starkware.cairo.common.math.split_felt.range_check_ptr": 11,
+                        "starkware.cairo.common.math.split_felt.value": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 32,
+                    "end_line": 130,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 43,
+                            "end_line": 142,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                            },
+                            "start_col": 40,
+                            "start_line": 142
+                        },
+                        "While expanding the reference 'low' in:"
+                    ],
+                    "start_col": 15,
+                    "start_line": 130
+                }
+            },
+            "13": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.split_felt"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 3
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.split_felt.__temp0": 12,
+                        "starkware.cairo.common.math.split_felt.__temp1": 13,
+                        "starkware.cairo.common.math.split_felt.__temp2": 14,
+                        "starkware.cairo.common.math.split_felt.high": 10,
+                        "starkware.cairo.common.math.split_felt.low": 9,
+                        "starkware.cairo.common.math.split_felt.range_check_ptr": 11,
+                        "starkware.cairo.common.math.split_felt.value": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 44,
+                    "end_line": 142,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 142
+                }
+            },
+            "14": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.split_felt"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 3
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.split_felt.__temp0": 12,
+                        "starkware.cairo.common.math.split_felt.__temp1": 13,
+                        "starkware.cairo.common.math.split_felt.__temp2": 14,
+                        "starkware.cairo.common.math.split_felt.high": 10,
+                        "starkware.cairo.common.math.split_felt.low": 9,
+                        "starkware.cairo.common.math.split_felt.range_check_ptr": 11,
+                        "starkware.cairo.common.math.split_felt.value": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 37,
+                    "end_line": 131,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 13,
+                            "end_line": 143,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                            },
+                            "start_col": 9,
+                            "start_line": 143
+                        },
+                        "While expanding the reference 'high' in:"
+                    ],
+                    "start_col": 16,
+                    "start_line": 131
+                }
+            },
+            "15": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.split_felt"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 4
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.split_felt.__temp0": 12,
+                        "starkware.cairo.common.math.split_felt.__temp1": 13,
+                        "starkware.cairo.common.math.split_felt.__temp2": 14,
+                        "starkware.cairo.common.math.split_felt.__temp3": 15,
+                        "starkware.cairo.common.math.split_felt.high": 10,
+                        "starkware.cairo.common.math.split_felt.low": 9,
+                        "starkware.cairo.common.math.split_felt.range_check_ptr": 11,
+                        "starkware.cairo.common.math.split_felt.value": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 25,
+                    "end_line": 143,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "start_col": 9,
+                    "start_line": 143
+                }
+            },
+            "17": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.split_felt"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 5
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.split_felt.__temp0": 12,
+                        "starkware.cairo.common.math.split_felt.__temp1": 13,
+                        "starkware.cairo.common.math.split_felt.__temp2": 14,
+                        "starkware.cairo.common.math.split_felt.__temp3": 15,
+                        "starkware.cairo.common.math.split_felt.__temp4": 16,
+                        "starkware.cairo.common.math.split_felt.high": 10,
+                        "starkware.cairo.common.math.split_felt.low": 9,
+                        "starkware.cairo.common.math.split_felt.range_check_ptr": 11,
+                        "starkware.cairo.common.math.split_felt.value": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 7,
+                    "end_line": 143,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 143
+                }
+            },
+            "19": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.split_felt"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 5
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.split_felt.__temp0": 12,
+                        "starkware.cairo.common.math.split_felt.__temp1": 13,
+                        "starkware.cairo.common.math.split_felt.__temp2": 14,
+                        "starkware.cairo.common.math.split_felt.__temp3": 15,
+                        "starkware.cairo.common.math.split_felt.__temp4": 16,
+                        "starkware.cairo.common.math.split_felt.high": 10,
+                        "starkware.cairo.common.math.split_felt.low": 9,
+                        "starkware.cairo.common.math.split_felt.range_check_ptr": 11,
+                        "starkware.cairo.common.math.split_felt.value": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 46,
+                    "end_line": 132,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 31,
+                            "end_line": 53,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 32,
+                                    "end_line": 144,
+                                    "input_file": {
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                                    },
+                                    "start_col": 9,
+                                    "start_line": 144
+                                },
+                                "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                            ],
+                            "start_col": 16,
+                            "start_line": 53
+                        },
+                        "While expanding the reference 'range_check_ptr' in:"
+                    ],
+                    "start_col": 27,
+                    "start_line": 132
+                }
+            },
+            "21": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.split_felt"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 6
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.split_felt.__temp0": 12,
+                        "starkware.cairo.common.math.split_felt.__temp1": 13,
+                        "starkware.cairo.common.math.split_felt.__temp2": 14,
+                        "starkware.cairo.common.math.split_felt.__temp3": 15,
+                        "starkware.cairo.common.math.split_felt.__temp4": 16,
+                        "starkware.cairo.common.math.split_felt.high": 10,
+                        "starkware.cairo.common.math.split_felt.low": 9,
+                        "starkware.cairo.common.math.split_felt.range_check_ptr": 11,
+                        "starkware.cairo.common.math.split_felt.value": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 32,
+                    "end_line": 130,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 22,
+                            "end_line": 144,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                            },
+                            "start_col": 19,
+                            "start_line": 144
+                        },
+                        "While expanding the reference 'low' in:"
+                    ],
+                    "start_col": 15,
+                    "start_line": 130
+                }
+            },
+            "22": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.split_felt"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 7
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.split_felt.__temp0": 12,
+                        "starkware.cairo.common.math.split_felt.__temp1": 13,
+                        "starkware.cairo.common.math.split_felt.__temp2": 14,
+                        "starkware.cairo.common.math.split_felt.__temp3": 15,
+                        "starkware.cairo.common.math.split_felt.__temp4": 16,
+                        "starkware.cairo.common.math.split_felt.high": 10,
+                        "starkware.cairo.common.math.split_felt.low": 9,
+                        "starkware.cairo.common.math.split_felt.range_check_ptr": 11,
+                        "starkware.cairo.common.math.split_felt.value": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 31,
+                    "end_line": 144,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "start_col": 24,
+                    "start_line": 144
+                }
+            },
+            "24": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.split_felt"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 8
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.split_felt.__temp0": 12,
+                        "starkware.cairo.common.math.split_felt.__temp1": 13,
+                        "starkware.cairo.common.math.split_felt.__temp2": 14,
+                        "starkware.cairo.common.math.split_felt.__temp3": 15,
+                        "starkware.cairo.common.math.split_felt.__temp4": 16,
+                        "starkware.cairo.common.math.split_felt.high": 10,
+                        "starkware.cairo.common.math.split_felt.low": 9,
+                        "starkware.cairo.common.math.split_felt.range_check_ptr": 11,
+                        "starkware.cairo.common.math.split_felt.value": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 32,
+                    "end_line": 144,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "start_col": 9,
+                    "start_line": 144
+                }
+            },
+            "26": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.split_felt"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 15
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.split_felt.__temp0": 12,
+                        "starkware.cairo.common.math.split_felt.__temp1": 13,
+                        "starkware.cairo.common.math.split_felt.__temp2": 14,
+                        "starkware.cairo.common.math.split_felt.__temp3": 15,
+                        "starkware.cairo.common.math.split_felt.__temp4": 16,
+                        "starkware.cairo.common.math.split_felt.high": 10,
+                        "starkware.cairo.common.math.split_felt.low": 9,
+                        "starkware.cairo.common.math.split_felt.range_check_ptr": 17,
+                        "starkware.cairo.common.math.split_felt.value": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 7,
+                    "end_line": 143,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 143
+                }
+            },
+            "28": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.split_felt"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 5
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.split_felt.__temp0": 12,
+                        "starkware.cairo.common.math.split_felt.__temp1": 13,
+                        "starkware.cairo.common.math.split_felt.__temp2": 14,
+                        "starkware.cairo.common.math.split_felt.__temp3": 15,
+                        "starkware.cairo.common.math.split_felt.__temp4": 16,
+                        "starkware.cairo.common.math.split_felt.high": 10,
+                        "starkware.cairo.common.math.split_felt.low": 9,
+                        "starkware.cairo.common.math.split_felt.range_check_ptr": 11,
+                        "starkware.cairo.common.math.split_felt.value": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 46,
+                    "end_line": 132,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 31,
+                            "end_line": 53,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 38,
+                                    "end_line": 146,
+                                    "input_file": {
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                                    },
+                                    "start_col": 9,
+                                    "start_line": 146
+                                },
+                                "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                            ],
+                            "start_col": 16,
+                            "start_line": 53
+                        },
+                        "While expanding the reference 'range_check_ptr' in:"
+                    ],
+                    "start_col": 27,
+                    "start_line": 132
+                }
+            },
+            "30": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.split_felt"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 6
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.split_felt.__temp0": 12,
+                        "starkware.cairo.common.math.split_felt.__temp1": 13,
+                        "starkware.cairo.common.math.split_felt.__temp2": 14,
+                        "starkware.cairo.common.math.split_felt.__temp3": 15,
+                        "starkware.cairo.common.math.split_felt.__temp4": 16,
+                        "starkware.cairo.common.math.split_felt.high": 10,
+                        "starkware.cairo.common.math.split_felt.low": 9,
+                        "starkware.cairo.common.math.split_felt.range_check_ptr": 11,
+                        "starkware.cairo.common.math.split_felt.value": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 37,
+                    "end_line": 131,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 23,
+                            "end_line": 146,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                            },
+                            "start_col": 19,
+                            "start_line": 146
+                        },
+                        "While expanding the reference 'high' in:"
+                    ],
+                    "start_col": 16,
+                    "start_line": 131
+                }
+            },
+            "31": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.split_felt"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 7
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.split_felt.__temp0": 12,
+                        "starkware.cairo.common.math.split_felt.__temp1": 13,
+                        "starkware.cairo.common.math.split_felt.__temp2": 14,
+                        "starkware.cairo.common.math.split_felt.__temp3": 15,
+                        "starkware.cairo.common.math.split_felt.__temp4": 16,
+                        "starkware.cairo.common.math.split_felt.high": 10,
+                        "starkware.cairo.common.math.split_felt.low": 9,
+                        "starkware.cairo.common.math.split_felt.range_check_ptr": 11,
+                        "starkware.cairo.common.math.split_felt.value": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 37,
+                    "end_line": 146,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "start_col": 25,
+                    "start_line": 146
+                }
+            },
+            "33": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.split_felt"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 8
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.split_felt.__temp0": 12,
+                        "starkware.cairo.common.math.split_felt.__temp1": 13,
+                        "starkware.cairo.common.math.split_felt.__temp2": 14,
+                        "starkware.cairo.common.math.split_felt.__temp3": 15,
+                        "starkware.cairo.common.math.split_felt.__temp4": 16,
+                        "starkware.cairo.common.math.split_felt.high": 10,
+                        "starkware.cairo.common.math.split_felt.low": 9,
+                        "starkware.cairo.common.math.split_felt.range_check_ptr": 11,
+                        "starkware.cairo.common.math.split_felt.value": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 38,
+                    "end_line": 146,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "start_col": 9,
+                    "start_line": 146
+                }
+            },
+            "35": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.split_felt"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 15
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.split_felt.__temp0": 12,
+                        "starkware.cairo.common.math.split_felt.__temp1": 13,
+                        "starkware.cairo.common.math.split_felt.__temp2": 14,
+                        "starkware.cairo.common.math.split_felt.__temp3": 15,
+                        "starkware.cairo.common.math.split_felt.__temp4": 16,
+                        "starkware.cairo.common.math.split_felt.high": 10,
+                        "starkware.cairo.common.math.split_felt.low": 9,
+                        "starkware.cairo.common.math.split_felt.range_check_ptr": 19,
+                        "starkware.cairo.common.math.split_felt.value": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 37,
+                    "end_line": 131,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 22,
+                            "end_line": 148,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                            },
+                            "start_col": 18,
+                            "start_line": 148
+                        },
+                        "While expanding the reference 'high' in:"
+                    ],
+                    "start_col": 16,
+                    "start_line": 131
+                }
+            },
+            "36": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.split_felt"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 16
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.split_felt.__temp0": 12,
+                        "starkware.cairo.common.math.split_felt.__temp1": 13,
+                        "starkware.cairo.common.math.split_felt.__temp2": 14,
+                        "starkware.cairo.common.math.split_felt.__temp3": 15,
+                        "starkware.cairo.common.math.split_felt.__temp4": 16,
+                        "starkware.cairo.common.math.split_felt.high": 10,
+                        "starkware.cairo.common.math.split_felt.low": 9,
+                        "starkware.cairo.common.math.split_felt.range_check_ptr": 19,
+                        "starkware.cairo.common.math.split_felt.value": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 32,
+                    "end_line": 130,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 31,
+                            "end_line": 148,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                            },
+                            "start_col": 28,
+                            "start_line": 148
+                        },
+                        "While expanding the reference 'low' in:"
+                    ],
+                    "start_col": 15,
+                    "start_line": 130
+                }
+            },
+            "37": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.split_felt"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 17
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.split_felt.__temp0": 12,
+                        "starkware.cairo.common.math.split_felt.__temp1": 13,
+                        "starkware.cairo.common.math.split_felt.__temp2": 14,
+                        "starkware.cairo.common.math.split_felt.__temp3": 15,
+                        "starkware.cairo.common.math.split_felt.__temp4": 16,
+                        "starkware.cairo.common.math.split_felt.high": 10,
+                        "starkware.cairo.common.math.split_felt.low": 9,
+                        "starkware.cairo.common.math.split_felt.range_check_ptr": 19,
+                        "starkware.cairo.common.math.split_felt.value": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 33,
+                    "end_line": 148,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 148
+                }
+            },
+            "38": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.split_felt_manual_implemetation"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.split_felt_manual_implemetation.high": 23,
+                        "__main__.split_felt_manual_implemetation.low": 22,
+                        "__main__.split_felt_manual_implemetation.range_check_ptr": 24,
+                        "__main__.split_felt_manual_implemetation.value": 20
+                    }
+                },
+                "hints": [
+                    {
+                        "location": {
+                            "end_col": 7,
+                            "end_line": 23,
+                            "input_file": {
+                                "filename": "cairo_programs/split_felt.cairo"
+                            },
+                            "start_col": 5,
+                            "start_line": 16
+                        },
+                        "n_prefix_newlines": 1
+                    }
+                ],
+                "inst": {
+                    "end_col": 37,
+                    "end_line": 13,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 24,
+                            "end_line": 25,
+                            "input_file": {
+                                "filename": "cairo_programs/split_felt.cairo"
+                            },
+                            "start_col": 20,
+                            "start_line": 25
+                        },
+                        "While expanding the reference 'high' in:"
+                    ],
+                    "start_col": 16,
+                    "start_line": 13
+                }
+            },
+            "39": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.split_felt_manual_implemetation"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "__main__.split_felt_manual_implemetation.__temp5": 25,
+                        "__main__.split_felt_manual_implemetation.high": 23,
+                        "__main__.split_felt_manual_implemetation.low": 22,
+                        "__main__.split_felt_manual_implemetation.range_check_ptr": 24,
+                        "__main__.split_felt_manual_implemetation.value": 20
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 37,
+                    "end_line": 25,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "start_col": 20,
+                    "start_line": 25
+                }
+            },
+            "41": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.split_felt_manual_implemetation"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "__main__.split_felt_manual_implemetation.__temp5": 25,
+                        "__main__.split_felt_manual_implemetation.__temp6": 26,
+                        "__main__.split_felt_manual_implemetation.high": 23,
+                        "__main__.split_felt_manual_implemetation.low": 22,
+                        "__main__.split_felt_manual_implemetation.range_check_ptr": 24,
+                        "__main__.split_felt_manual_implemetation.value": 20
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 32,
+                    "end_line": 12,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 43,
+                            "end_line": 25,
+                            "input_file": {
+                                "filename": "cairo_programs/split_felt.cairo"
+                            },
+                            "start_col": 40,
+                            "start_line": 25
+                        },
+                        "While expanding the reference 'low' in:"
+                    ],
+                    "start_col": 15,
+                    "start_line": 12
+                }
+            },
+            "42": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.split_felt_manual_implemetation"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 3
+                    },
+                    "reference_ids": {
+                        "__main__.split_felt_manual_implemetation.__temp5": 25,
+                        "__main__.split_felt_manual_implemetation.__temp6": 26,
+                        "__main__.split_felt_manual_implemetation.__temp7": 27,
+                        "__main__.split_felt_manual_implemetation.high": 23,
+                        "__main__.split_felt_manual_implemetation.low": 22,
+                        "__main__.split_felt_manual_implemetation.range_check_ptr": 24,
+                        "__main__.split_felt_manual_implemetation.value": 20
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 44,
+                    "end_line": 25,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 25
+                }
+            },
+            "43": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.split_felt_manual_implemetation"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 3
+                    },
+                    "reference_ids": {
+                        "__main__.split_felt_manual_implemetation.__temp5": 25,
+                        "__main__.split_felt_manual_implemetation.__temp6": 26,
+                        "__main__.split_felt_manual_implemetation.__temp7": 27,
+                        "__main__.split_felt_manual_implemetation.high": 23,
+                        "__main__.split_felt_manual_implemetation.low": 22,
+                        "__main__.split_felt_manual_implemetation.range_check_ptr": 24,
+                        "__main__.split_felt_manual_implemetation.value": 20
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 37,
+                    "end_line": 13,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 13,
+                            "end_line": 26,
+                            "input_file": {
+                                "filename": "cairo_programs/split_felt.cairo"
+                            },
+                            "start_col": 9,
+                            "start_line": 26
+                        },
+                        "While expanding the reference 'high' in:"
+                    ],
+                    "start_col": 16,
+                    "start_line": 13
+                }
+            },
+            "44": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.split_felt_manual_implemetation"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 4
+                    },
+                    "reference_ids": {
+                        "__main__.split_felt_manual_implemetation.__temp5": 25,
+                        "__main__.split_felt_manual_implemetation.__temp6": 26,
+                        "__main__.split_felt_manual_implemetation.__temp7": 27,
+                        "__main__.split_felt_manual_implemetation.__temp8": 28,
+                        "__main__.split_felt_manual_implemetation.high": 23,
+                        "__main__.split_felt_manual_implemetation.low": 22,
+                        "__main__.split_felt_manual_implemetation.range_check_ptr": 24,
+                        "__main__.split_felt_manual_implemetation.value": 20
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 25,
+                    "end_line": 26,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "start_col": 9,
+                    "start_line": 26
+                }
+            },
+            "46": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.split_felt_manual_implemetation"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 5
+                    },
+                    "reference_ids": {
+                        "__main__.split_felt_manual_implemetation.__temp5": 25,
+                        "__main__.split_felt_manual_implemetation.__temp6": 26,
+                        "__main__.split_felt_manual_implemetation.__temp7": 27,
+                        "__main__.split_felt_manual_implemetation.__temp8": 28,
+                        "__main__.split_felt_manual_implemetation.__temp9": 29,
+                        "__main__.split_felt_manual_implemetation.high": 23,
+                        "__main__.split_felt_manual_implemetation.low": 22,
+                        "__main__.split_felt_manual_implemetation.range_check_ptr": 24,
+                        "__main__.split_felt_manual_implemetation.value": 20
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 7,
+                    "end_line": 26,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 26
+                }
+            },
+            "48": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.split_felt_manual_implemetation"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 5
+                    },
+                    "reference_ids": {
+                        "__main__.split_felt_manual_implemetation.__temp5": 25,
+                        "__main__.split_felt_manual_implemetation.__temp6": 26,
+                        "__main__.split_felt_manual_implemetation.__temp7": 27,
+                        "__main__.split_felt_manual_implemetation.__temp8": 28,
+                        "__main__.split_felt_manual_implemetation.__temp9": 29,
+                        "__main__.split_felt_manual_implemetation.high": 23,
+                        "__main__.split_felt_manual_implemetation.low": 22,
+                        "__main__.split_felt_manual_implemetation.range_check_ptr": 24,
+                        "__main__.split_felt_manual_implemetation.value": 20
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 46,
+                    "end_line": 14,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 31,
+                            "end_line": 53,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 32,
+                                    "end_line": 27,
+                                    "input_file": {
+                                        "filename": "cairo_programs/split_felt.cairo"
+                                    },
+                                    "start_col": 9,
+                                    "start_line": 27
+                                },
+                                "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                            ],
+                            "start_col": 16,
+                            "start_line": 53
+                        },
+                        "While expanding the reference 'range_check_ptr' in:"
+                    ],
+                    "start_col": 27,
+                    "start_line": 14
+                }
+            },
+            "50": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.split_felt_manual_implemetation"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 6
+                    },
+                    "reference_ids": {
+                        "__main__.split_felt_manual_implemetation.__temp5": 25,
+                        "__main__.split_felt_manual_implemetation.__temp6": 26,
+                        "__main__.split_felt_manual_implemetation.__temp7": 27,
+                        "__main__.split_felt_manual_implemetation.__temp8": 28,
+                        "__main__.split_felt_manual_implemetation.__temp9": 29,
+                        "__main__.split_felt_manual_implemetation.high": 23,
+                        "__main__.split_felt_manual_implemetation.low": 22,
+                        "__main__.split_felt_manual_implemetation.range_check_ptr": 24,
+                        "__main__.split_felt_manual_implemetation.value": 20
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 32,
+                    "end_line": 12,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 22,
+                            "end_line": 27,
+                            "input_file": {
+                                "filename": "cairo_programs/split_felt.cairo"
+                            },
+                            "start_col": 19,
+                            "start_line": 27
+                        },
+                        "While expanding the reference 'low' in:"
+                    ],
+                    "start_col": 15,
+                    "start_line": 12
+                }
+            },
+            "51": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.split_felt_manual_implemetation"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 7
+                    },
+                    "reference_ids": {
+                        "__main__.split_felt_manual_implemetation.__temp5": 25,
+                        "__main__.split_felt_manual_implemetation.__temp6": 26,
+                        "__main__.split_felt_manual_implemetation.__temp7": 27,
+                        "__main__.split_felt_manual_implemetation.__temp8": 28,
+                        "__main__.split_felt_manual_implemetation.__temp9": 29,
+                        "__main__.split_felt_manual_implemetation.high": 23,
+                        "__main__.split_felt_manual_implemetation.low": 22,
+                        "__main__.split_felt_manual_implemetation.range_check_ptr": 24,
+                        "__main__.split_felt_manual_implemetation.value": 20
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 31,
+                    "end_line": 27,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "start_col": 24,
+                    "start_line": 27
+                }
+            },
+            "53": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.split_felt_manual_implemetation"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 8
+                    },
+                    "reference_ids": {
+                        "__main__.split_felt_manual_implemetation.__temp5": 25,
+                        "__main__.split_felt_manual_implemetation.__temp6": 26,
+                        "__main__.split_felt_manual_implemetation.__temp7": 27,
+                        "__main__.split_felt_manual_implemetation.__temp8": 28,
+                        "__main__.split_felt_manual_implemetation.__temp9": 29,
+                        "__main__.split_felt_manual_implemetation.high": 23,
+                        "__main__.split_felt_manual_implemetation.low": 22,
+                        "__main__.split_felt_manual_implemetation.range_check_ptr": 24,
+                        "__main__.split_felt_manual_implemetation.value": 20
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 32,
+                    "end_line": 27,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "start_col": 9,
+                    "start_line": 27
+                }
+            },
+            "55": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.split_felt_manual_implemetation"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 15
+                    },
+                    "reference_ids": {
+                        "__main__.split_felt_manual_implemetation.__temp5": 25,
+                        "__main__.split_felt_manual_implemetation.__temp6": 26,
+                        "__main__.split_felt_manual_implemetation.__temp7": 27,
+                        "__main__.split_felt_manual_implemetation.__temp8": 28,
+                        "__main__.split_felt_manual_implemetation.__temp9": 29,
+                        "__main__.split_felt_manual_implemetation.high": 23,
+                        "__main__.split_felt_manual_implemetation.low": 22,
+                        "__main__.split_felt_manual_implemetation.range_check_ptr": 30,
+                        "__main__.split_felt_manual_implemetation.value": 20
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 7,
+                    "end_line": 26,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 26
+                }
+            },
+            "57": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.split_felt_manual_implemetation"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 5
+                    },
+                    "reference_ids": {
+                        "__main__.split_felt_manual_implemetation.__temp5": 25,
+                        "__main__.split_felt_manual_implemetation.__temp6": 26,
+                        "__main__.split_felt_manual_implemetation.__temp7": 27,
+                        "__main__.split_felt_manual_implemetation.__temp8": 28,
+                        "__main__.split_felt_manual_implemetation.__temp9": 29,
+                        "__main__.split_felt_manual_implemetation.high": 23,
+                        "__main__.split_felt_manual_implemetation.low": 22,
+                        "__main__.split_felt_manual_implemetation.range_check_ptr": 24,
+                        "__main__.split_felt_manual_implemetation.value": 20
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 46,
+                    "end_line": 14,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 31,
+                            "end_line": 53,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 38,
+                                    "end_line": 29,
+                                    "input_file": {
+                                        "filename": "cairo_programs/split_felt.cairo"
+                                    },
+                                    "start_col": 9,
+                                    "start_line": 29
+                                },
+                                "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                            ],
+                            "start_col": 16,
+                            "start_line": 53
+                        },
+                        "While expanding the reference 'range_check_ptr' in:"
+                    ],
+                    "start_col": 27,
+                    "start_line": 14
+                }
+            },
+            "59": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.split_felt_manual_implemetation"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 6
+                    },
+                    "reference_ids": {
+                        "__main__.split_felt_manual_implemetation.__temp5": 25,
+                        "__main__.split_felt_manual_implemetation.__temp6": 26,
+                        "__main__.split_felt_manual_implemetation.__temp7": 27,
+                        "__main__.split_felt_manual_implemetation.__temp8": 28,
+                        "__main__.split_felt_manual_implemetation.__temp9": 29,
+                        "__main__.split_felt_manual_implemetation.high": 23,
+                        "__main__.split_felt_manual_implemetation.low": 22,
+                        "__main__.split_felt_manual_implemetation.range_check_ptr": 24,
+                        "__main__.split_felt_manual_implemetation.value": 20
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 37,
+                    "end_line": 13,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 23,
+                            "end_line": 29,
+                            "input_file": {
+                                "filename": "cairo_programs/split_felt.cairo"
+                            },
+                            "start_col": 19,
+                            "start_line": 29
+                        },
+                        "While expanding the reference 'high' in:"
+                    ],
+                    "start_col": 16,
+                    "start_line": 13
+                }
+            },
+            "60": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.split_felt_manual_implemetation"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 7
+                    },
+                    "reference_ids": {
+                        "__main__.split_felt_manual_implemetation.__temp5": 25,
+                        "__main__.split_felt_manual_implemetation.__temp6": 26,
+                        "__main__.split_felt_manual_implemetation.__temp7": 27,
+                        "__main__.split_felt_manual_implemetation.__temp8": 28,
+                        "__main__.split_felt_manual_implemetation.__temp9": 29,
+                        "__main__.split_felt_manual_implemetation.high": 23,
+                        "__main__.split_felt_manual_implemetation.low": 22,
+                        "__main__.split_felt_manual_implemetation.range_check_ptr": 24,
+                        "__main__.split_felt_manual_implemetation.value": 20
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 37,
+                    "end_line": 29,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "start_col": 25,
+                    "start_line": 29
+                }
+            },
+            "62": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.split_felt_manual_implemetation"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 8
+                    },
+                    "reference_ids": {
+                        "__main__.split_felt_manual_implemetation.__temp5": 25,
+                        "__main__.split_felt_manual_implemetation.__temp6": 26,
+                        "__main__.split_felt_manual_implemetation.__temp7": 27,
+                        "__main__.split_felt_manual_implemetation.__temp8": 28,
+                        "__main__.split_felt_manual_implemetation.__temp9": 29,
+                        "__main__.split_felt_manual_implemetation.high": 23,
+                        "__main__.split_felt_manual_implemetation.low": 22,
+                        "__main__.split_felt_manual_implemetation.range_check_ptr": 24,
+                        "__main__.split_felt_manual_implemetation.value": 20
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 38,
+                    "end_line": 29,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "start_col": 9,
+                    "start_line": 29
+                }
+            },
+            "64": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.split_felt_manual_implemetation"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 15
+                    },
+                    "reference_ids": {
+                        "__main__.split_felt_manual_implemetation.__temp5": 25,
+                        "__main__.split_felt_manual_implemetation.__temp6": 26,
+                        "__main__.split_felt_manual_implemetation.__temp7": 27,
+                        "__main__.split_felt_manual_implemetation.__temp8": 28,
+                        "__main__.split_felt_manual_implemetation.__temp9": 29,
+                        "__main__.split_felt_manual_implemetation.high": 23,
+                        "__main__.split_felt_manual_implemetation.low": 22,
+                        "__main__.split_felt_manual_implemetation.range_check_ptr": 32,
+                        "__main__.split_felt_manual_implemetation.value": 20
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 37,
+                    "end_line": 13,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 22,
+                            "end_line": 31,
+                            "input_file": {
+                                "filename": "cairo_programs/split_felt.cairo"
+                            },
+                            "start_col": 18,
+                            "start_line": 31
+                        },
+                        "While expanding the reference 'high' in:"
+                    ],
+                    "start_col": 16,
+                    "start_line": 13
+                }
+            },
+            "65": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.split_felt_manual_implemetation"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 16
+                    },
+                    "reference_ids": {
+                        "__main__.split_felt_manual_implemetation.__temp5": 25,
+                        "__main__.split_felt_manual_implemetation.__temp6": 26,
+                        "__main__.split_felt_manual_implemetation.__temp7": 27,
+                        "__main__.split_felt_manual_implemetation.__temp8": 28,
+                        "__main__.split_felt_manual_implemetation.__temp9": 29,
+                        "__main__.split_felt_manual_implemetation.high": 23,
+                        "__main__.split_felt_manual_implemetation.low": 22,
+                        "__main__.split_felt_manual_implemetation.range_check_ptr": 32,
+                        "__main__.split_felt_manual_implemetation.value": 20
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 32,
+                    "end_line": 12,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 31,
+                            "end_line": 31,
+                            "input_file": {
+                                "filename": "cairo_programs/split_felt.cairo"
+                            },
+                            "start_col": 28,
+                            "start_line": 31
+                        },
+                        "While expanding the reference 'low' in:"
+                    ],
+                    "start_col": 15,
+                    "start_line": 12
+                }
+            },
+            "66": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.split_felt_manual_implemetation"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 17
+                    },
+                    "reference_ids": {
+                        "__main__.split_felt_manual_implemetation.__temp5": 25,
+                        "__main__.split_felt_manual_implemetation.__temp6": 26,
+                        "__main__.split_felt_manual_implemetation.__temp7": 27,
+                        "__main__.split_felt_manual_implemetation.__temp8": 28,
+                        "__main__.split_felt_manual_implemetation.__temp9": 29,
+                        "__main__.split_felt_manual_implemetation.high": 23,
+                        "__main__.split_felt_manual_implemetation.low": 22,
+                        "__main__.split_felt_manual_implemetation.range_check_ptr": 32,
+                        "__main__.split_felt_manual_implemetation.value": 20
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 33,
+                    "end_line": 31,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 31
+                }
+            },
+            "67": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.main.range_check_ptr": 33
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 32,
+                    "end_line": 34,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 53,
+                            "end_line": 6,
+                            "input_file": {
+                                "filename": "cairo_programs/split_felt.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 91,
+                                    "end_line": 35,
+                                    "input_file": {
+                                        "filename": "cairo_programs/split_felt.cairo"
+                                    },
+                                    "start_col": 18,
+                                    "start_line": 35
+                                },
+                                "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                            ],
+                            "start_col": 38,
+                            "start_line": 6
+                        },
+                        "While expanding the reference 'range_check_ptr' in:"
+                    ],
+                    "start_col": 11,
+                    "start_line": 34
+                }
+            },
+            "68": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "__main__.main.range_check_ptr": 33
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 90,
+                    "end_line": 35,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "start_col": 50,
+                    "start_line": 35
+                }
+            },
+            "70": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "__main__.main.range_check_ptr": 33
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 91,
+                    "end_line": 35,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "start_col": 18,
+                    "start_line": 35
+                }
+            },
+            "72": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 21
+                    },
+                    "reference_ids": {
+                        "__main__.main.m": 35,
+                        "__main__.main.n": 36,
+                        "__main__.main.range_check_ptr": 34
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 19,
+                    "end_line": 36,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 36
+                }
+            },
+            "74": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 21
+                    },
+                    "reference_ids": {
+                        "__main__.main.m": 35,
+                        "__main__.main.n": 36,
+                        "__main__.main.range_check_ptr": 34
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 18,
+                    "end_line": 37,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 37
+                }
+            },
+            "76": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 21
+                    },
+                    "reference_ids": {
+                        "__main__.main.m": 35,
+                        "__main__.main.n": 36,
+                        "__main__.main.range_check_ptr": 34
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 53,
+                    "end_line": 6,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 91,
+                            "end_line": 35,
+                            "input_file": {
+                                "filename": "cairo_programs/split_felt.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 32,
+                                    "end_line": 124,
+                                    "input_file": {
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                                    },
+                                    "parent_location": [
+                                        {
+                                            "end_col": 70,
+                                            "end_line": 38,
+                                            "input_file": {
+                                                "filename": "cairo_programs/split_felt.cairo"
+                                            },
+                                            "start_col": 18,
+                                            "start_line": 38
+                                        },
+                                        "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                                    ],
+                                    "start_col": 17,
+                                    "start_line": 124
+                                },
+                                "While expanding the reference 'range_check_ptr' in:"
+                            ],
+                            "start_col": 18,
+                            "start_line": 35
+                        },
+                        "While trying to update the implicit return value 'range_check_ptr' in:"
+                    ],
+                    "start_col": 38,
+                    "start_line": 6
+                }
+            },
+            "77": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 22
+                    },
+                    "reference_ids": {
+                        "__main__.main.m": 35,
+                        "__main__.main.n": 36,
+                        "__main__.main.range_check_ptr": 34
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 69,
+                    "end_line": 38,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "start_col": 29,
+                    "start_line": 38
+                }
+            },
+            "79": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 23
+                    },
+                    "reference_ids": {
+                        "__main__.main.m": 35,
+                        "__main__.main.n": 36,
+                        "__main__.main.range_check_ptr": 34
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 70,
+                    "end_line": 38,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "start_col": 18,
+                    "start_line": 38
+                }
+            },
+            "81": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 42
+                    },
+                    "reference_ids": {
+                        "__main__.main.m": 35,
+                        "__main__.main.n": 36,
+                        "__main__.main.range_check_ptr": 37,
+                        "__main__.main.x": 38,
+                        "__main__.main.y": 39
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 19,
+                    "end_line": 39,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 39
+                }
+            },
+            "83": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 42
+                    },
+                    "reference_ids": {
+                        "__main__.main.m": 35,
+                        "__main__.main.n": 36,
+                        "__main__.main.range_check_ptr": 37,
+                        "__main__.main.x": 38,
+                        "__main__.main.y": 39
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 18,
+                    "end_line": 40,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 40
+                }
+            },
+            "85": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 42
+                    },
+                    "reference_ids": {
+                        "__main__.main.m": 35,
+                        "__main__.main.n": 36,
+                        "__main__.main.range_check_ptr": 37,
+                        "__main__.main.x": 38,
+                        "__main__.main.y": 39
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 32,
+                    "end_line": 124,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 70,
+                            "end_line": 38,
+                            "input_file": {
+                                "filename": "cairo_programs/split_felt.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 32,
+                                    "end_line": 34,
+                                    "input_file": {
+                                        "filename": "cairo_programs/split_felt.cairo"
+                                    },
+                                    "parent_location": [
+                                        {
+                                            "end_col": 15,
+                                            "end_line": 41,
+                                            "input_file": {
+                                                "filename": "cairo_programs/split_felt.cairo"
+                                            },
+                                            "start_col": 5,
+                                            "start_line": 41
+                                        },
+                                        "While trying to retrieve the implicit argument 'range_check_ptr' in:"
+                                    ],
+                                    "start_col": 11,
+                                    "start_line": 34
+                                },
+                                "While expanding the reference 'range_check_ptr' in:"
+                            ],
+                            "start_col": 18,
+                            "start_line": 38
+                        },
+                        "While trying to update the implicit return value 'range_check_ptr' in:"
+                    ],
+                    "start_col": 17,
+                    "start_line": 124
+                }
+            },
+            "86": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 4,
+                        "offset": 43
+                    },
+                    "reference_ids": {
+                        "__main__.main.m": 35,
+                        "__main__.main.n": 36,
+                        "__main__.main.range_check_ptr": 37,
+                        "__main__.main.x": 38,
+                        "__main__.main.y": 39
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 15,
+                    "end_line": 41,
+                    "input_file": {
+                        "filename": "cairo_programs/split_felt.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 41
+                }
+            }
+        }
+    },
+    "hints": {
+        "0": [
+            {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.assert_nn"
+                ],
+                "code": "from starkware.cairo.common.math_utils import assert_integer\nassert_integer(ids.a)\nassert 0 <= ids.a % PRIME < range_check_builtin.bound, f'a = {ids.a} is out of range.'",
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.assert_nn.a": 0,
+                        "starkware.cairo.common.math.assert_nn.range_check_ptr": 1
+                    }
+                }
+            }
+        ],
+        "9": [
+            {
+                "accessible_scopes": [
+                    "starkware.cairo.common.math",
+                    "starkware.cairo.common.math.split_felt"
+                ],
+                "code": "from starkware.cairo.common.math_utils import assert_integer\nassert ids.MAX_HIGH < 2**128 and ids.MAX_LOW < 2**128\nassert PRIME - 1 == ids.MAX_HIGH * 2**128 + ids.MAX_LOW\nassert_integer(ids.value)\nids.low = ids.value & ((1 << 128) - 1)\nids.high = ids.value >> 128",
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.math.split_felt.high": 10,
+                        "starkware.cairo.common.math.split_felt.low": 9,
+                        "starkware.cairo.common.math.split_felt.range_check_ptr": 11,
+                        "starkware.cairo.common.math.split_felt.value": 7
+                    }
+                }
+            }
+        ],
+        "38": [
+            {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.split_felt_manual_implemetation"
+                ],
+                "code": "from starkware.cairo.common.math_utils import assert_integer\nassert ids.MAX_HIGH < 2**128 and ids.MAX_LOW < 2**128\nassert PRIME - 1 == ids.MAX_HIGH * 2**128 + ids.MAX_LOW\nassert_integer(ids.value)\nids.low = ids.value & ((1 << 128) - 1)\nids.high = ids.value >> 128",
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.split_felt_manual_implemetation.high": 23,
+                        "__main__.split_felt_manual_implemetation.low": 22,
+                        "__main__.split_felt_manual_implemetation.range_check_ptr": 24,
+                        "__main__.split_felt_manual_implemetation.value": 20
+                    }
+                }
+            }
+        ]
+    },
+    "identifiers": {
+        "__main__.assert_le": {
+            "destination": "starkware.cairo.common.math.assert_le",
+            "type": "alias"
+        },
+        "__main__.main": {
+            "decorators": [],
+            "pc": 67,
+            "type": "function"
+        },
+        "__main__.main.Args": {
+            "full_name": "__main__.main.Args",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "__main__.main.ImplicitArgs": {
+            "full_name": "__main__.main.ImplicitArgs",
+            "members": {
+                "range_check_ptr": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                }
+            },
+            "size": 1,
+            "type": "struct"
+        },
+        "__main__.main.Return": {
+            "cairo_type": "()",
+            "type": "type_definition"
+        },
+        "__main__.main.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 0
+        },
+        "__main__.main.m": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.m",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 4,
+                        "offset": 21
+                    },
+                    "pc": 72,
+                    "value": "[cast(ap + (-2), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.n": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.n",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 4,
+                        "offset": 21
+                    },
+                    "pc": 72,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.range_check_ptr": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.range_check_ptr",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 4,
+                        "offset": 0
+                    },
+                    "pc": 67,
+                    "value": "[cast(fp + (-3), felt*)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 4,
+                        "offset": 21
+                    },
+                    "pc": 72,
+                    "value": "[cast(ap + (-3), felt*)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 4,
+                        "offset": 42
+                    },
+                    "pc": 81,
+                    "value": "[cast(ap + (-3), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.x": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.x",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 4,
+                        "offset": 42
+                    },
+                    "pc": 81,
+                    "value": "[cast(ap + (-2), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.y": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.y",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 4,
+                        "offset": 42
+                    },
+                    "pc": 81,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.split_felt": {
+            "destination": "starkware.cairo.common.math.split_felt",
+            "type": "alias"
+        },
+        "__main__.split_felt_manual_implemetation": {
+            "decorators": [],
+            "pc": 38,
+            "type": "function"
+        },
+        "__main__.split_felt_manual_implemetation.Args": {
+            "full_name": "__main__.split_felt_manual_implemetation.Args",
+            "members": {
+                "value": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                }
+            },
+            "size": 1,
+            "type": "struct"
+        },
+        "__main__.split_felt_manual_implemetation.ImplicitArgs": {
+            "full_name": "__main__.split_felt_manual_implemetation.ImplicitArgs",
+            "members": {
+                "range_check_ptr": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                }
+            },
+            "size": 1,
+            "type": "struct"
+        },
+        "__main__.split_felt_manual_implemetation.MAX_HIGH": {
+            "type": "const",
+            "value": 10633823966279327296825105735305134080
+        },
+        "__main__.split_felt_manual_implemetation.MAX_LOW": {
+            "type": "const",
+            "value": 0
+        },
+        "__main__.split_felt_manual_implemetation.Return": {
+            "cairo_type": "(high: felt, low: felt)",
+            "type": "type_definition"
+        },
+        "__main__.split_felt_manual_implemetation.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 0
+        },
+        "__main__.split_felt_manual_implemetation.__temp5": {
+            "cairo_type": "felt",
+            "full_name": "__main__.split_felt_manual_implemetation.__temp5",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 1
+                    },
+                    "pc": 39,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.split_felt_manual_implemetation.__temp6": {
+            "cairo_type": "felt",
+            "full_name": "__main__.split_felt_manual_implemetation.__temp6",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 2
+                    },
+                    "pc": 41,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.split_felt_manual_implemetation.__temp7": {
+            "cairo_type": "felt",
+            "full_name": "__main__.split_felt_manual_implemetation.__temp7",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 3
+                    },
+                    "pc": 42,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.split_felt_manual_implemetation.__temp8": {
+            "cairo_type": "felt",
+            "full_name": "__main__.split_felt_manual_implemetation.__temp8",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 4
+                    },
+                    "pc": 44,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.split_felt_manual_implemetation.__temp9": {
+            "cairo_type": "felt",
+            "full_name": "__main__.split_felt_manual_implemetation.__temp9",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 5
+                    },
+                    "pc": 46,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.split_felt_manual_implemetation.high": {
+            "cairo_type": "felt",
+            "full_name": "__main__.split_felt_manual_implemetation.high",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 0
+                    },
+                    "pc": 38,
+                    "value": "[cast([fp + (-4)] + 1, felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.split_felt_manual_implemetation.low": {
+            "cairo_type": "felt",
+            "full_name": "__main__.split_felt_manual_implemetation.low",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 0
+                    },
+                    "pc": 38,
+                    "value": "[cast([fp + (-4)], felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.split_felt_manual_implemetation.range_check_ptr": {
+            "cairo_type": "felt",
+            "full_name": "__main__.split_felt_manual_implemetation.range_check_ptr",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 0
+                    },
+                    "pc": 38,
+                    "value": "[cast(fp + (-4), felt*)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 0
+                    },
+                    "pc": 38,
+                    "value": "cast([fp + (-4)] + 2, felt)"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 15
+                    },
+                    "pc": 55,
+                    "value": "[cast(ap + (-1), felt*)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 15
+                    },
+                    "pc": 64,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.split_felt_manual_implemetation.value": {
+            "cairo_type": "felt",
+            "full_name": "__main__.split_felt_manual_implemetation.value",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 0
+                    },
+                    "pc": 38,
+                    "value": "[cast(fp + (-3), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.bool.FALSE": {
+            "type": "const",
+            "value": 0
+        },
+        "starkware.cairo.common.bool.TRUE": {
+            "type": "const",
+            "value": 1
+        },
+        "starkware.cairo.common.math.FALSE": {
+            "destination": "starkware.cairo.common.bool.FALSE",
+            "type": "alias"
+        },
+        "starkware.cairo.common.math.TRUE": {
+            "destination": "starkware.cairo.common.bool.TRUE",
+            "type": "alias"
+        },
+        "starkware.cairo.common.math.assert_le": {
+            "decorators": [],
+            "pc": 4,
+            "type": "function"
+        },
+        "starkware.cairo.common.math.assert_le.Args": {
+            "full_name": "starkware.cairo.common.math.assert_le.Args",
+            "members": {
+                "a": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                },
+                "b": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                }
+            },
+            "size": 2,
+            "type": "struct"
+        },
+        "starkware.cairo.common.math.assert_le.ImplicitArgs": {
+            "full_name": "starkware.cairo.common.math.assert_le.ImplicitArgs",
+            "members": {
+                "range_check_ptr": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                }
+            },
+            "size": 1,
+            "type": "struct"
+        },
+        "starkware.cairo.common.math.assert_le.Return": {
+            "cairo_type": "()",
+            "type": "type_definition"
+        },
+        "starkware.cairo.common.math.assert_le.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 0
+        },
+        "starkware.cairo.common.math.assert_le.a": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.math.assert_le.a",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 0
+                    },
+                    "pc": 4,
+                    "value": "[cast(fp + (-4), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.math.assert_le.b": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.math.assert_le.b",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 0
+                    },
+                    "pc": 4,
+                    "value": "[cast(fp + (-3), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.math.assert_le.range_check_ptr": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.math.assert_le.range_check_ptr",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 0
+                    },
+                    "pc": 4,
+                    "value": "[cast(fp + (-5), felt*)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 5
+                    },
+                    "pc": 8,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.math.assert_nn": {
+            "decorators": [],
+            "pc": 0,
+            "type": "function"
+        },
+        "starkware.cairo.common.math.assert_nn.Args": {
+            "full_name": "starkware.cairo.common.math.assert_nn.Args",
+            "members": {
+                "a": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                }
+            },
+            "size": 1,
+            "type": "struct"
+        },
+        "starkware.cairo.common.math.assert_nn.ImplicitArgs": {
+            "full_name": "starkware.cairo.common.math.assert_nn.ImplicitArgs",
+            "members": {
+                "range_check_ptr": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                }
+            },
+            "size": 1,
+            "type": "struct"
+        },
+        "starkware.cairo.common.math.assert_nn.Return": {
+            "cairo_type": "()",
+            "type": "type_definition"
+        },
+        "starkware.cairo.common.math.assert_nn.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 0
+        },
+        "starkware.cairo.common.math.assert_nn.a": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.math.assert_nn.a",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "pc": 0,
+                    "value": "[cast(fp + (-3), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.math.assert_nn.range_check_ptr": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.math.assert_nn.range_check_ptr",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "pc": 0,
+                    "value": "[cast(fp + (-4), felt*)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "pc": 1,
+                    "value": "cast([fp + (-4)] + 1, felt)"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.math.split_felt": {
+            "decorators": [
+                "known_ap_change"
+            ],
+            "pc": 9,
+            "type": "function"
+        },
+        "starkware.cairo.common.math.split_felt.Args": {
+            "full_name": "starkware.cairo.common.math.split_felt.Args",
+            "members": {
+                "value": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                }
+            },
+            "size": 1,
+            "type": "struct"
+        },
+        "starkware.cairo.common.math.split_felt.ImplicitArgs": {
+            "full_name": "starkware.cairo.common.math.split_felt.ImplicitArgs",
+            "members": {
+                "range_check_ptr": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                }
+            },
+            "size": 1,
+            "type": "struct"
+        },
+        "starkware.cairo.common.math.split_felt.MAX_HIGH": {
+            "type": "const",
+            "value": 10633823966279327296825105735305134080
+        },
+        "starkware.cairo.common.math.split_felt.MAX_LOW": {
+            "type": "const",
+            "value": 0
+        },
+        "starkware.cairo.common.math.split_felt.Return": {
+            "cairo_type": "(high: felt, low: felt)",
+            "type": "type_definition"
+        },
+        "starkware.cairo.common.math.split_felt.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 0
+        },
+        "starkware.cairo.common.math.split_felt.__temp0": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.math.split_felt.__temp0",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 1
+                    },
+                    "pc": 10,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.math.split_felt.__temp1": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.math.split_felt.__temp1",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 2
+                    },
+                    "pc": 12,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.math.split_felt.__temp2": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.math.split_felt.__temp2",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 3
+                    },
+                    "pc": 13,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.math.split_felt.__temp3": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.math.split_felt.__temp3",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 4
+                    },
+                    "pc": 15,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.math.split_felt.__temp4": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.math.split_felt.__temp4",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 5
+                    },
+                    "pc": 17,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.math.split_felt.high": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.math.split_felt.high",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 0
+                    },
+                    "pc": 9,
+                    "value": "[cast([fp + (-4)] + 1, felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.math.split_felt.low": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.math.split_felt.low",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 0
+                    },
+                    "pc": 9,
+                    "value": "[cast([fp + (-4)], felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.math.split_felt.range_check_ptr": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.math.split_felt.range_check_ptr",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 0
+                    },
+                    "pc": 9,
+                    "value": "[cast(fp + (-4), felt*)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 0
+                    },
+                    "pc": 9,
+                    "value": "cast([fp + (-4)] + 2, felt)"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 15
+                    },
+                    "pc": 26,
+                    "value": "[cast(ap + (-1), felt*)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 15
+                    },
+                    "pc": 35,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.math.split_felt.value": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.math.split_felt.value",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 0
+                    },
+                    "pc": 9,
+                    "value": "[cast(fp + (-3), felt*)]"
+                }
+            ],
+            "type": "reference"
+        }
+    },
+    "main_scope": "__main__",
+    "prime": "0x800000000000011000000000000000000000000000000000000000000000001",
+    "reference_manager": {
+        "references": [
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 0
+                },
+                "pc": 0,
+                "value": "[cast(fp + (-3), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 0
+                },
+                "pc": 0,
+                "value": "[cast(fp + (-4), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 0,
+                    "offset": 0
+                },
+                "pc": 1,
+                "value": "cast([fp + (-4)] + 1, felt)"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 0
+                },
+                "pc": 4,
+                "value": "[cast(fp + (-4), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 0
+                },
+                "pc": 4,
+                "value": "[cast(fp + (-3), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 0
+                },
+                "pc": 4,
+                "value": "[cast(fp + (-5), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 5
+                },
+                "pc": 8,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 0
+                },
+                "pc": 9,
+                "value": "[cast(fp + (-3), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 0
+                },
+                "pc": 9,
+                "value": "[cast(fp + (-4), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 0
+                },
+                "pc": 9,
+                "value": "[cast([fp + (-4)], felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 0
+                },
+                "pc": 9,
+                "value": "[cast([fp + (-4)] + 1, felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 0
+                },
+                "pc": 9,
+                "value": "cast([fp + (-4)] + 2, felt)"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 1
+                },
+                "pc": 10,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 2
+                },
+                "pc": 12,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 3
+                },
+                "pc": 13,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 4
+                },
+                "pc": 15,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 5
+                },
+                "pc": 17,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 15
+                },
+                "pc": 26,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 15
+                },
+                "pc": 35,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 15
+                },
+                "pc": 35,
+                "value": "[cast(ap - 0 + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 0
+                },
+                "pc": 38,
+                "value": "[cast(fp + (-3), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 0
+                },
+                "pc": 38,
+                "value": "[cast(fp + (-4), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 0
+                },
+                "pc": 38,
+                "value": "[cast([fp + (-4)], felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 0
+                },
+                "pc": 38,
+                "value": "[cast([fp + (-4)] + 1, felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 0
+                },
+                "pc": 38,
+                "value": "cast([fp + (-4)] + 2, felt)"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 1
+                },
+                "pc": 39,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 2
+                },
+                "pc": 41,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 3
+                },
+                "pc": 42,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 4
+                },
+                "pc": 44,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 5
+                },
+                "pc": 46,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 15
+                },
+                "pc": 55,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 15
+                },
+                "pc": 64,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 15
+                },
+                "pc": 64,
+                "value": "[cast(ap - 0 + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 4,
+                    "offset": 0
+                },
+                "pc": 67,
+                "value": "[cast(fp + (-3), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 4,
+                    "offset": 21
+                },
+                "pc": 72,
+                "value": "[cast(ap + (-3), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 4,
+                    "offset": 21
+                },
+                "pc": 72,
+                "value": "[cast(ap + (-2), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 4,
+                    "offset": 21
+                },
+                "pc": 72,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 4,
+                    "offset": 42
+                },
+                "pc": 81,
+                "value": "[cast(ap + (-3), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 4,
+                    "offset": 42
+                },
+                "pc": 81,
+                "value": "[cast(ap + (-2), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 4,
+                    "offset": 42
+                },
+                "pc": 81,
+                "value": "[cast(ap + (-1), felt*)]"
+            }
+        ]
+    }
+}

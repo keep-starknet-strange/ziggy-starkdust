@@ -746,31 +746,16 @@ test "Felt252 saturating_shl" {
     );
     var c = Felt252.fromInt(u64, 44444444);
     try expectEqual(
-        Felt252{ .fe = .{
-            std.math.maxInt(u64),
-            std.math.maxInt(u64),
-            std.math.maxInt(u64),
-            std.math.maxInt(u64),
-        } },
+        Felt252.Max,
         c.saturating_shl(10),
     );
     try expectEqual(
-        Felt252{ .fe = .{
-            std.math.maxInt(u64),
-            std.math.maxInt(u64),
-            std.math.maxInt(u64),
-            std.math.maxInt(u64),
-        } },
+        Felt252.Max,
         c.saturating_shl(5 * 64),
     );
     var d = Felt252.fromInt(u64, 33333333);
     try expectEqual(
-        Felt252{ .fe = .{
-            std.math.maxInt(u64),
-            std.math.maxInt(u64),
-            std.math.maxInt(u64),
-            std.math.maxInt(u64),
-        } },
+        Felt252.Max,
         d.saturating_shl(3 * 64),
     );
 }

@@ -9,8 +9,35 @@ const Relocatable = relocatable.Relocatable;
 const dict_manager_lib = @import("dict_manager.zig");
 const IdsManager = @import("hint_utils.zig").IdsManager;
 const HintReference = @import("../hint_processor/hint_processor_def.zig").HintReference;
+const HintData = @import("../hint_processor/hint_processor_def.zig").HintData;
 const ExecutionScopes = @import("../vm/types/execution_scopes.zig").ExecutionScopes;
 const Rc = @import("../vm/types/execution_scopes.zig").Rc;
+const HintProccessor = @import("../hint_processor/hint_processor_def.zig").CairoVMHintProcessor;
+const Felt252 = @import("../math/fields/starknet.zig").Felt252;
+
+const RangeCheckBuiltinRunner = @import("../vm/builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
+
+pub fn runHint(
+    allocator: std.mem.Allocator,
+    vm: *CairoVM,
+    ids_data: std.StringHashMap(HintReference),
+    hint_code: []const u8,
+    constants: *std.StringHashMap(Felt252),
+    exec_scopes: *ExecutionScopes,
+) !void {
+    var hint_data = HintData{ .code = hint_code, .ids_data = ids_data, .ap_tracking = .{} };
+    const hint_processor = HintProccessor{};
+    try hint_processor.executeHint(allocator, vm, &hint_data, constants, exec_scopes);
+}
+
+pub fn initVMWithRangeCheck(allocator: std.mem.Allocator) !CairoVM {
+    var vm = try CairoVM.init(allocator, .{});
+    errdefer vm.deinit();
+
+    try vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true) });
+
+    return vm;
+}
 
 pub fn checkMemory(mem: *Memory, comptime rows: anytype) !void {
     inline for (rows) |row| {
