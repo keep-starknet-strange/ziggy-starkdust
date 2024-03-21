@@ -103,41 +103,6 @@ pub fn verifyEcdsaSignature(
     });
 }
 
-// Implements hint:from starkware.cairo.common.math.cairo
-//
-//	%{
-//		from starkware.crypto.signature.signature import FIELD_PRIME
-//		from starkware.python.math_utils import div_mod, is_quad_residue, sqrt
-//
-//		x = ids.x
-//		if is_quad_residue(x, FIELD_PRIME):
-//		    ids.y = sqrt(x, FIELD_PRIME)
-//		else:
-//		    ids.y = sqrt(div_mod(x, 3, FIELD_PRIME), FIELD_PRIME)
-//
-// %}
-pub fn isQuadResidue(
-    allocator: Allocator,
-    vm: *CairoVM,
-    ids_data: std.StringHashMap(HintReference),
-    ap_tracking: ApTracking,
-) !void {
-    _ = ap_tracking; // autofix
-    _ = vm; // autofix
-    _ = ids_data; // autofix
-    _ = allocator; // autofix
-
-    // const x = try hint_utils.getIntegerFromVarName("x", vm, ids_data, ap_tracking);
-
-    // if (x.isZero() or x.isOne()) {
-    //     try hint_utils.insertValueFromVarName(allocator, "y", MaybeRelocatable.fromFelt(x), vm, ids_data, ap_tracking);
-    // } else if (x.pow(Felt252.Max.div(Felt252.two()) catch unreachable).eq(Felt252.one()))) {
-    //     try hint_utils.insertValueFromVarName(allocator, "y", x.sqrt() catch Felt252.zero(), vm, ids_data, ap_tracking);
-    // } else {
-    //     try hint_utils.insertValueFromVarName(allocator, "y", x.div(Felt252.three()).sqrt() catch Felt252.zero(), vm, ids_data, ap_tracking);
-    // }
-}
-
 //Implements hint: from starkware.cairo.lang.vm.relocatable import RelocatableValue
 //        both_ints = isinstance(ids.a, int) and isinstance(ids.b, int)
 //        both_relocatable = (
@@ -154,9 +119,18 @@ pub fn assertNotEqual(
     const maybe_rel_a = try hint_utils.getMaybeRelocatableFromVarName("a", vm, ids_data, ap_tracking);
     const maybe_rel_b = try hint_utils.getMaybeRelocatableFromVarName("b", vm, ids_data, ap_tracking);
 
-    if (!maybe_rel_a.eq(maybe_rel_b)) {
-        return HintError.AssertNotEqualFail;
+    switch (maybe_rel_a) {
+        .felt => |a| switch (maybe_rel_b) {
+            .felt => |b| if (a.sub(b).isZero()) return HintError.AssertNotEqualFail else return,
+            else => {},
+        },
+        .relocatable => |a| switch (maybe_rel_b) {
+            .relocatable => |b| if (a.segment_index != b.segment_index) return CairoVMError.DiffIndexComp else if (a.offset == b.offset) return HintError.AssertNotEqualFail else return,
+            else => {},
+        },
     }
+
+    return CairoVMError.DiffTypeComparison;
 }
 
 //Implements hint: from starkware.python.math_utils import isqrt

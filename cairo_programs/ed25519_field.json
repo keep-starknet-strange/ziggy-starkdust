@@ -120,7 +120,7 @@
                             "end_col": 7,
                             "end_line": 73,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                             },
                             "start_col": 5,
                             "start_line": 69
@@ -132,7 +132,7 @@
                     "end_col": 39,
                     "end_line": 76,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "start_col": 32,
                     "start_line": 76
@@ -159,7 +159,7 @@
                     "end_col": 58,
                     "end_line": 76,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "start_col": 43,
                     "start_line": 76
@@ -187,7 +187,7 @@
                     "end_col": 67,
                     "end_line": 76,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "start_col": 43,
                     "start_line": 76
@@ -216,7 +216,7 @@
                     "end_col": 68,
                     "end_line": 76,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "start_col": 32,
                     "start_line": 76
@@ -246,7 +246,7 @@
                     "end_col": 69,
                     "end_line": 76,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "start_col": 5,
                     "start_line": 76
@@ -276,7 +276,7 @@
                     "end_col": 50,
                     "end_line": 79,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "start_col": 31,
                     "start_line": 79
@@ -306,7 +306,7 @@
                     "end_col": 41,
                     "end_line": 80,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "start_col": 5,
                     "start_line": 80
@@ -336,7 +336,7 @@
                     "end_col": 41,
                     "end_line": 81,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "start_col": 5,
                     "start_line": 81
@@ -366,7 +366,7 @@
                     "end_col": 41,
                     "end_line": 82,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "start_col": 5,
                     "start_line": 82
@@ -396,7 +396,7 @@
                     "end_col": 22,
                     "end_line": 84,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "start_col": 5,
                     "start_line": 84
@@ -443,7 +443,7 @@
                             "end_col": 36,
                             "end_line": 66,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                             },
                             "parent_location": [
                                 {
@@ -1069,7 +1069,7 @@
                             "end_col": 36,
                             "end_line": 66,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                             },
                             "parent_location": [
                                 {
