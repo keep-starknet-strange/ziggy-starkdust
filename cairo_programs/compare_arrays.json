@@ -112,7 +112,7 @@
                             "end_col": 38,
                             "end_line": 3,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/alloc.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/alloc.cairo"
                             },
                             "start_col": 5,
                             "start_line": 3
@@ -124,7 +124,7 @@
                     "end_col": 12,
                     "end_line": 4,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/alloc.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/alloc.cairo"
                     },
                     "start_col": 5,
                     "start_line": 4
@@ -147,7 +147,7 @@
                     "end_col": 40,
                     "end_line": 5,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/alloc.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/alloc.cairo"
                     },
                     "start_col": 5,
                     "start_line": 5
