@@ -159,7 +159,7 @@ pub fn main() void {
 
 pub fn cairo_run(allocator: std.mem.Allocator, pathname: []const u8, layout: []const u8, extensive_hints: bool) !void {
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
-    const path = try std.os.realpath(pathname, &buffer);
+    const path = try std.posix.realpath(pathname, &buffer);
 
     var parsed_program = try ProgramJson.parseFromFile(allocator, path);
     defer parsed_program.deinit();
