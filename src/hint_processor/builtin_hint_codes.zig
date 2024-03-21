@@ -61,8 +61,8 @@ pub const SET_ADD =
     \\        ids.index = i // ids.elm_size
     \\        ids.is_elm_in_set = 1
     \\        break
-    \\    else:
-    \\        ids.is_elm_in_set = 0
+    \\else:
+    \\    ids.is_elm_in_set = 0
 ;
 
 pub const TEMPORARY_ARRAY = "ids.temporary_array = segments.add_temp_segment()";

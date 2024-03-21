@@ -60,7 +60,7 @@ pub fn isNnOutOfRange(
     //Main logic (assert a is not negative and within the expected range)
     //let value = if (-a - 1usize).mod_floor(vm.get_prime()) < range_check_builtin._bound {
 
-    const value = if (range_check_builtin.bound) |bound| if (bound.sub(a.add(Felt252.one())).lt(bound)) Felt252.zero() else Felt252.one() else Felt252.zero();
+    const value = if (range_check_builtin.bound) |bound| if (Felt252.zero().sub(a.add(Felt252.one())).lt(bound)) Felt252.zero() else Felt252.one() else Felt252.zero();
 
     try hint_utils.insertValueIntoAp(allocator, vm, MaybeRelocatable.fromFelt(value));
 }
@@ -267,7 +267,6 @@ pub fn isQuadResidue(
 ) !void {
     const x = try hint_utils.getIntegerFromVarName("x", vm, ids_data, ap_tracking);
 
-    std.log.debug("salammm {any}\n", .{x});
     if (x.isZero() or x.equal(Felt252.one())) {
         try hint_utils.insertValueFromVarName(allocator, "y", MaybeRelocatable.fromFelt(x), vm, ids_data, ap_tracking);
         // } else if Pow::pow(felt_to_biguint(x), &(&*CAIRO_PRIME >> 1_u32)).is_one() {
@@ -328,4 +327,359 @@ test "MathUtils: splitXx run" {
     try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
 
     try std.testing.expectEqual(Uint256.init(Felt252.fromInt(u256, 316161011683971866381321160306766491472), Felt252.fromInt(u256, 30265492890921847871084892076606437231)), try Uint256.fromVarName("x", &vm, ids_data, .{}));
+}
+
+test "MathUtils: isNn hint true" {
+    const hint_code = "memory[ap] = 0 if 0 <= (ids.a % PRIME) < range_check_builtin.bound else 1";
+    var vm = try testing_utils.initVMWithRangeCheck(std.testing.allocator);
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    //Initialize fp
+    vm.run_context.fp.* = Relocatable.init(1, 5);
+    //Insert ids into memory
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 1, 4 }, .{1} },
+    });
+
+    _ = try vm.segments.addSegment();
+    //Create ids_data
+    var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{"a"});
+    defer ids_data.deinit();
+
+    //Execute the hint
+    try testing_utils.runHint(std.testing.allocator, &vm, ids_data, hint_code, undefined, undefined);
+    //Check that ap now contains true (0)
+    try testing_utils.checkMemory(vm.segments.memory, .{.{ .{ 1, 0 }, .{0} }});
+}
+
+test "MathUtils: isNn hint false" {
+    const hint_code = "memory[ap] = 0 if 0 <= (ids.a % PRIME) < range_check_builtin.bound else 1";
+    var vm = try testing_utils.initVMWithRangeCheck(std.testing.allocator);
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    //Initialize fp
+    vm.run_context.fp.* = Relocatable.init(1, 10);
+    //Insert ids into memory
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 1, 9 }, .{-1} },
+    });
+
+    _ = try vm.segments.addSegment();
+    //Create ids_data
+    var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{"a"});
+    defer ids_data.deinit();
+
+    //Execute the hint
+    try testing_utils.runHint(std.testing.allocator, &vm, ids_data, hint_code, undefined, undefined);
+    //Check that ap now contains true (0)
+    try testing_utils.checkMemory(vm.segments.memory, .{.{ .{ 1, 0 }, .{1} }});
+}
+
+test "MathUtils: isNn hint border case" {
+    const hint_code = "memory[ap] = 0 if 0 <= (ids.a % PRIME) < range_check_builtin.bound else 1";
+    var vm = try testing_utils.initVMWithRangeCheck(std.testing.allocator);
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    //Initialize fp
+    vm.run_context.fp.* = Relocatable.init(1, 5);
+
+    _ = try vm.segments.addSegment();
+    _ = try vm.segments.addSegment();
+    //Insert ids into memory
+    try vm.insertInMemory(std.testing.allocator, Relocatable.init(1, 4), MaybeRelocatable.fromFelt(Felt252.fromInt(u256, 3618502788666131213697322783095070105623107215331596699973092056135872020480).neg()));
+    //Create ids_data
+    var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{"a"});
+    defer ids_data.deinit();
+
+    //Execute the hint
+    try testing_utils.runHint(std.testing.allocator, &vm, ids_data, hint_code, undefined, undefined);
+    //Check that ap now contains true (0)
+    try testing_utils.checkMemory(vm.segments.memory, .{.{ .{ 1, 0 }, .{0} }});
+}
+
+test "MathUtils: isNnOutOfRange hint true" {
+    const hint_code = "memory[ap] = 0 if 0 <= ((-ids.a - 1) % PRIME) < range_check_builtin.bound else 1";
+
+    var vm = try testing_utils.initVMWithRangeCheck(std.testing.allocator);
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    //Initialize fp
+    vm.run_context.fp.* = Relocatable.init(1, 5);
+    //Insert ids into memory
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 1, 4 }, .{-1} },
+    });
+
+    _ = try vm.segments.addSegment();
+    //Create ids_data
+    var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{"a"});
+    defer ids_data.deinit();
+
+    //Execute the hint
+    try testing_utils.runHint(std.testing.allocator, &vm, ids_data, hint_code, undefined, undefined);
+    //Check that ap now contains true (0)
+    try testing_utils.checkMemory(vm.segments.memory, .{.{ .{ 1, 0 }, .{0} }});
+}
+
+test "MathUtils: isNnOutOfRange hint false" {
+    const hint_code = "memory[ap] = 0 if 0 <= ((-ids.a - 1) % PRIME) < range_check_builtin.bound else 1";
+
+    var vm = try testing_utils.initVMWithRangeCheck(std.testing.allocator);
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    //Initialize fp
+    vm.run_context.fp.* = Relocatable.init(1, 5);
+    //Insert ids into memory
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 1, 4 }, .{2} },
+    });
+
+    _ = try vm.segments.addSegment();
+    //Create ids_data
+    var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{"a"});
+    defer ids_data.deinit();
+
+    //Execute the hint
+    try testing_utils.runHint(std.testing.allocator, &vm, ids_data, hint_code, undefined, undefined);
+    //Check that ap now contains true (0)
+    try testing_utils.checkMemory(vm.segments.memory, .{.{ .{ 1, 0 }, .{1} }});
+}
+
+test "MathUtils: assertLeFelt06 assertetion failed" {
+    const hint_code = hint_codes.ASSERT_LE_FELT_V_0_6;
+
+    var vm = try testing_utils.initVMWithRangeCheck(std.testing.allocator);
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    //Initialize fp
+    vm.run_context.fp.* = Relocatable.init(1, 2);
+    //Insert ids into memory
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 1, 0 }, .{17} },
+        .{ .{ 1, 1 }, .{7} },
+    });
+
+    //Create ids_data
+    var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "a", "b" });
+    defer ids_data.deinit();
+
+    //Execute the hint
+    try std.testing.expectError(HintError.NonLeFelt252, testing_utils.runHint(std.testing.allocator, &vm, ids_data, hint_code, undefined, undefined));
+}
+
+test "MathUtils: assertLeFelt08 assertetion failed" {
+    const hint_code = hint_codes.ASSERT_LE_FELT_V_0_8;
+
+    var vm = try testing_utils.initVMWithRangeCheck(std.testing.allocator);
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    //Initialize fp
+    vm.run_context.fp.* = Relocatable.init(1, 2);
+    //Insert ids into memory
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 1, 0 }, .{17} },
+        .{ .{ 1, 1 }, .{7} },
+    });
+
+    //Create ids_data
+    var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "a", "b" });
+    defer ids_data.deinit();
+
+    //Execute the hint
+    try std.testing.expectError(HintError.NonLeFelt252, testing_utils.runHint(std.testing.allocator, &vm, ids_data, hint_code, undefined, undefined));
+}
+
+test "MathUtils: isLeFelt hint true" {
+    const hint_code = "memory[ap] = 0 if (ids.a % PRIME) <= (ids.b % PRIME) else 1";
+
+    var vm = try testing_utils.initVMWithRangeCheck(std.testing.allocator);
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    //Initialize fp
+    vm.run_context.fp.* = Relocatable.init(1, 10);
+    //Insert ids into memory
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 1, 8 }, .{1} },
+        .{ .{ 1, 9 }, .{2} },
+    });
+
+    _ = try vm.segments.addSegment();
+    //Create ids_data
+    var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "a", "b" });
+    defer ids_data.deinit();
+
+    //Execute the hint
+    try testing_utils.runHint(std.testing.allocator, &vm, ids_data, hint_code, undefined, undefined);
+    //Check that ap now contains true (0)
+    try testing_utils.checkMemory(vm.segments.memory, .{.{ .{ 1, 0 }, .{0} }});
+}
+
+test "MathUtils: slitInt valid" {
+    const hint_code = "memory[ids.output] = res = (int(ids.value) % PRIME) % ids.base\nassert res < ids.bound, f'split_int(): Limb {res} is out of range.'";
+
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    //Initialize fp
+    vm.run_context.fp.* = Relocatable.init(1, 4);
+    //Insert ids into memory
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 1, 0 }, .{ 2, 0 } },
+        .{ .{ 1, 1 }, .{2} },
+        .{ .{ 1, 2 }, .{10} },
+        .{ .{ 1, 3 }, .{100} },
+    });
+
+    _ = try vm.segments.addSegment();
+    //Create ids_data
+    var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "output", "value", "base", "bound" });
+    defer ids_data.deinit();
+
+    //Execute the hint
+    try testing_utils.runHint(std.testing.allocator, &vm, ids_data, hint_code, undefined, undefined);
+    //Check that ap now contains true (0)
+    try testing_utils.checkMemory(vm.segments.memory, .{.{ .{ 2, 0 }, .{2} }});
+}
+
+test "MathUtils: slitInt invalid" {
+    const hint_code = "memory[ids.output] = res = (int(ids.value) % PRIME) % ids.base\nassert res < ids.bound, f'split_int(): Limb {res} is out of range.'";
+
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    //Initialize fp
+    vm.run_context.fp.* = Relocatable.init(1, 4);
+    //Insert ids into memory
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 1, 0 }, .{ 2, 0 } },
+        .{ .{ 1, 1 }, .{100} },
+        .{ .{ 1, 2 }, .{10000} },
+        .{ .{ 1, 3 }, .{10} },
+    });
+
+    _ = try vm.segments.addSegment();
+    //Create ids_data
+    var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "output", "value", "base", "bound" });
+    defer ids_data.deinit();
+
+    //Execute the hint
+    try std.testing.expectError(HintError.SplitIntLimbOutOfRange, testing_utils.runHint(std.testing.allocator, &vm, ids_data, hint_code, undefined, undefined));
+}
+
+test "MathUtils: isAddrBounded ok" {
+    const hint_code = hint_codes.IS_ADDR_BOUNDED;
+
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    var constants = std.StringHashMap(Felt252).init(std.testing.allocator);
+    defer constants.deinit();
+
+    try constants.put(ADDR_BOUND, Felt252.fromInt(u256, 3618502788666131106986593281521497120414687020801267626233049500247285301000));
+
+    var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
+    defer exec_scopes.deinit();
+
+    //Initialize fp
+    vm.run_context.fp.* = Relocatable.init(1, 2);
+    //Insert ids into memory
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 1, 0 }, .{1809251394333067160431340899751024102169435851563236335319518532916477952000} },
+    });
+    //Create ids_data
+    var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "addr", "is_small" });
+    defer ids_data.deinit();
+
+    //Execute the hint
+    try testing_utils.runHint(std.testing.allocator, &vm, ids_data, hint_code, &constants, &exec_scopes);
+    //Check that ap now contains true (0)
+    try testing_utils.checkMemory(vm.segments.memory, .{.{ .{ 1, 1 }, .{1} }});
+}
+
+test "MathUtils: isAddrBounded failed" {
+    const hint_code = hint_codes.IS_ADDR_BOUNDED;
+
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    var constants = std.StringHashMap(Felt252).init(std.testing.allocator);
+    defer constants.deinit();
+
+    try constants.put(ADDR_BOUND, Felt252.fromInt(u256, 1));
+
+    var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
+    defer exec_scopes.deinit();
+
+    //Initialize fp
+    vm.run_context.fp.* = Relocatable.init(1, 2);
+    //Insert ids into memory
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 1, 0 }, .{3618502788666131106986593281521497120414687020801267626233049500247285301000} },
+    });
+    //Create ids_data
+    var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "addr", "is_small" });
+    defer ids_data.deinit();
+
+    //Execute the hint
+    try std.testing.expectError(HintError.AssertionFailed, testing_utils.runHint(std.testing.allocator, &vm, ids_data, hint_code, &constants, &exec_scopes));
+}
+
+test "MathUtils: is250bit valid" {
+    const hint_code = "ids.is_250 = 1 if ids.addr < 2**250 else 0";
+
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    //Initialize fp
+    vm.run_context.fp.* = Relocatable.init(1, 2);
+    //Insert ids into memory
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 1, 0 }, .{1152251} },
+    });
+
+    //Create ids_data
+    var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "addr", "is_250" });
+    defer ids_data.deinit();
+
+    //Execute the hint
+    try testing_utils.runHint(std.testing.allocator, &vm, ids_data, hint_code, undefined, undefined);
+    //Check that ap now contains true (0)
+    try testing_utils.checkMemory(vm.segments.memory, .{.{ .{ 1, 1 }, .{1} }});
+}
+
+test "MathUtils: is250bit invalid" {
+    const hint_code = "ids.is_250 = 1 if ids.addr < 2**250 else 0";
+
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    //Initialize fp
+    vm.run_context.fp.* = Relocatable.init(1, 2);
+    //Insert ids into memory
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 1, 0 }, .{3618502788666131106986593281521497120414687020801267626233049500247285301248} },
+    });
+
+    //Create ids_data
+    var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "addr", "is_250" });
+    defer ids_data.deinit();
+
+    //Execute the hint
+    try testing_utils.runHint(std.testing.allocator, &vm, ids_data, hint_code, undefined, undefined);
+    //Check that ap now contains true (0)
+    try testing_utils.checkMemory(vm.segments.memory, .{.{ .{ 1, 1 }, .{0} }});
 }

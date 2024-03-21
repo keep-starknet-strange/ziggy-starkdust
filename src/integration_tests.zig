@@ -194,9 +194,8 @@ pub fn main() void {
         // .{ .pathname = "cairo_programs/secp256r1_fast_ec_add.json", .layout = "all_cairo" },
         // .{ .pathname = "cairo_programs/secp256r1_slope.json", .layout = "all_cairo" },
 
-        // TODO: set hints
-        // .{ .pathname = "cairo_programs/set_add.json", .layout = "all_cairo" },
-        // .{ .pathname = "cairo_programs/set_integration_tests.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/set_add.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/set_integration_tests.json", .layout = "all_cairo" },
 
         // TODO: sha 256 hints not implemented
         // .{ .pathname = "cairo_programs/sha256_test.json", .layout = "all_cairo" },
