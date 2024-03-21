@@ -51,7 +51,7 @@
                     "end_col": 19,
                     "end_line": 14,
                     "input_file": {
-                        "filename": "/opt/homebrew/lib/python3.9/site-packages/starkware/cairo/common/hash.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
                     },
                     "start_col": 5,
                     "start_line": 14
@@ -78,7 +78,7 @@
                     "end_col": 19,
                     "end_line": 15,
                     "input_file": {
-                        "filename": "/opt/homebrew/lib/python3.9/site-packages/starkware/cairo/common/hash.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
                     },
                     "start_col": 5,
                     "start_line": 15
@@ -106,21 +106,21 @@
                     "end_col": 47,
                     "end_line": 17,
                     "input_file": {
-                        "filename": "/opt/homebrew/lib/python3.9/site-packages/starkware/cairo/common/hash.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 34,
                             "end_line": 13,
                             "input_file": {
-                                "filename": "/opt/homebrew/lib/python3.9/site-packages/starkware/cairo/common/hash.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 28,
                                     "end_line": 18,
                                     "input_file": {
-                                        "filename": "/opt/homebrew/lib/python3.9/site-packages/starkware/cairo/common/hash.cairo"
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 18
@@ -158,14 +158,14 @@
                     "end_col": 33,
                     "end_line": 16,
                     "input_file": {
-                        "filename": "/opt/homebrew/lib/python3.9/site-packages/starkware/cairo/common/hash.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 26,
                             "end_line": 18,
                             "input_file": {
-                                "filename": "/opt/homebrew/lib/python3.9/site-packages/starkware/cairo/common/hash.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
                             },
                             "start_col": 20,
                             "start_line": 18
@@ -198,7 +198,7 @@
                     "end_col": 28,
                     "end_line": 18,
                     "input_file": {
-                        "filename": "/opt/homebrew/lib/python3.9/site-packages/starkware/cairo/common/hash.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
                     },
                     "start_col": 5,
                     "start_line": 18

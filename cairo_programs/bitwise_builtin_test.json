@@ -98,7 +98,7 @@
                     "end_col": 22,
                     "end_line": 19,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "start_col": 5,
                     "start_line": 19
@@ -125,7 +125,7 @@
                     "end_col": 22,
                     "end_line": 20,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "start_col": 5,
                     "start_line": 20
@@ -155,21 +155,21 @@
                     "end_col": 56,
                     "end_line": 24,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 53,
                             "end_line": 16,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 62,
                                     "end_line": 25,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 25
@@ -209,14 +209,14 @@
                     "end_col": 38,
                     "end_line": 21,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 28,
                             "end_line": 25,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                             },
                             "start_col": 21,
                             "start_line": 25
@@ -251,14 +251,14 @@
                     "end_col": 38,
                     "end_line": 22,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 45,
                             "end_line": 25,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                             },
                             "start_col": 38,
                             "start_line": 25
@@ -293,14 +293,14 @@
                     "end_col": 36,
                     "end_line": 23,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 60,
                             "end_line": 25,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                             },
                             "start_col": 54,
                             "start_line": 25
@@ -335,7 +335,7 @@
                     "end_col": 62,
                     "end_line": 25,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "start_col": 5,
                     "start_line": 25
@@ -362,7 +362,7 @@
                     "end_col": 22,
                     "end_line": 38,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "start_col": 5,
                     "start_line": 38
@@ -389,7 +389,7 @@
                     "end_col": 22,
                     "end_line": 39,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "start_col": 5,
                     "start_line": 39
@@ -419,21 +419,21 @@
                     "end_col": 56,
                     "end_line": 43,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 46,
                             "end_line": 37,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 30,
                                     "end_line": 44,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 44
@@ -473,14 +473,14 @@
                     "end_col": 38,
                     "end_line": 40,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 28,
                             "end_line": 44,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                             },
                             "start_col": 21,
                             "start_line": 44
@@ -515,7 +515,7 @@
                     "end_col": 30,
                     "end_line": 44,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "start_col": 5,
                     "start_line": 44
@@ -542,7 +542,7 @@
                     "end_col": 22,
                     "end_line": 57,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "start_col": 5,
                     "start_line": 57
@@ -569,7 +569,7 @@
                     "end_col": 22,
                     "end_line": 58,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "start_col": 5,
                     "start_line": 58
@@ -599,21 +599,21 @@
                     "end_col": 56,
                     "end_line": 62,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 46,
                             "end_line": 56,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 30,
                                     "end_line": 63,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 63
@@ -653,14 +653,14 @@
                     "end_col": 38,
                     "end_line": 60,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 28,
                             "end_line": 63,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                             },
                             "start_col": 21,
                             "start_line": 63
@@ -695,7 +695,7 @@
                     "end_col": 30,
                     "end_line": 63,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "start_col": 5,
                     "start_line": 63
@@ -722,7 +722,7 @@
                     "end_col": 22,
                     "end_line": 76,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "start_col": 5,
                     "start_line": 76
@@ -749,7 +749,7 @@
                     "end_col": 22,
                     "end_line": 77,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "start_col": 5,
                     "start_line": 77
@@ -779,21 +779,21 @@
                     "end_col": 56,
                     "end_line": 81,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 45,
                             "end_line": 75,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 28,
                                     "end_line": 82,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 82
@@ -833,14 +833,14 @@
                     "end_col": 36,
                     "end_line": 80,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 26,
                             "end_line": 82,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                             },
                             "start_col": 20,
                             "start_line": 82
@@ -875,7 +875,7 @@
                     "end_col": 28,
                     "end_line": 82,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "start_col": 5,
                     "start_line": 82
@@ -907,7 +907,7 @@
                             "end_col": 46,
                             "end_line": 37,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                             },
                             "parent_location": [
                                 {
@@ -1051,7 +1051,7 @@
                     "end_col": 46,
                     "end_line": 37,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "parent_location": [
                         {
@@ -1065,7 +1065,7 @@
                                     "end_col": 46,
                                     "end_line": 56,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                                     },
                                     "parent_location": [
                                         {
@@ -1219,7 +1219,7 @@
                     "end_col": 46,
                     "end_line": 56,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "parent_location": [
                         {
@@ -1233,7 +1233,7 @@
                                     "end_col": 45,
                                     "end_line": 75,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                                     },
                                     "parent_location": [
                                         {
@@ -1392,7 +1392,7 @@
                     "end_col": 45,
                     "end_line": 75,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "parent_location": [
                         {
@@ -1406,7 +1406,7 @@
                                     "end_col": 53,
                                     "end_line": 16,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                                     },
                                     "parent_location": [
                                         {
@@ -1636,7 +1636,7 @@
                     "end_col": 53,
                     "end_line": 16,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/bitwise.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/bitwise.cairo"
                     },
                     "parent_location": [
                         {

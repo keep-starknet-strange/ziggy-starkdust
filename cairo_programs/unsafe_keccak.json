@@ -1,0 +1,2163 @@
+{
+    "attributes": [],
+    "builtins": [
+        "output"
+    ],
+    "compiler_version": "0.12.2",
+    "data": [
+        "0x40780017fff7fff",
+        "0x1",
+        "0x208b7fff7fff7ffe",
+        "0x400380007ffc7ffd",
+        "0x482680017ffc8000",
+        "0x1",
+        "0x208b7fff7fff7ffe",
+        "0x40780017fff7fff",
+        "0x2",
+        "0x480a80007fff8000",
+        "0x480a80017fff8000",
+        "0x208b7fff7fff7ffe",
+        "0x40780017fff7fff",
+        "0x0",
+        "0x1104800180018000",
+        "0x800000000000010fffffffffffffffffffffffffffffffffffffffffffffff3",
+        "0x480680017fff8000",
+        "0x1f4",
+        "0x400080007ffe7fff",
+        "0x480680017fff8000",
+        "0x2",
+        "0x400080017ffd7fff",
+        "0x480680017fff8000",
+        "0x3",
+        "0x400080027ffc7fff",
+        "0x480680017fff8000",
+        "0x6",
+        "0x400080037ffb7fff",
+        "0x480680017fff8000",
+        "0x1",
+        "0x400080047ffa7fff",
+        "0x480680017fff8000",
+        "0x115c",
+        "0x400080057ff97fff",
+        "0x48127ff97fff8000",
+        "0x480680017fff8000",
+        "0x6",
+        "0x1104800180018000",
+        "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffe3",
+        "0x400680017fff7ffe",
+        "0x8958e79e6d49e07b141fdce2235d672e",
+        "0x400680017fff7fff",
+        "0x43bde9881827a964403841e98ef53ce5",
+        "0x480a7ffd7fff8000",
+        "0x48127ffd7fff8000",
+        "0x1104800180018000",
+        "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffd7",
+        "0x48127ffa7fff8000",
+        "0x1104800180018000",
+        "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffffd4",
+        "0x208b7fff7fff7ffe"
+    ],
+    "debug_info": {
+        "file_contents": {},
+        "instruction_locations": {
+            "0": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.alloc",
+                    "starkware.cairo.common.alloc.alloc"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "reference_ids": {}
+                },
+                "hints": [
+                    {
+                        "location": {
+                            "end_col": 38,
+                            "end_line": 3,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/alloc.cairo"
+                            },
+                            "start_col": 5,
+                            "start_line": 3
+                        },
+                        "n_prefix_newlines": 0
+                    }
+                ],
+                "inst": {
+                    "end_col": 12,
+                    "end_line": 4,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/alloc.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 4
+                }
+            },
+            "2": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.alloc",
+                    "starkware.cairo.common.alloc.alloc"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 1
+                    },
+                    "reference_ids": {}
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 40,
+                    "end_line": 5,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/alloc.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 5
+                }
+            },
+            "3": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.serialize",
+                    "starkware.cairo.common.serialize.serialize_word"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.serialize.serialize_word.output_ptr": 1,
+                        "starkware.cairo.common.serialize.serialize_word.word": 0
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 32,
+                    "end_line": 3,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/serialize.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 3
+                }
+            },
+            "4": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.serialize",
+                    "starkware.cairo.common.serialize.serialize_word"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.serialize.serialize_word.output_ptr": 2,
+                        "starkware.cairo.common.serialize.serialize_word.word": 0
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 36,
+                    "end_line": 4,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/serialize.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 38,
+                            "end_line": 2,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/serialize.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 15,
+                                    "end_line": 5,
+                                    "input_file": {
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/serialize.cairo"
+                                    },
+                                    "start_col": 5,
+                                    "start_line": 5
+                                },
+                                "While trying to retrieve the implicit argument 'output_ptr' in:"
+                            ],
+                            "start_col": 21,
+                            "start_line": 2
+                        },
+                        "While expanding the reference 'output_ptr' in:"
+                    ],
+                    "start_col": 22,
+                    "start_line": 4
+                }
+            },
+            "6": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.serialize",
+                    "starkware.cairo.common.serialize.serialize_word"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 1,
+                        "offset": 1
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.serialize.serialize_word.output_ptr": 2,
+                        "starkware.cairo.common.serialize.serialize_word.word": 0
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 15,
+                    "end_line": 5,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/serialize.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 5
+                }
+            },
+            "7": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.keccak",
+                    "starkware.cairo.common.keccak.unsafe_keccak"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.keccak.unsafe_keccak.data": 3,
+                        "starkware.cairo.common.keccak.unsafe_keccak.length": 4
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 18,
+                    "end_line": 13,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/keccak.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 13
+                }
+            },
+            "9": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.keccak",
+                    "starkware.cairo.common.keccak.unsafe_keccak"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.keccak.unsafe_keccak.data": 3,
+                        "starkware.cairo.common.keccak.unsafe_keccak.high": 6,
+                        "starkware.cairo.common.keccak.unsafe_keccak.length": 4,
+                        "starkware.cairo.common.keccak.unsafe_keccak.low": 5
+                    }
+                },
+                "hints": [
+                    {
+                        "location": {
+                            "end_col": 7,
+                            "end_line": 36,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/keccak.cairo"
+                            },
+                            "start_col": 5,
+                            "start_line": 16
+                        },
+                        "n_prefix_newlines": 1
+                    }
+                ],
+                "inst": {
+                    "end_col": 14,
+                    "end_line": 14,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/keccak.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 20,
+                            "end_line": 37,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/keccak.cairo"
+                            },
+                            "start_col": 17,
+                            "start_line": 37
+                        },
+                        "While expanding the reference 'low' in:"
+                    ],
+                    "start_col": 11,
+                    "start_line": 14
+                }
+            },
+            "10": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.keccak",
+                    "starkware.cairo.common.keccak.unsafe_keccak"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 3
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.keccak.unsafe_keccak.data": 3,
+                        "starkware.cairo.common.keccak.unsafe_keccak.high": 6,
+                        "starkware.cairo.common.keccak.unsafe_keccak.length": 4,
+                        "starkware.cairo.common.keccak.unsafe_keccak.low": 5
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 15,
+                    "end_line": 15,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/keccak.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 31,
+                            "end_line": 37,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/keccak.cairo"
+                            },
+                            "start_col": 27,
+                            "start_line": 37
+                        },
+                        "While expanding the reference 'high' in:"
+                    ],
+                    "start_col": 11,
+                    "start_line": 15
+                }
+            },
+            "11": {
+                "accessible_scopes": [
+                    "starkware.cairo.common.keccak",
+                    "starkware.cairo.common.keccak.unsafe_keccak"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 4
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.keccak.unsafe_keccak.data": 3,
+                        "starkware.cairo.common.keccak.unsafe_keccak.high": 6,
+                        "starkware.cairo.common.keccak.unsafe_keccak.length": 4,
+                        "starkware.cairo.common.keccak.unsafe_keccak.low": 5
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 33,
+                    "end_line": 37,
+                    "input_file": {
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/keccak.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 37
+                }
+            },
+            "12": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.main.output_ptr": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 18,
+                    "end_line": 8,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 8
+                }
+            },
+            "14": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 0
+                    },
+                    "reference_ids": {
+                        "__main__.main.output_ptr": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 32,
+                    "end_line": 10,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "start_col": 25,
+                    "start_line": 10
+                }
+            },
+            "16": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 3
+                    },
+                    "reference_ids": {
+                        "__main__.main.data": 8,
+                        "__main__.main.output_ptr": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 25,
+                    "end_line": 12,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "start_col": 22,
+                    "start_line": 12
+                }
+            },
+            "18": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 4
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 9,
+                        "__main__.main.data": 8,
+                        "__main__.main.output_ptr": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 26,
+                    "end_line": 12,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 12
+                }
+            },
+            "19": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 4
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 9,
+                        "__main__.main.data": 8,
+                        "__main__.main.output_ptr": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 23,
+                    "end_line": 13,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "start_col": 22,
+                    "start_line": 13
+                }
+            },
+            "21": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 5
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 9,
+                        "__main__.main.__temp1": 10,
+                        "__main__.main.data": 8,
+                        "__main__.main.output_ptr": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 24,
+                    "end_line": 13,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 13
+                }
+            },
+            "22": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 5
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 9,
+                        "__main__.main.__temp1": 10,
+                        "__main__.main.data": 8,
+                        "__main__.main.output_ptr": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 23,
+                    "end_line": 14,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "start_col": 22,
+                    "start_line": 14
+                }
+            },
+            "24": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 6
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 9,
+                        "__main__.main.__temp1": 10,
+                        "__main__.main.__temp2": 11,
+                        "__main__.main.data": 8,
+                        "__main__.main.output_ptr": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 24,
+                    "end_line": 14,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 14
+                }
+            },
+            "25": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 6
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 9,
+                        "__main__.main.__temp1": 10,
+                        "__main__.main.__temp2": 11,
+                        "__main__.main.data": 8,
+                        "__main__.main.output_ptr": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 23,
+                    "end_line": 15,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "start_col": 22,
+                    "start_line": 15
+                }
+            },
+            "27": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 7
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 9,
+                        "__main__.main.__temp1": 10,
+                        "__main__.main.__temp2": 11,
+                        "__main__.main.__temp3": 12,
+                        "__main__.main.data": 8,
+                        "__main__.main.output_ptr": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 24,
+                    "end_line": 15,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 15
+                }
+            },
+            "28": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 7
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 9,
+                        "__main__.main.__temp1": 10,
+                        "__main__.main.__temp2": 11,
+                        "__main__.main.__temp3": 12,
+                        "__main__.main.data": 8,
+                        "__main__.main.output_ptr": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 23,
+                    "end_line": 16,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "start_col": 22,
+                    "start_line": 16
+                }
+            },
+            "30": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 8
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 9,
+                        "__main__.main.__temp1": 10,
+                        "__main__.main.__temp2": 11,
+                        "__main__.main.__temp3": 12,
+                        "__main__.main.__temp4": 13,
+                        "__main__.main.data": 8,
+                        "__main__.main.output_ptr": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 24,
+                    "end_line": 16,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 16
+                }
+            },
+            "31": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 8
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 9,
+                        "__main__.main.__temp1": 10,
+                        "__main__.main.__temp2": 11,
+                        "__main__.main.__temp3": 12,
+                        "__main__.main.__temp4": 13,
+                        "__main__.main.data": 8,
+                        "__main__.main.output_ptr": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 26,
+                    "end_line": 17,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "start_col": 22,
+                    "start_line": 17
+                }
+            },
+            "33": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 9
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 9,
+                        "__main__.main.__temp1": 10,
+                        "__main__.main.__temp2": 11,
+                        "__main__.main.__temp3": 12,
+                        "__main__.main.__temp4": 13,
+                        "__main__.main.__temp5": 14,
+                        "__main__.main.data": 8,
+                        "__main__.main.output_ptr": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 27,
+                    "end_line": 17,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 17
+                }
+            },
+            "34": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 9
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 9,
+                        "__main__.main.__temp1": 10,
+                        "__main__.main.__temp2": 11,
+                        "__main__.main.__temp3": 12,
+                        "__main__.main.__temp4": 13,
+                        "__main__.main.__temp5": 14,
+                        "__main__.main.data": 8,
+                        "__main__.main.output_ptr": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 21,
+                    "end_line": 10,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 53,
+                            "end_line": 19,
+                            "input_file": {
+                                "filename": "cairo_programs/unsafe_keccak.cairo"
+                            },
+                            "start_col": 49,
+                            "start_line": 19
+                        },
+                        "While expanding the reference 'data' in:"
+                    ],
+                    "start_col": 10,
+                    "start_line": 10
+                }
+            },
+            "35": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 10
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 9,
+                        "__main__.main.__temp1": 10,
+                        "__main__.main.__temp2": 11,
+                        "__main__.main.__temp3": 12,
+                        "__main__.main.__temp4": 13,
+                        "__main__.main.__temp5": 14,
+                        "__main__.main.data": 8,
+                        "__main__.main.output_ptr": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 56,
+                    "end_line": 19,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "start_col": 55,
+                    "start_line": 19
+                }
+            },
+            "37": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 11
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 9,
+                        "__main__.main.__temp1": 10,
+                        "__main__.main.__temp2": 11,
+                        "__main__.main.__temp3": 12,
+                        "__main__.main.__temp4": 13,
+                        "__main__.main.__temp5": 14,
+                        "__main__.main.data": 8,
+                        "__main__.main.output_ptr": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 57,
+                    "end_line": 19,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "start_col": 35,
+                    "start_line": 19
+                }
+            },
+            "39": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 17
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 9,
+                        "__main__.main.__temp1": 10,
+                        "__main__.main.__temp2": 11,
+                        "__main__.main.__temp3": 12,
+                        "__main__.main.__temp4": 13,
+                        "__main__.main.__temp5": 14,
+                        "__main__.main.data": 8,
+                        "__main__.main.high": 16,
+                        "__main__.main.low": 15,
+                        "__main__.main.output_ptr": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 58,
+                    "end_line": 21,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 21
+                }
+            },
+            "41": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 17
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 9,
+                        "__main__.main.__temp1": 10,
+                        "__main__.main.__temp2": 11,
+                        "__main__.main.__temp3": 12,
+                        "__main__.main.__temp4": 13,
+                        "__main__.main.__temp5": 14,
+                        "__main__.main.data": 8,
+                        "__main__.main.high": 16,
+                        "__main__.main.low": 15,
+                        "__main__.main.output_ptr": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 58,
+                    "end_line": 22,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 22
+                }
+            },
+            "43": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 17
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 9,
+                        "__main__.main.__temp1": 10,
+                        "__main__.main.__temp2": 11,
+                        "__main__.main.__temp3": 12,
+                        "__main__.main.__temp4": 13,
+                        "__main__.main.__temp5": 14,
+                        "__main__.main.data": 8,
+                        "__main__.main.high": 16,
+                        "__main__.main.low": 15,
+                        "__main__.main.output_ptr": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 28,
+                    "end_line": 7,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 38,
+                            "end_line": 2,
+                            "input_file": {
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/serialize.cairo"
+                            },
+                            "parent_location": [
+                                {
+                                    "end_col": 24,
+                                    "end_line": 24,
+                                    "input_file": {
+                                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                                    },
+                                    "start_col": 5,
+                                    "start_line": 24
+                                },
+                                "While trying to retrieve the implicit argument 'output_ptr' in:"
+                            ],
+                            "start_col": 21,
+                            "start_line": 2
+                        },
+                        "While expanding the reference 'output_ptr' in:"
+                    ],
+                    "start_col": 11,
+                    "start_line": 7
+                }
+            },
+            "44": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 18
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 9,
+                        "__main__.main.__temp1": 10,
+                        "__main__.main.__temp2": 11,
+                        "__main__.main.__temp3": 12,
+                        "__main__.main.__temp4": 13,
+                        "__main__.main.__temp5": 14,
+                        "__main__.main.data": 8,
+                        "__main__.main.high": 16,
+                        "__main__.main.low": 15,
+                        "__main__.main.output_ptr": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 19,
+                    "end_line": 19,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 23,
+                            "end_line": 24,
+                            "input_file": {
+                                "filename": "cairo_programs/unsafe_keccak.cairo"
+                            },
+                            "start_col": 20,
+                            "start_line": 24
+                        },
+                        "While expanding the reference 'low' in:"
+                    ],
+                    "start_col": 10,
+                    "start_line": 19
+                }
+            },
+            "45": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 19
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 9,
+                        "__main__.main.__temp1": 10,
+                        "__main__.main.__temp2": 11,
+                        "__main__.main.__temp3": 12,
+                        "__main__.main.__temp4": 13,
+                        "__main__.main.__temp5": 14,
+                        "__main__.main.data": 8,
+                        "__main__.main.high": 16,
+                        "__main__.main.low": 15,
+                        "__main__.main.output_ptr": 7
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 24,
+                    "end_line": 24,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 24
+                }
+            },
+            "47": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 22
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 9,
+                        "__main__.main.__temp1": 10,
+                        "__main__.main.__temp2": 11,
+                        "__main__.main.__temp3": 12,
+                        "__main__.main.__temp4": 13,
+                        "__main__.main.__temp5": 14,
+                        "__main__.main.data": 8,
+                        "__main__.main.high": 16,
+                        "__main__.main.low": 15,
+                        "__main__.main.output_ptr": 17
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 31,
+                    "end_line": 19,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "parent_location": [
+                        {
+                            "end_col": 24,
+                            "end_line": 25,
+                            "input_file": {
+                                "filename": "cairo_programs/unsafe_keccak.cairo"
+                            },
+                            "start_col": 20,
+                            "start_line": 25
+                        },
+                        "While expanding the reference 'high' in:"
+                    ],
+                    "start_col": 21,
+                    "start_line": 19
+                }
+            },
+            "48": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 23
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 9,
+                        "__main__.main.__temp1": 10,
+                        "__main__.main.__temp2": 11,
+                        "__main__.main.__temp3": 12,
+                        "__main__.main.__temp4": 13,
+                        "__main__.main.__temp5": 14,
+                        "__main__.main.data": 8,
+                        "__main__.main.high": 16,
+                        "__main__.main.low": 15,
+                        "__main__.main.output_ptr": 17
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 25,
+                    "end_line": 25,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 25
+                }
+            },
+            "50": {
+                "accessible_scopes": [
+                    "__main__",
+                    "__main__.main"
+                ],
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 3,
+                        "offset": 26
+                    },
+                    "reference_ids": {
+                        "__main__.main.__temp0": 9,
+                        "__main__.main.__temp1": 10,
+                        "__main__.main.__temp2": 11,
+                        "__main__.main.__temp3": 12,
+                        "__main__.main.__temp4": 13,
+                        "__main__.main.__temp5": 14,
+                        "__main__.main.data": 8,
+                        "__main__.main.high": 16,
+                        "__main__.main.low": 15,
+                        "__main__.main.output_ptr": 18
+                    }
+                },
+                "hints": [],
+                "inst": {
+                    "end_col": 15,
+                    "end_line": 27,
+                    "input_file": {
+                        "filename": "cairo_programs/unsafe_keccak.cairo"
+                    },
+                    "start_col": 5,
+                    "start_line": 27
+                }
+            }
+        }
+    },
+    "hints": {
+        "0": [
+            {
+                "accessible_scopes": [
+                    "starkware.cairo.common.alloc",
+                    "starkware.cairo.common.alloc.alloc"
+                ],
+                "code": "memory[ap] = segments.add()",
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 0,
+                        "offset": 0
+                    },
+                    "reference_ids": {}
+                }
+            }
+        ],
+        "9": [
+            {
+                "accessible_scopes": [
+                    "starkware.cairo.common.keccak",
+                    "starkware.cairo.common.keccak.unsafe_keccak"
+                ],
+                "code": "from eth_hash.auto import keccak\n\ndata, length = ids.data, ids.length\n\nif '__keccak_max_size' in globals():\n    assert length <= __keccak_max_size, \\\n        f'unsafe_keccak() can only be used with length<={__keccak_max_size}. ' \\\n        f'Got: length={length}.'\n\nkeccak_input = bytearray()\nfor word_i, byte_i in enumerate(range(0, length, 16)):\n    word = memory[data + word_i]\n    n_bytes = min(16, length - byte_i)\n    assert 0 <= word < 2 ** (8 * n_bytes)\n    keccak_input += word.to_bytes(n_bytes, 'big')\n\nhashed = keccak(keccak_input)\nids.high = int.from_bytes(hashed[:16], 'big')\nids.low = int.from_bytes(hashed[16:32], 'big')",
+                "flow_tracking_data": {
+                    "ap_tracking": {
+                        "group": 2,
+                        "offset": 2
+                    },
+                    "reference_ids": {
+                        "starkware.cairo.common.keccak.unsafe_keccak.data": 3,
+                        "starkware.cairo.common.keccak.unsafe_keccak.high": 6,
+                        "starkware.cairo.common.keccak.unsafe_keccak.length": 4,
+                        "starkware.cairo.common.keccak.unsafe_keccak.low": 5
+                    }
+                }
+            }
+        ]
+    },
+    "identifiers": {
+        "__main__.alloc": {
+            "destination": "starkware.cairo.common.alloc.alloc",
+            "type": "alias"
+        },
+        "__main__.main": {
+            "decorators": [],
+            "pc": 12,
+            "type": "function"
+        },
+        "__main__.main.Args": {
+            "full_name": "__main__.main.Args",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "__main__.main.ImplicitArgs": {
+            "full_name": "__main__.main.ImplicitArgs",
+            "members": {
+                "output_ptr": {
+                    "cairo_type": "felt*",
+                    "offset": 0
+                }
+            },
+            "size": 1,
+            "type": "struct"
+        },
+        "__main__.main.Return": {
+            "cairo_type": "()",
+            "type": "type_definition"
+        },
+        "__main__.main.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 0
+        },
+        "__main__.main.__temp0": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.__temp0",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 4
+                    },
+                    "pc": 18,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.__temp1": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.__temp1",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 5
+                    },
+                    "pc": 21,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.__temp2": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.__temp2",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 6
+                    },
+                    "pc": 24,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.__temp3": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.__temp3",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 7
+                    },
+                    "pc": 27,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.__temp4": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.__temp4",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 8
+                    },
+                    "pc": 30,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.__temp5": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.__temp5",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 9
+                    },
+                    "pc": 33,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.data": {
+            "cairo_type": "felt*",
+            "full_name": "__main__.main.data",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 3
+                    },
+                    "pc": 16,
+                    "value": "[cast(ap + (-1), felt**)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.high": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.high",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 17
+                    },
+                    "pc": 39,
+                    "value": "[cast(ap + (-1), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.low": {
+            "cairo_type": "felt",
+            "full_name": "__main__.main.low",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 17
+                    },
+                    "pc": 39,
+                    "value": "[cast(ap + (-2), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.main.output_ptr": {
+            "cairo_type": "felt*",
+            "full_name": "__main__.main.output_ptr",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 0
+                    },
+                    "pc": 12,
+                    "value": "[cast(fp + (-3), felt**)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 22
+                    },
+                    "pc": 47,
+                    "value": "[cast(ap + (-1), felt**)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 3,
+                        "offset": 26
+                    },
+                    "pc": 50,
+                    "value": "[cast(ap + (-1), felt**)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "__main__.serialize_word": {
+            "destination": "starkware.cairo.common.serialize.serialize_word",
+            "type": "alias"
+        },
+        "__main__.unsafe_keccak": {
+            "destination": "starkware.cairo.common.keccak.unsafe_keccak",
+            "type": "alias"
+        },
+        "starkware.cairo.common.alloc.alloc": {
+            "decorators": [],
+            "pc": 0,
+            "type": "function"
+        },
+        "starkware.cairo.common.alloc.alloc.Args": {
+            "full_name": "starkware.cairo.common.alloc.alloc.Args",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "starkware.cairo.common.alloc.alloc.ImplicitArgs": {
+            "full_name": "starkware.cairo.common.alloc.alloc.ImplicitArgs",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "starkware.cairo.common.alloc.alloc.Return": {
+            "cairo_type": "(ptr: felt*)",
+            "type": "type_definition"
+        },
+        "starkware.cairo.common.alloc.alloc.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 0
+        },
+        "starkware.cairo.common.bitwise.ALL_ONES": {
+            "type": "const",
+            "value": -106710729501573572985208420194530329073740042555888586719234
+        },
+        "starkware.cairo.common.bitwise.BitwiseBuiltin": {
+            "destination": "starkware.cairo.common.cairo_builtins.BitwiseBuiltin",
+            "type": "alias"
+        },
+        "starkware.cairo.common.bool.FALSE": {
+            "type": "const",
+            "value": 0
+        },
+        "starkware.cairo.common.bool.TRUE": {
+            "type": "const",
+            "value": 1
+        },
+        "starkware.cairo.common.cairo_builtins.BitwiseBuiltin": {
+            "full_name": "starkware.cairo.common.cairo_builtins.BitwiseBuiltin",
+            "members": {
+                "x": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                },
+                "x_and_y": {
+                    "cairo_type": "felt",
+                    "offset": 2
+                },
+                "x_or_y": {
+                    "cairo_type": "felt",
+                    "offset": 4
+                },
+                "x_xor_y": {
+                    "cairo_type": "felt",
+                    "offset": 3
+                },
+                "y": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                }
+            },
+            "size": 5,
+            "type": "struct"
+        },
+        "starkware.cairo.common.cairo_builtins.EcOpBuiltin": {
+            "full_name": "starkware.cairo.common.cairo_builtins.EcOpBuiltin",
+            "members": {
+                "m": {
+                    "cairo_type": "felt",
+                    "offset": 4
+                },
+                "p": {
+                    "cairo_type": "starkware.cairo.common.ec_point.EcPoint",
+                    "offset": 0
+                },
+                "q": {
+                    "cairo_type": "starkware.cairo.common.ec_point.EcPoint",
+                    "offset": 2
+                },
+                "r": {
+                    "cairo_type": "starkware.cairo.common.ec_point.EcPoint",
+                    "offset": 5
+                }
+            },
+            "size": 7,
+            "type": "struct"
+        },
+        "starkware.cairo.common.cairo_builtins.EcPoint": {
+            "destination": "starkware.cairo.common.ec_point.EcPoint",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_builtins.HashBuiltin": {
+            "full_name": "starkware.cairo.common.cairo_builtins.HashBuiltin",
+            "members": {
+                "result": {
+                    "cairo_type": "felt",
+                    "offset": 2
+                },
+                "x": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                },
+                "y": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                }
+            },
+            "size": 3,
+            "type": "struct"
+        },
+        "starkware.cairo.common.cairo_builtins.KeccakBuiltin": {
+            "full_name": "starkware.cairo.common.cairo_builtins.KeccakBuiltin",
+            "members": {
+                "input": {
+                    "cairo_type": "starkware.cairo.common.keccak_state.KeccakBuiltinState",
+                    "offset": 0
+                },
+                "output": {
+                    "cairo_type": "starkware.cairo.common.keccak_state.KeccakBuiltinState",
+                    "offset": 8
+                }
+            },
+            "size": 16,
+            "type": "struct"
+        },
+        "starkware.cairo.common.cairo_builtins.KeccakBuiltinState": {
+            "destination": "starkware.cairo.common.keccak_state.KeccakBuiltinState",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_builtins.PoseidonBuiltin": {
+            "full_name": "starkware.cairo.common.cairo_builtins.PoseidonBuiltin",
+            "members": {
+                "input": {
+                    "cairo_type": "starkware.cairo.common.poseidon_state.PoseidonBuiltinState",
+                    "offset": 0
+                },
+                "output": {
+                    "cairo_type": "starkware.cairo.common.poseidon_state.PoseidonBuiltinState",
+                    "offset": 3
+                }
+            },
+            "size": 6,
+            "type": "struct"
+        },
+        "starkware.cairo.common.cairo_builtins.PoseidonBuiltinState": {
+            "destination": "starkware.cairo.common.poseidon_state.PoseidonBuiltinState",
+            "type": "alias"
+        },
+        "starkware.cairo.common.cairo_builtins.SignatureBuiltin": {
+            "full_name": "starkware.cairo.common.cairo_builtins.SignatureBuiltin",
+            "members": {
+                "message": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                },
+                "pub_key": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                }
+            },
+            "size": 2,
+            "type": "struct"
+        },
+        "starkware.cairo.common.ec_point.EcPoint": {
+            "full_name": "starkware.cairo.common.ec_point.EcPoint",
+            "members": {
+                "x": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                },
+                "y": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                }
+            },
+            "size": 2,
+            "type": "struct"
+        },
+        "starkware.cairo.common.keccak.KeccakState": {
+            "full_name": "starkware.cairo.common.keccak.KeccakState",
+            "members": {
+                "end_ptr": {
+                    "cairo_type": "felt*",
+                    "offset": 1
+                },
+                "start_ptr": {
+                    "cairo_type": "felt*",
+                    "offset": 0
+                }
+            },
+            "size": 2,
+            "type": "struct"
+        },
+        "starkware.cairo.common.keccak.Uint256": {
+            "destination": "starkware.cairo.common.uint256.Uint256",
+            "type": "alias"
+        },
+        "starkware.cairo.common.keccak.alloc": {
+            "destination": "starkware.cairo.common.alloc.alloc",
+            "type": "alias"
+        },
+        "starkware.cairo.common.keccak.split_felt": {
+            "destination": "starkware.cairo.common.math.split_felt",
+            "type": "alias"
+        },
+        "starkware.cairo.common.keccak.unsafe_keccak": {
+            "decorators": [],
+            "pc": 7,
+            "type": "function"
+        },
+        "starkware.cairo.common.keccak.unsafe_keccak.Args": {
+            "full_name": "starkware.cairo.common.keccak.unsafe_keccak.Args",
+            "members": {
+                "data": {
+                    "cairo_type": "felt*",
+                    "offset": 0
+                },
+                "length": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                }
+            },
+            "size": 2,
+            "type": "struct"
+        },
+        "starkware.cairo.common.keccak.unsafe_keccak.ImplicitArgs": {
+            "full_name": "starkware.cairo.common.keccak.unsafe_keccak.ImplicitArgs",
+            "members": {},
+            "size": 0,
+            "type": "struct"
+        },
+        "starkware.cairo.common.keccak.unsafe_keccak.Return": {
+            "cairo_type": "(low: felt, high: felt)",
+            "type": "type_definition"
+        },
+        "starkware.cairo.common.keccak.unsafe_keccak.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 2
+        },
+        "starkware.cairo.common.keccak.unsafe_keccak.data": {
+            "cairo_type": "felt*",
+            "full_name": "starkware.cairo.common.keccak.unsafe_keccak.data",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 0
+                    },
+                    "pc": 7,
+                    "value": "[cast(fp + (-4), felt**)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.keccak.unsafe_keccak.high": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.keccak.unsafe_keccak.high",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 2
+                    },
+                    "pc": 9,
+                    "value": "[cast(fp + 1, felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.keccak.unsafe_keccak.length": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.keccak.unsafe_keccak.length",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 0
+                    },
+                    "pc": 7,
+                    "value": "[cast(fp + (-3), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.keccak.unsafe_keccak.low": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.keccak.unsafe_keccak.low",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 2,
+                        "offset": 2
+                    },
+                    "pc": 9,
+                    "value": "[cast(fp, felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.keccak.unsigned_div_rem": {
+            "destination": "starkware.cairo.common.math.unsigned_div_rem",
+            "type": "alias"
+        },
+        "starkware.cairo.common.keccak_state.KeccakBuiltinState": {
+            "full_name": "starkware.cairo.common.keccak_state.KeccakBuiltinState",
+            "members": {
+                "s0": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                },
+                "s1": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                },
+                "s2": {
+                    "cairo_type": "felt",
+                    "offset": 2
+                },
+                "s3": {
+                    "cairo_type": "felt",
+                    "offset": 3
+                },
+                "s4": {
+                    "cairo_type": "felt",
+                    "offset": 4
+                },
+                "s5": {
+                    "cairo_type": "felt",
+                    "offset": 5
+                },
+                "s6": {
+                    "cairo_type": "felt",
+                    "offset": 6
+                },
+                "s7": {
+                    "cairo_type": "felt",
+                    "offset": 7
+                }
+            },
+            "size": 8,
+            "type": "struct"
+        },
+        "starkware.cairo.common.math.FALSE": {
+            "destination": "starkware.cairo.common.bool.FALSE",
+            "type": "alias"
+        },
+        "starkware.cairo.common.math.TRUE": {
+            "destination": "starkware.cairo.common.bool.TRUE",
+            "type": "alias"
+        },
+        "starkware.cairo.common.math_cmp.RC_BOUND": {
+            "type": "const",
+            "value": 340282366920938463463374607431768211456
+        },
+        "starkware.cairo.common.math_cmp.assert_le_felt": {
+            "destination": "starkware.cairo.common.math.assert_le_felt",
+            "type": "alias"
+        },
+        "starkware.cairo.common.math_cmp.assert_lt_felt": {
+            "destination": "starkware.cairo.common.math.assert_lt_felt",
+            "type": "alias"
+        },
+        "starkware.cairo.common.poseidon_state.PoseidonBuiltinState": {
+            "full_name": "starkware.cairo.common.poseidon_state.PoseidonBuiltinState",
+            "members": {
+                "s0": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                },
+                "s1": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                },
+                "s2": {
+                    "cairo_type": "felt",
+                    "offset": 2
+                }
+            },
+            "size": 3,
+            "type": "struct"
+        },
+        "starkware.cairo.common.pow.assert_le": {
+            "destination": "starkware.cairo.common.math.assert_le",
+            "type": "alias"
+        },
+        "starkware.cairo.common.pow.get_ap": {
+            "destination": "starkware.cairo.common.registers.get_ap",
+            "type": "alias"
+        },
+        "starkware.cairo.common.pow.get_fp_and_pc": {
+            "destination": "starkware.cairo.common.registers.get_fp_and_pc",
+            "type": "alias"
+        },
+        "starkware.cairo.common.registers.get_ap": {
+            "destination": "starkware.cairo.lang.compiler.lib.registers.get_ap",
+            "type": "alias"
+        },
+        "starkware.cairo.common.registers.get_fp_and_pc": {
+            "destination": "starkware.cairo.lang.compiler.lib.registers.get_fp_and_pc",
+            "type": "alias"
+        },
+        "starkware.cairo.common.serialize.serialize_word": {
+            "decorators": [],
+            "pc": 3,
+            "type": "function"
+        },
+        "starkware.cairo.common.serialize.serialize_word.Args": {
+            "full_name": "starkware.cairo.common.serialize.serialize_word.Args",
+            "members": {
+                "word": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                }
+            },
+            "size": 1,
+            "type": "struct"
+        },
+        "starkware.cairo.common.serialize.serialize_word.ImplicitArgs": {
+            "full_name": "starkware.cairo.common.serialize.serialize_word.ImplicitArgs",
+            "members": {
+                "output_ptr": {
+                    "cairo_type": "felt*",
+                    "offset": 0
+                }
+            },
+            "size": 1,
+            "type": "struct"
+        },
+        "starkware.cairo.common.serialize.serialize_word.Return": {
+            "cairo_type": "()",
+            "type": "type_definition"
+        },
+        "starkware.cairo.common.serialize.serialize_word.SIZEOF_LOCALS": {
+            "type": "const",
+            "value": 0
+        },
+        "starkware.cairo.common.serialize.serialize_word.output_ptr": {
+            "cairo_type": "felt*",
+            "full_name": "starkware.cairo.common.serialize.serialize_word.output_ptr",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 0
+                    },
+                    "pc": 3,
+                    "value": "[cast(fp + (-4), felt**)]"
+                },
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 0
+                    },
+                    "pc": 4,
+                    "value": "cast([fp + (-4)] + 1, felt*)"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.serialize.serialize_word.word": {
+            "cairo_type": "felt",
+            "full_name": "starkware.cairo.common.serialize.serialize_word.word",
+            "references": [
+                {
+                    "ap_tracking_data": {
+                        "group": 1,
+                        "offset": 0
+                    },
+                    "pc": 3,
+                    "value": "[cast(fp + (-3), felt*)]"
+                }
+            ],
+            "type": "reference"
+        },
+        "starkware.cairo.common.uint256.ALL_ONES": {
+            "type": "const",
+            "value": 340282366920938463463374607431768211455
+        },
+        "starkware.cairo.common.uint256.BitwiseBuiltin": {
+            "destination": "starkware.cairo.common.cairo_builtins.BitwiseBuiltin",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.HALF_SHIFT": {
+            "type": "const",
+            "value": 18446744073709551616
+        },
+        "starkware.cairo.common.uint256.SHIFT": {
+            "type": "const",
+            "value": 340282366920938463463374607431768211456
+        },
+        "starkware.cairo.common.uint256.Uint256": {
+            "full_name": "starkware.cairo.common.uint256.Uint256",
+            "members": {
+                "high": {
+                    "cairo_type": "felt",
+                    "offset": 1
+                },
+                "low": {
+                    "cairo_type": "felt",
+                    "offset": 0
+                }
+            },
+            "size": 2,
+            "type": "struct"
+        },
+        "starkware.cairo.common.uint256.assert_in_range": {
+            "destination": "starkware.cairo.common.math.assert_in_range",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.assert_le": {
+            "destination": "starkware.cairo.common.math.assert_le",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.assert_nn_le": {
+            "destination": "starkware.cairo.common.math.assert_nn_le",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.assert_not_zero": {
+            "destination": "starkware.cairo.common.math.assert_not_zero",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.bitwise_and": {
+            "destination": "starkware.cairo.common.bitwise.bitwise_and",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.bitwise_or": {
+            "destination": "starkware.cairo.common.bitwise.bitwise_or",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.bitwise_xor": {
+            "destination": "starkware.cairo.common.bitwise.bitwise_xor",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.get_ap": {
+            "destination": "starkware.cairo.common.registers.get_ap",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.get_fp_and_pc": {
+            "destination": "starkware.cairo.common.registers.get_fp_and_pc",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.is_le": {
+            "destination": "starkware.cairo.common.math_cmp.is_le",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.pow": {
+            "destination": "starkware.cairo.common.pow.pow",
+            "type": "alias"
+        },
+        "starkware.cairo.common.uint256.split_felt": {
+            "destination": "starkware.cairo.common.math.split_felt",
+            "type": "alias"
+        }
+    },
+    "main_scope": "__main__",
+    "prime": "0x800000000000011000000000000000000000000000000000000000000000001",
+    "reference_manager": {
+        "references": [
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 0
+                },
+                "pc": 3,
+                "value": "[cast(fp + (-3), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 0
+                },
+                "pc": 3,
+                "value": "[cast(fp + (-4), felt**)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 1,
+                    "offset": 0
+                },
+                "pc": 4,
+                "value": "cast([fp + (-4)] + 1, felt*)"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 0
+                },
+                "pc": 7,
+                "value": "[cast(fp + (-4), felt**)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 0
+                },
+                "pc": 7,
+                "value": "[cast(fp + (-3), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 2
+                },
+                "pc": 9,
+                "value": "[cast(fp, felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 2,
+                    "offset": 2
+                },
+                "pc": 9,
+                "value": "[cast(fp + 1, felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 0
+                },
+                "pc": 12,
+                "value": "[cast(fp + (-3), felt**)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 3
+                },
+                "pc": 16,
+                "value": "[cast(ap + (-1), felt**)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 4
+                },
+                "pc": 18,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 5
+                },
+                "pc": 21,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 6
+                },
+                "pc": 24,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 7
+                },
+                "pc": 27,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 8
+                },
+                "pc": 30,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 9
+                },
+                "pc": 33,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 17
+                },
+                "pc": 39,
+                "value": "[cast(ap + (-2), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 17
+                },
+                "pc": 39,
+                "value": "[cast(ap + (-1), felt*)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 22
+                },
+                "pc": 47,
+                "value": "[cast(ap + (-1), felt**)]"
+            },
+            {
+                "ap_tracking_data": {
+                    "group": 3,
+                    "offset": 26
+                },
+                "pc": 50,
+                "value": "[cast(ap + (-1), felt**)]"
+            }
+        ]
+    }
+}

@@ -139,7 +139,7 @@ pub const CairoRunner = struct {
     initial_pc: ?Relocatable = null,
     initial_ap: ?Relocatable = null,
     initial_fp: ?Relocatable = null,
-    final_pc: *Relocatable = undefined,
+    final_pc: ?Relocatable = null,
     instructions: std.ArrayList(MaybeRelocatable),
     // function_call_stack: std.ArrayList(MaybeRelocatable),
     entrypoint: ?usize,
@@ -374,7 +374,7 @@ pub const CairoRunner = struct {
         return_fp: MaybeRelocatable,
         stack: *std.ArrayList(MaybeRelocatable),
     ) !Relocatable {
-        var end = try self.vm.segments.addSegment();
+        const end = try self.vm.segments.addSegment();
 
         // per 6.1 of cairo whitepaper
         // a call stack usually increases a frame when a function is called
@@ -391,7 +391,7 @@ pub const CairoRunner = struct {
         } else return RunnerError.NoExecBase;
 
         try self.initState(entrypoint, stack);
-        self.final_pc = &end;
+        self.final_pc = end;
         return end;
     }
 
@@ -549,19 +549,158 @@ pub const CairoRunner = struct {
                     &self.program.constants,
                 );
             } else {
-                // cfg not extensive hints feature
-                var hint_data_final: []HintData = &.{};
-                // TODO implement extensive hint data parse
-                if (self.program.shared_program_data.hints_collection
-                    .hints_ranges.NonExtensive.items.len > self.vm.run_context.pc.offset)
-                {
-                    if (self.program.shared_program_data.hints_collection
-                        .hints_ranges.NonExtensive.items[self.vm.run_context.pc.offset]) |range|
-                    {
-                        hint_data_final = hint_datas.items[range.start .. range.start + range.length];
-                    }
-                }
+                try self.vm.stepNotExtensive(
+                    self.allocator,
+                    hint_processor.*,
+                    &self.execution_scopes,
+                    if (self.program
+                        .shared_program_data
+                        .hints_collection
+                        .getHintRangeForPC(self.vm.run_context.pc.offset)) |range|
+                        hint_datas.items[range.start .. range.start + range.length]
+                    else
+                        &.{},
+                    &self.program.constants,
+                );
+            }
 
+            hint_processor.run_resources.consumeStep();
+        }
+    }
+
+    /// Executes the Cairo program until the number of steps reaches the next power of two.
+    ///
+    /// This function runs the Cairo program until the number of executed steps reaches the next power of two.
+    /// It internally calculates the next power of two based on the current step count and then invokes
+    /// the `runUntilSteps` function to execute the program up to that step count.
+    ///
+    /// # Arguments
+    ///
+    /// - `extensive_hints`: A boolean indicating whether extensive hints should be enabled during execution.
+    /// - `hint_processor`: A pointer to the HintProcessor instance responsible for processing hints during execution.
+    ///
+    /// # Returns
+    ///
+    /// This function returns `void` upon successful execution. In case of errors or if the program execution
+    /// reaches the end, it may return a `CairoVMError`.
+    pub fn runUntilNextPowerOf2(
+        self: *Self,
+        extensive_hints: bool,
+        hint_processor: *HintProcessor,
+    ) !void {
+        // Calculate the next power of two for the current step count
+        const next_power_of_two_steps = try std.math.ceilPowerOfTwo(usize, self.vm.current_step);
+
+        // Run the program until the next power of two steps
+        try self.runUntilSteps(next_power_of_two_steps, extensive_hints, hint_processor);
+    }
+
+    /// Executes the Cairo program until a specified number of steps is reached.
+    ///
+    /// This function runs the Cairo program until a specified number of steps is reached.
+    /// It calculates the remaining steps needed based on the current step count and invokes
+    /// the `runForSteps` function to execute the program for the required number of steps.
+    ///
+    /// # Arguments
+    ///
+    /// - `steps`: The total number of steps to run the program for.
+    /// - `extensive_hints`: A boolean indicating whether extensive hints should be enabled during execution.
+    /// - `hint_processor`: A pointer to the HintProcessor instance responsible for processing hints during execution.
+    ///
+    /// # Returns
+    ///
+    /// This function returns `void` upon successful execution. In case of errors or if the program execution
+    /// reaches the end, it may return a `CairoVMError`.
+    pub fn runUntilSteps(
+        self: *Self,
+        steps: usize,
+        extensive_hints: bool,
+        hint_processor: *HintProcessor,
+    ) !void {
+        // Calculate the remaining steps needed based on the current step count
+        const remaining_steps = steps -| self.vm.current_step;
+
+        // Run the program for the remaining steps
+        try self.runForSteps(remaining_steps, extensive_hints, hint_processor);
+    }
+
+    /// Executes the Cairo program for a specified number of steps.
+    ///
+    /// This function runs the Cairo program for a given number of steps, considering each step as an instruction
+    /// executed by the virtual machine (VM). It allows the program to progress within the VM's execution until
+    /// the specified number of steps is reached or until the program execution finishes.
+    ///
+    /// # Arguments
+    ///
+    /// - `steps`: The number of steps to run the program for.
+    /// - `extensive_hints`: A boolean indicating whether extensive hints should be enabled during execution.
+    /// - `hint_processor`: A pointer to the HintProcessor instance responsible for processing hints during execution.
+    ///
+    /// # Returns
+    ///
+    /// This function returns `void` upon successful execution. In case of errors or if the program execution
+    /// reaches the end, it may return a `CairoVMError`.
+    pub fn runForSteps(
+        self: *Self,
+        steps: usize,
+        extensive_hints: bool,
+        hint_processor: *HintProcessor,
+    ) !void {
+        // Get references for hint processing
+        const references = self.program.shared_program_data.reference_manager.items;
+
+        // Get hint data required for hint processing
+        var hint_datas = try self.getHintData(hint_processor, references);
+        defer hint_datas.deinit();
+
+        // Prepare hint ranges for extensive hint processing
+        var hint_ranges: std.AutoHashMap(Relocatable, HintRange) = undefined;
+        defer {
+            if (extensive_hints) hint_ranges.deinit();
+        }
+
+        // Clone extensive hint ranges if extensive hints are enabled
+        if (extensive_hints)
+            hint_ranges = try self.program.shared_program_data
+                .hints_collection.hints_ranges.Extensive.clone();
+
+        // Prepare final hint data for non-extensive hint processing
+        var hint_data_final: []HintData = &.{};
+
+        // If extensive hints are not enabled, determine the hint data for the current PC offset
+        if (!extensive_hints) {
+            // TODO: Implement extensive hint data parsing
+            if (self.program.shared_program_data.hints_collection
+                .hints_ranges.NonExtensive.items.len > self.vm.run_context.pc.offset)
+            {
+                if (self.program.shared_program_data.hints_collection
+                    .hints_ranges.NonExtensive.items[self.vm.run_context.pc.offset]) |range|
+                {
+                    hint_data_final = hint_datas.items[range.start .. range.start + range.length];
+                }
+            }
+        }
+
+        // Initialize remaining steps to run
+        var remaining_steps: usize = steps;
+
+        // Loop until all steps are executed or program ends
+        while (remaining_steps >= 1) {
+            // Check if the program has reached its end
+            if (self.final_pc.?.eq(self.vm.run_context.pc.*))
+                return CairoVMError.EndOfProgram;
+
+            // Execute a single step of the program, considering extensive or non-extensive hints
+            if (extensive_hints) {
+                try self.vm.stepExtensive(
+                    self.allocator,
+                    hint_processor.*,
+                    &self.execution_scopes,
+                    &hint_datas,
+                    &hint_ranges,
+                    &self.program.constants,
+                );
+            } else {
                 try self.vm.stepNotExtensive(
                     self.allocator,
                     hint_processor.*,
@@ -571,7 +710,8 @@ pub const CairoRunner = struct {
                 );
             }
 
-            hint_processor.run_resources.consumeStep();
+            // Decrement remaining steps
+            remaining_steps -= 1;
         }
     }
 
@@ -3831,103 +3971,250 @@ test "CairoRunner: get output with unordered builtins" {
     try expectEqualSlices(u8, "1\n17\n", output.items);
 }
 
-test "CairoRunner: checkDilutedCheckUsage without pool instance" {
-    // Create a CairoRunner instance for testing.
-    var cairo_runner = try CairoRunner.init(
+
+test "CairoRunner: run for steps" {
+
+    //Program used:
+    //%builtins range_check
+    //
+    //func check_range{range_check_ptr}(num):
+    //    # Check that 0 <= num < 2**64.
+    //    [range_check_ptr] = num
+    //    assert [range_check_ptr + 1] = 2 ** 64 - 1 - num
+    //    let range_check_ptr = range_check_ptr + 2
+    //    return()
+    //end
+    //
+    //func main{range_check_ptr}():
+    //    check_range(7)
+    //    return()
+    //end
+    //
+    //main = 8
+    //data = [4612671182993129469, 5189976364521848832, 18446744073709551615,
+    //5199546496550207487, 4612389712311386111, 5198983563776393216,
+    //2, 2345108766317314046, 5191102247248822272, 5189976364521848832,
+    //7, 1226245742482522112,
+    //3618502788666131213697322783095070105623107215331596699973092056135872020470, 2345108766317314046]
+
+    // Initialize a list of built-in functions.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.range_check);
+
+    // Initialize data with preset values.
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u256, 4612671182993129469));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 18446744073709551615));
+    try data.append(MaybeRelocatable.fromInt(u256, 5199546496550207487));
+    try data.append(MaybeRelocatable.fromInt(u256, 4612389712311386111));
+    try data.append(MaybeRelocatable.fromInt(u256, 5198983563776393216));
+    try data.append(MaybeRelocatable.fromInt(u256, 2));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+    try data.append(MaybeRelocatable.fromInt(u256, 5191102247248822272));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 7));
+    try data.append(MaybeRelocatable.fromInt(u256, 1226245742482522112));
+    try data.append(MaybeRelocatable.fromInt(u256, 3618502788666131213697322783095070105623107215331596699973092056135872020470));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize data structures required for a program.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a Program instance with the specified parameters.
+    const program = try Program.init(
         std.testing.allocator,
-        try Program.initDefault(std.testing.allocator, true),
-        "all_cairo",
-        ArrayList(MaybeRelocatable).init(std.testing.allocator),
-        try CairoVM.init(
-            std.testing.allocator,
-            .{},
-        ),
+        builtins,
+        data,
+        8,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
         false,
     );
-    defer cairo_runner.deinit(std.testing.allocator);
 
-    // Set diluted pool instance to null for testing without pool instance.
-    cairo_runner.layout.diluted_pool_instance_def = null;
+    // Initialize a CairoVM instance.
+    const vm = try CairoVM.init(
+        std.testing.allocator,
+        .{ .proof_mode = false, .enable_trace = true },
+    );
 
-    // Call checkDilutedCheckUsage method and expect no error.
-    try cairo_runner.checkDilutedCheckUsage(std.testing.allocator);
-}
-
-test "CairoRunner: checkDilutedCheckUsage without builtins runners" {
-    // Create a CairoRunner instance for testing.
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
-        try Program.initDefault(std.testing.allocator, true),
+        program,
         "all_cairo",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
-        try CairoVM.init(
-            std.testing.allocator,
-            .{},
-        ),
+        vm,
         false,
     );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
     defer cairo_runner.deinit(std.testing.allocator);
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
 
-    // Set current step to simulate no built-in runners.
-    cairo_runner.vm.current_step = 10000;
+    try cairo_runner.initBuiltins(true);
 
-    // Call checkDilutedCheckUsage method and expect no error.
-    try cairo_runner.checkDilutedCheckUsage(std.testing.allocator);
-}
+    try cairo_runner.initSegments(null);
+    const end = try cairo_runner.initMainEntrypoint();
+    try expectEqual(Relocatable.init(4, 0), end);
 
-test "CairoRunner: checkDilutedCheckUsage with insufficient allocated cells" {
-    // Create a CairoRunner instance for testing.
-    var cairo_runner = try CairoRunner.init(
-        std.testing.allocator,
-        try Program.initDefault(std.testing.allocator, true),
-        "all_cairo",
-        ArrayList(MaybeRelocatable).init(std.testing.allocator),
-        try CairoVM.init(
-            std.testing.allocator,
-            .{},
-        ),
-        false,
-    );
-    defer cairo_runner.deinit(std.testing.allocator);
+    try cairo_runner.initVM();
 
-    // Set current step to simulate insufficient allocated cells.
-    cairo_runner.vm.current_step = 100;
+    // Run the program.
+    var hint_processor: HintProcessor = .{};
 
-    // Call checkDilutedCheckUsage method and expect MemoryError.InsufficientAllocatedCells.
+    // Full takes 10 steps.
+    // Execute the Cairo runner for 8 steps.
+    try cairo_runner.runForSteps(8, false, &hint_processor);
+
+    // Expect an error indicating the end of the program when attempting to execute the Cairo runner for 8 steps again.
     try expectError(
-        MemoryError.InsufficientAllocatedCells,
-        cairo_runner.checkDilutedCheckUsage(std.testing.allocator),
+        CairoVMError.EndOfProgram,
+        cairo_runner.runForSteps(8, false, &hint_processor),
     );
 }
 
-test "CairoRunner: checkDilutedCheckUsage with bitwise builtin" {
-    // Create a CairoRunner instance for testing.
-    var cairo_runner = try CairoRunner.init(
+test "CairoRunner: run until next power of 2" {
+
+    //Program used:
+    //%builtins range_check
+    //
+    //func check_range{range_check_ptr}(num):
+    //    # Check that 0 <= num < 2**64.
+    //    [range_check_ptr] = num
+    //    assert [range_check_ptr + 1] = 2 ** 64 - 1 - num
+    //    let range_check_ptr = range_check_ptr + 2
+    //    return()
+    //end
+    //
+    //func main{range_check_ptr}():
+    //    check_range(7)
+    //    return()
+    //end
+    //
+    //main = 8
+    //data = [4612671182993129469, 5189976364521848832, 18446744073709551615,
+    //5199546496550207487, 4612389712311386111, 5198983563776393216,
+    //2, 2345108766317314046, 5191102247248822272, 5189976364521848832,
+    //7, 1226245742482522112,
+    //3618502788666131213697322783095070105623107215331596699973092056135872020470, 2345108766317314046]
+
+    // Initialize a list of built-in functions.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.range_check);
+
+    // Initialize data with preset values.
+    var data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    try data.append(MaybeRelocatable.fromInt(u256, 4612671182993129469));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 18446744073709551615));
+    try data.append(MaybeRelocatable.fromInt(u256, 5199546496550207487));
+    try data.append(MaybeRelocatable.fromInt(u256, 4612389712311386111));
+    try data.append(MaybeRelocatable.fromInt(u256, 5198983563776393216));
+    try data.append(MaybeRelocatable.fromInt(u256, 2));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+    try data.append(MaybeRelocatable.fromInt(u256, 5191102247248822272));
+    try data.append(MaybeRelocatable.fromInt(u256, 5189976364521848832));
+    try data.append(MaybeRelocatable.fromInt(u256, 7));
+    try data.append(MaybeRelocatable.fromInt(u256, 1226245742482522112));
+    try data.append(MaybeRelocatable.fromInt(u256, 3618502788666131213697322783095070105623107215331596699973092056135872020470));
+    try data.append(MaybeRelocatable.fromInt(u256, 2345108766317314046));
+
+    // Initialize data structures required for a program.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a Program instance with the specified parameters.
+    const program = try Program.init(
         std.testing.allocator,
-        try Program.initDefault(std.testing.allocator, true),
-        "all_cairo",
-        ArrayList(MaybeRelocatable).init(std.testing.allocator),
-        try CairoVM.init(
-            std.testing.allocator,
-            .{},
-        ),
+        builtins,
+        data,
+        8,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
         false,
     );
-    defer cairo_runner.deinit(std.testing.allocator);
 
-    // Set current step to simulate usage with bitwise builtin.
-    cairo_runner.vm.current_step = 8192;
-
-    // Append bitwise builtin runner.
-    try cairo_runner.vm.builtin_runners.append(
-        .{
-            .Bitwise = BitwiseBuiltinRunner.init(
-                &.{},
-                true,
-            ),
-        },
+    // Initialize a CairoVM instance.
+    const vm = try CairoVM.init(
+        std.testing.allocator,
+        .{ .proof_mode = false, .enable_trace = true },
     );
 
-    // Call checkDilutedCheckUsage method and expect no error.
-    try cairo_runner.checkDilutedCheckUsage(std.testing.allocator);
+    // Initialize a CairoRunner with an empty program, "plain" layout, and instructions.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        vm,
+        false,
+    );
+
+    // Defer the deinitialization of the CairoRunner to ensure cleanup.
+    defer cairo_runner.deinit(std.testing.allocator);
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    try cairo_runner.initBuiltins(true);
+
+    try cairo_runner.initSegments(null);
+    const end = try cairo_runner.initMainEntrypoint();
+    try expectEqual(Relocatable.init(4, 0), end);
+
+    try cairo_runner.initVM();
+
+    // Run the program.
+    var hint_processor: HintProcessor = .{};
+
+    // Full takes 10 steps.
+    // Execute the Cairo runner for 1 step and then until the next power of two steps, ensuring a total of 10 steps.
+    try cairo_runner.runForSteps(1, false, &hint_processor);
+    try cairo_runner.runUntilNextPowerOf2(false, &hint_processor);
+
+    // Assert that the current step count is 1.
+    try expectEqual(@as(usize, 1), cairo_runner.vm.current_step);
+
+    // Execute the Cairo runner for 1 step and then until the next power of two steps.
+    try cairo_runner.runForSteps(1, false, &hint_processor);
+    try cairo_runner.runUntilNextPowerOf2(false, &hint_processor);
+
+    // Assert that the current step count is 2.
+    try expectEqual(@as(usize, 2), cairo_runner.vm.current_step);
+
+    // Execute the Cairo runner for 1 step and then until the next power of two steps.
+    try cairo_runner.runForSteps(1, false, &hint_processor);
+    try cairo_runner.runUntilNextPowerOf2(false, &hint_processor);
+
+    // Assert that the current step count is 4.
+    try expectEqual(@as(usize, 4), cairo_runner.vm.current_step);
+
+    // Execute the Cairo runner for 1 step and then until the next power of two steps.
+    try cairo_runner.runForSteps(1, false, &hint_processor);
+    try cairo_runner.runUntilNextPowerOf2(false, &hint_processor);
+
+    // Assert that the current step count is 8.
+    try expectEqual(@as(usize, 8), cairo_runner.vm.current_step);
+
+    // Execute the Cairo runner for 1 step.
+    try cairo_runner.runForSteps(1, false, &hint_processor);
+
+    // Expect an error indicating the end of the program when attempting to run until the next power of two steps.
+    try expectError(
+        CairoVMError.EndOfProgram,
+        cairo_runner.runUntilNextPowerOf2(false, &hint_processor),
+    );
+
+    // Assert that the current step count is 10.
+    try expectEqual(@as(usize, 10), cairo_runner.vm.current_step);
 }
