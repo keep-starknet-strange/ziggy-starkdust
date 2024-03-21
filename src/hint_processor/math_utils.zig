@@ -177,8 +177,9 @@ pub fn isAddrBounded(
 ) !void {
     const addr = try hint_utils.getIntegerFromVarName("addr", vm, ids_data, ap_tracking);
 
-    const addr_bound = (constants
-        .get(ADDR_BOUND) orelse return HintError.MissingConstant).toInteger();
+    const addr_bound_felt = constants
+        .get(ADDR_BOUND) orelse return HintError.MissingConstant;
+    const addr_bound = addr_bound_felt.toInteger();
 
     const lower_bound: u256 = 1 << 250;
     const upper_bound: u256 = 1 << 251;
@@ -191,7 +192,7 @@ pub fn isAddrBounded(
         return HintError.AssertionFailed;
 
     // Main logic: ids.is_small = 1 if ids.addr < ADDR_BOUND else 0
-    const is_small = if (addr.lt(Felt252.fromInt(u256, addr_bound))) Felt252.one() else Felt252.zero();
+    const is_small = if (addr.lt(addr_bound_felt)) Felt252.one() else Felt252.zero();
 
     try hint_utils.insertValueFromVarName(allocator, "is_small", MaybeRelocatable.fromFelt(is_small), vm, ids_data, ap_tracking);
 }
@@ -267,22 +268,16 @@ pub fn isQuadResidue(
 ) !void {
     const x = try hint_utils.getIntegerFromVarName("x", vm, ids_data, ap_tracking);
 
-    if (x.isZero() or x.equal(Felt252.one())) {
-        try hint_utils.insertValueFromVarName(allocator, "y", MaybeRelocatable.fromFelt(x), vm, ids_data, ap_tracking);
-        // } else if Pow::pow(felt_to_biguint(x), &(&*CAIRO_PRIME >> 1_u32)).is_one() {
-    } else if (x.pow((try Felt252.Max.divRem(Felt252.two())).q.toInteger()).equal(Felt252.one())) {
-        try hint_utils.insertValueFromVarName(allocator, "y", MaybeRelocatable.fromFelt(x.sqrt() orelse Felt252.zero()), vm, ids_data, ap_tracking);
-    } else {
-        try hint_utils.insertValueFromVarName(
-            allocator,
-            "y",
-            MaybeRelocatable.fromFelt((try x.div(Felt252.three()))
-                .sqrt() orelse Felt252.zero()),
-            vm,
-            ids_data,
-            ap_tracking,
-        );
-    }
+    const value =
+        if (x.isZero() or x.equal(Felt252.one()))
+        x
+    else if (x.pow((try Felt252.Max.divRem(Felt252.two())).q.toInteger()).equal(Felt252.one()))
+        x.sqrt() orelse Felt252.zero()
+    else
+        (try x.div(Felt252.three()))
+            .sqrt() orelse Felt252.zero();
+
+    try hint_utils.insertValueFromVarName(allocator, "y", MaybeRelocatable.fromFelt(value), vm, ids_data, ap_tracking);
 }
 
 fn divPrimeByBound(bound: Felt252) !Felt252 {
