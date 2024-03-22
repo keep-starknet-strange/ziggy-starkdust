@@ -143,7 +143,7 @@ pub fn getOffsetValueReference(
 
     // Calculate the base address based on the reference type.
     const base_addr = switch (refer[0]) {
-        .FP => vm.run_context.fp.*,
+        .FP => vm.run_context.getFP(),
         else => applyApTrackingCorrection(
             vm.run_context.getAP(),
             hint_reference.ap_tracking_data orelse return null,
