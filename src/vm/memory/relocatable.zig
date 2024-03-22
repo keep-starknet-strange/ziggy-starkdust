@@ -1497,3 +1497,16 @@ test "MaybeRelocatable.mul: should return Felt multiplication operation if both 
         (try result2.intoFelt()).toInteger(),
     );
 }
+
+test "MaybeRelocatable.sub: wiht negative relocatable subtraction" {
+    const a = MaybeRelocatable.fromSegment(4, 0);
+    const b = MaybeRelocatable.fromSegment(4, 5);
+
+    try expectEqual(
+        MaybeRelocatable.fromInt(
+            u256,
+            3618502788666131213697322783095070105623107215331596699973092056135872020476,
+        ),
+        try a.sub(b),
+    );
+}
