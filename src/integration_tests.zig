@@ -103,9 +103,7 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/if_and_prime.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/if_in_function.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/if_list.json", .layout = "all_cairo" },
-
-        // TODO: panic: integer overflow
-        // .{ .pathname = "cairo_programs/if_reloc_equal.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/if_reloc_equal.json", .layout = "all_cairo" },
         // TODO: panic index out of bounds
         // .{ .pathname = "cairo_programs/integration_with_alloc_locals.json", .layout = "all_cairo" },
         // TODO: panic index outt of bound
