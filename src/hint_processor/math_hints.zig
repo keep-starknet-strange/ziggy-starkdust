@@ -877,7 +877,7 @@ test "MathHints: verifyEcdsaSignature valid" {
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = Relocatable.init(1, 3);
+    vm.run_context.fp.* = 3;
     var ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{
         .{
             .name = "signature_r",
