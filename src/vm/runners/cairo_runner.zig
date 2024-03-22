@@ -4256,7 +4256,6 @@ test "CairoRunner: run until next power of 2" {
     try expectEqual(@as(usize, 10), cairo_runner.vm.current_step);
 }
 
-
 test "CairoRunner: checkDilutedCheckUsage without pool instance" {
     // Create a CairoRunner instance for testing.
     var cairo_runner = try CairoRunner.init(
@@ -4356,4 +4355,57 @@ test "CairoRunner: checkDilutedCheckUsage with bitwise builtin" {
 
     // Call checkDilutedCheckUsage method and expect no error.
     try cairo_runner.checkDilutedCheckUsage(std.testing.allocator);
+}
+
+test "CairoRunner: endRun with a run that is already finished" {
+    // Create a CairoRunner instance for testing.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator, true),
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    cairo_runner.run_ended = true;
+
+    var hint_processor: HintProcessor = .{};
+
+    try expectError(
+        CairoRunnerError.EndRunAlreadyCalled,
+        cairo_runner.endRun(std.testing.allocator, true, false, &hint_processor),
+    );
+}
+
+test "CairoRunner: endRun with a simple test" {
+    // Create a CairoRunner instance for testing.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator, true),
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    var hint_processor: HintProcessor = .{};
+
+    try cairo_runner.endRun(std.testing.allocator, true, false, &hint_processor);
+
+    cairo_runner.run_ended = false;
+
+    cairo_runner.relocated_memory.clearAndFree();
+
+    try cairo_runner.endRun(std.testing.allocator, true, true, &hint_processor);
+
+    try expect(!cairo_runner.run_ended);
 }
