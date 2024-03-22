@@ -172,14 +172,10 @@ pub fn main() void {
         // TODO: hint not implemented ec point
         // .{ .pathname = "cairo_programs/reduce.json", .layout = "all_cairo" },
 
-        // TODO: failed DiffAssertValues
-        // .{ .pathname = "cairo_programs/relocate_segments_with_offset.json", .layout = "all_cairo" },
-        // TODO: failed DiffAssertValues
-        // .{ .pathname = "cairo_programs/relocate_segments.json", .layout = "all_cairo" },
-        // TODO: failed DiffAssertValues
-        // .{ .pathname = "cairo_programs/relocate_temporary_segment_append.json", .layout = "all_cairo" },
-        // TODO: failed DiffAssertValues
-        // .{ .pathname = "cairo_programs/relocate_temporary_segment_into_new.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/relocate_segments_with_offset.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/relocate_segments.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/relocate_temporary_segment_append.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/relocate_temporary_segment_into_new.json", .layout = "all_cairo" },
 
         .{ .pathname = "cairo_programs/return.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/reversed_register_instructions.json", .layout = "all_cairo" },

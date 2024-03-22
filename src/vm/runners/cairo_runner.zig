@@ -475,8 +475,8 @@ pub const CairoRunner = struct {
     /// This function returns `void`. In case of errors, it returns a `RunnerError`.
     pub fn initVM(self: *Self) !void {
         // Set VM state: AP, FP, PC
-        self.vm.run_context.ap.* = self.initial_ap orelse return RunnerError.NoAP;
-        self.vm.run_context.fp.* = self.initial_fp orelse return RunnerError.NoFP;
+        self.vm.run_context.ap.* = (self.initial_ap orelse return RunnerError.NoAP).offset;
+        self.vm.run_context.fp.* = (self.initial_fp orelse return RunnerError.NoFP).offset;
         self.vm.run_context.pc.* = self.initial_pc orelse return RunnerError.NoPC;
 
         // Add validation rules for built-in runners
@@ -1116,12 +1116,12 @@ test "CairoRunner: initVM should initialize the VM properly with no builtins" {
     // Expect that the allocation pointer (AP) is initialized correctly.
     try expectEqual(
         Relocatable.init(1, 2),
-        cairo_runner.vm.run_context.ap.*,
+        cairo_runner.vm.run_context.getAP(),
     );
     // Expect that the frame pointer (FP) is initialized correctly.
     try expectEqual(
         Relocatable.init(1, 2),
-        cairo_runner.vm.run_context.fp.*,
+        cairo_runner.vm.run_context.getFP(),
     );
 }
 
@@ -2531,8 +2531,14 @@ test "CairoRunner: runUntilPC with function call" {
     try cairo_runner.runUntilPC(end, false, &hint_processor);
 
     try expectEqual(Relocatable.init(3, 0), cairo_runner.vm.run_context.pc.*);
-    try expectEqual(Relocatable.init(1, 6), cairo_runner.vm.run_context.ap.*);
-    try expectEqual(Relocatable.init(1, 0), cairo_runner.vm.run_context.fp.*);
+    try expectEqual(
+        Relocatable.init(1, 6),
+        cairo_runner.vm.run_context.getAP(),
+    );
+    try expectEqual(
+        Relocatable.init(1, 0),
+        cairo_runner.vm.run_context.getFP(),
+    );
 
     try expectEqualSlices(
         TraceContext.Entry,
@@ -2665,8 +2671,14 @@ test "CairoRunner: runUntilPC with range check builtin" {
     try cairo_runner.runUntilPC(end, false, &hint_processor);
 
     try expectEqual(Relocatable.init(4, 0), cairo_runner.vm.run_context.pc.*);
-    try expectEqual(Relocatable.init(1, 10), cairo_runner.vm.run_context.ap.*);
-    try expectEqual(Relocatable.init(1, 0), cairo_runner.vm.run_context.fp.*);
+    try expectEqual(
+        Relocatable.init(1, 10),
+        cairo_runner.vm.run_context.getAP(),
+    );
+    try expectEqual(
+        Relocatable.init(1, 0),
+        cairo_runner.vm.run_context.getFP(),
+    );
 
     try expectEqualSlices(
         TraceContext.Entry,
@@ -2852,8 +2864,14 @@ test "CairoRunner: initialize and run with output builtin" {
     try cairo_runner.runUntilPC(end, false, &hint_processor);
 
     try expectEqual(Relocatable.init(4, 0), cairo_runner.vm.run_context.pc.*);
-    try expectEqual(Relocatable.init(1, 12), cairo_runner.vm.run_context.ap.*);
-    try expectEqual(Relocatable.init(1, 0), cairo_runner.vm.run_context.fp.*);
+    try expectEqual(
+        Relocatable.init(1, 12),
+        cairo_runner.vm.run_context.getAP(),
+    );
+    try expectEqual(
+        Relocatable.init(1, 0),
+        cairo_runner.vm.run_context.getFP(),
+    );
 
     try expectEqualSlices(
         TraceContext.Entry,
@@ -3076,8 +3094,14 @@ test "CairoRunner: initialize and run with range check and output builtins" {
     try cairo_runner.runUntilPC(end, false, &hint_processor);
 
     try expectEqual(Relocatable.init(5, 0), cairo_runner.vm.run_context.pc.*);
-    try expectEqual(Relocatable.init(1, 18), cairo_runner.vm.run_context.ap.*);
-    try expectEqual(Relocatable.init(1, 0), cairo_runner.vm.run_context.fp.*);
+    try expectEqual(
+        Relocatable.init(1, 18),
+        cairo_runner.vm.run_context.getAP(),
+    );
+    try expectEqual(
+        Relocatable.init(1, 0),
+        cairo_runner.vm.run_context.getFP(),
+    );
 
     try expectEqualSlices(
         TraceContext.Entry,
