@@ -513,7 +513,7 @@ test "memcpyContinueCopying valid" {
     _ = try vm.segments.addSegment();
     _ = try vm.segments.addSegment();
     // initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 2);
+    vm.run_context.fp.* = 2;
     // initialize vm scope with variable `n`
     var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();
