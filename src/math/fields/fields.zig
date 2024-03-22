@@ -81,6 +81,10 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
 
         fe: F.MontgomeryDomainFieldElement,
 
+        pub fn format(self: Self, comptime _: []const u8, _: std.fmt.FormatOptions, writer: anytype) !void {
+            return std.fmt.format(writer, "Felt({any})", .{self.toInteger()});
+        }
+
         /// Mask to apply to the highest limb to get the correct number of bits.
         pub fn mask(bits: usize) u64 {
             return switch (bits) {

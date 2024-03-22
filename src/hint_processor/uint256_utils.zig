@@ -355,12 +355,13 @@ pub fn uint256OffsetedUnsignedDivRem(
     // TODO: optimize use biguint instead of u512
     const a_shifted = (@as(u512, a_high.toInteger()) << 128) + @as(u512, a_low.toInteger());
     const div = (@as(u512, div_high.toInteger()) << 128) + @as(u512, div_low.toInteger());
+
     //a and div will always be positive numbers
     //Then, Rust div_rem equals Python divmod
     const quotient_remainder = try helper.divRem(u512, a_shifted, div);
 
-    const quotient = Uint256.fromFelt(Felt252.fromInt(u512, quotient_remainder[0]));
-    const remainder = Uint256.fromFelt(Felt252.fromInt(u512, quotient_remainder[1]));
+    const quotient = Uint256.split(u512, quotient_remainder[0]);
+    const remainder = Uint256.split(u512, quotient_remainder[1]);
 
     try quotient.insertFromVarName(allocator, "quotient", vm, ids_data, ap_tracking);
     try remainder.insertFromVarName(allocator, "remainder", vm, ids_data, ap_tracking);
