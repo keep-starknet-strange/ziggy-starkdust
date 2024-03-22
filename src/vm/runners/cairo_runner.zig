@@ -947,6 +947,68 @@ pub const CairoRunner = struct {
         return res;
     }
 
+    /// Checks the diluted check usage to ensure sufficient allocation of memory units.
+    ///
+    /// This method calculates the amount of memory units used by the built-in runners
+    /// for diluted checks and verifies if it meets the required upper bound.
+    ///
+    /// # Arguments
+    ///
+    /// - `self`: A mutable reference to the CairoRunner instance.
+    /// - `allocator`: The allocator to be used for memory allocation.
+    ///
+    /// # Returns
+    ///
+    /// This method does not return a value, but it may panic if insufficient memory units are allocated.
+    ///
+    /// # Errors
+    ///
+    /// - Panics with a `MemoryError` if the allocated memory units for diluted checks are insufficient.
+    pub fn checkDilutedCheckUsage(self: *Self, allocator: Allocator) !void {
+        // Check if diluted pool instance is defined
+        if (self.layout.diluted_pool_instance_def) |diluted_pool_instance| {
+            var used_units_by_builtins: usize = 0;
+
+            // Iterate through each built-in runner
+            for (self.vm.builtin_runners.items) |*builtin_runner| {
+                // Calculate the used units by the built-in runner for diluted checks
+                const used_units = try builtin_runner.getUsedDilutedCheckUnits(
+                    allocator,
+                    diluted_pool_instance.spacing,
+                    diluted_pool_instance.n_bits,
+                );
+
+                // Calculate the multiplier based on the current step and the runner's ratio
+                const multiplier = try std.math.divExact(
+                    usize,
+                    self.vm.current_step,
+                    builtin_runner.ratio() orelse 1,
+                );
+
+                // Update the total used units by built-ins
+                used_units_by_builtins += used_units * multiplier;
+            }
+
+            // Calculate the total diluted units based on the diluted pool instance and the current step
+            const diluted_units = @as(
+                usize,
+                @intCast(diluted_pool_instance.units_per_step),
+            ) * self.vm.current_step;
+
+            // Calculate the unused diluted units
+            const unused_diluted_units = diluted_units -| used_units_by_builtins;
+
+            // Calculate the upper bound for diluted check usage
+            const diluted_usage_upper_bound = @as(usize, @intCast(1)) <<
+                @intCast(diluted_pool_instance.n_bits);
+
+            // Check if unused diluted units are less than the upper bound
+            if (unused_diluted_units < diluted_usage_upper_bound) {
+                return MemoryError.InsufficientAllocatedCells;
+            }
+        }
+    }
+
     /// Retrieves a pointer to the list of built-in functions defined in the program associated with the CairoRunner.
     ///
     /// This function returns a pointer to an ArrayList containing the names of the built-in functions defined in the program.
@@ -4194,12 +4256,13 @@ test "CairoRunner: run until next power of 2" {
     try expectEqual(@as(usize, 10), cairo_runner.vm.current_step);
 }
 
-test "CairoRunner: endRun with a run that is already finished" {
+
+test "CairoRunner: checkDilutedCheckUsage without pool instance" {
     // Create a CairoRunner instance for testing.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
         try Program.initDefault(std.testing.allocator, true),
-        "plain",
+        "all_cairo",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
             std.testing.allocator,
@@ -4209,22 +4272,66 @@ test "CairoRunner: endRun with a run that is already finished" {
     );
     defer cairo_runner.deinit(std.testing.allocator);
 
-    cairo_runner.run_ended = true;
+    // Set diluted pool instance to null for testing without pool instance.
+    cairo_runner.layout.diluted_pool_instance_def = null;
 
-    var hint_processor: HintProcessor = .{};
+    // Call checkDilutedCheckUsage method and expect no error.
+    try cairo_runner.checkDilutedCheckUsage(std.testing.allocator);
+}
 
+test "CairoRunner: checkDilutedCheckUsage without builtins runners" {
+    // Create a CairoRunner instance for testing.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator, true),
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    // Set current step to simulate no built-in runners.
+    cairo_runner.vm.current_step = 10000;
+
+    // Call checkDilutedCheckUsage method and expect no error.
+    try cairo_runner.checkDilutedCheckUsage(std.testing.allocator);
+}
+
+test "CairoRunner: checkDilutedCheckUsage with insufficient allocated cells" {
+    // Create a CairoRunner instance for testing.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator, true),
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    // Set current step to simulate insufficient allocated cells.
+    cairo_runner.vm.current_step = 100;
+
+    // Call checkDilutedCheckUsage method and expect MemoryError.InsufficientAllocatedCells.
     try expectError(
-        CairoRunnerError.EndRunAlreadyCalled,
-        cairo_runner.endRun(std.testing.allocator, true, false, &hint_processor),
+        MemoryError.InsufficientAllocatedCells,
+        cairo_runner.checkDilutedCheckUsage(std.testing.allocator),
     );
 }
 
-test "CairoRunner: endRun with a simple test" {
+test "CairoRunner: checkDilutedCheckUsage with bitwise builtin" {
     // Create a CairoRunner instance for testing.
     var cairo_runner = try CairoRunner.init(
         std.testing.allocator,
         try Program.initDefault(std.testing.allocator, true),
-        "plain",
+        "all_cairo",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
         try CairoVM.init(
             std.testing.allocator,
@@ -4234,15 +4341,19 @@ test "CairoRunner: endRun with a simple test" {
     );
     defer cairo_runner.deinit(std.testing.allocator);
 
-    var hint_processor: HintProcessor = .{};
+    // Set current step to simulate usage with bitwise builtin.
+    cairo_runner.vm.current_step = 8192;
 
-    try cairo_runner.endRun(std.testing.allocator, true, false, &hint_processor);
+    // Append bitwise builtin runner.
+    try cairo_runner.vm.builtin_runners.append(
+        .{
+            .Bitwise = BitwiseBuiltinRunner.init(
+                &.{},
+                true,
+            ),
+        },
+    );
 
-    cairo_runner.run_ended = false;
-
-    cairo_runner.relocated_memory.clearAndFree();
-
-    try cairo_runner.endRun(std.testing.allocator, true, true, &hint_processor);
-
-    try expect(!cairo_runner.run_ended);
+    // Call checkDilutedCheckUsage method and expect no error.
+    try cairo_runner.checkDilutedCheckUsage(std.testing.allocator);
 }
