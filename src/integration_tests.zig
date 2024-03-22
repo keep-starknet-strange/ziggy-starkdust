@@ -215,8 +215,7 @@ pub fn main() void {
         //TODO: hint uint384 not implemented
         // .{ .pathname = "cairo_programs/uint256_improvements.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/uint256_integration_tests.json", .layout = "all_cairo" },
-        // TODO: fix DiffAssertValues
-        // .{ .pathname = "cairo_programs/uint256.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/uint256.json", .layout = "all_cairo" },
 
         // .{ .pathname = "cairo_programs/uint384_extension_test.json", .layout = "all_cairo" },
         // .{ .pathname = "cairo_programs/uint384_extension.json", .layout = "all_cairo" },
