@@ -614,7 +614,7 @@ test "CairoVM: updateAp using Add for AP update with non-null operands result" {
     // Expectation: The AP offset should be updated to the expected value after the operation.
     try expectEqual(
         @as(u64, 10),
-        vm.run_context.ap.*.offset,
+        vm.run_context.ap.*,
     );
 }
 
@@ -647,13 +647,7 @@ test "CairoVM: updateAp using Add1 for AP update" {
     // Test checks
     // Verify the AP offset was incremented by 1.
     const ap = vm.run_context.ap.*;
-    try expectEqual(
-        @as(
-            u64,
-            1,
-        ),
-        ap.offset,
-    );
+    try expectEqual(@as(u64, 1), ap);
 }
 
 test "update ap add2" {
@@ -685,13 +679,7 @@ test "update ap add2" {
     // Test checks
     // Verify the AP offset was incremented by 2.
     const ap = vm.run_context.ap.*;
-    try expectEqual(
-        @as(
-            u64,
-            2,
-        ),
-        ap.offset,
-    );
+    try expectEqual(@as(u64, 2), ap);
 }
 
 test "update fp appplus2" {
@@ -723,13 +711,7 @@ test "update fp appplus2" {
     // Test checks
     // Verify the FP offset was incremented by 2.
     const fp = vm.run_context.fp.*;
-    try expectEqual(
-        @as(
-            u64,
-            2,
-        ),
-        fp.offset,
-    );
+    try expectEqual(@as(u64, 2), fp);
 }
 
 test "update fp dst relocatable" {
@@ -765,13 +747,7 @@ test "update fp dst relocatable" {
     // Test checks
     // Verify the FP offset was incremented by 2.
     const fp = vm.run_context.fp.*;
-    try expectEqual(
-        @as(
-            u64,
-            42,
-        ),
-        fp.offset,
-    );
+    try expectEqual(@as(u64, 42), fp);
 }
 
 test "update fp dst felt" {
@@ -804,13 +780,7 @@ test "update fp dst felt" {
     // Test checks
     // Verify the FP offset was incremented by 2.
     const fp = vm.run_context.fp.*;
-    try expectEqual(
-        @as(
-            u64,
-            42,
-        ),
-        fp.offset,
-    );
+    try expectEqual(@as(u64, 42), fp);
 }
 
 test "trace is enabled" {
@@ -1027,8 +997,8 @@ test "CairoVM: test step for preset memory" {
     );
     defer vm.deinit();
 
-    vm.run_context.ap.* = Relocatable.init(1, 2);
-    vm.run_context.fp.* = Relocatable.init(1, 2);
+    vm.run_context.ap.* = 2;
+    vm.run_context.fp.* = 2;
 
     try vm.segments.memory.setUpMemory(
         std.testing.allocator,
@@ -1062,8 +1032,8 @@ test "CairoVM: test step for preset memory" {
     );
 
     try expectEqual(Relocatable.init(3, 0), vm.run_context.pc.*);
-    try expectEqual(Relocatable.init(1, 2), vm.run_context.ap.*);
-    try expectEqual(Relocatable.init(1, 0), vm.run_context.fp.*);
+    try expectEqual(Relocatable.init(1, 2), vm.run_context.getAP());
+    try expectEqual(Relocatable.init(1, 0), vm.run_context.getFP());
 
     try expectEqualSlices(
         TraceContext.Entry,
@@ -1472,7 +1442,7 @@ test "CairoVM: compute operands add AP" {
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
 
-    vm.run_context.ap.* = Relocatable.init(1, 0);
+    vm.run_context.ap.* = 0;
 
     // Test body
     try vm.segments.memory.setUpMemory(
@@ -1528,7 +1498,7 @@ test "CairoVM: compute operands mul FP" {
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
 
-    vm.run_context.fp.* = Relocatable.init(1, 0);
+    vm.run_context.fp.* = 0;
 
     // Test body
     try vm.segments.memory.setUpMemory(
@@ -1658,7 +1628,7 @@ test "CairoVM: compute operands deduce dst none" {
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
 
-    vm.run_context.ap.* = Relocatable.init(1, 0);
+    vm.run_context.ap.* = 0;
 
     // Test body
     try vm.segments.memory.setUpMemory(
@@ -1697,7 +1667,7 @@ test "CairoVM: compute operands with op_1_addr as Op0" {
     var vm = try CairoVM.init(allocator, .{});
     defer vm.deinit();
 
-    vm.run_context.ap.* = Relocatable.init(1, 0);
+    vm.run_context.ap.* = 0;
 
     // Test body
     try vm.segments.memory.setUpMemory(
@@ -1798,8 +1768,8 @@ test "updateRegisters all regular" {
     );
     defer vm.deinit();
     vm.run_context.pc.* = Relocatable.init(0, 4);
-    vm.run_context.ap.* = Relocatable.init(0, 5);
-    vm.run_context.fp.* = Relocatable.init(0, 6);
+    vm.run_context.ap.* = 5;
+    vm.run_context.fp.* = 6;
 
     // Test body
     try vm.updateRegisters(
@@ -1828,14 +1798,14 @@ test "updateRegisters all regular" {
 
     // Verify the AP offset was incremented by 5.
     try expectEqual(
-        Relocatable.init(0, 5),
-        vm.run_context.ap.*,
+        Relocatable.init(1, 5),
+        vm.run_context.getAP(),
     );
 
     // Verify the FP offset was incremented by 6.
     try expectEqual(
-        Relocatable.init(0, 6),
-        vm.run_context.fp.*,
+        Relocatable.init(1, 6),
+        vm.run_context.getFP(),
     );
 }
 
@@ -1868,8 +1838,8 @@ test "updateRegisters with mixed types" {
     );
     defer vm.deinit();
     vm.run_context.pc.* = Relocatable.init(0, 4);
-    vm.run_context.ap.* = Relocatable.init(0, 5);
-    vm.run_context.fp.* = Relocatable.init(0, 6);
+    vm.run_context.ap.* = 5;
+    vm.run_context.fp.* = 6;
 
     // Test body
     try vm.updateRegisters(
@@ -1886,14 +1856,14 @@ test "updateRegisters with mixed types" {
 
     // Verify the AP offset was incremented by 7.
     try expectEqual(
-        Relocatable.init(0, 7),
-        vm.run_context.ap.*,
+        Relocatable.init(1, 7),
+        vm.run_context.getAP(),
     );
 
     // Verify the FP offset was incremented by 11.
     try expectEqual(
         Relocatable.init(1, 11),
-        vm.run_context.fp.*,
+        vm.run_context.getFP(),
     );
 }
 
@@ -2068,11 +2038,11 @@ test "CairoVM: deduceDst should return fp Relocatable if Call opcode" {
     // Test setup
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
-    vm.run_context.fp.* = Relocatable.init(3, 23);
+    vm.run_context.fp.* = 23;
 
     // Test check
     try expectEqual(
-        MaybeRelocatable.fromSegment(3, 23),
+        MaybeRelocatable.fromSegment(1, 23),
         try vm.deduceDst(
             &.{
                 .off_0 = 0,
@@ -2804,7 +2774,7 @@ test "CairoVM: opcodeAssertions inconsistent dst - should throw CantWriteReturnF
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    vm.run_context.fp.* = Relocatable.init(0, 6);
+    vm.run_context.fp.* = 6;
 
     try expectError(
         CairoVMError.CantWriteReturnFp,
@@ -3311,8 +3281,7 @@ test "CairoVM: getPublicMemoryAddresses should return a proper ArrayList if succ
 
 test "CairoVM: getReturnValues should return a continuous range of memory values starting from a specified address." {
     var vm = try CairoVM.init(std.testing.allocator, .{});
-    const ap = Relocatable.init(1, 4);
-    vm.run_context.ap.* = ap;
+    vm.run_context.ap.* = 4;
     defer vm.deinit();
 
     try vm.segments.memory.setUpMemory(
@@ -3612,8 +3581,8 @@ test "CairoVM: runInstruction without any insertion in the memory" {
     // Set relocation limits and initial register values.
     vm.rc_limits = .{ 32764, 32769 };
     vm.run_context.pc.* = Relocatable.init(0, 13);
-    vm.run_context.ap.* = Relocatable.init(1, 12);
-    vm.run_context.fp.* = Relocatable.init(1, 3);
+    vm.run_context.ap.* = 12;
+    vm.run_context.fp.* = 3;
 
     // Ensure that the specific cell marked as not accessed is indeed not accessed.
     try expect(!vm.segments.memory.data.items[1].items[1].?.is_accessed);
@@ -3647,8 +3616,14 @@ test "CairoVM: runInstruction without any insertion in the memory" {
 
     // Ensure that registers are updated as expected after the instruction execution.
     try expectEqual(Relocatable.init(4, 0), vm.run_context.pc.*);
-    try expectEqual(Relocatable.init(1, 12), vm.run_context.ap.*);
-    try expectEqual(Relocatable.init(1, 0), vm.run_context.fp.*);
+    try expectEqual(
+        Relocatable.init(1, 12),
+        vm.run_context.getAP(),
+    );
+    try expectEqual(
+        Relocatable.init(1, 0),
+        vm.run_context.getFP(),
+    );
 
     // Ensure the current step counter is incremented.
     try expectEqual(@as(usize, 1), vm.current_step);
@@ -3780,8 +3755,8 @@ test "CairoVM: runInstruction with Op0 being deduced" {
     // Set relocation limits and initial register values.
     vm.rc_limits = .{ 32764, 32769 };
     vm.run_context.pc.* = Relocatable.init(0, 11);
-    vm.run_context.ap.* = Relocatable.init(1, 9);
-    vm.run_context.fp.* = Relocatable.init(1, 3);
+    vm.run_context.ap.* = 9;
+    vm.run_context.fp.* = 3;
 
     // Ensure that the specific cell marked as not accessed is indeed not accessed.
     try expect(!vm.segments.memory.data.items[1].items[1].?.is_accessed);
@@ -3815,8 +3790,14 @@ test "CairoVM: runInstruction with Op0 being deduced" {
 
     // Ensure that registers are updated as expected after the instruction execution.
     try expectEqual(Relocatable{}, vm.run_context.pc.*);
-    try expectEqual(Relocatable.init(1, 11), vm.run_context.ap.*);
-    try expectEqual(Relocatable.init(1, 11), vm.run_context.fp.*);
+    try expectEqual(
+        Relocatable.init(1, 11),
+        vm.run_context.getAP(),
+    );
+    try expectEqual(
+        Relocatable.init(1, 11),
+        vm.run_context.getFP(),
+    );
 
     // Ensure the current step counter is incremented.
     try expectEqual(@as(usize, 1), vm.current_step);
@@ -3917,8 +3898,8 @@ test "CairoVM: test step for preset memory 1" {
     defer vm.deinit();
 
     vm.run_context.pc.* = Relocatable.init(0, 3);
-    vm.run_context.ap.* = Relocatable.init(1, 2);
-    vm.run_context.fp.* = Relocatable.init(1, 2);
+    vm.run_context.ap.* = 2;
+    vm.run_context.fp.* = 2;
 
     try vm.segments.memory.setUpMemory(
         std.testing.allocator,
@@ -3963,8 +3944,14 @@ test "CairoVM: test step for preset memory 1" {
     }
 
     try expectEqual(Relocatable.init(3, 0), vm.run_context.pc.*);
-    try expectEqual(Relocatable.init(1, 6), vm.run_context.ap.*);
-    try expectEqual(Relocatable.init(1, 0), vm.run_context.fp.*);
+    try expectEqual(
+        Relocatable.init(1, 6),
+        vm.run_context.getAP(),
+    );
+    try expectEqual(
+        Relocatable.init(1, 0),
+        vm.run_context.getFP(),
+    );
 
     try expectEqualSlices(
         TraceContext.Entry,
@@ -4046,8 +4033,8 @@ test "CairoVM: test step for preset memory program loaded into user segment" {
     );
     defer vm.deinit();
 
-    vm.run_context.ap.* = Relocatable.init(1, 2);
-    vm.run_context.fp.* = Relocatable.init(1, 2);
+    vm.run_context.ap.* = 2;
+    vm.run_context.fp.* = 2;
 
     try vm.segments.memory.setUpMemory(
         std.testing.allocator,
@@ -4083,8 +4070,14 @@ test "CairoVM: test step for preset memory program loaded into user segment" {
     );
 
     try expectEqual(Relocatable.init(3, 0), vm.run_context.pc.*);
-    try expectEqual(Relocatable.init(1, 2), vm.run_context.ap.*);
-    try expectEqual(Relocatable.init(1, 0), vm.run_context.fp.*);
+    try expectEqual(
+        Relocatable.init(1, 2),
+        vm.run_context.getAP(),
+    );
+    try expectEqual(
+        Relocatable.init(1, 0),
+        vm.run_context.getFP(),
+    );
 
     try expectEqualSlices(
         TraceContext.Entry,
@@ -4144,8 +4137,8 @@ test "CairoVM: test step for preset memory program loaded into user segment 1" {
     defer vm.deinit();
 
     vm.run_context.pc.* = Relocatable.init(0, 3);
-    vm.run_context.ap.* = Relocatable.init(1, 2);
-    vm.run_context.fp.* = Relocatable.init(1, 2);
+    vm.run_context.ap.* = 2;
+    vm.run_context.fp.* = 2;
 
     vm.run_context.pc.segment_index = 4;
 
@@ -4192,8 +4185,14 @@ test "CairoVM: test step for preset memory program loaded into user segment 1" {
     }
 
     try expectEqual(Relocatable.init(3, 0), vm.run_context.pc.*);
-    try expectEqual(Relocatable.init(1, 6), vm.run_context.ap.*);
-    try expectEqual(Relocatable.init(1, 0), vm.run_context.fp.*);
+    try expectEqual(
+        Relocatable.init(1, 6),
+        vm.run_context.getAP(),
+    );
+    try expectEqual(
+        Relocatable.init(1, 0),
+        vm.run_context.getFP(),
+    );
 
     try expectEqualSlices(
         TraceContext.Entry,
@@ -4280,11 +4279,11 @@ test "CairoVM: multiplication and different ap increase" {
     );
     defer vm.deinit();
 
-    vm.run_context.ap.* = Relocatable.init(1, 2);
-    vm.run_context.fp.* = Relocatable.init(1, 2);
+    vm.run_context.ap.* = 2;
+    vm.run_context.fp.* = 2;
 
     try expectEqual(Relocatable.init(0, 0), vm.run_context.pc.*);
-    try expectEqual(Relocatable.init(1, 2), vm.run_context.ap.*);
+    try expectEqual(Relocatable.init(1, 2), vm.run_context.getAP());
 
     try vm.segments.memory.setUpMemory(
         std.testing.allocator,
@@ -4333,7 +4332,10 @@ test "CairoVM: multiplication and different ap increase" {
     );
 
     try expectEqual(Relocatable.init(0, 2), vm.run_context.pc.*);
-    try expectEqual(Relocatable.init(1, 2), vm.run_context.ap.*);
+    try expectEqual(
+        Relocatable.init(1, 2),
+        vm.run_context.getAP(),
+    );
     try expectEqual(
         MaybeRelocatable.fromInt(u256, 0x4),
         vm.segments.memory.get(vm.run_context.getAP()).?,
@@ -4349,7 +4351,10 @@ test "CairoVM: multiplication and different ap increase" {
     );
 
     try expectEqual(Relocatable.init(0, 4), vm.run_context.pc.*);
-    try expectEqual(Relocatable.init(1, 3), vm.run_context.ap.*);
+    try expectEqual(
+        Relocatable.init(1, 3),
+        vm.run_context.getAP(),
+    );
     try expectEqual(
         MaybeRelocatable.fromInt(u256, 0x5),
         vm.segments.memory.get(vm.run_context.getAP()).?,
@@ -4365,7 +4370,10 @@ test "CairoVM: multiplication and different ap increase" {
     );
 
     try expectEqual(Relocatable.init(0, 6), vm.run_context.pc.*);
-    try expectEqual(Relocatable.init(1, 4), vm.run_context.ap.*);
+    try expectEqual(
+        Relocatable.init(1, 4),
+        vm.run_context.getAP(),
+    );
     try expectEqual(
         MaybeRelocatable.fromInt(u256, 0x14),
         vm.segments.memory.get(vm.run_context.getAP()).?,
@@ -4409,8 +4417,8 @@ test "Core: test step for preset memory alloc hint not extensive" {
     defer vm.deinit();
 
     vm.run_context.pc.* = Relocatable.init(0, 3);
-    vm.run_context.ap.* = Relocatable.init(1, 2);
-    vm.run_context.fp.* = Relocatable.init(1, 2);
+    vm.run_context.ap.* = 2;
+    vm.run_context.fp.* = 2;
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 0, 0 }, .{290341444919459839} },
         .{ .{ 0, 1 }, .{1} },
@@ -4478,8 +4486,8 @@ test "Core: test step for preset memory alloc hint extensive" {
     defer vm.deinit();
 
     vm.run_context.pc.* = Relocatable.init(0, 3);
-    vm.run_context.ap.* = Relocatable.init(1, 2);
-    vm.run_context.fp.* = Relocatable.init(1, 2);
+    vm.run_context.ap.* = 2;
+    vm.run_context.fp.* = 2;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 0, 0 }, .{290341444919459839} },

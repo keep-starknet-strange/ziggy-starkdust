@@ -459,7 +459,7 @@ test "Uint256: uint256AddLowOnly ok" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 10);
+    vm.run_context.fp.* = 10;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -492,7 +492,7 @@ test "Uint256: uint256Add ok" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 10);
+    vm.run_context.fp.* = 10;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -526,7 +526,7 @@ test "Uint256: uint128Add ok" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 0);
+    vm.run_context.fp.* = 0;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -557,7 +557,7 @@ test "Uint256: uint256Sub b high gt 256 gt a" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 0);
+    vm.run_context.fp.* = 0;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -591,7 +591,7 @@ test "Uint256: uint256Sub negative ok" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 0);
+    vm.run_context.fp.* = 0;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -625,7 +625,7 @@ test "Uint256: uint256Sub nonnegative ok" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 0);
+    vm.run_context.fp.* = 0;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -659,7 +659,7 @@ test "Uint256: uint256Sub missing number" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 0);
+    vm.run_context.fp.* = 0;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -687,7 +687,7 @@ test "Uint256: uint256Sub b high gt 256 lte a" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 0);
+    vm.run_context.fp.* = 0;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -721,7 +721,7 @@ test "Uint256: split64 ok" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 10);
+    vm.run_context.fp.* = 10;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -752,7 +752,7 @@ test "Uint256: split64 with big a" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 10);
+    vm.run_context.fp.* = 10;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -783,7 +783,7 @@ test "Uint256: uint256Sqrt ok" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 5);
+    vm.run_context.fp.* = 5;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -818,7 +818,7 @@ test "Uint256: uint256Sqrt felt ok" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 0);
+    vm.run_context.fp.* = 0;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -852,7 +852,7 @@ test "Uint256: uint256Sqrt assert error" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 5);
+    vm.run_context.fp.* = 5;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -885,8 +885,8 @@ test "Uint256: signedNN ok result one" {
     });
     //Initialize fp
     vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.ap.* = Relocatable.init(1, 5);
-    vm.run_context.fp.* = Relocatable.init(1, 4);
+    vm.run_context.ap.* = 5;
+    vm.run_context.fp.* = 4;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -919,8 +919,8 @@ test "Uint256: signedNN ok result zero" {
     });
     //Initialize fp
     vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.ap.* = Relocatable.init(1, 5);
-    vm.run_context.fp.* = Relocatable.init(1, 4);
+    vm.run_context.ap.* = 5;
+    vm.run_context.fp.* = 4;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -952,7 +952,7 @@ test "Uint256: unsigned div rem ok" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 10);
+    vm.run_context.fp.* = 10;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -993,7 +993,7 @@ test "Uint256: unsigned div rem expanded ok" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 0);
+    vm.run_context.fp.* = 0;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -1037,7 +1037,7 @@ test "Uint256: mul div mod ok" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 10);
+    vm.run_context.fp.* = 10;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
