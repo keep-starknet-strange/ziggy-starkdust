@@ -433,7 +433,10 @@ pub const Memory = struct {
         return if (!isSegmentIndexValid or !isOffsetValid)
             null
         else if (data.items[segment_index].items[address.offset]) |val|
-            val.maybe_relocatable
+            switch (val.maybe_relocatable) {
+                .relocatable => |addr| Self.relocateAddress(addr, &self.relocation_rules) catch unreachable,
+                else => |_| val.maybe_relocatable,
+            }
         else
             null;
     }

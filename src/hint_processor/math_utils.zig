@@ -331,7 +331,7 @@ test "MathUtils: isNn hint true" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 5);
+    vm.run_context.fp.* = 5;
     //Insert ids into memory
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 4 }, .{1} },
@@ -355,7 +355,7 @@ test "MathUtils: isNn hint false" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 10);
+    vm.run_context.fp.* = 10;
     //Insert ids into memory
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 9 }, .{-1} },
@@ -379,7 +379,7 @@ test "MathUtils: isNn hint border case" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 5);
+    vm.run_context.fp.* = 5;
 
     _ = try vm.segments.addSegment();
     _ = try vm.segments.addSegment();
@@ -403,7 +403,7 @@ test "MathUtils: isNnOutOfRange hint true" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 5);
+    vm.run_context.fp.* = 5;
     //Insert ids into memory
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 4 }, .{-1} },
@@ -428,7 +428,7 @@ test "MathUtils: isNnOutOfRange hint false" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 5);
+    vm.run_context.fp.* = 5;
     //Insert ids into memory
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 4 }, .{2} },
@@ -453,7 +453,7 @@ test "MathUtils: assertLeFelt06 assertetion failed" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 2);
+    vm.run_context.fp.* = 2;
     //Insert ids into memory
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{17} },
@@ -476,7 +476,7 @@ test "MathUtils: assertLeFelt08 assertetion failed" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 2);
+    vm.run_context.fp.* = 2;
     //Insert ids into memory
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{17} },
@@ -499,7 +499,7 @@ test "MathUtils: isLeFelt hint true" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 10);
+    vm.run_context.fp.* = 10;
     //Insert ids into memory
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 8 }, .{1} },
@@ -525,7 +525,7 @@ test "MathUtils: slitInt valid" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 4);
+    vm.run_context.fp.* = 4;
     //Insert ids into memory
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{ 2, 0 } },
@@ -553,7 +553,7 @@ test "MathUtils: slitInt invalid" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 4);
+    vm.run_context.fp.* = 4;
     //Insert ids into memory
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{ 2, 0 } },
@@ -587,7 +587,7 @@ test "MathUtils: isAddrBounded ok" {
     defer exec_scopes.deinit();
 
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 2);
+    vm.run_context.fp.* = 2;
     //Insert ids into memory
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{1809251394333067160431340899751024102169435851563236335319518532916477952000} },
@@ -618,7 +618,7 @@ test "MathUtils: isAddrBounded failed" {
     defer exec_scopes.deinit();
 
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 2);
+    vm.run_context.fp.* = 2;
     //Insert ids into memory
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{3618502788666131106986593281521497120414687020801267626233049500247285301000} },
@@ -639,7 +639,7 @@ test "MathUtils: is250bit valid" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 2);
+    vm.run_context.fp.* = 2;
     //Insert ids into memory
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{1152251} },
@@ -663,7 +663,7 @@ test "MathUtils: is250bit invalid" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 2);
+    vm.run_context.fp.* = 2;
     //Insert ids into memory
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{3618502788666131106986593281521497120414687020801267626233049500247285301248} },
