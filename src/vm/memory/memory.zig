@@ -180,12 +180,7 @@ pub const AddressSet = struct {
     const Self = @This();
 
     /// Internal hash map storing the validated addresses and their accessibility status.
-    set: std.HashMap(
-        Relocatable,
-        bool,
-        std.hash_map.AutoContext(Relocatable),
-        std.hash_map.default_max_load_percentage,
-    ),
+    set: std.AutoHashMap(Relocatable, bool),
 
     /// Initializes a new AddressSet using the provided allocator.
     ///
@@ -257,19 +252,9 @@ pub const Memory = struct {
     /// Hash map linking temporary data indices to their corresponding relocation rules.
     /// Keys are derived from temp_data's indices (segment_index), starting at zero.
     /// For example, segment_index = -1 maps to key 0, -2 to key 1, and so on.
-    relocation_rules: std.HashMap(
-        u64,
-        Relocatable,
-        std.hash_map.AutoContext(u64),
-        std.hash_map.default_max_load_percentage,
-    ),
+    relocation_rules: std.AutoHashMap(u64, Relocatable),
     /// Hash map associating segment indices with their respective validation rules.
-    validation_rules: std.HashMap(
-        u32,
-        validation_rule,
-        std.hash_map.AutoContext(u32),
-        std.hash_map.default_max_load_percentage,
-    ),
+    validation_rules: std.AutoHashMap(u32, validation_rule),
 
     // ************************************************************
     // *             MEMORY ALLOCATION AND DEALLOCATION           *
@@ -875,12 +860,7 @@ pub const Memory = struct {
     /// Returns a `MaybeRelocatable` value after applying relocation rules to the provided address.
     pub fn relocateAddress(
         address: Relocatable,
-        relocation_rules: *std.HashMap(
-            u64,
-            Relocatable,
-            std.hash_map.AutoContext(u64),
-            std.hash_map.default_max_load_percentage,
-        ),
+        relocation_rules: *std.AutoHashMap(u64, Relocatable),
     ) !MaybeRelocatable {
         // Check if the segment index of the provided address is already valid.
         if (address.segment_index >= 0) return MaybeRelocatable.fromRelocatable(address);
