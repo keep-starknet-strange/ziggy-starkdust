@@ -25,7 +25,6 @@ const build_options = @import("../build_options.zig");
 const BuiltinRunner = @import("./builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
 const BitwiseBuiltinRunner = @import("./builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
 const KeccakBuiltinRunner = @import("./builtins/builtin_runner/keccak.zig").KeccakBuiltinRunner;
-const BitwiseInstanceDef = @import("./types/bitwise_instance_def.zig").BitwiseInstanceDef;
 const KeccakInstanceDef = @import("./types/keccak_instance_def.zig").KeccakInstanceDef;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const HashBuiltinRunner = @import("./builtins/builtin_runner/hash.zig").HashBuiltinRunner;
@@ -131,11 +130,14 @@ test "CairoVM: deduceMemoryCell builtin valid" {
         .{},
     );
     defer vm.deinit();
-    var instance_def: BitwiseInstanceDef = .{};
-    try vm.builtin_runners.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.init(
-        &instance_def,
-        true,
-    ) });
+    try vm.builtin_runners.append(
+        BuiltinRunner{
+            .Bitwise = BitwiseBuiltinRunner.init(
+                &.{},
+                true,
+            ),
+        },
+    );
 
     try vm.segments.memory.setUpMemory(
         std.testing.allocator,
@@ -1896,11 +1898,14 @@ test "CairoVM: computeOp0Deductions with a valid built in and non null deduceMem
         .{},
     );
     defer vm.deinit();
-    var instance_def: BitwiseInstanceDef = .{};
-    try vm.builtin_runners.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.init(
-        &instance_def,
-        true,
-    ) });
+    try vm.builtin_runners.append(
+        BuiltinRunner{
+            .Bitwise = BitwiseBuiltinRunner.init(
+                &.{},
+                true,
+            ),
+        },
+    );
     try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
@@ -2150,21 +2155,28 @@ test "CairoVM: getBuiltinRunners should return a reference to the builtin runner
         .{},
     );
     defer vm.deinit();
-    var instance_def: BitwiseInstanceDef = .{ .ratio = null, .total_n_bits = 2 };
-    try vm.builtin_runners.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.init(
-        &instance_def,
-        true,
-    ) });
+    try vm.builtin_runners.append(
+        BuiltinRunner{
+            .Bitwise = BitwiseBuiltinRunner.init(
+                &.{ .ratio = null, .total_n_bits = 2 },
+                true,
+            ),
+        },
+    );
 
     // Test check
     try expectEqual(&vm.builtin_runners, vm.getBuiltinRunners());
 
     var expected = ArrayList(BuiltinRunner).init(std.testing.allocator);
     defer expected.deinit();
-    try expected.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.init(
-        &instance_def,
-        true,
-    ) });
+    try expected.append(
+        BuiltinRunner{
+            .Bitwise = BitwiseBuiltinRunner.init(
+                &.{ .ratio = null, .total_n_bits = 2 },
+                true,
+            ),
+        },
+    );
     try expectEqualSlices(
         BuiltinRunner,
         expected.items,
@@ -2274,11 +2286,14 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceMemoryCell if n
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    var instance_def: BitwiseInstanceDef = .{};
-    try vm.builtin_runners.append(BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.init(
-        &instance_def,
-        true,
-    ) });
+    try vm.builtin_runners.append(
+        BuiltinRunner{
+            .Bitwise = BitwiseBuiltinRunner.init(
+                &.{},
+                true,
+            ),
+        },
+    );
     try vm.segments.memory.setUpMemory(
         std.testing.allocator,
         .{
