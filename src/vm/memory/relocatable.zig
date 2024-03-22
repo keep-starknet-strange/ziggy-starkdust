@@ -551,7 +551,12 @@ pub const MaybeRelocatable = union(enum) {
                 // If `other` is also `relocatable`, call `sub` method on `self_value`
                 .relocatable => |r| blk: {
                     if (self_value.segment_index == r.segment_index) {
-                        break :blk MaybeRelocatable.fromInt(u64, self_value.offset - r.offset);
+                        const res: i128 = @as(i128, self_value.offset) - @as(i128, r.offset);
+
+                        break :blk if (res < 0)
+                            MaybeRelocatable.fromFelt(Felt252.fromInt(u128, @intCast(-res)).neg())
+                        else
+                            MaybeRelocatable.fromFelt(Felt252.fromInt(u128, @intCast(res)));
                     }
 
                     break :blk CairoVMError.TypeMismatchNotRelocatable;
