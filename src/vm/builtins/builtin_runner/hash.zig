@@ -235,7 +235,7 @@ pub const HashBuiltinRunner = struct {
         memory: *Memory,
     ) !?MaybeRelocatable {
         // hash has already been processed
-        if ((address.offset <= self.verified_addresses.items.len) and self.verified_addresses.items[address.offset]) {
+        if ((address.offset < self.verified_addresses.items.len) and self.verified_addresses.items[address.offset]) {
             return null;
         }
         if (address.offset % @as(u64, self.cells_per_instance) != 2) {

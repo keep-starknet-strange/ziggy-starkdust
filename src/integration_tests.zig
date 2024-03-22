@@ -104,10 +104,8 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/if_in_function.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/if_list.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/if_reloc_equal.json", .layout = "all_cairo" },
-        // TODO: panic index out of bounds
-        // .{ .pathname = "cairo_programs/integration_with_alloc_locals.json", .layout = "all_cairo" },
-        // TODO: panic index outt of bound
-        // .{ .pathname = "cairo_programs/integration.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/integration_with_alloc_locals.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/integration.json", .layout = "all_cairo" },
         // TODO: not implemented hint
         // .{ .pathname = "cairo_programs/inv_mod_p_uint512.json", .layout = "all_cairo" },
 
@@ -156,8 +154,7 @@ pub fn main() void {
         // .{ .pathname = "cairo_programs/packed_sha256_test.json", .layout = "all_cairo" },
         // TODO: hint not implemented sha256
         // .{ .pathname = "cairo_programs/packed_sha256.json", .layout = "all_cairo" },
-        // TODO: panic index out of bounds
-        // .{ .pathname = "cairo_programs/pedersen_test.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/pedersen_test.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/pointers.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/poseidon_builtin.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/poseidon_hash.json", .layout = "all_cairo" },
