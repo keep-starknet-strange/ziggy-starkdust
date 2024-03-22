@@ -917,8 +917,8 @@ test "BuiltinRunner: finalStack" {
     for (builtins.items) |*builtin| {
         // Run the built-in runner and verify final stack pointer
         try expectEqual(
-            vm.run_context.ap.*, // Current stack pointer
-            builtin.finalStack(vm.segments, vm.run_context.ap.*), // Final stack pointer after running the built-in runner
+            vm.run_context.getAP(), // Current stack pointer
+            builtin.finalStack(vm.segments, vm.run_context.getAP()), // Final stack pointer after running the built-in runner
         );
 
         // Deinitialize the built-in runner

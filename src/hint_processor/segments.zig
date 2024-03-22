@@ -82,7 +82,7 @@ test "Segments: run relocate segments" {
     defer vm.deinit(); // Ensure cleanup.
 
     // Sets the frame pointer within the virtual machine to a specific relocatable value.
-    vm.run_context.fp.* = Relocatable.init(1, 2);
+    vm.run_context.fp.* = 2;
 
     // Sets up memory segments in the virtual machine with predefined configurations.
     try vm.segments.memory.setUpMemory(
@@ -115,7 +115,7 @@ test "Segments: run temporary array" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     // Sets the frame pointer within the virtual machine to a specific relocatable value.
-    vm.run_context.*.fp.* = Relocatable.init(1, 1);
+    vm.run_context.fp.* = 1;
 
     // Adds memory segments to the virtual machine.
     inline for (0..2) |_| _ = try vm.addMemorySegment();
