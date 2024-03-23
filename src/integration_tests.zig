@@ -79,9 +79,9 @@ pub fn main() void {
         // .{ .pathname = "cairo_programs/example_blake2s.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/example_program.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/factorial.json", .layout = "plain" },
-        // TODO: FailedToComputeOp0 error
+        // TODO: HintNotImplemented error
         // .{ .pathname = "cairo_programs/fast_ec_add_v2.json", .layout = "all_cairo" },
-        // TODO: FailedToComputeOp0 error
+        // TODO: HintNotImplemented error
         // .{ .pathname = "cairo_programs/fast_ec_add_v3.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/fibonacci.json", .layout = "plain" },
         // TODO: HintNotImplemented error uint384 hint
@@ -147,8 +147,7 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/normalize_address.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/not_main.json", .layout = "all_cairo" },
 
-        // TODO: panic attempt to use null value
-        // .{ .pathname = "cairo_programs/operations_with_data_structures.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/operations_with_data_structures.json", .layout = "all_cairo" },
 
         // TODO: hint not implemented sha256
         // .{ .pathname = "cairo_programs/packed_sha256_test.json", .layout = "all_cairo" },
@@ -223,8 +222,7 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/unsafe_keccak.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/unsigned_div_rem.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/use_imported_module.json", .layout = "all_cairo" },
-        // TODO: panic attempt to use null value
-        // .{ .pathname = "cairo_programs/usort.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/usort.json", .layout = "all_cairo" },
     };
 
     var ok_count: usize = 0;
