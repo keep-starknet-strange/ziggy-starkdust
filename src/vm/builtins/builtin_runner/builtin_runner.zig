@@ -346,7 +346,7 @@ pub const BuiltinRunner = union(BuiltinName) {
             // For Output and SegmentArena built-in runners, return 0 as they do not allocate memory units
             .Output, .SegmentArena => return 0,
             // For other types of built-in runners
-            else => {
+            inline else => {
                 // Check if the built-in runner has a ratio
                 if (self.ratio()) |r| {
                     // Ensure that the current step is sufficient for allocation based on the ratio

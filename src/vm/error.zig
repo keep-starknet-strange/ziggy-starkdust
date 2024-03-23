@@ -212,6 +212,7 @@ pub const MathError = error{
     ByteConversionError,
     DividedByZero,
     Felt252ToUsizeConversion,
+    SafeDivFailU32,
 };
 
 /// Represents different error conditions that occur in trace relocation
