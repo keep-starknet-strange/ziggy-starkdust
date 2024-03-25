@@ -57,6 +57,10 @@ pub const SegmentArenaBuiltinRunner = struct {
         return result;
     }
 
+    pub fn getMemorySegmentAddresses(self: *const Self) std.meta.Tuple(&.{ usize, ?usize }) {
+        return .{ @intCast(self.base.segment_index), self.stop_ptr };
+    }
+
     pub fn deduceMemoryCell(
         self: *const Self,
         address: Relocatable,

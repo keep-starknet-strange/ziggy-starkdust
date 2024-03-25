@@ -517,7 +517,7 @@ test "KeccakUtils: splitInput3" {
         .{ .{ 2, 3 }, .{300} },
     });
 
-    vm.run_context.fp.* = Relocatable.init(1, 3);
+    vm.run_context.fp.* = 3;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "high3", "low3", "inputs" });
     defer ids_data.deinit();
@@ -544,7 +544,7 @@ test "KeccakUtils: splitInput6" {
         .{ .{ 2, 6 }, .{66036} },
     });
 
-    vm.run_context.fp.* = Relocatable.init(1, 3);
+    vm.run_context.fp.* = 3;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "high6", "low6", "inputs" });
     defer ids_data.deinit();
@@ -571,7 +571,7 @@ test "KeccakUtils: splitInput15" {
         .{ .{ 2, 15 }, .{15150315} },
     });
 
-    vm.run_context.fp.* = Relocatable.init(1, 3);
+    vm.run_context.fp.* = 3;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "high15", "low15", "inputs" });
     defer ids_data.deinit();
@@ -597,7 +597,7 @@ test "KeccakUtils: splitOutput0" {
         .{ .{ 1, 0 }, .{24} },
     });
 
-    vm.run_context.fp.* = Relocatable.init(1, 3);
+    vm.run_context.fp.* = 3;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "output0", "output0_high", "output0_low" });
     defer ids_data.deinit();
@@ -622,7 +622,7 @@ test "KeccakUtils: splitOutput1" {
         .{ .{ 1, 0 }, .{24} },
     });
 
-    vm.run_context.fp.* = Relocatable.init(1, 3);
+    vm.run_context.fp.* = 3;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "output1", "output1_high", "output1_low" });
     defer ids_data.deinit();
@@ -647,7 +647,7 @@ test "KeccakUtils: splitNBytes" {
         .{ .{ 1, 2 }, .{17} },
     });
 
-    vm.run_context.fp.* = Relocatable.init(1, 3);
+    vm.run_context.fp.* = 3;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "n_words_to_copy", "n_bytes_left", "n_bytes" });
     defer ids_data.deinit();
@@ -677,7 +677,7 @@ test "KeccakUtils: splitOutputMidLowHigh" {
         .{ .{ 1, 0 }, .{72057594037927938} },
     });
 
-    vm.run_context.fp.* = Relocatable.init(1, 4);
+    vm.run_context.fp.* = 4;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "output1", "output1_low", "output1_mid", "output1_high" });
     defer ids_data.deinit();

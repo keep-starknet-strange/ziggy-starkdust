@@ -149,7 +149,7 @@ pub const Instruction = struct {
 ///
 /// This structure defines a hint location, incorporating location information
 /// and the count of newlines following the "%{" symbol.
-const HintLocation = struct {
+pub const HintLocation = struct {
     /// Location details of the hint.
     location: Instruction,
     /// Number of newlines following the "%{" symbol.
@@ -937,7 +937,7 @@ test "ProgramJson can be initialized from json file with correct program data" {
     // Parse the ProgramJson from the JSON file for testing.
     var parsed_program = try ProgramJson.parseFromFile(
         allocator,
-        try std.os.realpath("cairo_programs/fibonacci.json", &buffer),
+        try std.posix.realpath("cairo_programs/fibonacci.json", &buffer),
     );
     defer parsed_program.deinit(); // Ensure deallocation after the test.
 
@@ -1003,7 +1003,7 @@ test "ProgramJson: parseFromFile should return a parsed ProgramJson instance fro
     // Attempting to parse a ProgramJson instance from a JSON file
     var parsed_program = try ProgramJson.parseFromFile(
         std.testing.allocator,
-        try std.os.realpath(
+        try std.posix.realpath(
             "cairo_programs/manually_compiled/valid_program_a.json",
             &buffer,
         ),
@@ -1037,7 +1037,7 @@ test "ProgramJson: parseFromFile should return a parsed ProgramJson instance fro
     // Attempting to parse a ProgramJson instance from a JSON file
     var parsed_program = try ProgramJson.parseFromFile(
         std.testing.allocator,
-        try std.os.realpath(
+        try std.posix.realpath(
             "cairo_programs/manually_compiled/valid_program_b.json",
             &buffer,
         ),
@@ -1277,7 +1277,7 @@ test "ProgramJson: parseFromString should return a parsed ProgramJson instance f
 test "ProgramJson: parseProgramJson should parse a Cairo v0 JSON Program and convert it to a Program" {
     // Get the absolute path of the current working directory.
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
-    const path = try std.os.realpath("cairo_programs/fibonacci.json", &buffer);
+    const path = try std.posix.realpath("cairo_programs/fibonacci.json", &buffer);
     // Parse the JSON file into a `ProgramJson` structure
     var parsed_program = try ProgramJson.parseFromFile(std.testing.allocator, path);
     defer parsed_program.deinit();
@@ -1382,7 +1382,7 @@ test "ProgramJson: parseProgramJson with missing entry point should return an er
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
 
     // Obtain the real path of the JSON file
-    const path = try std.os.realpath(
+    const path = try std.posix.realpath(
         "cairo_programs/manually_compiled/valid_program_a.json",
         &buffer,
     );
@@ -1411,7 +1411,7 @@ test "ProgramJson: parseProgramJson should parse a valid manually compiled progr
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
 
     // Obtain the real path of the JSON file
-    const path = try std.os.realpath(
+    const path = try std.posix.realpath(
         "cairo_programs/manually_compiled/valid_program_a.json",
         &buffer,
     );
@@ -1521,7 +1521,7 @@ test "ProgramJson: parseProgramJson should parse a valid manually compiled progr
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
 
     // Obtain the real path of the JSON file
-    const path = try std.os.realpath(
+    const path = try std.posix.realpath(
         "cairo_programs/manually_compiled/valid_program_a.json",
         &buffer,
     );
@@ -1628,7 +1628,7 @@ test "ProgramJson: parseProgramJson with constant deserialization" {
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
 
     // Obtain the real path of the JSON file.
-    const path = try std.os.realpath(
+    const path = try std.posix.realpath(
         "cairo_programs/manually_compiled/deserialize_constant_test.json",
         &buffer,
     );
@@ -2543,7 +2543,7 @@ test "ProgramJson should be able to parse a sample subset of cairo0 files" {
         errdefer std.debug.print("cannot parse program: {s}\n", .{program_path});
 
         var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
-        const path = try std.os.realpath(program_path, &buffer);
+        const path = try std.posix.realpath(program_path, &buffer);
         var parsed_program = try ProgramJson.parseFromFile(allocator, path);
         defer parsed_program.deinit();
     }
