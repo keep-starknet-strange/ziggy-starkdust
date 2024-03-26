@@ -120,7 +120,6 @@ pub fn bigIntSafeDivHint(allocator: std.mem.Allocator, vm: *CairoVM, exec_scopes
 
     try exec_scopes.assignOrUpdateVariable("k", .{ .i256 = k });
     try exec_scopes.assignOrUpdateVariable("value", .{ .i256 = resultValue });
-
     try insertValueFromVarName(allocator, "flag", flag, vm, ids_data, apTracking);
 }
 
@@ -158,7 +157,7 @@ test "big int pack div mod hint" {
     });
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
-    vm.run_context.fp.* = Relocatable.init(1, 0);
+    vm.run_context.fp.* = 0;
 
     const hint_processor = HintProcessor{};
     var hint_data = HintData.init(hint_codes.BIGINT_PACK_DIV_MOD_HINT, ids_data, .{});
@@ -204,7 +203,8 @@ test "big int safe div hint" {
     defer ids_data.deinit();
 
     // Set the frame pointer to point to the beginning of the stack.
-    vm.run_context.*.fp.* = .{};
+    vm.run_context.*.fp.* = 0;
+    _ = try vm.addMemorySegment();
     _ = try vm.addMemorySegment();
 
     defer vm.segments.memory.deinitData(std.testing.allocator);

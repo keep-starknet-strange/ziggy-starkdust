@@ -225,7 +225,7 @@ test "BigIntN Hints: get bigint3 from var name should work" {
         .{ .{ 1, 2 }, .{3} },
     });
 
-    vm.run_context.fp.* = Relocatable.init(1, 1);
+    vm.run_context.fp.* = 1;
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
@@ -253,7 +253,7 @@ test "BigInt Hints: get bigint5 from var name should work" {
         .{ .{ 1, 4 }, .{5} },
     });
 
-    vm.run_context.fp.* = Relocatable.init(1, 1);
+    vm.run_context.fp.* = 1;
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
@@ -282,7 +282,7 @@ test "BigIntN Hints: get bigint3 from var name with missing member should fail" 
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = Relocatable.init(1, 1);
+    vm.run_context.fp.* = 1;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{"x"});
     defer ids_data.deinit();
@@ -306,7 +306,7 @@ test "BigIntN Hints: get bigint5 from var name with missing member should fail" 
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = Relocatable.init(1, 1);
+    vm.run_context.fp.* = 1;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{"x"});
     defer ids_data.deinit();
@@ -388,7 +388,7 @@ test "Run hiMaxBitlen ok" {
     });
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = Relocatable.init(1, 0);
+    vm.run_context.fp.* = 0;
 
     //Execute the hint
     const hint_processor = HintProcessor{};
