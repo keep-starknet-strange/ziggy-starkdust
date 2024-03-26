@@ -71,6 +71,7 @@ pub const hint_processor = struct {
     pub usingnamespace @import("hint_processor/squash_dict_utils.zig");
     pub usingnamespace @import("hint_processor/usort.zig");
     pub usingnamespace @import("hint_processor/memset_utils.zig");
+    pub usingnamespace @import("hint_processor/builtin_hint_processor/secp/bigint_utils.zig");
     pub usingnamespace @import("hint_processor/cairo_keccak_hints.zig");
     pub usingnamespace @import("hint_processor/math_utils.zig");
 };

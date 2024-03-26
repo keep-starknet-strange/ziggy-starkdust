@@ -1,4 +1,5 @@
 const std = @import("std");
+const MathError = @import("../../vm/error.zig").MathError;
 
 ///Returns the integer square root of the nonnegative integer n.
 ///This is the floor of the exact square root of n.
@@ -140,4 +141,33 @@ pub fn divRem(comptime T: type, num: T, denominator: T) !struct { T, T } {
         @divTrunc(num, denominator),
         @rem(num, denominator),
     };
+}
+
+pub fn divMod(n: i512, m: i512, p: i512) !i512 {
+    const igcdex_result = extendedGCD(m, p);
+    if (igcdex_result.gcd != 1) {
+        return MathError.DivModIgcdexNotZero;
+    }
+
+    var result = n * igcdex_result.x;
+    if (result < 0) {
+        result += p;
+    }
+
+    return @rem(result, p);
+}
+
+/// Performs integer division between x and y; fails if x is not divisible by y.
+pub fn safeDivBigInt(x: i256, y: i256) !i256 {
+    if (y == 0) {
+        return MathError.DividedByZero;
+    }
+
+    const result = try divModFloor(i256, x, y);
+
+    if (result[1] != 0) {
+        return MathError.SafeDivFailBigInt;
+    }
+
+    return result[0];
 }
