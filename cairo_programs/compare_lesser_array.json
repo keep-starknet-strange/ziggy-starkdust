@@ -202,7 +202,7 @@
                             "end_col": 38,
                             "end_line": 3,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/alloc.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/alloc.cairo"
                             },
                             "start_col": 5,
                             "start_line": 3
@@ -214,7 +214,7 @@
                     "end_col": 12,
                     "end_line": 4,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/alloc.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/alloc.cairo"
                     },
                     "start_col": 5,
                     "start_line": 4
@@ -237,7 +237,7 @@
                     "end_col": 40,
                     "end_line": 5,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/alloc.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/alloc.cairo"
                     },
                     "start_col": 5,
                     "start_line": 5
@@ -265,7 +265,7 @@
                             "end_col": 7,
                             "end_line": 184,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                             },
                             "start_col": 5,
                             "start_line": 164
@@ -277,7 +277,7 @@
                     "end_col": 42,
                     "end_line": 186,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 25,
                     "start_line": 186
@@ -305,7 +305,7 @@
                     "end_col": 66,
                     "end_line": 186,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 45,
                     "start_line": 186
@@ -334,7 +334,7 @@
                     "end_col": 86,
                     "end_line": 186,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 45,
                     "start_line": 186
@@ -364,7 +364,7 @@
                     "end_col": 86,
                     "end_line": 186,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 25,
                     "start_line": 186
@@ -395,7 +395,7 @@
                     "end_col": 45,
                     "end_line": 187,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 24,
                     "start_line": 187
@@ -427,7 +427,7 @@
                     "end_col": 69,
                     "end_line": 187,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 48,
                     "start_line": 187
@@ -460,7 +460,7 @@
                     "end_col": 89,
                     "end_line": 187,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 48,
                     "start_line": 187
@@ -494,7 +494,7 @@
                     "end_col": 89,
                     "end_line": 187,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 24,
                     "start_line": 187
@@ -532,7 +532,7 @@
                             "end_col": 49,
                             "end_line": 196,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                             },
                             "start_col": 5,
                             "start_line": 196
@@ -544,7 +544,7 @@
                     "end_col": 42,
                     "end_line": 197,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 5,
                     "start_line": 197
@@ -581,7 +581,7 @@
                     "end_col": 25,
                     "end_line": 198,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 23,
                     "start_line": 198
@@ -619,7 +619,7 @@
                     "end_col": 30,
                     "end_line": 198,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 22,
                     "start_line": 198
@@ -658,7 +658,7 @@
                     "end_col": 31,
                     "end_line": 198,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 5,
                     "start_line": 198
@@ -697,7 +697,7 @@
                     "end_col": 29,
                     "end_line": 199,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 24,
                     "start_line": 199
@@ -737,7 +737,7 @@
                     "end_col": 39,
                     "end_line": 199,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 34,
                     "start_line": 199
@@ -778,7 +778,7 @@
                     "end_col": 40,
                     "end_line": 199,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 23,
                     "start_line": 199
@@ -820,7 +820,7 @@
                     "end_col": 41,
                     "end_line": 199,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 5,
                     "start_line": 199
@@ -862,21 +862,21 @@
                     "end_col": 46,
                     "end_line": 188,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 36,
                             "end_line": 154,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 15,
                                     "end_line": 200,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 200
@@ -928,7 +928,7 @@
                     "end_col": 15,
                     "end_line": 200,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 5,
                     "start_line": 200
@@ -966,7 +966,7 @@
                             "end_col": 49,
                             "end_line": 204,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                             },
                             "start_col": 5,
                             "start_line": 204
@@ -978,7 +978,7 @@
                     "end_col": 50,
                     "end_line": 205,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 5,
                     "start_line": 205
@@ -1015,7 +1015,7 @@
                     "end_col": 23,
                     "end_line": 206,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 21,
                     "start_line": 206
@@ -1053,7 +1053,7 @@
                     "end_col": 28,
                     "end_line": 206,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 20,
                     "start_line": 206
@@ -1092,7 +1092,7 @@
                     "end_col": 30,
                     "end_line": 207,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 22,
                     "start_line": 207
@@ -1132,7 +1132,7 @@
                     "end_col": 31,
                     "end_line": 207,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 5,
                     "start_line": 207
@@ -1172,7 +1172,7 @@
                     "end_col": 31,
                     "end_line": 208,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 23,
                     "start_line": 208
@@ -1213,7 +1213,7 @@
                     "end_col": 32,
                     "end_line": 208,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 5,
                     "start_line": 208
@@ -1254,21 +1254,21 @@
                     "end_col": 46,
                     "end_line": 188,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 36,
                             "end_line": 154,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 15,
                                     "end_line": 209,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 209
@@ -1319,7 +1319,7 @@
                     "end_col": 15,
                     "end_line": 209,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 5,
                     "start_line": 209
@@ -1357,7 +1357,7 @@
                             "end_col": 31,
                             "end_line": 213,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                             },
                             "start_col": 5,
                             "start_line": 213
@@ -1369,7 +1369,7 @@
                     "end_col": 24,
                     "end_line": 214,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 5,
                     "start_line": 214
@@ -1406,7 +1406,7 @@
                     "end_col": 33,
                     "end_line": 215,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 28,
                     "start_line": 215
@@ -1444,7 +1444,7 @@
                     "end_col": 34,
                     "end_line": 215,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 23,
                     "start_line": 215
@@ -1483,7 +1483,7 @@
                     "end_col": 35,
                     "end_line": 215,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 5,
                     "start_line": 215
@@ -1522,7 +1522,7 @@
                     "end_col": 12,
                     "end_line": 216,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 5,
                     "start_line": 216
@@ -1561,21 +1561,21 @@
                     "end_col": 46,
                     "end_line": 188,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 36,
                             "end_line": 154,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 15,
                                     "end_line": 217,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 217
@@ -1624,7 +1624,7 @@
                     "end_col": 15,
                     "end_line": 217,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 5,
                     "start_line": 217
@@ -1651,7 +1651,7 @@
                             "end_col": 84,
                             "end_line": 19,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                             },
                             "start_col": 5,
                             "start_line": 19
@@ -1663,7 +1663,7 @@
                     "end_col": 40,
                     "end_line": 20,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "start_col": 5,
                     "start_line": 20
@@ -1689,7 +1689,7 @@
                     "end_col": 26,
                     "end_line": 21,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "start_col": 5,
                     "start_line": 21
@@ -1715,7 +1715,7 @@
                     "end_col": 13,
                     "end_line": 22,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "start_col": 5,
                     "start_line": 22
@@ -1741,21 +1741,21 @@
                     "end_col": 46,
                     "end_line": 23,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 27,
                             "end_line": 18,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 14,
                                     "end_line": 24,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 24
@@ -1791,7 +1791,7 @@
                     "end_col": 13,
                     "end_line": 24,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "start_col": 12,
                     "start_line": 24
@@ -1817,7 +1817,7 @@
                     "end_col": 14,
                     "end_line": 24,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "start_col": 5,
                     "start_line": 24
@@ -1844,7 +1844,7 @@
                             "end_col": 91,
                             "end_line": 27,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                             },
                             "start_col": 5,
                             "start_line": 27
@@ -1856,7 +1856,7 @@
                     "end_col": 48,
                     "end_line": 28,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "start_col": 5,
                     "start_line": 28
@@ -1882,7 +1882,7 @@
                     "end_col": 35,
                     "end_line": 29,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "start_col": 33,
                     "start_line": 29
@@ -1909,7 +1909,7 @@
                     "end_col": 40,
                     "end_line": 29,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "start_col": 32,
                     "start_line": 29
@@ -1937,7 +1937,7 @@
                     "end_col": 41,
                     "end_line": 29,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "start_col": 5,
                     "start_line": 29
@@ -1965,7 +1965,7 @@
                     "end_col": 13,
                     "end_line": 30,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "start_col": 5,
                     "start_line": 30
@@ -1993,21 +1993,21 @@
                     "end_col": 46,
                     "end_line": 31,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 27,
                             "end_line": 18,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 14,
                                     "end_line": 32,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 32
@@ -2045,7 +2045,7 @@
                     "end_col": 13,
                     "end_line": 32,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "start_col": 12,
                     "start_line": 32
@@ -2073,7 +2073,7 @@
                     "end_col": 14,
                     "end_line": 32,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "start_col": 5,
                     "start_line": 32
@@ -2099,21 +2099,21 @@
                     "end_col": 27,
                     "end_line": 18,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 36,
                             "end_line": 154,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 32,
                                     "end_line": 35,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 35
@@ -2149,7 +2149,7 @@
                     "end_col": 28,
                     "end_line": 35,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "start_col": 20,
                     "start_line": 35
@@ -2175,14 +2175,14 @@
                     "end_col": 30,
                     "end_line": 18,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 31,
                             "end_line": 35,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                             },
                             "start_col": 30,
                             "start_line": 35
@@ -2213,7 +2213,7 @@
                     "end_col": 32,
                     "end_line": 35,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "start_col": 5,
                     "start_line": 35
@@ -2239,7 +2239,7 @@
                     "end_col": 13,
                     "end_line": 36,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "start_col": 12,
                     "start_line": 36
@@ -2265,7 +2265,7 @@
                     "end_col": 14,
                     "end_line": 36,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "start_col": 5,
                     "start_line": 36
@@ -2292,21 +2292,21 @@
                     "end_col": 27,
                     "end_line": 42,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 27,
                             "end_line": 18,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 24,
                                     "end_line": 43,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                                     },
                                     "start_col": 12,
                                     "start_line": 43
@@ -2343,7 +2343,7 @@
                     "end_col": 23,
                     "end_line": 43,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "start_col": 18,
                     "start_line": 43
@@ -2370,7 +2370,7 @@
                     "end_col": 24,
                     "end_line": 43,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "start_col": 12,
                     "start_line": 43
@@ -2397,7 +2397,7 @@
                     "end_col": 25,
                     "end_line": 43,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "start_col": 5,
                     "start_line": 43
@@ -2670,7 +2670,7 @@
                             "end_col": 27,
                             "end_line": 42,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                             },
                             "parent_location": [
                                 {
@@ -2849,7 +2849,7 @@
                     "end_col": 27,
                     "end_line": 42,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "parent_location": [
                         {
@@ -2984,7 +2984,7 @@
                     "end_col": 27,
                     "end_line": 42,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/math_cmp.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math_cmp.cairo"
                     },
                     "parent_location": [
                         {

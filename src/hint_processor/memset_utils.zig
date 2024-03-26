@@ -70,7 +70,7 @@ test "MemsetUtils: enterScope valid" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     // initialize vm
-    vm.run_context.fp.* = Relocatable.init(1, 2);
+    vm.run_context.fp.* = 2;
     // insert ids into memory
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 1 }, .{5} },
@@ -105,7 +105,7 @@ test "MemsetUtils: enterScope invalid" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     // initialize vm
-    vm.run_context.fp.* = Relocatable.init(1, 2);
+    vm.run_context.fp.* = 2;
     // insert ids into memory
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 1 }, .{ 1, 0 } },
@@ -138,7 +138,7 @@ test "MemsetUtils: continue loop valid continue loop equal 1" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     // initialize vm
-    vm.run_context.fp.* = Relocatable.init(1, 1);
+    vm.run_context.fp.* = 1;
     // insert ids into memory
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 1 }, .{5} },
@@ -176,7 +176,7 @@ test "MemsetUtils: continue loop valid continue loop equal 5" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     // initialize vm
-    vm.run_context.fp.* = Relocatable.init(1, 1);
+    vm.run_context.fp.* = 1;
     // insert ids into memory
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 2 }, .{5} },
@@ -214,7 +214,7 @@ test "MemsetUtils: continue loop " {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     // initialize vm
-    vm.run_context.fp.* = Relocatable.init(1, 1);
+    vm.run_context.fp.* = 1;
     // insert ids into memory
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 2 }, .{5} },

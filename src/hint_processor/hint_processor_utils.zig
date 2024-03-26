@@ -59,9 +59,27 @@ pub fn getIntegerFromReference(
         HintError.UnknownIdentifierInternal;
 }
 
-///Returns the Relocatable value stored in the given ids variable
-pub fn getPtrFromReference(hint_reference: HintReference, ap_tracking: ApTracking, vm: *CairoVM) !Relocatable {
-    const var_addr = computeAddrFromReference(hint_reference, ap_tracking, vm) orelse return HintError.UnknownIdentifierInternal;
+/// Retrieves the Relocatable value stored in the given ids variable.
+///
+/// This function retrieves the Relocatable value stored in the given ids variable indicated by the provided `hint_reference`.
+/// If the value is stored as an immediate, it returns the value directly.
+/// Otherwise, it computes the memory address of the variable and retrieves the Relocatable value from memory.
+///
+/// # Parameters
+/// - `hint_reference`: The hint reference indicating the variable.
+/// - `ap_tracking`: The AP tracking data.
+/// - `vm`: A pointer to the Cairo virtual machine.
+///
+/// # Returns
+/// Returns the Relocatable value stored in the variable indicated by the hint reference.
+/// If the variable is not found or if there's an error retrieving the value, it returns an error of type `HintError`.
+pub fn getPtrFromReference(
+    hint_reference: HintReference,
+    ap_tracking: ApTracking,
+    vm: *CairoVM,
+) !Relocatable {
+    const var_addr = computeAddrFromReference(hint_reference, ap_tracking, vm) orelse
+        return HintError.UnknownIdentifierInternal;
 
     return if (hint_reference.dereference)
         vm.getRelocatable(var_addr) catch HintError.WrongIdentifierTypeInternal
@@ -69,38 +87,75 @@ pub fn getPtrFromReference(hint_reference: HintReference, ap_tracking: ApTrackin
         var_addr;
 }
 
-pub fn applyApTrackingCorrection(addr: Relocatable, ref_ap_tracking: ApTracking, hint_ap_tracking: ApTracking) ?Relocatable {
-    if (ref_ap_tracking.group == hint_ap_tracking.group) {
-        return addr.subUint(hint_ap_tracking.offset - ref_ap_tracking.offset) catch unreachable;
-    }
-    return null;
+/// Adjusts the memory address using AP tracking correction.
+///
+/// This function adjusts the memory address `addr` based on the AP tracking information provided.
+/// It calculates the correction by subtracting the offset of the reference AP tracking from the offset of the hint AP tracking.
+/// If both AP trackings belong to the same group, it returns the adjusted address.
+/// Otherwise, it returns `null`.
+///
+/// # Parameters
+/// - `addr`: The original memory address.
+/// - `ref_ap_tracking`: The AP tracking data of the reference.
+/// - `hint_ap_tracking`: The AP tracking data of the hint.
+///
+/// # Returns
+/// Returns the adjusted memory address if both AP trackings belong to the same group.
+/// Otherwise, returns `null`.
+pub fn applyApTrackingCorrection(
+    addr: Relocatable,
+    ref_ap_tracking: ApTracking,
+    hint_ap_tracking: ApTracking,
+) ?Relocatable {
+    return if (ref_ap_tracking.group == hint_ap_tracking.group)
+        addr.subUint(hint_ap_tracking.offset - ref_ap_tracking.offset) catch null
+    else
+        null;
 }
 
+/// Retrieves the memory value from a reference with an offset.
+///
+/// This function retrieves the memory value indicated by the provided `hint_reference` with the specified `offset_value`.
+/// It calculates the memory address based on the offset value and AP tracking information.
+/// If the offset value is a reference, it ensures it's within bounds and calculates the base address accordingly.
+/// Then, it retrieves the memory value from the calculated address.
+///
+/// # Parameters
+/// - `vm`: A pointer to the Cairo virtual machine.
+/// - `hint_reference`: The hint reference indicating the variable.
+/// - `hint_ap_tracking`: The AP tracking data for the hint reference.
+/// - `offset_value`: The offset value to apply to the reference.
+///
+/// # Returns
+/// Returns the memory value indicated by the hint reference with the specified offset value as a `MaybeRelocatable`.
+/// If the reference is not valid or if there's an error retrieving the value, it returns `null`.
 pub fn getOffsetValueReference(
     vm: *CairoVM,
     hint_reference: HintReference,
     hint_ap_tracking: ApTracking,
     offset_value: OffsetValue,
 ) ?MaybeRelocatable {
+    // Extract the reference from the offset value.
     const refer = switch (offset_value) {
         .reference => |ref| ref,
         else => return null,
     };
 
+    // Calculate the base address based on the reference type.
     const base_addr = switch (refer[0]) {
-        .FP => vm.run_context.fp.*,
-        else => applyApTrackingCorrection(vm.run_context.getAP(), hint_reference.ap_tracking_data.?, hint_ap_tracking).?,
+        .FP => vm.run_context.getFP(),
+        else => applyApTrackingCorrection(
+            vm.run_context.getAP(),
+            hint_reference.ap_tracking_data orelse return null,
+            hint_ap_tracking,
+        ) orelse return null,
     };
 
-    if (refer[1] < 0 and base_addr.offset < @as(u64, @intCast(@abs(refer[1])))) {
-        return null;
-    }
-
-    if (refer[2]) {
-        return vm.segments.memory.get(base_addr.addInt(@as(i64, @intCast(refer[1]))) catch unreachable).?;
-    } else {
-        return MaybeRelocatable.fromRelocatable(base_addr.addInt(@as(i64, @intCast(refer[1]))) catch unreachable);
-    }
+    // Calculate the final memory address and retrieve the value.
+    return if (refer[2])
+        vm.segments.memory.get(base_addr.addInt(@intCast(refer[1])) catch return null) orelse null
+    else
+        MaybeRelocatable.fromRelocatable(base_addr.addInt(@intCast(refer[1])) catch return null);
 }
 
 /// Computes the memory address indicated by the provided hint reference.
@@ -159,19 +214,32 @@ pub fn computeAddrFromReference(
     };
 }
 
-///Returns the value given by a reference as [MaybeRelocatable]
+/// Returns the value given by a reference as `MaybeRelocatable`.
+///
+/// This function retrieves the value indicated by the provided `hint_reference` as a `MaybeRelocatable`.
+/// If the value is stored as an immediate, it returns the value directly.
+/// Otherwise, it computes the memory address of the variable and retrieves the value from memory.
+///
+/// # Parameters
+/// - `vm`: A pointer to the Cairo virtual machine.
+/// - `hint_reference`: The hint reference indicating the variable.
+/// - `ap_tracking`: The AP tracking data.
+///
+/// # Returns
+/// Returns the value indicated by the hint reference as a `MaybeRelocatable`.
+/// If the variable is not found or if there's an error retrieving the value, it returns `null`.
 pub fn getMaybeRelocatableFromReference(
     vm: *CairoVM,
     hint_reference: HintReference,
     ap_tracking: ApTracking,
 ) ?MaybeRelocatable {
-    //First handle case on only immediate
+    // First handle the case of an immediate value.
     switch (hint_reference.offset1) {
         .immediate => |num| return MaybeRelocatable.fromFelt(num),
         else => {},
     }
 
-    //Then calculate address
+    // Then calculate the memory address.
     return if (computeAddrFromReference(hint_reference, ap_tracking, vm)) |var_addr|
         if (hint_reference.dereference)
             vm.segments.memory.get(var_addr)
@@ -243,5 +311,236 @@ test "getIntegerFromReference: with immediate value" {
     try expectEqual(
         Felt252.fromInt(u8, 2),
         getIntegerFromReference(&vm, hint_reference, .{}),
+    );
+}
+
+test "getPtrFromReference: short path" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    // Verify that the function returns the expected Relocatable value for a short path.
+    try expectEqual(
+        Relocatable.init(1, 0),
+        try getPtrFromReference(HintReference.init(0, 0, false, false), .{}, &vm),
+    );
+}
+
+test "getPtrFromReference: with dereference" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    // Set up memory segments in the virtual machine.
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{.{ .{ 1, 0 }, .{ 3, 0 } }},
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator); // Clean up memory data.
+
+    // Verify that the function returns the expected Relocatable value with dereference.
+    try expectEqual(
+        Relocatable.init(3, 0),
+        try getPtrFromReference(HintReference.init(0, 0, false, true), .{}, &vm),
+    );
+}
+
+test "getPtrFromReference: with dereference and immediate value" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    // Set up memory segments in the virtual machine.
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{.{ .{ 1, 0 }, .{ 4, 0 } }},
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator); // Clean up memory data.
+
+    // Create a hint reference with immediate value and verify the function returns the expected Relocatable value.
+    var hint_ref = HintReference.init(0, 0, true, false);
+    hint_ref.offset2 = .{ .value = 2 };
+
+    try expectEqual(
+        Relocatable.init(4, 2),
+        try getPtrFromReference(hint_ref, .{}, &vm),
+    );
+}
+
+test "applyApTrackingCorrection: with valid correction" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    // Set up reference and hint AP tracking with the same group.
+    var ref_ap_tracking: ApTracking = .{};
+    ref_ap_tracking.group = 1;
+    var hint_ap_tracking: ApTracking = .{};
+    hint_ap_tracking.group = 1;
+
+    // Verify that the function returns the adjusted address when both AP trackings have the same group.
+    try expectEqual(
+        Relocatable.init(1, 0),
+        applyApTrackingCorrection(Relocatable.init(1, 0), ref_ap_tracking, hint_ap_tracking),
+    );
+}
+
+test "applyApTrackingCorrection: with invalid group" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    // Set up reference and hint AP tracking with different groups.
+    var ref_ap_tracking: ApTracking = .{};
+    ref_ap_tracking.group = 1;
+    var hint_ap_tracking: ApTracking = .{};
+    hint_ap_tracking.group = 2;
+
+    // Verify that the function returns `null` when both AP trackings have different groups.
+    try expectEqual(
+        null,
+        applyApTrackingCorrection(Relocatable.init(1, 0), ref_ap_tracking, hint_ap_tracking),
+    );
+}
+
+test "applyApTrackingCorrection: with valid group but invalid address subtraction" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    // Set up reference and hint AP tracking with the same group but incompatible offsets.
+    var ref_ap_tracking: ApTracking = .{};
+    ref_ap_tracking.group = 2;
+    ref_ap_tracking.offset = 5;
+    var hint_ap_tracking: ApTracking = .{};
+    hint_ap_tracking.group = 2;
+    hint_ap_tracking.offset = 10;
+
+    // Verify that the function returns `null` when both AP trackings have the same group but incompatible offsets.
+    try expectEqual(
+        null,
+        applyApTrackingCorrection(Relocatable.init(1, 0), ref_ap_tracking, hint_ap_tracking),
+    );
+}
+
+test "getMaybeRelocatableFromReference: valid" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    // Set up memory segments in the virtual machine.
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{.{ .{ 1, 0 }, .{ 0, 0 } }},
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator); // Clean up memory data.
+
+    // Verify that the function returns the expected `MaybeRelocatable` value.
+    try expectEqual(
+        MaybeRelocatable.fromSegment(0, 0),
+        getMaybeRelocatableFromReference(&vm, HintReference.initSimple(0), .{}),
+    );
+}
+
+test "getMaybeRelocatableFromReference: invalid" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    // Verify that the function returns `null` when provided with invalid input.
+    try expectEqual(
+        null,
+        getMaybeRelocatableFromReference(&vm, HintReference.initSimple(0), .{}),
+    );
+}
+
+test "getOffsetValueReference: valid" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    // Set up memory segments in the virtual machine.
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{.{ .{ 1, 0 }, .{0} }},
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator); // Clean up memory data.
+
+    var hint_reference = HintReference.init(0, 0, false, true);
+    hint_reference.offset1 = .{ .reference = .{ .FP, 2, false } };
+
+    // Verify that the function returns the expected `MaybeRelocatable` value.
+    try expectEqual(
+        MaybeRelocatable.fromSegment(1, 2),
+        getOffsetValueReference(&vm, hint_reference, .{}, hint_reference.offset1),
+    );
+}
+
+test "getOffsetValueReference: invalid" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    // Set up memory segments in the virtual machine.
+    try vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{.{ .{ 1, 0 }, .{0} }},
+    );
+    defer vm.segments.memory.deinitData(std.testing.allocator); // Clean up memory data.
+
+    var hint_reference = HintReference.init(0, 0, false, true);
+    hint_reference.offset1 = .{ .reference = .{ .FP, -2, false } };
+
+    // Verify that the function returns `null` when provided with invalid input.
+    try expectEqual(
+        null,
+        getOffsetValueReference(&vm, hint_reference, .{}, hint_reference.offset1),
+    );
+}
+
+test "getOffsetValueReference: null hint reference AP tracking data" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    var hint_reference = HintReference.init(0, 0, false, true);
+    hint_reference.offset1 = .{ .reference = .{ .AP, 2, false } };
+
+    // Verify that the function returns `null` when the hint reference AP tracking data is null.
+    try expectEqual(
+        null,
+        getOffsetValueReference(&vm, hint_reference, .{}, hint_reference.offset1),
+    );
+}
+
+test "getOffsetValueReference: with null applyApTrackingCorrection" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    var hint_reference = HintReference.init(0, 0, false, true);
+    hint_reference.offset1 = .{ .reference = .{ .AP, 2, false } };
+    hint_reference.ap_tracking_data = .{};
+    hint_reference.ap_tracking_data.?.group = 10;
+
+    // Verify that the function returns `null` when `applyApTrackingCorrection` returns null.
+    try expectEqual(
+        null,
+        getOffsetValueReference(&vm, hint_reference, .{}, hint_reference.offset1),
+    );
+}
+
+test "getOffsetValueReference: valid but nothing in memory" {
+    // Initialize the Cairo virtual machine.
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit(); // Ensure cleanup.
+
+    var hint_reference = HintReference.init(0, 0, false, true);
+    hint_reference.offset1 = .{ .reference = .{ .FP, 2, true } };
+
+    // Verify that the function returns `null` when there is no data in memory.
+    try expectEqual(
+        null,
+        getOffsetValueReference(&vm, hint_reference, .{}, hint_reference.offset1),
     );
 }

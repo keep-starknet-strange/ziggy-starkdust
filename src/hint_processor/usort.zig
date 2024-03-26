@@ -86,12 +86,13 @@ pub fn usortBody(
     } else |_| {}
 
     var positions_dict = std.AutoHashMap(Felt252, std.ArrayList(u64)).init(allocator);
-    defer positions_dict.deinit();
-    defer {
+    errdefer {
         var it = positions_dict.valueIterator();
         while (it.next()) |v| {
             v.deinit();
         }
+
+        positions_dict.deinit();
     }
 
     var output = std.ArrayList(Felt252).init(allocator);
@@ -104,8 +105,17 @@ pub fn usortBody(
             else => {},
         }
 
-        var entry = positions_dict.getPtr(val) orelse
-            @constCast(&std.ArrayList(u64).init(allocator));
+        var entry = positions_dict.getPtr(val) orelse blk: {
+            var nval = std.ArrayList(u64).init(allocator);
+            errdefer nval.deinit();
+
+            const res = try positions_dict.getOrPutValue(
+                val,
+                nval,
+            );
+
+            break :blk res.value_ptr;
+        };
 
         try entry.append(i);
     }
@@ -219,7 +229,7 @@ test "Usort: usort out of range" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = Relocatable.init(1, 2);
+    vm.run_context.fp.* = 2;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsForTestWithoutMemory(
