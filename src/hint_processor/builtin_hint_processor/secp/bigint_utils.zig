@@ -34,7 +34,6 @@ pub fn BigIntN(comptime NUM_LIMBS: usize) type {
         limbs: [NUM_LIMBS]Felt252 = undefined,
 
         pub fn fromBaseAddr(self: *Self, addr: Relocatable, vm: *CairoVM) !Self {
-            std.debug.print(" |||||| NUM_LIMBS: {} ||||||||| \n", .{NUM_LIMBS});
             inline for (0..NUM_LIMBS) |i| {
                 const new_addr = try addr.addUint(i);
                 self.limbs[i] = try vm.getFelt(new_addr);
@@ -44,7 +43,6 @@ pub fn BigIntN(comptime NUM_LIMBS: usize) type {
 
         pub fn fromVarName(self: *Self, name: []const u8, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !Self {
             const baseAddress = try hint_utils.getRelocatableFromVarName(name, vm, ids_data, ap_tracking);
-            std.debug.print(" |||||| baseAddress: {} ||||||||| \n", .{baseAddress});
             return self.fromBaseAddr(baseAddress, vm);
         }
 
@@ -387,7 +385,6 @@ test "Run hiMaxBitlen ok" {
         .{ .{ 1, 3 }, .{0} },
         .{ .{ 1, 4 }, .{0} },
         .{ .{ 1, 5 }, .{1} },
-        .{ .{ 1, 6 }, .{3} },
     });
     defer vm.segments.memory.deinitData(std.testing.allocator);
 

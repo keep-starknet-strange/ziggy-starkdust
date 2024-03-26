@@ -98,16 +98,16 @@ pub fn tonelliShanks(n: u512, p: u512) struct { u512, u512, bool } {
     return .{ result, p - result, true };
 }
 
-pub fn extendedGCD(self: i512, other: i512) struct { gcd: i512, x: i512, y: i512 } {
-    var s = [_]i512{ 0, 1 };
-    var t = [_]i512{ 1, 0 };
-    var r = [_]i512{ other, self };
+pub fn extendedGCD(self: i256, other: i256) struct { gcd: i256, x: i256, y: i256 } {
+    var s = [_]i256{ 0, 1 };
+    var t = [_]i256{ 1, 0 };
+    var r = [_]i256{ other, self };
 
     while (r[0] != 0) {
         const q = @divFloor(r[1], r[0]);
-        std.mem.swap(i512, &r[0], &r[1]);
-        std.mem.swap(i512, &s[0], &s[1]);
-        std.mem.swap(i512, &t[0], &t[1]);
+        std.mem.swap(i256, &r[0], &r[1]);
+        std.mem.swap(i256, &s[0], &s[1]);
+        std.mem.swap(i256, &t[0], &t[1]);
         r[0] = r[0] - q * r[1];
         s[0] = s[0] - q * s[1];
         t[0] = t[0] - q * t[1];
