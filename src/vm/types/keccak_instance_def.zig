@@ -32,6 +32,7 @@ pub const KeccakInstanceDef = struct {
     /// A new `KeccakInstanceDef` instance initialized with default values.
     pub fn initDefault(allocator: Allocator) !Self {
         var instance_per_component = ArrayList(u32).init(allocator);
+        errdefer instance_per_component.deinit();
         try instance_per_component.appendNTimes(200, 8);
         return .{ .state_rep = instance_per_component };
     }

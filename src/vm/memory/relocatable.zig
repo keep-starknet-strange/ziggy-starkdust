@@ -551,7 +551,12 @@ pub const MaybeRelocatable = union(enum) {
                 // If `other` is also `relocatable`, call `sub` method on `self_value`
                 .relocatable => |r| blk: {
                     if (self_value.segment_index == r.segment_index) {
-                        break :blk MaybeRelocatable.fromInt(u64, self_value.offset - r.offset);
+                        const res: i128 = @as(i128, self_value.offset) - @as(i128, r.offset);
+
+                        break :blk if (res < 0)
+                            MaybeRelocatable.fromFelt(Felt252.fromInt(u128, @intCast(-res)).neg())
+                        else
+                            MaybeRelocatable.fromFelt(Felt252.fromInt(u128, @intCast(res)));
                     }
 
                     break :blk CairoVMError.TypeMismatchNotRelocatable;
@@ -1490,5 +1495,18 @@ test "MaybeRelocatable.mul: should return Felt multiplication operation if both 
             0x7fffffffffffbd0ffffffffffffffffffffffffffffffffffffffffffffffbf,
         ),
         (try result2.intoFelt()).toInteger(),
+    );
+}
+
+test "MaybeRelocatable.sub: wiht negative relocatable subtraction" {
+    const a = MaybeRelocatable.fromSegment(4, 0);
+    const b = MaybeRelocatable.fromSegment(4, 5);
+
+    try expectEqual(
+        MaybeRelocatable.fromInt(
+            u256,
+            3618502788666131213697322783095070105623107215331596699973092056135872020476,
+        ),
+        try a.sub(b),
     );
 }

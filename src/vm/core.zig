@@ -480,8 +480,8 @@ pub const CairoVM = struct {
             try self.trace_context.traceInstruction(
                 .{
                     .pc = self.run_context.pc.*,
-                    .ap = self.run_context.ap.*,
-                    .fp = self.run_context.fp.*,
+                    .ap = self.run_context.getAP(),
+                    .fp = self.run_context.getFP(),
                 },
             );
         }
@@ -843,15 +843,15 @@ pub const CairoVM = struct {
                 // Check that Res is not null.
                 if (operands.res) |val| {
                     // Update AP.
-                    try self.run_context.ap.*.addMaybeRelocatableInplace(val);
+                    self.run_context.ap.* = (try self.run_context.getAP().addMaybeRelocatable(val)).offset;
                 } else {
                     return error.ApUpdateAddResUnconstrained;
                 }
             },
             // AP update Add1
-            .Add1 => self.run_context.ap.*.addUintInPlace(1),
+            .Add1 => self.run_context.ap.* = (try self.run_context.getAP().addUint(1)).offset,
             // AP update Add2
-            .Add2 => self.run_context.ap.*.addUintInPlace(2),
+            .Add2 => self.run_context.ap.* = (try self.run_context.getAP().addUint(2)).offset,
             // AP update regular
             .Regular => {},
         }
@@ -870,7 +870,7 @@ pub const CairoVM = struct {
             // FP update Add + 2
             .APPlus2 => { // Update the FP.
                 // FP = AP + 2.
-                self.run_context.fp.*.offset = self.run_context.ap.*.offset + 2;
+                self.run_context.fp.* = self.run_context.ap.* + 2;
             },
             // FP update Dst
             .Dst => {
@@ -878,12 +878,12 @@ pub const CairoVM = struct {
                     .relocatable => |rel| {
                         // Update the FP.
                         // FP = DST.
-                        self.run_context.fp.* = Relocatable.init(1, rel.offset);
+                        self.run_context.fp.* = rel.offset;
                     },
                     .felt => |f| {
                         // Update the FP.
                         // FP += DST.
-                        try self.run_context.fp.*.addFeltInPlace(f);
+                        self.run_context.fp.* = (try self.run_context.getFP().addFelt(f)).offset;
                     },
                 }
             },
@@ -933,7 +933,7 @@ pub const CairoVM = struct {
     ) !MaybeRelocatable {
         return switch (instruction.opcode) {
             .AssertEq => if (res) |r| r else CairoVMError.NoDst,
-            .Call => MaybeRelocatable.fromRelocatable(self.run_context.fp.*),
+            .Call => MaybeRelocatable.fromRelocatable(self.run_context.getFP()),
             else => CairoVMError.NoDst,
         };
     }
@@ -1206,7 +1206,7 @@ pub const CairoVM = struct {
     pub fn getReturnValues(self: *Self, n_ret: usize) !std.ArrayList(MaybeRelocatable) {
         return self.segments.memory.getContinuousRange(
             self.allocator,
-            self.run_context.ap.subUint(n_ret) catch
+            self.run_context.getAP().subUint(n_ret) catch
                 return MemoryError.FailedToGetReturnValues,
             n_ret,
         );

@@ -74,7 +74,13 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
     // TODO: make flag for extensive_hints
     var hint_processor: HintProcessor = .{};
     try runner.runUntilPC(end, false, &hint_processor);
-    try runner.endRun();
+    try runner.endRun(
+        allocator,
+        true,
+        false,
+        &hint_processor,
+        false,
+    );
     // TODO readReturnValues necessary for builtins
 
     if (config.output_trace != null or config.output_memory != null) {
@@ -111,7 +117,7 @@ test "EncodedMemory: can round trip from valid memory binary" {
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
     // where  `cairo_memory_struct` is sourced (graciously) from
     // https://github.com/lambdaclass/cairo-vm/blob/main/cairo_programs/trace_memory/cairo_trace_struct#L1
-    const path = try std.os.realpath("cairo_programs/trace_memory/cairo_memory_struct", &buffer);
+    const path = try std.posix.realpath("cairo_programs/trace_memory/cairo_memory_struct", &buffer);
 
     const file = try std.fs.cwd().openFile(path, .{});
     defer file.close();

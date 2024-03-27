@@ -338,7 +338,7 @@
                             "end_col": 7,
                             "end_line": 73,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                             },
                             "start_col": 5,
                             "start_line": 69
@@ -350,7 +350,7 @@
                     "end_col": 39,
                     "end_line": 76,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "start_col": 32,
                     "start_line": 76
@@ -377,7 +377,7 @@
                     "end_col": 58,
                     "end_line": 76,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "start_col": 43,
                     "start_line": 76
@@ -405,7 +405,7 @@
                     "end_col": 67,
                     "end_line": 76,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "start_col": 43,
                     "start_line": 76
@@ -434,7 +434,7 @@
                     "end_col": 68,
                     "end_line": 76,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "start_col": 32,
                     "start_line": 76
@@ -464,7 +464,7 @@
                     "end_col": 69,
                     "end_line": 76,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "start_col": 5,
                     "start_line": 76
@@ -494,7 +494,7 @@
                     "end_col": 50,
                     "end_line": 79,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "start_col": 31,
                     "start_line": 79
@@ -524,7 +524,7 @@
                     "end_col": 41,
                     "end_line": 80,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "start_col": 5,
                     "start_line": 80
@@ -554,7 +554,7 @@
                     "end_col": 41,
                     "end_line": 81,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "start_col": 5,
                     "start_line": 81
@@ -584,7 +584,7 @@
                     "end_col": 41,
                     "end_line": 82,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "start_col": 5,
                     "start_line": 82
@@ -614,7 +614,7 @@
                     "end_col": 22,
                     "end_line": 84,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "start_col": 5,
                     "start_line": 84
@@ -640,7 +640,7 @@
                     "end_col": 27,
                     "end_line": 31,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 16,
                     "start_line": 31
@@ -667,7 +667,7 @@
                     "end_col": 42,
                     "end_line": 31,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 31,
                     "start_line": 31
@@ -695,7 +695,7 @@
                     "end_col": 56,
                     "end_line": 31,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 45,
                     "start_line": 31
@@ -724,7 +724,7 @@
                     "end_col": 56,
                     "end_line": 31,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 31,
                     "start_line": 31
@@ -754,7 +754,7 @@
                     "end_col": 74,
                     "end_line": 31,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 30,
                     "start_line": 31
@@ -785,7 +785,7 @@
                     "end_col": 27,
                     "end_line": 32,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 16,
                     "start_line": 32
@@ -817,7 +817,7 @@
                     "end_col": 41,
                     "end_line": 32,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 30,
                     "start_line": 32
@@ -850,7 +850,7 @@
                     "end_col": 41,
                     "end_line": 32,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 16,
                     "start_line": 32
@@ -884,7 +884,7 @@
                     "end_col": 74,
                     "end_line": 32,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 44,
                     "start_line": 32
@@ -919,7 +919,7 @@
                     "end_col": 74,
                     "end_line": 32,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 44,
                     "start_line": 32
@@ -955,7 +955,7 @@
                     "end_col": 27,
                     "end_line": 33,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 16,
                     "start_line": 33
@@ -992,7 +992,7 @@
                     "end_col": 41,
                     "end_line": 33,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 30,
                     "start_line": 33
@@ -1030,7 +1030,7 @@
                     "end_col": 41,
                     "end_line": 33,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 16,
                     "start_line": 33
@@ -1069,7 +1069,7 @@
                     "end_col": 55,
                     "end_line": 33,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 44,
                     "start_line": 33
@@ -1109,7 +1109,7 @@
                     "end_col": 74,
                     "end_line": 31,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 16,
                     "start_line": 31
@@ -1149,7 +1149,7 @@
                     "end_col": 74,
                     "end_line": 32,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 16,
                     "start_line": 32
@@ -1189,7 +1189,7 @@
                     "end_col": 55,
                     "end_line": 33,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 16,
                     "start_line": 33
@@ -1229,7 +1229,7 @@
                     "end_col": 7,
                     "end_line": 35,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 5,
                     "start_line": 29
@@ -1254,7 +1254,7 @@
                     "end_col": 32,
                     "end_line": 43,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 24,
                     "start_line": 43
@@ -1280,7 +1280,7 @@
                     "end_col": 27,
                     "end_line": 46,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 16,
                     "start_line": 46
@@ -1307,7 +1307,7 @@
                     "end_col": 64,
                     "end_line": 46,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 30,
                     "start_line": 46
@@ -1335,7 +1335,7 @@
                     "end_col": 64,
                     "end_line": 46,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 30,
                     "start_line": 46
@@ -1364,7 +1364,7 @@
                     "end_col": 31,
                     "end_line": 47,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 16,
                     "start_line": 47
@@ -1394,7 +1394,7 @@
                     "end_col": 64,
                     "end_line": 47,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 34,
                     "start_line": 47
@@ -1425,7 +1425,7 @@
                     "end_col": 64,
                     "end_line": 47,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 34,
                     "start_line": 47
@@ -1457,7 +1457,7 @@
                     "end_col": 31,
                     "end_line": 48,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 16,
                     "start_line": 48
@@ -1490,7 +1490,7 @@
                     "end_col": 45,
                     "end_line": 48,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 34,
                     "start_line": 48
@@ -1524,7 +1524,7 @@
                     "end_col": 64,
                     "end_line": 46,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 16,
                     "start_line": 46
@@ -1558,7 +1558,7 @@
                     "end_col": 64,
                     "end_line": 47,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 16,
                     "start_line": 47
@@ -1592,7 +1592,7 @@
                     "end_col": 45,
                     "end_line": 48,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 16,
                     "start_line": 48
@@ -1626,7 +1626,7 @@
                     "end_col": 7,
                     "end_line": 50,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 5,
                     "start_line": 44
@@ -1655,7 +1655,7 @@
                             "end_col": 7,
                             "end_line": 65,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                             },
                             "start_col": 5,
                             "start_line": 59
@@ -1667,7 +1667,7 @@
                     "end_col": 34,
                     "end_line": 67,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 5,
                     "start_line": 67
@@ -1695,7 +1695,7 @@
                     "end_col": 39,
                     "end_line": 68,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 5,
                     "start_line": 68
@@ -1723,7 +1723,7 @@
                     "end_col": 40,
                     "end_line": 71,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 28,
                     "start_line": 71
@@ -1752,7 +1752,7 @@
                     "end_col": 40,
                     "end_line": 71,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 19,
                     "start_line": 71
@@ -1782,7 +1782,7 @@
                     "end_col": 48,
                     "end_line": 71,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 18,
                     "start_line": 71
@@ -1813,7 +1813,7 @@
                     "end_col": 49,
                     "end_line": 72,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 36,
                     "start_line": 72
@@ -1845,7 +1845,7 @@
                     "end_col": 50,
                     "end_line": 72,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 5,
                     "start_line": 72
@@ -1877,7 +1877,7 @@
                     "end_col": 30,
                     "end_line": 78,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 19,
                     "start_line": 78
@@ -1910,7 +1910,7 @@
                     "end_col": 38,
                     "end_line": 78,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 18,
                     "start_line": 78
@@ -1944,7 +1944,7 @@
                     "end_col": 49,
                     "end_line": 79,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 36,
                     "start_line": 79
@@ -1979,7 +1979,7 @@
                     "end_col": 50,
                     "end_line": 79,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 5,
                     "start_line": 79
@@ -2014,7 +2014,7 @@
                     "end_col": 35,
                     "end_line": 83,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 21,
                     "start_line": 83
@@ -2050,7 +2050,7 @@
                     "end_col": 41,
                     "end_line": 83,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 5,
                     "start_line": 83
@@ -2086,21 +2086,21 @@
                     "end_col": 46,
                     "end_line": 92,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 33,
                             "end_line": 57,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 15,
                                     "end_line": 93,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 93
@@ -2146,7 +2146,7 @@
                     "end_col": 15,
                     "end_line": 93,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 5,
                     "start_line": 93
@@ -2173,7 +2173,7 @@
                             "end_col": 7,
                             "end_line": 105,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                             },
                             "start_col": 5,
                             "start_line": 101
@@ -2185,7 +2185,7 @@
                             "end_col": 28,
                             "end_line": 106,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                             },
                             "start_col": 9,
                             "start_line": 106
@@ -2197,7 +2197,7 @@
                     "end_col": 28,
                     "end_line": 106,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 9,
                     "start_line": 106
@@ -2224,7 +2224,7 @@
                     "end_col": 7,
                     "end_line": 106,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 5,
                     "start_line": 106
@@ -2251,7 +2251,7 @@
                     "end_col": 7,
                     "end_line": 106,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 5,
                     "start_line": 106
@@ -2278,21 +2278,21 @@
                     "end_col": 29,
                     "end_line": 100,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 33,
                             "end_line": 57,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 65,
                                     "end_line": 107,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                                     },
                                     "start_col": 9,
                                     "start_line": 107
@@ -2329,7 +2329,7 @@
                     "end_col": 45,
                     "end_line": 107,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 41,
                     "start_line": 107
@@ -2356,7 +2356,7 @@
                     "end_col": 54,
                     "end_line": 107,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 50,
                     "start_line": 107
@@ -2383,7 +2383,7 @@
                     "end_col": 63,
                     "end_line": 107,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 59,
                     "start_line": 107
@@ -2410,7 +2410,7 @@
                     "end_col": 65,
                     "end_line": 107,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 9,
                     "start_line": 107
@@ -2437,7 +2437,7 @@
                     "end_col": 22,
                     "end_line": 108,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 21,
                     "start_line": 108
@@ -2464,7 +2464,7 @@
                     "end_col": 24,
                     "end_line": 108,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 9,
                     "start_line": 108
@@ -2492,7 +2492,7 @@
                             "end_col": 7,
                             "end_line": 116,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                             },
                             "start_col": 5,
                             "start_line": 111
@@ -2504,21 +2504,21 @@
                     "end_col": 29,
                     "end_line": 100,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 36,
                             "end_line": 66,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 35,
                                     "end_line": 117,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                                     },
                                     "start_col": 19,
                                     "start_line": 117
@@ -2555,7 +2555,7 @@
                     "end_col": 35,
                     "end_line": 117,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 19,
                     "start_line": 117
@@ -2583,14 +2583,14 @@
                     "end_col": 41,
                     "end_line": 100,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 36,
                             "end_line": 118,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                             },
                             "start_col": 35,
                             "start_line": 118
@@ -2623,14 +2623,14 @@
                     "end_col": 41,
                     "end_line": 100,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 36,
                             "end_line": 118,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                             },
                             "start_col": 35,
                             "start_line": 118
@@ -2663,14 +2663,14 @@
                     "end_col": 41,
                     "end_line": 100,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 36,
                             "end_line": 118,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                             },
                             "start_col": 35,
                             "start_line": 118
@@ -2703,14 +2703,14 @@
                     "end_col": 15,
                     "end_line": 117,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 43,
                             "end_line": 118,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                             },
                             "start_col": 38,
                             "start_line": 118
@@ -2743,14 +2743,14 @@
                     "end_col": 15,
                     "end_line": 117,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 43,
                             "end_line": 118,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                             },
                             "start_col": 38,
                             "start_line": 118
@@ -2783,14 +2783,14 @@
                     "end_col": 15,
                     "end_line": 117,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 43,
                             "end_line": 118,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                             },
                             "start_col": 38,
                             "start_line": 118
@@ -2823,7 +2823,7 @@
                     "end_col": 44,
                     "end_line": 118,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 21,
                     "start_line": 118
@@ -2852,28 +2852,28 @@
                     "end_col": 36,
                     "end_line": 66,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 35,
                             "end_line": 117,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 33,
                                     "end_line": 57,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                                     },
                                     "parent_location": [
                                         {
                                             "end_col": 83,
                                             "end_line": 121,
                                             "input_file": {
-                                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                                             },
                                             "start_col": 5,
                                             "start_line": 121
@@ -2917,7 +2917,7 @@
                     "end_col": 51,
                     "end_line": 121,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 37,
                     "start_line": 121
@@ -2946,7 +2946,7 @@
                     "end_col": 66,
                     "end_line": 121,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 56,
                     "start_line": 121
@@ -2975,7 +2975,7 @@
                     "end_col": 81,
                     "end_line": 121,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 71,
                     "start_line": 121
@@ -3004,7 +3004,7 @@
                     "end_col": 83,
                     "end_line": 121,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 5,
                     "start_line": 121
@@ -3033,7 +3033,7 @@
                     "end_col": 18,
                     "end_line": 122,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 17,
                     "start_line": 122
@@ -3062,7 +3062,7 @@
                     "end_col": 20,
                     "end_line": 122,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/field.cairo"
                     },
                     "start_col": 5,
                     "start_line": 122
@@ -3089,7 +3089,7 @@
                     "end_col": 18,
                     "end_line": 20,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 5,
                     "start_line": 20
@@ -3117,7 +3117,7 @@
                             "end_col": 7,
                             "end_line": 31,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                             },
                             "start_col": 5,
                             "start_line": 21
@@ -3129,21 +3129,21 @@
                     "end_col": 35,
                     "end_line": 19,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 36,
                             "end_line": 66,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 35,
                                     "end_line": 32,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                                     },
                                     "start_col": 19,
                                     "start_line": 32
@@ -3180,7 +3180,7 @@
                     "end_col": 35,
                     "end_line": 32,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 19,
                     "start_line": 32
@@ -3208,28 +3208,28 @@
                     "end_col": 36,
                     "end_line": 66,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 35,
                             "end_line": 32,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 36,
                                     "end_line": 66,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                                     },
                                     "parent_location": [
                                         {
                                             "end_col": 35,
                                             "end_line": 32,
                                             "input_file": {
-                                                "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                                             },
                                             "start_col": 19,
                                             "start_line": 32
@@ -3272,14 +3272,14 @@
                     "end_col": 15,
                     "end_line": 32,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 15,
                             "end_line": 32,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                             },
                             "start_col": 10,
                             "start_line": 32
@@ -3312,14 +3312,14 @@
                     "end_col": 15,
                     "end_line": 32,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 15,
                             "end_line": 32,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                             },
                             "start_col": 10,
                             "start_line": 32
@@ -3352,14 +3352,14 @@
                     "end_col": 15,
                     "end_line": 32,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 15,
                             "end_line": 32,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                             },
                             "start_col": 10,
                             "start_line": 32
@@ -3393,14 +3393,14 @@
                     "end_col": 37,
                     "end_line": 35,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 64,
                             "end_line": 37,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                             },
                             "start_col": 58,
                             "start_line": 37
@@ -3434,14 +3434,14 @@
                     "end_col": 67,
                     "end_line": 35,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 64,
                             "end_line": 37,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                             },
                             "start_col": 58,
                             "start_line": 37
@@ -3475,14 +3475,14 @@
                     "end_col": 97,
                     "end_line": 35,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 64,
                             "end_line": 37,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                             },
                             "start_col": 58,
                             "start_line": 37
@@ -3516,21 +3516,21 @@
                     "end_col": 15,
                     "end_line": 32,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 15,
                             "end_line": 32,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 71,
                                     "end_line": 37,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                                     },
                                     "start_col": 66,
                                     "start_line": 37
@@ -3569,21 +3569,21 @@
                     "end_col": 15,
                     "end_line": 32,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 15,
                             "end_line": 32,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 71,
                                     "end_line": 37,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                                     },
                                     "start_col": 66,
                                     "start_line": 37
@@ -3622,21 +3622,21 @@
                     "end_col": 15,
                     "end_line": 32,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 15,
                             "end_line": 32,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 71,
                                     "end_line": 37,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                                     },
                                     "start_col": 66,
                                     "start_line": 37
@@ -3675,7 +3675,7 @@
                     "end_col": 72,
                     "end_line": 37,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 44,
                     "start_line": 37
@@ -3705,7 +3705,7 @@
                     "end_col": 41,
                     "end_line": 41,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 12,
                     "start_line": 41
@@ -3736,7 +3736,7 @@
                     "end_col": 41,
                     "end_line": 42,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 12,
                     "start_line": 42
@@ -3768,7 +3768,7 @@
                     "end_col": 41,
                     "end_line": 43,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 12,
                     "start_line": 43
@@ -3801,42 +3801,42 @@
                     "end_col": 36,
                     "end_line": 66,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 35,
                             "end_line": 32,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 36,
                                     "end_line": 66,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                                     },
                                     "parent_location": [
                                         {
                                             "end_col": 35,
                                             "end_line": 32,
                                             "input_file": {
-                                                "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                                             },
                                             "parent_location": [
                                                 {
                                                     "end_col": 33,
                                                     "end_line": 65,
                                                     "input_file": {
-                                                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                                                     },
                                                     "parent_location": [
                                                         {
                                                             "end_col": 6,
                                                             "end_line": 44,
                                                             "input_file": {
-                                                                "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                                                             },
                                                             "start_col": 5,
                                                             "start_line": 39
@@ -3894,7 +3894,7 @@
                     "end_col": 55,
                     "end_line": 41,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 12,
                     "start_line": 41
@@ -3927,7 +3927,7 @@
                     "end_col": 55,
                     "end_line": 42,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 12,
                     "start_line": 42
@@ -3960,7 +3960,7 @@
                     "end_col": 55,
                     "end_line": 43,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 12,
                     "start_line": 43
@@ -3993,7 +3993,7 @@
                     "end_col": 6,
                     "end_line": 44,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 5,
                     "start_line": 39
@@ -4026,21 +4026,21 @@
                     "end_col": 15,
                     "end_line": 32,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 15,
                             "end_line": 32,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 24,
                                     "end_line": 46,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                                     },
                                     "start_col": 19,
                                     "start_line": 46
@@ -4083,21 +4083,21 @@
                     "end_col": 15,
                     "end_line": 32,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 15,
                             "end_line": 32,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 24,
                                     "end_line": 46,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                                     },
                                     "start_col": 19,
                                     "start_line": 46
@@ -4140,21 +4140,21 @@
                     "end_col": 15,
                     "end_line": 32,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 15,
                             "end_line": 32,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 24,
                                     "end_line": 46,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                                     },
                                     "start_col": 19,
                                     "start_line": 46
@@ -4197,7 +4197,7 @@
                     "end_col": 26,
                     "end_line": 46,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 5,
                     "start_line": 46
@@ -4223,7 +4223,7 @@
                     "end_col": 23,
                     "end_line": 59,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 12,
                     "start_line": 59
@@ -4250,7 +4250,7 @@
                     "end_col": 38,
                     "end_line": 59,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 27,
                     "start_line": 59
@@ -4278,7 +4278,7 @@
                     "end_col": 52,
                     "end_line": 59,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 41,
                     "start_line": 59
@@ -4307,7 +4307,7 @@
                     "end_col": 52,
                     "end_line": 59,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 27,
                     "start_line": 59
@@ -4337,7 +4337,7 @@
                     "end_col": 70,
                     "end_line": 59,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 26,
                     "start_line": 59
@@ -4368,7 +4368,7 @@
                     "end_col": 23,
                     "end_line": 60,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 12,
                     "start_line": 60
@@ -4400,7 +4400,7 @@
                     "end_col": 37,
                     "end_line": 60,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 26,
                     "start_line": 60
@@ -4433,7 +4433,7 @@
                     "end_col": 37,
                     "end_line": 60,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 12,
                     "start_line": 60
@@ -4467,7 +4467,7 @@
                     "end_col": 70,
                     "end_line": 60,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 40,
                     "start_line": 60
@@ -4502,7 +4502,7 @@
                     "end_col": 70,
                     "end_line": 60,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 40,
                     "start_line": 60
@@ -4538,7 +4538,7 @@
                     "end_col": 23,
                     "end_line": 61,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 12,
                     "start_line": 61
@@ -4575,7 +4575,7 @@
                     "end_col": 37,
                     "end_line": 61,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 26,
                     "start_line": 61
@@ -4613,7 +4613,7 @@
                     "end_col": 37,
                     "end_line": 61,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 12,
                     "start_line": 61
@@ -4652,7 +4652,7 @@
                     "end_col": 51,
                     "end_line": 61,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 40,
                     "start_line": 61
@@ -4692,7 +4692,7 @@
                     "end_col": 70,
                     "end_line": 59,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 12,
                     "start_line": 59
@@ -4732,7 +4732,7 @@
                     "end_col": 70,
                     "end_line": 60,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 12,
                     "start_line": 60
@@ -4772,7 +4772,7 @@
                     "end_col": 51,
                     "end_line": 61,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 12,
                     "start_line": 61
@@ -4812,7 +4812,7 @@
                     "end_col": 7,
                     "end_line": 62,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 5,
                     "start_line": 57
@@ -4841,7 +4841,7 @@
                             "end_col": 7,
                             "end_line": 74,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                             },
                             "start_col": 5,
                             "start_line": 67
@@ -4853,7 +4853,7 @@
                     "end_col": 34,
                     "end_line": 76,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 5,
                     "start_line": 76
@@ -4881,7 +4881,7 @@
                     "end_col": 39,
                     "end_line": 77,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 5,
                     "start_line": 77
@@ -4909,7 +4909,7 @@
                     "end_col": 40,
                     "end_line": 80,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 28,
                     "start_line": 80
@@ -4938,7 +4938,7 @@
                     "end_col": 40,
                     "end_line": 80,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 19,
                     "start_line": 80
@@ -4968,7 +4968,7 @@
                     "end_col": 48,
                     "end_line": 80,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 18,
                     "start_line": 80
@@ -4999,7 +4999,7 @@
                     "end_col": 49,
                     "end_line": 81,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 36,
                     "start_line": 81
@@ -5031,7 +5031,7 @@
                     "end_col": 50,
                     "end_line": 81,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 5,
                     "start_line": 81
@@ -5063,7 +5063,7 @@
                     "end_col": 30,
                     "end_line": 87,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 19,
                     "start_line": 87
@@ -5096,7 +5096,7 @@
                     "end_col": 38,
                     "end_line": 87,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 18,
                     "start_line": 87
@@ -5130,7 +5130,7 @@
                     "end_col": 49,
                     "end_line": 88,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 36,
                     "start_line": 88
@@ -5165,7 +5165,7 @@
                     "end_col": 50,
                     "end_line": 88,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 5,
                     "start_line": 88
@@ -5200,7 +5200,7 @@
                     "end_col": 35,
                     "end_line": 92,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 21,
                     "start_line": 92
@@ -5236,7 +5236,7 @@
                     "end_col": 41,
                     "end_line": 92,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 5,
                     "start_line": 92
@@ -5272,21 +5272,21 @@
                     "end_col": 46,
                     "end_line": 101,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 33,
                             "end_line": 65,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 15,
                                     "end_line": 102,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 102
@@ -5332,7 +5332,7 @@
                     "end_col": 15,
                     "end_line": 102,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "start_col": 5,
                     "start_line": 102
@@ -6152,7 +6152,7 @@
                             "end_col": 35,
                             "end_line": 19,
                             "input_file": {
-                                "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                             },
                             "parent_location": [
                                 {
@@ -6734,7 +6734,7 @@
                     "end_col": 35,
                     "end_line": 19,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "parent_location": [
                         {
@@ -6748,7 +6748,7 @@
                                     "end_col": 36,
                                     "end_line": 66,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                                     },
                                     "parent_location": [
                                         {
@@ -6842,7 +6842,7 @@
                     "end_col": 36,
                     "end_line": 66,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "parent_location": [
                         {
@@ -6856,7 +6856,7 @@
                                     "end_col": 36,
                                     "end_line": 66,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                                     },
                                     "parent_location": [
                                         {
@@ -7146,7 +7146,7 @@
                     "end_col": 36,
                     "end_line": 66,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo-vm-env/lib/python3.9/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/cairo_secp/bigint.cairo"
                     },
                     "parent_location": [
                         {
@@ -7160,7 +7160,7 @@
                                     "end_col": 33,
                                     "end_line": 65,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                                     },
                                     "parent_location": [
                                         {
@@ -7783,7 +7783,7 @@
                     "end_col": 33,
                     "end_line": 65,
                     "input_file": {
-                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                     },
                     "parent_location": [
                         {
@@ -7797,7 +7797,7 @@
                                     "end_col": 33,
                                     "end_line": 65,
                                     "input_file": {
-                                        "filename": "/Users/lana/github/cairo-vm/cairo_programs/compute_slope_v2.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/compute_slope_v2.cairo"
                                     },
                                     "parent_location": [
                                         {

@@ -53,6 +53,7 @@ pub const build_options = @import("build_options.zig");
 
 pub const hint_processor = struct {
     pub usingnamespace @import("hint_processor/hint_processor_def.zig");
+    pub usingnamespace @import("hint_processor/hint_processor_utils.zig");
     pub usingnamespace @import("hint_processor/memcpy_hint_utils.zig");
     pub usingnamespace @import("hint_processor/hint_utils.zig");
     pub usingnamespace @import("hint_processor/math_hints.zig");
@@ -71,6 +72,7 @@ pub const hint_processor = struct {
     pub usingnamespace @import("hint_processor/usort.zig");
     pub usingnamespace @import("hint_processor/memset_utils.zig");
     pub usingnamespace @import("hint_processor/cairo_keccak_hints.zig");
+    pub usingnamespace @import("hint_processor/math_utils.zig");
 };
 
 pub const parser = struct {
