@@ -36,7 +36,7 @@ pub fn bigintPackDivModHint(vm: *CairoVM, allocator: std.mem.Allocator, exec_sco
     // Initiate BigInt default element
     var p: BigInt3 = .{};
     p = try p.fromVarName("P", vm, idsData, apTracking);
-    const p_packed = try p.pack(allocator);
+    var p_packed = try p.pack(allocator);
 
     var x: BigInt5 = .{};
 
@@ -50,7 +50,7 @@ pub fn bigintPackDivModHint(vm: *CairoVM, allocator: std.mem.Allocator, exec_sco
         }
     }
 
-    const x_lower_packed = try x_lower.pack(allocator);
+    var x_lower_packed = try x_lower.pack(allocator);
 
     const d3 = x_bigint5.limbs[3].toInteger();
     const d4 = x_bigint5.limbs[4].toInteger();
@@ -91,6 +91,10 @@ pub fn bigintPackDivModHint(vm: *CairoVM, allocator: std.mem.Allocator, exec_sco
     try exec_scopes.assignOrUpdateVariable("P", .{
         .i512 = p_packed_512,
     });
+
+    p_packed.deinit();
+    x_lower_packed.deinit();
+    y_packed.deinit();
 }
 
 /// Implements hint:
