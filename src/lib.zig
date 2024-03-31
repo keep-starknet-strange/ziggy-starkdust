@@ -74,6 +74,7 @@ pub const hint_processor = struct {
     pub usingnamespace @import("hint_processor/cairo_keccak_hints.zig");
     pub usingnamespace @import("hint_processor/math_utils.zig");
     pub usingnamespace @import("hint_processor/blake2s_hash.zig");
+    pub usingnamespace @import("hint_processor/blake2s_utils.zig");
 };
 
 pub const parser = struct {

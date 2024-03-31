@@ -39,6 +39,7 @@ const segments = @import("segments.zig");
 const deserialize_utils = @import("../parser/deserialize_utils.zig");
 
 const testing_utils = @import("testing_utils.zig");
+const blake2s_utils = @import("blake2s_utils.zig");
 
 const HintError = @import("../vm/error.zig").HintError;
 
@@ -371,6 +372,8 @@ pub const CairoVMHintProcessor = struct {
             try squash_dict_utils.squashDictInnerNextKey(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT, hint_data.code)) {
             try squash_dict_utils.squashDict(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.BLAKE2S_COMPUTE, hint_data.code)) {
+            try blake2s_utils.blake2sCompute(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else {
             std.log.err("not implemented: {s}\n", .{hint_data.code});
             return HintError.HintNotImplemented;
