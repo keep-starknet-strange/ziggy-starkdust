@@ -95,7 +95,6 @@ pub fn blake2sCompute(allocator: Allocator, vm: *CairoVM, ids_data: std.StringHa
 pub fn blake2sFinalize(allocator: Allocator, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {
     const N_PACKED_INSTANCES = 7;
     const blake2s_ptr_end = try hint_utils.getPtrFromVarName("blake2s_ptr_end", vm, ids_data, ap_tracking);
-    std.debug.print("blake2s_ptr_end: {}\n", .{blake2s_ptr_end});
     const message: [16]u32 = .{0} ** 16;
     var modified_iv = blake2s_hash.IV;
     modified_iv[0] = blake2s_hash.IV[0] ^ 0x01010020;
@@ -113,6 +112,81 @@ pub fn blake2sFinalize(allocator: Allocator, vm: *CairoVM, ids_data: std.StringH
     defer data.deinit();
     _ = try vm.loadData(blake2s_ptr_end, &data);
 }
+// /* Implements Hint:
+//     B = 32
+//     MASK = 2 ** 32 - 1
+//     segments.write_arg(ids.data, [(ids.low >> (B * i)) & MASK for i in range(4)])
+//     segments.write_arg(ids.data + 4, [(ids.high >> (B * i)) & MASK for i in range(4)])
+// */
+pub fn blake2sAddUnit256(_: Allocator, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {
+    var data_ptr = try hint_utils.getPtrFromVarName("data", vm, ids_data, ap_tracking);
+    const low_addr = try hint_utils.getRelocatableFromVarName("low", vm, ids_data, ap_tracking);
+    const high_addr = try hint_utils.getRelocatableFromVarName("high", vm, ids_data, ap_tracking);
+    var low = try vm.getFelt(low_addr);
+    var high = try vm.getFelt(high_addr);
+
+    const mask = Felt252.fromInt(u64, std.math.maxInt(u32) + 1);
+    var data = std.ArrayList(MaybeRelocatable).init(vm.allocator);
+    defer data.deinit();
+    // first batch
+    for (0..4) |_| {
+        const temp = try low.divRem(mask);
+        const q = temp.q;
+        const r = temp.r;
+        try data.append(MaybeRelocatable.fromFelt(r));
+        low = q;
+    }
+    data_ptr = try vm.loadData(data_ptr, &data);
+    data.shrinkAndFree(0);
+    // second batch
+    for (0..4) |_| {
+        const temp = try high.divRem(mask);
+        const q = temp.q;
+        const r = temp.r;
+        try data.append(MaybeRelocatable.fromFelt(r));
+        high = q;
+    }
+    _ = try vm.loadData(data_ptr, &data);
+}
+
+// /* Implements Hint:
+//     B = 32
+//     MASK = 2 ** 32 - 1
+//     segments.write_arg(ids.data, [(ids.high >> (B * (3 - i))) & MASK for i in range(4)])
+//     segments.write_arg(ids.data + 4, [(ids.low >> (B * (3 - i))) & MASK for i in range(4)])
+// */
+pub fn blake2sAddUnit256BigEnd(_: Allocator, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {
+    var data_ptr = try hint_utils.getPtrFromVarName("data", vm, ids_data, ap_tracking);
+    const low_addr = try hint_utils.getRelocatableFromVarName("low", vm, ids_data, ap_tracking);
+    const high_addr = try hint_utils.getRelocatableFromVarName("high", vm, ids_data, ap_tracking);
+    var low = try vm.getFelt(low_addr);
+    var high = try vm.getFelt(high_addr);
+
+    const mask = Felt252.fromInt(u64, std.math.maxInt(u32) + 1);
+    var data = std.ArrayList(MaybeRelocatable).init(vm.allocator);
+    defer data.deinit();
+
+    // first batch, high with big endian
+    for (4..0) |_| {
+        const temp = try high.divRem(mask);
+        const q = temp.q;
+        const r = temp.r;
+        try data.append(MaybeRelocatable.fromFelt(r));
+        low = q;
+    }
+    data_ptr = try vm.loadData(data_ptr, &data);
+    data.shrinkAndFree(0);
+    // second batch, low with big endian
+    for (4..0) |_| {
+        const temp = try low.divRem(mask);
+        const q = temp.q;
+        const r = temp.r;
+        try data.append(MaybeRelocatable.fromFelt(r));
+        high = q;
+    }
+    _ = try vm.loadData(data_ptr, &data);
+}
+
 test "compute blake2s output offset zero" {
     const hint_code = "from starkware.cairo.common.cairo_blake2s.blake2s_utils import compute_blake2s_func\ncompute_blake2s_func(segments=segments, output_ptr=ids.output)";
     var vm = try CairoVM.init(std.testing.allocator, .{});
@@ -367,5 +441,78 @@ test "finalize blake2s ok" {
     const actual_data = try vm.segments.memory.getFeltRange(Relocatable.init(2, 0), 204);
     defer actual_data.deinit();
     const actual_data_u32 = try getFixedSizeU32Array(204, actual_data);
+    try std.testing.expectEqualSlices(u32, &expected_data, &actual_data_u32);
+}
+
+test "blake2s add uint256 valid zero" {
+    const hint_code = "B = 32\nMASK = 2 ** 32 - 1\nsegments.write_arg(ids.data, [(ids.low >> (B * i)) & MASK for i in range(4)])\nsegments.write_arg(ids.data + 4, [(ids.high >> (B * i)) & MASK for i in range(4)])";
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+    vm.run_context.fp.* = 3;
+    const data = try vm.segments.addSegment();
+
+    const ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{ .{
+        .name = "data",
+        .elems = &.{MaybeRelocatable.fromRelocatable(data)},
+    }, .{
+        .name = "high",
+        .elems = &.{MaybeRelocatable.fromInt(u32, 0)},
+    }, .{
+        .name = "low",
+        .elems = &.{MaybeRelocatable.fromInt(u32, 0)},
+    } }, &vm);
+    const hint_processor = HintProcessor{};
+
+    var hint_data =
+        HintData{
+        .code = hint_code,
+        .ids_data = ids_data,
+        .ap_tracking = undefined,
+    };
+    defer hint_data.deinit();
+    // Execute the hint
+    try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
+
+    const expected_data = [8]u32{ 0, 0, 0, 0, 0, 0, 0, 0 };
+    const actual_data = try vm.segments.memory.getFeltRange(data, 8);
+    defer actual_data.deinit();
+    const actual_data_u32 = try getFixedSizeU32Array(8, actual_data);
+    try std.testing.expectEqualSlices(u32, &expected_data, &actual_data_u32);
+}
+
+test "blake2s add uint256 valid non zero" {
+    const hint_code = "B = 32\nMASK = 2 ** 32 - 1\nsegments.write_arg(ids.data, [(ids.low >> (B * i)) & MASK for i in range(4)])\nsegments.write_arg(ids.data + 4, [(ids.high >> (B * i)) & MASK for i in range(4)])";
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+    vm.run_context.fp.* = 3;
+    const data = try vm.segments.addSegment();
+    const ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{ .{
+        .name = "data",
+        .elems = &.{MaybeRelocatable.fromRelocatable(data)},
+    }, .{
+        .name = "high",
+        .elems = &.{MaybeRelocatable.fromInt(u32, 25)},
+    }, .{
+        .name = "low",
+        .elems = &.{MaybeRelocatable.fromInt(u32, 20)},
+    } }, &vm);
+    const hint_processor = HintProcessor{};
+
+    var hint_data =
+        HintData{
+        .code = hint_code,
+        .ids_data = ids_data,
+        .ap_tracking = undefined,
+    };
+    defer hint_data.deinit();
+    // Execute the hint
+    try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
+
+    const expected_data = [8]u32{ 20, 0, 0, 0, 25, 0, 0, 0 };
+    const actual_data = try vm.segments.memory.getFeltRange(data, 8);
+    defer actual_data.deinit();
+    const actual_data_u32 = try getFixedSizeU32Array(8, actual_data);
     try std.testing.expectEqualSlices(u32, &expected_data, &actual_data_u32);
 }

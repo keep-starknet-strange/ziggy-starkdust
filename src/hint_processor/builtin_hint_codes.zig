@@ -664,3 +664,10 @@ pub const BLAKE2S_FINALIZE =
     \\padding = (modified_iv + message + [0, 0xffffffff] + output) * (_n_packed_instances - 1)
     \\segments.write_arg(ids.blake2s_ptr_end, padding)
 ;
+
+pub const BLAKE2S_ADD_UINT256 =
+    \\B = 32
+    \\MASK = 2 ** 32 - 1
+    \\segments.write_arg(ids.data, [(ids.low >> (B * i)) & MASK for i in range(4)])
+    \\segments.write_arg(ids.data + 4, [(ids.high >> (B * i)) & MASK for i in range(4)])
+;
