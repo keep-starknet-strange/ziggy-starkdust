@@ -671,3 +671,10 @@ pub const BLAKE2S_ADD_UINT256 =
     \\segments.write_arg(ids.data, [(ids.low >> (B * i)) & MASK for i in range(4)])
     \\segments.write_arg(ids.data + 4, [(ids.high >> (B * i)) & MASK for i in range(4)])
 ;
+
+pub const BLAKE2S_ADD_UINT256_BIGEND =
+    \\B = 32
+    \\MASK = 2 ** 32 - 1
+    \\segments.write_arg(ids.data, [(ids.high >> (B * (3 - i))) & MASK for i in range(4)])
+    \\segments.write_arg(ids.data + 4, [(ids.low >> (B * (3 - i))) & MASK for i in range(4)])
+;
