@@ -529,6 +529,8 @@ test "blake2s add uint256 valid non zero" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
     vm.run_context.fp.* = 3;
+    _ = try vm.segments.addSegment();
+    _ = try vm.segments.addSegment();
     const data = try vm.segments.addSegment();
     const ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{ .{
         .name = "data",
@@ -552,11 +554,17 @@ test "blake2s add uint256 valid non zero" {
     // Execute the hint
     try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
 
-    const expected_data = [8]u32{ 20, 0, 0, 0, 25, 0, 0, 0 };
-    const actual_data = try vm.segments.memory.getFeltRange(data, 8);
-    defer actual_data.deinit();
-    const actual_data_u32 = try getFixedSizeU32Array(8, actual_data);
-    try std.testing.expectEqualSlices(u32, &expected_data, &actual_data_u32);
+    try std.testing.expectEqual(2, data.segment_index);
+    try std.testing.expectEqual(0, data.offset);
+
+    try std.testing.expectEqual(Felt252.fromInt(u32, 20), try vm.segments.memory.getFelt(Relocatable.init(2, 0)));
+    try std.testing.expectEqual(Felt252.fromInt(u32, 0), try vm.segments.memory.getFelt(Relocatable.init(2, 1)));
+    try std.testing.expectEqual(Felt252.fromInt(u32, 0), try vm.segments.memory.getFelt(Relocatable.init(2, 2)));
+    try std.testing.expectEqual(Felt252.fromInt(u32, 0), try vm.segments.memory.getFelt(Relocatable.init(2, 3)));
+    try std.testing.expectEqual(Felt252.fromInt(u32, 25), try vm.segments.memory.getFelt(Relocatable.init(2, 4)));
+    try std.testing.expectEqual(Felt252.fromInt(u32, 0), try vm.segments.memory.getFelt(Relocatable.init(2, 5)));
+    try std.testing.expectEqual(Felt252.fromInt(u32, 0), try vm.segments.memory.getFelt(Relocatable.init(2, 6)));
+    try std.testing.expectEqual(Felt252.fromInt(u32, 0), try vm.segments.memory.getFelt(Relocatable.init(2, 7)));
 }
 
 test "blake2s add uint256 big endian valid non zero" {
@@ -565,6 +573,8 @@ test "blake2s add uint256 big endian valid non zero" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
     vm.run_context.fp.* = 3;
+    _ = try vm.segments.addSegment();
+    _ = try vm.segments.addSegment();
     const data = try vm.segments.addSegment();
     const ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{ .{
         .name = "data",
@@ -588,11 +598,17 @@ test "blake2s add uint256 big endian valid non zero" {
     // Execute the hint
     try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
 
-    const expected_data = [8]u32{ 0, 0, 0, 25, 0, 0, 0, 20 };
-    const actual_data = try vm.segments.memory.getFeltRange(data, 8);
-    defer actual_data.deinit();
-    const actual_data_u32 = try getFixedSizeU32Array(8, actual_data);
-    try std.testing.expectEqualSlices(u32, &expected_data, &actual_data_u32);
+    try std.testing.expectEqual(2, data.segment_index);
+    try std.testing.expectEqual(0, data.offset);
+
+    try std.testing.expectEqual(Felt252.fromInt(u32, 0), try vm.segments.memory.getFelt(Relocatable.init(2, 0)));
+    try std.testing.expectEqual(Felt252.fromInt(u32, 0), try vm.segments.memory.getFelt(Relocatable.init(2, 1)));
+    try std.testing.expectEqual(Felt252.fromInt(u32, 0), try vm.segments.memory.getFelt(Relocatable.init(2, 2)));
+    try std.testing.expectEqual(Felt252.fromInt(u32, 25), try vm.segments.memory.getFelt(Relocatable.init(2, 3)));
+    try std.testing.expectEqual(Felt252.fromInt(u32, 0), try vm.segments.memory.getFelt(Relocatable.init(2, 4)));
+    try std.testing.expectEqual(Felt252.fromInt(u32, 0), try vm.segments.memory.getFelt(Relocatable.init(2, 5)));
+    try std.testing.expectEqual(Felt252.fromInt(u32, 0), try vm.segments.memory.getFelt(Relocatable.init(2, 6)));
+    try std.testing.expectEqual(Felt252.fromInt(u32, 20), try vm.segments.memory.getFelt(Relocatable.init(2, 7)));
 }
 
 test "example blake2s empty input" {
