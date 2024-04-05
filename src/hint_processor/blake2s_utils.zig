@@ -19,6 +19,7 @@ const HintError = @import("../vm/error.zig").HintError;
 const CairoVMError = @import("../vm/error.zig").CairoVMError;
 const MemoryError = @import("../vm/error.zig").MemoryError;
 const blake2s_hash = @import("blake2s_hash.zig");
+const builtin_hints = @import("builtin_hint_codes.zig");
 fn feltToU32(felt: Felt252) MathError!u32 {
     const u256_val = felt.toInteger();
     if (u256_val > 0xFFFFFFFF) {
@@ -188,6 +189,44 @@ pub fn blake2sAddUnit256BigEnd(_: Allocator, vm: *CairoVM, ids_data: std.StringH
         try bigend_data.append(data.items[7 - i]);
     }
     _ = try vm.loadData(data_ptr, &bigend_data);
+}
+
+// /* Implements Hint:
+//     %{
+//         from starkware.cairo.common.cairo_blake2s.blake2s_utils import IV, blake2s_compress
+
+//         _blake2s_input_chunk_size_felts = int(ids.BLAKE2S_INPUT_CHUNK_SIZE_FELTS)
+//         assert 0 <= _blake2s_input_chunk_size_felts < 100
+
+//         new_state = blake2s_compress(
+//             message=memory.get_range(ids.blake2s_start, _blake2s_input_chunk_size_felts),
+//             h=[IV[0] ^ 0x01010020] + IV[1:],
+//             t0=ids.n_bytes,
+//             t1=0,
+//             f0=0xffffffff,
+//             f1=0,
+//         )
+
+//         segments.write_arg(ids.output, new_state)
+//     %}
+
+// Note: This hint belongs to the blake2s lib in cario_examples
+// */
+
+pub fn exampleBlake2SCompress(allocator: Allocator, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {
+    const blake2s_start = try hint_utils.getPtrFromVarName("blake2s_start", vm, ids_data, ap_tracking);
+    const output = try hint_utils.getPtrFromVarName("output", vm, ids_data, ap_tracking);
+    const n_bytes_felt = try hint_utils.getIntegerFromVarName("n_bytes", vm, ids_data, ap_tracking);
+    const n_bytes = try feltToU32(n_bytes_felt);
+
+    const message = try getFixedSizeU32Array(16, try vm.getFeltRange(blake2s_start, 16));
+    var modified_iv = blake2s_hash.IV;
+    modified_iv[0] = blake2s_hash.IV[0] ^ 0x01010020;
+    var new_state = try blake2s_hash.blake2s_compress(allocator, modified_iv, message, n_bytes, 0, 0xffffffff, 0);
+    defer new_state.deinit();
+    var new_state_relocatable = try getMaybeRelocArrayFromU32Array(allocator, new_state);
+    new_state_relocatable.deinit();
+    _ = try vm.segments.writeArg(std.ArrayList(MaybeRelocatable), output, &new_state_relocatable);
 }
 
 test "compute blake2s output offset zero" {
@@ -554,4 +593,62 @@ test "blake2s add uint256 big endian valid non zero" {
     defer actual_data.deinit();
     const actual_data_u32 = try getFixedSizeU32Array(8, actual_data);
     try std.testing.expectEqualSlices(u32, &expected_data, &actual_data_u32);
+}
+
+test "example blake2s empty input" {
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+    vm.run_context.fp.* = 3;
+    const output = try vm.segments.addSegment();
+    const blake2s_start = try vm.segments.addSegment();
+    const ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{ .{
+        .name = "output",
+        .elems = &.{MaybeRelocatable.fromRelocatable(output)},
+    }, .{
+        .name = "blake2s_start",
+        .elems = &.{MaybeRelocatable.fromRelocatable(blake2s_start)},
+    }, .{
+        .name = "n_bytes",
+        .elems = &.{MaybeRelocatable.fromInt(u32, 9)},
+    } }, &vm);
+
+    const hint_processor = HintProcessor{};
+    var hint_data =
+        HintData{
+        .code = builtin_hints.EXAMPLE_BLAKE2S_COMPRESS,
+        .ids_data = ids_data,
+        .ap_tracking = undefined,
+    };
+    defer hint_data.deinit();
+    try std.testing.expectError(MemoryError.UnknownMemoryCell, hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined));
+}
+
+test "example blake2s compress n bytes over u32" {
+    var vm = try CairoVM.init(std.testing.allocator, .{});
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+    vm.run_context.fp.* = 3;
+    const output = try vm.segments.addSegment();
+    const blake2s_start = try vm.segments.addSegment();
+    const ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{ .{
+        .name = "output",
+        .elems = &.{MaybeRelocatable.fromRelocatable(output)},
+    }, .{
+        .name = "blake2s_start",
+        .elems = &.{MaybeRelocatable.fromRelocatable(blake2s_start)},
+    }, .{
+        .name = "n_bytes",
+        .elems = &.{MaybeRelocatable.fromInt(u64, 9999999999)},
+    } }, &vm);
+
+    const hint_processor = HintProcessor{};
+    var hint_data =
+        HintData{
+        .code = builtin_hints.EXAMPLE_BLAKE2S_COMPRESS,
+        .ids_data = ids_data,
+        .ap_tracking = undefined,
+    };
+    defer hint_data.deinit();
+    try std.testing.expectError(MathError.Felt252ToU32Conversion, hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined));
 }
