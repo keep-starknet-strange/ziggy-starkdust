@@ -34,6 +34,7 @@ const starknet_felt = @import("../../math/fields/starknet.zig");
 const Felt252 = starknet_felt.Felt252;
 const ExecutionScopes = @import("../types/execution_scopes.zig").ExecutionScopes;
 const TraceContext = @import("../trace_context.zig").TraceContext;
+const TestingUtils = @import("../../utils/testing.zig");
 
 const OutputBuiltinRunner = @import("../builtins/builtin_runner/output.zig").OutputBuiltinRunner;
 const BitwiseBuiltinRunner = @import("../builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
@@ -2714,6 +2715,16 @@ test "CairoRunner: initFunctionEntrypoint with empty stack" {
     try expect(cairo_runner.initial_fp.?.eq(cairo_runner.initial_ap.?));
 
     try expect(cairo_runner.initial_ap.?.eq(Relocatable.init(1, 2)));
+
+    const memory = vm.segments.memory;
+
+    var cells = std.ArrayList(TestingUtils.Cell).init(std.testing.allocator);
+    defer cells.deinit();
+
+    try cells.append(.{ .address = Relocatable.init(1, 0), .value = MaybeRelocatable.fromFelt(Felt252.fromInt(u8, 9)) });
+    try cells.append(.{ .address = Relocatable.init(1, 1), .value = MaybeRelocatable.fromRelocatable(Relocatable.init(2, 0)) });
+
+    try expect(TestingUtils.check_memory(memory, cells));
 }
 
 test "CairoRunner: initFunctionEntrypoint with some stack" {
@@ -2780,6 +2791,17 @@ test "CairoRunner: initFunctionEntrypoint with some stack" {
     try expect(cairo_runner.initial_fp.?.eq(cairo_runner.initial_ap.?));
 
     try expect(cairo_runner.initial_ap.?.eq(Relocatable.init(1, 3)));
+
+    const memory = vm.segments.memory;
+
+    var cells = std.ArrayList(TestingUtils.Cell).init(std.testing.allocator);
+    defer cells.deinit();
+
+    try cells.append(.{ .address = Relocatable.init(1, 0), .value = MaybeRelocatable.fromFelt(Felt252.fromInt(u8, 7)) });
+    try cells.append(.{ .address = Relocatable.init(1, 1), .value = MaybeRelocatable.fromFelt(Felt252.fromInt(u8, 9)) });
+    try cells.append(.{ .address = Relocatable.init(1, 2), .value = MaybeRelocatable.fromRelocatable(Relocatable.init(2, 0)) });
+
+    try expect(TestingUtils.check_memory(memory, cells));
 }
 
 test "CairoRunner: initFunctionEntrypoint with no execution base" {
