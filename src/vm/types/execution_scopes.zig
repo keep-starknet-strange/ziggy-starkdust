@@ -149,7 +149,7 @@ pub fn Rc(comptime T: type) type {
         }
 
         inline fn innerPtr(self: *const Self) *Inner {
-            return @fieldParentPtr(Inner, "value", self.value);
+            return @fieldParentPtr("value", self.value);
         }
 
         /// A single threaded, weak reference to a reference-counted value.
@@ -167,7 +167,7 @@ pub fn Rc(comptime T: type) type {
             /// Creates a new weak reference object from a pointer to it's underlying value,
             /// without increasing the weak count.
             pub fn fromValuePtr(value: *T, alloc: std.mem.Allocator) Weak {
-                return .{ .inner = @fieldParentPtr(Inner, "value", value), .alloc = alloc };
+                return .{ .inner = @fieldParentPtr("value", value), .alloc = alloc };
             }
 
             /// Gets the number of strong references to this value.
