@@ -72,8 +72,8 @@ pub fn blake2sCompute(allocator: Allocator, vm: *CairoVM, ids_data: std.StringHa
 }
 
 // /* Implements Hint:
-//     # Add dummy pairs of input and output.
-//     from starkware.cairo.common.cairo_blake2s.blake2s_utils import IV, blake2s_compress
+// # Add dummy pairs of input and output.
+// from starkware.cairo.common.cairo_blake2s.blake2s_utils import IV, blake2s_compress
 
 // _n_packed_instances = int(ids.N_PACKED_INSTANCES)
 // assert 0 <= _n_packed_instances < 20
@@ -108,6 +108,53 @@ pub fn blake2sFinalize(allocator: Allocator, vm: *CairoVM, ids_data: std.StringH
         try full_padding.appendSlice(&message);
         try full_padding.appendSlice(&.{ 0, 0xffffffff });
         try full_padding.appendSlice(output.items);
+    }
+    var data = try getMaybeRelocArrayFromU32Array(allocator, full_padding);
+    defer data.deinit();
+    _ = try vm.loadData(blake2s_ptr_end, &data);
+}
+// /* Implements Hint:
+//         # Add dummy pairs of input and output.
+//         from starkware.cairo.common.cairo_blake2s.blake2s_utils import IV, blake2s_compress
+
+//         _n_packed_instances = int(ids.N_PACKED_INSTANCES)
+//         assert 0 <= _n_packed_instances < 20
+//         _blake2s_input_chunk_size_felts = int(ids.BLAKE2S_INPUT_CHUNK_SIZE_FELTS)
+//         assert 0 <= _blake2s_input_chunk_size_felts < 100
+
+//         message = [0] * _blake2s_input_chunk_size_felts
+//         modified_iv = [IV[0] ^ 0x01010020] + IV[1:]
+//         output = blake2s_compress(
+//             message=message,
+//             h=modified_iv,
+//             t0=0,
+//             t1=0,
+//             f0=0xffffffff,
+//             f1=0,
+//         )
+//         padding = (message + modified_iv + [0, 0xffffffff] + output) * (_n_packed_instances - 1)
+//         segments.write_arg(ids.blake2s_ptr_end, padding)
+// */
+pub fn blake2sFinalizeV3(allocator: Allocator, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {
+    const N_PACKED_INSTANCES = 7;
+    const blake2s_ptr_end = try hint_utils.getPtrFromVarName("blake2s_ptr_end", vm, ids_data, ap_tracking);
+    const message: [16]u32 = .{0} ** 16;
+    var modified_iv = blake2s_hash.IV;
+    modified_iv[0] = blake2s_hash.IV[0] ^ 0x01010020;
+    const output = try blake2s_hash.blake2s_compress(allocator, modified_iv, message, 0, 0, 0xffffffff, 0);
+    defer output.deinit();
+
+    var padding = std.ArrayList(u32).init(allocator);
+    defer padding.deinit();
+    try padding.appendSlice(&message);
+    try padding.appendSlice(&modified_iv);
+    try padding.appendSlice(&.{ 0, 0xffffffff });
+    try padding.appendSlice(output.items);
+
+    var full_padding = std.ArrayList(u32).init(allocator);
+    defer full_padding.deinit();
+    for (N_PACKED_INSTANCES - 1) |_| {
+        try full_padding.appendSlice(&padding);
     }
     var data = try getMaybeRelocArrayFromU32Array(allocator, full_padding);
     defer data.deinit();
@@ -492,6 +539,8 @@ test "blake2s add uint256 valid zero" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
     vm.run_context.fp.* = 3;
+    _ = try vm.segments.addSegment();
+    _ = try vm.segments.addSegment();
     const data = try vm.segments.addSegment();
 
     const ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{ .{
@@ -516,11 +565,14 @@ test "blake2s add uint256 valid zero" {
     // Execute the hint
     try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
 
-    const expected_data = [8]u32{ 0, 0, 0, 0, 0, 0, 0, 0 };
-    const actual_data = try vm.segments.memory.getFeltRange(data, 8);
-    defer actual_data.deinit();
-    const actual_data_u32 = try getFixedSizeU32Array(8, actual_data);
-    try std.testing.expectEqualSlices(u32, &expected_data, &actual_data_u32);
+    try std.testing.expectEqual(Felt252.fromInt(u32, 0), try vm.segments.memory.getFelt(Relocatable.init(2, 0)));
+    try std.testing.expectEqual(Felt252.fromInt(u32, 0), try vm.segments.memory.getFelt(Relocatable.init(2, 1)));
+    try std.testing.expectEqual(Felt252.fromInt(u32, 0), try vm.segments.memory.getFelt(Relocatable.init(2, 2)));
+    try std.testing.expectEqual(Felt252.fromInt(u32, 0), try vm.segments.memory.getFelt(Relocatable.init(2, 3)));
+    try std.testing.expectEqual(Felt252.fromInt(u32, 0), try vm.segments.memory.getFelt(Relocatable.init(2, 4)));
+    try std.testing.expectEqual(Felt252.fromInt(u32, 0), try vm.segments.memory.getFelt(Relocatable.init(2, 5)));
+    try std.testing.expectEqual(Felt252.fromInt(u32, 0), try vm.segments.memory.getFelt(Relocatable.init(2, 6)));
+    try std.testing.expectEqual(Felt252.fromInt(u32, 0), try vm.segments.memory.getFelt(Relocatable.init(2, 7)));
 }
 
 test "blake2s add uint256 valid non zero" {
