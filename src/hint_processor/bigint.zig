@@ -16,7 +16,7 @@ const BigInt5 = @import("builtin_hint_processor/secp/bigint_utils.zig").BigInt5;
 const BigIntN = @import("builtin_hint_processor/secp/bigint_utils.zig").BigIntN;
 const Int = @import("std").math.big.int.Managed;
 const BASE = @import("../math/fields/constants.zig").BASE;
-const divMod = @import("../math/fields/helper.zig").divMod;
+const field_helper = @import("../math/fields/helper.zig");
 const safeDivBigInt = @import("../math/fields/helper.zig").safeDivBigInt;
 const insertValueFromVarName = @import("../hint_processor/hint_utils.zig").insertValueFromVarName;
 
@@ -32,69 +32,75 @@ const insertValueFromVarName = @import("../hint_processor/hint_utils.zig").inser
 ///
 /// value = res = div_mod(x, y, p)
 /// ```
-pub fn bigintPackDivModHint(vm: *CairoVM, allocator: std.mem.Allocator, exec_scopes: *ExecutionScopes, idsData: std.StringHashMap(HintReference), apTracking: ApTracking) !void {
+pub fn bigintPackDivModHint(allocator: std.mem.Allocator, vm: *CairoVM, exec_scopes: *ExecutionScopes, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {
     // Initiate BigInt default element
-    var p: BigInt3 = .{};
-    p = try p.fromVarName("P", vm, idsData, apTracking);
-    var p_packed = try p.pack(allocator);
+    var p = try (try BigInt3.fromVarName("P", vm, ids_data, ap_tracking)).pack86(allocator);
+    errdefer p.deinit();
 
-    var x: BigInt5 = .{};
+    var x: Int = blk: {
+        const x_bigint5 = try BigInt5.fromVarName("x", vm, ids_data, ap_tracking);
 
-    const x_bigint5 = try x.fromVarName("x", vm, idsData, apTracking);
-    var x_lower: BigInt3 = .{};
+        var x_lower = try BigInt3.fromValues([3]Felt252{
+            x_bigint5.limbs[0], x_bigint5.limbs[1], x_bigint5.limbs[2],
+        }).pack86(allocator);
+        defer x_lower.deinit();
 
-    // take first three limbs of x_bigint5 and pack them into x_lower
-    for (x_bigint5.limbs, 0..) |limb, i| {
-        if (i < 3) {
-            x_lower.limbs[i] = limb;
-        }
-    }
+        var d3 = try x_bigint5.limbs[3].toSignedBigInt(allocator);
+        defer d3.deinit();
 
-    var x_lower_packed = try x_lower.pack(allocator);
+        var d4 = try x_bigint5.limbs[3].toSignedBigInt(allocator);
+        defer d4.deinit();
 
-    const d3 = x_bigint5.limbs[3].toInteger();
-    const d4 = x_bigint5.limbs[4].toInteger();
+        var tmp = try Int.init(allocator);
+        defer tmp.deinit();
 
-    const x_lower_packed_i512 = try x_lower_packed.to(i512);
+        var base = try Int.initSet(allocator, BASE);
+        defer base.deinit();
 
-    const x_packed_i512 = x_lower_packed_i512 + @as(i512, @intCast(d3)) * @as(i512, @intCast(std.math.pow(u512, BASE, 3))) + @as(i512, @intCast(d4)) * @as(i512, @intCast(std.math.pow(u512, BASE, 4)));
+        var result = try Int.init(allocator);
+        errdefer result.deinit();
 
-    var y: BigInt3 = .{};
+        try tmp.pow(&base, 3);
 
-    y = try y.fromVarName("y", vm, idsData, apTracking);
+        try tmp.mul(&d3, &tmp);
 
-    var y_packed = try y.pack(allocator);
+        try result.add(&x_lower, &tmp);
 
-    const y_packed_512 = try y_packed.to(i512);
+        try tmp.pow(&base, 4);
 
-    const p_packed_512 = try p_packed.to(i512);
+        try tmp.mul(&d4, &tmp);
 
-    const num = @divFloor(x_packed_i512, y_packed_512);
+        try result.add(&result, &tmp);
 
-    const res = @mod(num, p_packed_512);
+        break :blk result;
+    };
+    errdefer x.deinit();
 
-    const res_256 = @as(i256, @intCast(res));
+    var y = try (try BigInt3.fromVarName("y", vm, ids_data, ap_tracking)).pack86(allocator);
+    errdefer y.deinit();
+
+    var res = try field_helper.divModBigInt(allocator, &x, &y, &p);
+    errdefer res.deinit();
 
     try exec_scopes.assignOrUpdateVariable("res", .{
-        .i256 = res_256,
+        .big_int = res,
     });
 
     try exec_scopes.assignOrUpdateVariable("value", .{
-        .i256 = res_256,
-    });
-    try exec_scopes.assignOrUpdateVariable("x", .{
-        .i512 = x_packed_i512,
-    });
-    try exec_scopes.assignOrUpdateVariable("y", .{
-        .i512 = y_packed_512,
-    });
-    try exec_scopes.assignOrUpdateVariable("P", .{
-        .i512 = p_packed_512,
+        .big_int = try res.clone(),
     });
 
-    p_packed.deinit();
-    x_lower_packed.deinit();
-    y_packed.deinit();
+    try exec_scopes.assignOrUpdateVariable("x", .{
+        .big_int = x,
+    });
+
+    try exec_scopes.assignOrUpdateVariable("y", .{
+        .big_int = y,
+    });
+
+    try exec_scopes.assignOrUpdateVariable("p", .{
+        .big_int = p,
+    });
 }
 
 /// Implements hint:
@@ -104,64 +110,71 @@ pub fn bigintPackDivModHint(vm: *CairoVM, allocator: std.mem.Allocator, exec_sco
 /// ids.flag = 1 if k > 0 else 0
 /// ```
 pub fn bigIntSafeDivHint(allocator: std.mem.Allocator, vm: *CairoVM, exec_scopes: *ExecutionScopes, ids_data: std.StringHashMap(HintReference), apTracking: ApTracking) !void {
-    const res = (try exec_scopes.get("res")).i256;
-    const x = (try exec_scopes.get("x")).i256;
-    const y = (try exec_scopes.get("y")).i256;
-    const p = (try exec_scopes.get("p")).i256;
+    const res = try exec_scopes.getValueRef(Int, "res");
+    const x = try exec_scopes.getValueRef(Int, "x");
+    const y = try exec_scopes.getValueRef(Int, "y");
+    const p = try exec_scopes.getValueRef(Int, "p");
 
-    const k = try safeDivBigInt(@as(i256, @intCast(res * y - x)), @as(i256, @intCast(p)));
+    var tmp = try Int.init(allocator);
+    errdefer tmp.deinit();
 
-    var result: struct { value: i256, flag: Felt252 } = undefined;
+    var tmp2 = try Int.init(allocator);
+    errdefer tmp2.deinit();
 
-    if (k >= 0) {
-        result = .{ .value = k, .flag = Felt252.one() };
+    try tmp.mul(res, y);
+    try tmp.sub(&tmp, x);
+    try tmp.divFloor(&tmp2, &tmp, p);
+
+    var flag: Felt252 = undefined;
+
+    try tmp2.copy(tmp.toConst());
+    if (tmp.isPositive() or tmp.eqlZero()) {
+        flag = Felt252.one();
     } else {
-        result = .{ .value = -k, .flag = Felt252.zero() };
+        flag = Felt252.zero();
+        tmp2.negate();
     }
 
-    const resultValue = result.value;
-    const flag = MaybeRelocatable.fromFelt(result.flag);
+    // k == tmp
+    // result == tmp2
 
-    try exec_scopes.assignOrUpdateVariable("k", .{ .i256 = k });
-    try exec_scopes.assignOrUpdateVariable("value", .{ .i256 = resultValue });
-    try insertValueFromVarName(allocator, "flag", flag, vm, ids_data, apTracking);
+    try exec_scopes.assignOrUpdateVariable("k", .{ .big_int = tmp });
+    try exec_scopes.assignOrUpdateVariable("value", .{ .big_int = tmp2 });
+    try insertValueFromVarName(allocator, "flag", MaybeRelocatable.fromFelt(flag), vm, ids_data, apTracking);
 }
 
 test "big int pack div mod hint" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
-
     defer vm.deinit();
-
+    defer vm.segments.memory.deinitData(std.testing.allocator);
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(
         std.testing.allocator,
         &.{
             .{ "x", 0 },
             .{ "y", 5 },
             .{ "P", 8 },
-            .{ "res", 11 },
-            .{ "value", 12 },
         },
     );
 
     defer ids_data.deinit();
 
+    vm.run_context.fp.* = 0;
+    inline for (0..11) |_| _ = try vm.addMemorySegment();
+
     // Set up memory segments in the virtual machine.
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
-        .{ .{ 1, 0 }, .{100} },
-        .{ .{ 1, 1 }, .{0} },
-        .{ .{ 1, 2 }, .{0} },
+        .{ .{ 1, 0 }, .{0x38a23ca66202c8c2a72277} },
+        .{ .{ 1, 1 }, .{0x6730e765376ff17ea8385} },
+        .{ .{ 1, 2 }, .{0xca1ad489ab60ea581e6c1} },
         .{ .{ 1, 3 }, .{0} },
         .{ .{ 1, 4 }, .{0} },
-        .{ .{ 1, 5 }, .{20} },
-        .{ .{ 1, 6 }, .{0} },
-        .{ .{ 1, 7 }, .{0} },
-        .{ .{ 1, 8 }, .{7} },
-        .{ .{ 1, 9 }, .{0} },
-        .{ .{ 1, 10 }, .{0} },
+        .{ .{ 1, 5 }, .{0x20a4b46d3c5e24cda81f22} },
+        .{ .{ 1, 6 }, .{0x967bf895824330d4273d0} },
+        .{ .{ 1, 7 }, .{0x541e10c21560da25ada4c} },
+        .{ .{ 1, 8 }, .{0x8a03bbfd25e8cd0364141} },
+        .{ .{ 1, 9 }, .{0x3ffffffffffaeabb739abd} },
+        .{ .{ 1, 10 }, .{0xfffffffffffffffffffff} },
     });
-
-    defer vm.segments.memory.deinitData(std.testing.allocator);
-    vm.run_context.fp.* = 0;
 
     const hint_processor = HintProcessor{};
     var hint_data = HintData.init(hint_codes.BIGINT_PACK_DIV_MOD_HINT, ids_data, .{});
@@ -169,27 +182,13 @@ test "big int pack div mod hint" {
     var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();
 
-    try exec_scopes.assignOrUpdateVariable("res", .{ .i256 = 0 });
-
     try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, &exec_scopes);
 
-    const res_value = (try exec_scopes.get("res")).i256;
-    const value = (try exec_scopes.get("value")).i256;
-
-    const y_loc = try hint_utils.getRelocatableFromVarName("y", &vm, ids_data, .{});
-    const y = try vm.getFelt(y_loc);
-
-    const x_loc = try hint_utils.getRelocatableFromVarName("x", &vm, ids_data, .{});
-    const x = try vm.getFelt(x_loc);
-
-    const p_loc = try hint_utils.getRelocatableFromVarName("P", &vm, ids_data, .{});
-    const p = try vm.getFelt(p_loc);
-
-    try std.testing.expectEqual(5, res_value);
-    try std.testing.expectEqual(5, value);
-    try std.testing.expectEqual(20, y.toInteger());
-    try std.testing.expectEqual(100, x.toInteger());
-    try std.testing.expectEqual(7, p.toInteger());
+    try std.testing.expectEqual(109567829260688255124154626727441144629993228404337546799996747905569082729709, try ((try exec_scopes.getValue(Int, "res"))).to(u512));
+    try std.testing.expectEqual(109567829260688255124154626727441144629993228404337546799996747905569082729709, try ((try exec_scopes.getValue(Int, "res"))).to(u512));
+    try std.testing.expectEqual(38047400353360331012910998489219098987968251547384484838080352663220422975266, try ((try exec_scopes.getValue(Int, "y"))).to(u512));
+    try std.testing.expectEqual(91414600319290532004473480113251693728834511388719905794310982800988866814583, try ((try exec_scopes.getValue(Int, "x"))).to(u512));
+    try std.testing.expectEqual(115792089237316195423570985008687907852837564279074904382605163141518161494337, try ((try exec_scopes.getValue(Int, "p"))).to(u512));
 }
 
 test "big int safe div hint" {
@@ -214,25 +213,20 @@ test "big int safe div hint" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
-    try exec_scopes.assignOrUpdateVariable("res", .{ .i256 = 10 });
-    try exec_scopes.assignOrUpdateVariable("y", .{ .i256 = 2 });
-    try exec_scopes.assignOrUpdateVariable("x", .{ .i256 = 5 });
-    try exec_scopes.assignOrUpdateVariable("p", .{ .i256 = 3 });
-
     defer exec_scopes.deinit();
+
+    try exec_scopes.assignOrUpdateVariable("res", .{ .big_int = try Int.initSet(std.testing.allocator, 109567829260688255124154626727441144629993228404337546799996747905569082729709) });
+    try exec_scopes.assignOrUpdateVariable("y", .{ .big_int = try Int.initSet(std.testing.allocator, 38047400353360331012910998489219098987968251547384484838080352663220422975266) });
+    try exec_scopes.assignOrUpdateVariable("x", .{ .big_int = try Int.initSet(std.testing.allocator, 91414600319290532004473480113251693728834511388719905794310982800988866814583) });
+    try exec_scopes.assignOrUpdateVariable("p", .{ .big_int = try Int.initSet(std.testing.allocator, 115792089237316195423570985008687907852837564279074904382605163141518161494337) });
 
     const hint_processor = HintProcessor{};
     var hint_data = HintData.init(hint_codes.BIGINT_SAFE_DIV, ids_data, .{});
 
     try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, &exec_scopes);
 
-    const k = (try exec_scopes.get("k")).i256;
-    const value = (try exec_scopes.get("value")).i256;
+    try std.testing.expectEqual(36002209591245282109880156842267569109802494162594623391338581162816748840003, try ((try exec_scopes.getValue(Int, "k")).to(u512)));
 
-    const flag_loc = try hint_utils.getRelocatableFromVarName("flag", &vm, ids_data, .{});
-    const flag = try vm.getFelt(flag_loc);
-
-    try std.testing.expectEqual(5, k);
-    try std.testing.expectEqual(5, value);
-    try std.testing.expectEqual(1, flag.toInteger());
+    try std.testing.expectEqual(36002209591245282109880156842267569109802494162594623391338581162816748840003, try ((try exec_scopes.getValue(Int, "value")).to(u512)));
+    try testing_utils.checkMemory(vm.segments.memory, .{.{ .{ 1, 0 }, .{1} }});
 }

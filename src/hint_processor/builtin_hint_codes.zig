@@ -653,3 +653,14 @@ pub const SPLIT_XX =
     \\ids.x.low = x & ((1<<128)-1)
     \\ids.x.high = x >> 128
 ;
+
+pub const NONDET_BIGINT3_V1 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import split
+    \\
+    \\segments.write_arg(ids.res.address_, split(value))
+;
+
+pub const NONDET_BIGINT3_V2 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import split
+    \\segments.write_arg(ids.res.address_, split(value))
+;

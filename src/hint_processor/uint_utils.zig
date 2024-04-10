@@ -28,17 +28,22 @@ pub fn split(allocator: std.mem.Allocator, num: Int, comptime N: usize, num_bits
 
 pub fn pack(allocator: std.mem.Allocator, comptime N: usize, limbs: [N]Felt252, num_bits_shift: usize) !Int {
     var result = try Int.init(allocator);
+    errdefer result.deinit();
+    var tmp = try Int.init(allocator);
+    defer tmp.deinit();
 
     for (0..N) |i| {
-        var limb_to_uint = try Int.initSet(allocator, limbs[i].toInteger());
-        defer limb_to_uint.deinit();
-        try limb_to_uint.shiftLeft(&limb_to_uint, num_bits_shift * i);
-        try result.add(&result, &limb_to_uint);
+        try tmp.set(limbs[i].toInteger());
+
+        try tmp.shiftLeft(&tmp, num_bits_shift * i);
+
+        try result.add(&result, &tmp);
     }
+
     return result;
 }
 
-test "split64 with uint utils" {
+test "UintUtils: split64 with uint utils" {
     var num = try Int.initSet(testing.allocator, 850981239023189021389081239089023);
     defer num.deinit();
     const limbs = try split(testing.allocator, num, 2, 64);
@@ -46,14 +51,14 @@ test "split64 with uint utils" {
     try std.testing.expectEqualSlices(Felt252, &[2]Felt252{ Felt252.fromInt(u64, 7249717543555297151), Felt252.fromInt(u64, 46131785404667) }, &limbs);
 }
 
-test "u384 split128 with uint utils" {
+test "UintUtils: u384 split128 with uint utils" {
     var num = try Int.initSet(testing.allocator, 6805647338418769269267492148635364229100);
     defer num.deinit();
     const limbs = try split(testing.allocator, num, 2, 128);
     try std.testing.expectEqualSlices(Felt252, &[2]Felt252{ Felt252.fromInt(u128, 340282366920938463463374607431768211436), Felt252.fromInt(u128, 19) }, &limbs);
 }
 
-test "pack 64 with uint utils" {
+test "UintUtils: pack 64 with uint utils" {
     const limbs = [2]Felt252{ Felt252.fromInt(u64, 7249717543555297151), Felt252.fromInt(u64, 46131785404667) };
     var num = try pack(testing.allocator, 2, limbs, 64);
     defer num.deinit();
@@ -62,7 +67,7 @@ test "pack 64 with uint utils" {
     try std.testing.expectEqualSlices(usize, expected.limbs, num.limbs);
 }
 
-test "pack 128 with uint utils" {
+test "UintUtils: pack 128 with uint utils" {
     const limbs = [2]Felt252{ Felt252.fromInt(u128, 59784002098951797857788619418398833806), Felt252.fromInt(u128, 1) };
     var num = try pack(testing.allocator, 2, limbs, 128);
     defer num.deinit();

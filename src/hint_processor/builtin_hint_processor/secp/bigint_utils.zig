@@ -16,7 +16,8 @@ const testing_utils = @import("../../testing_utils.zig");
 const MemoryError = @import("../../../vm/error.zig").MemoryError;
 const MaybeRelocatable = @import("../../../vm/memory/relocatable.zig").MaybeRelocatable;
 const Int = @import("std").math.big.int.Managed;
-const bigInt3Split = @import("../secp/secp_utils.zig").bigInt3Split;
+const secp_utils = @import("../secp/secp_utils.zig");
+const bigInt3Split = secp_utils.bigInt3Split;
 const BigInt = std.math.big.int.Managed;
 const BASE = @import("../../../math//fields/constants.zig").BASE;
 const hint_codes = @import("../../builtin_hint_codes.zig");
@@ -33,20 +34,21 @@ pub fn BigIntN(comptime NUM_LIMBS: usize) type {
 
         limbs: [NUM_LIMBS]Felt252 = undefined,
 
-        pub fn fromBaseAddr(self: *Self, addr: Relocatable, vm: *CairoVM) !Self {
+        pub fn fromBaseAddr(addr: Relocatable, vm: *CairoVM) !Self {
+            var limbs: [NUM_LIMBS]Felt252 = undefined;
+
             inline for (0..NUM_LIMBS) |i| {
-                const new_addr = try addr.addUint(i);
-                self.limbs[i] = try vm.getFelt(new_addr);
+                limbs[i] = try vm.getFelt(try addr.addUint(i));
             }
-            return .{ .limbs = self.limbs };
+
+            return .{ .limbs = limbs };
         }
 
-        pub fn fromVarName(self: *Self, name: []const u8, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !Self {
-            const baseAddress = try hint_utils.getRelocatableFromVarName(name, vm, ids_data, ap_tracking);
-            return self.fromBaseAddr(baseAddress, vm);
+        pub fn fromVarName(name: []const u8, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !Self {
+            return Self.fromBaseAddr(try hint_utils.getRelocatableFromVarName(name, vm, ids_data, ap_tracking), vm);
         }
 
-        pub fn fromValues(limbs: [NUM_LIMBS]Felt252) !Self {
+        pub fn fromValues(limbs: [NUM_LIMBS]Felt252) Self {
             return .{ .limbs = limbs };
         }
 
@@ -57,15 +59,22 @@ pub fn BigIntN(comptime NUM_LIMBS: usize) type {
             }
         }
 
-        pub fn pack(self: *Self, allocator: std.mem.Allocator) !Int {
+        pub fn pack(self: *const Self, allocator: std.mem.Allocator) !Int {
             const result = packBigInt(allocator, NUM_LIMBS, self.limbs, 128);
             return result;
         }
 
-        pub fn pack86(self: *Self) !Felt252 {
-            var result = Felt252.zero();
-            inline for (0..NUM_LIMBS) |i| {
-                result = result + (self.limbs[i] << (i * 86));
+        pub fn pack86(self: *const Self, allocator: std.mem.Allocator) !Int {
+            var result = try Int.initSet(allocator, 0);
+            errdefer result.deinit();
+
+            inline for (0..3) |i| {
+                var tmp = try self.limbs[i].toSignedBigInt(allocator);
+                defer tmp.deinit();
+
+                try tmp.shiftLeft(&tmp, i * 86);
+
+                try result.add(&result, &tmp);
             }
 
             return result;
@@ -90,12 +99,22 @@ pub fn BigIntN(comptime NUM_LIMBS: usize) type {
 //    segments.write_arg(ids.res.address_, split(value))
 // %}
 ///
-pub fn nondetBigInt3(vm: *CairoVM, exec_scopes: *ExecutionScopes, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {
+pub fn nondetBigInt3(allocator: std.mem.Allocator, vm: *CairoVM, exec_scopes: *ExecutionScopes, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {
     const res_reloc = try hint_utils.getRelocatableFromVarName("res", vm, ids_data, ap_tracking);
-    const value = try exec_scopes.getRef("value") catch return HintError.IdentifierHasNoMember;
+    const value = try exec_scopes.getValueRef(Int, "value");
 
-    const arg = bigInt3Split(value);
-    vm.segments.writeArg(std.ArrayList(BigInt), res_reloc, arg);
+    if (!value.isPositive()) return HintError.BigintToUsizeFail;
+
+    var arg = try secp_utils.bigInt3Split(allocator, value);
+    defer for (0..arg.len) |x| arg[x].deinit();
+
+    const result: [3]MaybeRelocatable = .{
+        MaybeRelocatable.fromInt(u512, try arg[0].to(u512)),
+        MaybeRelocatable.fromInt(u512, try arg[1].to(u512)),
+        MaybeRelocatable.fromInt(u512, try arg[2].to(u512)),
+    };
+
+    _ = try vm.segments.loadData(allocator, res_reloc, result[0..]);
 }
 
 // Implements hint
@@ -113,10 +132,8 @@ pub fn bigintToUint256(vm: *CairoVM, ids_data: std.StringHashMap(HintReference),
 // Implements hint
 // %{ ids.len_hi = max(ids.scalar_u.d2.bit_length(), ids.scalar_v.d2.bit_length())-1 %}
 pub fn hiMaxBitlen(vm: *CairoVM, allocator: std.mem.Allocator, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {
-    var scalar_u: BigInt3 = undefined;
-    var scalar_v: BigInt3 = undefined;
-    scalar_u = try scalar_u.fromVarName("scalar_u", vm, ids_data, ap_tracking);
-    scalar_v = try scalar_v.fromVarName("scalar_v", vm, ids_data, ap_tracking);
+    var scalar_u = try BigInt3.fromVarName("scalar_u", vm, ids_data, ap_tracking);
+    var scalar_v = try BigInt3.fromVarName("scalar_v", vm, ids_data, ap_tracking);
 
     // get number of bits in the highest limb
     const len_hi_u = scalar_u.limbs[2].numBits();
@@ -132,7 +149,7 @@ pub fn hiMaxBitlen(vm: *CairoVM, allocator: std.mem.Allocator, ids_data: std.Str
 
 // Tests
 
-test "BigIntN Hints: get bigint3 from base address should work" {
+test "BigIntUtils: get bigint3 from base addr ok" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
 
     defer vm.deinit();
@@ -145,15 +162,14 @@ test "BigIntN Hints: get bigint3 from base address should work" {
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    var x: BigInt3 = undefined;
-    _ = try x.fromBaseAddr(Relocatable{ .segment_index = 0, .offset = 0 }, &vm);
+    const x = try BigInt3.fromBaseAddr(Relocatable{ .segment_index = 0, .offset = 0 }, &vm);
 
     try std.testing.expectEqual(Felt252.one(), x.limbs[0]);
     try std.testing.expectEqual(Felt252.two(), x.limbs[1]);
     try std.testing.expectEqual(Felt252.three(), x.limbs[2]);
 }
 
-test "BigIntN Hints: get Bigint5 from base address should work" {
+test "BigIntUtils: get Bigint5 from base addr ok" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
 
     defer vm.deinit();
@@ -168,8 +184,7 @@ test "BigIntN Hints: get Bigint5 from base address should work" {
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    var x: BigInt5 = undefined;
-    _ = try x.fromBaseAddr(Relocatable{ .segment_index = 0, .offset = 0 }, &vm);
+    const x = try BigInt5.fromBaseAddr(Relocatable{ .segment_index = 0, .offset = 0 }, &vm);
 
     try std.testing.expectEqual(Felt252.one(), x.limbs[0]);
     try std.testing.expectEqual(Felt252.two(), x.limbs[1]);
@@ -190,9 +205,7 @@ test "Get BigInt3 from base address with missing member should fail" {
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    var x: BigInt3 = undefined;
-
-    try std.testing.expectError(MemoryError.UnknownMemoryCell, x.fromBaseAddr(Relocatable{ .segment_index = 0, .offset = 0 }, &vm));
+    try std.testing.expectError(MemoryError.UnknownMemoryCell, BigInt3.fromBaseAddr(Relocatable{ .segment_index = 0, .offset = 0 }, &vm));
 }
 
 test "Get BigInt5 from base address with missing member should fail" {
@@ -209,12 +222,10 @@ test "Get BigInt5 from base address with missing member should fail" {
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    var x: BigInt5 = undefined;
-
-    try std.testing.expectError(MemoryError.UnknownMemoryCell, x.fromBaseAddr(Relocatable{ .segment_index = 0, .offset = 0 }, &vm));
+    try std.testing.expectError(MemoryError.UnknownMemoryCell, BigInt5.fromBaseAddr(Relocatable{ .segment_index = 0, .offset = 0 }, &vm));
 }
 
-test "BigIntN Hints: get bigint3 from var name should work" {
+test "BigIntUtils: get bigint3 from var name ok" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
 
     defer vm.deinit();
@@ -232,15 +243,14 @@ test "BigIntN Hints: get bigint3 from var name should work" {
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{"x"});
     defer ids_data.deinit();
 
-    var x: BigInt3 = undefined;
-    _ = try x.fromVarName("x", &vm, ids_data, .{});
+    const x = try BigInt3.fromVarName("x", &vm, ids_data, .{});
 
     try std.testing.expectEqual(Felt252.one(), x.limbs[0]);
     try std.testing.expectEqual(Felt252.two(), x.limbs[1]);
     try std.testing.expectEqual(Felt252.three(), x.limbs[2]);
 }
 
-test "BigInt Hints: get bigint5 from var name should work" {
+test "BigIntUtils: get bigint5 from var name ok" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
 
     defer vm.deinit();
@@ -260,8 +270,7 @@ test "BigInt Hints: get bigint5 from var name should work" {
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{"x"});
     defer ids_data.deinit();
 
-    var x: BigInt5 = undefined;
-    _ = try x.fromVarName("x", &vm, ids_data, .{});
+    const x = try BigInt5.fromVarName("x", &vm, ids_data, .{});
 
     try std.testing.expectEqual(Felt252.one(), x.limbs[0]);
     try std.testing.expectEqual(Felt252.two(), x.limbs[1]);
@@ -270,7 +279,7 @@ test "BigInt Hints: get bigint5 from var name should work" {
     try std.testing.expectEqual(Felt252.fromInt(u8, 5), x.limbs[4]);
 }
 
-test "BigIntN Hints: get bigint3 from var name with missing member should fail" {
+test "BigIntUtils: get bigint3 from var name with missing member fail" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
 
     defer vm.deinit();
@@ -287,12 +296,10 @@ test "BigIntN Hints: get bigint3 from var name with missing member should fail" 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{"x"});
     defer ids_data.deinit();
 
-    var x: BigInt3 = undefined;
-
-    try std.testing.expectError(MemoryError.UnknownMemoryCell, x.fromVarName("x", &vm, ids_data, .{}));
+    try std.testing.expectError(MemoryError.UnknownMemoryCell, BigInt3.fromVarName("x", &vm, ids_data, .{}));
 }
 
-test "BigIntN Hints: get bigint5 from var name with missing member should fail" {
+test "BigIntUtils: get bigint5 from var name with missing member should fail" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
 
     defer vm.deinit();
@@ -311,12 +318,10 @@ test "BigIntN Hints: get bigint5 from var name with missing member should fail" 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{"x"});
     defer ids_data.deinit();
 
-    var x: BigInt5 = undefined;
-
-    try std.testing.expectError(MemoryError.UnknownMemoryCell, x.fromVarName("x", &vm, ids_data, .{}));
+    try std.testing.expectError(MemoryError.UnknownMemoryCell, BigInt5.fromVarName("x", &vm, ids_data, .{}));
 }
 
-test "BigIntN Hints: get bigint3 from varname invalid reference should fail" {
+test "BigIntUtils: get bigint3 from varname invalid reference should fail" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
 
     defer vm.deinit();
@@ -332,12 +337,10 @@ test "BigIntN Hints: get bigint3 from varname invalid reference should fail" {
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{"x"});
     defer ids_data.deinit();
 
-    var x: BigInt3 = undefined;
-
-    try std.testing.expectError(HintError.UnknownIdentifier, x.fromVarName("x", &vm, ids_data, .{}));
+    try std.testing.expectError(HintError.UnknownIdentifier, BigInt3.fromVarName("x", &vm, ids_data, .{}));
 }
 
-test "BigIntN Hints: get bigint5 from varname invalid reference should fail" {
+test "BigIntUtils: get bigint5 from varname invalid reference should fail" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
 
     defer vm.deinit();
@@ -355,12 +358,10 @@ test "BigIntN Hints: get bigint5 from varname invalid reference should fail" {
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{"x"});
     defer ids_data.deinit();
 
-    var x: BigInt5 = undefined;
-
-    try std.testing.expectError(HintError.UnknownIdentifier, x.fromVarName("x", &vm, ids_data, .{}));
+    try std.testing.expectError(HintError.UnknownIdentifier, BigInt5.fromVarName("x", &vm, ids_data, .{}));
 }
 
-test "Run hiMaxBitlen ok" {
+test "BigIntUtils: Run hiMaxBitlen ok" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
 
     defer vm.deinit();
@@ -381,7 +382,7 @@ test "Run hiMaxBitlen ok" {
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{0} },
         .{ .{ 1, 1 }, .{0} },
-        .{ .{ 1, 2 }, .{10} },
+        .{ .{ 1, 2 }, .{1} },
         .{ .{ 1, 3 }, .{0} },
         .{ .{ 1, 4 }, .{0} },
         .{ .{ 1, 5 }, .{1} },
@@ -389,15 +390,132 @@ test "Run hiMaxBitlen ok" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     vm.run_context.fp.* = 0;
+    vm.run_context.ap.* = 7;
 
     //Execute the hint
-    const hint_processor = HintProcessor{};
-    var hint_data = HintData.init(hint_codes.HI_MAX_BIT_LEN, ids_data, .{});
+    const hint_code = "ids.len_hi = max(ids.scalar_u.d2.bit_length(), ids.scalar_v.d2.bit_length())-1";
 
-    try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
+    try testing_utils.runHint(std.testing.allocator, &vm, ids_data, hint_code, undefined, undefined);
 
-    const len_hi = try hint_utils.getRelocatableFromVarName("len_hi", &vm, ids_data, .{});
-    const result = try vm.getFelt(len_hi);
+    try testing_utils.checkMemory(vm.segments.memory, .{
+        .{ .{ 1, 6 }, .{0} },
+    });
+}
 
-    try std.testing.expectEqual(Felt252.three(), result);
+test "BigIntUtils: nondet bigint3 ok" {
+    var vm = try testing_utils.initVMWithRangeCheck(std.testing.allocator);
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    inline for (0..3) |_| _ = try vm.segments.addSegment();
+
+    var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
+    defer exec_scopes.deinit();
+
+    try exec_scopes.assignOrUpdateVariable("value", .{ .big_int = try Int.initSet(std.testing.allocator, 7737125245533626718119526477371252455336267181195264773712524553362) });
+
+    vm.run_context.pc.* = Relocatable.init(0, 0);
+    vm.run_context.ap.* = 6;
+    vm.run_context.fp.* = 6;
+
+    var ids_data = try testing_utils.setupIdsNonContinuousIdsData(
+        std.testing.allocator,
+        &.{
+            .{ "res", 5 },
+        },
+    );
+    defer ids_data.deinit();
+
+    var constants = std.StringHashMap(Felt252).init(std.testing.allocator);
+    defer constants.deinit();
+
+    try constants.put(secp_utils.BASE_86, pow2ConstNz(86));
+
+    try testing_utils.runHint(std.testing.allocator, &vm, ids_data, "from starkware.cairo.common.cairo_secp.secp_utils import split\n\nsegments.write_arg(ids.res.address_, split(value))", &constants, &exec_scopes);
+
+    try testing_utils.checkMemory(vm.segments.memory, .{
+        .{
+            .{ 1, 11 }, .{773712524553362},
+        },
+        .{
+            .{ 1, 12 }, .{57408430697461422066401280},
+        },
+        .{
+            .{ 1, 13 }, .{1292469707114105},
+        },
+    });
+}
+
+test "BigIntUtils: nondet bigint3 split error" {
+    var vm = try testing_utils.initVMWithRangeCheck(std.testing.allocator);
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    inline for (0..3) |_| _ = try vm.segments.addSegment();
+
+    var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
+    defer exec_scopes.deinit();
+
+    try exec_scopes.assignOrUpdateVariable("value", .{ .big_int = try Int.initSet(std.testing.allocator, -1) });
+
+    var ids_data = try testing_utils.setupIdsNonContinuousIdsData(
+        std.testing.allocator,
+        &.{
+            .{ "res", 5 },
+        },
+    );
+    defer ids_data.deinit();
+
+    try std.testing.expectError(HintError.BigintToUsizeFail, testing_utils.runHint(std.testing.allocator, &vm, ids_data, "from starkware.cairo.common.cairo_secp.secp_utils import split\n\nsegments.write_arg(ids.res.address_, split(value))", undefined, &exec_scopes));
+}
+
+test "BigIntUtils: nondet bigint3 value not in scope" {
+    var vm = try testing_utils.initVMWithRangeCheck(std.testing.allocator);
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    inline for (0..3) |_| _ = try vm.segments.addSegment();
+
+    var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
+    defer exec_scopes.deinit();
+
+    vm.run_context.pc.* = Relocatable.init(0, 0);
+    vm.run_context.ap.* = 6;
+    vm.run_context.fp.* = 6;
+
+    var ids_data = try testing_utils.setupIdsNonContinuousIdsData(
+        std.testing.allocator,
+        &.{
+            .{ "res", 5 },
+        },
+    );
+    defer ids_data.deinit();
+
+    try std.testing.expectError(HintError.VariableNotInScopeError, testing_utils.runHint(std.testing.allocator, &vm, ids_data, "from starkware.cairo.common.cairo_secp.secp_utils import split\n\nsegments.write_arg(ids.res.address_, split(value))", undefined, &exec_scopes));
+}
+
+test "BigIntUtils: u384 pack86" {
+    var val = try Uint384.fromValues(.{
+        Felt252.fromInt(u8, 10),
+        Felt252.fromInt(u8, 10),
+        Felt252.fromInt(u8, 10),
+    }).pack86(std.testing.allocator);
+    defer val.deinit();
+
+    try std.testing.expectEqual(
+        59863107065073783529622931521771477038469668772249610,
+        val.to(u384),
+    );
+
+    var val1 = try Uint384.fromValues(.{
+        Felt252.fromInt(u128, 773712524553362),
+        Felt252.fromInt(u128, 57408430697461422066401280),
+        Felt252.fromInt(u128, 1292469707114105),
+    }).pack86(std.testing.allocator);
+    defer val1.deinit();
+
+    try std.testing.expectEqual(
+        7737125245533626718119526477371252455336267181195264773712524553362,
+        try val1.to(u384),
+    );
 }

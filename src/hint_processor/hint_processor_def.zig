@@ -376,8 +376,12 @@ pub const CairoVMHintProcessor = struct {
             try squash_dict_utils.squashDict(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.HI_MAX_BIT_LEN, hint_data.code)) {
             try bigint_utils.hiMaxBitlen(vm, allocator, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.NONDET_BIGINT3_V1, hint_data.code)) {
+            try bigint_utils.nondetBigInt3(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.NONDET_BIGINT3_V2, hint_data.code)) {
+            try bigint_utils.nondetBigInt3(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.BIGINT_PACK_DIV_MOD_HINT, hint_data.code)) {
-            try bigint.bigintPackDivModHint(vm, allocator, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+            try bigint.bigintPackDivModHint(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.BIGINT_SAFE_DIV, hint_data.code)) {
             try bigint.bigIntSafeDivHint(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else {
