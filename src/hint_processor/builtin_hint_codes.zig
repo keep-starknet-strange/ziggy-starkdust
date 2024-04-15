@@ -665,6 +665,7 @@ pub const NONDET_BIGINT3_V2 =
     \\segments.write_arg(ids.res.address_, split(value))
 ;
 
+
 // The following hints support the lib https://github.com/NethermindEth/research-basic-Cairo-operations-big-integers/blob/main/lib
 pub const UINT384_UNSIGNED_DIV_REM =
     \\def split(num: int, num_bits_shift: int, length: int):
@@ -848,3 +849,4 @@ pub const INV_MOD_P_UINT512 =
     \\ids.x_inverse_mod_p.low = x_inverse_mod_p_split[0]
     \\ids.x_inverse_mod_p.high = x_inverse_mod_p_split[1]
 ;
+
