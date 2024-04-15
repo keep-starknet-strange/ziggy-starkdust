@@ -23,10 +23,10 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/assert_le_felt_old_compiled.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/assert_nn_compiled.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/assert_not_zero_compiled.json", .layout = "all_cairo" },
-        // TODO: merge bigint hint
+        // TODO field utils hint not implemented
         // .{ .pathname = "cairo_programs/bigint_compiled.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/big_struct_compiled.json", .layout = "all_cairo" },
-        // TODO: not implemented hint
+
         .{ .pathname = "cairo_programs/bitand_hint_compiled.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/bitwise_output_compiled.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/bitwise_builtin_test.json", .layout = "all_cairo" },
@@ -84,7 +84,7 @@ pub fn main() void {
         // TODO: HintNotImplemented error
         // .{ .pathname = "cairo_programs/fast_ec_add_v3.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/fibonacci.json", .layout = "plain" },
-        // TODO: HintNotImplemented error uint384 hint
+        // TODO: HintNotImplemented error secp signature hint
         // .{ .pathname = "cairo_programs/field_arithmetic.json", .layout = "all_cairo" },
         // TODO: merge blake hint
         // .{ .pathname = "cairo_programs/finalize_blake2s.json", .layout = "all_cairo" },
@@ -98,7 +98,7 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/function_return_if_print.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/function_return_to_variable.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/garaga.json", .layout = "all_cairo" },
-        // TODO: hint not implemented (BigInt) error
+        // TODO: hint not implemented fq error
         // .{ .pathname = "cairo_programs/highest_bitlen.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/if_and_prime.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/if_in_function.json", .layout = "all_cairo" },
@@ -142,7 +142,7 @@ pub fn main() void {
 
         // TODO: hint not implemented ec utils
         // .{ .pathname = "cairo_programs/n_bit.json", .layout = "all_cairo" },
-        // TODO: hint not implemented secp
+        // TODO: hint not implemented signature secp
         // .{ .pathname = "cairo_programs/nondet_bigint3_v2.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/normalize_address.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/not_main.json", .layout = "all_cairo" },

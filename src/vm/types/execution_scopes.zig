@@ -149,7 +149,7 @@ pub fn Rc(comptime T: type) type {
         }
 
         inline fn innerPtr(self: *const Self) *Inner {
-            return @fieldParentPtr(Inner, "value", self.value);
+            return @fieldParentPtr("value", self.value);
         }
 
         /// A single threaded, weak reference to a reference-counted value.
@@ -167,7 +167,7 @@ pub fn Rc(comptime T: type) type {
             /// Creates a new weak reference object from a pointer to it's underlying value,
             /// without increasing the weak count.
             pub fn fromValuePtr(value: *T, alloc: std.mem.Allocator) Weak {
-                return .{ .inner = @fieldParentPtr(Inner, "value", value), .alloc = alloc };
+                return .{ .inner = @fieldParentPtr("value", value), .alloc = alloc };
             }
 
             /// Gets the number of strong references to this value.
@@ -259,6 +259,7 @@ pub const HintType = union(enum) {
     dict_manager: Rc(DictManager),
     felt_map_of_felt_list: std.AutoHashMap(Felt252, std.ArrayList(Felt252)),
     felt_list: ArrayList(Felt252),
+    big_int: std.math.big.int.Managed,
 
     pub fn deinit(self: *Self) void {
         switch (self.*) {
@@ -277,6 +278,7 @@ pub const HintType = union(enum) {
             .maybe_relocatable_map => |*m| m.deinit(),
             .u64_list => |*a| a.deinit(),
             .felt_list => |*a| a.deinit(),
+            .big_int => |*a| a.deinit(),
             .dict_manager => |d| d.releaseWithFn(DictManager.deinit),
             else => {},
         }
