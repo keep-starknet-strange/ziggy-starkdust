@@ -6,6 +6,10 @@ const helper = @import("helper.zig");
 const tonelliShanks = helper.tonelliShanks;
 const extendedGCD = helper.extendedGCD;
 
+const fromBigInt = @import("starknet.zig").fromBigInt;
+
+const Int = std.math.big.int.Managed;
+
 pub const ModSqrtError = error{
     InvalidInput,
 };

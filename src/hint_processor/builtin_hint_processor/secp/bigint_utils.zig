@@ -52,16 +52,22 @@ pub fn BigIntN(comptime NUM_LIMBS: usize) type {
             return .{ .limbs = limbs };
         }
 
-        pub fn insertFromVarName(self: *Self, allocator: std.mem.allocator, var_name: []const u8, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {
+        pub fn insertFromVarName(
+            self: *const Self,
+            allocator: std.mem.Allocator,
+            var_name: []const u8,
+            vm: *CairoVM,
+            ids_data: std.StringHashMap(HintReference),
+            ap_tracking: ApTracking,
+        ) !void {
             const addr = try hint_utils.getRelocatableFromVarName(var_name, vm, ids_data, ap_tracking);
             inline for (0..NUM_LIMBS) |i| {
-                try vm.insertInMemory(allocator, addr + i, self.limbs[i]);
+                try vm.insertInMemory(allocator, try addr.addUint(i), MaybeRelocatable.fromFelt(self.limbs[i]));
             }
         }
 
         pub fn pack(self: *const Self, allocator: std.mem.Allocator) !Int {
-            const result = packBigInt(allocator, NUM_LIMBS, self.limbs, 128);
-            return result;
+            return packBigInt(allocator, NUM_LIMBS, self.limbs, 128);
         }
 
         pub fn pack86(self: *const Self, allocator: std.mem.Allocator) !Int {
@@ -80,9 +86,9 @@ pub fn BigIntN(comptime NUM_LIMBS: usize) type {
             return result;
         }
 
-        pub fn split(self: *Self, num: Int) Self {
-            const limbs = splitBigInt(std.mem.Allocator, num, self.limbs.len, 128);
-            return self.fromValues(limbs);
+
+        pub fn split(allocator: std.mem.Allocator, num: Int) !Self {
+            return Self.fromValues(try splitBigInt(allocator, num, NUM_LIMBS, 128));
         }
 
         // @TODO: implement from. It is dependent on split function.
