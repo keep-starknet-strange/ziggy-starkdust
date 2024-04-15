@@ -654,6 +654,24 @@ pub const SPLIT_XX =
     \\ids.x.high = x >> 128
 ;
 
+pub const PRINT_ARR =
+    \\print(bytes.fromhex(f"{ids.name:062x}").decode().replace('\x00',''))
+    \\arr = [memory[ids.arr + i] for i in range(ids.arr_len)]
+    \\print(arr)
+;
+
+pub const PRINT_FELT =
+    \\print(ids.x)
+;
+
+pub const PRINT_DICT =
+    \\print(bytes.fromhex(f"{ids.name:062x}").decode().replace('\x00',''))
+    \\data = __dict_manager.get_dict(ids.dict_ptr)
+    \\print(
+    \\    {k: v if isinstance(v, int) else [memory[v + i] for i in range(ids.pointer_size)] for k, v in data.items()}
+    \\)
+;
+
 pub const NONDET_BIGINT3_V1 =
     \\from starkware.cairo.common.cairo_secp.secp_utils import split
     \\
@@ -664,7 +682,6 @@ pub const NONDET_BIGINT3_V2 =
     \\from starkware.cairo.common.cairo_secp.secp_utils import split
     \\segments.write_arg(ids.res.address_, split(value))
 ;
-
 
 // The following hints support the lib https://github.com/NethermindEth/research-basic-Cairo-operations-big-integers/blob/main/lib
 pub const UINT384_UNSIGNED_DIV_REM =
@@ -849,4 +866,3 @@ pub const INV_MOD_P_UINT512 =
     \\ids.x_inverse_mod_p.low = x_inverse_mod_p_split[0]
     \\ids.x_inverse_mod_p.high = x_inverse_mod_p_split[1]
 ;
-

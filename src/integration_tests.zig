@@ -124,6 +124,12 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/keccak.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/keccak_compiled.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/keccak_builtin.json", .layout = "all_cairo" },
+        // .{ .pathname = "cairo_programs/keccak_integration_tests.json", .layout = "all_cairo" },
+        // .{ .pathname = "cairo_programs/keccak_copy_inputs.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/print_features/print_array.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/print_features/print_felt.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/print_features/print_dict_felt.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/print_features/print_dict_array.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/keccak_integration_tests.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/keccak_copy_inputs.json", .layout = "all_cairo" },
 
