@@ -36,6 +36,11 @@ const set = @import("set.zig");
 const pow_utils = @import("pow_utils.zig");
 const segments = @import("segments.zig");
 
+const bigint_utils = @import("../hint_processor/builtin_hint_processor/secp/bigint_utils.zig");
+const bigint = @import("bigint.zig");
+const uint384 = @import("uint384.zig");
+const inv_mod_p_uint512 = @import("vrf/inv_mod_p_uint512.zig");
+
 const deserialize_utils = @import("../parser/deserialize_utils.zig");
 
 const testing_utils = @import("testing_utils.zig");
@@ -371,6 +376,34 @@ pub const CairoVMHintProcessor = struct {
             try squash_dict_utils.squashDictInnerNextKey(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT, hint_data.code)) {
             try squash_dict_utils.squashDict(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.HI_MAX_BIT_LEN, hint_data.code)) {
+            try bigint_utils.hiMaxBitlen(vm, allocator, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.NONDET_BIGINT3_V1, hint_data.code)) {
+            try bigint_utils.nondetBigInt3(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.NONDET_BIGINT3_V2, hint_data.code)) {
+            try bigint_utils.nondetBigInt3(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.BIGINT_PACK_DIV_MOD_HINT, hint_data.code)) {
+            try bigint.bigintPackDivModHint(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.BIGINT_SAFE_DIV, hint_data.code)) {
+            try bigint.bigIntSafeDivHint(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.UINT384_UNSIGNED_DIV_REM, hint_data.code)) {
+            try uint384.uint384UnsignedDivRem(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.UINT384_SPLIT_128, hint_data.code)) {
+            try uint384.uint384Split128(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.ADD_NO_UINT384_CHECK, hint_data.code)) {
+            try uint384.addNoUint384Check(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.UINT384_SQRT, hint_data.code)) {
+            try uint384.uint384Sqrt(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.UINT384_SIGNED_NN, hint_data.code)) {
+            try uint384.uint384SignedNn(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SUB_REDUCED_A_AND_REDUCED_B, hint_data.code)) {
+            try uint384.subReducedAAndReducedB(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.UNSIGNED_DIV_REM_UINT768_BY_UINT384, hint_data.code)) {
+            try uint384.unsignedDivRemUint768ByUint384(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.UNSIGNED_DIV_REM_UINT768_BY_UINT384_STRIPPED, hint_data.code)) {
+            try uint384.unsignedDivRemUint768ByUint384(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.INV_MOD_P_UINT512, hint_data.code)) {
+            try inv_mod_p_uint512.invModPUint512(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else {
             std.log.err("not implemented: {s}\n", .{hint_data.code});
             return HintError.HintNotImplemented;

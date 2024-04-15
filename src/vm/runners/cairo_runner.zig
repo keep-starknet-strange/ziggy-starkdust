@@ -15,6 +15,7 @@ const Relocatable = @import("../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../memory/relocatable.zig").MaybeRelocatable;
 const Program = @import("../types/program.zig").Program;
 const BuiltinName = @import("../types/programjson.zig").BuiltinName;
+const ProgramJson = @import("../types/programjson.zig").ProgramJson;
 const builtin_runner_import = @import("../builtins/builtin_runner/builtin_runner.zig");
 const HintRange = @import("../types/program.zig").HintRange;
 const HintParams = @import("../types/programjson.zig").HintParams;
@@ -22,6 +23,7 @@ const Identifier = @import("../types/programjson.zig").Identifier;
 const Attribute = @import("../types/programjson.zig").Attribute;
 const ReferenceManager = @import("../types/programjson.zig").ReferenceManager;
 const CairoRunnerError = @import("../error.zig").CairoRunnerError;
+const MathError = @import("../error.zig").MathError;
 const CairoVMError = @import("../error.zig").CairoVMError;
 const InsufficientAllocatedCellsError = @import("../error.zig").InsufficientAllocatedCellsError;
 const RunnerError = @import("../error.zig").RunnerError;
@@ -396,10 +398,18 @@ pub const CairoRunner = struct {
     }
 
     /// Initializes runner state for execution of a program from the `main()` entrypoint.
+    ///
+    /// This function prepares the runner state for executing a program starting from the `main()` entrypoint. It sets up the initial stack and state variables required for execution, depending on whether the runner is in proof mode or not.
+    ///
+    /// # Returns
+    ///
+    /// Returns a `Relocatable` representing the program end if the initialization is successful. Otherwise, it returns an error indicating the reason for failure.
     pub fn initMainEntrypoint(self: *Self) !Relocatable {
+        // Initialize stack for storing execution context.
         var stack = std.ArrayList(MaybeRelocatable).init(self.allocator);
         defer stack.deinit();
 
+        // Initialize stack with initial values from built-in runners.
         for (self.vm.builtin_runners.items) |*builtin_runner| {
             const builtin_stack = try builtin_runner.initialStack(self.allocator);
             defer builtin_stack.deinit();
@@ -407,17 +417,23 @@ pub const CairoRunner = struct {
             try stack.appendSlice(builtin_stack.items);
         }
 
+        // If in proof mode, prepare execution state with additional adjustments.
         if (self.isProofMode()) {
             var target_offset: usize = 2;
 
+            // If in canonical proof mode, adjust stack and execution state accordingly.
             if (self.runner_mode == .proof_mode_canonical) {
+                // Prepare stack prefix with additional execution context.
                 var stack_prefix = try std.ArrayList(MaybeRelocatable).initCapacity(self.allocator, 2 + stack.items.len);
                 defer stack_prefix.deinit();
 
-                try stack_prefix.append(MaybeRelocatable.fromRelocatable(try (self.execution_base orelse return RunnerError.NoExecBase).addUint(target_offset)));
+                try stack_prefix.append(MaybeRelocatable.fromRelocatable(
+                    try (self.execution_base orelse return RunnerError.NoExecBase).addUint(target_offset),
+                ));
                 try stack_prefix.append(MaybeRelocatable.fromFelt(Felt252.zero()));
                 try stack_prefix.appendSlice(stack.items);
 
+                // Initialize public memory for execution context.
                 var execution_public_memory = try std.ArrayList(usize).initCapacity(self.allocator, stack_prefix.items.len);
 
                 for (0..stack_prefix.items.len) |v| {
@@ -426,30 +442,38 @@ pub const CairoRunner = struct {
 
                 self.execution_public_memory = execution_public_memory;
 
+                // Initialize execution state with adjusted stack prefix.
                 try self.initState(try (self.program.shared_program_data.start orelse
                     RunnerError.NoProgramStart), &stack_prefix);
             } else {
+                // Adjust target offset and stack length for proof mode.
                 target_offset = stack.items.len + 2;
 
+                // Add return frame pointer and end marker to stack.
                 const return_fp = try self.vm.segments.addSegment();
                 const end = try self.vm.segments.addSegment();
                 try stack.append(MaybeRelocatable.fromRelocatable(return_fp));
                 try stack.append(MaybeRelocatable.fromRelocatable(end));
 
+                // Initialize execution state with adjusted stack.
                 try self.initState(try (self.program.shared_program_data.start orelse
                     RunnerError.NoProgramStart), &stack);
             }
 
+            // Set initial frame pointer and argument pointer.
             self.initial_fp = try (self.execution_base orelse return RunnerError.NoExecBase).addUint(target_offset);
             self.initial_ap = self.initial_fp;
 
+            // Return program end address.
             return (self.program_base orelse
                 return RunnerError.NoExecBase).addUint(try (self.program.shared_program_data.end orelse
                 RunnerError.NoProgramEnd));
         }
 
+        // If not in proof mode, set up return frame pointer.
         const return_fp = try self.vm.segments.addSegment();
 
+        // If a custom entrypoint is specified, initialize execution from the entrypoint.
         if (self.entrypoint) |main|
             return self.initFunctionEntrypoint(
                 main,
@@ -457,6 +481,7 @@ pub const CairoRunner = struct {
                 &stack,
             );
 
+        // If no custom entrypoint is specified, return an error.
         return RunnerError.MissingMain;
     }
 
@@ -669,18 +694,12 @@ pub const CairoRunner = struct {
 
         // If extensive hints are not enabled, determine the hint data for the current PC offset
         if (!extensive_hints) {
-            // TODO: Implement extensive hint data parsing
-            if (self.program.shared_program_data.hints_collection
-                .hints_ranges.NonExtensive.items.len > self.vm.run_context.pc.offset)
-            {
-                if (self.program.shared_program_data.hints_collection
-                    .hints_ranges.NonExtensive.items[self.vm.run_context.pc.offset]) |range|
-                {
-                    hint_data_final = hint_datas.items[range.start .. range.start + range.length];
-                }
-            }
+            if (self.program
+                .shared_program_data
+                .hints_collection
+                .getHintRangeForPC(self.vm.run_context.pc.offset)) |range|
+                hint_data_final = hint_datas.items[range.start .. range.start + range.length];
         }
-
         // Initialize remaining steps to run
         var remaining_steps: usize = steps;
 
@@ -715,28 +734,149 @@ pub const CairoRunner = struct {
         }
     }
 
+    /// Checks the used cells and allocated memory size of the virtual machine (VM) and performs memory usage checks.
+    ///
+    /// This method checks the used cells and allocated memory size of the VM, including built-in runners, and performs various memory usage checks.
+    /// It utilizes an allocator to manage memory and stores the results in an ArrayList.
+    ///
+    /// # Arguments
+    ///
+    /// - `allocator`: The allocator used for managing memory.
+    ///
+    /// # Returns
+    ///
+    /// This function returns `void` upon successful execution. In case of errors during memory checks, it may return specific error types.
+    pub fn checkUsedCells(self: *Self, allocator: Allocator) !void {
+        // Initialize ArrayList to store results
+        var res = std.ArrayList(std.meta.Tuple(&.{ usize, ?usize })).init(allocator);
+        defer res.deinit(); // Deallocate ArrayList memory upon function exit
+
+        // Iterate over built-in runners and retrieve used cells and allocated size information
+        for (self.vm.builtin_runners.items) |builtin| {
+            try res.append(try builtin.getUsedCellsAndAllocatedSize(&self.vm));
+        }
+
+        // Perform various memory usage checks
+        try self.checkRangeCheckUsage(allocator, &self.vm);
+        try self.checkMemoryUsage();
+        try self.checkDilutedCheckUsage(allocator);
+    }
+
+    /// Checks the memory usage of the virtual machine (VM) and performs memory-related calculations.
+    ///
+    /// This method checks the memory usage of the VM, including built-in runners, and performs various memory-related calculations.
+    /// It calculates the total memory units available per step, fraction used for public memory, instruction memory units,
+    /// unused memory units, and memory address holes, and compares them to ensure sufficient allocated cells.
+    ///
+    /// # Returns
+    ///
+    /// This function returns `void` upon successful execution. In case of memory-related errors, it may return specific error types.
+    pub fn checkMemoryUsage(self: *Self) !void {
+        // Retrieve instance reference
+        const instance = &self.layout;
+
+        // Initialize variable to store built-in memory units
+        var builtins_memory_units: u32 = 0;
+
+        // Iterate over built-in runners and calculate allocated memory units
+        for (self.vm.builtin_runners.items) |builtin| {
+            builtins_memory_units += @intCast(try builtin.getAllocatedMemoryUnits(&self.vm));
+        }
+
+        // Retrieve current step of the VM
+        const vm_current_step: u32 = @intCast(self.vm.current_step);
+
+        // Calculate total memory units available per step
+        const total_memory_units = instance.memory_units_per_step * vm_current_step;
+
+        // Ensure safe division for public memory fraction
+        if (@rem(total_memory_units, instance.public_memory_fraction) != 0)
+            return MathError.SafeDivFailU32;
+
+        // Calculate instruction memory units
+        const instruction_memory_units = 4 * vm_current_step;
+
+        // Calculate unused memory units
+        const unused_memory_units = total_memory_units -
+            (total_memory_units / instance.public_memory_fraction +
+            instruction_memory_units + builtins_memory_units);
+
+        // Retrieve memory address holes
+        const memory_address_holes = try self.getMemoryHoles();
+
+        // Check for insufficient allocated cells
+        if (unused_memory_units < memory_address_holes)
+            return MemoryError.InsufficientAllocatedCells;
+    }
+
+    /// Ends the execution of the Cairo program, performing various cleanup operations and finalizations.
+    ///
+    /// This method concludes the execution of the Cairo program, performing memory relocation, finalizing VM execution,
+    /// and optionally padding execution traces in proof mode.
+    ///
+    /// # Arguments
+    ///
+    /// - `allocator`: The allocator used for managing memory.
+    /// - `disable_trace_padding`: A boolean indicating whether to disable trace padding in proof mode.
+    /// - `disable_finalize_all`: A boolean indicating whether to disable finalization of all segments.
+    /// - `hint_processor`: A pointer to the HintProcessor instance responsible for processing hints during execution.
+    /// - `extensive_hints`: A boolean indicating whether extensive hints should be enabled during execution.
+    ///
+    /// # Returns
+    ///
+    /// This function returns `void` upon successful execution. In case of errors or if the method has already been called,
+    /// it may return specific error types.
     pub fn endRun(
         self: *Self,
         allocator: Allocator,
         disable_trace_padding: bool,
         disable_finalize_all: bool,
         hint_processor: *HintProcessor,
+        extensive_hints: bool,
     ) !void {
+        // Check if the method has already been called
         if (self.run_ended)
             return CairoRunnerError.EndRunAlreadyCalled;
 
+        // Perform memory relocation
         try self.vm.segments.memory.relocateMemory();
+
+        // Finalize VM execution
         try self.vm.endRun(allocator, &self.execution_scopes);
 
+        // Return if finalization of all segments is disabled
         if (disable_finalize_all) return;
 
+        // Compute effective sizes of segments
         _ = try self.vm.computeSegmentsEffectiveSizes(false);
 
+        // Perform trace padding in proof mode if not disabled
         if (self.isProofMode() and !disable_trace_padding) {
-            // TODO : complete proof mode
-            _ = hint_processor;
+            // Run until the next power of 2 is reached
+            try self.runUntilNextPowerOf2(extensive_hints, hint_processor);
+
+            // Loop until sufficient allocated cells are available
+            while (true) {
+                // Check used cells and handle errors
+                if (self.checkUsedCells(allocator)) {
+                    break;
+                } else |err| switch (err) {
+                    MemoryError.InsufficientAllocatedCells => {},
+                    InsufficientAllocatedCellsError.BuiltinCells => {},
+                    InsufficientAllocatedCellsError.DilutedCells => {},
+                    InsufficientAllocatedCellsError.MemoryAddresses => {},
+                    InsufficientAllocatedCellsError.MinStepNotReached => {},
+                    InsufficientAllocatedCellsError.RangeCheckUnits => {},
+                    else => |e| return e,
+                }
+
+                // Run for one step and continue padding traces
+                try self.runForSteps(1, extensive_hints, hint_processor);
+                try self.runUntilNextPowerOf2(extensive_hints, hint_processor);
+            }
         }
 
+        // Mark the end of the run
         self.run_ended = true;
     }
 
@@ -4378,7 +4518,13 @@ test "CairoRunner: endRun with a run that is already finished" {
 
     try expectError(
         CairoRunnerError.EndRunAlreadyCalled,
-        cairo_runner.endRun(std.testing.allocator, true, false, &hint_processor),
+        cairo_runner.endRun(
+            std.testing.allocator,
+            true,
+            false,
+            &hint_processor,
+            false,
+        ),
     );
 }
 
@@ -4399,13 +4545,352 @@ test "CairoRunner: endRun with a simple test" {
 
     var hint_processor: HintProcessor = .{};
 
-    try cairo_runner.endRun(std.testing.allocator, true, false, &hint_processor);
+    try cairo_runner.endRun(
+        std.testing.allocator,
+        true,
+        false,
+        &hint_processor,
+        false,
+    );
 
     cairo_runner.run_ended = false;
 
     cairo_runner.relocated_memory.clearAndFree();
 
-    try cairo_runner.endRun(std.testing.allocator, true, true, &hint_processor);
+    try cairo_runner.endRun(
+        std.testing.allocator,
+        true,
+        true,
+        &hint_processor,
+        false,
+    );
 
     try expect(!cairo_runner.run_ended);
+}
+
+test "CairoRunner: checkMemoryUsage valid case" {
+    // Initialize a list of built-in functions.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.range_check);
+    try builtins.append(BuiltinName.output);
+
+    // Initialize data structures required for a program.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a Program instance with the specified parameters.
+    const program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        null,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
+        true,
+    );
+
+    // Initialize a CairoRunner instance with the created Program and CairoVM instances.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    // Set a used size for a segment in the CairoVM.
+    try cairo_runner.vm.segments.segment_used_sizes.put(0, 4);
+
+    // Check memory usage in the CairoRunner instance.
+    try cairo_runner.checkMemoryUsage();
+}
+
+test "CairoRunner: checkMemoryUsage with error case" {
+    // Initialize a CairoVM instance.
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{ .proof_mode = false, .enable_trace = true },
+    );
+
+    // Initialize and setup an OutputBuiltinRunner instance.
+    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator, false);
+    try output_builtin.initSegments(vm.segments);
+
+    // Append the OutputBuiltinRunner to the CairoVM's builtin runners list.
+    try vm.builtin_runners.append(.{ .Output = output_builtin });
+
+    // Create a CairoRunner instance for testing.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator, true),
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        vm,
+        false,
+    );
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    // Set used sizes for segments in the CairoVM.
+    try cairo_runner.vm.segments.segment_used_sizes.put(0, 4);
+    try cairo_runner.vm.segments.segment_used_sizes.put(1, 12);
+
+    // Set up memory for the VM with specific addresses and values.
+    try cairo_runner.vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{
+            .{ .{ 0, 0 }, .{0} },
+            .{ .{ 0, 1 }, .{1} },
+            .{ .{ 0, 2 }, .{1} },
+        },
+    );
+    // Deallocate data memory after the test.
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Mark memory as accessed in CairoVM.
+    cairo_runner.vm.segments.memory.markAsAccessed(.{});
+
+    // Expect an error of insufficient allocated cells when checking memory usage.
+    try expectError(MemoryError.InsufficientAllocatedCells, cairo_runner.checkMemoryUsage());
+}
+
+test "CairoRunner: checkUsedCells valid case" {
+    // Initialize a list of built-in functions.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.range_check);
+    try builtins.append(BuiltinName.output);
+
+    // Initialize data structures required for a program.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a Program instance with the specified parameters.
+    const program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        null,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
+        true,
+    );
+
+    // Initialize a CairoRunner instance with the created Program and CairoVM instances.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    // Set used sizes for segments in the CairoVM.
+    try cairo_runner.vm.segments.segment_used_sizes.put(0, 4);
+
+    // Set diluted pool instance definition to null in CairoRunner layout.
+    cairo_runner.layout.diluted_pool_instance_def = null;
+
+    // Check used cells in the CairoRunner instance.
+    try cairo_runner.checkUsedCells(std.testing.allocator);
+}
+
+test "CairoRunner: checkUsedCells with insufficient allocated cells MinStepNotReached" {
+    // Initialize a CairoVM instance.
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{ .proof_mode = false, .enable_trace = true },
+    );
+
+    // Initialize and append a RangeCheckBuiltinRunner to the CairoVM's builtin runners list.
+    try vm.builtin_runners.append(
+        .{ .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true) },
+    );
+
+    // Create a CairoRunner instance for testing.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator, true),
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        vm,
+        false,
+    );
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    // Set up memory for the VM with specific addresses and values.
+    try cairo_runner.vm.segments.memory.setUpMemory(
+        std.testing.allocator,
+        .{.{ .{ 0, 0 }, .{0x80ff80000530} }},
+    );
+    // Deallocate data memory after the test.
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Append an entry to the CairoVM's trace context state enabled entries list.
+    try cairo_runner.vm.trace_context.state.enabled.entries.append(.{ .pc = .{}, .ap = .{}, .fp = .{} });
+
+    // Compute effective size of segments in CairoVM.
+    _ = try cairo_runner.vm.segments.computeEffectiveSize(false);
+
+    // Expect an error of MinStepNotReached when checking used cells.
+    try expectError(
+        InsufficientAllocatedCellsError.MinStepNotReached,
+        cairo_runner.checkUsedCells(std.testing.allocator),
+    );
+}
+
+test "CairoRunner: checkUsedCells with insufficient allocated cells" {
+    // Initialize a CairoVM instance.
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{ .proof_mode = true, .enable_trace = true },
+    );
+
+    // Mark specific memory addresses as accessed in the CairoVM.
+    vm.segments.memory.markAsAccessed(Relocatable.init(1, 0));
+    vm.segments.memory.markAsAccessed(Relocatable.init(1, 3));
+
+    // Initialize and setup an OutputBuiltinRunner instance.
+    var output_builtin = OutputBuiltinRunner.init(std.testing.allocator, true);
+    try output_builtin.initSegments(vm.segments);
+
+    // Append the OutputBuiltinRunner to the CairoVM's builtin runners list.
+    try vm.builtin_runners.append(.{ .Output = output_builtin });
+
+    // Create a CairoRunner instance for testing.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator, true),
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        vm,
+        true,
+    );
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    // Set used sizes for segments in the CairoVM.
+    try cairo_runner.vm.segments.segment_used_sizes.put(0, 4);
+    try cairo_runner.vm.segments.segment_used_sizes.put(1, 12);
+
+    // Expect an error of insufficient allocated cells when checking used cells.
+    try expectError(
+        MemoryError.InsufficientAllocatedCells,
+        cairo_runner.checkUsedCells(std.testing.allocator),
+    );
+}
+
+test "CairoRunner: checkUsedCells with diluted check error" {
+    // Initialize a list of built-in functions.
+    var builtins = std.ArrayList(BuiltinName).init(std.testing.allocator);
+    try builtins.append(BuiltinName.range_check);
+    try builtins.append(BuiltinName.output);
+
+    // Initialize data structures required for a program.
+    const reference_manager = ReferenceManager.init(std.testing.allocator);
+    const data = std.ArrayList(MaybeRelocatable).init(std.testing.allocator);
+    const hints = std.AutoHashMap(usize, []const HintParams).init(std.testing.allocator);
+    const identifiers = std.StringHashMap(Identifier).init(std.testing.allocator);
+    const error_message_attributes = std.ArrayList(Attribute).init(std.testing.allocator);
+
+    // Initialize a Program instance with the specified parameters.
+    const program = try Program.init(
+        std.testing.allocator,
+        builtins,
+        data,
+        null,
+        hints,
+        reference_manager,
+        identifiers,
+        error_message_attributes,
+        null,
+        true,
+    );
+
+    // Initialize a CairoRunner instance with the created Program and CairoVM instances.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{},
+        ),
+        false,
+    );
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    // Set used sizes for segments in the CairoVM.
+    try cairo_runner.vm.segments.segment_used_sizes.put(0, 4);
+
+    // Expect an error of insufficient allocated cells when checking used cells.
+    try expectError(
+        MemoryError.InsufficientAllocatedCells,
+        cairo_runner.checkUsedCells(std.testing.allocator),
+    );
+}
+
+test "CairoRunner: endRun in proof mode with insufficient allocated cells" {
+    // Get the absolute path of the current working directory.
+    var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+    const path = try std.posix.realpath("cairo_programs/proof_programs/fibonacci.json", &buffer);
+    // Parse the JSON file into a `ProgramJson` structure
+    var parsed_program = try ProgramJson.parseFromFile(std.testing.allocator, path);
+    defer parsed_program.deinit();
+
+    // Specify the entrypoint identifier
+    var entrypoint: []const u8 = "main";
+    // Parse the program JSON into a `Program` structure
+    const program = try parsed_program.value.parseProgramJson(
+        std.testing.allocator,
+        &entrypoint,
+        false,
+    );
+
+    // Initialize a CairoRunner instance with the created Program and CairoVM instances.
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        try CairoVM.init(
+            std.testing.allocator,
+            .{ .proof_mode = true, .enable_trace = true },
+        ),
+        true,
+    );
+    defer cairo_runner.deinit(std.testing.allocator);
+    defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
+
+    // Initialize a HintProcessor instance.
+    var hint_processor: HintProcessor = .{};
+
+    // Initialize builtins, segments, main entry point, and VM.
+    try cairo_runner.initBuiltins(true);
+    try cairo_runner.initSegments(null);
+    const end = try cairo_runner.initMainEntrypoint();
+    try cairo_runner.initVM();
+
+    // Run the program until reaching the specified PC.
+    try cairo_runner.runUntilPC(end, false, &hint_processor);
 }

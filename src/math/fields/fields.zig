@@ -6,6 +6,10 @@ const helper = @import("helper.zig");
 const tonelliShanks = helper.tonelliShanks;
 const extendedGCD = helper.extendedGCD;
 
+const fromBigInt = @import("starknet.zig").fromBigInt;
+
+const Int = std.math.big.int.Managed;
+
 pub const ModSqrtError = error{
     InvalidInput,
 };
@@ -465,7 +469,7 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
         }
 
         pub fn modInverse(operand: Self, modulus: Self) !Self {
-            const ext = extendedGCD(@bitCast(operand.toInteger()), @bitCast(modulus.toInteger()));
+            const ext = extendedGCD(i256, @bitCast(operand.toInteger()), @bitCast(modulus.toInteger()));
 
             if (ext.gcd != 1) {
                 @panic("GCD must be one");
@@ -649,6 +653,10 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             }
 
             return Self.fromInt(u256, @intCast(-value)).neg();
+        }
+
+        pub fn toSignedBigInt(self: Self, allocator: std.mem.Allocator) !std.math.big.int.Managed {
+            return std.math.big.int.Managed.initSet(allocator, self.toSignedInt());
         }
 
         // converting felt to abs value with sign, in (- FIELD / 2, FIELD / 2
