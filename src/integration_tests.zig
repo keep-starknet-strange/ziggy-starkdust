@@ -106,8 +106,7 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/if_reloc_equal.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/integration_with_alloc_locals.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/integration.json", .layout = "all_cairo" },
-        // TODO: not implemented hint
-        // .{ .pathname = "cairo_programs/inv_mod_p_uint512.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/inv_mod_p_uint512.json", .layout = "all_cairo" },
 
         .{ .pathname = "cairo_programs/is_quad_residue_test.json", .layout = "all_cairo" },
 
@@ -214,15 +213,14 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/test_reverse_if.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/test_subtraction_if.json", .layout = "all_cairo" },
 
-        //TODO: hint uint384 not implemented
-        // .{ .pathname = "cairo_programs/uint256_improvements.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/uint256_improvements.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/uint256_integration_tests.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/uint256.json", .layout = "all_cairo" },
 
-        // .{ .pathname = "cairo_programs/uint384_extension_test.json", .layout = "all_cairo" },
-        // .{ .pathname = "cairo_programs/uint384_extension.json", .layout = "all_cairo" },
-        // .{ .pathname = "cairo_programs/uint384_test.json", .layout = "all_cairo" },
-        // .{ .pathname = "cairo_programs/uint384.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/uint384_extension_test.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/uint384_extension.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/uint384_test.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/uint384.json", .layout = "all_cairo" },
 
         .{ .pathname = "cairo_programs/unsafe_keccak_finalize.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/unsafe_keccak.json", .layout = "all_cairo" },
