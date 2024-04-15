@@ -36,6 +36,9 @@ const set = @import("set.zig");
 const pow_utils = @import("pow_utils.zig");
 const segments = @import("segments.zig");
 
+const bigint_utils = @import("../hint_processor/builtin_hint_processor/secp/bigint_utils.zig");
+const bigint = @import("bigint.zig");
+
 const deserialize_utils = @import("../parser/deserialize_utils.zig");
 const print_utils = @import("./print.zig");
 
@@ -378,6 +381,16 @@ pub const CairoVMHintProcessor = struct {
             try print_utils.printFelt(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.PRINT_DICT, hint_data.code)) {
             try print_utils.printDict(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.HI_MAX_BIT_LEN, hint_data.code)) {
+            try bigint_utils.hiMaxBitlen(vm, allocator, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.NONDET_BIGINT3_V1, hint_data.code)) {
+            try bigint_utils.nondetBigInt3(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.NONDET_BIGINT3_V2, hint_data.code)) {
+            try bigint_utils.nondetBigInt3(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.BIGINT_PACK_DIV_MOD_HINT, hint_data.code)) {
+            try bigint.bigintPackDivModHint(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.BIGINT_SAFE_DIV, hint_data.code)) {
+            try bigint.bigIntSafeDivHint(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else {
             std.log.err("not implemented: {s}\n", .{hint_data.code});
             return HintError.HintNotImplemented;
