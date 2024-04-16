@@ -46,6 +46,7 @@ const deserialize_utils = @import("../parser/deserialize_utils.zig");
 const print_utils = @import("./print.zig");
 
 const testing_utils = @import("testing_utils.zig");
+const blake2s_utils = @import("blake2s_utils.zig");
 
 const HintError = @import("../vm/error.zig").HintError;
 
@@ -378,6 +379,16 @@ pub const CairoVMHintProcessor = struct {
             try squash_dict_utils.squashDictInnerNextKey(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT, hint_data.code)) {
             try squash_dict_utils.squashDict(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.BLAKE2S_COMPUTE, hint_data.code)) {
+            try blake2s_utils.blake2sCompute(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.BLAKE2S_FINALIZE, hint_data.code)) {
+            try blake2s_utils.blake2sFinalize(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.BLAKE2S_ADD_UINT256, hint_data.code)) {
+            try blake2s_utils.blake2sAddUnit256(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.BLAKE2S_ADD_UINT256_BIGEND, hint_data.code)) {
+            try blake2s_utils.blake2sAddUnit256BigEnd(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.EXAMPLE_BLAKE2S_COMPRESS, hint_data.code)) {
+            try blake2s_utils.exampleBlake2SCompress(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.PRINT_ARR, hint_data.code)) {
             try print_utils.printArray(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.PRINT_FELT, hint_data.code)) {

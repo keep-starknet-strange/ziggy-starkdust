@@ -74,6 +74,8 @@ pub const hint_processor = struct {
     pub usingnamespace @import("hint_processor/builtin_hint_processor/secp/bigint_utils.zig");
     pub usingnamespace @import("hint_processor/cairo_keccak_hints.zig");
     pub usingnamespace @import("hint_processor/math_utils.zig");
+    pub usingnamespace @import("hint_processor/blake2s_hash.zig");
+    pub usingnamespace @import("hint_processor/blake2s_utils.zig");
     pub usingnamespace @import("hint_processor/uint384.zig");
     pub usingnamespace @import("hint_processor/vrf/inv_mod_p_uint512.zig");
 };
