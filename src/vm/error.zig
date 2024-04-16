@@ -212,6 +212,10 @@ pub const MathError = error{
     ByteConversionError,
     DividedByZero,
     Felt252ToUsizeConversion,
+    DivModIgcdexNotZero,
+    SafeDivFailBigInt,
+
+    SecpSplitOutOfRange,
     SafeDivFailU32,
     Felt252ToU32Conversion,
 };
@@ -359,6 +363,8 @@ pub const HintError = error{
 
     /// Occurs when a hint is attempting to be executed that is not yet implemented
     HintNotImplemented,
+
+    MemoryHasNoValue,
 };
 
 pub const InsufficientAllocatedCellsError = error{
