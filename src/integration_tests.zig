@@ -76,7 +76,7 @@ pub fn main() void {
         // TODO: HintNotImplemented error
         // .{ .pathname = "cairo_programs/efficient_secp256r1_ec.json", .layout = "all_cairo" },
         // TODO: merge blake hint
-        // .{ .pathname = "cairo_programs/example_blake2s.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/example_blake2s.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/example_program.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/factorial.json", .layout = "plain" },
         // TODO: HintNotImplemented error
@@ -87,9 +87,9 @@ pub fn main() void {
         // TODO: HintNotImplemented error secp signature hint
         // .{ .pathname = "cairo_programs/field_arithmetic.json", .layout = "all_cairo" },
         // TODO: merge blake hint
-        // .{ .pathname = "cairo_programs/finalize_blake2s.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/finalize_blake2s.json", .layout = "all_cairo" },
         // TODO: merge blake hint
-        // .{ .pathname = "cairo_programs/finalize_blake2s_v2_hint.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/finalize_blake2s_v2_hint.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/find_element.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/fq.json", .layout = "all_cairo" },
         // TODO: Hint not implemented error
