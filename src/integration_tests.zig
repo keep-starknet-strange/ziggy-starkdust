@@ -32,9 +32,9 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/bitwise_builtin_test.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/bitwise_recursion_compiled.json", .layout = "all_cairo" },
         // TODO: merge blake hint
-        // .{ .pathname = "cairo_programs/blake2s_felts.json", .layout = "all_cairo" },
-        // .{ .pathname = "cairo_programs/blake2s_hello_world_hash.json", .layout = "all_cairo" },
-        // .{ .pathname = "cairo_programs/blake2s_integration_tests.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/blake2s_felts.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/blake2s_hello_world_hash.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/blake2s_integration_tests.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/cairo_finalize_keccak_compiled.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/cairo_finalize_keccak_block_size_1000.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/call_function_assign_param_by_name.json", .layout = "all_cairo" },
