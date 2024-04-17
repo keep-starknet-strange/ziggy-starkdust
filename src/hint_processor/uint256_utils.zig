@@ -12,6 +12,7 @@ const ApTracking = @import("../vm/types/programjson.zig").ApTracking;
 const HintData = @import("hint_processor_def.zig").HintData;
 const ExecutionScopes = @import("../vm/types/execution_scopes.zig").ExecutionScopes;
 
+const Int = @import("std").math.big.int.Managed;
 const helper = @import("../math/fields/helper.zig");
 const MathError = @import("../vm/error.zig").MathError;
 const HintError = @import("../vm/error.zig").HintError;
@@ -54,6 +55,15 @@ pub const Uint256 = struct {
 
     pub fn split(comptime T: type, num: T) Self {
         return Self.init(Felt252.fromInt(T, num & std.math.maxInt(u128)), Felt252.fromInt(T, num >> 128));
+    }
+
+    pub fn pack(self: Self, allocator: std.mem.Allocator) !Int {
+        var result = try Int.initSet(allocator, self.high.toInteger());
+        errdefer result.deinit();
+
+        try result.shiftLeft(&result, 128);
+        try result.addScalar(&result, self.low.toInteger());
+        return result;
     }
     // converting self to biguint value
     // optimize by using biguint

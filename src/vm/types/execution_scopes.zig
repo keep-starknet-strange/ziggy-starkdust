@@ -259,6 +259,7 @@ pub const HintType = union(enum) {
     dict_manager: Rc(DictManager),
     felt_map_of_felt_list: std.AutoHashMap(Felt252, std.ArrayList(Felt252)),
     felt_list: ArrayList(Felt252),
+    big_int: std.math.big.int.Managed,
 
     pub fn deinit(self: *Self) void {
         switch (self.*) {
@@ -277,6 +278,7 @@ pub const HintType = union(enum) {
             .maybe_relocatable_map => |*m| m.deinit(),
             .u64_list => |*a| a.deinit(),
             .felt_list => |*a| a.deinit(),
+            .big_int => |*a| a.deinit(),
             .dict_manager => |d| d.releaseWithFn(DictManager.deinit),
             else => {},
         }
