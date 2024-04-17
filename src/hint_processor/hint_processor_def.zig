@@ -41,7 +41,6 @@ const bigint = @import("bigint.zig");
 const uint384 = @import("uint384.zig");
 const inv_mod_p_uint512 = @import("vrf/inv_mod_p_uint512.zig");
 
-
 const deserialize_utils = @import("../parser/deserialize_utils.zig");
 const print_utils = @import("./print.zig");
 
@@ -382,6 +381,8 @@ pub const CairoVMHintProcessor = struct {
         } else if (std.mem.eql(u8, hint_codes.BLAKE2S_COMPUTE, hint_data.code)) {
             try blake2s_utils.blake2sCompute(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.BLAKE2S_FINALIZE, hint_data.code)) {
+            try blake2s_utils.blake2sFinalize(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.BLAKE2S_FINALIZE_V2, hint_data.code)) {
             try blake2s_utils.blake2sFinalize(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.BLAKE2S_ADD_UINT256, hint_data.code)) {
             try blake2s_utils.blake2sAddUnit256(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);

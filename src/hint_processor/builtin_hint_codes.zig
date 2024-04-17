@@ -682,6 +682,29 @@ pub const BLAKE2S_FINALIZE =
     \\segments.write_arg(ids.blake2s_ptr_end, padding)
 ;
 
+pub const BLAKE2S_FINALIZE_V2 =
+    \\# Add dummy pairs of input and output.
+    \\from starkware.cairo.common.cairo_blake2s.blake2s_utils import IV, blake2s_compress
+    \\
+    \\_n_packed_instances = int(ids.N_PACKED_INSTANCES)
+    \\assert 0 <= _n_packed_instances < 20
+    \\_blake2s_input_chunk_size_felts = int(ids.BLAKE2S_INPUT_CHUNK_SIZE_FELTS)
+    \\assert 0 <= _blake2s_input_chunk_size_felts < 100
+    \\
+    \\message = [0] * _blake2s_input_chunk_size_felts
+    \\modified_iv = [IV[0] ^ 0x01010020] + IV[1:]
+    \\output = blake2s_compress(
+    \\    message=message,
+    \\    h=modified_iv,
+    \\    t0=0,
+    \\    t1=0,
+    \\    f0=0xffffffff,
+    \\    f1=0,
+    \\)
+    \\padding = (modified_iv + message + [0, 0xffffffff] + output) * (_n_packed_instances - 1)
+    \\segments.write_arg(ids.blake2s_ptr_end, padding)
+;
+
 pub const BLAKE2S_ADD_UINT256 =
     \\B = 32
     \\MASK = 2 ** 32 - 1

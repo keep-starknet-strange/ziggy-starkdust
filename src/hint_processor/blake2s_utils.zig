@@ -55,7 +55,7 @@ fn computeBlake2sFunc(allocator: Allocator, vm: *CairoVM, output_ptr: Relocatabl
     const t = try feltToU32(try vm.getFelt(try output_ptr.subUint(2)));
     const f = try feltToU32(try vm.getFelt(try output_ptr.subUint(1)));
 
-    const h_range = try blake2s_hash.blake2s_compress(allocator, h, message, t, 9, f, 0);
+    const h_range = try blake2s_hash.blake2s_compress(allocator, h, message, t, 0, f, 0);
     defer h_range.deinit();
     var new_state = try getMaybeRelocArrayFromU32Array(allocator, h_range);
     defer new_state.deinit();
