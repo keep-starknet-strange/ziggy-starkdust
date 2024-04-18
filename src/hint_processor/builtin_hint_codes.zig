@@ -516,20 +516,23 @@ pub const DICT_SQUASH_COPY_DICT =
     \\    'initial_dict': dict(__dict_manager.get_dict(ids.dict_accesses_end)),
     \\})
 ;
-pub const BIGINT_PACK_DIV_MOD_HINT =
+
+pub const BIGINT_PACK_DIV_MOD =
     \\from starkware.cairo.common.cairo_secp.secp_utils import pack
     \\from starkware.cairo.common.math_utils import as_int
     \\from starkware.python.math_utils import div_mod, safe_div
+    \\
     \\p = pack(ids.P, PRIME)
     \\x = pack(ids.x, PRIME) + as_int(ids.x.d3, PRIME) * ids.BASE ** 3 + as_int(ids.x.d4, PRIME) * ids.BASE ** 4
     \\y = pack(ids.y, PRIME)
+    \\
     \\value = res = div_mod(x, y, p)
 ;
 
 pub const BIGINT_SAFE_DIV =
-    \\ k = safe_div(res * y - x, p)
-    \\ value = k if k > 0 else 0 - k
-    \\ ids.flag = 1 if k > 0 else 0
+    \\k = safe_div(res * y - x, p)
+    \\value = k if k > 0 else 0 - k
+    \\ids.flag = 1 if k > 0 else 0
 ;
 
 pub const HI_MAX_BIT_LEN = "ids.len_hi = max(ids.scalar_u.d2.bit_length(), ids.scalar_v.d2.bit_length())-1";
@@ -776,7 +779,6 @@ pub const PRINT_DICT =
     \\    {k: v if isinstance(v, int) else [memory[v + i] for i in range(ids.pointer_size)] for k, v in data.items()}
     \\)
 ;
-
 
 pub const NONDET_BIGINT3_V1 =
     \\from starkware.cairo.common.cairo_secp.secp_utils import split

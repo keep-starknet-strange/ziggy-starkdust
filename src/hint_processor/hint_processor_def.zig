@@ -47,7 +47,6 @@ const secp_utils = @import("builtin_hint_processor/secp/secp_utils.zig");
 const field_utils = @import("builtin_hint_processor/secp/field_utils.zig");
 const ec_recover = @import("ec_recover.zig");
 
-
 const deserialize_utils = @import("../parser/deserialize_utils.zig");
 const print_utils = @import("./print.zig");
 
@@ -411,7 +410,7 @@ pub const CairoVMHintProcessor = struct {
             try bigint_utils.nondetBigInt3(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.BIGINT_TO_UINT256, hint_data.code)) {
             try bigint_utils.bigintToUint256(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
-        } else if (std.mem.eql(u8, hint_codes.BIGINT_PACK_DIV_MOD_HINT, hint_data.code)) {
+        } else if (std.mem.eql(u8, hint_codes.BIGINT_PACK_DIV_MOD, hint_data.code)) {
             try bigint.bigintPackDivModHint(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.BIGINT_SAFE_DIV, hint_data.code)) {
             try bigint.bigIntSafeDivHint(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
@@ -433,7 +432,6 @@ pub const CairoVMHintProcessor = struct {
             try uint384.unsignedDivRemUint768ByUint384(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.INV_MOD_P_UINT512, hint_data.code)) {
             try inv_mod_p_uint512.invModPUint512(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
-
         } else if (std.mem.eql(u8, hint_codes.RECOVER_Y, hint_data.code)) {
             try ec_utils.recoverYHint(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.RANDOM_EC_POINT, hint_data.code)) {

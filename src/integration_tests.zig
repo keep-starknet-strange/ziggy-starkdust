@@ -25,10 +25,9 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/assert_le_felt_old_compiled.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/assert_nn_compiled.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/assert_not_zero_compiled.json", .layout = "all_cairo" },
-        // TODO field utils hint not implemented
-        // .{ .pathname = "cairo_programs/bigint_compiled.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/big_struct_compiled.json", .layout = "all_cairo" },
 
+        .{ .pathname = "cairo_programs/bigint_compiled.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/big_struct_compiled.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/bitand_hint_compiled.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/bitwise_output_compiled.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/bitwise_builtin_test.json", .layout = "all_cairo" },
@@ -64,7 +63,7 @@ pub fn main() void {
         // TODO: HintNotImplemented error secp
         // .{ .pathname = "cairo_programs/ed25519_field.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/efficient_secp256r1_ec.json", .layout = "all_cairo" },
-        // TODO: merge blake hint
+        // TODO: sha256 util not implemented hint
         // .{ .pathname = "cairo_programs/example_blake2s.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/example_program.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/factorial.json", .layout = "plain" },
@@ -98,7 +97,7 @@ pub fn main() void {
 
         .{ .pathname = "cairo_programs/is_quad_residue_test.json", .layout = "all_cairo" },
 
-        // TODO: hint not implemented field utils
+        // TODO: hint not implemented is zero ed25519
         // .{ .pathname = "cairo_programs/is_zero_pack.json", .layout = "all_cairo" },
         // TODO: hint not implemented is zero ed25519
         // .{ .pathname = "cairo_programs/is_zero.json", .layout = "all_cairo" },
@@ -112,8 +111,8 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/keccak.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/keccak_compiled.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/keccak_builtin.json", .layout = "all_cairo" },
-        // .{ .pathname = "cairo_programs/keccak_integration_tests.json", .layout = "all_cairo" },
-        // .{ .pathname = "cairo_programs/keccak_copy_inputs.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/keccak_integration_tests.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/keccak_copy_inputs.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/print_features/print_array.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/print_features/print_felt.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/print_features/print_dict_felt.json", .layout = "all_cairo" },
@@ -129,12 +128,11 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/memory_holes.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/memory_integration_tests.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/memset.json", .layout = "all_cairo" },
-        // TODO: hint not implemented
+        // TODO: signature secp not implemented
         // .{ .pathname = "cairo_programs/mul_s_inv.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/multiplicative_inverse.json", .layout = "all_cairo" },
 
-        // TODO: hint not implemented quad_bit
-        // .{ .pathname = "cairo_programs/n_bit.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/n_bit.json", .layout = "all_cairo" },
         // TODO: hint not implemented signature secp
         // .{ .pathname = "cairo_programs/nondet_bigint3_v2.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/normalize_address.json", .layout = "all_cairo" },
@@ -153,8 +151,7 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/poseidon_multirun.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/pow.json", .layout = "all_cairo" },
 
-        // TODO: hint not implemented Print
-        // .{ .pathname = "cairo_programs/print.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/print.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/recover_y.json", .layout = "all_cairo" },
         // TODO: not implemented vrf/pack
         // .{ .pathname = "cairo_programs/reduce.json", .layout = "all_cairo" },
@@ -169,7 +166,6 @@ pub fn main() void {
 
         .{ .pathname = "cairo_programs/search_sorted_lower.json", .layout = "all_cairo" },
 
-        // TODO: secp hint not implemeted
         .{ .pathname = "cairo_programs/secp_ec.json", .layout = "all_cairo" },
         // TODO: signature not implemented
         // .{ .pathname = "cairo_programs/secp_integration_tests.json", .layout = "all_cairo" },
@@ -177,7 +173,6 @@ pub fn main() void {
         // TODO: signature hint
         // .{ .pathname = "cairo_programs/secp256r1_div_mod_n.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/secp256r1_fast_ec_add.json", .layout = "all_cairo" },
-        // TODO: not implemented
         .{ .pathname = "cairo_programs/secp256r1_slope.json", .layout = "all_cairo" },
 
         .{ .pathname = "cairo_programs/set_add.json", .layout = "all_cairo" },
@@ -190,8 +185,7 @@ pub fn main() void {
         // TODO: secp not implemented
         // .{ .pathname = "cairo_programs/signature.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/signed_div_rem.json", .layout = "all_cairo" },
-        // TODO: print hint not implemented
-        // .{ .pathname = "cairo_programs/simple_print.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/simple_print.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/split_felt.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/split_int_big.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/split_int.json", .layout = "all_cairo" },
