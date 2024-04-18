@@ -1,4 +1,5 @@
 const std = @import("std");
+
 pub const BASE = @import("../../../math/fields/constants.zig").BASE;
 const Int = std.math.big.int.Managed;
 

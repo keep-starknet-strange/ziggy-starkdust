@@ -36,6 +36,7 @@ pub fn fromBigInt(allocator: std.mem.Allocator, bigint: std.math.big.int.Managed
 
     const bytes =
         try bigIntToBytesLe(allocator, tmp2);
+
     defer allocator.free(bytes);
 
     return fromBytesLeSlice(bytes);

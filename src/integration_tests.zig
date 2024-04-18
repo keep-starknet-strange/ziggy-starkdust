@@ -33,10 +33,9 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/bitwise_output_compiled.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/bitwise_builtin_test.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/bitwise_recursion_compiled.json", .layout = "all_cairo" },
-        // TODO: merge blake hint
-        // .{ .pathname = "cairo_programs/blake2s_felts.json", .layout = "all_cairo" },
-        // .{ .pathname = "cairo_programs/blake2s_hello_world_hash.json", .layout = "all_cairo" },
-        // .{ .pathname = "cairo_programs/blake2s_integration_tests.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/blake2s_felts.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/blake2s_hello_world_hash.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/blake2s_integration_tests.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/cairo_finalize_keccak_compiled.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/cairo_finalize_keccak_block_size_1000.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/call_function_assign_param_by_name.json", .layout = "all_cairo" },
@@ -69,15 +68,16 @@ pub fn main() void {
         // .{ .pathname = "cairo_programs/example_blake2s.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/example_program.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/factorial.json", .layout = "plain" },
+
         .{ .pathname = "cairo_programs/fast_ec_add_v2.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/fast_ec_add_v3.json", .layout = "all_cairo" },
+
         .{ .pathname = "cairo_programs/fibonacci.json", .layout = "plain" },
         // TODO: HintNotImplemented error secp signature hint
         // .{ .pathname = "cairo_programs/field_arithmetic.json", .layout = "all_cairo" },
-        // TODO: merge blake hint
-        // .{ .pathname = "cairo_programs/finalize_blake2s.json", .layout = "all_cairo" },
-        // TODO: merge blake hint
-        // .{ .pathname = "cairo_programs/finalize_blake2s_v2_hint.json", .layout = "all_cairo" },
+
+        .{ .pathname = "cairo_programs/finalize_blake2s.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/finalize_blake2s_v2_hint.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/find_element.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/fq.json", .layout = "all_cairo" },
         // TODO: Hint not implemented error
@@ -112,6 +112,12 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/keccak.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/keccak_compiled.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/keccak_builtin.json", .layout = "all_cairo" },
+        // .{ .pathname = "cairo_programs/keccak_integration_tests.json", .layout = "all_cairo" },
+        // .{ .pathname = "cairo_programs/keccak_copy_inputs.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/print_features/print_array.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/print_features/print_felt.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/print_features/print_dict_felt.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/print_features/print_dict_array.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/keccak_integration_tests.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/keccak_copy_inputs.json", .layout = "all_cairo" },
 
@@ -146,11 +152,13 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/poseidon_hash.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/poseidon_multirun.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/pow.json", .layout = "all_cairo" },
+
         // TODO: hint not implemented Print
         // .{ .pathname = "cairo_programs/print.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/recover_y.json", .layout = "all_cairo" },
         // TODO: not implemented vrf/pack
         .{ .pathname = "cairo_programs/reduce.json", .layout = "all_cairo" },
+
 
         .{ .pathname = "cairo_programs/relocate_segments_with_offset.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/relocate_segments.json", .layout = "all_cairo" },

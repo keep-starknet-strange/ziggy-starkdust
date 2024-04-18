@@ -237,7 +237,7 @@ pub const Relocatable = struct {
     /// Gets the adjusted segment index for a Relocatable object.
     ///
     /// This function returns the adjusted segment index for a given `Relocatable` object. If the
-    /// `segment_index` is negative, it is adjusted by subtracting one and negating the result.
+    /// `segment_index` is negative, it is adjusted by adding one and negating the result.
     ///
     /// # Arguments
     /// - `self`: Pointer to the `Relocatable` object.

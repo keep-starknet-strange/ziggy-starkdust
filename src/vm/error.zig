@@ -217,6 +217,8 @@ pub const MathError = error{
 
     SecpSplitOutOfRange,
     SafeDivFailU32,
+
+    Felt252ToU32Conversion,
 };
 
 /// Represents different error conditions that occur in trace relocation

@@ -124,6 +124,7 @@ pub fn nondetBigInt3(allocator: std.mem.Allocator, vm: *CairoVM, exec_scopes: *E
 
 // Implements hint
 // %{ ids.low = (ids.x.d0 + ids.x.d1 * ids.BASE) & ((1 << 128) - 1) %}
+
 pub fn bigintToUint256(allocator: std.mem.Allocator, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking, constants: *std.StringHashMap(Felt252)) !void {
     const x_struct = try hint_utils.getRelocatableFromVarName("x", vm, ids_data, ap_tracking);
 
@@ -215,6 +216,7 @@ test "Get BigInt3 from base address with missing member should fail" {
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
+
     try std.testing.expectError(HintError.IdentifierHasNoMember, BigInt3.fromBaseAddr(Relocatable{ .segment_index = 0, .offset = 0 }, &vm));
 }
 
@@ -231,6 +233,7 @@ test "Get BigInt5 from base address with missing member should fail" {
     });
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
+
 
     try std.testing.expectError(HintError.IdentifierHasNoMember, BigInt5.fromBaseAddr(Relocatable{ .segment_index = 0, .offset = 0 }, &vm));
 }
@@ -327,6 +330,7 @@ test "BigIntUtils: get bigint5 from var name with missing member should fail" {
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{"x"});
     defer ids_data.deinit();
+
 
     try std.testing.expectError(HintError.IdentifierHasNoMember, BigInt5.fromVarName("x", &vm, ids_data, .{}));
 }
