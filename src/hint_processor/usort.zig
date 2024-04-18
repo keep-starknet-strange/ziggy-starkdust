@@ -345,6 +345,8 @@ test "Usort: usortVerifyMultiplicityAssert ok" {
 
     try std.testing.expectError(HintError.PositionsLengthNotZero, hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, &exec_scopes));
 
+    positions = try positions.clone();
+
     _ = positions.pop();
 
     try exec_scopes.assignOrUpdateVariable("positions", .{ .u64_list = positions });

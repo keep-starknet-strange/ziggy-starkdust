@@ -212,6 +212,11 @@ pub const MathError = error{
     ByteConversionError,
     DividedByZero,
     Felt252ToUsizeConversion,
+    DivModIgcdexNotZero,
+    SafeDivFailBigInt,
+
+    SecpSplitOutOfRange,
+    SafeDivFailU32,
 };
 
 /// Represents different error conditions that occur in trace relocation
@@ -257,6 +262,18 @@ pub const VerifyError = error{
 };
 
 pub const HintError = error{
+    // verify_zero: Invalid input
+    SecpVerifyZero,
+
+    // Attempt to subtract with overflow: ids.m - 1
+    NPairBitsTooLowM,
+    // random_ec_point: Could not find a point on the curve.
+    RandomEcPointNotOnCurve,
+    // Invalid value for len.
+    InvalidLenValue,
+    // recover_y: does not represent the x coordinate of a point on the curve.
+    RecoverYPointNotOnCurve,
+
     // Expected size to be in range from [0, 10)
     InvalidBlockSize,
 
@@ -357,6 +374,8 @@ pub const HintError = error{
 
     /// Occurs when a hint is attempting to be executed that is not yet implemented
     HintNotImplemented,
+
+    MemoryHasNoValue,
 };
 
 pub const InsufficientAllocatedCellsError = error{

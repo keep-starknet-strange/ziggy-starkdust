@@ -74,7 +74,13 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
     // TODO: make flag for extensive_hints
     var hint_processor: HintProcessor = .{};
     try runner.runUntilPC(end, false, &hint_processor);
-    try runner.endRun(allocator, true, false, &hint_processor);
+    try runner.endRun(
+        allocator,
+        true,
+        false,
+        &hint_processor,
+        false,
+    );
     // TODO readReturnValues necessary for builtins
 
     if (config.output_trace != null or config.output_memory != null) {

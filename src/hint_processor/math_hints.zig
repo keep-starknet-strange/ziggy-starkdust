@@ -162,6 +162,13 @@ pub fn sqrt(
     );
 }
 
+/// Returns the `n`th (up to the `251`th power) power of 2 as a [`&stark_felt::NonZeroFelt`]
+/// in constant time.
+/// It silently returns `1` if the input is out of bounds.
+pub fn pow2ConstNz(comptime n: u32) Felt252 {
+    return Felt252.pow2Const(n);
+}
+
 // Implements hint:
 
 // from starkware.cairo.common.math_utils import assert_integer

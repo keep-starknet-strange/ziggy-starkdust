@@ -12,6 +12,7 @@ const STARKNET_PRIME = @import("../../math/fields/constants.zig").STARKNET_PRIME
 pub const Relocatable = struct {
     const Self = @This();
 
+
     /// The index of the memory segment.
     segment_index: i64 = 0,
     /// The offset in the memory segment.

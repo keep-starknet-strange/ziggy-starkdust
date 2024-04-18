@@ -36,6 +36,17 @@ const set = @import("set.zig");
 const pow_utils = @import("pow_utils.zig");
 const segments = @import("segments.zig");
 
+const bigint_utils = @import("../hint_processor/builtin_hint_processor/secp/bigint_utils.zig");
+const bigint = @import("bigint.zig");
+const uint384 = @import("uint384.zig");
+const inv_mod_p_uint512 = @import("vrf/inv_mod_p_uint512.zig");
+
+const ec_utils = @import("ec_utils.zig");
+const ec_utils_secp = @import("builtin_hint_processor/secp/ec_utils.zig");
+const secp_utils = @import("builtin_hint_processor/secp/secp_utils.zig");
+const field_utils = @import("builtin_hint_processor/secp/field_utils.zig");
+const ec_recover = @import("ec_recover.zig");
+
 const deserialize_utils = @import("../parser/deserialize_utils.zig");
 
 const testing_utils = @import("testing_utils.zig");
@@ -371,6 +382,359 @@ pub const CairoVMHintProcessor = struct {
             try squash_dict_utils.squashDictInnerNextKey(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.SQUASH_DICT, hint_data.code)) {
             try squash_dict_utils.squashDict(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.HI_MAX_BIT_LEN, hint_data.code)) {
+            try bigint_utils.hiMaxBitlen(vm, allocator, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.NONDET_BIGINT3_V1, hint_data.code)) {
+            try bigint_utils.nondetBigInt3(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.NONDET_BIGINT3_V2, hint_data.code)) {
+            try bigint_utils.nondetBigInt3(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.BIGINT_TO_UINT256, hint_data.code)) {
+            try bigint_utils.bigintToUint256(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.BIGINT_PACK_DIV_MOD_HINT, hint_data.code)) {
+            try bigint.bigintPackDivModHint(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.BIGINT_SAFE_DIV, hint_data.code)) {
+            try bigint.bigIntSafeDivHint(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.UINT384_UNSIGNED_DIV_REM, hint_data.code)) {
+            try uint384.uint384UnsignedDivRem(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.UINT384_SPLIT_128, hint_data.code)) {
+            try uint384.uint384Split128(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.ADD_NO_UINT384_CHECK, hint_data.code)) {
+            try uint384.addNoUint384Check(allocator, vm, hint_data.ids_data, hint_data.ap_tracking, constants);
+        } else if (std.mem.eql(u8, hint_codes.UINT384_SQRT, hint_data.code)) {
+            try uint384.uint384Sqrt(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.UINT384_SIGNED_NN, hint_data.code)) {
+            try uint384.uint384SignedNn(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.SUB_REDUCED_A_AND_REDUCED_B, hint_data.code)) {
+            try uint384.subReducedAAndReducedB(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.UNSIGNED_DIV_REM_UINT768_BY_UINT384, hint_data.code)) {
+            try uint384.unsignedDivRemUint768ByUint384(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.UNSIGNED_DIV_REM_UINT768_BY_UINT384_STRIPPED, hint_data.code)) {
+            try uint384.unsignedDivRemUint768ByUint384(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.INV_MOD_P_UINT512, hint_data.code)) {
+            try inv_mod_p_uint512.invModPUint512(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.RECOVER_Y, hint_data.code)) {
+            try ec_utils.recoverYHint(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.RANDOM_EC_POINT, hint_data.code)) {
+            try ec_utils.randomEcPointHint(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.CHAINED_EC_OP_RANDOM_EC_POINT, hint_data.code)) {
+            try ec_utils.chainedEcOpRandomEcPointHint(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.EC_RECOVER_DIV_MOD_N_PACKED, hint_data.code)) {
+            try ec_recover.ecRecoverDivmodNPacked(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.EC_RECOVER_SUB_A_B, hint_data.code)) {
+            try ec_recover.ecRecoverSubAB(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.EC_RECOVER_PRODUCT_MOD, hint_data.code)) {
+            try ec_recover.ecRecoverProductMod(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.EC_RECOVER_PRODUCT_DIV_M, hint_data.code)) {
+            try ec_recover.ecRecoverProductDivM(allocator, exec_scopes);
+        } else if (std.mem.eql(u8, hint_codes.DI_BIT, hint_data.code)) {
+            try ec_utils_secp.diBit(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.QUAD_BIT, hint_data.code)) {
+            try ec_utils_secp.quadBit(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.EC_NEGATE, hint_data.code)) {
+            try ec_utils_secp.ecNegateImportSecpP(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.EC_NEGATE_EMBEDDED_SECP, hint_data.code)) {
+            try ec_utils_secp.ecNegateEmbeddedSecpP(allocator, vm, exec_scopes, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.EC_DOUBLE_SLOPE_V1, hint_data.code)) {
+            try ec_utils_secp.computeDoublingSlope(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+                "point",
+                secp_utils.SECP_P,
+                secp_utils.ALPHA,
+            );
+        } else if (std.mem.eql(u8, hint_codes.EC_DOUBLE_SLOPE_V2, hint_data.code)) {
+            try ec_utils_secp.computeDoublingSlope(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+                "point",
+                secp_utils.SECP_P_V2,
+                secp_utils.ALPHA_V2,
+            );
+        } else if (std.mem.eql(u8, hint_codes.EC_DOUBLE_SLOPE_V3, hint_data.code)) {
+            try ec_utils_secp.computeDoublingSlope(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+                "pt",
+                secp_utils.SECP_P,
+                secp_utils.ALPHA,
+            );
+        } else if (std.mem.eql(u8, hint_codes.EC_DOUBLE_SLOPE_EXTERNAL_CONSTS, hint_data.code)) {
+            try ec_utils_secp.computeDoublingSlopeExternalConsts(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+            );
+        } else if (std.mem.eql(u8, hint_codes.COMPUTE_SLOPE_V1, hint_data.code)) {
+            try ec_utils_secp.computeSlopeAndAssingSecpP(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+                "point0",
+                "point1",
+                secp_utils.SECP_P,
+            );
+        } else if (std.mem.eql(u8, hint_codes.COMPUTE_SLOPE_V2, hint_data.code)) {
+            try ec_utils_secp.computeSlopeAndAssingSecpP(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+                "point0",
+                "point1",
+                secp_utils.SECP_P_V2,
+            );
+        } else if (std.mem.eql(u8, hint_codes.COMPUTE_SLOPE_SECP256R1, hint_data.code)) {
+            try ec_utils_secp.computeSlope(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+                "point0",
+                "point1",
+            );
+        } else if (std.mem.eql(u8, hint_codes.COMPUTE_SLOPE_WHITELIST, hint_data.code)) {
+            try ec_utils_secp.computeSlopeAndAssingSecpP(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+                "pt0",
+                "pt1",
+                secp_utils.SECP_P,
+            );
+        } else if (std.mem.eql(u8, hint_codes.EC_DOUBLE_ASSIGN_NEW_X_V1, hint_data.code)) {
+            try ec_utils_secp.ecDoubleAssignNewX(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+                secp_utils.SECP_P,
+                "point",
+            );
+        } else if (std.mem.eql(u8, hint_codes.EC_DOUBLE_ASSIGN_NEW_X_V2, hint_data.code)) {
+            try ec_utils_secp.ecDoubleAssignNewXV2(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+                "point",
+            );
+        } else if (std.mem.eql(u8, hint_codes.EC_DOUBLE_ASSIGN_NEW_X_V3, hint_data.code)) {
+            try ec_utils_secp.ecDoubleAssignNewX(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+                secp_utils.SECP_P_V2,
+                "point",
+            );
+        } else if (std.mem.eql(u8, hint_codes.EC_DOUBLE_ASSIGN_NEW_X_V4, hint_data.code)) {
+            try ec_utils_secp.ecDoubleAssignNewX(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+                secp_utils.SECP_P,
+                "pt",
+            );
+        } else if (std.mem.eql(u8, hint_codes.FAST_EC_ADD_ASSIGN_NEW_X, hint_data.code)) {
+            try ec_utils_secp.fastEcAddAssignNewX(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+                secp_utils.SECP_P,
+                "point0",
+                "point1",
+            );
+        } else if (std.mem.eql(u8, hint_codes.FAST_EC_ADD_ASSIGN_NEW_X_V2, hint_data.code)) {
+            try ec_utils_secp.fastEcAddAssignNewX(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+                secp_utils.SECP_P_V2,
+                "point0",
+                "point1",
+            );
+        } else if (std.mem.eql(u8, hint_codes.FAST_EC_ADD_ASSIGN_NEW_X_V3, hint_data.code)) {
+            try ec_utils_secp.fastEcAddAssignNewX(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+                secp_utils.SECP_P,
+                "pt0",
+                "pt1",
+            );
+        } else if (std.mem.eql(u8, hint_codes.EC_MUL_INNER, hint_data.code)) {
+            try ec_utils_secp.ecMulInner(
+                allocator,
+                vm,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+            );
+        } else if (std.mem.eql(u8, hint_codes.EC_DOUBLE_ASSIGN_NEW_Y, hint_data.code)) {
+            try ec_utils_secp.ecDoubleAssignNewY(
+                allocator,
+                exec_scopes,
+            );
+        } else if (std.mem.eql(u8, hint_codes.FAST_EC_ADD_ASSIGN_NEW_Y, hint_data.code)) {
+            try ec_utils_secp.fastEcAddAssignNewY(
+                allocator,
+                exec_scopes,
+            );
+        } else if (std.mem.eql(u8, hint_codes.IMPORT_SECP256R1_ALPHA, hint_data.code)) {
+            try ec_utils_secp.importSecp256r1Alpha(
+                allocator,
+                exec_scopes,
+            );
+        } else if (std.mem.eql(u8, hint_codes.IMPORT_SECP256R1_N, hint_data.code)) {
+            try ec_utils_secp.importSecp256r1N(
+                allocator,
+                exec_scopes,
+            );
+        } else if (std.mem.eql(u8, hint_codes.IMPORT_SECP256R1_P, hint_data.code)) {
+            try ec_utils_secp.importSecp256r1P(
+                allocator,
+                exec_scopes,
+            );
+        } else if (std.mem.eql(u8, hint_codes.SQUARE_SLOPE_X_MOD_P, hint_data.code)) {
+            try ec_utils_secp.squareSlopeMinusXs(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+            );
+        } else if (std.mem.eql(u8, hint_codes.VERIFY_ZERO_V1, hint_data.code)) {
+            try field_utils.verifyZero(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+                secp_utils.SECP_P,
+            );
+        } else if (std.mem.eql(u8, hint_codes.VERIFY_ZERO_V2, hint_data.code)) {
+            try field_utils.verifyZero(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+                secp_utils.SECP_P,
+            );
+        } else if (std.mem.eql(u8, hint_codes.VERIFY_ZERO_V3, hint_data.code)) {
+            try field_utils.verifyZero(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+                secp_utils.SECP_P_V2,
+            );
+        } else if (std.mem.eql(u8, hint_codes.VERIFY_ZERO_EXTERNAL_SECP, hint_data.code)) {
+            try field_utils.verifyZeroWithExternalConst(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+            );
+        } else if (std.mem.eql(u8, hint_codes.REDUCE_V1, hint_data.code)) {
+            try field_utils.reduceV1(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+            );
+        } else if (std.mem.eql(u8, hint_codes.IS_ZERO_PACK_V1, hint_data.code)) {
+            try field_utils.isZeroPack(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+            );
+        } else if (std.mem.eql(u8, hint_codes.IS_ZERO_PACK_V2, hint_data.code)) {
+            try field_utils.isZeroPack(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+            );
+        } else if (std.mem.eql(u8, hint_codes.IS_ZERO_PACK_EXTERNAL_SECP_V1, hint_data.code)) {
+            try field_utils.isZeroPackExternalSecp(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+            );
+        } else if (std.mem.eql(u8, hint_codes.IS_ZERO_PACK_EXTERNAL_SECP_V2, hint_data.code)) {
+            try field_utils.isZeroPackExternalSecp(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+            );
+        } else if (std.mem.eql(u8, hint_codes.IS_ZERO_NONDET, hint_data.code)) {
+            try field_utils.isZeroNondet(
+                allocator,
+                vm,
+                exec_scopes,
+            );
+        } else if (std.mem.eql(u8, hint_codes.IS_ZERO_INT, hint_data.code)) {
+            try field_utils.isZeroNondet(
+                allocator,
+                vm,
+                exec_scopes,
+            );
+        } else if (std.mem.eql(u8, hint_codes.IS_ZERO_ASSIGN_SCOPE_VARS, hint_data.code)) {
+            try field_utils.isZeroAssignScopeVariables(
+                allocator,
+                exec_scopes,
+            );
+        } else if (std.mem.eql(u8, hint_codes.IS_ZERO_ASSIGN_SCOPE_VARS_EXTERNAL_SECP, hint_data.code)) {
+            try field_utils.isZeroAssignScopeVariablesExternalConst(
+                allocator,
+                exec_scopes,
+            );
+        } else if (std.mem.eql(u8, hint_codes.REDUCE_V2, hint_data.code)) {
+            try field_utils.reduceV2(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+            );
         } else {
             std.log.err("not implemented: {s}\n", .{hint_data.code});
             return HintError.HintNotImplemented;

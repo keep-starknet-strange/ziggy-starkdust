@@ -48,6 +48,10 @@ pub fn checkMemory(mem: *Memory, comptime rows: anytype) !void {
 pub fn checkMemoryAddress(mem: *Memory, data: anytype) !void {
     const expected = if (data[1].len == 2) MaybeRelocatable.fromRelocatable(Relocatable.init(data[1][0], data[1][1])) else MaybeRelocatable.fromInt(u256, data[1][0]);
 
+    errdefer {
+        std.log.err("failed expect: {any}, got: {any}\n", .{ expected, mem.get(Relocatable.init(data[0][0], data[0][1])) });
+    }
+
     try std.testing.expectEqual(expected, mem.get(Relocatable.init(data[0][0], data[0][1])));
 }
 

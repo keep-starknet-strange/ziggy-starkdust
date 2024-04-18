@@ -137,16 +137,22 @@ pub const EcOpBuiltinRunner = struct {
     /// A `MaybeRelocatable` containing the deduced `MemoryCell`, or `null` if the address
     /// corresponds to an input cell, or an error code if any issues occur during the process.
     pub fn deduceMemoryCell(self: *Self, allocator: Allocator, address: Relocatable, memory: *Memory) !?MaybeRelocatable {
+        const EC_POINT_INDICIES: [3]struct { usize, usize } = .{
+            .{ 0, 1 },
+            .{ 2, 3 },
+            .{ 5, 6 },
+        };
+        const OUTPUT_INDICES_ = EC_POINT_INDICIES[2];
         const index = address.offset % self.cells_per_instance;
-        const indexFelt = Felt252.fromInt(u64, index);
-        if ((!indexFelt.equal(OUTPUT_INDICES.x)) and (!indexFelt.equal(OUTPUT_INDICES.y)))
-            return error.NotOutputCell;
+
+        if (index != OUTPUT_INDICES_[0] and index != OUTPUT_INDICES_[1])
+            return null;
 
         const instance = Relocatable.init(
             address.segment_index,
             address.offset - index,
         );
-        const x_addr = try instance.addFelt(Felt252.fromInt(u256, self.n_input_cells));
+        const x_addr = try instance.addUint(self.n_input_cells);
 
         if (self.cache.get(address)) |value| {
             return MaybeRelocatable.fromFelt(value);
@@ -157,16 +163,18 @@ pub const EcOpBuiltinRunner = struct {
 
         // All input cells should be filled, and be integer values.
         for (0..self.n_input_cells) |i| {
-            if (memory.get(try instance.addFelt(Felt252.fromInt(u256, i)))) |cell| {
+            if (memory.get(try instance.addUint(i))) |cell| {
                 const felt = try cell.intoFelt();
                 try input_cells.append(felt);
+            } else {
+                return null;
             }
         }
 
-        for (EC_POINTS[0..2]) |pair| {
+        for (EC_POINT_INDICIES[0..2]) |pair| {
             if (!EC.AffinePoint.initUnchecked(
-                input_cells.items[try pair.x.intoU64()],
-                input_cells.items[try pair.y.intoU64()],
+                input_cells.items[pair[0]],
+                input_cells.items[pair[1]],
                 EC.ALPHA,
                 false,
             ).pointOnCurve(EC.ALPHA, EC.BETA))
@@ -182,7 +190,7 @@ pub const EcOpBuiltinRunner = struct {
             height,
         );
         try self.cache.put(x_addr, result.x);
-        try self.cache.put(try x_addr.addFelt(Felt252.one()), result.x);
+        try self.cache.put(try x_addr.addUint(1), result.y);
 
         return MaybeRelocatable.fromFelt(
             if ((index - self.n_input_cells) == 0) result.x else result.y,
@@ -593,10 +601,10 @@ test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory unfilled inp
         },
     );
 
-    const actual = builtin.deduceMemoryCell(std.testing.allocator, Relocatable.init(3, 6), vm.segments.memory);
+    const actual = try builtin.deduceMemoryCell(std.testing.allocator, Relocatable.init(3, 6), vm.segments.memory);
 
-    try expectError(
-        error.PointNotOnCurve,
+    try expectEqual(
+        null,
         actual,
     );
 }
@@ -628,8 +636,8 @@ test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory addr not an 
 
     const actual = builtin.deduceMemoryCell(std.testing.allocator, Relocatable.init(3, 3), vm.segments.memory);
 
-    try expectError(
-        error.NotOutputCell,
+    try expectEqual(
+        null,
         actual,
     );
 }
@@ -659,10 +667,10 @@ test "ECOPBuiltinRunner: deduce memory cell ec op for preset memory non integer 
         },
     );
 
-    const actual = builtin.deduceMemoryCell(std.testing.allocator, Relocatable.init(3, 6), vm.segments.memory);
+    const actual = try builtin.deduceMemoryCell(std.testing.allocator, Relocatable.init(3, 6), vm.segments.memory);
 
-    try expectError(
-        error.TypeMismatchNotFelt,
+    try expectEqual(
+        null,
         actual,
     );
 }

@@ -516,6 +516,23 @@ pub const DICT_SQUASH_COPY_DICT =
     \\    'initial_dict': dict(__dict_manager.get_dict(ids.dict_accesses_end)),
     \\})
 ;
+pub const BIGINT_PACK_DIV_MOD_HINT =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import pack
+    \\from starkware.cairo.common.math_utils import as_int
+    \\from starkware.python.math_utils import div_mod, safe_div
+    \\p = pack(ids.P, PRIME)
+    \\x = pack(ids.x, PRIME) + as_int(ids.x.d3, PRIME) * ids.BASE ** 3 + as_int(ids.x.d4, PRIME) * ids.BASE ** 4
+    \\y = pack(ids.y, PRIME)
+    \\value = res = div_mod(x, y, p)
+;
+
+pub const BIGINT_SAFE_DIV =
+    \\ k = safe_div(res * y - x, p)
+    \\ value = k if k > 0 else 0 - k
+    \\ ids.flag = 1 if k > 0 else 0
+;
+
+pub const HI_MAX_BIT_LEN = "ids.len_hi = max(ids.scalar_u.d2.bit_length(), ids.scalar_v.d2.bit_length())-1";
 
 pub const BLOCK_PERMUTATION =
     \\from starkware.cairo.common.keccak_utils.keccak_utils import keccak_func
@@ -635,4 +652,596 @@ pub const SPLIT_XX =
     \\    x = PRIME - x
     \\ids.x.low = x & ((1<<128)-1)
     \\ids.x.high = x >> 128
+;
+
+pub const NONDET_BIGINT3_V1 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import split
+    \\
+    \\segments.write_arg(ids.res.address_, split(value))
+;
+
+pub const NONDET_BIGINT3_V2 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import split
+    \\segments.write_arg(ids.res.address_, split(value))
+;
+
+// The following hints support the lib https://github.com/NethermindEth/research-basic-Cairo-operations-big-integers/blob/main/lib
+pub const UINT384_UNSIGNED_DIV_REM =
+    \\def split(num: int, num_bits_shift: int, length: int):
+    \\    a = []
+    \\    for _ in range(length):
+    \\        a.append( num & ((1 << num_bits_shift) - 1) )
+    \\        num = num >> num_bits_shift
+    \\    return tuple(a)
+    \\
+    \\def pack(z, num_bits_shift: int) -> int:
+    \\    limbs = (z.d0, z.d1, z.d2)
+    \\    return sum(limb << (num_bits_shift * i) for i, limb in enumerate(limbs))
+    \\
+    \\a = pack(ids.a, num_bits_shift = 128)
+    \\div = pack(ids.div, num_bits_shift = 128)
+    \\quotient, remainder = divmod(a, div)
+    \\
+    \\quotient_split = split(quotient, num_bits_shift=128, length=3)
+    \\assert len(quotient_split) == 3
+    \\
+    \\ids.quotient.d0 = quotient_split[0]
+    \\ids.quotient.d1 = quotient_split[1]
+    \\ids.quotient.d2 = quotient_split[2]
+    \\
+    \\remainder_split = split(remainder, num_bits_shift=128, length=3)
+    \\ids.remainder.d0 = remainder_split[0]
+    \\ids.remainder.d1 = remainder_split[1]
+    \\ids.remainder.d2 = remainder_split[2]
+;
+
+pub const UINT384_SPLIT_128 =
+    \\ids.low = ids.a & ((1<<128) - 1)
+    \\ids.high = ids.a >> 128
+;
+
+pub const ADD_NO_UINT384_CHECK =
+    \\sum_d0 = ids.a.d0 + ids.b.d0
+    \\ids.carry_d0 = 1 if sum_d0 >= ids.SHIFT else 0
+    \\sum_d1 = ids.a.d1 + ids.b.d1 + ids.carry_d0
+    \\ids.carry_d1 = 1 if sum_d1 >= ids.SHIFT else 0
+    \\sum_d2 = ids.a.d2 + ids.b.d2 + ids.carry_d1
+    \\ids.carry_d2 = 1 if sum_d2 >= ids.SHIFT else 0
+;
+
+pub const UINT384_SQRT =
+    \\from starkware.python.math_utils import isqrt
+    \\
+    \\def split(num: int, num_bits_shift: int, length: int):
+    \\    a = []
+    \\    for _ in range(length):
+    \\        a.append( num & ((1 << num_bits_shift) - 1) )
+    \\        num = num >> num_bits_shift
+    \\    return tuple(a)
+    \\
+    \\def pack(z, num_bits_shift: int) -> int:
+    \\    limbs = (z.d0, z.d1, z.d2)
+    \\    return sum(limb << (num_bits_shift * i) for i, limb in enumerate(limbs))
+    \\
+    \\a = pack(ids.a, num_bits_shift=128)
+    \\root = isqrt(a)
+    \\assert 0 <= root < 2 ** 192
+    \\root_split = split(root, num_bits_shift=128, length=3)
+    \\ids.root.d0 = root_split[0]
+    \\ids.root.d1 = root_split[1]
+    \\ids.root.d2 = root_split[2]
+;
+
+pub const SUB_REDUCED_A_AND_REDUCED_B =
+    \\def split(num: int, num_bits_shift: int, length: int):
+    \\    a = []
+    \\    for _ in range(length):
+    \\        a.append( num & ((1 << num_bits_shift) - 1) )
+    \\        num = num >> num_bits_shift
+    \\    return tuple(a)
+    \\
+    \\def pack(z, num_bits_shift: int) -> int:
+    \\    limbs = (z.d0, z.d1, z.d2)
+    \\    return sum(limb << (num_bits_shift * i) for i, limb in enumerate(limbs))
+    \\
+    \\a = pack(ids.a, num_bits_shift = 128)
+    \\b = pack(ids.b, num_bits_shift = 128)
+    \\p = pack(ids.p, num_bits_shift = 128)
+    \\
+    \\res = (a - b) % p
+    \\
+    \\
+    \\res_split = split(res, num_bits_shift=128, length=3)
+    \\
+    \\ids.res.d0 = res_split[0]
+    \\ids.res.d1 = res_split[1]
+    \\ids.res.d2 = res_split[2]
+;
+
+pub const UINT384_SIGNED_NN = "memory[ap] = 1 if 0 <= (ids.a.d2 % PRIME) < 2 ** 127 else 0";
+
+pub const UNSIGNED_DIV_REM_UINT768_BY_UINT384 =
+    \\def split(num: int, num_bits_shift: int, length: int):
+    \\    a = []
+    \\    for _ in range(length):
+    \\        a.append( num & ((1 << num_bits_shift) - 1) )
+    \\        num = num >> num_bits_shift 
+    \\    return tuple(a)
+    \\
+    \\def pack(z, num_bits_shift: int) -> int:
+    \\    limbs = (z.d0, z.d1, z.d2)
+    \\    return sum(limb << (num_bits_shift * i) for i, limb in enumerate(limbs))
+    \\    
+    \\def pack_extended(z, num_bits_shift: int) -> int:
+    \\    limbs = (z.d0, z.d1, z.d2, z.d3, z.d4, z.d5)
+    \\    return sum(limb << (num_bits_shift * i) for i, limb in enumerate(limbs))
+    \\
+    \\a = pack_extended(ids.a, num_bits_shift = 128)
+    \\div = pack(ids.div, num_bits_shift = 128)
+    \\
+    \\quotient, remainder = divmod(a, div)
+    \\
+    \\quotient_split = split(quotient, num_bits_shift=128, length=6)
+    \\
+    \\ids.quotient.d0 = quotient_split[0]
+    \\ids.quotient.d1 = quotient_split[1]
+    \\ids.quotient.d2 = quotient_split[2]
+    \\ids.quotient.d3 = quotient_split[3]
+    \\ids.quotient.d4 = quotient_split[4]
+    \\ids.quotient.d5 = quotient_split[5]
+    \\
+    \\remainder_split = split(remainder, num_bits_shift=128, length=3)
+    \\ids.remainder.d0 = remainder_split[0]
+    \\ids.remainder.d1 = remainder_split[1]
+    \\ids.remainder.d2 = remainder_split[2]
+;
+
+// equal to UNSIGNED_DIV_REM_UINT768_BY_UINT384 but with some whitespace removed
+// in the `num = num >> num_bits_shift` and between `pack` and `pack_extended`
+pub const UNSIGNED_DIV_REM_UINT768_BY_UINT384_STRIPPED =
+    \\def split(num: int, num_bits_shift: int, length: int):
+    \\    a = []
+    \\    for _ in range(length):
+    \\        a.append( num & ((1 << num_bits_shift) - 1) )
+    \\        num = num >> num_bits_shift
+    \\    return tuple(a)
+    \\
+    \\def pack(z, num_bits_shift: int) -> int:
+    \\    limbs = (z.d0, z.d1, z.d2)
+    \\    return sum(limb << (num_bits_shift * i) for i, limb in enumerate(limbs))
+    \\
+    \\def pack_extended(z, num_bits_shift: int) -> int:
+    \\    limbs = (z.d0, z.d1, z.d2, z.d3, z.d4, z.d5)
+    \\    return sum(limb << (num_bits_shift * i) for i, limb in enumerate(limbs))
+    \\
+    \\a = pack_extended(ids.a, num_bits_shift = 128)
+    \\div = pack(ids.div, num_bits_shift = 128)
+    \\
+    \\quotient, remainder = divmod(a, div)
+    \\
+    \\quotient_split = split(quotient, num_bits_shift=128, length=6)
+    \\
+    \\ids.quotient.d0 = quotient_split[0]
+    \\ids.quotient.d1 = quotient_split[1]
+    \\ids.quotient.d2 = quotient_split[2]
+    \\ids.quotient.d3 = quotient_split[3]
+    \\ids.quotient.d4 = quotient_split[4]
+    \\ids.quotient.d5 = quotient_split[5]
+    \\
+    \\remainder_split = split(remainder, num_bits_shift=128, length=3)
+    \\ids.remainder.d0 = remainder_split[0]
+    \\ids.remainder.d1 = remainder_split[1]
+    \\ids.remainder.d2 = remainder_split[2]
+;
+
+pub const INV_MOD_P_UINT512 =
+    \\def pack_512(u, num_bits_shift: int) -> int:
+    \\    limbs = (u.d0, u.d1, u.d2, u.d3)
+    \\    return sum(limb << (num_bits_shift * i) for i, limb in enumerate(limbs))
+    \\
+    \\x = pack_512(ids.x, num_bits_shift = 128)
+    \\p = ids.p.low + (ids.p.high << 128)
+    \\x_inverse_mod_p = pow(x,-1, p)
+    \\
+    \\x_inverse_mod_p_split = (x_inverse_mod_p & ((1 << 128) - 1), x_inverse_mod_p >> 128)
+    \\
+    \\ids.x_inverse_mod_p.low = x_inverse_mod_p_split[0]
+    \\ids.x_inverse_mod_p.high = x_inverse_mod_p_split[1]
+;
+
+pub const RANDOM_EC_POINT =
+    \\from starkware.crypto.signature.signature import ALPHA, BETA, FIELD_PRIME
+    \\from starkware.python.math_utils import random_ec_point
+    \\from starkware.python.utils import to_bytes
+    \\
+    \\# Define a seed for random_ec_point that's dependent on all the input, so that:
+    \\#   (1) The added point s is deterministic.
+    \\#   (2) It's hard to choose inputs for which the builtin will fail.
+    \\seed = b"".join(map(to_bytes, [ids.p.x, ids.p.y, ids.m, ids.q.x, ids.q.y]))
+    \\ids.s.x, ids.s.y = random_ec_point(FIELD_PRIME, ALPHA, BETA, seed)
+;
+
+pub const CHAINED_EC_OP_RANDOM_EC_POINT =
+    \\from starkware.crypto.signature.signature import ALPHA, BETA, FIELD_PRIME
+    \\from starkware.python.math_utils import random_ec_point
+    \\from starkware.python.utils import to_bytes
+    \\
+    \\n_elms = ids.len
+    \\assert isinstance(n_elms, int) and n_elms >= 0, \
+    \\    f'Invalid value for len. Got: {n_elms}.'
+    \\if '__chained_ec_op_max_len' in globals():
+    \\    assert n_elms <= __chained_ec_op_max_len, \
+    \\        f'chained_ec_op() can only be used with len<={__chained_ec_op_max_len}. ' \
+    \\        f'Got: n_elms={n_elms}.'
+    \\
+    \\# Define a seed for random_ec_point that's dependent on all the input, so that:
+    \\#   (1) The added point s is deterministic.
+    \\#   (2) It's hard to choose inputs for which the builtin will fail.
+    \\seed = b"".join(
+    \\    map(
+    \\        to_bytes,
+    \\        [
+    \\            ids.p.x,
+    \\            ids.p.y,
+    \\            *memory.get_range(ids.m, n_elms),
+    \\            *memory.get_range(ids.q.address_, 2 * n_elms),
+    \\        ],
+    \\    )
+    \\)
+    \\ids.s.x, ids.s.y = random_ec_point(FIELD_PRIME, ALPHA, BETA, seed)
+;
+
+pub const RECOVER_Y =
+    \\from starkware.crypto.signature.signature import ALPHA, BETA, FIELD_PRIME
+    \\from starkware.python.math_utils import recover_y
+    \\ids.p.x = ids.x
+    \\# This raises an exception if `x` is not on the curve.
+    \\ids.p.y = recover_y(ids.x, ALPHA, BETA, FIELD_PRIME)
+;
+
+pub const EC_RECOVER_DIV_MOD_N_PACKED =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import pack
+    \\from starkware.python.math_utils import div_mod, safe_div
+    \\
+    \\N = pack(ids.n, PRIME)
+    \\x = pack(ids.x, PRIME) % N
+    \\s = pack(ids.s, PRIME) % N
+    \\value = res = div_mod(x, s, N)
+;
+
+pub const EC_RECOVER_SUB_A_B =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import pack
+    \\from starkware.python.math_utils import div_mod, safe_div
+    \\
+    \\a = pack(ids.a, PRIME)
+    \\b = pack(ids.b, PRIME)
+    \\
+    \\value = res = a - b
+;
+
+pub const EC_RECOVER_PRODUCT_MOD =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import pack
+    \\from starkware.python.math_utils import div_mod, safe_div
+    \\
+    \\a = pack(ids.a, PRIME)
+    \\b = pack(ids.b, PRIME)
+    \\product = a * b
+    \\m = pack(ids.m, PRIME)
+    \\
+    \\value = res = product % m
+;
+
+pub const EC_RECOVER_PRODUCT_DIV_M = "value = k = product // m";
+
+pub const DI_BIT = "ids.dibit = ((ids.scalar_u >> ids.m) & 1) + 2 * ((ids.scalar_v >> ids.m) & 1)";
+
+pub const QUAD_BIT =
+    \\ids.quad_bit = (
+    \\    8 * ((ids.scalar_v >> ids.m) & 1)
+    \\    + 4 * ((ids.scalar_u >> ids.m) & 1)
+    \\    + 2 * ((ids.scalar_v >> (ids.m - 1)) & 1)
+    \\    + ((ids.scalar_u >> (ids.m - 1)) & 1)
+    \\)
+;
+
+pub const EC_NEGATE =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
+    \\
+    \\y = pack(ids.point.y, PRIME) % SECP_P
+    \\# The modulo operation in python always returns a nonnegative number.
+    \\value = (-y) % SECP_P
+;
+
+pub const EC_NEGATE_EMBEDDED_SECP =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import pack
+    \\SECP_P = 2**255-19
+    \\
+    \\y = pack(ids.point.y, PRIME) % SECP_P
+    \\# The modulo operation in python always returns a nonnegative number.
+    \\value = (-y) % SECP_P
+;
+
+pub const EC_DOUBLE_SLOPE_V1 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
+    \\from starkware.python.math_utils import ec_double_slope
+    \\
+    \\# Compute the slope.
+    \\x = pack(ids.point.x, PRIME)
+    \\y = pack(ids.point.y, PRIME)
+    \\value = slope = ec_double_slope(point=(x, y), alpha=0, p=SECP_P)
+;
+
+pub const EC_DOUBLE_SLOPE_V2 =
+    \\from starkware.python.math_utils import ec_double_slope
+    \\from starkware.cairo.common.cairo_secp.secp_utils import pack
+    \\SECP_P = 2**255-19
+    \\
+    \\# Compute the slope.
+    \\x = pack(ids.point.x, PRIME)
+    \\y = pack(ids.point.y, PRIME)
+    \\value = slope = ec_double_slope(point=(x, y), alpha=42204101795669822316448953119945047945709099015225996174933988943478124189485, p=SECP_P)
+;
+
+pub const EC_DOUBLE_SLOPE_V3 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
+    \\from starkware.python.math_utils import div_mod
+    \\
+    \\# Compute the slope.
+    \\x = pack(ids.pt.x, PRIME)
+    \\y = pack(ids.pt.y, PRIME)
+    \\value = slope = div_mod(3 * x ** 2, 2 * y, SECP_P)
+;
+
+pub const EC_DOUBLE_SLOPE_EXTERNAL_CONSTS =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import pack
+    \\from starkware.python.math_utils import ec_double_slope
+    \\
+    \\# Compute the slope.
+    \\x = pack(ids.point.x, PRIME)
+    \\y = pack(ids.point.y, PRIME)
+    \\value = slope = ec_double_slope(point=(x, y), alpha=ALPHA, p=SECP_P)
+;
+
+pub const COMPUTE_SLOPE_V1 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
+    \\from starkware.python.math_utils import line_slope
+    \\
+    \\# Compute the slope.
+    \\x0 = pack(ids.point0.x, PRIME)
+    \\y0 = pack(ids.point0.y, PRIME)
+    \\x1 = pack(ids.point1.x, PRIME)
+    \\y1 = pack(ids.point1.y, PRIME)
+    \\value = slope = line_slope(point1=(x0, y0), point2=(x1, y1), p=SECP_P)
+;
+
+pub const COMPUTE_SLOPE_V2 =
+    \\from starkware.python.math_utils import line_slope
+    \\from starkware.cairo.common.cairo_secp.secp_utils import pack
+    \\SECP_P = 2**255-19
+    \\# Compute the slope.
+    \\x0 = pack(ids.point0.x, PRIME)
+    \\y0 = pack(ids.point0.y, PRIME)
+    \\x1 = pack(ids.point1.x, PRIME)
+    \\y1 = pack(ids.point1.y, PRIME)
+    \\value = slope = line_slope(point1=(x0, y0), point2=(x1, y1), p=SECP_P)
+;
+
+pub const COMPUTE_SLOPE_SECP256R1 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import pack
+    \\from starkware.python.math_utils import line_slope
+    \\
+    \\# Compute the slope.
+    \\x0 = pack(ids.point0.x, PRIME)
+    \\y0 = pack(ids.point0.y, PRIME)
+    \\x1 = pack(ids.point1.x, PRIME)
+    \\y1 = pack(ids.point1.y, PRIME)
+    \\value = slope = line_slope(point1=(x0, y0), point2=(x1, y1), p=SECP_P)
+;
+
+pub const COMPUTE_SLOPE_WHITELIST =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
+    \\from starkware.python.math_utils import div_mod
+    \\
+    \\# Compute the slope.
+    \\x0 = pack(ids.pt0.x, PRIME)
+    \\y0 = pack(ids.pt0.y, PRIME)
+    \\x1 = pack(ids.pt1.x, PRIME)
+    \\y1 = pack(ids.pt1.y, PRIME)
+    \\value = slope = div_mod(y0 - y1, x0 - x1, SECP_P)
+;
+
+pub const EC_DOUBLE_ASSIGN_NEW_X_V1 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
+    \\
+    \\slope = pack(ids.slope, PRIME)
+    \\x = pack(ids.point.x, PRIME)
+    \\y = pack(ids.point.y, PRIME)
+    \\
+    \\value = new_x = (pow(slope, 2, SECP_P) - 2 * x) % SECP_P
+;
+
+pub const EC_DOUBLE_ASSIGN_NEW_X_V2 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import pack
+    \\
+    \\slope = pack(ids.slope, PRIME)
+    \\x = pack(ids.point.x, PRIME)
+    \\y = pack(ids.point.y, PRIME)
+    \\
+    \\value = new_x = (pow(slope, 2, SECP_P) - 2 * x) % SECP_P
+;
+
+pub const EC_DOUBLE_ASSIGN_NEW_Y = "value = new_y = (slope * (x - new_x) - y) % SECP_P";
+
+pub const FAST_EC_ADD_ASSIGN_NEW_X =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
+    \\
+    \\slope = pack(ids.slope, PRIME)
+    \\x0 = pack(ids.point0.x, PRIME)
+    \\x1 = pack(ids.point1.x, PRIME)
+    \\y0 = pack(ids.point0.y, PRIME)
+    \\
+    \\value = new_x = (pow(slope, 2, SECP_P) - x0 - x1) % SECP_P
+;
+
+pub const FAST_EC_ADD_ASSIGN_NEW_X_V2 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import pack
+    \\SECP_P = 2**255-19
+    \\
+    \\slope = pack(ids.slope, PRIME)
+    \\x0 = pack(ids.point0.x, PRIME)
+    \\x1 = pack(ids.point1.x, PRIME)
+    \\y0 = pack(ids.point0.y, PRIME)
+    \\
+    \\value = new_x = (pow(slope, 2, SECP_P) - x0 - x1) % SECP_P
+;
+
+pub const FAST_EC_ADD_ASSIGN_NEW_X_V3 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
+    \\
+    \\slope = pack(ids.slope, PRIME)
+    \\x0 = pack(ids.pt0.x, PRIME)
+    \\x1 = pack(ids.pt1.x, PRIME)
+    \\y0 = pack(ids.pt0.y, PRIME)
+    \\
+    \\value = new_x = (pow(slope, 2, SECP_P) - x0 - x1) % SECP_P
+;
+
+pub const FAST_EC_ADD_ASSIGN_NEW_Y =
+    "value = new_y = (slope * (x0 - new_x) - y0) % SECP_P";
+
+pub const EC_MUL_INNER = "memory[ap] = (ids.scalar % PRIME) % 2";
+
+pub const IMPORT_SECP256R1_ALPHA =
+    "from starkware.cairo.common.cairo_secp.secp256r1_utils import SECP256R1_ALPHA as ALPHA";
+
+pub const IMPORT_SECP256R1_N =
+    "from starkware.cairo.common.cairo_secp.secp256r1_utils import SECP256R1_N as N";
+
+pub const SQUARE_SLOPE_X_MOD_P =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import pack
+    \\
+    \\slope = pack(ids.slope, PRIME)
+    \\x0 = pack(ids.point0.x, PRIME)
+    \\x1 = pack(ids.point1.x, PRIME)
+    \\y0 = pack(ids.point0.y, PRIME)
+    \\
+    \\value = new_x = (pow(slope, 2, SECP_P) - x0 - x1) % SECP_P
+;
+
+pub const IMPORT_SECP256R1_P =
+    "from starkware.cairo.common.cairo_secp.secp256r1_utils import SECP256R1_P as SECP_P";
+
+pub const VERIFY_ZERO_V1 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
+    \\
+    \\q, r = divmod(pack(ids.val, PRIME), SECP_P)
+    \\assert r == 0, f"verify_zero: Invalid input {ids.val.d0, ids.val.d1, ids.val.d2}."
+    \\ids.q = q % PRIME
+;
+
+pub const VERIFY_ZERO_V2 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import SECP_P
+    \\q, r = divmod(pack(ids.val, PRIME), SECP_P)
+    \\assert r == 0, f"verify_zero: Invalid input {ids.val.d0, ids.val.d1, ids.val.d2}."
+    \\ids.q = q % PRIME
+;
+
+pub const VERIFY_ZERO_V3 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import pack
+    \\SECP_P = 2**255-19
+    \\to_assert = pack(ids.val, PRIME)
+    \\q, r = divmod(pack(ids.val, PRIME), SECP_P)
+    \\assert r == 0, f"verify_zero: Invalid input {ids.val.d0, ids.val.d1, ids.val.d2}."
+    \\ids.q = q % PRIME
+;
+
+pub const VERIFY_ZERO_EXTERNAL_SECP =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import pack
+    \\
+    \\q, r = divmod(pack(ids.val, PRIME), SECP_P)
+    \\assert r == 0, f"verify_zero: Invalid input {ids.val.d0, ids.val.d1, ids.val.d2}."
+    \\ids.q = q % PRIME
+;
+
+pub const EC_DOUBLE_ASSIGN_NEW_X_V3 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import pack
+    \\SECP_P = 2**255-19
+    \\
+    \\slope = pack(ids.slope, PRIME)
+    \\x = pack(ids.point.x, PRIME)
+    \\y = pack(ids.point.y, PRIME)
+    \\
+    \\value = new_x = (pow(slope, 2, SECP_P) - 2 * x) % SECP_P
+;
+
+pub const EC_DOUBLE_ASSIGN_NEW_X_V4 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
+    \\
+    \\slope = pack(ids.slope, PRIME)
+    \\x = pack(ids.pt.x, PRIME)
+    \\y = pack(ids.pt.y, PRIME)
+    \\
+    \\value = new_x = (pow(slope, 2, SECP_P) - 2 * x) % SECP_P
+;
+
+pub const REDUCE_V1 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
+    \\
+    \\value = pack(ids.x, PRIME) % SECP_P
+;
+
+pub const REDUCE_V2 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import pack
+    \\value = pack(ids.x, PRIME) % SECP_P
+;
+
+pub const IS_ZERO_NONDET = "memory[ap] = to_felt_or_relocatable(x == 0)";
+pub const IS_ZERO_INT = "memory[ap] = int(x == 0)";
+pub const IS_ZERO_PACK_V1 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
+    \\
+    \\x = pack(ids.x, PRIME) % SECP_P
+;
+
+pub const IS_ZERO_PACK_V2 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
+    \\x = pack(ids.x, PRIME) % SECP_P
+;
+
+pub const IS_ZERO_PACK_EXTERNAL_SECP_V1 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import pack
+    \\
+    \\x = pack(ids.x, PRIME) % SECP_P
+;
+
+pub const IS_ZERO_PACK_EXTERNAL_SECP_V2 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import pack
+    \\x = pack(ids.x, PRIME) % SECP_P
+;
+
+pub const IS_ZERO_PACK_ED25519 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import pack
+    \\SECP_P=2**255-19
+    \\
+    \\x = pack(ids.x, PRIME) % SECP_P
+;
+
+pub const IS_ZERO_ASSIGN_SCOPE_VARS =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import SECP_P
+    \\from starkware.python.math_utils import div_mod
+    \\
+    \\value = x_inv = div_mod(1, x, SECP_P)
+;
+
+pub const IS_ZERO_ASSIGN_SCOPE_VARS_EXTERNAL_SECP =
+    \\from starkware.python.math_utils import div_mod
+    \\
+    \\value = x_inv = div_mod(1, x, SECP_P)
+;
+
+pub const IS_ZERO_ASSIGN_SCOPE_VARS_ED25519 =
+    \\SECP_P=2**255-19
+    \\from starkware.python.math_utils import div_mod
+    \\
+    \\value = x_inv = div_mod(1, x, SECP_P)
 ;
