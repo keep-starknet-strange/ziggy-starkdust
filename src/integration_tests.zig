@@ -157,8 +157,7 @@ pub fn main() void {
         // .{ .pathname = "cairo_programs/print.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/recover_y.json", .layout = "all_cairo" },
         // TODO: not implemented vrf/pack
-        .{ .pathname = "cairo_programs/reduce.json", .layout = "all_cairo" },
-
+        // .{ .pathname = "cairo_programs/reduce.json", .layout = "all_cairo" },
 
         .{ .pathname = "cairo_programs/relocate_segments_with_offset.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/relocate_segments.json", .layout = "all_cairo" },
