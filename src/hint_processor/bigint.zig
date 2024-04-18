@@ -177,7 +177,7 @@ test "big int pack div mod hint" {
     });
 
     const hint_processor = HintProcessor{};
-    var hint_data = HintData.init(hint_codes.BIGINT_PACK_DIV_MOD_HINT, ids_data, .{});
+    var hint_data = HintData.init(hint_codes.BIGINT_PACK_DIV_MOD, ids_data, .{});
 
     var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();
