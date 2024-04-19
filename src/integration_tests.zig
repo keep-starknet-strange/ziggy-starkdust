@@ -228,11 +228,9 @@ pub fn main() !void {
         .{ .pathname = "cairo_programs/use_imported_module.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/usort.json", .layout = "all_cairo" },
     };
-    // Get the command-line arguments
+
     const args = try std.process.argsAlloc(allocator);
     defer std.process.argsFree(allocator, args);
-
-    // Check if a test substring is provided as a command-line argument
     const test_substring = if (args.len > 1) args[1] else "";
 
     var ok_count: usize = 0;
@@ -245,7 +243,7 @@ pub fn main() !void {
         (progress.supports_ansi_escape_codes or progress.is_windows_terminal);
 
     for (cairo_programs, 0..) |test_cairo_program, i| {
-        // Check if the current test's pathname contains the provided test substring
+        // Check if the current test's pathname contains the provided test filter substring
         if (test_substring.len > 0 and !std.mem.containsAtLeast(u8, test_cairo_program.pathname, 1, test_substring)) {
             continue;
         }
