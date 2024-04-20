@@ -659,6 +659,11 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             return std.math.big.int.Managed.initSet(allocator, self.toSignedInt());
         }
 
+        // to unsigned big int
+        pub fn toBigUint(self: Self, allocator: std.mem.Allocator) !std.math.big.int.Managed {
+            return std.math.big.int.Managed.initSet(allocator, self.toInteger());
+        }
+
         // converting felt to abs value with sign, in (- FIELD / 2, FIELD / 2
         pub fn toSignedInt(self: Self) i256 {
             const val = self.toInteger();

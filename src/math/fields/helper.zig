@@ -25,6 +25,68 @@ pub fn multiplyModulus(a: u512, b: u512, modulus: u512) u512 {
     return (a * b) % modulus;
 }
 
+pub fn multiplyModulusBigInt(allocator: std.mem.Allocator, a: Int, b: Int, modulus: Int) !Int {
+    var value = try Int.init(allocator);
+    errdefer value.deinit();
+
+    var tmp = try Int.init(allocator);
+    defer tmp.deinit();
+
+    try tmp.mul(&a, &b);
+
+    try tmp.divFloor(&value, &tmp, &modulus);
+
+    return value;
+}
+
+pub fn multiplyModulusBigIntWithPtr(allocator: std.mem.Allocator, a: Int, b: Int, modulus: Int, value: *Int) !void {
+    var tmp = try Int.init(allocator);
+    defer tmp.deinit();
+
+    try tmp.mul(&a, &b);
+
+    try tmp.divFloor(value, &tmp, &modulus);
+}
+
+pub fn powModulusBigInt(allocator: std.mem.Allocator, b: Int, e: Int, modulus: Int) !Int {
+    var base = try b.clone();
+    defer base.deinit();
+
+    var exponent = try e.clone();
+    defer exponent.deinit();
+
+    var tmp = try Int.initSet(allocator, 1);
+    defer tmp.deinit();
+
+    var tmp2 = try Int.initSet(allocator, 1);
+    defer tmp2.deinit();
+
+    var result = try Int.initSet(allocator, 0);
+    errdefer result.deinit();
+
+    if (modulus.eql(tmp))
+        return result;
+
+    try tmp.divFloor(&base, &base, &modulus);
+
+    try result.set(1);
+
+    while (!exponent.eqlZero()) {
+        try tmp.set(1);
+        try tmp.bitAnd(&exponent, &tmp);
+
+        if (tmp.eql(tmp2)) {
+            try multiplyModulusBigIntWithPtr(allocator, result, base, modulus, &result);
+        }
+
+        try multiplyModulusBigIntWithPtr(allocator, base, base, modulus, &base);
+
+        try exponent.shiftRight(&exponent, 1);
+    }
+
+    return result;
+}
+
 pub fn powModulus(b: u512, e: u512, modulus: u512) u512 {
     var base: u512 = b;
     var exponent: u512 = e;
@@ -198,6 +260,22 @@ pub fn divRem(comptime T: type, num: T, denominator: T) !struct { T, T } {
     };
 }
 
+pub fn safeDivBigIntV2(allocator: std.mem.Allocator, x: Int, y: Int) !Int {
+    if (y.eqlZero()) return MathError.DividedByZero;
+
+    var q = try Int.init(allocator);
+    errdefer q.deinit();
+
+    var r = try Int.init(allocator);
+    defer r.deinit();
+
+    try q.divFloor(&r, &x, &y);
+
+    if (!r.eqlZero()) return MathError.SafeDivFailBigInt;
+
+    return q;
+}
+
 pub fn divModBigInt(allocator: std.mem.Allocator, n: *const Int, m: *const Int, p: *const Int) !Int {
     var tmp = try Int.initSet(allocator, 1);
     defer tmp.deinit();
@@ -245,6 +323,72 @@ pub fn safeDivBigInt(x: i512, y: i512) !i512 {
     }
 
     return result[0];
+}
+
+pub fn isPrime(allocator: std.mem.Allocator, n: Int) !bool {
+    var n_c = try n.clone();
+    defer n_c.deinit();
+
+    var tmp = try Int.init(allocator);
+    defer tmp.deinit();
+
+    var i = try Int.initSet(allocator, 2);
+    defer i.deinit();
+
+    var sqrt_n = try Int.init(allocator);
+    defer sqrt_n.deinit();
+
+    try sqrt_n.sqrt(&n_c);
+
+    while (i.order(sqrt_n).compare(.lte)) {
+        try tmp.divFloor(&n_c, &n, &i);
+
+        if (n_c.eqlZero()) break;
+
+        try i.addScalar(&i, 1);
+    }
+
+    if (i.order(sqrt_n).compare(.gt))
+        return true
+    else
+        return false;
+}
+
+// Ported from sympy implementation
+// Simplified as a & p are nonnegative
+// Asumes p is a prime number
+pub fn isQuadResidue(allocator: std.mem.Allocator, a: Int, p: Int) !bool {
+    if (p.eqlZero())
+        return MathError.IsQuadResidueZeroPrime;
+
+    var tmp = try Int.init(allocator);
+    defer tmp.deinit();
+
+    var a_new = if (a.order(p).compare(.gte)) blk: {
+        var a_c = try a.clone();
+        errdefer a_c.deinit();
+        try tmp.divFloor(&a_c, &a, &p);
+        break :blk a_c;
+    } else try a.clone();
+    defer a_new.deinit();
+
+    var tmp2 = try Int.initSet(allocator, 3);
+    defer tmp2.deinit();
+
+    try tmp.set(2);
+
+    if (a.order(tmp).compare(.lt) or p.order(tmp2).compare(.lt))
+        return true;
+
+    try tmp.addScalar(&p, -1);
+    try tmp2.set(2);
+
+    var result = try powModulusBigInt(allocator, tmp, tmp2, p);
+    defer result.deinit();
+
+    try tmp.set(1);
+
+    return result.eql(tmp);
 }
 
 test "Helper: extendedGCD big" {

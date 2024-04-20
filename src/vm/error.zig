@@ -192,6 +192,8 @@ pub const RunnerError = error{
 
 /// Represents different error conditions that occur during mathematical operations.
 pub const MathError = error{
+    /// is_quad_residue: p must be > 0
+    IsQuadResidueZeroPrime,
     /// Error when attempting to perform addition between Relocatable values.
     RelocatableAdd,
     /// Error when attempting to subtract a Relocatable from an integer value.
