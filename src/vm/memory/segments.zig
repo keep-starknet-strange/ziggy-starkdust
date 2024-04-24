@@ -71,6 +71,7 @@ pub const MemorySegmentManager = struct {
         segment_manager.* = .{
             .allocator = allocator,
             .segment_used_sizes = std.AutoArrayHashMap(
+
                 i64,
                 u32,
             ).init(allocator),

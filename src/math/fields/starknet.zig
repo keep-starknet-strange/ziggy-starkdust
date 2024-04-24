@@ -25,8 +25,18 @@ pub fn bigIntToBytesLe(allocator: std.mem.Allocator, bigint: std.math.big.int.Ma
 }
 
 pub fn fromBigInt(allocator: std.mem.Allocator, bigint: std.math.big.int.Managed) !Felt252 {
+    var tmp = try std.math.big.int.Managed.init(allocator);
+    defer tmp.deinit();
+    var tmp2 = try std.math.big.int.Managed.initSet(allocator, STARKNET_PRIME);
+    defer tmp2.deinit();
+
+    try tmp.divFloor(&tmp2, &bigint, &tmp2);
+
+    if (!tmp2.isPositive()) tmp2.negate();
+
     const bytes =
-        try bigIntToBytesLe(allocator, bigint);
+        try bigIntToBytesLe(allocator, tmp2);
+
     defer allocator.free(bytes);
 
     return fromBytesLeSlice(bytes);
