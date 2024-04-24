@@ -412,9 +412,14 @@ pub const ExecutionScopes = struct {
     }
 
     /// Creates or updates an existing variable given its name and boxed value.
+    /// if variable existed before, trying to deallocate old variable
     pub fn assignOrUpdateVariable(self: *Self, var_name: []const u8, var_value: HintType) !void {
         var m = self.getLocalVariableMut() orelse return;
-        try m.put(var_name, var_value);
+
+        var old_value =
+            try m.fetchPut(var_name, var_value) orelse return;
+
+        old_value.value.deinit();
     }
 
     /// Removes a variable from the current scope given its name.

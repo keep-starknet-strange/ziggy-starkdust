@@ -38,7 +38,7 @@ pub fn BigIntN(comptime NUM_LIMBS: usize) type {
             var limbs: [NUM_LIMBS]Felt252 = undefined;
 
             inline for (0..NUM_LIMBS) |i| {
-                limbs[i] = try vm.getFelt(try addr.addUint(i));
+                limbs[i] = vm.getFelt(try addr.addUint(i)) catch return HintError.IdentifierHasNoMember;
             }
 
             return .{ .limbs = limbs };
@@ -86,7 +86,6 @@ pub fn BigIntN(comptime NUM_LIMBS: usize) type {
             return result;
         }
 
-
         pub fn split(allocator: std.mem.Allocator, num: Int) !Self {
             return Self.fromValues(try splitBigInt(allocator, num, NUM_LIMBS, 128));
         }
@@ -125,14 +124,20 @@ pub fn nondetBigInt3(allocator: std.mem.Allocator, vm: *CairoVM, exec_scopes: *E
 
 // Implements hint
 // %{ ids.low = (ids.x.d0 + ids.x.d1 * ids.BASE) & ((1 << 128) - 1) %}
-pub fn bigintToUint256(vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking, constants: std.StringHashMap(Felt252)) !void {
+
+pub fn bigintToUint256(allocator: std.mem.Allocator, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking, constants: *std.StringHashMap(Felt252)) !void {
     const x_struct = try hint_utils.getRelocatableFromVarName("x", vm, ids_data, ap_tracking);
+
     const d0 = try vm.getFelt(x_struct);
-    const d1 = try vm.getFelt(x_struct.offset(1));
-    const base_86 = constants.get("BASE_86") orelse return HintError.MissingConstant;
+    const d1 = try vm.getFelt(try x_struct.addUint(1));
+
+    const base_86 = constants.get(secp_utils.BASE_86) orelse return HintError.MissingConstant;
+
     const mask = pow2ConstNz(128);
-    const low = ((d0 + (d1 * base_86)) % mask);
-    try hint_utils.insertValueFromVarName(std.mem.Allocator, "low", low, vm, ids_data, ap_tracking);
+
+    const low = (d0.add(d1.mul(base_86))).mod(mask);
+
+    try hint_utils.insertValueFromVarName(allocator, "low", MaybeRelocatable.fromFelt(low), vm, ids_data, ap_tracking);
 }
 
 // Implements hint
@@ -211,7 +216,8 @@ test "Get BigInt3 from base address with missing member should fail" {
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    try std.testing.expectError(MemoryError.UnknownMemoryCell, BigInt3.fromBaseAddr(Relocatable{ .segment_index = 0, .offset = 0 }, &vm));
+
+    try std.testing.expectError(HintError.IdentifierHasNoMember, BigInt3.fromBaseAddr(Relocatable{ .segment_index = 0, .offset = 0 }, &vm));
 }
 
 test "Get BigInt5 from base address with missing member should fail" {
@@ -228,7 +234,8 @@ test "Get BigInt5 from base address with missing member should fail" {
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    try std.testing.expectError(MemoryError.UnknownMemoryCell, BigInt5.fromBaseAddr(Relocatable{ .segment_index = 0, .offset = 0 }, &vm));
+
+    try std.testing.expectError(HintError.IdentifierHasNoMember, BigInt5.fromBaseAddr(Relocatable{ .segment_index = 0, .offset = 0 }, &vm));
 }
 
 test "BigIntUtils: get bigint3 from var name ok" {
@@ -302,7 +309,7 @@ test "BigIntUtils: get bigint3 from var name with missing member fail" {
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{"x"});
     defer ids_data.deinit();
 
-    try std.testing.expectError(MemoryError.UnknownMemoryCell, BigInt3.fromVarName("x", &vm, ids_data, .{}));
+    try std.testing.expectError(HintError.IdentifierHasNoMember, BigInt3.fromVarName("x", &vm, ids_data, .{}));
 }
 
 test "BigIntUtils: get bigint5 from var name with missing member should fail" {
@@ -324,7 +331,8 @@ test "BigIntUtils: get bigint5 from var name with missing member should fail" {
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{"x"});
     defer ids_data.deinit();
 
-    try std.testing.expectError(MemoryError.UnknownMemoryCell, BigInt5.fromVarName("x", &vm, ids_data, .{}));
+
+    try std.testing.expectError(HintError.IdentifierHasNoMember, BigInt5.fromVarName("x", &vm, ids_data, .{}));
 }
 
 test "BigIntUtils: get bigint3 from varname invalid reference should fail" {

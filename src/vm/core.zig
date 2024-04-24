@@ -1314,8 +1314,9 @@ pub const CairoVM = struct {
             // Assert that the result and destination operands are equal for AssertEq opcode.
             .AssertEq => {
                 if (operands.res) |res| {
-                    if (!res.eq(operands.dst))
+                    if (!res.eq(operands.dst)) {
                         return CairoVMError.DiffAssertValues;
+                    }
                 } else {
                     return CairoVMError.UnconstrainedResAssertEq;
                 }

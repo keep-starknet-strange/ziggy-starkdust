@@ -217,6 +217,7 @@ pub const MathError = error{
 
     SecpSplitOutOfRange,
     SafeDivFailU32,
+
     Felt252ToU32Conversion,
 };
 
@@ -263,6 +264,18 @@ pub const VerifyError = error{
 };
 
 pub const HintError = error{
+    // verify_zero: Invalid input
+    SecpVerifyZero,
+
+    // Attempt to subtract with overflow: ids.m - 1
+    NPairBitsTooLowM,
+    // random_ec_point: Could not find a point on the curve.
+    RandomEcPointNotOnCurve,
+    // Invalid value for len.
+    InvalidLenValue,
+    // recover_y: does not represent the x coordinate of a point on the curve.
+    RecoverYPointNotOnCurve,
+
     // Expected size to be in range from [0, 10)
     InvalidBlockSize,
 

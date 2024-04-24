@@ -359,7 +359,7 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
 
             const v = tonelliShanks(@intCast(a), @intCast(modulo));
             if (v[2]) {
-                return Self.fromInt(u256, @intCast(v[0]));
+                return Self.fromInt(u256, @intCast(@min(v[0], v[1])));
             }
 
             return null;
@@ -689,6 +689,13 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
                 &bytes,
                 std.builtin.Endian.little,
             );
+        }
+
+        /// Try to convert the field element to a usize if its value is small enough.
+        ///
+        /// Attempts to convert the field element to a usize if its value is within the representable range.
+        pub fn intoUsizeOrOptional(self: Self) ?usize {
+            return self.intoUsize() catch null;
         }
 
         /// Try to convert the field element to a usize if its value is small enough.
