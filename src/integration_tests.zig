@@ -5,7 +5,7 @@ const CairoVM = @import("vm/core.zig").CairoVM;
 const CairoRunner = @import("vm/runners/cairo_runner.zig").CairoRunner;
 const HintProcessor = @import("./hint_processor/hint_processor_def.zig").CairoVMHintProcessor;
 
-pub fn main() void {
+pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     // Given
     const allocator = gpa.allocator();
@@ -214,6 +214,10 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/usort.json", .layout = "all_cairo" },
     };
 
+    const args = try std.process.argsAlloc(allocator);
+    defer std.process.argsFree(allocator, args);
+    const test_substring = if (args.len > 1) args[1] else "";
+
     var ok_count: usize = 0;
     var fail_count: usize = 0;
     var progress = std.Progress{
@@ -224,6 +228,10 @@ pub fn main() void {
         (progress.supports_ansi_escape_codes or progress.is_windows_terminal);
 
     for (cairo_programs, 0..) |test_cairo_program, i| {
+        // Check if the current test's pathname contains the provided test filter substring
+        if (test_substring.len > 0 and !std.mem.containsAtLeast(u8, test_cairo_program.pathname, 1, test_substring)) {
+            continue;
+        }
         var test_node = root_node.start(test_cairo_program.pathname, 0);
         test_node.activate();
         progress.refresh();
