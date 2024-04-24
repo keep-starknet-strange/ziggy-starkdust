@@ -1371,3 +1371,115 @@ pub const IS_ZERO_ASSIGN_SCOPE_VARS_ED25519 =
     \\
     \\value = x_inv = div_mod(1, x, SECP_P)
 ;
+
+pub const INV_MOD_P_UINT256 =
+    \\from starkware.python.math_utils import div_mod
+    \\
+    \\def split(a: int):
+    \\    return (a & ((1 << 128) - 1), a >> 128)
+    \\
+    \\def pack(z, num_bits_shift: int) -> int:
+    \\    limbs = (z.low, z.high)
+    \\    return sum(limb << (num_bits_shift * i) for i, limb in enumerate(limbs))
+    \\
+    \\a = pack(ids.a, 128)
+    \\b = pack(ids.b, 128)
+    \\p = pack(ids.p, 128)
+    \\# For python3.8 and above the modular inverse can be computed as follows:
+    \\# b_inverse_mod_p = pow(b, -1, p)
+    \\# Instead we use the python3.7-friendly function div_mod from starkware.python.math_utils
+    \\b_inverse_mod_p = div_mod(1, b, p)
+    \\
+    \\b_inverse_mod_p_split = split(b_inverse_mod_p)
+    \\
+    \\ids.b_inverse_mod_p.low = b_inverse_mod_p_split[0]
+    \\ids.b_inverse_mod_p.high = b_inverse_mod_p_split[1]
+;
+
+pub const UINT512_UNSIGNED_DIV_REM =
+    \\def split(num: int, num_bits_shift: int, length: int):
+    \\    a = []
+    \\    for _ in range(length):
+    \\        a.append( num & ((1 << num_bits_shift) - 1) )
+    \\        num = num >> num_bits_shift
+    \\    return tuple(a)
+    \\
+    \\def pack(z, num_bits_shift: int) -> int:
+    \\    limbs = (z.low, z.high)
+    \\    return sum(limb << (num_bits_shift * i) for i, limb in enumerate(limbs))
+    \\
+    \\def pack_extended(z, num_bits_shift: int) -> int:
+    \\    limbs = (z.d0, z.d1, z.d2, z.d3)
+    \\    return sum(limb << (num_bits_shift * i) for i, limb in enumerate(limbs))
+    \\
+    \\x = pack_extended(ids.x, num_bits_shift = 128)
+    \\div = pack(ids.div, num_bits_shift = 128)
+    \\
+    \\quotient, remainder = divmod(x, div)
+    \\
+    \\quotient_split = split(quotient, num_bits_shift=128, length=4)
+    \\
+    \\ids.quotient.d0 = quotient_split[0]
+    \\ids.quotient.d1 = quotient_split[1]
+    \\ids.quotient.d2 = quotient_split[2]
+    \\ids.quotient.d3 = quotient_split[3]
+    \\
+    \\remainder_split = split(remainder, num_bits_shift=128, length=2)
+    \\ids.remainder.low = remainder_split[0]
+    \\ids.remainder.high = remainder_split[1]
+;
+
+pub const REDUCE_ED25519 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import pack
+    \\SECP_P=2**255-19
+    \\
+    \\value = pack(ids.x, PRIME) % SECP_P
+;
+
+pub const DIV_MOD_N_PACKED_DIVMOD_V1 =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import N, pack
+    \\from starkware.python.math_utils import div_mod, safe_div
+    \\
+    \\a = pack(ids.a, PRIME)
+    \\b = pack(ids.b, PRIME)
+    \\value = res = div_mod(a, b, N)
+;
+
+pub const DIV_MOD_N_PACKED_DIVMOD_EXTERNAL_N =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import pack
+    \\from starkware.python.math_utils import div_mod, safe_div
+    \\
+    \\a = pack(ids.a, PRIME)
+    \\b = pack(ids.b, PRIME)
+    \\value = res = div_mod(a, b, N)
+;
+
+pub const DIV_MOD_N_SAFE_DIV = "value = k = safe_div(res * b - a, N)";
+
+pub const DIV_MOD_N_SAFE_DIV_PLUS_ONE = "value = k_plus_one = safe_div(res * b - a, N) + 1";
+
+pub const XS_SAFE_DIV = "value = k = safe_div(res * s - x, N)";
+
+pub const GET_POINT_FROM_X =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import SECP_P, pack
+    \\
+    \\x_cube_int = pack(ids.x_cube, PRIME) % SECP_P
+    \\y_square_int = (x_cube_int + ids.BETA) % SECP_P
+    \\y = pow(y_square_int, (SECP_P + 1) // 4, SECP_P)
+    \\
+    \\# We need to decide whether to take y or SECP_P - y.
+    \\if ids.v % 2 == y % 2:
+    \\    value = y
+    \\else:
+    \\    value = (-y) % SECP_P
+;
+
+pub const PACK_MODN_DIV_MODN =
+    \\from starkware.cairo.common.cairo_secp.secp_utils import pack
+    \\from starkware.python.math_utils import div_mod, safe_div
+    \\
+    \\N = 0xfffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141
+    \\x = pack(ids.x, PRIME) % N
+    \\s = pack(ids.s, PRIME) % N
+    \\value = res = div_mod(x, s, N)
+;

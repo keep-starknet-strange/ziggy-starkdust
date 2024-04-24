@@ -46,6 +46,7 @@ pub fn verifyZero(
     defer secp_p.deinit();
 
     try exec_scopes.assignOrUpdateVariable("SECP_P", .{ .big_int = try secp_p.clone() });
+
     var val = try (try Uint384.fromVarName("val", vm, ids_data, ap_tracking)).pack86(allocator);
     defer val.deinit();
 

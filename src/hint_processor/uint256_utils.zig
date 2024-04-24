@@ -18,6 +18,8 @@ const MathError = @import("../vm/error.zig").MathError;
 const HintError = @import("../vm/error.zig").HintError;
 const CairoVMError = @import("../vm/error.zig").CairoVMError;
 
+const fromBigInt = @import("../math/fields/starknet.zig").fromBigInt;
+
 const RangeCheckBuiltinRunner = @import("../vm/builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
 
 pub const Uint256 = struct {
@@ -53,8 +55,21 @@ pub const Uint256 = struct {
         try vm.insertInMemory(allocator, try addr.addUint(1), MaybeRelocatable.fromFelt(self.high));
     }
 
-    pub fn split(comptime T: type, num: T) Self {
-        return Self.init(Felt252.fromInt(T, num & std.math.maxInt(u128)), Felt252.fromInt(T, num >> 128));
+    pub fn split(allocator: std.mem.Allocator, num: Int) !Self {
+        var mask_low = try Int.initSet(allocator, std.math.maxInt(u128));
+        defer mask_low.deinit();
+
+        var low = try num.clone();
+        defer low.deinit();
+
+        try low.bitAnd(&num, &mask_low);
+
+        var high = try Int.init(allocator);
+        defer high.deinit();
+
+        try high.shiftRight(&num, 128);
+
+        return Self.init(try fromBigInt(allocator, low), try fromBigInt(allocator, high));
     }
 
     pub fn pack(self: Self, allocator: std.mem.Allocator) !Int {
@@ -65,12 +80,20 @@ pub const Uint256 = struct {
         try result.addScalar(&result, self.low.toInteger());
         return result;
     }
+
     // converting self to biguint value
-    // optimize by using biguint
-    // right now using u512, so to not use allocator with big int
-    pub fn toBigUint(self: Self) u512 {
-        // optimize and use bigint library
-        return @as(u512, @as(u512, self.high.toInteger()) << 128) + self.low.toInteger();
+    pub fn toBigUint(self: Self, allocator: std.mem.Allocator) !Int {
+        var value = try self.high.toBigUint(allocator);
+        errdefer value.deinit();
+
+        var low = try self.low.toBigUint(allocator);
+        defer low.deinit();
+
+        try value.shiftLeft(&value, 128);
+
+        try value.add(&value, &low);
+
+        return value;
     }
 
     pub fn fromFelt(value: Felt252) Self {
@@ -177,32 +200,62 @@ pub fn uint256Sub(
     ids_data: std.StringHashMap(HintReference),
     ap_tracking: ApTracking,
 ) !void {
-    const a = (try Uint256.fromVarName("a", vm, ids_data, ap_tracking)).toBigUint();
-    const b = (try Uint256.fromVarName("b", vm, ids_data, ap_tracking)).toBigUint();
+    var a = try (try Uint256.fromVarName("a", vm, ids_data, ap_tracking)).toBigUint(allocator);
+    defer a.deinit();
+
+    var b = try (try Uint256.fromVarName("b", vm, ids_data, ap_tracking)).toBigUint(allocator);
+    defer b.deinit();
 
     // Main logic:
     // res = (a - b)%2**256
-    const res = if (a >= b) a - b else blk: {
+    var res = if (a.order(b).compare(.gte)) blk: {
+        var tmp = try Int.init(allocator);
+        errdefer tmp.deinit();
+        try tmp.sub(&a, &b);
+
+        break :blk tmp;
+    } else blk: {
+
         // wrapped a - b
         // b is limited to (CAIRO_PRIME - 1) << 128 which is 1 << (251 + 128 + 1)
         //                                         251: most significant felt bit
         //                                         128:     high field left shift
         //                                           1:       extra bit for limit
-        const mod_256: u512 = 1 << 256;
-        if (mod_256 >= b) {
-            break :blk mod_256 - b + a;
+        var mod_256 = try Int.initSet(allocator, 1);
+        errdefer mod_256.deinit();
+
+        try mod_256.shiftLeft(&mod_256, 256);
+
+        if (mod_256.order(b).compare(.gte)) {
+            try mod_256.add(&mod_256, &a);
+            try mod_256.sub(&mod_256, &b);
+
+            break :blk mod_256;
         } else {
-            const lowered_b = @mod(b, mod_256);
+            var tmp = try Int.init(allocator);
+            defer tmp.deinit();
+
+            var lowered_b = try Int.init(allocator);
+            defer lowered_b.deinit();
+
+            try tmp.divFloor(&lowered_b, &b, &mod_256);
+
             // Repeat the logic from before
-            if (a >= lowered_b) {
-                break :blk a - lowered_b;
+            if (a.order(lowered_b).compare(.gte)) {
+                try mod_256.sub(&a, &lowered_b);
+
+                break :blk mod_256;
             } else {
-                break :blk mod_256 - lowered_b + a;
+                try mod_256.add(&mod_256, &a);
+                try mod_256.sub(&mod_256, &lowered_b);
+
+                break :blk mod_256;
             }
         }
     };
+    defer res.deinit();
 
-    try Uint256.split(u512, res).insertFromVarName(allocator, "res", vm, ids_data, ap_tracking);
+    try (try Uint256.split(allocator, res)).insertFromVarName(allocator, "res", vm, ids_data, ap_tracking);
 }
 
 // Implements hint:
@@ -250,7 +303,8 @@ pub fn uint256Sqrt(
     only_low: bool,
 ) !void {
     // todo use big int for this
-    const n = (try Uint256.fromVarName("n", vm, ids_data, ap_tracking)).toBigUint();
+    var n = try (try Uint256.fromVarName("n", vm, ids_data, ap_tracking)).toBigUint(allocator);
+    defer n.deinit();
 
     // Main logic
     // from starkware.python.math_utils import isqrt
@@ -260,18 +314,20 @@ pub fn uint256Sqrt(
     // ids.root.low = root
     // ids.root.high = 0
 
-    const root = try helper.isqrt(u512, n);
-    if (root >> 128 > 0) {
-        return HintError.AssertionFailed;
-    }
+    var root = try Int.init(allocator);
+    defer root.deinit();
 
-    const root_field = Felt252.fromInt(u512, root);
+    try root.sqrt(&n);
+
+    if (root.bitCountAbs() > 128)
+        return HintError.AssertionFailed;
+
+    const root_field = try fromBigInt(allocator, root);
 
     if (only_low) {
         try hint_utils.insertValueFromVarName(allocator, "root", MaybeRelocatable.fromFelt(root_field), vm, ids_data, ap_tracking);
     } else {
-        const root_u256 = Uint256.init(root_field, Felt252.zero());
-        try root_u256.insertFromVarName(allocator, "root", vm, ids_data, ap_tracking);
+        try Uint256.init(root_field, Felt252.zero()).insertFromVarName(allocator, "root", vm, ids_data, ap_tracking);
     }
 }
 
@@ -362,19 +418,46 @@ pub fn uint256OffsetedUnsignedDivRem(
     //ids.remainder.low = remainder & ((1 << 128) - 1)
     //ids.remainder.high = remainder >> 128
 
-    // TODO: optimize use biguint instead of u512
-    const a_shifted = (@as(u512, a_high.toInteger()) << 128) + @as(u512, a_low.toInteger());
-    const div = (@as(u512, div_high.toInteger()) << 128) + @as(u512, div_low.toInteger());
+    var a_high_big = try a_high.toBigUint(allocator);
+    defer a_high_big.deinit();
+
+    var a_low_big = try a_low.toBigUint(allocator);
+    defer a_low_big.deinit();
+
+    var tmp = try Int.init(allocator);
+    defer tmp.deinit();
+    var tmp2 = try Int.init(allocator);
+    defer tmp2.deinit();
+
+    var div_high_big = try div_high.toBigUint(allocator);
+    defer div_high_big.deinit();
+
+    var div_low_big = try div_low.toBigUint(allocator);
+    defer div_low_big.deinit();
+
+    try tmp.shiftLeft(&a_high_big, 128);
+    // a_shifted
+    try tmp.add(&tmp, &a_low_big);
+
+    try tmp2.shiftLeft(&div_high_big, 128);
+    // div
+    try tmp2.add(&tmp2, &div_low_big);
+
+    var quotient = try Int.init(allocator);
+    defer quotient.deinit();
+
+    var remainder = try Int.init(allocator);
+    defer remainder.deinit();
 
     //a and div will always be positive numbers
     //Then, Rust div_rem equals Python divmod
-    const quotient_remainder = try helper.divRem(u512, a_shifted, div);
+    try quotient.divTrunc(&remainder, &tmp, &tmp2);
 
-    const quotient = Uint256.split(u512, quotient_remainder[0]);
-    const remainder = Uint256.split(u512, quotient_remainder[1]);
+    const quotient_uint256 = try Uint256.split(allocator, quotient);
+    const remainder_uint256 = try Uint256.split(allocator, remainder);
 
-    try quotient.insertFromVarName(allocator, "quotient", vm, ids_data, ap_tracking);
-    try remainder.insertFromVarName(allocator, "remainder", vm, ids_data, ap_tracking);
+    try quotient_uint256.insertFromVarName(allocator, "quotient", vm, ids_data, ap_tracking);
+    try remainder_uint256.insertFromVarName(allocator, "remainder", vm, ids_data, ap_tracking);
 }
 
 // Implements Hint:

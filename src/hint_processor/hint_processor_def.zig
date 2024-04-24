@@ -40,11 +40,14 @@ const bigint_utils = @import("../hint_processor/builtin_hint_processor/secp/bigi
 const bigint = @import("bigint.zig");
 const uint384 = @import("uint384.zig");
 const inv_mod_p_uint512 = @import("vrf/inv_mod_p_uint512.zig");
+const fq = @import("vrf/fq.zig");
+const vrf_pack = @import("vrf/pack.zig");
 
 const ec_utils = @import("ec_utils.zig");
 const ec_utils_secp = @import("builtin_hint_processor/secp/ec_utils.zig");
 const secp_utils = @import("builtin_hint_processor/secp/secp_utils.zig");
 const field_utils = @import("builtin_hint_processor/secp/field_utils.zig");
+const secp_signature = @import("builtin_hint_processor/secp/signature.zig");
 const ec_recover = @import("ec_recover.zig");
 
 const deserialize_utils = @import("../parser/deserialize_utils.zig");
@@ -749,6 +752,98 @@ pub const CairoVMHintProcessor = struct {
             );
         } else if (std.mem.eql(u8, hint_codes.REDUCE_V2, hint_data.code)) {
             try field_utils.reduceV2(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+            );
+        } else if (std.mem.eql(u8, hint_codes.UINT512_UNSIGNED_DIV_REM, hint_data.code)) {
+            try fq.uint512UnsignedDivRem(
+                allocator,
+                vm,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+            );
+        } else if (std.mem.eql(u8, hint_codes.INV_MOD_P_UINT256, hint_data.code)) {
+            try fq.invModPUint256(
+                allocator,
+                vm,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+            );
+        } else if (std.mem.eql(u8, hint_codes.IS_ZERO_PACK_ED25519, hint_data.code)) {
+            try vrf_pack.ed25519IsZeroPack(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+            );
+        } else if (std.mem.eql(u8, hint_codes.REDUCE_ED25519, hint_data.code)) {
+            try vrf_pack.ed25519Reduce(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+            );
+        } else if (std.mem.eql(u8, hint_codes.IS_ZERO_ASSIGN_SCOPE_VARS_ED25519, hint_data.code)) {
+            try vrf_pack.ed25519IsZeroAssignScopeVars(
+                allocator,
+                exec_scopes,
+            );
+        } else if (std.mem.eql(u8, hint_codes.DIV_MOD_N_PACKED_DIVMOD_V1, hint_data.code)) {
+            try secp_signature.divModNPackedDivmod(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+            );
+        } else if (std.mem.eql(u8, hint_codes.DIV_MOD_N_PACKED_DIVMOD_EXTERNAL_N, hint_data.code)) {
+            try secp_signature.divModNPackedExternalN(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+            );
+        } else if (std.mem.eql(u8, hint_codes.DIV_MOD_N_SAFE_DIV, hint_data.code)) {
+            try secp_signature.divModNSafeDiv(
+                allocator,
+                exec_scopes,
+                "a",
+                "b",
+                0,
+            );
+        } else if (std.mem.eql(u8, hint_codes.DIV_MOD_N_SAFE_DIV_PLUS_ONE, hint_data.code)) {
+            try secp_signature.divModNSafeDiv(
+                allocator,
+                exec_scopes,
+                "a",
+                "b",
+                1,
+            );
+        } else if (std.mem.eql(u8, hint_codes.XS_SAFE_DIV, hint_data.code)) {
+            try secp_signature.divModNSafeDiv(
+                allocator,
+                exec_scopes,
+                "x",
+                "s",
+                0,
+            );
+        } else if (std.mem.eql(u8, hint_codes.GET_POINT_FROM_X, hint_data.code)) {
+            try secp_signature.getPointFromX(
+                allocator,
+                vm,
+                exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+                constants,
+            );
+        } else if (std.mem.eql(u8, hint_codes.PACK_MODN_DIV_MODN, hint_data.code)) {
+            try secp_signature.packModnDivModn(
                 allocator,
                 vm,
                 exec_scopes,
