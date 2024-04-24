@@ -5,7 +5,7 @@ const CairoVM = @import("vm/core.zig").CairoVM;
 const CairoRunner = @import("vm/runners/cairo_runner.zig").CairoRunner;
 const HintProcessor = @import("./hint_processor/hint_processor_def.zig").CairoVMHintProcessor;
 
-pub fn main() void {
+pub fn main() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     // Given
     const allocator = gpa.allocator();
@@ -52,7 +52,6 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/dict_store_cast_ptr.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/dict_update.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/div_mod_n.json", .layout = "all_cairo" },
-
         .{ .pathname = "cairo_programs/ec_double_assign_new_x_v3.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/ec_double_slope.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/ec_double_v4.json", .layout = "all_cairo" },
@@ -75,7 +74,6 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/fibonacci.json", .layout = "plain" },
         // TODO: field arithmetic
         // .{ .pathname = "cairo_programs/field_arithmetic.json", .layout = "all_cairo" },
-
         .{ .pathname = "cairo_programs/finalize_blake2s.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/finalize_blake2s_v2_hint.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/find_element.json", .layout = "all_cairo" },
@@ -93,9 +91,7 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/integration_with_alloc_locals.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/integration.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/inv_mod_p_uint512.json", .layout = "all_cairo" },
-
         .{ .pathname = "cairo_programs/is_quad_residue_test.json", .layout = "all_cairo" },
-
         .{ .pathname = "cairo_programs/is_zero_pack.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/is_zero.json", .layout = "all_cairo" },
 
@@ -125,6 +121,7 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/memory_holes.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/memory_integration_tests.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/memset.json", .layout = "all_cairo" },
+
         .{ .pathname = "cairo_programs/mul_s_inv.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/multiplicative_inverse.json", .layout = "all_cairo" },
 
@@ -148,6 +145,7 @@ pub fn main() void {
 
         .{ .pathname = "cairo_programs/print.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/recover_y.json", .layout = "all_cairo" },
+
         .{ .pathname = "cairo_programs/reduce.json", .layout = "all_cairo" },
 
         .{ .pathname = "cairo_programs/relocate_segments_with_offset.json", .layout = "all_cairo" },
@@ -161,9 +159,11 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/search_sorted_lower.json", .layout = "all_cairo" },
 
         .{ .pathname = "cairo_programs/secp_ec.json", .layout = "all_cairo" },
+
         .{ .pathname = "cairo_programs/secp_integration_tests.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/secp.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/secp256r1_div_mod_n.json", .layout = "all_cairo" },
+
         .{ .pathname = "cairo_programs/secp256r1_fast_ec_add.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/secp256r1_slope.json", .layout = "all_cairo" },
 
@@ -206,6 +206,10 @@ pub fn main() void {
         .{ .pathname = "cairo_programs/usort.json", .layout = "all_cairo" },
     };
 
+    const args = try std.process.argsAlloc(allocator);
+    defer std.process.argsFree(allocator, args);
+    const test_substring = if (args.len > 1) args[1] else "";
+
     var ok_count: usize = 0;
     var fail_count: usize = 0;
     var progress = std.Progress{
@@ -216,6 +220,10 @@ pub fn main() void {
         (progress.supports_ansi_escape_codes or progress.is_windows_terminal);
 
     for (cairo_programs, 0..) |test_cairo_program, i| {
+        // Check if the current test's pathname contains the provided test filter substring
+        if (test_substring.len > 0 and !std.mem.containsAtLeast(u8, test_cairo_program.pathname, 1, test_substring)) {
+            continue;
+        }
         var test_node = root_node.start(test_cairo_program.pathname, 0);
         test_node.activate();
         progress.refresh();
