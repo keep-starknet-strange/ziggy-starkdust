@@ -50,12 +50,6 @@ const field_utils = @import("builtin_hint_processor/secp/field_utils.zig");
 const secp_signature = @import("builtin_hint_processor/secp/signature.zig");
 const ec_recover = @import("ec_recover.zig");
 
-const ec_utils = @import("ec_utils.zig");
-const ec_utils_secp = @import("builtin_hint_processor/secp/ec_utils.zig");
-const secp_utils = @import("builtin_hint_processor/secp/secp_utils.zig");
-const field_utils = @import("builtin_hint_processor/secp/field_utils.zig");
-const ec_recover = @import("ec_recover.zig");
-
 const deserialize_utils = @import("../parser/deserialize_utils.zig");
 const print_utils = @import("./print.zig");
 
