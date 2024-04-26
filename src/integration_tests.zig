@@ -59,10 +59,8 @@ pub fn main() !void {
         .{ .pathname = "cairo_programs/ec_op.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/ec_recover.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/ed25519_ec.json", .layout = "all_cairo" },
-        // TODO: HintNotImplemented error field arithmetic
-        // .{ .pathname = "cairo_programs/ed25519_field.json", .layout = "all_cairo" },
-        // TODO: field arithmetic
-        // .{ .pathname = "cairo_programs/efficient_secp256r1_ec.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/ed25519_field.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/efficient_secp256r1_ec.json", .layout = "all_cairo" },
         // TODO: sha256
         // .{ .pathname = "cairo_programs/example_blake2s.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/example_program.json", .layout = "all_cairo" },
@@ -72,8 +70,7 @@ pub fn main() !void {
         .{ .pathname = "cairo_programs/fast_ec_add_v3.json", .layout = "all_cairo" },
 
         .{ .pathname = "cairo_programs/fibonacci.json", .layout = "plain" },
-        // TODO: field arithmetic
-        // .{ .pathname = "cairo_programs/field_arithmetic.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/field_arithmetic.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/finalize_blake2s.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/finalize_blake2s_v2_hint.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/find_element.json", .layout = "all_cairo" },
@@ -174,7 +171,6 @@ pub fn main() !void {
         // .{ .pathname = "cairo_programs/sha256_test.json", .layout = "all_cairo" },
         // .{ .pathname = "cairo_programs/sha256.json", .layout = "all_cairo" },
 
-        // TODO: error
         .{ .pathname = "cairo_programs/signature.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/signed_div_rem.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/simple_print.json", .layout = "all_cairo" },
