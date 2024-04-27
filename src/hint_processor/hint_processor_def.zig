@@ -56,6 +56,8 @@ const print_utils = @import("./print.zig");
 const testing_utils = @import("testing_utils.zig");
 const blake2s_utils = @import("blake2s_utils.zig");
 
+const field_arithmetic = @import("field_arithmetic.zig");
+
 const HintError = @import("../vm/error.zig").HintError;
 
 const expect = std.testing.expect;
@@ -847,6 +849,27 @@ pub const CairoVMHintProcessor = struct {
                 allocator,
                 vm,
                 exec_scopes,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+            );
+        } else if (std.mem.eql(u8, hint_codes.UINT384_GET_SQUARE_ROOT, hint_data.code)) {
+            try field_arithmetic.u384GetSquareRoot(
+                allocator,
+                vm,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+            );
+        } else if (std.mem.eql(u8, hint_codes.UINT256_GET_SQUARE_ROOT, hint_data.code)) {
+            try field_arithmetic.u256GetSquareRoot(
+                allocator,
+                vm,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+            );
+        } else if (std.mem.eql(u8, hint_codes.UINT384_DIV, hint_data.code)) {
+            try field_arithmetic.uint384Div(
+                allocator,
+                vm,
                 hint_data.ids_data,
                 hint_data.ap_tracking,
             );

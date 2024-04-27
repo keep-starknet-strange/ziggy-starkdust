@@ -141,6 +141,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
         .filter = test_filter,
+        .single_threaded = false,
     });
 
     // Add dependency modules to the tests.

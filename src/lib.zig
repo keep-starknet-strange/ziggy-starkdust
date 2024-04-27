@@ -89,6 +89,8 @@ pub const hint_processor = struct {
     pub usingnamespace @import("hint_processor/vrf/fq.zig");
     pub usingnamespace @import("hint_processor/vrf/pack.zig");
     pub usingnamespace @import("hint_processor/builtin_hint_processor/secp/signature.zig");
+
+    pub usingnamespace @import("hint_processor/field_arithmetic.zig");
 };
 
 pub const parser = struct {

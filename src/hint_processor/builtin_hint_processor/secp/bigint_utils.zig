@@ -24,6 +24,7 @@ const hint_codes = @import("../../builtin_hint_codes.zig");
 
 pub const BigInt3 = BigIntN(3);
 pub const Uint384 = BigIntN(3);
+pub const Uint256 = BigIntN(2);
 pub const Uint512 = BigIntN(4);
 pub const BigInt5 = BigIntN(5);
 pub const Uint768 = BigIntN(6);
@@ -216,7 +217,6 @@ test "Get BigInt3 from base address with missing member should fail" {
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-
     try std.testing.expectError(HintError.IdentifierHasNoMember, BigInt3.fromBaseAddr(Relocatable{ .segment_index = 0, .offset = 0 }, &vm));
 }
 
@@ -233,7 +233,6 @@ test "Get BigInt5 from base address with missing member should fail" {
     });
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
-
 
     try std.testing.expectError(HintError.IdentifierHasNoMember, BigInt5.fromBaseAddr(Relocatable{ .segment_index = 0, .offset = 0 }, &vm));
 }
@@ -330,7 +329,6 @@ test "BigIntUtils: get bigint5 from var name with missing member should fail" {
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{"x"});
     defer ids_data.deinit();
-
 
     try std.testing.expectError(HintError.IdentifierHasNoMember, BigInt5.fromVarName("x", &vm, ids_data, .{}));
 }
