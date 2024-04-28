@@ -20,7 +20,8 @@ const CairoVMError = @import("../vm/error.zig").CairoVMError;
 const MemoryError = @import("../vm/error.zig").MemoryError;
 const blake2s_hash = @import("blake2s_hash.zig");
 const builtin_hints = @import("builtin_hint_codes.zig");
-fn feltToU32(felt: Felt252) MathError!u32 {
+
+pub fn feltToU32(felt: Felt252) MathError!u32 {
     const u256_val = felt.toInteger();
     if (u256_val > 0xFFFFFFFF) {
         return MathError.Felt252ToU32Conversion;
