@@ -743,6 +743,7 @@ pub const EXAMPLE_BLAKE2S_COMPRESS =
 pub const BLAKE2S_FINALIZE_V3 =
     \\# Add dummy pairs of input and output.
     \\from starkware.cairo.common.cairo_blake2s.blake2s_utils import IV, blake2s_compress
+    \\
     \\_n_packed_instances = int(ids.N_PACKED_INSTANCES)
     \\assert 0 <= _n_packed_instances < 20
     \\_blake2s_input_chunk_size_felts = int(ids.BLAKE2S_INPUT_CHUNK_SIZE_FELTS)
@@ -1528,6 +1529,7 @@ pub const SHA256_FINALIZE =
     \\output = sha2_compress_function(IV, w)
     \\padding = (message + IV + output) * (_block_size - 1)
     \\segments.write_arg(ids.sha256_ptr_end, padding)
+;
 
 pub const UINT384_GET_SQUARE_ROOT =
     \\from starkware.python.math_utils import is_quad_residue, sqrt

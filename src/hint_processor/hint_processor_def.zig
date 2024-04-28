@@ -396,6 +396,8 @@ pub const CairoVMHintProcessor = struct {
             try blake2s_utils.blake2sFinalize(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.BLAKE2S_FINALIZE_V2, hint_data.code)) {
             try blake2s_utils.blake2sFinalize(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.BLAKE2S_FINALIZE_V3, hint_data.code)) {
+            try blake2s_utils.blake2sFinalizeV3(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.BLAKE2S_ADD_UINT256, hint_data.code)) {
             try blake2s_utils.blake2sAddUnit256(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.BLAKE2S_ADD_UINT256_BIGEND, hint_data.code)) {

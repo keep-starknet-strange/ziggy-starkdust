@@ -36,14 +36,18 @@ fn getFixedSizeU32Array(comptime N: usize, h_range: std.ArrayList(Felt252)) ![N]
     }
     return result;
 }
+
 fn getMaybeRelocArrayFromU32Array(allocator: Allocator, h_range: std.ArrayList(u32)) !std.ArrayList(MaybeRelocatable) {
     var result = std.ArrayList(MaybeRelocatable).init(allocator);
+    errdefer result.deinit();
+
     for (h_range.items) |h| {
-        const felt = Felt252.fromInt(u32, h);
-        try result.append(MaybeRelocatable.fromFelt(felt));
+        try result.append(MaybeRelocatable.fromInt(u32, h));
     }
+
     return result;
 }
+
 fn computeBlake2sFunc(allocator: Allocator, vm: *CairoVM, output_ptr: Relocatable) !void {
     const h_felt_range = try vm.getFeltRange(try output_ptr.subUint(26), 8);
     defer h_felt_range.deinit();
@@ -56,7 +60,7 @@ fn computeBlake2sFunc(allocator: Allocator, vm: *CairoVM, output_ptr: Relocatabl
     const t = try feltToU32(try vm.getFelt(try output_ptr.subUint(2)));
     const f = try feltToU32(try vm.getFelt(try output_ptr.subUint(1)));
 
-    const h_range = try blake2s_hash.blake2s_compress(allocator, h, message, t, 0, f, 0);
+    const h_range = try blake2s_hash.blake2sCompress(allocator, h, message, t, 0, f, 0);
     defer h_range.deinit();
     var new_state = try getMaybeRelocArrayFromU32Array(allocator, h_range);
     defer new_state.deinit();
@@ -72,7 +76,7 @@ pub fn blake2sCompute(allocator: Allocator, vm: *CairoVM, ids_data: std.StringHa
     try computeBlake2sFunc(allocator, vm, output);
 }
 
-// /* Implements Hint:
+// Implements Hint:
 // # Add dummy pairs of input and output.
 // from starkware.cairo.common.cairo_blake2s.blake2s_utils import IV, blake2s_compress
 
@@ -100,7 +104,7 @@ pub fn blake2sFinalize(allocator: Allocator, vm: *CairoVM, ids_data: std.StringH
     const message: [16]u32 = .{0} ** 16;
     var modified_iv = blake2s_hash.IV;
     modified_iv[0] = blake2s_hash.IV[0] ^ 0x01010020;
-    const output = try blake2s_hash.blake2s_compress(allocator, modified_iv, message, 0, 0, 0xffffffff, 0);
+    const output = try blake2s_hash.blake2sCompress(allocator, modified_iv, message, 0, 0, 0xffffffff, 0);
     defer output.deinit();
     var full_padding = std.ArrayList(u32).init(allocator);
     defer full_padding.deinit();
@@ -114,7 +118,7 @@ pub fn blake2sFinalize(allocator: Allocator, vm: *CairoVM, ids_data: std.StringH
     defer data.deinit();
     _ = try vm.loadData(blake2s_ptr_end, &data);
 }
-// /* Implements Hint:
+// Implements Hint:
 //         # Add dummy pairs of input and output.
 //         from starkware.cairo.common.cairo_blake2s.blake2s_utils import IV, blake2s_compress
 
@@ -135,18 +139,19 @@ pub fn blake2sFinalize(allocator: Allocator, vm: *CairoVM, ids_data: std.StringH
 //         )
 //         padding = (message + modified_iv + [0, 0xffffffff] + output) * (_n_packed_instances - 1)
 //         segments.write_arg(ids.blake2s_ptr_end, padding)
-// */
+//
 pub fn blake2sFinalizeV3(allocator: Allocator, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {
     const N_PACKED_INSTANCES = 7;
     const blake2s_ptr_end = try hint_utils.getPtrFromVarName("blake2s_ptr_end", vm, ids_data, ap_tracking);
     const message: [16]u32 = .{0} ** 16;
     var modified_iv = blake2s_hash.IV;
     modified_iv[0] = blake2s_hash.IV[0] ^ 0x01010020;
-    const output = try blake2s_hash.blake2s_compress(allocator, modified_iv, message, 0, 0, 0xffffffff, 0);
+    const output = try blake2s_hash.blake2sCompress(allocator, modified_iv, message, 0, 0, 0xffffffff, 0);
     defer output.deinit();
 
     var padding = std.ArrayList(u32).init(allocator);
     defer padding.deinit();
+
     try padding.appendSlice(&message);
     try padding.appendSlice(&modified_iv);
     try padding.appendSlice(&.{ 0, 0xffffffff });
@@ -154,11 +159,14 @@ pub fn blake2sFinalizeV3(allocator: Allocator, vm: *CairoVM, ids_data: std.Strin
 
     var full_padding = std.ArrayList(u32).init(allocator);
     defer full_padding.deinit();
+
     for (N_PACKED_INSTANCES - 1) |_| {
-        try full_padding.appendSlice(&padding);
+        try full_padding.appendSlice(padding.items);
     }
+
     var data = try getMaybeRelocArrayFromU32Array(allocator, full_padding);
     defer data.deinit();
+
     _ = try vm.loadData(blake2s_ptr_end, &data);
 }
 // /* Implements Hint:
@@ -198,12 +206,11 @@ pub fn blake2sAddUnit256(_: Allocator, vm: *CairoVM, ids_data: std.StringHashMap
     _ = try vm.loadData(data_ptr, &data);
 }
 
-// /* Implements Hint:
+// Implements Hint:
 //     B = 32
 //     MASK = 2 ** 32 - 1
 //     segments.write_arg(ids.data, [(ids.high >> (B * (3 - i))) & MASK for i in range(4)])
 //     segments.write_arg(ids.data + 4, [(ids.low >> (B * (3 - i))) & MASK for i in range(4)])
-// */
 pub fn blake2sAddUnit256BigEnd(_: Allocator, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {
     const data_ptr = try hint_utils.getPtrFromVarName("data", vm, ids_data, ap_tracking);
     const low_addr = try hint_utils.getRelocatableFromVarName("low", vm, ids_data, ap_tracking);
@@ -239,7 +246,7 @@ pub fn blake2sAddUnit256BigEnd(_: Allocator, vm: *CairoVM, ids_data: std.StringH
     _ = try vm.loadData(data_ptr, &bigend_data);
 }
 
-// /* Implements Hint:
+//  Implements Hint:
 //     %{
 //         from starkware.cairo.common.cairo_blake2s.blake2s_utils import IV, blake2s_compress
 
@@ -259,21 +266,29 @@ pub fn blake2sAddUnit256BigEnd(_: Allocator, vm: *CairoVM, ids_data: std.StringH
 //     %}
 
 // Note: This hint belongs to the blake2s lib in cario_examples
-// */
-
-pub fn exampleBlake2SCompress(allocator: Allocator, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {
+//
+pub fn exampleBlake2SCompress(
+    allocator: Allocator,
+    vm: *CairoVM,
+    ids_data: std.StringHashMap(HintReference),
+    ap_tracking: ApTracking,
+) !void {
     const blake2s_start = try hint_utils.getPtrFromVarName("blake2s_start", vm, ids_data, ap_tracking);
     const output = try hint_utils.getPtrFromVarName("output", vm, ids_data, ap_tracking);
     const n_bytes_felt = try hint_utils.getIntegerFromVarName("n_bytes", vm, ids_data, ap_tracking);
     const n_bytes = try feltToU32(n_bytes_felt);
 
     const message = try getFixedSizeU32Array(16, try vm.getFeltRange(blake2s_start, 16));
+
     var modified_iv = blake2s_hash.IV;
     modified_iv[0] = blake2s_hash.IV[0] ^ 0x01010020;
-    var new_state = try blake2s_hash.blake2s_compress(allocator, modified_iv, message, n_bytes, 0, 0xffffffff, 0);
+
+    var new_state = try blake2s_hash.blake2sCompress(allocator, modified_iv, message, n_bytes, 0, 0xffffffff, 0);
     defer new_state.deinit();
+
     var new_state_relocatable = try getMaybeRelocArrayFromU32Array(allocator, new_state);
-    new_state_relocatable.deinit();
+    defer new_state_relocatable.deinit();
+
     _ = try vm.segments.writeArg(std.ArrayList(MaybeRelocatable), output, &new_state_relocatable);
 }
 

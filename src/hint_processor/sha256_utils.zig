@@ -67,7 +67,7 @@ fn sha256Main(
     // The original code gets it from `ids` in both cases, and this makes it easier
     // to implement the arbitrary length one
     const input_chunk_size_felts =
-        (constants.get("SHA256_INPUT_CHUNK_SIZE_FELTS").?).intoUsizeOrOptional() orelse 100;
+        (try hint_utils.getConstantFromVarName("SHA256_INPUT_CHUNK_SIZE_FELTS", constants)).intoUsizeOrOptional() orelse 100;
 
     if (input_chunk_size_felts >= 100)
         return HintError.AssertionFailed;
@@ -148,7 +148,8 @@ pub fn sha256MainArbitraryInputLength(
 ) !void {
     const iv_ptr = try hint_utils.getPtrFromVarName("state", vm, ids_data, ap_tracking);
 
-    const state_size_felt = constants.get("SHA256_STATE_SIZE_FELTS").?;
+    const state_size_felt =
+        try hint_utils.getConstantFromVarName("SHA256_STATE_SIZE_FELTS", constants);
 
     const state_size = blk: {
         const size = state_size_felt.intoUsizeOrOptional() orelse return HintError.AssertionFailed;
