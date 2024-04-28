@@ -1528,4 +1528,117 @@ pub const SHA256_FINALIZE =
     \\output = sha2_compress_function(IV, w)
     \\padding = (message + IV + output) * (_block_size - 1)
     \\segments.write_arg(ids.sha256_ptr_end, padding)
+
+pub const UINT384_GET_SQUARE_ROOT =
+    \\from starkware.python.math_utils import is_quad_residue, sqrt
+    \\
+    \\def split(num: int, num_bits_shift: int = 128, length: int = 3):
+    \\    a = []
+    \\    for _ in range(length):
+    \\        a.append( num & ((1 << num_bits_shift) - 1) )
+    \\        num = num >> num_bits_shift
+    \\    return tuple(a)
+    \\
+    \\def pack(z, num_bits_shift: int = 128) -> int:
+    \\    limbs = (z.d0, z.d1, z.d2)
+    \\    return sum(limb << (num_bits_shift * i) for i, limb in enumerate(limbs))
+    \\
+    \\
+    \\generator = pack(ids.generator)
+    \\x = pack(ids.x)
+    \\p = pack(ids.p)
+    \\
+    \\success_x = is_quad_residue(x, p)
+    \\root_x = sqrt(x, p) if success_x else None
+    \\
+    \\success_gx = is_quad_residue(generator*x, p)
+    \\root_gx = sqrt(generator*x, p) if success_gx else None
+    \\
+    \\# Check that one is 0 and the other is 1
+    \\if x != 0:
+    \\    assert success_x + success_gx ==1
+    \\
+    \\# `None` means that no root was found, but we need to transform these into a felt no matter what
+    \\if root_x == None:
+    \\    root_x = 0
+    \\if root_gx == None:
+    \\    root_gx = 0
+    \\ids.success_x = int(success_x)
+    \\ids.success_gx = int(success_gx)
+    \\split_root_x = split(root_x)
+    \\split_root_gx = split(root_gx)
+    \\ids.sqrt_x.d0 = split_root_x[0]
+    \\ids.sqrt_x.d1 = split_root_x[1]
+    \\ids.sqrt_x.d2 = split_root_x[2]
+    \\ids.sqrt_gx.d0 = split_root_gx[0]
+    \\ids.sqrt_gx.d1 = split_root_gx[1]
+    \\ids.sqrt_gx.d2 = split_root_gx[2]
+;
+
+pub const UINT256_GET_SQUARE_ROOT =
+    \\from starkware.python.math_utils import is_quad_residue, sqrt
+    \\
+    \\def split(a: int):
+    \\    return (a & ((1 << 128) - 1), a >> 128)
+    \\
+    \\def pack(z) -> int:
+    \\    return z.low + (z.high << 128)
+    \\
+    \\generator = pack(ids.generator)
+    \\x = pack(ids.x)
+    \\p = pack(ids.p)
+    \\
+    \\success_x = is_quad_residue(x, p)
+    \\root_x = sqrt(x, p) if success_x else None
+    \\success_gx = is_quad_residue(generator*x, p)
+    \\root_gx = sqrt(generator*x, p) if success_gx else None
+    \\
+    \\# Check that one is 0 and the other is 1
+    \\if x != 0:
+    \\    assert success_x + success_gx == 1
+    \\
+    \\# `None` means that no root was found, but we need to transform these into a felt no matter what
+    \\if root_x == None:
+    \\    root_x = 0
+    \\if root_gx == None:
+    \\    root_gx = 0
+    \\ids.success_x = int(success_x)
+    \\ids.success_gx = int(success_gx)
+    \\split_root_x = split(root_x)
+    \\# print('split root x', split_root_x)
+    \\split_root_gx = split(root_gx)
+    \\ids.sqrt_x.low = split_root_x[0]
+    \\ids.sqrt_x.high = split_root_x[1]
+    \\ids.sqrt_gx.low = split_root_gx[0]
+    \\ids.sqrt_gx.high = split_root_gx[1]
+;
+
+pub const UINT384_DIV =
+    \\from starkware.python.math_utils import div_mod
+    \\
+    \\def split(num: int, num_bits_shift: int, length: int):
+    \\    a = []
+    \\    for _ in range(length):
+    \\        a.append( num & ((1 << num_bits_shift) - 1) )
+    \\        num = num >> num_bits_shift
+    \\    return tuple(a)
+    \\
+    \\def pack(z, num_bits_shift: int) -> int:
+    \\    limbs = (z.d0, z.d1, z.d2)
+    \\    return sum(limb << (num_bits_shift * i) for i, limb in enumerate(limbs))
+    \\
+    \\a = pack(ids.a, num_bits_shift = 128)
+    \\b = pack(ids.b, num_bits_shift = 128)
+    \\p = pack(ids.p, num_bits_shift = 128)
+    \\# For python3.8 and above the modular inverse can be computed as follows:
+    \\# b_inverse_mod_p = pow(b, -1, p)
+    \\# Instead we use the python3.7-friendly function div_mod from starkware.python.math_utils
+    \\b_inverse_mod_p = div_mod(1, b, p)
+    \\
+    \\
+    \\b_inverse_mod_p_split = split(b_inverse_mod_p, num_bits_shift=128, length=3)
+    \\
+    \\ids.b_inverse_mod_p.d0 = b_inverse_mod_p_split[0]
+    \\ids.b_inverse_mod_p.d1 = b_inverse_mod_p_split[1]
+    \\ids.b_inverse_mod_p.d2 = b_inverse_mod_p_split[2]
 ;
