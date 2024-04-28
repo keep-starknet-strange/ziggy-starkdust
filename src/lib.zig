@@ -85,6 +85,7 @@ pub const hint_processor = struct {
     pub usingnamespace @import("hint_processor/blake2s_hash.zig");
     pub usingnamespace @import("hint_processor/blake2s_utils.zig");
     pub usingnamespace @import("hint_processor/uint384.zig");
+    pub usingnamespace @import("hint_processor/sha256_utils.zig");
 
     pub usingnamespace @import("hint_processor/vrf/fq.zig");
     pub usingnamespace @import("hint_processor/vrf/pack.zig");

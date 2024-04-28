@@ -266,6 +266,9 @@ pub const VerifyError = error{
 };
 
 pub const HintError = error{
+    /// Invalid value
+    InvalidValue,
+
     // verify_zero: Invalid input
     SecpVerifyZero,
 

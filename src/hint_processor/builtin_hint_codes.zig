@@ -743,6 +743,7 @@ pub const EXAMPLE_BLAKE2S_COMPRESS =
 pub const BLAKE2S_FINALIZE_V3 =
     \\# Add dummy pairs of input and output.
     \\from starkware.cairo.common.cairo_blake2s.blake2s_utils import IV, blake2s_compress
+    \\
     \\_n_packed_instances = int(ids.N_PACKED_INSTANCES)
     \\assert 0 <= _n_packed_instances < 20
     \\_blake2s_input_chunk_size_felts = int(ids.BLAKE2S_INPUT_CHUNK_SIZE_FELTS)
@@ -1482,6 +1483,52 @@ pub const PACK_MODN_DIV_MODN =
     \\x = pack(ids.x, PRIME) % N
     \\s = pack(ids.s, PRIME) % N
     \\value = res = div_mod(x, s, N)
+;
+
+pub const SHA256_INPUT = "ids.full_word = int(ids.n_bytes >= 4)";
+
+pub const SHA256_MAIN_CONSTANT_INPUT_LENGTH =
+    \\from starkware.cairo.common.cairo_sha256.sha256_utils import (
+    \\    IV, compute_message_schedule, sha2_compress_function)
+    \\
+    \\_sha256_input_chunk_size_felts = int(ids.SHA256_INPUT_CHUNK_SIZE_FELTS)
+    \\assert 0 <= _sha256_input_chunk_size_felts < 100
+    \\
+    \\w = compute_message_schedule(memory.get_range(
+    \\    ids.sha256_start, _sha256_input_chunk_size_felts))
+    \\new_state = sha2_compress_function(IV, w)
+    \\segments.write_arg(ids.output, new_state)
+;
+
+pub const SHA256_MAIN_ARBITRARY_INPUT_LENGTH =
+    \\from starkware.cairo.common.cairo_sha256.sha256_utils import (
+    \\    compute_message_schedule, sha2_compress_function)
+    \\
+    \\_sha256_input_chunk_size_felts = int(ids.SHA256_INPUT_CHUNK_SIZE_FELTS)
+    \\assert 0 <= _sha256_input_chunk_size_felts < 100
+    \\_sha256_state_size_felts = int(ids.SHA256_STATE_SIZE_FELTS)
+    \\assert 0 <= _sha256_state_size_felts < 100
+    \\w = compute_message_schedule(memory.get_range(
+    \\    ids.sha256_start, _sha256_input_chunk_size_felts))
+    \\new_state = sha2_compress_function(memory.get_range(ids.state, _sha256_state_size_felts), w)
+    \\segments.write_arg(ids.output, new_state)
+;
+
+pub const SHA256_FINALIZE =
+    \\# Add dummy pairs of input and output.
+    \\from starkware.cairo.common.cairo_sha256.sha256_utils import (
+    \\    IV, compute_message_schedule, sha2_compress_function)
+    \\
+    \\_block_size = int(ids.BLOCK_SIZE)
+    \\assert 0 <= _block_size < 20
+    \\_sha256_input_chunk_size_felts = int(ids.SHA256_INPUT_CHUNK_SIZE_FELTS)
+    \\assert 0 <= _sha256_input_chunk_size_felts < 100
+    \\
+    \\message = [0] * _sha256_input_chunk_size_felts
+    \\w = compute_message_schedule(message)
+    \\output = sha2_compress_function(IV, w)
+    \\padding = (message + IV + output) * (_block_size - 1)
+    \\segments.write_arg(ids.sha256_ptr_end, padding)
 ;
 
 pub const UINT384_GET_SQUARE_ROOT =

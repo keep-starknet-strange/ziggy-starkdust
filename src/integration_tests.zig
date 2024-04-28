@@ -61,8 +61,8 @@ pub fn main() !void {
         .{ .pathname = "cairo_programs/ed25519_ec.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/ed25519_field.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/efficient_secp256r1_ec.json", .layout = "all_cairo" },
-        // TODO: sha256
-        // .{ .pathname = "cairo_programs/example_blake2s.json", .layout = "all_cairo" },
+
+        .{ .pathname = "cairo_programs/example_blake2s.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/example_program.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/factorial.json", .layout = "plain" },
 
@@ -129,10 +129,8 @@ pub fn main() !void {
 
         .{ .pathname = "cairo_programs/operations_with_data_structures.json", .layout = "all_cairo" },
 
-        // TODO: hint not implemented sha256
-        // .{ .pathname = "cairo_programs/packed_sha256_test.json", .layout = "all_cairo" },
-        // TODO: hint not implemented sha256
-        // .{ .pathname = "cairo_programs/packed_sha256.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/packed_sha256_test.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/packed_sha256.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/pedersen_test.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/pointers.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/poseidon_builtin.json", .layout = "all_cairo" },
@@ -167,9 +165,8 @@ pub fn main() !void {
         .{ .pathname = "cairo_programs/set_add.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/set_integration_tests.json", .layout = "all_cairo" },
 
-        // TODO: sha 256 hints not implemented
-        // .{ .pathname = "cairo_programs/sha256_test.json", .layout = "all_cairo" },
-        // .{ .pathname = "cairo_programs/sha256.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/sha256_test.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/sha256.json", .layout = "all_cairo" },
 
         .{ .pathname = "cairo_programs/signature.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/signed_div_rem.json", .layout = "all_cairo" },

@@ -39,6 +39,7 @@ const segments = @import("segments.zig");
 const bigint_utils = @import("../hint_processor/builtin_hint_processor/secp/bigint_utils.zig");
 const bigint = @import("bigint.zig");
 const uint384 = @import("uint384.zig");
+const sha256_utils = @import("sha256_utils.zig");
 const inv_mod_p_uint512 = @import("vrf/inv_mod_p_uint512.zig");
 const fq = @import("vrf/fq.zig");
 const vrf_pack = @import("vrf/pack.zig");
@@ -395,6 +396,8 @@ pub const CairoVMHintProcessor = struct {
             try blake2s_utils.blake2sFinalize(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.BLAKE2S_FINALIZE_V2, hint_data.code)) {
             try blake2s_utils.blake2sFinalize(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
+        } else if (std.mem.eql(u8, hint_codes.BLAKE2S_FINALIZE_V3, hint_data.code)) {
+            try blake2s_utils.blake2sFinalizeV3(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.BLAKE2S_ADD_UINT256, hint_data.code)) {
             try blake2s_utils.blake2sAddUnit256(allocator, vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.BLAKE2S_ADD_UINT256_BIGEND, hint_data.code)) {
@@ -852,8 +855,38 @@ pub const CairoVMHintProcessor = struct {
                 hint_data.ids_data,
                 hint_data.ap_tracking,
             );
+        } else if (std.mem.eql(u8, hint_codes.SHA256_INPUT, hint_data.code)) {
+            try sha256_utils.sha256Input(
+                allocator,
+                vm,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+            );
         } else if (std.mem.eql(u8, hint_codes.UINT384_GET_SQUARE_ROOT, hint_data.code)) {
             try field_arithmetic.u384GetSquareRoot(
+                allocator,
+                vm,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+            );
+        } else if (std.mem.eql(u8, hint_codes.SHA256_MAIN_CONSTANT_INPUT_LENGTH, hint_data.code)) {
+            try sha256_utils.sha256MainConstantInputLength(
+                allocator,
+                vm,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+                constants,
+            );
+        } else if (std.mem.eql(u8, hint_codes.SHA256_MAIN_ARBITRARY_INPUT_LENGTH, hint_data.code)) {
+            try sha256_utils.sha256MainArbitraryInputLength(
+                allocator,
+                vm,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+                constants,
+            );
+        } else if (std.mem.eql(u8, hint_codes.SHA256_FINALIZE, hint_data.code)) {
+            try sha256_utils.sha256Finalize(
                 allocator,
                 vm,
                 hint_data.ids_data,
