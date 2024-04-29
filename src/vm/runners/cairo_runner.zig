@@ -29,11 +29,11 @@ const InsufficientAllocatedCellsError = @import("../error.zig").InsufficientAllo
 const RunnerError = @import("../error.zig").RunnerError;
 const MemoryError = @import("../error.zig").MemoryError;
 const trace_context = @import("../trace_context.zig");
-const RelocatedTraceEntry = trace_context.TraceContext.RelocatedTraceEntry;
+const RelocatedTraceEntry = trace_context.RelocatedTraceEntry;
 const starknet_felt = @import("../../math/fields/starknet.zig");
 const Felt252 = starknet_felt.Felt252;
 const ExecutionScopes = @import("../types/execution_scopes.zig").ExecutionScopes;
-const TraceContext = @import("../trace_context.zig").TraceContext;
+const TraceEntry = @import("../trace_context.zig").TraceEntry;
 const TestingUtils = @import("../../utils/testing.zig");
 
 const OutputBuiltinRunner = @import("../builtins/builtin_runner/output.zig").OutputBuiltinRunner;
@@ -150,7 +150,7 @@ pub const CairoRunner = struct {
     runner_mode: RunnerMode,
     run_ended: bool = false,
     execution_public_memory: ?std.ArrayList(usize) = null,
-    relocated_trace: []RelocatedTraceEntry = undefined,
+    relocated_trace: ?[]RelocatedTraceEntry = null,
     relocated_memory: ArrayList(?Felt252),
     execution_scopes: ExecutionScopes = undefined,
 
@@ -931,11 +931,15 @@ pub const CairoRunner = struct {
     pub fn relocate(self: *Self) !void {
         // Presuming the default case of `allow_tmp_segments` in python version
         _ = try self.vm.segments.computeEffectiveSize(false);
+
         const relocation_table = try self.vm.segments.relocateSegments(self.allocator);
         defer self.allocator.free(relocation_table);
+
         try self.relocateMemory(relocation_table);
-        try self.vm.relocateTrace(relocation_table);
-        self.relocated_trace = try self.vm.getRelocatedTrace();
+        if (self.vm.trace != null) {
+            try self.vm.relocateTrace(relocation_table);
+            self.relocated_trace = try self.vm.getRelocatedTrace();
+        }
     }
 
     /// Retrieves information about the builtin segments.
@@ -2957,8 +2961,8 @@ test "CairoRunner: runUntilPC with function call" {
     );
 
     try expectEqualSlices(
-        TraceContext.Entry,
-        &[_]TraceContext.Entry{
+        TraceEntry,
+        &[_]TraceEntry{
             .{
                 .pc = Relocatable.init(0, 3),
                 .ap = Relocatable.init(1, 2),
@@ -2985,7 +2989,7 @@ test "CairoRunner: runUntilPC with function call" {
                 .fp = Relocatable.init(1, 2),
             },
         },
-        cairo_runner.vm.trace_context.state.enabled.entries.items,
+        cairo_runner.vm.trace.?.items,
     );
 }
 
@@ -3097,8 +3101,8 @@ test "CairoRunner: runUntilPC with range check builtin" {
     );
 
     try expectEqualSlices(
-        TraceContext.Entry,
-        &[_]TraceContext.Entry{
+        TraceEntry,
+        &[_]TraceEntry{
             .{
                 .pc = Relocatable.init(0, 8),
                 .ap = Relocatable.init(1, 3),
@@ -3150,7 +3154,7 @@ test "CairoRunner: runUntilPC with range check builtin" {
                 .fp = Relocatable.init(1, 3),
             },
         },
-        cairo_runner.vm.trace_context.state.enabled.entries.items,
+        cairo_runner.vm.trace.?.items,
     );
 
     try expectEqual(
@@ -3290,8 +3294,8 @@ test "CairoRunner: initialize and run with output builtin" {
     );
 
     try expectEqualSlices(
-        TraceContext.Entry,
-        &[_]TraceContext.Entry{
+        TraceEntry,
+        &[_]TraceEntry{
             .{
                 .pc = Relocatable.init(0, 4),
                 .ap = Relocatable.init(1, 3),
@@ -3353,7 +3357,7 @@ test "CairoRunner: initialize and run with output builtin" {
                 .fp = Relocatable.init(1, 3),
             },
         },
-        cairo_runner.vm.trace_context.state.enabled.entries.items,
+        cairo_runner.vm.trace.?.items,
     );
 
     try expectEqual(
@@ -3520,8 +3524,8 @@ test "CairoRunner: initialize and run with range check and output builtins" {
     );
 
     try expectEqualSlices(
-        TraceContext.Entry,
-        &[_]TraceContext.Entry{
+        TraceEntry,
+        &[_]TraceEntry{
             .{
                 .pc = Relocatable.init(0, 13),
                 .ap = Relocatable.init(1, 4),
@@ -3613,7 +3617,7 @@ test "CairoRunner: initialize and run with range check and output builtins" {
                 .fp = Relocatable.init(1, 4),
             },
         },
-        cairo_runner.vm.trace_context.state.enabled.entries.items,
+        cairo_runner.vm.trace.?.items,
     );
 
     try expectEqual(
@@ -3917,20 +3921,68 @@ test "CairoRunner: initialize and run relocate trace with output builtin" {
     try expectEqualSlices(
         RelocatedTraceEntry,
         &[_]RelocatedTraceEntry{
-            .{ .pc = Felt252.fromInt(u64, 5), .ap = Felt252.fromInt(u64, 18), .fp = Felt252.fromInt(u64, 18) },
-            .{ .pc = Felt252.fromInt(u64, 6), .ap = Felt252.fromInt(u64, 19), .fp = Felt252.fromInt(u64, 18) },
-            .{ .pc = Felt252.fromInt(u64, 8), .ap = Felt252.fromInt(u64, 20), .fp = Felt252.fromInt(u64, 18) },
-            .{ .pc = Felt252.fromInt(u64, 1), .ap = Felt252.fromInt(u64, 22), .fp = Felt252.fromInt(u64, 22) },
-            .{ .pc = Felt252.fromInt(u64, 2), .ap = Felt252.fromInt(u64, 22), .fp = Felt252.fromInt(u64, 22) },
-            .{ .pc = Felt252.fromInt(u64, 4), .ap = Felt252.fromInt(u64, 23), .fp = Felt252.fromInt(u64, 22) },
-            .{ .pc = Felt252.fromInt(u64, 10), .ap = Felt252.fromInt(u64, 23), .fp = Felt252.fromInt(u64, 18) },
-            .{ .pc = Felt252.fromInt(u64, 12), .ap = Felt252.fromInt(u64, 24), .fp = Felt252.fromInt(u64, 18) },
-            .{ .pc = Felt252.fromInt(u64, 1), .ap = Felt252.fromInt(u64, 26), .fp = Felt252.fromInt(u64, 26) },
-            .{ .pc = Felt252.fromInt(u64, 2), .ap = Felt252.fromInt(u64, 26), .fp = Felt252.fromInt(u64, 26) },
-            .{ .pc = Felt252.fromInt(u64, 4), .ap = Felt252.fromInt(u64, 27), .fp = Felt252.fromInt(u64, 26) },
-            .{ .pc = Felt252.fromInt(u64, 14), .ap = Felt252.fromInt(u64, 27), .fp = Felt252.fromInt(u64, 18) },
+            .{
+                .pc = 5,
+                .ap = 18,
+                .fp = 18,
+            },
+            .{
+                .pc = 6,
+                .ap = 19,
+                .fp = 18,
+            },
+            .{
+                .pc = 8,
+                .ap = 20,
+                .fp = 18,
+            },
+            .{
+                .pc = 1,
+                .ap = 22,
+                .fp = 22,
+            },
+            .{
+                .pc = 2,
+                .ap = 22,
+                .fp = 22,
+            },
+            .{
+                .pc = 4,
+                .ap = 23,
+                .fp = 22,
+            },
+            .{
+                .pc = 10,
+                .ap = 23,
+                .fp = 18,
+            },
+            .{
+                .pc = 12,
+                .ap = 24,
+                .fp = 18,
+            },
+            .{
+                .pc = 1,
+                .ap = 26,
+                .fp = 26,
+            },
+            .{
+                .pc = 2,
+                .ap = 26,
+                .fp = 26,
+            },
+            .{
+                .pc = 4,
+                .ap = 27,
+                .fp = 26,
+            },
+            .{
+                .pc = 14,
+                .ap = 27,
+                .fp = 18,
+            },
         },
-        cairo_runner.relocated_trace,
+        cairo_runner.relocated_trace.?,
     );
 }
 
@@ -4964,7 +5016,7 @@ test "CairoRunner: checkUsedCells with insufficient allocated cells MinStepNotRe
     defer cairo_runner.vm.segments.memory.deinitData(std.testing.allocator);
 
     // Append an entry to the CairoVM's trace context state enabled entries list.
-    try cairo_runner.vm.trace_context.state.enabled.entries.append(.{ .pc = .{}, .ap = .{}, .fp = .{} });
+    try cairo_runner.vm.trace.?.append(.{ .pc = .{}, .ap = .{}, .fp = .{} });
 
     // Compute effective size of segments in CairoVM.
     _ = try cairo_runner.vm.segments.computeEffectiveSize(false);

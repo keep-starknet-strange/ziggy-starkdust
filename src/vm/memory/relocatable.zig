@@ -12,7 +12,6 @@ const STARKNET_PRIME = @import("../../math/fields/constants.zig").STARKNET_PRIME
 pub const Relocatable = struct {
     const Self = @This();
 
-
     /// The index of the memory segment.
     segment_index: i64 = 0,
     /// The offset in the memory segment.
@@ -229,6 +228,7 @@ pub const Relocatable = struct {
             if (relocation_table.len <= self.segment_index) {
                 return MemoryError.Relocation;
             }
+
             return relocation_table[@intCast(self.segment_index)] + self.offset;
         }
         return MemoryError.TemporarySegmentInRelocation;
@@ -512,9 +512,9 @@ pub const MaybeRelocatable = union(enum) {
     /// # Returns:
     ///   * A new MaybeRelocatable value after the addition operation.
     ///   * An error in case of type mismatch or specific math errors.
-    pub fn add(self: *const Self, other: Self) MathError!Self {
+    pub fn add(self: Self, other: Self) MathError!Self {
         // Switch on the type of `self`
-        return switch (self.*) {
+        return switch (self) {
             // If `self` is of type `relocatable`
             .relocatable => |self_value| switch (other) {
                 // If `other` is also `relocatable`, addition is not supported, return an error

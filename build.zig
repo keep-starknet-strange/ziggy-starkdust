@@ -9,6 +9,10 @@ const external_dependencies = [_]build_helpers.Dependency{
         .name = "zig-cli",
         .module_name = "zig-cli",
     },
+    .{
+        .name = "starknet",
+        .module_name = "ziggy-starkdust",
+    },
 };
 
 // Although this function looks imperative, note that its job is to

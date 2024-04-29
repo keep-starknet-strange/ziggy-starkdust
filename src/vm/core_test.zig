@@ -20,7 +20,8 @@ const TraceError = @import("error.zig").TraceError;
 const MemoryError = @import("error.zig").MemoryError;
 const MathError = @import("error.zig").MathError;
 const Config = @import("config.zig").Config;
-const TraceContext = @import("trace_context.zig").TraceContext;
+const TraceEntry = @import("trace_context.zig").TraceEntry;
+const RelocatedTraceEntry = @import("trace_context.zig").RelocatedTraceEntry;
 const build_options = @import("../build_options.zig");
 const BuiltinRunner = @import("./builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
 const BitwiseBuiltinRunner = @import("./builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
@@ -801,7 +802,7 @@ test "trace is enabled" {
 
     // Test checks
     // Check that trace was initialized
-    if (!vm.trace_context.isEnabled()) {
+    if (vm.trace == null) {
         return error.TraceShouldHaveBeenEnabled;
     }
 }
@@ -819,7 +820,7 @@ test "trace is disabled" {
 
     // Test checks
     // Check that trace was initialized
-    if (vm.trace_context.isEnabled()) {
+    if (vm.trace != null) {
         return error.TraceShouldHaveBeenDisabled;
     }
 }
@@ -850,9 +851,7 @@ test "CairoVM: relocateTrace should return Trace Error if trace_relocated alread
     );
     defer vm.deinit();
 
-    // Set trace_relocated to true
-    // Simulate the trace_relocated flag being already set to true.
-    vm.trace_relocated = true;
+    vm.relocated_trace = std.ArrayList(RelocatedTraceEntry).init(allocator);
 
     // Create a relocation table
     // Initialize an empty relocation table.
@@ -935,7 +934,9 @@ test "CairoVM: relocateTrace and trace comparison (simple use case)" {
     const pc = .{};
     const ap = Relocatable.init(2, 0);
     const fp = Relocatable.init(2, 0);
-    try vm.trace_context.traceInstruction(.{ .pc = pc, .ap = ap, .fp = fp });
+
+    try vm.trace.?.append(.{ .pc = pc, .ap = ap, .fp = fp });
+
     for (0..4) |_| {
         _ = try vm.segments.addSegment();
     }
@@ -957,12 +958,12 @@ test "CairoVM: relocateTrace and trace comparison (simple use case)" {
     try vm.relocateTrace(relocation_table);
 
     try expectEqualSlices(
-        TraceContext.RelocatedTraceEntry,
-        &[_]TraceContext.RelocatedTraceEntry{
+        RelocatedTraceEntry,
+        &[_]RelocatedTraceEntry{
             .{
-                .pc = Felt252.fromInt(u8, 1),
-                .ap = Felt252.fromInt(u8, 4),
-                .fp = Felt252.fromInt(u8, 4),
+                .pc = 1,
+                .ap = 4,
+                .fp = 4,
             },
         },
         try vm.getRelocatedTrace(),
@@ -1036,15 +1037,15 @@ test "CairoVM: test step for preset memory" {
     try expectEqual(Relocatable.init(1, 0), vm.run_context.getFP());
 
     try expectEqualSlices(
-        TraceContext.Entry,
-        &[_]TraceContext.Entry{
+        TraceEntry,
+        &[_]TraceEntry{
             .{
                 .pc = Relocatable.init(0, 0),
                 .ap = Relocatable.init(1, 2),
                 .fp = Relocatable.init(1, 2),
             },
         },
-        vm.trace_context.state.enabled.entries.items,
+        vm.trace.?.items,
     );
 
     // Check that the following addresses have been accessed
@@ -1088,62 +1089,62 @@ test "CairoVM: relocateTrace and trace comparison (more complex use case)" {
     // Initial Trace Entries
     // Define and append initial trace entries to the VM trace context.
     // pc, ap, and fp values are initialized and appended in pairs.
-    try vm.trace_context.state.enabled.entries.append(.{
+    try vm.trace.?.append(.{
         .pc = Relocatable.init(0, 4),
         .ap = Relocatable.init(1, 3),
         .fp = Relocatable.init(1, 3),
     });
-    try vm.trace_context.state.enabled.entries.append(.{
+    try vm.trace.?.append(.{
         .pc = Relocatable.init(0, 5),
         .ap = Relocatable.init(1, 4),
         .fp = Relocatable.init(1, 3),
     });
-    try vm.trace_context.state.enabled.entries.append(.{
+    try vm.trace.?.append(.{
         .pc = Relocatable.init(0, 7),
         .ap = Relocatable.init(1, 5),
         .fp = Relocatable.init(1, 3),
     });
-    try vm.trace_context.state.enabled.entries.append(.{
+    try vm.trace.?.append(.{
         .pc = .{},
         .ap = Relocatable.init(1, 7),
         .fp = Relocatable.init(1, 7),
     });
-    try vm.trace_context.state.enabled.entries.append(.{
+    try vm.trace.?.append(.{
         .pc = Relocatable.init(0, 1),
         .ap = Relocatable.init(1, 7),
         .fp = Relocatable.init(1, 7),
     });
-    try vm.trace_context.state.enabled.entries.append(.{
+    try vm.trace.?.append(.{
         .pc = Relocatable.init(0, 3),
         .ap = Relocatable.init(1, 8),
         .fp = Relocatable.init(1, 7),
     });
-    try vm.trace_context.state.enabled.entries.append(.{
+    try vm.trace.?.append(.{
         .pc = Relocatable.init(0, 9),
         .ap = Relocatable.init(1, 8),
         .fp = Relocatable.init(1, 3),
     });
-    try vm.trace_context.state.enabled.entries.append(.{
+    try vm.trace.?.append(.{
         .pc = Relocatable.init(0, 11),
         .ap = Relocatable.init(1, 9),
         .fp = Relocatable.init(1, 3),
     });
-    try vm.trace_context.state.enabled.entries.append(.{
+    try vm.trace.?.append(.{
         .pc = .{},
         .ap = Relocatable.init(1, 11),
         .fp = Relocatable.init(1, 11),
     });
-    try vm.trace_context.state.enabled.entries.append(.{
+    try vm.trace.?.append(.{
         .pc = Relocatable.init(0, 1),
         .ap = Relocatable.init(1, 11),
         .fp = Relocatable.init(1, 11),
     });
-    try vm.trace_context.state.enabled.entries.append(.{
+    try vm.trace.?.append(.{
         .pc = Relocatable.init(0, 3),
         .ap = Relocatable.init(1, 12),
         .fp = Relocatable.init(1, 11),
     });
-    try vm.trace_context.state.enabled.entries.append(.{
+    try vm.trace.?.append(.{
         .pc = Relocatable.init(0, 13),
         .ap = Relocatable.init(1, 12),
         .fp = Relocatable.init(1, 3),
@@ -1162,88 +1163,88 @@ test "CairoVM: relocateTrace and trace comparison (more complex use case)" {
 
     // Assert trace relocation status
     // Ensure the trace relocation status flag is set as expected (false).
-    try expect(!vm.trace_relocated);
+    try expect(vm.relocated_trace == null);
 
     try vm.relocateTrace(relocation_table.items);
 
     // Expected Relocated Entries
     // Define the expected relocated entries after the trace relocation process.
-    var expected_relocated_entries = ArrayList(TraceContext.RelocatedTraceEntry).init(std.testing.allocator);
+    var expected_relocated_entries = ArrayList(RelocatedTraceEntry).init(std.testing.allocator);
     defer expected_relocated_entries.deinit();
 
     // Append expected relocated entries using Felt252 values.
     // pc, ap, and fp values are appended in pairs similar to the initial entries.
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInt(u8, 5),
-        .ap = Felt252.fromInt(u8, 18),
-        .fp = Felt252.fromInt(u8, 18),
+        .pc = 5,
+        .ap = 18,
+        .fp = 18,
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInt(u8, 6),
-        .ap = Felt252.fromInt(u8, 19),
-        .fp = Felt252.fromInt(u8, 18),
+        .pc = 6,
+        .ap = 19,
+        .fp = 18,
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInt(u8, 8),
-        .ap = Felt252.fromInt(u8, 20),
-        .fp = Felt252.fromInt(u8, 18),
+        .pc = 8,
+        .ap = 20,
+        .fp = 18,
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInt(u8, 1),
-        .ap = Felt252.fromInt(u8, 22),
-        .fp = Felt252.fromInt(u8, 22),
+        .pc = 1,
+        .ap = 22,
+        .fp = 22,
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.two(),
-        .ap = Felt252.fromInt(u8, 22),
-        .fp = Felt252.fromInt(u8, 22),
+        .pc = 2,
+        .ap = 22,
+        .fp = 22,
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInt(u8, 4),
-        .ap = Felt252.fromInt(u8, 23),
-        .fp = Felt252.fromInt(u8, 22),
+        .pc = 4,
+        .ap = 23,
+        .fp = 22,
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInt(u8, 10),
-        .ap = Felt252.fromInt(u8, 23),
-        .fp = Felt252.fromInt(u8, 18),
+        .pc = 10,
+        .ap = 23,
+        .fp = 18,
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInt(u8, 12),
-        .ap = Felt252.fromInt(u8, 24),
-        .fp = Felt252.fromInt(u8, 18),
+        .pc = 12,
+        .ap = 24,
+        .fp = 18,
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInt(u8, 1),
-        .ap = Felt252.fromInt(u8, 26),
-        .fp = Felt252.fromInt(u8, 26),
+        .pc = 1,
+        .ap = 26,
+        .fp = 26,
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.two(),
-        .ap = Felt252.fromInt(u8, 26),
-        .fp = Felt252.fromInt(u8, 26),
+        .pc = 2,
+        .ap = 26,
+        .fp = 26,
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInt(u8, 4),
-        .ap = Felt252.fromInt(u8, 27),
-        .fp = Felt252.fromInt(u8, 26),
+        .pc = 4,
+        .ap = 27,
+        .fp = 26,
     });
     try expected_relocated_entries.append(.{
-        .pc = Felt252.fromInt(u8, 14),
-        .ap = Felt252.fromInt(u8, 27),
-        .fp = Felt252.fromInt(u8, 18),
+        .pc = 14,
+        .ap = 27,
+        .fp = 18,
     });
 
     // Assert relocated entries match the expected entries
     // Ensure the relocated trace entries in the VM match the expected relocated entries.
     try expectEqualSlices(
-        TraceContext.RelocatedTraceEntry,
+        RelocatedTraceEntry,
         expected_relocated_entries.items,
-        vm.trace_context.state.enabled.relocated_trace_entries.items,
+        vm.relocated_trace.?.items,
     );
     // Assert trace relocation status
     // Ensure the trace relocation status flag is set as expected (true).
-    try expect(vm.trace_relocated);
+    try expect(vm.relocated_trace != null);
 }
 
 // This instruction is used in the functions that test the `deduceOp1` function. Only the
@@ -3954,8 +3955,8 @@ test "CairoVM: test step for preset memory 1" {
     );
 
     try expectEqualSlices(
-        TraceContext.Entry,
-        &[_]TraceContext.Entry{
+        TraceEntry,
+        &[_]TraceEntry{
             .{
                 .pc = Relocatable.init(0, 3),
                 .ap = Relocatable.init(1, 2),
@@ -3982,7 +3983,7 @@ test "CairoVM: test step for preset memory 1" {
                 .fp = Relocatable.init(1, 2),
             },
         },
-        vm.trace_context.state.enabled.entries.items,
+        vm.trace.?.items,
     );
 
     // Check that the following addresses have been accessed
@@ -4080,15 +4081,15 @@ test "CairoVM: test step for preset memory program loaded into user segment" {
     );
 
     try expectEqualSlices(
-        TraceContext.Entry,
-        &[_]TraceContext.Entry{
+        TraceEntry,
+        &[_]TraceEntry{
             .{
                 .pc = Relocatable.init(2, 0),
                 .ap = Relocatable.init(1, 2),
                 .fp = Relocatable.init(1, 2),
             },
         },
-        vm.trace_context.state.enabled.entries.items,
+        vm.trace.?.items,
     );
 
     // Check that the following addresses have been accessed
@@ -4195,8 +4196,8 @@ test "CairoVM: test step for preset memory program loaded into user segment 1" {
     );
 
     try expectEqualSlices(
-        TraceContext.Entry,
-        &[_]TraceContext.Entry{
+        TraceEntry,
+        &[_]TraceEntry{
             .{
                 .pc = Relocatable.init(4, 3),
                 .ap = Relocatable.init(1, 2),
@@ -4223,7 +4224,7 @@ test "CairoVM: test step for preset memory program loaded into user segment 1" {
                 .fp = Relocatable.init(1, 2),
             },
         },
-        vm.trace_context.state.enabled.entries.items,
+        vm.trace.?.items,
     );
 
     // Check that the following addresses have been accessed
@@ -4465,11 +4466,11 @@ test "Core: test step for preset memory alloc hint not extensive" {
         .{ .{ 0, 8 }, .{ 1, 6 }, .{ 1, 2 } },
     };
 
-    try std.testing.expectEqual(expected_trace.len, vm.trace_context.state.enabled.entries.items.len);
+    try std.testing.expectEqual(expected_trace.len, vm.trace.?.items.len);
 
     for (expected_trace, 0..) |trace_entry, idx| {
         // pc, ap, fp
-        const trace_entry_a = vm.trace_context.state.enabled.entries.items[idx];
+        const trace_entry_a = vm.trace.?.items[idx];
         try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[0][0]), trace_entry[0][1]), trace_entry_a.pc);
         try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[1][0]), trace_entry[1][1]), trace_entry_a.ap);
         try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[2][0]), trace_entry[2][1]), trace_entry_a.fp);
@@ -4541,11 +4542,11 @@ test "Core: test step for preset memory alloc hint extensive" {
         .{ .{ 0, 8 }, .{ 1, 6 }, .{ 1, 2 } },
     };
 
-    try std.testing.expectEqual(expected_trace.len, vm.trace_context.state.enabled.entries.items.len);
+    try std.testing.expectEqual(expected_trace.len, vm.trace.?.items.len);
 
     for (expected_trace, 0..) |trace_entry, idx| {
         // pc, ap, fp
-        const trace_entry_a = vm.trace_context.state.enabled.entries.items[idx];
+        const trace_entry_a = vm.trace.?.items[idx];
         try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[0][0]), trace_entry[0][1]), trace_entry_a.pc);
         try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[1][0]), trace_entry[1][1]), trace_entry_a.ap);
         try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[2][0]), trace_entry[2][1]), trace_entry_a.fp);

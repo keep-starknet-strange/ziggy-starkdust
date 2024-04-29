@@ -24,6 +24,21 @@ const State = union(enum) {
     const DeinitFn = fn (state: *Self) void;
 };
 
+/// An entry recorded representing the state of the VM at a given point in time.
+pub const TraceEntry = struct {
+    pc: Relocatable,
+    ap: Relocatable,
+    fp: Relocatable,
+};
+
+/// A trace entry for every instruction that was executed.
+/// Holds the register values before the instruction was executed, after going through the relocation process.
+pub const RelocatedTraceEntry = struct {
+    pc: usize,
+    ap: usize,
+    fp: usize,
+};
+
 /// Contains the state required to trace the execution of the Cairo VM.
 ///
 /// This includes a big array with `TraceEntry` instances.
@@ -40,9 +55,9 @@ pub const TraceContext = struct {
     /// A trace entry for every instruction that was executed.
     /// Holds the register values before the instruction was executed, after going through the relocation process.
     pub const RelocatedTraceEntry = struct {
-        pc: Felt252,
-        ap: Felt252,
-        fp: Felt252,
+        pc: usize,
+        ap: usize,
+        fp: usize,
     };
 
     /// The current state of the tracing context.

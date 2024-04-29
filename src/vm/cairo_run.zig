@@ -11,7 +11,7 @@ const ProgramJson = @import("./types/programjson.zig").ProgramJson;
 const HintProcessor = @import("../hint_processor/hint_processor_def.zig").CairoVMHintProcessor;
 
 const trace_context = @import("./trace_context.zig");
-const RelocatedTraceEntry = trace_context.TraceContext.RelocatedTraceEntry;
+const RelocatedTraceEntry = trace_context.RelocatedTraceEntry;
 
 /// Writes the relocated/encoded trace to specified destination.
 ///
@@ -19,11 +19,17 @@ const RelocatedTraceEntry = trace_context.TraceContext.RelocatedTraceEntry;
 ///
 /// - `relocated_trace`:  The trace of register execution cycles, relocated.
 /// - `dest`: The destination file that the trace is to be written.
-pub fn writeEncodedTrace(relocated_trace: []const RelocatedTraceEntry, dest: *std.fs.File.Writer) !void {
+pub fn writeEncodedTrace(relocated_trace: []const RelocatedTraceEntry, dest: anytype) !void {
+    var buf: [8]u8 = undefined;
     for (relocated_trace) |entry| {
-        try dest.writeInt(u64, try entry.ap.intoU64(), .little);
-        try dest.writeInt(u64, try entry.fp.intoU64(), .little);
-        try dest.writeInt(u64, try entry.pc.intoU64(), .little);
+        std.mem.writeInt(u64, &buf, entry.ap, .little);
+        _ = try dest.write(&buf);
+
+        std.mem.writeInt(u64, &buf, entry.fp, .little);
+        _ = try dest.write(&buf);
+
+        std.mem.writeInt(u64, &buf, entry.pc, .little);
+        _ = try dest.write(&buf);
     }
 }
 
@@ -33,11 +39,14 @@ pub fn writeEncodedTrace(relocated_trace: []const RelocatedTraceEntry, dest: *st
 ///
 /// - `relocated_memory`:  The post-execution memory, relocated.
 /// - `dest`: The destination file that the memory is to be written.
-pub fn writeEncodedMemory(relocated_memory: []?Felt252, dest: *std.fs.File.Writer) !void {
+pub fn writeEncodedMemory(relocated_memory: []?Felt252, dest: anytype) !void {
+    var buf: [8]u8 = undefined;
+
     for (relocated_memory, 0..) |memory_cell, i| {
         if (memory_cell) |cell| {
-            try dest.writeInt(u64, i, .little);
-            try dest.writeInt(u256, cell.toInteger(), .little);
+            std.mem.writeInt(u64, &buf, i, .little);
+            _ = try dest.write(&buf);
+            _ = try dest.write(&cell.toBytes());
         }
     }
 }
@@ -91,16 +100,24 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
         const trace_file = try std.fs.cwd().createFile(trace_path, .{});
         defer trace_file.close();
 
-        var trace_writer = trace_file.writer();
-        try writeEncodedTrace(runner.relocated_trace, &trace_writer);
+        var trace_writer = std.io.BufferedWriter(3 * 1024 * 1024, @TypeOf(trace_file.writer())){
+            .unbuffered_writer = trace_file.writer(),
+        };
+
+        try writeEncodedTrace(runner.relocated_trace.?, &trace_writer);
+        try trace_writer.flush();
     }
 
     if (config.output_memory) |mem_path| {
         const mem_file = try std.fs.cwd().createFile(mem_path, .{});
         defer mem_file.close();
 
-        var mem_writer = mem_file.writer();
+        var mem_writer = std.io.BufferedWriter(5 * 1024 * 1024, @TypeOf(mem_file.writer())){
+            .unbuffered_writer = mem_file.writer(),
+        };
+
         try writeEncodedMemory(runner.relocated_memory.items, &mem_writer);
+        try mem_writer.flush();
     }
 }
 

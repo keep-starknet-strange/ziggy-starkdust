@@ -59,7 +59,7 @@ build-and-run-poseidon-consts-gen:
 	./zig-out/bin/poseidon_consts_gen
 	@zig fmt ./src/math/crypto/poseidon/gen/constants.zig
 
-build-compare-benchmarks: build_cairo_vm_cli build
+build-compare-benchmarks: build_cairo_vm_cli build-optimize
 	cd scripts; sh benchmarks.sh
 
 clean:

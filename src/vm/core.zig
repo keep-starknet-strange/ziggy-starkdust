@@ -17,6 +17,8 @@ const TraceError = @import("error.zig").TraceError;
 const ExecScopeError = @import("error.zig").ExecScopeError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
+const TraceEntry = @import("trace_context.zig").TraceEntry;
+const RelocatedTraceEntry = @import("trace_context.zig").RelocatedTraceEntry;
 const build_options = @import("../build_options.zig");
 const RangeCheckBuiltinRunner = @import("builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
 const SignatureBuiltinRunner = @import("builtins/builtin_runner/signature.zig").SignatureBuiltinRunner;
@@ -52,9 +54,8 @@ pub const CairoVM = struct {
     /// Whether the run is finished or not.
     is_run_finished: bool = false,
     /// VM trace
-    trace_context: TraceContext,
-    /// Whether the trace has been relocated
-    trace_relocated: bool = false,
+    trace: ?std.ArrayList(TraceEntry) = null,
+    relocated_trace: ?std.ArrayList(RelocatedTraceEntry) = null,
     /// Current Step
     current_step: usize = 0,
     /// Rc limits
@@ -84,12 +85,12 @@ pub const CairoVM = struct {
         // Initialize the memory segment manager.
         const memory_segment_manager = try segments.MemorySegmentManager.init(allocator);
         errdefer memory_segment_manager.deinit();
+        // Initialize the trace context.
+        var trace: ?std.ArrayList(TraceEntry) = if (config.enable_trace) std.ArrayList(TraceEntry).init(allocator) else null;
+        errdefer if (trace != null) trace.?.deinit();
         // Initialize the run context.
         const run_context = try RunContext.init(allocator);
         errdefer run_context.deinit();
-        // Initialize the trace context.
-        const trace_context = try TraceContext.init(allocator, config.enable_trace);
-        errdefer trace_context.deinit();
         // Initialize the built-in runners.
         const builtin_runners = ArrayList(BuiltinRunner).init(allocator);
         errdefer builtin_runners.deinit();
@@ -102,8 +103,8 @@ pub const CairoVM = struct {
             .run_context = run_context,
             .builtin_runners = builtin_runners,
             .segments = memory_segment_manager,
-            .trace_context = trace_context,
             .instruction_cache = instruction_cache,
+            .trace = trace,
         };
     }
 
@@ -121,7 +122,8 @@ pub const CairoVM = struct {
         // Deallocate the run context.
         self.run_context.deinit();
         // Deallocate trace context.
-        self.trace_context.deinit();
+        if (self.trace) |trace| trace.deinit();
+        if (self.relocated_trace) |trace| trace.deinit();
         // Loop through the built-in runners and deallocate their resources.
         for (self.builtin_runners.items) |*builtin| {
             builtin.deinit();
@@ -326,8 +328,7 @@ pub const CairoVM = struct {
                 return MemoryError.UnknownMemoryCell;
 
             // Copy the instruction cache.
-            var inst_cache = std.ArrayList(?Instruction).fromOwnedSlice(allocator, try self.instruction_cache.toOwnedSlice());
-            defer inst_cache.deinit();
+            var inst_cache = self.instruction_cache;
 
             // Resize the instruction cache if necessary.
             const new_cache_len = @max(pc + 1, inst_cache.items.len);
@@ -349,7 +350,8 @@ pub const CairoVM = struct {
                 self.run_context.pc.* = try self.run_context.pc.addUint(instruction.*.?.size());
                 self.skip_instruction_execution = false;
             }
-            try self.instruction_cache.appendSlice(inst_cache.items);
+
+            self.instruction_cache = inst_cache;
         } else {
             // Decode and execute the current instruction if the program counter is not in the program segment.
             const instruction = try self.decodeCurrentInstruction();
@@ -476,8 +478,8 @@ pub const CairoVM = struct {
         instruction: *const Instruction,
     ) !void {
         // Check if tracing is disabled and log the current state if not.
-        if (!build_options.trace_disable) {
-            try self.trace_context.traceInstruction(
+        if (self.trace) |*trace| {
+            try trace.append(
                 .{
                     .pc = self.run_context.pc.*,
                     .ap = self.run_context.getAP(),
@@ -976,7 +978,9 @@ pub const CairoVM = struct {
 
         const relocated_memory = try self.segments.relocateMemory(relocation_table, allocator);
 
-        try self.relocateTrace(relocation_table);
+        if (self.trace != null)
+            try self.relocateTrace(relocation_table);
+
         self.relocated_memory = relocated_memory;
     }
 
@@ -1001,38 +1005,29 @@ pub const CairoVM = struct {
     /// This function assumes that the relocation table indices correspond correctly to the addresses
     /// needing relocation within the Cairo VM's trace.
     pub fn relocateTrace(self: *Self, relocation_table: []usize) !void {
-        if (self.trace_relocated) return TraceError.AlreadyRelocated;
+        if (self.relocated_trace != null) return TraceError.AlreadyRelocated;
         if (relocation_table.len < 2) return TraceError.NoRelocationFound;
+        if (self.trace == null) return TraceError.TraceNotEnabled;
 
-        switch (self.trace_context.state) {
-            .enabled => |trace_enabled| {
-                for (trace_enabled.entries.items) |entry| {
-                    try self.trace_context.addRelocatedTrace(
-                        .{
-                            .pc = Felt252.fromInt(usize, try entry.pc.relocateAddress(relocation_table)),
-                            .ap = Felt252.fromInt(usize, try entry.ap.relocateAddress(relocation_table)),
-                            .fp = Felt252.fromInt(usize, try entry.fp.relocateAddress(relocation_table)),
-                        },
-                    );
-                }
-                self.trace_relocated = true;
-            },
-            .disabled => return TraceError.TraceNotEnabled,
-        }
+        var relocated_trace = try std.ArrayList(RelocatedTraceEntry).initCapacity(self.allocator, self.trace.?.items.len);
+        errdefer relocated_trace.deinit();
+
+        for (self.trace.?.items) |trace|
+            try relocated_trace.append(.{
+                .pc = try trace.pc.relocateAddress(relocation_table),
+                .ap = try trace.ap.relocateAddress(relocation_table),
+                .fp = try trace.fp.relocateAddress(relocation_table),
+            });
+
+        self.relocated_trace = relocated_trace;
     }
 
     /// Gets the relocated trace
     /// Returns `TraceError.TraceNotRelocated` error the trace has not been relocated
     /// # Returns
     /// - `[]RelocatedTraceEntry`: an array of relocated trace.
-    pub fn getRelocatedTrace(self: *Self) TraceError![]TraceContext.RelocatedTraceEntry {
-        return if (self.trace_relocated)
-            switch (self.trace_context.state) {
-                .enabled => |trace_enabled| trace_enabled.relocated_trace_entries.items,
-                .disabled => TraceError.TraceNotEnabled,
-            }
-        else
-            TraceError.TraceNotRelocated;
+    pub fn getRelocatedTrace(self: *Self) TraceError![]RelocatedTraceEntry {
+        return if (self.relocated_trace) |rel_trace| return rel_trace.items else TraceError.TraceNotRelocated;
     }
 
     /// Marks a range of memory addresses as accessed within the Cairo VM's memory segment.

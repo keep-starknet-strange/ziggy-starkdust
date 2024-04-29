@@ -1046,6 +1046,8 @@ test "Felt252 wrapping_shr" {
     );
 }
 
+const starknet = @import("starknet");
+
 test "Felt252: fromSigned and toSigned" {
     try expectEqual(Felt252.zero().sub(Felt252.one()), Felt252.fromSignedInt(-1));
 

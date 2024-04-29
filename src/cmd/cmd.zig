@@ -187,7 +187,7 @@ const UsageError = error{
 /// Returns a `UsageError` if there's a misuse of the CLI, specifically if tracing is attempted
 /// while it's disabled in the build.
 fn execute() anyerror!void {
-    std.log.debug("Running Cairo VM...\n", .{});
+    // std.log.debug("Running Cairo VM...\n", .{});
 
     if (build_options.trace_disable and config.enable_trace) {
         std.log.err("Tracing is disabled in this build.\n", .{});
