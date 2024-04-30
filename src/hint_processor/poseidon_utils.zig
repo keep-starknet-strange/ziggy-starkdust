@@ -62,8 +62,8 @@ test "PoseidonUtils: run nGreaterThan10 true" {
     const hint_processor: HintProcessor = .{};
     var hint_data = HintData.init(hint_codes.NONDET_N_GREATER_THAN_10, ids_data, .{});
 
-    vm.run_context.ap.* = 3;
-    vm.run_context.fp.* = 1;
+    vm.run_context.ap = 3;
+    vm.run_context.fp = 1;
 
     try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
 
@@ -89,8 +89,8 @@ test "PoseidonUtils: run nGreaterThan10 false" {
     const hint_processor: HintProcessor = .{};
     var hint_data = HintData.init(hint_codes.NONDET_N_GREATER_THAN_10, ids_data, .{});
 
-    vm.run_context.ap.* = 3;
-    vm.run_context.fp.* = 1;
+    vm.run_context.ap = 3;
+    vm.run_context.fp = 1;
 
     try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
 
@@ -116,8 +116,8 @@ test "PoseidonUtils: run nGreaterThan2 true" {
     const hint_processor: HintProcessor = .{};
     var hint_data = HintData.init(hint_codes.NONDET_N_GREATER_THAN_2, ids_data, .{});
 
-    vm.run_context.ap.* = 3;
-    vm.run_context.fp.* = 1;
+    vm.run_context.ap = 3;
+    vm.run_context.fp = 1;
 
     try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
 
@@ -143,8 +143,8 @@ test "PoseidonUtils: run nGreaterThan2 false" {
     const hint_processor: HintProcessor = .{};
     var hint_data = HintData.init(hint_codes.NONDET_N_GREATER_THAN_2, ids_data, .{});
 
-    vm.run_context.ap.* = 3;
-    vm.run_context.fp.* = 1;
+    vm.run_context.ap = 3;
+    vm.run_context.fp = 1;
 
     try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
 

@@ -288,7 +288,7 @@ test "EcUtils: randomEcPointHint" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
     //Initialize fp
-    vm.run_context.fp.* = 6;
+    vm.run_context.fp = 6;
     //Create hint_data
     const ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{ .{ "p", -6 }, .{ "q", -3 }, .{ "m", -4 }, .{ "s", -1 } });
 
@@ -347,7 +347,7 @@ test "EcUtils: chainedEcOpRandomEcPointHint" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
     //Initialize fp
-    vm.run_context.fp.* = 6;
+    vm.run_context.fp = 6;
     //Create hint_data
     const ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{ .{ "p", -6 }, .{ "m", -4 }, .{ "q", -3 }, .{ "len", -2 }, .{ "s", -1 } });
 
@@ -458,7 +458,7 @@ test "EcUtils: recoverYHint" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
     //Initialize fp
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
     //Create hint_data
     const ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "x", -3 },

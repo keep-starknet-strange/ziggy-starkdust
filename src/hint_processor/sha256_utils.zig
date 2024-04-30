@@ -223,7 +223,7 @@ test "Sha256Utils: sha256 input one" {
         .{ .{ 1, 1 }, .{7} },
     });
 
-    vm.run_context.fp.* = 2;
+    vm.run_context.fp = 2;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "full_word", "n_bytes",
@@ -246,7 +246,7 @@ test "Sha256Utils: sha256 input zero" {
         .{ .{ 1, 1 }, .{3} },
     });
 
-    vm.run_context.fp.* = 2;
+    vm.run_context.fp = 2;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "full_word", "n_bytes",
@@ -287,7 +287,7 @@ test "Sha256Utils: constant input length ok" {
         .{ .{ 3, 9 }, .{0} },
     });
 
-    vm.run_context.fp.* = 2;
+    vm.run_context.fp = 2;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "sha256_start", "output",
@@ -352,7 +352,7 @@ test "Sha256Utils: arbitary input length ok" {
         .{ .{ 4, 7 }, .{0x5BE0CD18} },
     });
 
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "sha256_start", "output", "state",

@@ -763,9 +763,9 @@ test "SecpEcUtils: diBit ok" {
     });
 
     // Initialize RunContext
-    vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.ap.* = 4;
-    vm.run_context.fp.* = 4;
+    vm.run_context.pc = Relocatable.init(0, 0);
+    vm.run_context.ap = 4;
+    vm.run_context.fp = 4;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "scalar_u",
@@ -805,9 +805,9 @@ test "SecpEcUtils: quadBit ok" {
     });
 
     // Initialize RunContext
-    vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.ap.* = 4;
-    vm.run_context.fp.* = 4;
+    vm.run_context.pc = Relocatable.init(0, 0);
+    vm.run_context.ap = 4;
+    vm.run_context.fp = 4;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "scalar_u",
@@ -847,9 +847,9 @@ test "SecpEcUtils: diBit zero ok" {
     });
 
     // Initialize RunContext
-    vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.ap.* = 4;
-    vm.run_context.fp.* = 4;
+    vm.run_context.pc = Relocatable.init(0, 0);
+    vm.run_context.ap = 4;
+    vm.run_context.fp = 4;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "scalar_u",
@@ -889,9 +889,9 @@ test "SecpEcUtils: diBit max m ok" {
     });
 
     // Initialize RunContext
-    vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.ap.* = 4;
-    vm.run_context.fp.* = 4;
+    vm.run_context.pc = Relocatable.init(0, 0);
+    vm.run_context.ap = 4;
+    vm.run_context.fp = 4;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "scalar_u",
@@ -931,9 +931,9 @@ test "SecpEcUtils: quadBit for m 1 ok" {
     });
 
     // Initialize RunContext
-    vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.ap.* = 4;
-    vm.run_context.fp.* = 4;
+    vm.run_context.pc = Relocatable.init(0, 0);
+    vm.run_context.ap = 4;
+    vm.run_context.fp = 4;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "scalar_u",
@@ -973,9 +973,9 @@ test "SecpEcUtils: quadBit for max m ok" {
     });
 
     // Initialize RunContext
-    vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.ap.* = 4;
-    vm.run_context.fp.* = 4;
+    vm.run_context.pc = Relocatable.init(0, 0);
+    vm.run_context.ap = 4;
+    vm.run_context.fp = 4;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "scalar_u",
@@ -1015,9 +1015,9 @@ test "SecpEcUtils: quadBit for m 0" {
     });
 
     // Initialize RunContext
-    vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.ap.* = 4;
-    vm.run_context.fp.* = 4;
+    vm.run_context.pc = Relocatable.init(0, 0);
+    vm.run_context.ap = 4;
+    vm.run_context.fp = 4;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "scalar_u",
@@ -1051,7 +1051,7 @@ test "SecpEcUtils: run ecNegateOk" {
     });
 
     //Initialize fp
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
     //Create hint_data
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "point",
@@ -1092,7 +1092,7 @@ test "SecpEcUtils: run ecNegateEmbededSecp ok" {
     });
 
     //Initialize fp
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
     //Create hint_data
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "point",
@@ -1140,7 +1140,7 @@ test "SecpEcUtils: run computeDoublingSlope ok" {
     });
 
     //Initialize fp
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
     //Create hint_data
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "point",
@@ -1187,7 +1187,7 @@ test "SecpEcUtils: run computeDoublingSlopeV2 ok" {
     });
 
     //Initialize fp
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
     //Create hint_data
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "point",
@@ -1240,7 +1240,7 @@ test "SecpEcUtils: compute doubling slope wdivmode ok" {
     });
 
     //Initialize fp
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
     //Create hint_data
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "pt",
@@ -1287,7 +1287,7 @@ test "SecpEcUtils: compute doubling slope with custom consts ok" {
     });
 
     //Initialize fp
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
     //Create hint_data
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "point",
@@ -1353,7 +1353,7 @@ test "SecpEcUtils: compute slope ok" {
     });
 
     //Initialize fp
-    vm.run_context.fp.* = 14;
+    vm.run_context.fp = 14;
     //Create hint_data
 
     var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
@@ -1412,7 +1412,7 @@ test "SecpEcUtils: compute slope v2 ok" {
     );
 
     //Initialize fp
-    vm.run_context.fp.* = 14;
+    vm.run_context.fp = 14;
     //Create hint_data
 
     var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
@@ -1471,7 +1471,7 @@ test "SecpEcUtils: compute slope wdivmod ok" {
     );
 
     //Initialize fp
-    vm.run_context.fp.* = 14;
+    vm.run_context.fp = 14;
     //Create hint_data
 
     var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
@@ -1527,7 +1527,7 @@ test "SecpEcUtils: ec double assign new x ok" {
     );
 
     //Initialize fp
-    vm.run_context.fp.* = 10;
+    vm.run_context.fp = 10;
     //Create hint_data
 
     var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
@@ -1608,7 +1608,7 @@ test "SecpEcUtils: ec double assign new x v2 ok" {
     );
 
     //Initialize fp
-    vm.run_context.fp.* = 10;
+    vm.run_context.fp = 10;
     //Create hint_data
 
     var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
@@ -1771,9 +1771,9 @@ test "SecpEcUtils: fast ec add assign new x ok" {
     );
 
     //Initialize fp
-    vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.ap.* = 20;
-    vm.run_context.fp.* = 15;
+    vm.run_context.pc = Relocatable.init(0, 0);
+    vm.run_context.ap = 20;
+    vm.run_context.fp = 15;
     //Create hint_data
 
     var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
@@ -1891,9 +1891,9 @@ test "SecpEcUtils: ecMulInner ok" {
         .{ .{ 1, 0 }, .{89712} },
     });
 
-    vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.ap.* = 2;
-    vm.run_context.fp.* = 1;
+    vm.run_context.pc = Relocatable.init(0, 0);
+    vm.run_context.ap = 2;
+    vm.run_context.fp = 1;
 
     var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();
@@ -1933,7 +1933,7 @@ test "SecpEcUtils: ec point from var name ok" {
         .{ .{ 1, 5 }, .{6} },
     });
 
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();
@@ -1966,7 +1966,7 @@ test "SecpEcUtils: ec point from var name missing number" {
         .{ .{ 1, 3 }, .{4} },
     });
 
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();
@@ -1990,7 +1990,7 @@ test "SecpEcUtils: import secp256r1 alpha ok" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
     //Initialize fp
 
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "point",
@@ -2045,9 +2045,9 @@ test "SecpEcUtils: squareSlopeMinusX ok" {
     );
 
     //Initialize fp
-    vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.ap.* = 20;
-    vm.run_context.fp.* = 15;
+    vm.run_context.pc = Relocatable.init(0, 0);
+    vm.run_context.ap = 20;
+    vm.run_context.fp = 15;
     //Create hint_data
 
     var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);

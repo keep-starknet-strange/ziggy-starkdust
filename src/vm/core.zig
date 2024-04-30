@@ -46,7 +46,7 @@ pub const CairoVM = struct {
     /// The memory allocator. Can be needed for the deallocation of the VM resources.
     allocator: Allocator,
     /// The run context.
-    run_context: *RunContext,
+    run_context: RunContext,
     /// ArrayList of built-in runners
     builtin_runners: ArrayList(BuiltinRunner),
     /// The memory segment manager.
@@ -89,8 +89,7 @@ pub const CairoVM = struct {
         var trace: ?std.ArrayList(TraceEntry) = if (config.enable_trace) std.ArrayList(TraceEntry).init(allocator) else null;
         errdefer if (trace != null) trace.?.deinit();
         // Initialize the run context.
-        const run_context = try RunContext.init(allocator);
-        errdefer run_context.deinit();
+        const run_context = .{};
         // Initialize the built-in runners.
         const builtin_runners = ArrayList(BuiltinRunner).init(allocator);
         errdefer builtin_runners.deinit();
@@ -119,8 +118,6 @@ pub const CairoVM = struct {
     pub fn deinit(self: *Self) void {
         // Deallocate the memory segment manager.
         self.segments.deinit();
-        // Deallocate the run context.
-        self.run_context.deinit();
         // Deallocate trace context.
         if (self.trace) |trace| trace.deinit();
         if (self.relocated_trace) |trace| trace.deinit();
@@ -347,7 +344,7 @@ pub const CairoVM = struct {
                 try self.runInstruction(allocator, &instruction.*.?);
             } else {
                 // Advance the program counter if skip_instruction_execution is true.
-                self.run_context.pc.* = try self.run_context.pc.addUint(instruction.*.?.size());
+                self.run_context.pc = try self.run_context.pc.addUint(instruction.*.?.size());
                 self.skip_instruction_execution = false;
             }
 
@@ -359,7 +356,7 @@ pub const CairoVM = struct {
             if (!self.skip_instruction_execution) {
                 try self.runInstruction(allocator, &instruction);
             } else {
-                self.run_context.pc.* = try self.run_context.pc.addUint(instruction.size());
+                self.run_context.pc = try self.run_context.pc.addUint(instruction.size());
                 self.skip_instruction_execution = false;
             }
         }
@@ -481,7 +478,7 @@ pub const CairoVM = struct {
         if (self.trace) |*trace| {
             try trace.append(
                 .{
-                    .pc = self.run_context.pc.*,
+                    .pc = self.run_context.pc,
                     .ap = self.run_context.getAP(),
                     .fp = self.run_context.getFP(),
                 },
@@ -793,14 +790,14 @@ pub const CairoVM = struct {
         switch (instruction.pc_update) {
             // PC update regular
             .Regular => { // Update the PC.
-                self.run_context.pc.*.addUintInPlace(instruction.size());
+                self.run_context.pc.addUintInPlace(instruction.size());
             },
             // PC update jump
             .Jump => {
                 // Check that the res is not null.
                 if (operands.res) |val| {
                     // Check that the res is a relocatable.
-                    self.run_context.pc.* = val.intoRelocatable() catch
+                    self.run_context.pc = val.intoRelocatable() catch
                         return error.PcUpdateJumpResNotRelocatable;
                 } else {
                     return error.ResUnconstrainedUsedWithPcUpdateJump;
@@ -811,7 +808,7 @@ pub const CairoVM = struct {
                 // Check that the res is not null.
                 if (operands.res) |val| {
                     // Check that the res is a felt.
-                    try self.run_context.pc.*.addFeltInPlace(val.intoFelt() catch return error.PcUpdateJumpRelResNotFelt);
+                    try self.run_context.pc.addFeltInPlace(val.intoFelt() catch return error.PcUpdateJumpRelResNotFelt);
                 } else {
                     return error.ResUnconstrainedUsedWithPcUpdateJumpRel;
                 }
@@ -821,10 +818,10 @@ pub const CairoVM = struct {
                 if (operands.dst.isZero()) {
 
                     // Update the PC.
-                    self.run_context.pc.*.addUintInPlace(instruction.size());
+                    self.run_context.pc.addUintInPlace(instruction.size());
                 } else {
                     // Update the PC.
-                    try self.run_context.pc.*.addMaybeRelocatableInplace(operands.op_1);
+                    try self.run_context.pc.addMaybeRelocatableInplace(operands.op_1);
                 }
             },
         }
@@ -845,15 +842,15 @@ pub const CairoVM = struct {
                 // Check that Res is not null.
                 if (operands.res) |val| {
                     // Update AP.
-                    self.run_context.ap.* = (try self.run_context.getAP().addMaybeRelocatable(val)).offset;
+                    self.run_context.ap = (try self.run_context.getAP().addMaybeRelocatable(val)).offset;
                 } else {
                     return error.ApUpdateAddResUnconstrained;
                 }
             },
             // AP update Add1
-            .Add1 => self.run_context.ap.* = (try self.run_context.getAP().addUint(1)).offset,
+            .Add1 => self.run_context.ap = (try self.run_context.getAP().addUint(1)).offset,
             // AP update Add2
-            .Add2 => self.run_context.ap.* = (try self.run_context.getAP().addUint(2)).offset,
+            .Add2 => self.run_context.ap = (try self.run_context.getAP().addUint(2)).offset,
             // AP update regular
             .Regular => {},
         }
@@ -872,7 +869,7 @@ pub const CairoVM = struct {
             // FP update Add + 2
             .APPlus2 => { // Update the FP.
                 // FP = AP + 2.
-                self.run_context.fp.* = self.run_context.ap.* + 2;
+                self.run_context.fp = self.run_context.ap + 2;
             },
             // FP update Dst
             .Dst => {
@@ -880,12 +877,12 @@ pub const CairoVM = struct {
                     .relocatable => |rel| {
                         // Update the FP.
                         // FP = DST.
-                        self.run_context.fp.* = rel.offset;
+                        self.run_context.fp = rel.offset;
                     },
                     .felt => |f| {
                         // Update the FP.
                         // FP += DST.
-                        self.run_context.fp.* = (try self.run_context.getFP().addFelt(f)).offset;
+                        self.run_context.fp = (try self.run_context.getFP().addFelt(f)).offset;
                     },
                 }
             },

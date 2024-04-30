@@ -247,7 +247,7 @@ test "SecpSignature: safe div ok" {
             .{ .{ 1, 5 }, .{1} },
         });
 
-        vm.run_context.fp.* = 3;
+        vm.run_context.fp = 3;
 
         var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
             .{ "a", -3 },
@@ -299,7 +299,7 @@ test "SecpSignature: get point from x ok" {
     );
 
     //Initialize fp
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
     //Create hint_data
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{

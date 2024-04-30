@@ -248,7 +248,7 @@ test "BigIntUtils: get bigint3 from var name ok" {
         .{ .{ 1, 2 }, .{3} },
     });
 
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
@@ -275,7 +275,7 @@ test "BigIntUtils: get bigint5 from var name ok" {
         .{ .{ 1, 4 }, .{5} },
     });
 
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
@@ -303,7 +303,7 @@ test "BigIntUtils: get bigint3 from var name with missing member fail" {
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{"x"});
     defer ids_data.deinit();
@@ -325,7 +325,7 @@ test "BigIntUtils: get bigint5 from var name with missing member should fail" {
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{"x"});
     defer ids_data.deinit();
@@ -401,8 +401,8 @@ test "BigIntUtils: Run hiMaxBitlen ok" {
     });
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 0;
-    vm.run_context.ap.* = 7;
+    vm.run_context.fp = 0;
+    vm.run_context.ap = 7;
 
     //Execute the hint
     const hint_code = "ids.len_hi = max(ids.scalar_u.d2.bit_length(), ids.scalar_v.d2.bit_length())-1";
@@ -426,9 +426,9 @@ test "BigIntUtils: nondet bigint3 ok" {
 
     try exec_scopes.assignOrUpdateVariable("value", .{ .big_int = try Int.initSet(std.testing.allocator, 7737125245533626718119526477371252455336267181195264773712524553362) });
 
-    vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.ap.* = 6;
-    vm.run_context.fp.* = 6;
+    vm.run_context.pc = Relocatable.init(0, 0);
+    vm.run_context.ap = 6;
+    vm.run_context.fp = 6;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(
         std.testing.allocator,
@@ -491,9 +491,9 @@ test "BigIntUtils: nondet bigint3 value not in scope" {
     var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();
 
-    vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.ap.* = 6;
-    vm.run_context.fp.* = 6;
+    vm.run_context.pc = Relocatable.init(0, 0);
+    vm.run_context.ap = 6;
+    vm.run_context.fp = 6;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(
         std.testing.allocator,

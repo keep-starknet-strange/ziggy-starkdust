@@ -278,6 +278,20 @@ pub fn Field(comptime F: type, comptime modulo: u256) type {
             return non_mont;
         }
 
+        /// Convert `self`'s representative into an array of `u64` digits,
+        /// big endian digits first.
+        pub fn toBeDigits(self: Self) [4]u64 {
+            var non_mont: F.NonMontgomeryDomainFieldElement = undefined;
+            F.fromMontgomery(
+                &non_mont,
+                self.fe,
+            );
+
+            std.mem.reverse(u64, non_mont[0..]);
+
+            return non_mont;
+        }
+
         /// Convert the field element to a big-endian byte array.
         ///
         /// This function converts the field element to a big-endian byte array for serialization.

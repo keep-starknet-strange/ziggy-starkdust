@@ -192,7 +192,7 @@ test "EcRecover: runEcRecoverDivmodNIsZero" {
     var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();
 
-    vm.run_context.fp.* = 8;
+    vm.run_context.fp = 8;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{ .{ "n", -8 }, .{ "x", -5 }, .{ "s", -2 } });
     defer ids_data.deinit();
@@ -220,7 +220,7 @@ test "EcRecover: runEcRecoverDivmodN ok" {
     var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();
 
-    vm.run_context.fp.* = 8;
+    vm.run_context.fp = 8;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{ .{ "n", -8 }, .{ "x", -5 }, .{ "s", -2 } });
     defer ids_data.deinit();
@@ -259,7 +259,7 @@ test "EcRecover: ecRecoverSubAB ok" {
     var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();
 
-    vm.run_context.fp.* = 8;
+    vm.run_context.fp = 8;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -8 },
@@ -298,7 +298,7 @@ test "EcRecover: ecRecoverProductMod ok" {
     var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();
 
-    vm.run_context.fp.* = 8;
+    vm.run_context.fp = 8;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -8 },
@@ -355,7 +355,7 @@ test "EcRecover: ecRecoverProductMod zero" {
     var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();
 
-    vm.run_context.fp.* = 8;
+    vm.run_context.fp = 8;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -8 },

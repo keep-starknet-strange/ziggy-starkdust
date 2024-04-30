@@ -69,7 +69,7 @@ test "PowUtils: run pow" {
     try vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true) });
 
     // Set the value of vm.run_context.fp to Relocatable(1, 12).
-    vm.run_context.fp.* = 12;
+    vm.run_context.fp = 12;
 
     // Set up memory segments for the Cairo VM.
     try vm.segments.memory.setUpMemory(
@@ -114,7 +114,7 @@ test "PowUtils: with incorrect ids" {
     inline for (0..2) |_| _ = try vm.addMemorySegment();
 
     // Set the value of vm.run_context.ap to Relocatable(1, 11).
-    vm.run_context.ap.* = 11;
+    vm.run_context.ap = 11;
 
     // Initialize a hashmap to store variable references.
     var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
@@ -148,7 +148,7 @@ test "PowUtils: with incorrect references" {
     inline for (0..2) |_| _ = try vm.addMemorySegment();
 
     // Set the value of vm.run_context.ap to Relocatable(1, 11).
-    vm.run_context.ap.* = 11;
+    vm.run_context.ap = 11;
 
     // Initialize a hashmap to store variable references.
     var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
@@ -180,7 +180,7 @@ test "PowUtils: with exponent not being an integer" {
     try vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true) });
 
     // Set the value of vm.run_context.ap to Relocatable(1, 11).
-    vm.run_context.ap.* = 11;
+    vm.run_context.ap = 11;
 
     // Initialize a hashmap to store variable references.
     var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
@@ -222,7 +222,7 @@ test "PowUtils: with invalid memory inserted" {
     try vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true) });
 
     // Set the value of vm.run_context.ap to Relocatable(1, 11).
-    vm.run_context.ap.* = 11;
+    vm.run_context.ap = 11;
 
     // Initialize a hashmap to store variable references.
     var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);

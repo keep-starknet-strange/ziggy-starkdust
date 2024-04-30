@@ -501,9 +501,9 @@ pub const CairoRunner = struct {
     /// This function returns `void`. In case of errors, it returns a `RunnerError`.
     pub fn initVM(self: *Self) !void {
         // Set VM state: AP, FP, PC
-        self.vm.run_context.ap.* = (self.initial_ap orelse return RunnerError.NoAP).offset;
-        self.vm.run_context.fp.* = (self.initial_fp orelse return RunnerError.NoFP).offset;
-        self.vm.run_context.pc.* = self.initial_pc orelse return RunnerError.NoPC;
+        self.vm.run_context.ap = (self.initial_ap orelse return RunnerError.NoAP).offset;
+        self.vm.run_context.fp = (self.initial_fp orelse return RunnerError.NoFP).offset;
+        self.vm.run_context.pc = self.initial_pc orelse return RunnerError.NoPC;
 
         // Add validation rules for built-in runners
         for (self.vm.builtin_runners.items) |*builtin_runner| {
@@ -564,7 +564,7 @@ pub const CairoRunner = struct {
             hint_ranges = try self.program.shared_program_data
                 .hints_collection.hints_ranges.Extensive.clone();
 
-        while (!end.eq(self.vm.run_context.pc.*) and !hint_processor.run_resources.consumed()) {
+        while (!end.eq(self.vm.run_context.pc) and !hint_processor.run_resources.consumed()) {
             if (extensive_hints) {
                 try self.vm.stepExtensive(
                     self.allocator,
@@ -707,7 +707,7 @@ pub const CairoRunner = struct {
         // Loop until all steps are executed or program ends
         while (remaining_steps >= 1) {
             // Check if the program has reached its end
-            if (self.final_pc.?.eq(self.vm.run_context.pc.*))
+            if (self.final_pc.?.eq(self.vm.run_context.pc))
                 return CairoVMError.EndOfProgram;
 
             // Execute a single step of the program, considering extensive or non-extensive hints
@@ -1318,7 +1318,7 @@ test "CairoRunner: initVM should initialize the VM properly with no builtins" {
     // Expect that the program counter (PC) is initialized correctly.
     try expectEqual(
         Relocatable.init(0, 1),
-        cairo_runner.vm.run_context.pc.*,
+        cairo_runner.vm.run_context.pc,
     );
     // Expect that the allocation pointer (AP) is initialized correctly.
     try expectEqual(
@@ -2950,7 +2950,7 @@ test "CairoRunner: runUntilPC with function call" {
 
     try cairo_runner.runUntilPC(end, false, &hint_processor);
 
-    try expectEqual(Relocatable.init(3, 0), cairo_runner.vm.run_context.pc.*);
+    try expectEqual(Relocatable.init(3, 0), cairo_runner.vm.run_context.pc);
     try expectEqual(
         Relocatable.init(1, 6),
         cairo_runner.vm.run_context.getAP(),
@@ -3090,7 +3090,7 @@ test "CairoRunner: runUntilPC with range check builtin" {
     var hint_processor: HintProcessor = .{};
     try cairo_runner.runUntilPC(end, false, &hint_processor);
 
-    try expectEqual(Relocatable.init(4, 0), cairo_runner.vm.run_context.pc.*);
+    try expectEqual(Relocatable.init(4, 0), cairo_runner.vm.run_context.pc);
     try expectEqual(
         Relocatable.init(1, 10),
         cairo_runner.vm.run_context.getAP(),
@@ -3283,7 +3283,7 @@ test "CairoRunner: initialize and run with output builtin" {
     var hint_processor: HintProcessor = .{};
     try cairo_runner.runUntilPC(end, false, &hint_processor);
 
-    try expectEqual(Relocatable.init(4, 0), cairo_runner.vm.run_context.pc.*);
+    try expectEqual(Relocatable.init(4, 0), cairo_runner.vm.run_context.pc);
     try expectEqual(
         Relocatable.init(1, 12),
         cairo_runner.vm.run_context.getAP(),
@@ -3513,7 +3513,7 @@ test "CairoRunner: initialize and run with range check and output builtins" {
     var hint_processor: HintProcessor = .{};
     try cairo_runner.runUntilPC(end, false, &hint_processor);
 
-    try expectEqual(Relocatable.init(5, 0), cairo_runner.vm.run_context.pc.*);
+    try expectEqual(Relocatable.init(5, 0), cairo_runner.vm.run_context.pc);
     try expectEqual(
         Relocatable.init(1, 18),
         cairo_runner.vm.run_context.getAP(),

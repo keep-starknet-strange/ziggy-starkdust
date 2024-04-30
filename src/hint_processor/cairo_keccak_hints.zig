@@ -374,7 +374,7 @@ test "CairoKeccakHints: is full word" {
         try vm.segments.memory.setUpMemory(std.testing.allocator, .{
             .{ .{ 1, 1 }, .{case[0]} },
         });
-        vm.run_context.fp.* = 2;
+        vm.run_context.fp = 2;
 
         const ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "full_word", "n_bytes" });
 
@@ -404,7 +404,7 @@ test "CairoKeccakHints: writeArgs valid" {
         .{ .{ 1, 2 }, .{ 2, 0 } },
         .{ .{ 2, 4 }, .{5} },
     });
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
 
     const ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "low", "high", "inputs" });
 
@@ -430,7 +430,7 @@ test "CairoKeccakHints: writeArgs error" {
         .{ .{ 1, 1 }, .{351} },
         .{ .{ 1, 2 }, .{ 2, 0 } },
     });
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
 
     const ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "low", "high", "inputs" });
 
@@ -456,9 +456,9 @@ test "CairoKeccakHints: compareBytesInWordNondet valid" {
     });
     _ = try vm.segments.addSegment();
 
-    vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.fp.* = 1;
-    vm.run_context.ap.* = 1;
+    vm.run_context.pc = Relocatable.init(0, 0);
+    vm.run_context.fp = 1;
+    vm.run_context.ap = 1;
 
     const ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "n_bytes",
@@ -496,9 +496,9 @@ test "CairoKeccakHints: compareKeccakFullRateInBytesNondet valid" {
     });
     _ = try vm.segments.addSegment();
 
-    vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.fp.* = 1;
-    vm.run_context.ap.* = 1;
+    vm.run_context.pc = Relocatable.init(0, 0);
+    vm.run_context.fp = 1;
+    vm.run_context.ap = 1;
 
     const ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "n_bytes",

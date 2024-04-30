@@ -178,11 +178,10 @@ pub const Relocatable = struct {
     /// A new Relocatable after the addition operation.
     /// # Errors
     /// An error is returned if the addition results in an overflow (exceeding u64).
-    pub fn addFelt(self: Self, other: Felt252) MathError!Self {
-        return .{
-            .segment_index = self.segment_index,
-            .offset = try Felt252.fromInt(u64, self.offset).add(other).intoU64(),
-        };
+    pub fn addFelt(self: Self, other: Felt252) !Self {
+        var cpy = self;
+        try cpy.addFeltInPlace(other);
+        return cpy;
     }
 
     /// Add a felt to this Relocatable, modifying it in place.
@@ -190,7 +189,31 @@ pub const Relocatable = struct {
     /// - self: Pointer to the Relocatable object to modify.
     /// - other: The felt to add to `self.offset`.
     pub fn addFeltInPlace(self: *Self, other: Felt252) !void {
-        self.offset = try Felt252.fromInt(u64, self.offset).add(other).intoU64();
+        const PRIME_DIGITS_BE_HI =
+            [_]u64{ 0x0800000000000011, 0x0000000000000000, 0x0000000000000000 };
+        const PRIME_MINUS_U64_MAX_DIGITS_BE_HI =
+            [_]u64{ 0x0800000000000010, 0xffffffffffffffff, 0xffffffffffffffff };
+
+        const zero =
+            [4]u64{ 0, 0, 0, 0 };
+
+        const bytes = other.toBeDigits();
+
+        if (std.mem.eql(u64, &bytes, &zero)) {
+            return;
+        } else if (std.mem.eql(u64, bytes[0..3], zero[0..3])) {
+            const new_offset, const bit = @addWithOverflow(self.offset, bytes[3]);
+            if (bit != 0) return MathError.ValueTooLarge;
+            self.offset = new_offset;
+        } else if (std.mem.eql(u64, bytes[0..3], &PRIME_DIGITS_BE_HI)) {
+            const new_offset, const bit = @subWithOverflow(self.offset, 1);
+            if (bit != 0) return MathError.ValueTooLarge;
+            self.offset = new_offset;
+        } else if (std.mem.eql(u64, bytes[0..3], &PRIME_MINUS_U64_MAX_DIGITS_BE_HI) and bytes[3] >= 2) {
+            const new_offset, const bit = @subWithOverflow(self.offset, std.math.maxInt(u64) - bytes[3] + 2);
+            if (bit != 0) return MathError.ValueTooLarge;
+            self.offset = new_offset;
+        } else return MathError.ValueTooLarge;
     }
 
     /// Performs additions if other contains a Felt value, fails otherwise.
@@ -512,7 +535,7 @@ pub const MaybeRelocatable = union(enum) {
     /// # Returns:
     ///   * A new MaybeRelocatable value after the addition operation.
     ///   * An error in case of type mismatch or specific math errors.
-    pub fn add(self: Self, other: Self) MathError!Self {
+    pub fn add(self: Self, other: Self) !Self {
         // Switch on the type of `self`
         return switch (self) {
             // If `self` is of type `relocatable`

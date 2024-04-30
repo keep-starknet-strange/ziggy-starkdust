@@ -341,7 +341,7 @@ test "Uint384: runUnsignedDivRemOk" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 10;
+    vm.run_context.fp = 10;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -9 }, .{ "div", -6 }, .{ "quotient", -3 }, .{ "remainder", 0 },
@@ -374,7 +374,7 @@ test "Uint384: runUnsignedDivRem divide by zero" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 10;
+    vm.run_context.fp = 10;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -9 }, .{ "div", -6 }, .{ "quotient", -3 }, .{ "remainder", 0 },
@@ -408,7 +408,7 @@ test "Uint384: runSplit128 ok" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "a", "low", "high",
@@ -432,7 +432,7 @@ test "Uint384: runSplit128 ok big number" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "a", "low", "high",
@@ -458,7 +458,7 @@ test "Uint384: run addNoCheck ok" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 10;
+    vm.run_context.fp = 10;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -10 },       .{ "b", -7 },        .{ "carry_d0", -4 },
@@ -493,7 +493,7 @@ test "Uint384: sqrt ok" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 5;
+    vm.run_context.fp = 5;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -5 }, .{ "root", -2 },
@@ -520,7 +520,7 @@ test "Uint384: sqrt assertetion failed" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 5;
+    vm.run_context.fp = 5;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -5 }, .{ "root", -2 },
@@ -551,7 +551,7 @@ test "Uint384: signedNn ok positive" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -2 },
@@ -574,7 +574,7 @@ test "Uint384: signedNn ok missing identifier" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -2 },
@@ -604,7 +604,7 @@ test "Uint384: signedNn ok negative" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -2 },
@@ -627,7 +627,7 @@ test "Uint384: subAsubB ok a max" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 10;
+    vm.run_context.fp = 10;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -10 },
@@ -670,7 +670,7 @@ test "Uint384: subAsubB ok b max" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 10;
+    vm.run_context.fp = 10;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -10 },
@@ -713,7 +713,7 @@ test "Uint384: runUnsignedDivRem784 ok" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 17;
+    vm.run_context.fp = 17;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -17 }, .{ "div", -11 }, .{ "quotient", -8 }, .{ "remainder", -2 },
@@ -752,7 +752,7 @@ test "Uint384: runUnsignedDivRem784 divide by zero" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 17;
+    vm.run_context.fp = 17;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -17 }, .{ "div", -11 }, .{ "quotient", -8 }, .{ "remainder", -2 },
