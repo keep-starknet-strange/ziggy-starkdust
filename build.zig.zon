@@ -13,9 +13,5 @@
             .url = "https://github.com/sam701/zig-cli/archive/refs/heads/main.tar.gz",
             .hash = "1220c008492d9460c3be2b209600a948181e6efb3bf0d79a1633def499632e708f4b",
         },
-        .starknet = .{
-            .url = "https://github.com/StringNick/starknet-zig/archive/refs/heads/main.tar.gz",
-            .hash = "1220fc143b9045a34aaeeaf7c8030c51991735bf0bc71a20f76a47b3531385941e57",
-        },
     },
 }
