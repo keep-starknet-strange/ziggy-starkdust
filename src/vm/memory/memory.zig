@@ -326,12 +326,12 @@ pub const Memory = struct {
     /// # Returns
     ///
     /// Returns a reference to the data in the form of `std.ArrayList(std.ArrayListUnmanaged(?MemoryCell))`.
-    pub fn getDataFromSegmentIndex(
-        self: *Self,
+    pub inline fn getDataFromSegmentIndex(
+        self: *const Self,
         segment_index: i64,
-    ) *std.ArrayList(std.ArrayListUnmanaged(?MemoryCell)) {
+    ) []std.ArrayListUnmanaged(?MemoryCell) {
         // Return the temporary data if the segment index is less than 0; otherwise, return the main data.
-        return if (segment_index < 0) &self.temp_data else &self.data;
+        return if (segment_index < 0) self.temp_data.items else self.data.items;
     }
 
     /// Memory management and insertion function for the Cairo Virtual Machine.
@@ -357,10 +357,10 @@ pub const Memory = struct {
         const insert_segment_index = address.getAdjustedSegmentIndex();
 
         // Check if the data segment is allocated for the given segment index.
-        if (data.items.len <= insert_segment_index)
+        if (data.len <= insert_segment_index)
             return MemoryError.UnallocatedSegment;
 
-        var data_segment = &data.items[insert_segment_index];
+        var data_segment = &data[insert_segment_index];
 
         // Ensure the data segment has sufficient capacity to accommodate the value at the specified offset.
         if (data_segment.items.len <= address.offset) {
@@ -408,16 +408,16 @@ pub const Memory = struct {
         const segment_index = address.getAdjustedSegmentIndex();
 
         // Check if the segment index is valid within the data structure.
-        const isSegmentIndexValid = address.segment_index < data.items.len;
+        const isSegmentIndexValid = address.segment_index < data.len;
 
         // Check if the offset is valid within the specified segment.
-        const isOffsetValid = isSegmentIndexValid and (address.offset < data.items[segment_index].items.len);
+        const isOffsetValid = isSegmentIndexValid and (address.offset < data[segment_index].items.len);
 
         // Return null if either the segment index or offset is not valid.
         // Otherwise, return the maybe_relocatable value at the specified address.
         return if (!isSegmentIndexValid or !isOffsetValid)
             null
-        else if (data.items[segment_index].items[address.offset]) |val|
+        else if (data[segment_index].items[address.offset]) |val|
             switch (val.maybe_relocatable) {
                 .relocatable => |addr| Self.relocateAddress(addr, &self.relocation_rules) catch unreachable,
                 else => |_| val.maybe_relocatable,
@@ -502,9 +502,9 @@ pub const Memory = struct {
         const segment_index = address.getAdjustedSegmentIndex();
         var data = self.getDataFromSegmentIndex(address.segment_index);
 
-        if (segment_index < data.items.len) {
-            if (address.offset < data.items[segment_index].items.len) {
-                if (data.items[segment_index].items[address.offset]) |*memory_cell|
+        if (segment_index < data.len) {
+            if (address.offset < data[segment_index].items.len) {
+                if (data[segment_index].items[address.offset]) |*memory_cell|
                     memory_cell.is_accessed = true;
             }
         }
@@ -2919,7 +2919,7 @@ test "Memory: getDataFromSegmentIndex should return a pointer to data if segment
     defer memory.deinit();
 
     // Obtain a reference to the main data within the Memory instance.
-    const data_pointer = &memory.data;
+    const data_pointer = memory.data.items;
 
     // Test when the segment index is positive (15), should return a pointer to the main data.
     try expectEqual(data_pointer, memory.getDataFromSegmentIndex(15));
@@ -2938,7 +2938,7 @@ test "Memory: getDataFromSegmentIndex should return a pointer to data_temp if se
     defer memory.deinit();
 
     // Obtain a reference to the temporary data within the Memory instance.
-    const data_pointer = &memory.temp_data;
+    const data_pointer = memory.temp_data.items;
 
     // Test when the segment index is negative (-15), should return a pointer to the temporary data.
     try expectEqual(data_pointer, memory.getDataFromSegmentIndex(-15));
