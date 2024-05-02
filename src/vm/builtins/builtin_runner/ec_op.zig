@@ -389,7 +389,7 @@ test "ECOPBuiltinRunner: final stack success" {
     ).init(std.testing.allocator);
 
     try segment_used_size.put(0, 0);
-    vm.segments.segment_used_sizes = segment_used_size;
+    vm.segments.segment_used_sizes.data = segment_used_size;
 
     const pointer = Relocatable.init(2, 2);
 
@@ -431,7 +431,7 @@ test "ECOPBuiltinRunner: final stack error stop pointer" {
     ).init(std.testing.allocator);
 
     try segment_used_size.put(0, 999);
-    vm.segments.segment_used_sizes = segment_used_size;
+    vm.segments.segment_used_sizes.data = segment_used_size;
 
     const pointer = Relocatable.init(2, 2);
 
@@ -473,7 +473,7 @@ test "ECOPBuiltinRunner: final stack error when not included" {
     ).init(std.testing.allocator);
 
     try segment_used_size.put(0, 0);
-    vm.segments.segment_used_sizes = segment_used_size;
+    vm.segments.segment_used_sizes.data = segment_used_size;
 
     const pointer = Relocatable.init(2, 2);
 
@@ -515,7 +515,7 @@ test "ECOPBuiltinRunner: final stack error non relocatable" {
     ).init(std.testing.allocator);
 
     try segment_used_size.put(0, 0);
-    vm.segments.segment_used_sizes = segment_used_size;
+    vm.segments.segment_used_sizes.data = segment_used_size;
 
     const pointer = Relocatable.init(2, 2);
 

@@ -118,7 +118,7 @@ pub fn decodeOffset(offset: u64) !i16 {
     var vectorized_offset: [8]u8 = std.mem.toBytes(offset);
     return @bitCast(
         @subWithOverflow(
-            std.mem.readInt(u16, vectorized_offset[0..2], std.builtin.Endian.little),
+            std.mem.readInt(u16, vectorized_offset[0..2], .little),
             0x8000,
         )[0],
     );

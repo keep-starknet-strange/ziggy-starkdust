@@ -954,8 +954,8 @@ test "CairoVM: relocateTrace and trace comparison (simple use case)" {
     _ = try vm.computeSegmentsEffectiveSizes(false);
 
     const relocation_table = try vm.segments.relocateSegments(allocator);
-    defer allocator.free(relocation_table);
-    try vm.relocateTrace(relocation_table);
+    defer relocation_table.deinit();
+    try vm.relocateTrace(relocation_table.items);
 
     try expectEqualSlices(
         RelocatedTraceEntry,
@@ -1272,7 +1272,7 @@ test "deduceOp0 when opcode == .Call" {
     var instr = deduceOpTestInstr;
     instr.opcode = .Call;
 
-    const deduceOp0 = try vm.deduceOp0(&instr, &null, &null);
+    const deduceOp0 = try vm.deduceOp0(&instr, null, null);
 
     // Test checks
     const expected_op_0: ?MaybeRelocatable = MaybeRelocatable.fromRelocatable(Relocatable.init(0, 1)); // temp var needed for type inference
@@ -1294,7 +1294,7 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Add, input is felt" {
     const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 3);
     const op1: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 2);
 
-    const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
+    const deduceOp0 = try vm.deduceOp0(&instr, dst, op1);
 
     // Test checks
     try expect(deduceOp0.op_0.?.eq(MaybeRelocatable.fromInt(u64, 1)));
@@ -1311,7 +1311,7 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Add, with no input" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Add;
 
-    const deduceOp0 = try vm.deduceOp0(&instr, &null, &null);
+    const deduceOp0 = try vm.deduceOp0(&instr, null, null);
 
     // Test checks
     const expected_op_0: ?MaybeRelocatable = null; // temp var needed for type inference
@@ -1333,7 +1333,7 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Mul, input is felt 1" {
     const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 4);
     const op1: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 2);
 
-    const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
+    const deduceOp0 = try vm.deduceOp0(&instr, dst, op1);
 
     // Test checks
     const expected_op_0: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 2); // temp var needed for type inference
@@ -1355,7 +1355,7 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Op1, input is felt" {
     const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 4);
     const op1: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 0);
 
-    const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
+    const deduceOp0 = try vm.deduceOp0(&instr, dst, op1);
 
     // Test checks
     const expected_op_0: ?MaybeRelocatable = null; // temp var needed for type inference
@@ -1377,7 +1377,7 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Mul, input is felt 2" {
     const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 4);
     const op1: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 0);
 
-    const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
+    const deduceOp0 = try vm.deduceOp0(&instr, dst, op1);
 
     // Test checks
     const expected_op_0: ?MaybeRelocatable = null; // temp var needed for type inference
@@ -1399,7 +1399,7 @@ test "deduceOp0 when opcode == .Ret, res_logic == .Mul, input is felt" {
     const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 4);
     const op1: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 0);
 
-    const deduceOp0 = try vm.deduceOp0(&instr, &dst, &op1);
+    const deduceOp0 = try vm.deduceOp0(&instr, dst, op1);
 
     // Test checks
     const expected_op_0: ?MaybeRelocatable = null; // temp var needed for type inference
@@ -1886,8 +1886,8 @@ test "CairoVM: computeOp0Deductions should return op0 from deduceOp0 if deduceMe
             Relocatable.init(0, 7),
             &res,
             &instr,
-            &null,
-            &null,
+            null,
+            null,
         ),
     );
 }
@@ -1927,8 +1927,8 @@ test "CairoVM: computeOp0Deductions with a valid built in and non null deduceMem
             Relocatable.init(0, 7),
             &res,
             &deduceOpTestInstr,
-            &.{ .relocatable = .{} },
-            &.{ .relocatable = .{} },
+            .{ .relocatable = .{} },
+            .{ .relocatable = .{} },
         ),
     );
 }
@@ -1952,8 +1952,8 @@ test "CairoVM: computeOp0Deductions should return VM error if deduceOp0 and dedu
             Relocatable.init(0, 7),
             &res,
             &instr,
-            &MaybeRelocatable.fromInt(u64, 4),
-            &MaybeRelocatable.fromInt(u64, 0),
+            MaybeRelocatable.fromInt(u64, 4),
+            MaybeRelocatable.fromInt(u64, 0),
         ),
     );
 }
@@ -2316,8 +2316,8 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceMemoryCell if n
             Relocatable.init(0, 7),
             &res,
             &instr,
-            &null,
-            &null,
+            null,
+            null,
         ),
     );
 }
@@ -2342,8 +2342,8 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceOp1 if deduceMe
             Relocatable.init(0, 7),
             &res,
             &instr,
-            &dst,
-            &null,
+            dst,
+            null,
         ),
     );
 }
@@ -2365,8 +2365,8 @@ test "CairoVM: computeOp1Deductions should modify res (if null) using res from d
         Relocatable.init(0, 7),
         &res,
         &instr,
-        &dst,
-        &null,
+        dst,
+        null,
     );
 
     // Test check
@@ -2396,8 +2396,8 @@ test "CairoVM: computeOp1Deductions should return CairoVMError error if deduceMe
             Relocatable.init(0, 7),
             &res,
             &instr,
-            &null,
-            &op0,
+            null,
+            op0,
         ),
     );
 }

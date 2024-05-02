@@ -32,12 +32,37 @@ pub const MemorySegmentManager = struct {
     /// The allocator used to allocate the memory.
     allocator: Allocator,
     // The size of the used segments.
-    segment_used_sizes: std.ArrayHashMap(
-        i64,
-        u32,
-        std.array_hash_map.AutoContext(i64),
-        false,
-    ),
+    segment_used_sizes: struct {
+        data: std.ArrayHashMap(
+            i64,
+            u32,
+            std.array_hash_map.AutoContext(i64),
+            false,
+        ),
+
+        pub fn get(
+            self: @This(),
+            k: i64,
+        ) ?u32 {
+            return self.data.get(k);
+        }
+
+        pub fn put(
+            self: *@This(),
+            k: i64,
+            v: u32,
+        ) !void {
+            try self.data.put(k, v);
+        }
+
+        pub fn deinit(self: *@This()) void {
+            self.data.deinit();
+        }
+
+        pub fn count(self: @This()) usize {
+            return self.data.count();
+        }
+    },
     // The size of the segments.
     segment_sizes: std.AutoHashMap(u32, u32),
     // The memory.
@@ -70,11 +95,10 @@ pub const MemorySegmentManager = struct {
         // Initialize the values of the MemorySegmentManager struct.
         segment_manager.* = .{
             .allocator = allocator,
-            .segment_used_sizes = std.AutoArrayHashMap(
-
+            .segment_used_sizes = .{ .data = std.AutoArrayHashMap(
                 i64,
                 u32,
-            ).init(allocator),
+            ).init(allocator) },
             .segment_sizes = std.AutoHashMap(
                 u32,
                 u32,
@@ -193,7 +217,7 @@ pub const MemorySegmentManager = struct {
     /// An `AutoArrayHashMap` representing the computed effective sizes of memory segments.
     pub fn computeEffectiveSize(self: *Self, allow_tmp_segments: bool) !std.AutoArrayHashMap(i64, u32) {
         if (self.segment_used_sizes.count() != 0)
-            return self.segment_used_sizes;
+            return self.segment_used_sizes.data;
 
         // TODO: Check if memory is frozen. At the time of writting this function memory cannot be frozen so we cannot check if it frozen.
 
@@ -212,7 +236,7 @@ pub const MemorySegmentManager = struct {
                 );
             }
         }
-        return self.segment_used_sizes;
+        return self.segment_used_sizes.data;
     }
 
     /// Computes the first relocated address of each memory segment
@@ -229,19 +253,19 @@ pub const MemorySegmentManager = struct {
     /// # Returns
     ///
     /// A `Slice` of the `ArrayList(u32)` representing the relocated segments.
-    pub fn relocateSegments(self: *Self, allocator: Allocator) !ArrayList(usize).Slice {
+    pub fn relocateSegments(self: *Self, allocator: Allocator) !ArrayList(usize) {
         const first_addr = 1;
         var relocatable_table = ArrayList(usize).init(allocator);
         errdefer relocatable_table.deinit();
         try relocatable_table.append(first_addr);
-        for (self.segment_used_sizes.keys()) |key| {
-            const index = self.segment_used_sizes.getIndex(key) orelse return MemoryError.MissingSegmentUsedSizes;
+        for (self.segment_used_sizes.data.keys()) |key| {
+            const index = self.segment_used_sizes.data.getIndex(key) orelse return MemoryError.MissingSegmentUsedSizes;
             const segment_size = self.getSegmentSize(@intCast(index)) orelse return MemoryError.MissingSegmentUsedSizes;
             try relocatable_table.append(relocatable_table.items[index] + segment_size);
         }
         // The last value corresponds to the total amount of elements across all segments, which isnt needed for relocation.
         _ = relocatable_table.pop();
-        return relocatable_table.toOwnedSlice();
+        return relocatable_table;
     }
 
     /// Checks if a memory value is valid within the MemorySegmentManager.
@@ -973,9 +997,10 @@ test "MemorySegmentManager: relocateSegments for one segment" {
     const actual_value = try memory_segment_manager.relocateSegments(allocator);
     var expected_value = ArrayList(usize).init(allocator);
     defer expected_value.deinit();
-    defer allocator.free(actual_value);
+    defer actual_value.deinit();
+
     try expected_value.append(1);
-    try expectEqualSlices(usize, expected_value.items, actual_value);
+    try expectEqualSlices(usize, expected_value.items, actual_value.items);
 }
 
 test "MemorySegmentManager: relocateSegments for ten segments" {
@@ -995,7 +1020,8 @@ test "MemorySegmentManager: relocateSegments for ten segments" {
     const actual_value = try memory_segment_manager.relocateSegments(allocator);
     var expected_value = ArrayList(usize).init(std.testing.allocator);
     defer expected_value.deinit();
-    defer allocator.free(actual_value);
+    defer actual_value.deinit();
+
     try expected_value.append(1); // 1
     try expected_value.append(4); // 3 + 1 = 4
     try expected_value.append(11); // 7 + 4 = 11
@@ -1006,7 +1032,7 @@ test "MemorySegmentManager: relocateSegments for ten segments" {
     try expected_value.append(68); // 3 + 65 = 68
     try expected_value.append(98); // 30 + 68 = 98
     try expected_value.append(153); // 55 + 98 = 153
-    try expectEqualSlices(usize, expected_value.items, actual_value);
+    try expectEqualSlices(usize, expected_value.items, actual_value.items);
 }
 
 test "MemorySegmentManager: isValidMemoryValue should return true if Felt" {

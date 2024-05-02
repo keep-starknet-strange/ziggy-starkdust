@@ -900,7 +900,6 @@ pub const CairoRunner = struct {
 
         // Initialize the first entry in `relocated_memory` with `null`.
         try self.relocated_memory.append(null);
-
         // Iterate through each memory segment in the VM.
         for (self.vm.segments.memory.data.items, 0..) |segment, index| {
             // Iterate through each memory cell in the segment.
@@ -914,12 +913,12 @@ pub const CairoRunner = struct {
                     ).relocateAddress(relocation_table);
 
                     // Resize `relocated_memory` if needed.
-                    if (self.relocated_memory.items.len <= relocated_address) {
-                        try self.relocated_memory.resize(relocated_address + 1);
+                    if (self.relocated_memory.items.len < relocated_address) {
+                        try self.relocated_memory.appendNTimes(null, relocated_address - self.relocated_memory.items.len);
                     }
 
                     // Update the entry in `relocated_memory` with the relocated value of the memory cell.
-                    self.relocated_memory.items[relocated_address] = try cell.maybe_relocatable.relocateValue(relocation_table);
+                    try self.relocated_memory.append(try cell.maybe_relocatable.relocateValue(relocation_table));
                 } else {
                     // If the memory cell is null, append `null` to `relocated_memory`.
                     try self.relocated_memory.append(null);
@@ -933,11 +932,11 @@ pub const CairoRunner = struct {
         _ = try self.vm.segments.computeEffectiveSize(false);
 
         const relocation_table = try self.vm.segments.relocateSegments(self.allocator);
-        defer self.allocator.free(relocation_table);
+        defer relocation_table.deinit();
 
-        try self.relocateMemory(relocation_table);
+        try self.relocateMemory(relocation_table.items);
         if (self.vm.trace != null) {
-            try self.vm.relocateTrace(relocation_table);
+            try self.vm.relocateTrace(relocation_table.items);
             self.relocated_trace = try self.vm.getRelocatedTrace();
         }
     }
@@ -1613,10 +1612,10 @@ test "CairoRunner: relocateMemory should relocated memory properly with gaps" {
 
     // Relocate the segments and obtain the relocation table.
     const relocation_table = try cairo_runner.vm.segments.relocateSegments(std.testing.allocator);
-    defer std.testing.allocator.free(relocation_table);
+    defer relocation_table.deinit();
 
     // Call the `relocateMemory` function.
-    try cairo_runner.relocateMemory(relocation_table);
+    try cairo_runner.relocateMemory(relocation_table.items);
 
     // Perform assertions to check if memory relocation is correct.
     try expectEqualSlices(
@@ -3778,10 +3777,10 @@ test "CairoRunner: initialize and run relocate with output builtin" {
 
     _ = try cairo_runner.vm.computeSegmentsEffectiveSizes(false);
 
-    const relocation_table = try cairo_runner.vm.segments.relocateSegments(std.testing.allocator);
-    defer std.testing.allocator.free(relocation_table);
+    var relocation_table = try cairo_runner.vm.segments.relocateSegments(std.testing.allocator);
+    defer relocation_table.deinit();
 
-    try cairo_runner.relocateMemory(relocation_table);
+    try cairo_runner.relocateMemory(relocation_table.items);
 
     // Perform assertions to check if memory relocation is correct.
     try expectEqualSlices(

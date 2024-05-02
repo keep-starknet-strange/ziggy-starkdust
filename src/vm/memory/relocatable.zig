@@ -115,8 +115,8 @@ pub const Relocatable = struct {
     /// A new Relocatable after the subtraction operation.
     /// # Errors
     /// An error is returned if the subtraction results in an underflow (negative value).
-    pub fn subFelt(self: Self, other: Felt252) MathError!Self {
-        return try self.subUint(try other.intoU64());
+    pub fn subFelt(self: Self, other: Felt252) !Self {
+        return self.addFelt(other.neg());
     }
 
     /// Substract a u64 from a Relocatable and return a new Relocatable.
@@ -189,29 +189,32 @@ pub const Relocatable = struct {
     /// - self: Pointer to the Relocatable object to modify.
     /// - other: The felt to add to `self.offset`.
     pub fn addFeltInPlace(self: *Self, other: Felt252) !void {
-        const PRIME_DIGITS_BE_HI =
-            [_]u64{ 0x0800000000000011, 0x0000000000000000, 0x0000000000000000 };
-        const PRIME_MINUS_U64_MAX_DIGITS_BE_HI =
-            [_]u64{ 0x0800000000000010, 0xffffffffffffffff, 0xffffffffffffffff };
+        const PRIME_DIGITS_BE_HI: @Vector(4, u64) =
+            .{ 0x0800000000000011, 0x0000000000000000, 0x0000000000000000, 0 };
 
-        const zero =
-            [4]u64{ 0, 0, 0, 0 };
+        const PRIME_MINUS_U64_MAX_DIGITS_BE_HI: @Vector(4, u64) =
+            .{ 0x0800000000000010, 0xffffffffffffffff, 0xffffffffffffffff, 0 };
 
-        const bytes = other.toBeDigits();
+        const zero: @Vector(4, u64) =
+            .{ 0, 0, 0, 0 };
+        const bytes: @Vector(4, u64) = other.toBeDigits();
 
-        if (std.mem.eql(u64, &bytes, &zero)) {
+        const mask = @Vector(4, u64){ 1, 1, 1, 0 };
+
+        if (@reduce(.And, zero == bytes) == true) {
             return;
-        } else if (std.mem.eql(u64, bytes[0..3], zero[0..3])) {
+        } else if (@reduce(.And, zero == bytes * mask) == true) {
             const new_offset, const bit = @addWithOverflow(self.offset, bytes[3]);
             if (bit != 0) return MathError.ValueTooLarge;
             self.offset = new_offset;
-        } else if (std.mem.eql(u64, bytes[0..3], &PRIME_DIGITS_BE_HI)) {
+        } else if (@reduce(.And, PRIME_DIGITS_BE_HI == bytes * mask) == true) {
             const new_offset, const bit = @subWithOverflow(self.offset, 1);
             if (bit != 0) return MathError.ValueTooLarge;
             self.offset = new_offset;
-        } else if (std.mem.eql(u64, bytes[0..3], &PRIME_MINUS_U64_MAX_DIGITS_BE_HI) and bytes[3] >= 2) {
+        } else if (@reduce(.And, mask * bytes == PRIME_MINUS_U64_MAX_DIGITS_BE_HI) == true and bytes[3] >= 2) {
             const new_offset, const bit = @subWithOverflow(self.offset, std.math.maxInt(u64) - bytes[3] + 2);
             if (bit != 0) return MathError.ValueTooLarge;
+
             self.offset = new_offset;
         } else return MathError.ValueTooLarge;
     }
@@ -573,20 +576,16 @@ pub const MaybeRelocatable = union(enum) {
             // If `self` is of type `relocatable`
             .relocatable => |self_value| switch (other) {
                 // If `other` is also `relocatable`, call `sub` method on `self_value`
-                .relocatable => |r| blk: {
+                .relocatable => |r| value: {
                     if (self_value.segment_index == r.segment_index) {
                         const res: i128 = @as(i128, self_value.offset) - @as(i128, r.offset);
-
-                        break :blk if (res < 0)
-                            MaybeRelocatable.fromFelt(Felt252.fromInt(u128, @intCast(-res)).neg())
-                        else
-                            MaybeRelocatable.fromFelt(Felt252.fromInt(u128, @intCast(res)));
+                        break :value MaybeRelocatable.fromFelt(Felt252.fromSignedInt(res));
                     }
 
-                    break :blk CairoVMError.TypeMismatchNotRelocatable;
+                    break :value CairoVMError.TypeMismatchNotRelocatable;
                 },
                 // If `other` is `felt`, call `subFelt` method on `self_value`
-                .felt => |fe| .{ .relocatable = try self_value.subFelt(fe) },
+                .felt => |fe| .{ .relocatable = self_value.subFelt(fe) catch return MathError.RelocatableSubUsizeNegOffset },
             },
             // If `self` is of type `felt`
             .felt => |self_value| switch (other) {
@@ -642,7 +641,7 @@ pub const MaybeRelocatable = union(enum) {
     pub fn relocateValue(self: *const Self, relocation_table: []usize) MemoryError!Felt252 {
         return switch (self.*) {
             .felt => |fe| fe,
-            .relocatable => |r| Felt252.fromInt(u256, try r.relocateAddress(relocation_table)),
+            .relocatable => |r| Felt252.fromInt(usize, try r.relocateAddress(relocation_table)),
         };
     }
 
@@ -977,7 +976,7 @@ test "Relocatable: subFelt should return an error if relocatable cannot be coerc
 
 test "Relocatable: subFelt should return an error if relocatable offset is smaller than Felt252" {
     try expectError(
-        MathError.RelocatableSubUsizeNegOffset,
+        MathError.ValueTooLarge,
         Relocatable.init(2, 7).subFelt(Felt252.fromInt(u8, 10)),
     );
 }

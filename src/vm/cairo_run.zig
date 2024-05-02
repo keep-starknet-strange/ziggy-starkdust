@@ -90,6 +90,7 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
         &hint_processor,
         false,
     );
+
     // TODO readReturnValues necessary for builtins
 
     if (config.output_trace != null or config.output_memory != null) {

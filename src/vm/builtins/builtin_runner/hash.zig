@@ -327,7 +327,7 @@ test "HashBuiltinRunner: final stack success" {
     ).init(std.testing.allocator);
 
     try segment_used_size.put(0, 0);
-    vm.segments.segment_used_sizes = segment_used_size;
+    vm.segments.segment_used_sizes.data = segment_used_size;
     const pointer = Relocatable.init(2, 2);
     try expectEqual(Relocatable.init(2, 1), try hash_builtin.finalStack(vm.segments, pointer));
 }
@@ -359,7 +359,7 @@ test "HashBuiltinRunner: final stack error stop pointer" {
         false,
     ).init(std.testing.allocator);
     try segment_used_size.put(0, 999);
-    vm.segments.segment_used_sizes = segment_used_size;
+    vm.segments.segment_used_sizes.data = segment_used_size;
     const pointer = Relocatable.init(2, 2);
     try expectError(RunnerError.InvalidStopPointer, hash_builtin.finalStack(vm.segments, pointer));
 }
@@ -416,7 +416,7 @@ test "HashBuiltinRunner: final stack error non relocatable" {
     ).init(std.testing.allocator);
     try segment_used_size.put(0, 0);
 
-    vm.segments.segment_used_sizes = segment_used_size;
+    vm.segments.segment_used_sizes.data = segment_used_size;
 
     const pointer = Relocatable.init(2, 2);
     try expectError(CairoVMError.TypeMismatchNotRelocatable, hash_builtin.finalStack(vm.segments, pointer));
@@ -568,7 +568,7 @@ test "HashBuiltinRunner: get memory accesses empty" {
     ).init(std.testing.allocator);
 
     try segment_used_size.put(0, 0);
-    vm.segments.segment_used_sizes = segment_used_size;
+    vm.segments.segment_used_sizes.data = segment_used_size;
 
     var actual = try hash_builtin.getMemoryAccesses(std.testing.allocator, &vm);
     try expectEqualSlices(Relocatable, &[_]Relocatable{}, try actual.toOwnedSlice());

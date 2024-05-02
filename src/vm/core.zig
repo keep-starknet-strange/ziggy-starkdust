@@ -571,8 +571,8 @@ pub const CairoVM = struct {
                 op_res.op_0_addr,
                 &op_res.res,
                 instruction,
-                &dst_op,
-                &op_1_op,
+                dst_op,
+                op_1_op,
             );
         }
 
@@ -588,8 +588,8 @@ pub const CairoVM = struct {
                 op_res.op_1_addr,
                 &op_res.res,
                 instruction,
-                &dst_op,
-                &@as(?MaybeRelocatable, op_res.op_0),
+                dst_op,
+                op_res.op_0,
             );
         }
 
@@ -631,8 +631,8 @@ pub const CairoVM = struct {
         op_0_addr: Relocatable,
         res: *?MaybeRelocatable,
         instruction: *const Instruction,
-        dst: *const ?MaybeRelocatable,
-        op1: *const ?MaybeRelocatable,
+        dst: ?MaybeRelocatable,
+        op1: ?MaybeRelocatable,
     ) !MaybeRelocatable {
         if (try self.deduceMemoryCell(allocator, op_0_addr)) |op0| {
             return op0;
@@ -663,8 +663,8 @@ pub const CairoVM = struct {
         op1_addr: Relocatable,
         res: *?MaybeRelocatable,
         instruction: *const Instruction,
-        dst_op: *const ?MaybeRelocatable,
-        op0: *const ?MaybeRelocatable,
+        dst_op: ?MaybeRelocatable,
+        op0: ?MaybeRelocatable,
     ) !MaybeRelocatable {
         if (try self.deduceMemoryCell(allocator, op1_addr)) |op1|
             return op1;
@@ -744,8 +744,8 @@ pub const CairoVM = struct {
     pub fn deduceOp0(
         self: *Self,
         inst: *const Instruction,
-        dst: *const ?MaybeRelocatable,
-        op1: *const ?MaybeRelocatable,
+        dst: ?MaybeRelocatable,
+        op1: ?MaybeRelocatable,
     ) !struct {
         /// The computed operand Op0.
         op_0: ?MaybeRelocatable = null,
@@ -759,17 +759,16 @@ pub const CairoVM = struct {
                 };
             },
             .AssertEq => {
-                const dst_val = dst.* orelse return .{};
-                const op1_val = op1.* orelse return .{};
+                if (dst == null or op1 == null) return .{};
                 if (inst.res_logic == .Add) {
                     return .{
-                        .op_0 = try dst_val.sub(op1_val),
-                        .res = dst_val,
+                        .op_0 = try dst.?.sub(op1.?),
+                        .res = dst,
                     };
-                } else if (dst_val.isFelt() and op1_val.isFelt() and !op1_val.felt.isZero()) {
+                } else if (dst.?.isFelt() and op1.?.isFelt() and !op1.?.felt.isZero()) {
                     return .{
-                        .op_0 = MaybeRelocatable.fromFelt(try dst_val.felt.div(op1_val.felt)),
-                        .res = dst_val,
+                        .op_0 = MaybeRelocatable.fromFelt(try dst.?.felt.div(op1.?.felt)),
+                        .res = dst,
                     };
                 }
             },
