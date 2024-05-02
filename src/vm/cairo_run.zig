@@ -58,7 +58,7 @@ pub fn writeEncodedMemory(relocated_memory: []?Felt252, dest: anytype) !void {
 /// - `allocator`:  The allocator to initialize the CairoRunner and parsing of the program json.
 /// - `config`: The config struct that defines the params that the CairoRunner uses to instantiate the vm state for running.
 pub fn runConfig(allocator: Allocator, config: Config) !void {
-    const vm = try CairoVM.init(
+    var vm = try CairoVM.init(
         allocator,
         config,
     );
@@ -75,7 +75,7 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
         try parsed_program.value.parseProgramJson(allocator, &entrypoint, false),
         config.layout,
         instructions,
-        vm,
+        &vm,
         config.proof_mode,
     );
     defer runner.deinit(allocator);
@@ -92,7 +92,6 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
     );
 
     // TODO readReturnValues necessary for builtins
-
     if (config.output_trace != null or config.output_memory != null) {
         try runner.relocate();
     }

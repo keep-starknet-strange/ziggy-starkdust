@@ -337,7 +337,11 @@ pub const CairoVM = struct {
             const instruction = &inst_cache.items[pc];
 
             // If the instruction does not exist in the cache, decode the current instruction.
-            if (instruction.* == null) instruction.* = try self.decodeCurrentInstruction();
+            if (instruction.* == null) {
+                instruction.* = try self.decodeCurrentInstruction();
+            }
+
+            self.instruction_cache = inst_cache;
 
             // Execute the instruction if skip_instruction_execution is false.
             if (!self.skip_instruction_execution) {
@@ -347,8 +351,6 @@ pub const CairoVM = struct {
                 self.run_context.pc = try self.run_context.pc.addUint(instruction.*.?.size());
                 self.skip_instruction_execution = false;
             }
-
-            self.instruction_cache = inst_cache;
         } else {
             // Decode and execute the current instruction if the program counter is not in the program segment.
             const instruction = try self.decodeCurrentInstruction();
@@ -479,8 +481,8 @@ pub const CairoVM = struct {
             try trace.append(
                 .{
                     .pc = self.run_context.pc,
-                    .ap = self.run_context.getAP(),
-                    .fp = self.run_context.getFP(),
+                    .ap = self.run_context.ap,
+                    .fp = self.run_context.fp,
                 },
             );
         }
@@ -1011,8 +1013,8 @@ pub const CairoVM = struct {
         for (self.trace.?.items) |trace|
             try relocated_trace.append(.{
                 .pc = try trace.pc.relocateAddress(relocation_table),
-                .ap = try trace.ap.relocateAddress(relocation_table),
-                .fp = try trace.fp.relocateAddress(relocation_table),
+                .ap = trace.ap + relocation_table[1],
+                .fp = trace.fp + relocation_table[1],
             });
 
         self.relocated_trace = relocated_trace;

@@ -397,7 +397,7 @@ pub const ProgramJson = struct {
         // Read the entire file content into a buffer using the provided allocator
         const buffer = try file.readToEndAlloc(
             allocator,
-            try file.getEndPos(),
+            1024 * 50,
         );
         defer allocator.free(buffer);
 
@@ -514,7 +514,7 @@ pub const ProgramJson = struct {
     /// # Errors
     /// - If the string in the array is not able to be treated as a hex string to be parsed as an u256
     pub fn readData(self: Self, allocator: Allocator) !std.ArrayList(MaybeRelocatable) {
-        var parsed_data = std.ArrayList(MaybeRelocatable).init(allocator);
+        var parsed_data = try std.ArrayList(MaybeRelocatable).initCapacity(allocator, self.data.?.len);
         errdefer parsed_data.deinit();
 
         for (self.data.?) |instruction| {

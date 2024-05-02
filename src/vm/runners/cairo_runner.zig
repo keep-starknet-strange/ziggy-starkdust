@@ -136,7 +136,7 @@ pub const CairoRunner = struct {
 
     program: Program,
     allocator: Allocator,
-    vm: CairoVM,
+    vm: *CairoVM,
     program_base: ?Relocatable = null,
     execution_base: ?Relocatable = null,
     initial_pc: ?Relocatable = null,
@@ -159,7 +159,7 @@ pub const CairoRunner = struct {
         program: Program,
         layout: []const u8,
         instructions: std.ArrayList(MaybeRelocatable),
-        vm: CairoVM,
+        vm: *CairoVM,
         proof_mode: bool,
     ) !Self {
         const Case = enum { plain, small, dynamic, all_cairo };
@@ -754,11 +754,11 @@ pub const CairoRunner = struct {
 
         // Iterate over built-in runners and retrieve used cells and allocated size information
         for (self.vm.builtin_runners.items) |builtin| {
-            try res.append(try builtin.getUsedCellsAndAllocatedSize(&self.vm));
+            try res.append(try builtin.getUsedCellsAndAllocatedSize(self.vm));
         }
 
         // Perform various memory usage checks
-        try self.checkRangeCheckUsage(allocator, &self.vm);
+        try self.checkRangeCheckUsage(allocator, self.vm);
         try self.checkMemoryUsage();
         try self.checkDilutedCheckUsage(allocator);
     }
@@ -781,7 +781,7 @@ pub const CairoRunner = struct {
 
         // Iterate over built-in runners and calculate allocated memory units
         for (self.vm.builtin_runners.items) |builtin| {
-            builtins_memory_units += @intCast(try builtin.getAllocatedMemoryUnits(&self.vm));
+            builtins_memory_units += @intCast(try builtin.getAllocatedMemoryUnits(self.vm));
         }
 
         // Retrieve current step of the VM
@@ -935,6 +935,7 @@ pub const CairoRunner = struct {
         defer relocation_table.deinit();
 
         try self.relocateMemory(relocation_table.items);
+
         if (self.vm.trace != null) {
             try self.vm.relocateTrace(relocation_table.items);
             self.relocated_trace = try self.vm.getRelocatedTrace();
@@ -3071,7 +3072,7 @@ test "CairoRunner: runUntilPC with range check builtin" {
         program,
         "all_cairo",
         ArrayList(MaybeRelocatable).init(std.testing.allocator),
-        vm,
+        &vm,
         false,
     );
 

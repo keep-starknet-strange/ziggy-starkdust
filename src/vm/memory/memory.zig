@@ -930,8 +930,8 @@ pub const Memory = struct {
     ///
     /// # Errors
     /// Returns an error if relocation of an address fails.
-    pub fn relocateSegment(self: *Self, segment: *std.ArrayListUnmanaged(?MemoryCell)) !void {
-        for (segment.items) |*memory_cell| {
+    pub fn relocateSegment(self: *Self, segment: []?MemoryCell) !void {
+        for (segment) |*memory_cell| {
             if (memory_cell.*) |*cell| {
                 // Check if the memory cell contains a relocatable address.
                 switch (cell.maybe_relocatable) {
@@ -965,12 +965,12 @@ pub const Memory = struct {
         }
 
         // Relocate segments in the main data.
-        for (self.data.items) |*segment|
-            try self.relocateSegment(segment);
+        for (self.data.items) |segment|
+            try self.relocateSegment(segment.items);
 
         // Relocate segments in temporary data.
-        for (self.temp_data.items) |*segment|
-            try self.relocateSegment(segment);
+        for (self.temp_data.items) |segment|
+            try self.relocateSegment(segment.items);
 
         // Iterate through relocation rules in reverse order.
         var index = self.temp_data.items.len;
