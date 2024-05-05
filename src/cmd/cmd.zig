@@ -1,5 +1,7 @@
 // Core imports.
 const std = @import("std");
+
+const builtin = @import("builtin");
 // Dependencies imports.
 const cli = @import("zig-cli");
 // Local imports.

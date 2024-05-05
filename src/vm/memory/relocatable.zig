@@ -151,7 +151,7 @@ pub const Relocatable = struct {
     /// # Arguments
     /// - self: Pointer to the Relocatable object to modify.
     /// - other: The u64 to add to `self.offset`.
-    pub fn addUintInPlace(self: *Self, other: u64) void {
+    pub fn addUintInPlace(self: *Self, other: usize) void {
         // Modify the offset of the existing Relocatable object
         self.offset += other;
     }
@@ -300,24 +300,8 @@ pub const MaybeRelocatable = union(enum) {
     /// ## Returns:
     ///   * `true` if the two instances are equal.
     ///   * `false` otherwise.
-    pub fn eq(self: *const Self, other: Self) bool {
-        // Switch on the type of `self`
-        return switch (self.*) {
-            // If `self` is of type `relocatable`
-            .relocatable => |self_value| switch (other) {
-                // Compare the `relocatable` values if both `self` and `other` are `relocatable`
-                .relocatable => |other_value| self_value.eq(other_value),
-                // If `self` is `relocatable` and `other` is `felt`, they are not equal
-                .felt => false,
-            },
-            // If `self` is of type `felt`
-            .felt => |self_value| switch (other) {
-                // Compare the `felt` values if both `self` and `other` are `felt`
-                .felt => self_value.equal(other.felt),
-                // If `self` is `felt` and `other` is `relocatable`, they are not equal
-                .relocatable => false,
-            },
-        };
+    pub fn eq(self: Self, other: Self) bool {
+        return std.meta.eql(self, other);
     }
 
     /// Determines if self is less than other.

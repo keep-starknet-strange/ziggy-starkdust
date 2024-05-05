@@ -316,7 +316,7 @@ pub const CairoVM = struct {
     /// # Errors
     /// - If accessing an unknown memory cell occurs.
     pub fn stepInstruction(self: *Self, allocator: Allocator) !void {
-        if (self.run_context.pc.segment_index == 0) {
+        const inst = if (self.run_context.pc.segment_index == 0) value: {
             // Run instructions from the program segment, using the instruction cache.
             const pc = self.run_context.pc.offset;
 
@@ -324,43 +324,33 @@ pub const CairoVM = struct {
             if (self.segments.memory.data.items[0].items.len <= pc)
                 return MemoryError.UnknownMemoryCell;
 
-            // Copy the instruction cache.
-            var inst_cache = self.instruction_cache;
-
             // Resize the instruction cache if necessary.
-            const new_cache_len = @max(pc + 1, inst_cache.items.len);
-            if (inst_cache.items.len < new_cache_len) {
-                try inst_cache.appendNTimes(null, new_cache_len - inst_cache.items.len);
+            const new_cache_len = @max(pc + 1, self.instruction_cache.items.len);
+            if (self.instruction_cache.items.len < new_cache_len) {
+                try self.instruction_cache.appendNTimes(null, new_cache_len - self.instruction_cache.items.len);
             }
 
             // Get the instruction related to the PC.
-            const instruction = &inst_cache.items[pc];
+            const instruction = &self.instruction_cache.items[pc];
 
             // If the instruction does not exist in the cache, decode the current instruction.
             if (instruction.* == null) {
                 instruction.* = try self.decodeCurrentInstruction();
             }
 
-            self.instruction_cache = inst_cache;
+            break :value instruction.*.?;
+        } else try self.decodeCurrentInstruction();
 
-            // Execute the instruction if skip_instruction_execution is false.
-            if (!self.skip_instruction_execution) {
-                try self.runInstruction(allocator, &instruction.*.?);
-            } else {
-                // Advance the program counter if skip_instruction_execution is true.
-                self.run_context.pc = try self.run_context.pc.addUint(instruction.*.?.size());
-                self.skip_instruction_execution = false;
-            }
+        // Execute the instruction if skip_instruction_execution is false.
+        if (!self.skip_instruction_execution) {
+            try self.runInstruction(
+                allocator,
+                inst,
+            );
         } else {
-            // Decode and execute the current instruction if the program counter is not in the program segment.
-            const instruction = try self.decodeCurrentInstruction();
-
-            if (!self.skip_instruction_execution) {
-                try self.runInstruction(allocator, &instruction);
-            } else {
-                self.run_context.pc = try self.run_context.pc.addUint(instruction.size());
-                self.skip_instruction_execution = false;
-            }
+            // Advance the program counter if skip_instruction_execution is true.
+            self.run_context.pc = try self.run_context.pc.addUint(inst.size());
+            self.skip_instruction_execution = false;
         }
     }
 
@@ -474,7 +464,7 @@ pub const CairoVM = struct {
     pub fn runInstruction(
         self: *Self,
         allocator: Allocator,
-        instruction: *const Instruction,
+        instruction: Instruction,
     ) !void {
         // Check if tracing is disabled and log the current state if not.
         if (self.trace) |*trace| {
@@ -496,9 +486,6 @@ pub const CairoVM = struct {
         // Perform opcode-specific assertions on operands using the `opcodeAssertions` function.
         try self.opcodeAssertions(instruction, operands_result);
 
-        // Update registers based on the instruction and operands.
-        try self.updateRegisters(instruction, operands_result);
-
         // Constants for offset bit manipulation.
         const OFFSET_BITS: u32 = 16;
         const off_0 = instruction.off_0 + (@as(isize, 1) << (OFFSET_BITS - 1));
@@ -507,7 +494,6 @@ pub const CairoVM = struct {
 
         // Calculate and update relocation limits.
         const limits = self.rc_limits orelse .{ off_0, off_0 };
-
         self.rc_limits = .{
             @min(limits[0], off_0, off_1, off_2),
             @max(limits[1], off_0, off_1, off_2),
@@ -517,6 +503,9 @@ pub const CairoVM = struct {
         self.segments.memory.markAsAccessed(operands_result.dst_addr);
         self.segments.memory.markAsAccessed(operands_result.op_0_addr);
         self.segments.memory.markAsAccessed(operands_result.op_1_addr);
+
+        // Update registers based on the instruction and operands.
+        try self.updateRegisters(instruction, operands_result);
 
         // Increment the current step counter.
         self.current_step += 1;
@@ -539,7 +528,7 @@ pub const CairoVM = struct {
     pub fn computeOperands(
         self: *Self,
         allocator: Allocator,
-        instruction: *const Instruction,
+        instruction: Instruction,
     ) !OperandsResult {
         // Create a default OperandsResult to store the computed operands.
         var op_res: OperandsResult = .{};
@@ -632,7 +621,7 @@ pub const CairoVM = struct {
         allocator: Allocator,
         op_0_addr: Relocatable,
         res: *?MaybeRelocatable,
-        instruction: *const Instruction,
+        instruction: Instruction,
         dst: ?MaybeRelocatable,
         op1: ?MaybeRelocatable,
     ) !MaybeRelocatable {
@@ -664,7 +653,7 @@ pub const CairoVM = struct {
         allocator: Allocator,
         op1_addr: Relocatable,
         res: *?MaybeRelocatable,
-        instruction: *const Instruction,
+        instruction: Instruction,
         dst_op: ?MaybeRelocatable,
         op0: ?MaybeRelocatable,
     ) !MaybeRelocatable {
@@ -744,8 +733,8 @@ pub const CairoVM = struct {
     /// # Returns
     /// - `Tuple`: A tuple containing the deduced `op0` and `res`.
     pub fn deduceOp0(
-        self: *Self,
-        inst: *const Instruction,
+        self: Self,
+        inst: Instruction,
         dst: ?MaybeRelocatable,
         op1: ?MaybeRelocatable,
     ) !struct {
@@ -783,112 +772,84 @@ pub const CairoVM = struct {
     /// # Arguments
     /// - `instruction`: The instruction that was executed.
     /// - `operands`: The operands of the instruction.
-    pub fn updatePc(
+    pub inline fn updatePc(
         self: *Self,
-        instruction: *const Instruction,
+        instruction: Instruction,
         operands: OperandsResult,
     ) !void {
-        switch (instruction.pc_update) {
+        self.run_context.pc = switch (instruction.pc_update) {
             // PC update regular
-            .Regular => { // Update the PC.
-                self.run_context.pc.addUintInPlace(instruction.size());
-            },
+            .Regular => // Update the PC.
+            try self.run_context.pc.addUint(instruction.size()),
             // PC update jump
-            .Jump => {
-                // Check that the res is not null.
-                if (operands.res) |val| {
-                    // Check that the res is a relocatable.
-                    self.run_context.pc = val.intoRelocatable() catch
-                        return error.PcUpdateJumpResNotRelocatable;
-                } else {
-                    return error.ResUnconstrainedUsedWithPcUpdateJump;
-                }
-            },
+            .Jump =>
+            // Check that the res is not null.
+            if (operands.res) |val|
+                val.intoRelocatable() catch
+                    return error.PcUpdateJumpResNotRelocatable
+            else
+                return error.ResUnconstrainedUsedWithPcUpdateJump,
             // PC update Jump Rel
-            .JumpRel => {
-                // Check that the res is not null.
-                if (operands.res) |val| {
-                    // Check that the res is a felt.
-                    try self.run_context.pc.addFeltInPlace(val.intoFelt() catch return error.PcUpdateJumpRelResNotFelt);
-                } else {
-                    return error.ResUnconstrainedUsedWithPcUpdateJumpRel;
-                }
-            },
+            .JumpRel =>
+            // Check that the res is not null.
+            if (operands.res) |val|
+                try self.run_context.pc.addFelt(val.intoFelt() catch return error.PcUpdateJumpRelResNotFelt)
+            else
+                return error.ResUnconstrainedUsedWithPcUpdateJumpRel,
             // PC update Jnz
-            .Jnz => {
-                if (operands.dst.isZero()) {
-
-                    // Update the PC.
-                    self.run_context.pc.addUintInPlace(instruction.size());
-                } else {
-                    // Update the PC.
-                    try self.run_context.pc.addMaybeRelocatableInplace(operands.op_1);
-                }
-            },
-        }
+            .Jnz => if (operands.dst.isZero())
+                try self.run_context.pc.addUint(instruction.size())
+            else
+                try self.run_context.pc.addMaybeRelocatable(operands.op_1),
+        };
     }
 
     /// Updates the value of AP according to the executed instruction.
     /// # Arguments
     /// - `instruction`: The instruction that was executed.
     /// - `operands`: The operands of the instruction.
-    pub fn updateAp(
+    pub inline fn updateAp(
         self: *Self,
-        instruction: *const Instruction,
+        instruction: Instruction,
         operands: OperandsResult,
     ) !void {
-        switch (instruction.ap_update) {
+        self.run_context.ap = switch (instruction.ap_update) {
             // AP update Add
-            .Add => {
-                // Check that Res is not null.
-                if (operands.res) |val| {
-                    // Update AP.
-                    self.run_context.ap = (try self.run_context.getAP().addMaybeRelocatable(val)).offset;
-                } else {
-                    return error.ApUpdateAddResUnconstrained;
-                }
-            },
+            .Add =>
+            // Check that Res is not null.
+            if (operands.res) |val|
+                // Update AP.
+                (try self.run_context.getAP().addMaybeRelocatable(val)).offset
+            else
+                return error.ApUpdateAddResUnconstrained,
             // AP update Add1
-            .Add1 => self.run_context.ap = (try self.run_context.getAP().addUint(1)).offset,
+            .Add1 => self.run_context.ap + 1,
             // AP update Add2
-            .Add2 => self.run_context.ap = (try self.run_context.getAP().addUint(2)).offset,
+            .Add2 => self.run_context.ap + 2,
             // AP update regular
-            .Regular => {},
-        }
+            .Regular => return,
+        };
     }
 
     /// Updates the value of AP according to the executed instruction.
     /// # Arguments
     /// - `instruction`: The instruction that was executed.
     /// - `operands`: The operands of the instruction.
-    pub fn updateFp(
+    pub inline fn updateFp(
         self: *Self,
-        instruction: *const Instruction,
+        instruction: Instruction,
         operands: OperandsResult,
     ) !void {
-        switch (instruction.fp_update) {
+        self.run_context.fp = switch (instruction.fp_update) {
             // FP update Add + 2
-            .APPlus2 => { // Update the FP.
-                // FP = AP + 2.
-                self.run_context.fp = self.run_context.ap + 2;
-            },
+            .APPlus2 => self.run_context.ap + 2,
             // FP update Dst
-            .Dst => {
-                switch (operands.dst) {
-                    .relocatable => |rel| {
-                        // Update the FP.
-                        // FP = DST.
-                        self.run_context.fp = rel.offset;
-                    },
-                    .felt => |f| {
-                        // Update the FP.
-                        // FP += DST.
-                        self.run_context.fp = (try self.run_context.getFP().addFelt(f)).offset;
-                    },
-                }
+            .Dst => switch (operands.dst) {
+                .relocatable => |rel| rel.offset,
+                .felt => |f| try f.intoUsize(),
             },
-            else => {},
-        }
+            else => return,
+        };
     }
 
     /// Updates the registers (fp, ap, and pc) based on the given instruction and operands.
@@ -904,7 +865,7 @@ pub const CairoVM = struct {
     /// - Returns `void` on success, an error on failure.
     pub fn updateRegisters(
         self: *Self,
-        instruction: *const Instruction,
+        instruction: Instruction,
         operands: OperandsResult,
     ) !void {
         try self.updateFp(instruction, operands);
@@ -927,13 +888,13 @@ pub const CairoVM = struct {
     ///
     /// - Returns the deduced destination register, or an error if no destination is deducible.
     pub fn deduceDst(
-        self: *Self,
-        instruction: *const Instruction,
+        self: Self,
+        instruction: Instruction,
         res: ?MaybeRelocatable,
     ) !MaybeRelocatable {
         return switch (instruction.opcode) {
             .AssertEq => if (res) |r| r else CairoVMError.NoDst,
-            .Call => MaybeRelocatable.fromRelocatable(self.run_context.getFP()),
+            .Call => MaybeRelocatable.fromRelocatable(.{ .segment_index = 1, .offset = self.run_context.fp }),
             else => CairoVMError.NoDst,
         };
     }
@@ -1301,7 +1262,7 @@ pub const CairoVM = struct {
     ///
     /// This function assumes proper initialization of the CairoVM instance and must be called in
     /// a controlled environment to ensure the correct execution of instructions and memory operations.
-    pub fn opcodeAssertions(self: *Self, instruction: *const Instruction, operands: OperandsResult) !void {
+    pub fn opcodeAssertions(self: *Self, instruction: Instruction, operands: OperandsResult) !void {
         // Switch on the opcode to perform the appropriate assertion.
         switch (instruction.opcode) {
             // Assert that the result and destination operands are equal for AssertEq opcode.
@@ -1461,13 +1422,13 @@ pub const OperandsResult = struct {
     const Self = @This();
 
     /// The destination operand value.
-    dst: MaybeRelocatable = MaybeRelocatable.fromFelt(Felt252.zero()),
+    dst: MaybeRelocatable = undefined,
     /// The result operand value.
-    res: ?MaybeRelocatable = MaybeRelocatable.fromFelt(Felt252.zero()),
+    res: ?MaybeRelocatable = null,
     /// The first operand value.
-    op_0: MaybeRelocatable = MaybeRelocatable.fromFelt(Felt252.zero()),
+    op_0: MaybeRelocatable = undefined,
     /// The second operand value.
-    op_1: MaybeRelocatable = MaybeRelocatable.fromFelt(Felt252.zero()),
+    op_1: MaybeRelocatable = undefined,
     /// The relocatable address of the destination operand.
     dst_addr: Relocatable = .{},
     /// The relocatable address of the first operand.
@@ -1476,6 +1437,12 @@ pub const OperandsResult = struct {
     op_1_addr: Relocatable = .{},
     /// Indicator for deduced operands.
     deduced_operands: u8 = 0,
+
+    padding: u32 = 0,
+
+    comptime {
+        std.debug.assert(@sizeOf(Self) == 224);
+    }
 
     /// Sets the flag indicating the destination operand was deduced.
     ///

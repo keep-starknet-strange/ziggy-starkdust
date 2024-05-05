@@ -54,8 +54,8 @@ pub const RunContext = struct {
     /// # Returns
     /// - The computed dst address.
     pub fn computeDstAddr(
-        self: *const Self,
-        instruction: *const Instruction,
+        self: Self,
+        instruction: Instruction,
     ) !Relocatable {
         var base_addr = switch (instruction.dst_reg) {
             .AP => self.getAP(),
@@ -76,8 +76,8 @@ pub const RunContext = struct {
     /// # Returns
     /// - The computed OP 0 address.
     pub fn computeOp0Addr(
-        self: *const Self,
-        instruction: *const Instruction,
+        self: Self,
+        instruction: Instruction,
     ) !Relocatable {
         var base_addr = switch (instruction.op_0_reg) {
             .AP => self.getAP(),
@@ -98,8 +98,8 @@ pub const RunContext = struct {
     /// # Returns
     /// - The computed OP 1 address.
     pub fn computeOp1Addr(
-        self: *const Self,
-        instruction: *const Instruction,
+        self: Self,
+        instruction: Instruction,
         op_0: ?MaybeRelocatable,
     ) !Relocatable {
         const base_addr = switch (instruction.op_1_addr) {
@@ -122,7 +122,7 @@ pub const RunContext = struct {
     ///
     /// # Returns
     /// - The `Relocatable` value of the frame pointer.
-    pub fn getFP(self: *const Self) Relocatable {
+    pub fn getFP(self: Self) Relocatable {
         return .{ .segment_index = 1, .offset = self.fp };
     }
 

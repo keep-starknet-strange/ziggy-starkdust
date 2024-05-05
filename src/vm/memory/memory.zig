@@ -400,7 +400,7 @@ pub const Memory = struct {
     /// const result = myDataStructure.get(targetAddress);
     /// // Handle the result accordingly
     /// ```
-    pub fn get(self: *Self, address: Relocatable) ?MaybeRelocatable {
+    pub fn get(self: *const Self, address: Relocatable) ?MaybeRelocatable {
         // Retrieve the data corresponding to the segment index from the data structure.
         const data = self.getDataFromSegmentIndex(address.segment_index);
 
@@ -419,7 +419,7 @@ pub const Memory = struct {
             null
         else if (data[segment_index].items[address.offset]) |val|
             switch (val.maybe_relocatable) {
-                .relocatable => |addr| Self.relocateAddress(addr, &self.relocation_rules) catch unreachable,
+                .relocatable => |addr| Self.relocateAddress(addr, self.relocation_rules) catch unreachable,
                 else => |_| val.maybe_relocatable,
             }
         else
@@ -441,7 +441,7 @@ pub const Memory = struct {
     ///
     /// - The `Felt252` value at the specified address, or an error if not available or not of the expected type.
     pub fn getFelt(
-        self: *Self,
+        self: *const Self,
         address: Relocatable,
     ) error{ ExpectedInteger, UnknownMemoryCell }!Felt252 {
         return if (self.get(address)) |m|
@@ -815,7 +815,7 @@ pub const Memory = struct {
     /// Returns an error if there are any unknown memory cell encountered within the continuous memory range.
     /// Returns an error if value inside the range is not a `Felt252`
     pub fn getFeltRange(
-        self: *Self,
+        self: *const Self,
         address: Relocatable,
         size: usize,
     ) !std.ArrayList(Felt252) {
@@ -824,9 +824,11 @@ pub const Memory = struct {
             size,
         );
         errdefer values.deinit();
+
         for (0..size) |i| {
             try values.append(try self.getFelt(try address.addUint(i)));
         }
+
         return values;
     }
 
@@ -860,7 +862,7 @@ pub const Memory = struct {
     /// Returns a `MaybeRelocatable` value after applying relocation rules to the provided address.
     pub fn relocateAddress(
         address: Relocatable,
-        relocation_rules: *std.AutoHashMap(u64, Relocatable),
+        relocation_rules: std.AutoHashMap(u64, Relocatable),
     ) !MaybeRelocatable {
         // Check if the segment index of the provided address is already valid.
         if (address.segment_index >= 0) return MaybeRelocatable.fromRelocatable(address);
@@ -930,7 +932,7 @@ pub const Memory = struct {
     ///
     /// # Errors
     /// Returns an error if relocation of an address fails.
-    pub fn relocateSegment(self: *Self, segment: []?MemoryCell) !void {
+    pub fn relocateSegment(segment: []?MemoryCell, relocation_rules: std.AutoHashMap(u64, Relocatable)) !void {
         for (segment) |*memory_cell| {
             if (memory_cell.*) |*cell| {
                 // Check if the memory cell contains a relocatable address.
@@ -941,7 +943,7 @@ pub const Memory = struct {
                             // Relocate the address using predefined rules.
                             cell.*.maybe_relocatable = try Memory.relocateAddress(
                                 address,
-                                &self.relocation_rules,
+                                relocation_rules,
                             );
                     },
                     else => {},
@@ -966,11 +968,7 @@ pub const Memory = struct {
 
         // Relocate segments in the main data.
         for (self.data.items) |segment|
-            try self.relocateSegment(segment.items);
-
-        // Relocate segments in temporary data.
-        for (self.temp_data.items) |segment|
-            try self.relocateSegment(segment.items);
+            try Self.relocateSegment(segment.items, self.relocation_rules);
 
         // Iterate through relocation rules in reverse order.
         var index = self.temp_data.items.len;
@@ -989,7 +987,7 @@ pub const Memory = struct {
                 // Ensure capacity in the destination segment.
                 const idx_data: usize = @intCast(address.segment_index);
                 if (idx_data < self.data.items.len)
-                    try (self.data.items[idx_data]).ensureUnusedCapacity(
+                    try self.data.items[idx_data].ensureUnusedCapacity(
                         self.allocator,
                         data_segment.items.len,
                     );
@@ -1002,6 +1000,8 @@ pub const Memory = struct {
                             address,
                             c.maybe_relocatable,
                         );
+
+                        if (c.is_accessed) self.markAsAccessed(address);
                     }
 
                     // Move to the next address.
@@ -1011,7 +1011,7 @@ pub const Memory = struct {
         }
 
         // Clear and free relocation rules after relocation.
-        self.relocation_rules.clearAndFree();
+        self.relocation_rules.clearRetainingCapacity();
     }
 
     // Utility function to help set up memory for tests
