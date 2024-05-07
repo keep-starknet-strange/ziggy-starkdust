@@ -260,7 +260,7 @@ pub fn cairo_run(allocator: std.mem.Allocator, pathname: []const u8, layout: []c
 
     const instructions = try parsed_program.value.readData(allocator);
 
-    const vm = try CairoVM.init(
+    var vm = try CairoVM.init(
         allocator,
         .{},
     );
@@ -271,7 +271,7 @@ pub fn cairo_run(allocator: std.mem.Allocator, pathname: []const u8, layout: []c
         try parsed_program.value.parseProgramJson(allocator, &entrypoint, extensive_hints),
         layout,
         instructions,
-        vm,
+        &vm,
         false,
     );
     defer runner.deinit(allocator);

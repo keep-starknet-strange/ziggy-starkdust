@@ -397,7 +397,7 @@ pub const ProgramJson = struct {
         // Read the entire file content into a buffer using the provided allocator
         const buffer = try file.readToEndAlloc(
             allocator,
-            1024 * 50,
+            1024 * 1024 * 500,
         );
         defer allocator.free(buffer);
 

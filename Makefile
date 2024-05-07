@@ -40,7 +40,7 @@ build-integration-test:
 	@zig build integration_test
 
 run-integration-test:
-	@zig build integration_test
+	@zig build -Doptimize=ReleaseFast integration_test
 	./zig-out/bin/integration_test
 
 run-integration-test-filter:

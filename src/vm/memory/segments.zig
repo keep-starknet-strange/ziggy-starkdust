@@ -33,26 +33,20 @@ pub const MemorySegmentManager = struct {
     allocator: Allocator,
     // The size of the used segments.
     segment_used_sizes: struct {
-        data: std.ArrayHashMap(
-            usize,
-            usize,
-            std.array_hash_map.AutoContext(usize),
-            false,
-        ),
+        data: std.ArrayList(usize),
 
         pub fn get(
             self: @This(),
             k: usize,
         ) ?usize {
-            return self.data.get(k);
+            return if (self.data.items.len > k) self.data.items[k] else null;
         }
 
         pub fn put(
             self: *@This(),
-            k: usize,
             v: usize,
         ) !void {
-            try self.data.put(k, v);
+            try self.data.append(v);
         }
 
         pub fn deinit(self: *@This()) void {
@@ -60,7 +54,7 @@ pub const MemorySegmentManager = struct {
         }
 
         pub fn count(self: @This()) usize {
-            return self.data.count();
+            return self.data.items.len;
         }
     },
     // The size of the segments.
@@ -95,8 +89,7 @@ pub const MemorySegmentManager = struct {
         // Initialize the values of the MemorySegmentManager struct.
         segment_manager.* = .{
             .allocator = allocator,
-            .segment_used_sizes = .{ .data = std.AutoArrayHashMap(
-                usize,
+            .segment_used_sizes = .{ .data = std.ArrayList(
                 usize,
             ).init(allocator) },
             .segment_sizes = std.AutoHashMap(
@@ -215,16 +208,17 @@ pub const MemorySegmentManager = struct {
     /// # Returns
     ///
     /// An `AutoArrayHashMap` representing the computed effective sizes of memory segments.
-    pub fn computeEffectiveSize(self: *Self, allow_tmp_segments: bool) !std.AutoArrayHashMap(usize, usize) {
+    pub fn computeEffectiveSize(self: *Self, allow_tmp_segments: bool) !std.ArrayList(usize) {
         _ = allow_tmp_segments; // autofix
         if (self.segment_used_sizes.count() != 0)
             return self.segment_used_sizes.data;
 
         // TODO: Check if memory is frozen. At the time of writting this function memory cannot be frozen so we cannot check if it frozen.
 
-        for (self.memory.data.items, 0..) |segment, i| {
+        for (self.memory.data.items) |
+            segment,
+        | {
             try self.segment_used_sizes.put(
-                i,
                 segment.items.len,
             );
         }
@@ -255,15 +249,13 @@ pub const MemorySegmentManager = struct {
     ///
     /// A `Slice` of the `ArrayList(u32)` representing the relocated segments.
     pub fn relocateSegments(self: *Self, allocator: Allocator) !ArrayList(usize) {
-        const first_addr = 1;
-        var relocatable_table = try ArrayList(usize).initCapacity(allocator, 1 + self.segment_used_sizes.data.count());
+        var relocatable_table = try ArrayList(usize).initCapacity(allocator, 1 + self.segment_used_sizes.count());
         errdefer relocatable_table.deinit();
 
-        try relocatable_table.append(first_addr);
-        for (self.segment_used_sizes.data.keys()) |key| {
-            const index = self.segment_used_sizes.data.getIndex(key) orelse return MemoryError.MissingSegmentUsedSizes;
-            const segment_size = self.getSegmentSize(@intCast(index)) orelse return MemoryError.MissingSegmentUsedSizes;
-            try relocatable_table.append(relocatable_table.items[index] + segment_size);
+        try relocatable_table.append(1);
+        for (0..self.segment_used_sizes.count()) |i| {
+            const segment_size = self.getSegmentSize(i) orelse return MemoryError.MissingSegmentUsedSizes;
+            try relocatable_table.append(relocatable_table.items[i] + segment_size);
         }
         // The last value corresponds to the total amount of elements across all segments, which isnt needed for relocation.
         _ = relocatable_table.pop();

@@ -95,7 +95,7 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
 
     if (config.output_trace != null or config.output_memory != null) {
         try runner.relocate();
-        var writer: std.io.BufferedWriter(5 * 1024 * 1024, std.fs.File.Writer) = undefined;
+        var writer: std.io.BufferedWriter(5 * 1024 * 1024, std.fs.File.Writer) = .{ .unbuffered_writer = undefined };
 
         if (config.output_trace) |trace_path| {
             const trace_file = try std.fs.cwd().createFile(trace_path, .{});
