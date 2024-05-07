@@ -80,6 +80,7 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
     );
     defer runner.deinit(allocator);
     const end = try runner.setupExecutionState(config.allow_missing_builtins orelse config.proof_mode);
+
     // TODO: make flag for extensive_hints
     var hint_processor: HintProcessor = .{};
     try runner.runUntilPC(end, false, &hint_processor);
@@ -90,34 +91,32 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
         &hint_processor,
         false,
     );
-
     // TODO readReturnValues necessary for builtins
+
     if (config.output_trace != null or config.output_memory != null) {
         try runner.relocate();
-    }
+        var writer: std.io.BufferedWriter(5 * 1024 * 1024, std.fs.File.Writer) = undefined;
 
-    if (config.output_trace) |trace_path| {
-        const trace_file = try std.fs.cwd().createFile(trace_path, .{});
-        defer trace_file.close();
+        if (config.output_trace) |trace_path| {
+            const trace_file = try std.fs.cwd().createFile(trace_path, .{});
+            defer trace_file.close();
 
-        var trace_writer = std.io.BufferedWriter(3 * 1024 * 1024, @TypeOf(trace_file.writer())){
-            .unbuffered_writer = trace_file.writer(),
-        };
+            writer.unbuffered_writer = trace_file.writer();
 
-        try writeEncodedTrace(runner.relocated_trace.?, &trace_writer);
-        try trace_writer.flush();
-    }
+            try writeEncodedTrace(runner.relocated_trace.?, &writer);
 
-    if (config.output_memory) |mem_path| {
-        const mem_file = try std.fs.cwd().createFile(mem_path, .{});
-        defer mem_file.close();
+            try writer.flush();
+        }
 
-        var mem_writer = std.io.BufferedWriter(5 * 1024 * 1024, @TypeOf(mem_file.writer())){
-            .unbuffered_writer = mem_file.writer(),
-        };
+        if (config.output_memory) |mem_path| {
+            const mem_file = try std.fs.cwd().createFile(mem_path, .{});
+            defer mem_file.close();
 
-        try writeEncodedMemory(runner.relocated_memory.items, &mem_writer);
-        try mem_writer.flush();
+            writer.unbuffered_writer = mem_file.writer();
+
+            try writeEncodedMemory(runner.relocated_memory.items, &writer);
+            try writer.flush();
+        }
     }
 }
 

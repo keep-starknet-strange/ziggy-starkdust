@@ -902,6 +902,7 @@ pub const CairoRunner = struct {
         try self.relocated_memory.append(null);
         // Iterate through each memory segment in the VM.
         for (self.vm.segments.memory.data.items, 0..) |segment, index| {
+            try self.relocated_memory.ensureUnusedCapacity(segment.items.len);
             // Iterate through each memory cell in the segment.
             for (segment.items, 0..) |memory_cell, segment_offset| {
                 // If the memory cell is not null (contains data).

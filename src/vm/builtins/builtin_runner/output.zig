@@ -149,7 +149,7 @@ pub const OutputBuiltinRunner = struct {
     ///
     /// The count of used memory cells associated with the OutputBuiltinRunner's base address.
     /// If the information is unavailable, it returns MemoryError.MissingSegmentUsedSizes.
-    pub fn getUsedCells(self: *const Self, segments: *MemorySegmentManager) !u32 {
+    pub fn getUsedCells(self: *const Self, segments: *MemorySegmentManager) !usize {
         return segments.getSegmentUsedSize(
             @intCast(self.base),
         ) orelse MemoryError.MissingSegmentUsedSizes;

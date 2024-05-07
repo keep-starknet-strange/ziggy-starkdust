@@ -34,23 +34,23 @@ pub const MemorySegmentManager = struct {
     // The size of the used segments.
     segment_used_sizes: struct {
         data: std.ArrayHashMap(
-            i64,
-            u32,
-            std.array_hash_map.AutoContext(i64),
+            usize,
+            usize,
+            std.array_hash_map.AutoContext(usize),
             false,
         ),
 
         pub fn get(
             self: @This(),
-            k: i64,
-        ) ?u32 {
+            k: usize,
+        ) ?usize {
             return self.data.get(k);
         }
 
         pub fn put(
             self: *@This(),
-            k: i64,
-            v: u32,
+            k: usize,
+            v: usize,
         ) !void {
             try self.data.put(k, v);
         }
@@ -64,7 +64,7 @@ pub const MemorySegmentManager = struct {
         }
     },
     // The size of the segments.
-    segment_sizes: std.AutoHashMap(u32, u32),
+    segment_sizes: std.AutoHashMap(usize, usize),
     // The memory.
     memory: *Memory,
     // The public memory offsets.
@@ -96,12 +96,12 @@ pub const MemorySegmentManager = struct {
         segment_manager.* = .{
             .allocator = allocator,
             .segment_used_sizes = .{ .data = std.AutoArrayHashMap(
-                i64,
-                u32,
+                usize,
+                usize,
             ).init(allocator) },
             .segment_sizes = std.AutoHashMap(
-                u32,
-                u32,
+                usize,
+                usize,
             ).init(allocator),
             // Initialize the memory pointer.
             .memory = memory,
@@ -169,7 +169,7 @@ pub const MemorySegmentManager = struct {
     ///
     /// # Returns
     /// A `u32` representing the size of the segment or null if not computed.
-    pub fn getSegmentUsedSize(self: *Self, index: u32) ?u32 {
+    pub fn getSegmentUsedSize(self: *Self, index: usize) ?usize {
         return self.segment_used_sizes.get(index);
     }
 
@@ -185,7 +185,7 @@ pub const MemorySegmentManager = struct {
     /// # Returns
     ///
     /// A `u32` representing the size of the segment or a computed effective size if not available.
-    pub fn getSegmentSize(self: *Self, index: u32) ?u32 {
+    pub fn getSegmentSize(self: *Self, index: usize) ?usize {
         return self.segment_sizes.get(index) orelse self.getSegmentUsedSize(index);
     }
 
@@ -215,7 +215,8 @@ pub const MemorySegmentManager = struct {
     /// # Returns
     ///
     /// An `AutoArrayHashMap` representing the computed effective sizes of memory segments.
-    pub fn computeEffectiveSize(self: *Self, allow_tmp_segments: bool) !std.AutoArrayHashMap(i64, u32) {
+    pub fn computeEffectiveSize(self: *Self, allow_tmp_segments: bool) !std.AutoArrayHashMap(usize, usize) {
+        _ = allow_tmp_segments; // autofix
         if (self.segment_used_sizes.count() != 0)
             return self.segment_used_sizes.data;
 
@@ -223,19 +224,19 @@ pub const MemorySegmentManager = struct {
 
         for (self.memory.data.items, 0..) |segment, i| {
             try self.segment_used_sizes.put(
-                @intCast(i),
-                @intCast(segment.items.len),
+                i,
+                segment.items.len,
             );
         }
 
-        if (allow_tmp_segments) {
-            for (self.memory.temp_data.items, 0..) |segment, i| {
-                try self.segment_used_sizes.put(
-                    -(@as(i64, @intCast(i)) + 1),
-                    @intCast(segment.items.len),
-                );
-            }
-        }
+        // if (allow_tmp_segments) {
+        //     for (self.memory.temp_data.items, 0..) |segment, i| {
+        //         try self.segment_used_sizes.put(
+        //             -(@as(i64, @intCast(i)) + 1),
+        //             @intCast(segment.items.len),
+        //         );
+        //     }
+        // }
         return self.segment_used_sizes.data;
     }
 
@@ -255,8 +256,9 @@ pub const MemorySegmentManager = struct {
     /// A `Slice` of the `ArrayList(u32)` representing the relocated segments.
     pub fn relocateSegments(self: *Self, allocator: Allocator) !ArrayList(usize) {
         const first_addr = 1;
-        var relocatable_table = ArrayList(usize).init(allocator);
+        var relocatable_table = try ArrayList(usize).initCapacity(allocator, 1 + self.segment_used_sizes.data.count());
         errdefer relocatable_table.deinit();
+
         try relocatable_table.append(first_addr);
         for (self.segment_used_sizes.data.keys()) |key| {
             const index = self.segment_used_sizes.data.getIndex(key) orelse return MemoryError.MissingSegmentUsedSizes;
