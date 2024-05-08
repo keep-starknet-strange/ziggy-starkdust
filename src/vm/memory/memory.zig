@@ -402,21 +402,21 @@ pub const Memory = struct {
     /// ```
     pub fn get(self: *const Self, address: Relocatable) ?MaybeRelocatable {
         // Retrieve the data corresponding to the segment index from the data structure.
-        const data = self.getDataFromSegmentIndex(address.segment_index);
+        const data = if (address.segment_index < 0) &self.temp_data else &self.data;
 
         // Adjust the segment index based on the target address.
         const segment_index = address.getAdjustedSegmentIndex();
 
         // Check if the segment index is valid within the data structure.
-        if (segment_index >= data.len) return null;
-        const segment_data = data[segment_index].items;
+        if (segment_index >= data.items.len) return null;
+        const segment_data = data.items[segment_index];
 
         // Check if the offset is valid within the specified segment.
-        if (address.offset >= segment_data.len) return null;
+        if (address.offset >= segment_data.items.len) return null;
 
         // Return null if either the segment index or offset is not valid.
         // Otherwise, return the maybe_relocatable value at the specified address.
-        return if (segment_data[address.offset]) |val|
+        return if (segment_data.items[address.offset]) |val|
             switch (val.maybe_relocatable) {
                 .relocatable => |addr| Self.relocateAddress(addr, self.relocation_rules) catch unreachable,
                 else => |_| val.maybe_relocatable,
