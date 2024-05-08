@@ -567,7 +567,6 @@ pub const CairoRunner = struct {
         while (!end.eq(self.vm.run_context.pc) and !hint_processor.run_resources.consumed()) {
             if (extensive_hints) {
                 try self.vm.stepExtensive(
-                    self.allocator,
                     hint_processor.*,
                     &self.execution_scopes,
                     &hint_datas,
@@ -576,7 +575,6 @@ pub const CairoRunner = struct {
                 );
             } else {
                 try self.vm.stepNotExtensive(
-                    self.allocator,
                     hint_processor.*,
                     &self.execution_scopes,
                     if (self.program
@@ -713,7 +711,6 @@ pub const CairoRunner = struct {
             // Execute a single step of the program, considering extensive or non-extensive hints
             if (extensive_hints) {
                 try self.vm.stepExtensive(
-                    self.allocator,
                     hint_processor.*,
                     &self.execution_scopes,
                     &hint_datas,
@@ -722,7 +719,6 @@ pub const CairoRunner = struct {
                 );
             } else {
                 try self.vm.stepNotExtensive(
-                    self.allocator,
                     hint_processor.*,
                     &self.execution_scopes,
                     hint_data_final,

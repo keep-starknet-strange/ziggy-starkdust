@@ -83,6 +83,7 @@ pub fn build(b: *std.Build) void {
         .optimize = optimize,
         .single_threaded = true,
     });
+    exe.linkLibC();
     // Add dependency modules to the executable.
     for (deps) |mod| exe.root_module.addImport(
         mod.name,

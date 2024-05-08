@@ -86,7 +86,7 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
     try runner.runUntilPC(end, false, &hint_processor);
     try runner.endRun(
         allocator,
-        true,
+        false,
         false,
         &hint_processor,
         false,

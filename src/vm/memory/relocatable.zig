@@ -270,7 +270,7 @@ pub const Relocatable = struct {
     ///
     /// # Returns
     /// The adjusted `usize` value representing the segment index.
-    pub inline fn getAdjustedSegmentIndex(self: *const Self) usize {
+    pub inline fn getAdjustedSegmentIndex(self: Self) usize {
         return @intCast(if (self.segment_index < 0)
             -(self.segment_index + 1)
         else
