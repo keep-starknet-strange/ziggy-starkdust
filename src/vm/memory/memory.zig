@@ -326,7 +326,7 @@ pub const Memory = struct {
     /// # Returns
     ///
     /// Returns a reference to the data in the form of `std.ArrayList(std.ArrayListUnmanaged(?MemoryCell))`.
-    pub inline fn getDataFromSegmentIndex(
+    pub fn getDataFromSegmentIndex(
         self: *const Self,
         segment_index: i64,
     ) []std.ArrayListUnmanaged(?MemoryCell) {
@@ -408,16 +408,15 @@ pub const Memory = struct {
         const segment_index = address.getAdjustedSegmentIndex();
 
         // Check if the segment index is valid within the data structure.
-        const isSegmentIndexValid = address.segment_index < data.len;
+        if (segment_index >= data.len) return null;
+        const segment_data = data[segment_index].items;
 
         // Check if the offset is valid within the specified segment.
-        const isOffsetValid = isSegmentIndexValid and (address.offset < data[segment_index].items.len);
+        if (address.offset >= segment_data.len) return null;
 
         // Return null if either the segment index or offset is not valid.
         // Otherwise, return the maybe_relocatable value at the specified address.
-        return if (!isSegmentIndexValid or !isOffsetValid)
-            null
-        else if (data[segment_index].items[address.offset]) |val|
+        return if (segment_data[address.offset]) |val|
             switch (val.maybe_relocatable) {
                 .relocatable => |addr| Self.relocateAddress(addr, self.relocation_rules) catch unreachable,
                 else => |_| val.maybe_relocatable,

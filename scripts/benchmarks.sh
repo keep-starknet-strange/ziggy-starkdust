@@ -1,7 +1,7 @@
 #!/bin/bash
 
 set -e
-source ../cairo-vm-env/bin/activate
+. ../cairo-vm-env/bin/activate
 
 BENCH_DIR=../cairo_programs/benchmarks
 CAIRO_DIR=../cairo_programs/

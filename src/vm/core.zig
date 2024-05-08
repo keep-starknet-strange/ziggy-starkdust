@@ -263,7 +263,6 @@ pub const CairoVM = struct {
 
     pub fn stepHintExtensive(
         self: *Self,
-        allocator: Allocator,
         hint_processor: HintProcessor,
         exec_scopes: *ExecutionScopes,
         hint_datas: *std.ArrayList(HintData),
@@ -275,7 +274,7 @@ pub const CairoVM = struct {
             for (hint_range.start..hint_range.start + hint_range.length) |idx| {
                 const hint_data = if (idx < hint_datas.items.len) &hint_datas.items[idx] else return CairoVMError.Unexpected;
 
-                var hint_extension = try hint_processor.executeHintExtensive(allocator, self, hint_data, constants, exec_scopes);
+                var hint_extension = try hint_processor.executeHintExtensive(self.allocator, self, hint_data, constants, exec_scopes);
                 defer hint_extension.deinit();
 
                 var it = hint_extension.iterator();
@@ -291,14 +290,13 @@ pub const CairoVM = struct {
 
     pub fn stepHintNotExtensive(
         self: *Self,
-        allocator: Allocator,
         hint_processor: HintProcessor,
         exec_scopes: *ExecutionScopes,
         hint_datas: []HintData,
         constants: *std.StringHashMap(Felt252),
     ) !void {
         for (hint_datas) |*hint_data| {
-            try hint_processor.executeHint(allocator, self, hint_data, constants, exec_scopes);
+            try hint_processor.executeHint(self.allocator, self, hint_data, constants, exec_scopes);
         }
     }
 
@@ -315,7 +313,7 @@ pub const CairoVM = struct {
     /// - `allocator`: The allocator used for memory operations.
     /// # Errors
     /// - If accessing an unknown memory cell occurs.
-    pub fn stepInstruction(self: *Self, allocator: Allocator) !void {
+    pub fn stepInstruction(self: *Self) !void {
         const inst = if (self.run_context.pc.segment_index == 0) value: {
             // Run instructions from the program segment, using the instruction cache.
             const pc = self.run_context.pc.offset;
@@ -344,7 +342,6 @@ pub const CairoVM = struct {
         // Execute the instruction if skip_instruction_execution is false.
         if (!self.skip_instruction_execution) {
             try self.runInstruction(
-                allocator,
                 inst,
             );
         } else {
@@ -358,27 +355,24 @@ pub const CairoVM = struct {
     /// Process an instruction cycle using the typical fetch-decode-execute cycle.
     pub fn stepNotExtensive(
         self: *Self,
-        allocator: Allocator,
         hint_processor: HintProcessor,
         exec_scopes: *ExecutionScopes,
         hint_datas: []HintData,
         constants: *std.StringHashMap(Felt252),
     ) !void {
         try self.stepHintNotExtensive(
-            allocator,
             hint_processor,
             exec_scopes,
             hint_datas,
             constants,
         );
-        try self.stepInstruction(allocator);
+        try self.stepInstruction();
     }
 
     /// Do a single step of the VM with extensive hints.
     /// Process an instruction cycle using the typical fetch-decode-execute cycle.
     pub fn stepExtensive(
         self: *Self,
-        allocator: Allocator,
         hint_processor: HintProcessor,
         exec_scopes: *ExecutionScopes,
         hint_datas: *std.ArrayList(HintData),
@@ -386,14 +380,13 @@ pub const CairoVM = struct {
         constants: *std.StringHashMap(Felt252),
     ) !void {
         try self.stepHintExtensive(
-            allocator,
             hint_processor,
             exec_scopes,
             hint_datas,
             hint_ranges,
             constants,
         );
-        try self.stepInstruction(allocator);
+        try self.stepInstruction();
     }
 
     /// Insert Operands only after checking if they were deduced.
@@ -463,7 +456,6 @@ pub const CairoVM = struct {
     /// a controlled environment to ensure the correct execution of instructions and memory operations.
     pub fn runInstruction(
         self: *Self,
-        allocator: Allocator,
         instruction: Instruction,
     ) !void {
         // Check if tracing is disabled and log the current state if not.
@@ -478,10 +470,10 @@ pub const CairoVM = struct {
         }
 
         // Compute operands for the instruction.
-        const operands_result = try self.computeOperands(allocator, instruction);
+        const operands_result = try self.computeOperands(self.allocator, instruction);
 
         // Insert deduced operands into memory.
-        try self.insertDeducedOperands(allocator, operands_result);
+        try self.insertDeducedOperands(self.allocator, operands_result);
 
         // Perform opcode-specific assertions on operands using the `opcodeAssertions` function.
         try self.opcodeAssertions(instruction, operands_result);
