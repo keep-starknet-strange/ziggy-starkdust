@@ -7,7 +7,7 @@ const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatabl
 const Memory = @import("../../memory/memory.zig").Memory;
 const MemorySegmentManager = @import("../../memory/segments.zig").MemorySegmentManager;
 const RunnerError = @import("../../error.zig").RunnerError;
-const poseidonPermuteComp = @import("../../../math/crypto/poseidon/poseidon.zig").poseidonPermuteComp;
+const starknet = @import("starknet");
 const MemoryError = @import("../../error.zig").MemoryError;
 const CairoVMError = @import("../../error.zig").CairoVMError;
 const Program = @import("../../types/program.zig").Program;
@@ -254,7 +254,15 @@ pub const PoseidonBuiltinRunner = struct {
         }
 
         // Perform Poseidon permutation computation on the input cells.
-        poseidonPermuteComp(input_felts.items[0..3]);
+        // TODO: optimize to use pointer on state
+        var PoseidonHasher = starknet.crypto.PoseidonHasher{
+            .state = input_felts.items[0..3].*,
+        };
+
+        PoseidonHasher.permuteComp();
+
+        @memcpy(input_felts.items[0..3], PoseidonHasher.state[0..3]);
+
         // Iterate over input cells and cache their computed values.
         for (0..self.n_input_cells, input_felts.items) |i, elem| {
             try self.cache.put(try first_output_addr.addUint(i), elem);

@@ -838,7 +838,7 @@ pub const CairoVM = struct {
             // FP update Dst
             .Dst => switch (operands.dst) {
                 .relocatable => |rel| rel.offset,
-                .felt => |f| try f.intoUsize(),
+                .felt => |f| try f.toInt(usize),
             },
             else => return,
         };
@@ -1320,7 +1320,7 @@ pub const CairoVM = struct {
     pub fn decodeCurrentInstruction(self: *const Self) !Instruction {
         const felt = try self.segments.memory.getFelt(self.run_context.getPC());
 
-        const instruction = felt.intoU64() catch
+        const instruction = felt.toInt(u64) catch
             return CairoVMError.InvalidInstructionEncoding;
 
         return decoder.decodeInstructions(instruction);

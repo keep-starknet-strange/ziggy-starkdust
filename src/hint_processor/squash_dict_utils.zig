@@ -39,11 +39,11 @@ fn getAccessIndices(
 }
 
 fn cmpByValue(_: void, a: Felt252, b: Felt252) bool {
-    return a.lt(b);
+    return a.cmp(&b).compare(.lt);
 }
 
 fn reversedCmpByValue(_: void, a: Felt252, b: Felt252) bool {
-    return a.gt(b);
+    return a.cmp(&b).compare(.gt);
 }
 
 // Implements hint:
@@ -131,7 +131,7 @@ pub fn squashDictInnerCheckAccessIndex(
     //Main Logic
     const new_access_index = current_access_indices
         .popOrNull() orelse return HintError.EmptyCurrentAccessIndices;
-    const index_delta_minus1 = new_access_index.sub(current_access_index).sub(Felt252.one());
+    const index_delta_minus1 = new_access_index.sub(&current_access_index).sub(&Felt252.one());
     //loop_temps.delta_minus1 = loop_temps + 0 as it is the first field of the struct
     //Insert loop_temps.delta_minus1 into memory
     try hint_utils.insertValueFromVarName(allocator, "loop_temps", MaybeRelocatable.fromFelt(index_delta_minus1), vm, ids_data, ap_tracking);
@@ -185,7 +185,7 @@ pub fn squashDictInnerUsedAccessesAssert(
     const access_indices_at_key = access_indices
         .get(key) orelse return HintError.NoKeyInAccessIndices;
 
-    if (!n_used_accesses.equal(Felt252.fromInt(usize, access_indices_at_key.items.len)))
+    if (!n_used_accesses.eql(Felt252.fromInt(usize, access_indices_at_key.items.len)))
         return HintError.NumUsedAccessesAssertFail;
 }
 
@@ -248,7 +248,7 @@ pub fn squashDict(
 ) !void {
     //Get necessary variables addresses from ids
     const address = try hint_utils.getPtrFromVarName("dict_accesses", vm, ids_data, ap_tracking);
-    const ptr_diff = (try hint_utils.getIntegerFromVarName("ptr_diff", vm, ids_data, ap_tracking)).intoUsize() catch return HintError.PtrDiffNotDivisibleByDictAccessSize;
+    const ptr_diff = (try hint_utils.getIntegerFromVarName("ptr_diff", vm, ids_data, ap_tracking)).toInt(usize) catch return HintError.PtrDiffNotDivisibleByDictAccessSize;
     const n_accesses = try hint_utils.getIntegerFromVarName("n_accesses", vm, ids_data, ap_tracking);
     //Get range_check_builtin
     const range_check_builtin = try vm.getRangeCheckBuiltin();
@@ -259,12 +259,12 @@ pub fn squashDict(
         return HintError.PtrDiffNotDivisibleByDictAccessSize;
 
     if (exec_scopes.getValue(Felt252, "__squash_dict_max_size")) |max_size| {
-        if (n_accesses.gt(max_size))
+        if (n_accesses.cmp(&max_size).compare(.gt))
             return HintError.SquashDictMaxSizeExceeded;
     } else |_| {}
 
     const n_accesses_usize = n_accesses
-        .intoUsize() catch return HintError.NAccessesTooBig;
+        .toInt(u64) catch return HintError.NAccessesTooBig;
 
     //A map from key to the list of indices accessing it.
     var access_indices = std.AutoHashMap(Felt252, std.ArrayList(Felt252)).init(allocator);
@@ -296,7 +296,7 @@ pub fn squashDict(
     std.sort.block(Felt252, keys.items, {}, reversedCmpByValue);
 
     //Are the keys used bigger than the range_check bound.
-    const big_keys = if (keys.items[0].ge(range_check_bound))
+    const big_keys = if (keys.items[0].cmp(&range_check_bound).compare(.gte))
         Felt252.one()
     else
         Felt252.zero();

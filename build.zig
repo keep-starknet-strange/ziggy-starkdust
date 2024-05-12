@@ -9,6 +9,10 @@ const external_dependencies = [_]build_helpers.Dependency{
         .name = "zig-cli",
         .module_name = "zig-cli",
     },
+    .{
+        .name = "starknet",
+        .module_name = "ziggy-starkdust",
+    },
 };
 
 // Although this function looks imperative, note that its job is to
@@ -111,7 +115,7 @@ pub fn build(b: *std.Build) void {
         run_cmd.addArgs(args);
     }
 
-    integration_test(b, optimize, target);
+    integration_test(b, optimize, target, deps);
 
     // This creates a build step. It will be visible in the `zig build --help` menu,
     // and can be selected like this: `zig build poseidon_consts_gen`
@@ -169,6 +173,7 @@ fn integration_test(
     b: *std.Build,
     mode: std.builtin.Mode,
     target: std.Build.ResolvedTarget,
+    deps: []std.Build.Module.Import,
 ) void {
     const binary = b.addExecutable(.{
         .name = "integration_test",
@@ -176,6 +181,12 @@ fn integration_test(
         .target = target,
         .optimize = mode,
     });
+
+    // Add dependency modules to the executable.
+    for (deps) |mod| binary.root_module.addImport(
+        mod.name,
+        mod.module,
+    );
 
     const integration_test_build = b.step("integration_test", "Build cli integration tests");
     integration_test_build.dependOn(&binary.step);

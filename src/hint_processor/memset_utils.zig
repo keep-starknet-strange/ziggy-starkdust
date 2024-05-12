@@ -55,10 +55,10 @@ pub fn memsetStepLoop(
     // get `n` variable from vm scope
     var n = try exec_scopes.getValueRef(Felt252, "n");
     // this variable will hold the value of `n - 1`
-    n.* = n.sub(Felt252.one());
+    n.* = n.sub(&Felt252.one());
     // if `new_n` is positive, insert 1 in the address of `continue_loop`
     // else, insert 0
-    const flag = if (n.gt(Felt252.zero())) Felt252.one() else Felt252.zero();
+    const flag = if (n.cmp(&Felt252.zero()).compare(.gt)) Felt252.one() else Felt252.zero();
     try hint_utils.insertValueFromVarName(allocator, i_name, MaybeRelocatable.fromFelt(flag), vm, ids_data, ap_tracking);
     // Reassign `n` with `n - 1`
     // we do it at the end of the function so that the borrow checker doesn't complain

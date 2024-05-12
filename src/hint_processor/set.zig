@@ -42,7 +42,7 @@ pub fn setAdd(
 
     // Retrieve the size of the element.
     const elm_size: usize = (hint_utils.getIntegerFromVarName("elm_size", vm, ids_datas, ap_tracking) catch
-        return MathError.Felt252ToUsizeConversion).intoU64() catch
+        return MathError.Felt252ToUsizeConversion).toInt(u64) catch
         return MathError.Felt252ToUsizeConversion;
 
     // Retrieve pointer to the element.

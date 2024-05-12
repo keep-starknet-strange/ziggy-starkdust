@@ -49,7 +49,7 @@ pub fn getFeltBitLength(
     try hint_utils.insertValueFromVarName(
         allocator,
         "bit_length",
-        MaybeRelocatable.fromInt(usize, x.numBits()),
+        MaybeRelocatable.fromInt(usize, x.numBitsLe()),
         vm,
         ids_datas,
         ap_tracking,

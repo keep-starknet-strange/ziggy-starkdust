@@ -1,17 +1,21 @@
 const std = @import("std");
-const Felt252 = @import("../fields/starknet.zig").Felt252;
-const ProjectivePoint = @import("../crypto/curve/ec_point.zig").ProjectivePoint;
-const AffinePoint = @import("../crypto/curve/ec_point.zig").AffinePoint;
+const starknet = @import("starknet");
+const Felt252 = starknet.fields.Felt252;
+const ProjectivePoint = starknet.curve.ProjectivePoint;
+const AffinePoint = starknet.curve.AffinePoint;
 const VerifyError = @import("../../vm/error.zig").VerifyError;
 
-const EC_ORDER = @import("../crypto/curve/curve_params.zig").EC_ORDER;
-const GENERATOR = @import("../crypto/curve/curve_params.zig").GENERATOR;
+const EC_ORDER = starknet.curve.EC_ORDER;
+const GENERATOR = starknet.curve.GENERATOR;
+
 const ELEMENT_UPPER_BOUND: Felt252 = .{
-    .fe = [4]u64{
-        18446743986131435553,
-        160989183,
-        18446744073709255680,
-        576459263475450960,
+    .fe = .{
+        .limbs = [4]u64{
+            18446743986131435553,
+            160989183,
+            18446744073709255680,
+            576459263475450960,
+        },
     },
 };
 
@@ -86,7 +90,7 @@ pub fn sign(private_key: Felt252, message: Felt252, k: Felt252) !ExtendedSignatu
     s = s.add(message);
     s = s.mulModFloor(k_inv, EC_ORDER);
 
-    if (s.equal(Felt252.zero()) or s.ge(ELEMENT_UPPER_BOUND)) {
+    if (s.eql(Felt252.zero()) or s.ge(ELEMENT_UPPER_BOUND)) {
         return SignError.InvalidK;
     }
 
@@ -109,18 +113,18 @@ pub fn verify(
         return VerifyError.InvalidMessageHash;
     }
 
-    if (r.equal(Felt252.zero()) or r.ge(ELEMENT_UPPER_BOUND)) {
+    if (r.eql(Felt252.zero()) or r.ge(ELEMENT_UPPER_BOUND)) {
         return VerifyError.InvalidR;
     }
 
-    if (s.equal(Felt252.zero()) or s.ge(ELEMENT_UPPER_BOUND)) {
+    if (s.eql(Felt252.zero()) or s.ge(ELEMENT_UPPER_BOUND)) {
         return VerifyError.InvalidS;
     }
 
     const full_public_key = try AffinePoint.fromX(public_key);
 
     const w = try s.modInverse(EC_ORDER);
-    if (w.equal(Felt252.zero()) or w.ge(ELEMENT_UPPER_BOUND)) {
+    if (w.eql(Felt252.zero()) or w.ge(ELEMENT_UPPER_BOUND)) {
         return VerifyError.InvalidS;
     }
 
@@ -130,7 +134,7 @@ pub fn verify(
     const rw = r.mulModFloor(w, EC_ORDER);
     const rw_q = mulByBits(full_public_key, rw);
 
-    return (zw_g.add(rw_q).x.equal(r) or zw_g.sub(rw_q).x.equal(r));
+    return (zw_g.add(rw_q).x.eql(r) or zw_g.sub(rw_q).x.eql(r));
 }
 
 test "ECDSA: verify signature" {

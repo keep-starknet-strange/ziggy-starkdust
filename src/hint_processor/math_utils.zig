@@ -43,7 +43,7 @@ pub fn isNn(
     const a = try hint_utils.getIntegerFromVarName("a", vm, ids_data, ap_tracking);
     const range_check_builtin = try vm.getRangeCheckBuiltin();
     //Main logic (assert a is not negative and within the expected range)
-    const value = if (range_check_builtin.bound) |bound| if (a.ge(bound)) Felt252.one() else Felt252.zero() else Felt252.zero();
+    const value = if (range_check_builtin.bound) |bound| if (a.cmp(&bound).compare(.gte)) Felt252.one() else Felt252.zero() else Felt252.zero();
 
     try hint_utils.insertValueIntoAp(allocator, vm, MaybeRelocatable.fromFelt(value));
 }
@@ -60,7 +60,7 @@ pub fn isNnOutOfRange(
     //Main logic (assert a is not negative and within the expected range)
     //let value = if (-a - 1usize).mod_floor(vm.get_prime()) < range_check_builtin._bound {
 
-    const value = if (range_check_builtin.bound) |bound| if (Felt252.zero().sub(a.add(Felt252.one())).lt(bound)) Felt252.zero() else Felt252.one() else Felt252.zero();
+    const value = if (range_check_builtin.bound) |bound| if (Felt252.zero().sub(&a.add(&Felt252.one())).cmp(&bound).compare(.lt)) Felt252.zero() else Felt252.one() else Felt252.zero();
 
     try hint_utils.insertValueIntoAp(allocator, vm, MaybeRelocatable.fromFelt(value));
 }
@@ -73,7 +73,7 @@ pub fn assertLeFeltV06(
     const a = try hint_utils.getIntegerFromVarName("a", vm, ids_data, ap_tracking);
     const b = try hint_utils.getIntegerFromVarName("b", vm, ids_data, ap_tracking);
 
-    if (a.gt(b)) {
+    if (a.cmp(&b).compare(.gt)) {
         return HintError.NonLeFelt252;
     }
 }
@@ -87,11 +87,11 @@ pub fn assertLeFeltV08(
     const a = try hint_utils.getIntegerFromVarName("a", vm, ids_data, ap_tracking);
     const b = try hint_utils.getIntegerFromVarName("b", vm, ids_data, ap_tracking);
 
-    if (a.gt(b)) return HintError.NonLeFelt252;
+    if (a.cmp(&b).compare(.gt)) return HintError.NonLeFelt252;
 
     const bound = (try vm.getRangeCheckBuiltin()).bound orelse Felt252.zero();
     const small_inputs =
-        if (a.lt(bound) and b.sub(a).lt(bound)) Felt252.one() else Felt252.zero();
+        if (a.cmp(&bound).compare(.lt) and b.sub(&a).cmp(&bound).compare(.lt)) Felt252.one() else Felt252.zero();
 
     try hint_utils.insertValueFromVarName(allocator, "small_inputs", MaybeRelocatable.fromFelt(small_inputs), vm, ids_data, ap_tracking);
 }
@@ -111,8 +111,8 @@ pub fn abBitand1(
     const b = try hint_utils.getIntegerFromVarName("b", vm, ids_data, ap_tracking);
 
     const two = Felt252.two();
-    const a_lsb = (try a.divRem(two)).r;
-    const b_lsb = (try b.divRem(two)).r;
+    _, const a_lsb = (try a.divRem(two));
+    _, const b_lsb = (try b.divRem(two));
 
     try hint_utils.insertValueFromVarName(allocator, "a_lsb", MaybeRelocatable.fromFelt(a_lsb), vm, ids_data, ap_tracking);
     try hint_utils.insertValueFromVarName(allocator, "b_lsb", MaybeRelocatable.fromFelt(b_lsb), vm, ids_data, ap_tracking);
@@ -129,7 +129,7 @@ pub fn isLeFelt(
     const a_mod = try hint_utils.getIntegerFromVarName("a", vm, ids_data, ap_tracking);
     const b_mod = try hint_utils.getIntegerFromVarName("b", vm, ids_data, ap_tracking);
 
-    const value = if (a_mod.gt(b_mod)) Felt252.one() else Felt252.zero();
+    const value = if (a_mod.cmp(&b_mod).compare(.gt)) Felt252.one() else Felt252.zero();
 
     try hint_utils.insertValueIntoAp(allocator, vm, MaybeRelocatable.fromFelt(value));
 }
@@ -151,9 +151,9 @@ pub fn splitInt(
     const output = try hint_utils.getPtrFromVarName("output", vm, ids_data, ap_tracking);
 
     //Main Logic
-    const res = (try value.divRem(base)).r;
+    _, const res = (try value.divRem(base));
 
-    if (res.gt(bound))
+    if (res.cmp(&bound).compare(.gt))
         return HintError.SplitIntLimbOutOfRange;
 
     try vm.insertInMemory(allocator, output, MaybeRelocatable.fromFelt(res));
@@ -179,7 +179,7 @@ pub fn isAddrBounded(
 
     const addr_bound_felt = constants
         .get(ADDR_BOUND) orelse return HintError.MissingConstant;
-    const addr_bound = addr_bound_felt.toInteger();
+    const addr_bound = addr_bound_felt.toU256();
 
     const lower_bound: u256 = 1 << 250;
     const upper_bound: u256 = 1 << 251;
@@ -192,7 +192,7 @@ pub fn isAddrBounded(
         return HintError.AssertionFailed;
 
     // Main logic: ids.is_small = 1 if ids.addr < ADDR_BOUND else 0
-    const is_small = if (addr.lt(addr_bound_felt)) Felt252.one() else Felt252.zero();
+    const is_small = if (addr.cmp(&addr_bound_felt).compare(.lt)) Felt252.one() else Felt252.zero();
 
     try hint_utils.insertValueFromVarName(allocator, "is_small", MaybeRelocatable.fromFelt(is_small), vm, ids_data, ap_tracking);
 }
@@ -208,7 +208,7 @@ pub fn is250Bits(
     const addr = try hint_utils.getIntegerFromVarName("addr", vm, ids_data, ap_tracking);
 
     // Main logic: ids.is_250 = 1 if ids.addr < 2**250 else 0
-    const is_250 = if (addr.numBits() <= 250) Felt252.one() else Felt252.zero();
+    const is_250 = if (addr.numBitsLe() <= 250) Felt252.one() else Felt252.zero();
 
     try hint_utils.insertValueFromVarName(allocator, "is_250", MaybeRelocatable.fromFelt(is_250), vm, ids_data, ap_tracking);
 }
@@ -235,7 +235,7 @@ pub fn splitXx(
     const xx_u = try Uint256.fromVarName("xx", vm, ids_data, ap_tracking);
     const x_addr = try hint_utils.getRelocatableFromVarName("x", vm, ids_data, ap_tracking);
 
-    const xx = xx_u.low.toInteger() + xx_u.high.mul(Felt252.pow2Const(128)).toInteger();
+    const xx = xx_u.low.toU256() + xx_u.high.mul(&Felt252.pow2Const(128)).toU256();
 
     var x = field_helper.powModulus(
         xx,
@@ -252,9 +252,9 @@ pub fn splitXx(
     try vm.insertInMemory(
         allocator,
         x_addr,
-        MaybeRelocatable.fromFelt(Felt252.fromInt(u512, x & std.math.maxInt(u128))),
+        MaybeRelocatable.fromFelt(Felt252.fromInt(u256, @intCast((x & std.math.maxInt(u128)) % STARKNET_PRIME))),
     );
-    try vm.insertInMemory(allocator, try x_addr.addUint(1), MaybeRelocatable.fromFelt(Felt252.fromInt(u512, x >> 128)));
+    try vm.insertInMemory(allocator, try x_addr.addUint(1), MaybeRelocatable.fromFelt(Felt252.fromInt(u256, @intCast((x >> 128) % STARKNET_PRIME))));
 }
 
 const SPLIT_XX_PRIME: u256 = 57896044618658097711785492504343953926634992332820282019728792003956564819949;
@@ -269,9 +269,9 @@ pub fn isQuadResidue(
     const x = try hint_utils.getIntegerFromVarName("x", vm, ids_data, ap_tracking);
 
     const value =
-        if (x.isZero() or x.equal(Felt252.one()))
+        if (x.isZero() or x.eql(Felt252.one()))
         x
-    else if (x.pow((try Felt252.Max.divRem(Felt252.two())).q.toInteger()).equal(Felt252.one()))
+    else if (x.powToInt((try field_helper.felt252MaxValue().divRem(Felt252.two()))[0].toU256()).eql(Felt252.one()))
         x.sqrt() orelse Felt252.zero()
     else
         (try x.div(Felt252.three()))
@@ -281,7 +281,7 @@ pub fn isQuadResidue(
 }
 
 fn divPrimeByBound(bound: Felt252) !Felt252 {
-    return Felt252.fromInt(u256, STARKNET_PRIME / bound.toInteger());
+    return Felt252.fromInt(u256, STARKNET_PRIME / bound.toU256());
 }
 
 fn primeDivConstant(bound: u32) !u256 {

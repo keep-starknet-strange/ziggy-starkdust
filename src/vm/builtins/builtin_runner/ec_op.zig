@@ -4,7 +4,8 @@ const EcOpInstanceDef = ec_op_instance_def.EcOpInstanceDef;
 const relocatable = @import("../../memory/relocatable.zig");
 const CoreVM = @import("../../../vm/core.zig");
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
-const EC = @import("../../../math/crypto/curve/ec_point.zig");
+const starknet = @import("starknet");
+const EC = starknet.curve;
 const Error = @import("../../error.zig");
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
@@ -175,18 +176,18 @@ pub const EcOpBuiltinRunner = struct {
             if (!EC.AffinePoint.initUnchecked(
                 input_cells.items[pair[0]],
                 input_cells.items[pair[1]],
-                EC.ALPHA,
                 false,
-            ).pointOnCurve(EC.ALPHA, EC.BETA))
+            ).isOnCurve())
                 return error.PointNotOnCurve;
         }
 
         const height = 256;
 
         const result = try EC.ecOpImpl(
-            EC.AffinePoint.initUnchecked(input_cells.items[0], input_cells.items[1], EC.ALPHA, false),
-            EC.AffinePoint.initUnchecked(input_cells.items[2], input_cells.items[3], EC.ALPHA, false),
+            .{ .x = input_cells.items[0], .y = input_cells.items[1] },
+            .{ .x = input_cells.items[2], .y = input_cells.items[3] },
             input_cells.items[4],
+            EC.ALPHA,
             height,
         );
         try self.cache.put(x_addr, result.x);

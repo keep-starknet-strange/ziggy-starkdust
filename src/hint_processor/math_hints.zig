@@ -42,7 +42,7 @@ pub fn assertNN(
     const range_check = try vm.getRangeCheckBuiltin();
 
     if (range_check.bound) |bound| {
-        if (a.ge(bound)) {
+        if (a.cmp(&bound).compare(.gte)) {
             return HintError.AssertNNValueOutOfRange;
         }
     }
@@ -52,10 +52,10 @@ pub fn isPositive(allocator: Allocator, vm: *CairoVM, ids_data: std.StringHashMa
     const value = try hint_utils.getIntegerFromVarName("value", vm, ids_data, ap_tracking);
     const range_check = try vm.getRangeCheckBuiltin();
 
-    const signed_value = value.toSignedInt();
+    const signed_value = try value.toSignedInt(i256);
 
     if (range_check.bound) |bound| {
-        if (@abs(signed_value) > bound.toInteger()) {
+        if (@abs(signed_value) > bound.toU256()) {
             return HintError.ValueOutsideValidRange;
         }
     }
@@ -121,7 +121,7 @@ pub fn assertNotEqual(
 
     switch (maybe_rel_a) {
         .felt => |a| switch (maybe_rel_b) {
-            .felt => |b| if (a.sub(b).isZero()) return HintError.AssertNotEqualFail else return,
+            .felt => |b| if (a.sub(&b).isZero()) return HintError.AssertNotEqualFail else return,
             else => {},
         },
         .relocatable => |a| switch (maybe_rel_b) {
@@ -146,11 +146,11 @@ pub fn sqrt(
 ) !void {
     const mod_value = try hint_utils.getIntegerFromVarName("value", vm, ids_data, ap_tracking);
 
-    if (mod_value.gt(Felt252.two().pow(250))) {
+    if (mod_value.cmp(&Felt252.two().powToInt(250)).compare(.gt)) {
         return HintError.ValueOutside250BitRange;
     }
 
-    const root = Felt252.fromInt(u256, field_helper.isqrt(u256, mod_value.toInteger()) catch unreachable);
+    const root = Felt252.fromInt(u256, field_helper.isqrt(u256, mod_value.toU256()) catch unreachable);
 
     try hint_utils.insertValueFromVarName(
         allocator,
@@ -187,10 +187,10 @@ pub fn unsignedDivRem(
     const builtin = try vm.getRangeCheckBuiltin();
 
     if (builtin.bound) |b| {
-        if (div.isZero() or div.gt(divPrimeByBound(b))) return HintError.OutOfValidRange;
+        if (div.isZero() or div.cmp(&divPrimeByBound(b)).compare(.gt)) return HintError.OutOfValidRange;
     } else if (div.isZero()) return HintError.OutOfValidRange;
 
-    const qr = try (field_helper.divRem(u256, value.toInteger(), div.toInteger()) catch MathError.DividedByZero);
+    const qr = try (field_helper.divRem(u256, value.toU256(), div.toU256()) catch MathError.DividedByZero);
 
     try hint_utils.insertValueFromVarName(allocator, "r", MaybeRelocatable.fromInt(u256, qr[1]), vm, ids_data, ap_tracking);
     try hint_utils.insertValueFromVarName(allocator, "q", MaybeRelocatable.fromInt(u256, qr[0]), vm, ids_data, ap_tracking);
@@ -239,8 +239,8 @@ pub fn assertLeFelt(
     const prime_over_2_high = constants
         .get(PRIME_OVER_2_HIGH) orelse return HintError.MissingConstant;
 
-    const a = (try hint_utils.getIntegerFromVarName("a", vm, ids_data, ap_tracking)).toInteger();
-    const b = (try hint_utils.getIntegerFromVarName("b", vm, ids_data, ap_tracking)).toInteger();
+    const a = (try hint_utils.getIntegerFromVarName("a", vm, ids_data, ap_tracking)).toU256();
+    const b = (try hint_utils.getIntegerFromVarName("b", vm, ids_data, ap_tracking)).toU256();
     const range_check_ptr = try hint_utils.getPtrFromVarName("range_check_ptr", vm, ids_data, ap_tracking);
 
     // TODO: use UnsignedInteger for this
@@ -277,8 +277,8 @@ pub fn assertLeFelt(
 
     try exec_scopes.assignOrUpdateVariable("excluded", .{ .felt = Felt252.fromInt(u256, excluded) });
 
-    const qr0 = try field_helper.divModFloor(u256, lengths_and_indices[0][0], prime_over_3_high.toInteger());
-    const qr1 = try field_helper.divModFloor(u256, lengths_and_indices[1][0], prime_over_2_high.toInteger());
+    const qr0 = try field_helper.divModFloor(u256, lengths_and_indices[0][0], prime_over_3_high.toU256());
+    const qr1 = try field_helper.divModFloor(u256, lengths_and_indices[1][0], prime_over_2_high.toU256());
 
     try vm.insertInMemory(allocator, range_check_ptr, MaybeRelocatable.fromFelt(Felt252.fromInt(u256, qr0[1])));
     try vm.insertInMemory(allocator, try range_check_ptr.addInt(1), MaybeRelocatable.fromFelt(Felt252.fromInt(u256, qr0[0])));
@@ -318,7 +318,7 @@ pub fn assertLeFeltExcluded1(
 pub fn assertLeFeltExcluded2(exec_scopes: *ExecutionScopes) !void {
     const excluded = try exec_scopes.getValue(Felt252, "excluded");
 
-    if (!excluded.equal(Felt252.fromInt(u256, 2))) {
+    if (!excluded.eql(Felt252.two())) {
         return HintError.ExcludedNot2;
     }
 }
@@ -343,7 +343,7 @@ pub fn assertLtFelt(
     // assert_integer(ids.b)
     // assert (ids.a % PRIME) < (ids.b % PRIME), \
     //     f'a = {ids.a % PRIME} is not less than b = {ids.b % PRIME}.'
-    if (a.ge(b)) {
+    if (a.cmp(&b).compare(.gte)) {
         return HintError.AssertLtFelt252;
     }
 }
@@ -375,17 +375,15 @@ pub fn assert250Bit(
         ap_tracking,
     );
 
-    value = Felt252.fromSignedInt(value.toSignedInt());
-
     //Main logic
-    if (value.gt(upper_bound)) {
+    if (value.cmp(&upper_bound).compare(.gt)) {
         return HintError.ValueOutside250BitRange;
     }
 
-    const qr = try value.divRem(shift);
+    const q, const r = try value.divRem(shift);
 
-    try hint_utils.insertValueFromVarName(allocator, "high", MaybeRelocatable.fromFelt(qr.q), vm, ids_data, ap_tracking);
-    try hint_utils.insertValueFromVarName(allocator, "low", MaybeRelocatable.fromFelt(qr.r), vm, ids_data, ap_tracking);
+    try hint_utils.insertValueFromVarName(allocator, "high", MaybeRelocatable.fromFelt(q), vm, ids_data, ap_tracking);
+    try hint_utils.insertValueFromVarName(allocator, "low", MaybeRelocatable.fromFelt(r), vm, ids_data, ap_tracking);
 }
 
 //Implements hint:
@@ -404,14 +402,14 @@ pub fn splitFelt(
     ap_tracking: ApTracking,
     constants: *std.StringHashMap(Felt252),
 ) !void {
-    const bound = Felt252.two().pow(128);
+    const bound = Felt252.two().powToInt(128);
     const max_high = try hint_utils.getConstantFromVarName("MAX_HIGH", constants);
     const max_low = try hint_utils.getConstantFromVarName("MAX_LOW", constants);
 
-    if (!(max_high.lt(bound) and max_low.lt(bound)))
+    if (!(max_high.cmp(&bound).compare(.lt) and max_low.cmp(&bound).compare(.lt)))
         return HintError.AssertionFailed;
 
-    if (!Felt252.fromSignedInt(-1).equal(max_high.mul(bound).add(max_low)))
+    if (!Felt252.fromInt(i8, -1).eql(max_high.mul(&bound).add(&max_low)))
         return HintError.AssertionFailed;
 
     const value = try hint_utils.getIntegerFromVarName("value", vm, ids_data, ap_tracking);
@@ -419,10 +417,10 @@ pub fn splitFelt(
     //assert_integer(ids.value) (done by match)
     // ids.low = ids.value & ((1 << 128) - 1)
     // ids.high = ids.value >> 128
-    const high_low = try value.divRem(bound);
+    const high, const low = try value.divRem(bound);
 
-    try hint_utils.insertValueFromVarName(allocator, "high", MaybeRelocatable.fromFelt(high_low.q), vm, ids_data, ap_tracking);
-    try hint_utils.insertValueFromVarName(allocator, "low", MaybeRelocatable.fromFelt(high_low.r), vm, ids_data, ap_tracking);
+    try hint_utils.insertValueFromVarName(allocator, "high", MaybeRelocatable.fromFelt(high), vm, ids_data, ap_tracking);
+    try hint_utils.insertValueFromVarName(allocator, "low", MaybeRelocatable.fromFelt(low), vm, ids_data, ap_tracking);
 }
 
 //Implements hint: assert ids.value == 0, 'split_int(): value is out of range.'
@@ -439,7 +437,7 @@ pub fn splitIntAssertRange(
 }
 
 fn divPrimeByBound(bound: Felt252) Felt252 {
-    return Felt252.fromInt(u256, STARKNET_PRIME / bound.toInteger());
+    return Felt252.fromInt(u256, STARKNET_PRIME / bound.toU256());
 }
 
 // Implements hint:
@@ -475,31 +473,32 @@ pub fn signedDivRem(
     const bound = try hint_utils.getIntegerFromVarName("bound", vm, ids_data, ap_tracking);
     const builtin = try vm.getRangeCheckBuiltin();
 
-    const builtin_bound = builtin.bound orelse Felt252.Max;
-    if (div.isZero() or div.gt(divPrimeByBound(builtin_bound)))
+    const builtin_bound = builtin.bound orelse field_helper.felt252MaxValue();
+
+    if (div.isZero() or div.cmp(&divPrimeByBound(builtin_bound)).compare(.gt))
         return HintError.OutOfValidRange;
 
     const builtin_bound_div_2 = try builtin_bound.div(Felt252.two());
-    if (bound.gt(builtin_bound_div_2))
+    if (bound.cmp(&builtin_bound_div_2).compare(.gt))
         return HintError.OutOfValidRange;
 
-    const int_value = value.toSignedInt();
-    const int_div = div.toSignedInt();
-    const int_bound = bound.toSignedInt();
-    const qr = try field_helper.divModFloorSigned(int_value, int_div);
+    const int_value = try value.toSignedInt(i256);
+    const int_div = try div.toSignedInt(i256);
+    const int_bound = try bound.toSignedInt(i256);
+    const q, const r = try field_helper.divModFloorSigned(int_value, int_div);
 
     // int_value.div_mod_floor(&int_div);
 
-    if (@abs(int_bound) < @abs(qr[0])) {
+    if (@abs(int_bound) < @abs(q)) {
         return HintError.OutOfValidRange;
     }
 
-    const biased_q = qr[0] + int_bound;
+    const biased_q = q + int_bound;
 
     try hint_utils.insertValueFromVarName(
         allocator,
         "r",
-        MaybeRelocatable.fromFelt(Felt252.fromSignedInt(qr[1])),
+        MaybeRelocatable.fromFelt(Felt252.fromInt(i256, r)),
         vm,
         ids_data,
         ap_tracking,
@@ -507,7 +506,7 @@ pub fn signedDivRem(
     try hint_utils.insertValueFromVarName(
         allocator,
         "biased_q",
-        MaybeRelocatable.fromFelt(Felt252.fromSignedInt(biased_q)),
+        MaybeRelocatable.fromFelt(Felt252.fromInt(i256, biased_q)),
         vm,
         ids_data,
         ap_tracking,
@@ -1478,10 +1477,10 @@ test "MathHints: SplitFelt success" {
     const high = try hint_utils.getIntegerFromVarName("high", &vm, ids_data, .{});
     const low = try hint_utils.getIntegerFromVarName("low", &vm, ids_data, .{});
 
-    if (!high.equal(firstLimb.shl(64).bitOr(secondLimb)))
+    if (!high.eql(firstLimb.shl(64).bitOr(secondLimb)))
         return error.HighValueWrong;
 
-    if (!low.equal(thirdLimb.shl(64).bitOr(fourthLimb)))
+    if (!low.eql(thirdLimb.shl(64).bitOr(fourthLimb)))
         return error.LowValueWrong;
 }
 

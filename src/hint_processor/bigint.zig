@@ -45,10 +45,10 @@ pub fn bigintPackDivModHint(allocator: std.mem.Allocator, vm: *CairoVM, exec_sco
         }).pack86(allocator);
         defer x_lower.deinit();
 
-        var d3 = try x_bigint5.limbs[3].toSignedBigInt(allocator);
+        var d3 = try x_bigint5.limbs[3].toStdBigSignedInt(allocator);
         defer d3.deinit();
 
-        var d4 = try x_bigint5.limbs[3].toSignedBigInt(allocator);
+        var d4 = try x_bigint5.limbs[3].toStdBigSignedInt(allocator);
         defer d4.deinit();
 
         var tmp = try Int.init(allocator);

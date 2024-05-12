@@ -988,7 +988,7 @@ test "ProgramJson can be initialized from json file with correct program data" {
         try std.fmt.format(
             hex_list.writer(),
             "0x{x}",
-            .{data.items[idx].felt.toInteger()},
+            .{data.items[idx].felt.toU256()},
         );
 
         // Ensure the generated hexadecimal string matches the expected value.

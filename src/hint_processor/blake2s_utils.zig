@@ -22,7 +22,7 @@ const blake2s_hash = @import("blake2s_hash.zig");
 const builtin_hints = @import("builtin_hint_codes.zig");
 
 pub fn feltToU32(felt: Felt252) MathError!u32 {
-    const u256_val = felt.toInteger();
+    const u256_val = felt.toU256();
     if (u256_val > 0xFFFFFFFF) {
         return MathError.Felt252ToU32Conversion;
     }
@@ -187,9 +187,7 @@ pub fn blake2sAddUnit256(_: Allocator, vm: *CairoVM, ids_data: std.StringHashMap
     defer data.deinit();
     // first batch
     for (0..4) |_| {
-        const temp = try low.divRem(mask);
-        const q = temp.q;
-        const r = temp.r;
+        const q, const r = try low.divRem(mask);
         try data.append(MaybeRelocatable.fromFelt(r));
         low = q;
     }
@@ -197,9 +195,7 @@ pub fn blake2sAddUnit256(_: Allocator, vm: *CairoVM, ids_data: std.StringHashMap
     data.shrinkAndFree(0);
     // second batch
     for (0..4) |_| {
-        const temp = try high.divRem(mask);
-        const q = temp.q;
-        const r = temp.r;
+        const q, const r = try high.divRem(mask);
         try data.append(MaybeRelocatable.fromFelt(r));
         high = q;
     }
@@ -224,17 +220,13 @@ pub fn blake2sAddUnit256BigEnd(_: Allocator, vm: *CairoVM, ids_data: std.StringH
 
     // first batch
     for (0..4) |_| {
-        const temp = try low.divRem(mask);
-        const q = temp.q;
-        const r = temp.r;
+        const q, const r = try low.divRem(mask);
         try data.append(MaybeRelocatable.fromFelt(r));
         low = q;
     }
     // second batch
     for (0..4) |_| {
-        const temp = try high.divRem(mask);
-        const q = temp.q;
-        const r = temp.r;
+        const q, const r = try high.divRem(mask);
         try data.append(MaybeRelocatable.fromFelt(r));
         high = q;
     }

@@ -19,7 +19,7 @@ pub fn nGreaterThan10(
     ap_tracking: ApTracking,
 ) !void {
     const n = try hint_utils.getIntegerFromVarName("n", vm, ids_data, ap_tracking);
-    var val = n.toInteger();
+    var val = n.toU256();
     if (val > std.math.maxInt(usize))
         val = 10;
 
@@ -35,7 +35,7 @@ pub fn nGreaterThan2(
     ids_data: std.StringHashMap(HintReference),
     ap_tracking: ApTracking,
 ) !void {
-    var n = (try hint_utils.getIntegerFromVarName("n", vm, ids_data, ap_tracking)).toInteger();
+    var n = (try hint_utils.getIntegerFromVarName("n", vm, ids_data, ap_tracking)).toU256();
 
     if (n > std.math.maxInt(usize))
         n = 2;

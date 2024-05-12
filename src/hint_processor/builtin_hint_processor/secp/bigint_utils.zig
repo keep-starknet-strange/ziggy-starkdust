@@ -1,5 +1,6 @@
 const std = @import("std");
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
+const feltFromBigInt = @import("../../../math/fields/starknet.zig").fromBigInt;
 const Relocatable = @import("../../../vm/memory/relocatable.zig").Relocatable;
 const CairoVM = @import("../../../vm/core.zig").CairoVM;
 const HintError = @import("../../../vm/error.zig").HintError;
@@ -21,6 +22,8 @@ const bigInt3Split = secp_utils.bigInt3Split;
 const BigInt = std.math.big.int.Managed;
 const BASE = @import("../../../math//fields/constants.zig").BASE;
 const hint_codes = @import("../../builtin_hint_codes.zig");
+
+const field_helper = @import("../../../math/fields/helper.zig");
 
 pub const BigInt3 = BigIntN(3);
 pub const Uint384 = BigIntN(3);
@@ -76,7 +79,7 @@ pub fn BigIntN(comptime NUM_LIMBS: usize) type {
             errdefer result.deinit();
 
             inline for (0..3) |i| {
-                var tmp = try self.limbs[i].toSignedBigInt(allocator);
+                var tmp = try self.limbs[i].toStdBigSignedInt(allocator);
                 defer tmp.deinit();
 
                 try tmp.shiftLeft(&tmp, i * 86);
@@ -115,9 +118,9 @@ pub fn nondetBigInt3(allocator: std.mem.Allocator, vm: *CairoVM, exec_scopes: *E
     defer for (0..arg.len) |x| arg[x].deinit();
 
     const result: [3]MaybeRelocatable = .{
-        MaybeRelocatable.fromInt(u512, try arg[0].to(u512)),
-        MaybeRelocatable.fromInt(u512, try arg[1].to(u512)),
-        MaybeRelocatable.fromInt(u512, try arg[2].to(u512)),
+        MaybeRelocatable.fromFelt(try feltFromBigInt(allocator, arg[0])),
+        MaybeRelocatable.fromFelt(try feltFromBigInt(allocator, arg[1])),
+        MaybeRelocatable.fromFelt(try feltFromBigInt(allocator, arg[2])),
     };
 
     _ = try vm.segments.loadData(allocator, res_reloc, result[0..]);
@@ -136,7 +139,7 @@ pub fn bigintToUint256(allocator: std.mem.Allocator, vm: *CairoVM, ids_data: std
 
     const mask = pow2ConstNz(128);
 
-    const low = (d0.add(d1.mul(base_86))).mod(mask);
+    const low = (try (d0.add(&d1.mul(&base_86))).divRem(mask))[1];
 
     try hint_utils.insertValueFromVarName(allocator, "low", MaybeRelocatable.fromFelt(low), vm, ids_data, ap_tracking);
 }
@@ -148,13 +151,13 @@ pub fn hiMaxBitlen(vm: *CairoVM, allocator: std.mem.Allocator, ids_data: std.Str
     var scalar_v = try BigInt3.fromVarName("scalar_v", vm, ids_data, ap_tracking);
 
     // get number of bits in the highest limb
-    const len_hi_u = scalar_u.limbs[2].numBits();
-    const len_hi_v = scalar_v.limbs[2].numBits();
+    const len_hi_u = scalar_u.limbs[2].numBitsLe();
+    const len_hi_v = scalar_v.limbs[2].numBitsLe();
 
     const len_hi = @max(len_hi_u, len_hi_v);
 
     // equal to `len_hi.wrapping_sub(1)`
-    const res = if (len_hi == 0) Felt252.Max.toInteger() else len_hi - 1;
+    const res = if (len_hi == 0) field_helper.felt252MaxValue().toU256() else len_hi - 1;
 
     try hint_utils.insertValueFromVarName(allocator, "len_hi", MaybeRelocatable.fromInt(u256, res), vm, ids_data, ap_tracking);
 }

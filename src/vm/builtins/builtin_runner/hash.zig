@@ -19,7 +19,7 @@ const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 const MemorySegmentManager = Segments.MemorySegmentManager;
 const RunnerError = Error.RunnerError;
-const pedersen_hash = @import("../../../math/crypto/pedersen/pedersen.zig").pedersenHash;
+const pedersen_hash = @import("starknet").crypto.pedersenHash;
 const CairoVMError = @import("../../../vm/error.zig").CairoVMError;
 
 /// Hash built-in runner

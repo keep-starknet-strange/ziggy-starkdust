@@ -4,6 +4,7 @@ const testing_utils = @import("testing_utils.zig");
 const CoreVM = @import("../vm/core.zig");
 const field_helper = @import("../math/fields/helper.zig");
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
+const fromBigInt = @import("../math/fields/starknet.zig").fromBigInt;
 const STARKNET_PRIME = @import("../math/fields/fields.zig").STARKNET_PRIME;
 const SIGNED_FELT_MAX = @import("../math/fields/fields.zig").SIGNED_FELT_MAX;
 const MaybeRelocatable = @import("../vm/memory/relocatable.zig").MaybeRelocatable;
@@ -95,6 +96,12 @@ fn randomEcPointSeeded(allocator: std.mem.Allocator, seed_bytes: []const u8) !st
     var buffer: [1]u8 = undefined;
     var hash_buffer: [@sizeOf(u256)]u8 = undefined;
 
+    var tmp = try std.math.big.int.Managed.init(allocator);
+    defer tmp.deinit();
+
+    var tmp1 = try std.math.big.int.Managed.init(allocator);
+    defer tmp1.deinit();
+
     for (0..100) |i| {
         // Calculate x
         std.mem.writeInt(u8, &buffer, @intCast(i), .little);
@@ -113,7 +120,16 @@ fn randomEcPointSeeded(allocator: std.mem.Allocator, seed_bytes: []const u8) !st
         const y_coef = std.math.pow(i32, -1, seed[0] & 1);
 
         // Calculate y
-        if (recoverY(x)) |y| return .{ Felt252.fromInt(u256, x), Felt252.fromSignedInt(@as(i256, @intCast(y)) * y_coef) };
+        if (recoverY(x)) |y| {
+            try tmp.set(y_coef);
+            try tmp1.set(y);
+            try tmp.mul(&tmp1, &tmp);
+
+            return .{
+                Felt252.fromInt(u256, x),
+                try fromBigInt(allocator, tmp),
+            };
+        }
     }
 
     return HintError.RandomEcPointNotOnCurve;
@@ -155,10 +171,10 @@ pub fn chainedEcOpRandomEcPointHint(
 ) !void {
     const n_elms_f = try hint_utils.getIntegerFromVarName("len", vm, ids_data, ap_tracking);
 
-    if (n_elms_f.isZero() or (if (n_elms_f.intoUsizeOrOptional() == null) true else false))
+    if (n_elms_f.isZero() or (if (n_elms_f.toInt(usize) catch null == null) true else false))
         return HintError.InvalidLenValue;
 
-    const n_elms = n_elms_f.intoUsizeOrOptional().?;
+    const n_elms = try n_elms_f.toInt(usize);
     const p = try EcPoint.fromVarName("p", vm, ids_data, ap_tracking);
     const m = try hint_utils.getPtrFromVarName("m", vm, ids_data, ap_tracking);
     const q = try hint_utils.getPtrFromVarName("q", vm, ids_data, ap_tracking);
@@ -202,7 +218,7 @@ pub fn recoverYHint(
     try vm.insertInMemory(allocator, p_addr, MaybeRelocatable.fromFelt(p_x));
     const p_y = Felt252.fromInt(
         u256,
-        recoverY(p_x.toInteger()) orelse return HintError.RecoverYPointNotOnCurve,
+        recoverY(p_x.toU256()) orelse return HintError.RecoverYPointNotOnCurve,
     );
 
     try vm.insertInMemory(
@@ -224,7 +240,7 @@ fn recoverY(x: u256) ?u256 {
     const y_squared: u512 = field_helper.powModulus(x, 3, STARKNET_PRIME) + ALPHA * x + BETA;
 
     return if (isQuadResidue(y_squared))
-        Felt252.fromInt(u512, y_squared).sqrt().?.toInteger()
+        Felt252.fromInt(u256, @intCast(y_squared % STARKNET_PRIME)).sqrt().?.toU256()
     else
         null;
 }

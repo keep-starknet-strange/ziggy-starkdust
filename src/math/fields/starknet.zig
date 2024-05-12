@@ -7,13 +7,10 @@ const FELT_BYTE_SIZE = @import("./constants.zig").FELT_BYTE_SIZE;
 const expect = std.testing.expect;
 const expectEqual = std.testing.expectEqual;
 
-// Base field for the Stark curve.
-// The prime is 0x800000000000011000000000000000000000000000000000000000000000001.
-pub const Felt252 = fields.Field(
-    @import("stark_felt_252_gen_fp.zig"),
-    STARKNET_PRIME,
-);
+const starknet = @import("starknet");
+pub const Felt252 = starknet.fields.Felt252;
 
+// TODO: desc
 pub fn bigIntToBytesLe(allocator: std.mem.Allocator, bigint: std.math.big.int.Managed) ![]u8 {
     var buf = try allocator.alloc(u8, @sizeOf(usize) * bigint.len());
     errdefer allocator.free(buf);
@@ -27,6 +24,7 @@ pub fn bigIntToBytesLe(allocator: std.mem.Allocator, bigint: std.math.big.int.Ma
 pub fn fromBigInt(allocator: std.mem.Allocator, bigint: std.math.big.int.Managed) !Felt252 {
     var tmp = try std.math.big.int.Managed.init(allocator);
     defer tmp.deinit();
+
     var tmp2 = try std.math.big.int.Managed.initSet(allocator, STARKNET_PRIME);
     defer tmp2.deinit();
 
@@ -51,25 +49,29 @@ pub fn fromBytesLeSlice(bytes: []const u8) Felt252 {
     // multiplying by BASE, effectively decomposing in base 2^256 to build
     // digits with a length of 32 bytes. This is analogous to splitting the
     // number `xyz` as `x * 10^2 + y * 10^1 + z * 10^0`.
-    const BASE: Felt252 = .{ .fe = .{
+    const BASE: Felt252 = .{ .fe = .{ .limbs = .{
         18446741271209837569,
         5151653887,
         18446744073700081664,
         576413109808302096,
-    } };
+    } } };
+
     // Sanity check; gets removed in release builds.
-    std.debug.assert(BASE.equal(Felt252.two().pow(256)));
+    comptime {
+        std.debug.assert(BASE.eql(Felt252.two().powToInt(256)));
+    }
 
     var factor = Felt252.one();
     var res = Felt252.zero();
 
     const chunks = bytes.len / 32;
     const remainder = bytes.len % 32;
-    for (0..chunks) |i| {
-        const digit = Felt252.fromBytes(bytes[i * 32 .. (i + 1) * 32][0..32].*);
 
-        res = res.add(digit.mul(factor));
-        factor = factor.mul(BASE);
+    for (0..chunks) |i| {
+        const digit = Felt252.fromBytesLe(bytes[i * 32 .. (i + 1) * 32][0..32].*);
+
+        res = res.add(&digit.mul(&factor));
+        factor = factor.mul(&BASE);
     }
 
     if (remainder == 0) return res;
@@ -78,8 +80,8 @@ pub fn fromBytesLeSlice(bytes: []const u8) Felt252 {
 
     std.mem.copyForwards(u8, buf[0..], bytes[chunks * 32 ..]);
 
-    const digit = Felt252.fromBytes(buf);
-    return res.add(digit.mul(factor));
+    const digit = Felt252.fromBytesLe(buf);
+    return res.add(&digit.mul(&factor));
 }
 
 pub const PRIME_STR = "0x800000000000011000000000000000000000000000000000000000000000001";
@@ -87,90 +89,90 @@ pub const PRIME_STR = "0x8000000000000110000000000000000000000000000000000000000
 test "Felt252: fromU8 should return a field element from a u8" {
     try expectEqual(
         @as(u256, std.math.maxInt(u8)),
-        Felt252.fromInt(u8, std.math.maxInt(u8)).toInteger(),
+        Felt252.fromInt(u8, std.math.maxInt(u8)).tou256(),
     );
     try expectEqual(
         @as(u256, std.math.maxInt(u8) / 3 * 2),
-        Felt252.fromInt(u8, std.math.maxInt(u8) / 3 * 2).toInteger(),
+        Felt252.fromInt(u8, std.math.maxInt(u8) / 3 * 2).tou256(),
     );
     try expectEqual(
         @as(u256, std.math.maxInt(u8) / 3),
-        Felt252.fromInt(u8, std.math.maxInt(u8) / 3).toInteger(),
+        Felt252.fromInt(u8, std.math.maxInt(u8) / 3).tou256(),
     );
 }
 
 test "Felt252: fromU16 should return a field element from a u16" {
     try expectEqual(
         @as(u256, std.math.maxInt(u16)),
-        Felt252.fromInt(u16, std.math.maxInt(u16)).toInteger(),
+        Felt252.fromInt(u16, std.math.maxInt(u16)).tou256(),
     );
     try expectEqual(
         @as(u256, std.math.maxInt(u16) / 3 * 2),
-        Felt252.fromInt(u16, std.math.maxInt(u16) / 3 * 2).toInteger(),
+        Felt252.fromInt(u16, std.math.maxInt(u16) / 3 * 2).tou256(),
     );
     try expectEqual(
         @as(u256, std.math.maxInt(u16) / 3),
-        Felt252.fromInt(u16, std.math.maxInt(u16) / 3).toInteger(),
+        Felt252.fromInt(u16, std.math.maxInt(u16) / 3).tou256(),
     );
 }
 
 test "Felt252: fromU32 should return a field element from a u32" {
     try expectEqual(
         @as(u256, std.math.maxInt(u32)),
-        Felt252.fromInt(u32, std.math.maxInt(u32)).toInteger(),
+        Felt252.fromInt(u32, std.math.maxInt(u32)).tou256(),
     );
     try expectEqual(
         @as(u256, std.math.maxInt(u32) / 3 * 2),
-        Felt252.fromInt(u32, std.math.maxInt(u32) / 3 * 2).toInteger(),
+        Felt252.fromInt(u32, std.math.maxInt(u32) / 3 * 2).tou256(),
     );
     try expectEqual(
         @as(u256, std.math.maxInt(u32) / 3),
-        Felt252.fromInt(u32, std.math.maxInt(u32) / 3).toInteger(),
+        Felt252.fromInt(u32, std.math.maxInt(u32) / 3).tou256(),
     );
 }
 
 test "Felt252: fromU64 should return a field element from a u64" {
     try expectEqual(
         @as(u256, std.math.maxInt(u64)),
-        Felt252.fromInt(u64, std.math.maxInt(u64)).toInteger(),
+        Felt252.fromInt(u64, std.math.maxInt(u64)).tou256(),
     );
     try expectEqual(
         @as(u256, std.math.maxInt(u64) / 3 * 2),
-        Felt252.fromInt(u64, std.math.maxInt(u64) / 3 * 2).toInteger(),
+        Felt252.fromInt(u64, std.math.maxInt(u64) / 3 * 2).tou256(),
     );
     try expectEqual(
         @as(u256, std.math.maxInt(u64) / 3),
-        Felt252.fromInt(u64, std.math.maxInt(u64) / 3).toInteger(),
+        Felt252.fromInt(u64, std.math.maxInt(u64) / 3).tou256(),
     );
 }
 
 test "Felt252: fromUsize should return a field element from a usize" {
     try expectEqual(
         @as(u256, std.math.maxInt(usize)),
-        Felt252.fromInt(usize, std.math.maxInt(usize)).toInteger(),
+        Felt252.fromInt(usize, std.math.maxInt(usize)).tou256(),
     );
     try expectEqual(
         @as(u256, std.math.maxInt(usize) / 3 * 2),
-        Felt252.fromInt(usize, std.math.maxInt(usize) / 3 * 2).toInteger(),
+        Felt252.fromInt(usize, std.math.maxInt(usize) / 3 * 2).tou256(),
     );
     try expectEqual(
         @as(u256, std.math.maxInt(usize) / 3),
-        Felt252.fromInt(usize, std.math.maxInt(usize) / 3).toInteger(),
+        Felt252.fromInt(usize, std.math.maxInt(usize) / 3).tou256(),
     );
 }
 
 test "Felt252: fromU128 should return a field element from a u128" {
     try expectEqual(
         @as(u256, std.math.maxInt(u128)),
-        Felt252.fromInt(u128, std.math.maxInt(u128)).toInteger(),
+        Felt252.fromInt(u128, std.math.maxInt(u128)).tou256(),
     );
     try expectEqual(
         @as(u256, std.math.maxInt(u128) / 3 * 2),
-        Felt252.fromInt(u128, std.math.maxInt(u128) / 3 * 2).toInteger(),
+        Felt252.fromInt(u128, std.math.maxInt(u128) / 3 * 2).tou256(),
     );
     try expectEqual(
         @as(u256, std.math.maxInt(u128) / 3),
-        Felt252.fromInt(u128, std.math.maxInt(u128) / 3).toInteger(),
+        Felt252.fromInt(u128, std.math.maxInt(u128) / 3).tou256(),
     );
 }
 
@@ -208,7 +210,7 @@ test "Felt252 toInteger" {
             u256,
             10,
         ),
-        Felt252.fromInt(u8, 10).toInteger(),
+        Felt252.fromInt(u8, 10).tou256(),
     );
 
     try expectEqual(
@@ -216,7 +218,7 @@ test "Felt252 toInteger" {
             u256,
             0x7fffffffffffdf0ffffffffffffffffffffffffffffffffffffffffffffffe0,
         ),
-        Felt252.fromInt(u256, std.math.maxInt(u256)).toInteger(),
+        Felt252.fromInt(u256, std.math.maxInt(u256)).tou256(),
     );
 }
 
@@ -245,9 +247,9 @@ test "Felt252 zero" {
 }
 
 test "Felt252 equal" {
-    try expect(Felt252.zero().equal(Felt252.zero()));
-    try expect(Felt252.fromInt(u8, 10).equal(Felt252.fromInt(u8, 10)));
-    try expect(!Felt252.fromInt(u8, 100).equal(Felt252.fromInt(u8, 10)));
+    try expect(Felt252.zero().eql(Felt252.zero()));
+    try expect(Felt252.fromInt(u8, 10).eql(Felt252.fromInt(u8, 10)));
+    try expect(!Felt252.fromInt(u8, 100).eql(Felt252.fromInt(u8, 10)));
 }
 
 test "Felt252 isZero" {
@@ -302,12 +304,12 @@ test "Felt252 fromBytes" {
             u256,
             0x96f8e63ba9b2bcea770f6a07c669ba51ce76df2f67195f5f5f5f5f5f5f5f4e,
         ),
-        Felt252.fromBytes(a).toInteger(),
+        Felt252.fromBytesLe(a).tou256(),
     );
 
     try expectEqual(
         Felt252.fromInt(u256, 0x96f8e63ba9b2bcea770f6a07c669ba51ce76df2f67195f5f5f5f5f5f5f5f4e),
-        Felt252.fromBytes(a),
+        Felt252.fromBytesLe(a),
     );
 }
 
@@ -358,18 +360,18 @@ test "Felt252 intoU64" {
             u64,
             10,
         ),
-        try Felt252.fromInt(u8, 10).intoU64(),
+        try Felt252.fromInt(u8, 10).toInt(u64),
     );
     try expectEqual(
         @as(
             u64,
             std.math.maxInt(u64),
         ),
-        try Felt252.fromInt(u64, std.math.maxInt(u64)).intoU64(),
+        try Felt252.fromInt(u64, std.math.maxInt(u64)).toInt(u64),
     );
     try std.testing.expectError(
         error.ValueTooLarge,
-        Felt252.fromInt(u128, std.math.maxInt(u64) + 1).intoU64(),
+        Felt252.fromInt(u128, std.math.maxInt(u64) + 1).toInt(u64),
     );
 }
 
@@ -377,7 +379,7 @@ test "Felt252 arithmetic operations" {
     const a = Felt252.one();
     const b = Felt252.two();
     const c = a.add(b);
-    try expect(c.equal(Felt252.three()));
+    try expect(c.eql(Felt252.three()));
 }
 
 test "Felt252 add" {
@@ -386,7 +388,7 @@ test "Felt252 add" {
             u256,
             0xf,
         ),
-        Felt252.fromInt(u8, 10).add(Felt252.fromInt(u8, 5)).toInteger(),
+        Felt252.fromInt(u8, 10).add(Felt252.fromInt(u8, 5)).tou256(),
     );
     try expect(Felt252.one().add(Felt252.zero()).isOne());
     try expect(Felt252.zero().add(Felt252.zero()).isZero());
@@ -395,7 +397,7 @@ test "Felt252 add" {
             u256,
             0x7fffffffffffbd0ffffffffffffffffffffffffffffffffffffffffffffffbf,
         ),
-        Felt252.fromInt(u256, std.math.maxInt(u256)).add(Felt252.fromInt(u256, std.math.maxInt(u256))).toInteger(),
+        Felt252.fromInt(u256, std.math.maxInt(u256)).add(Felt252.fromInt(u256, std.math.maxInt(u256))).tou256(),
     );
 }
 
@@ -405,7 +407,7 @@ test "Felt252 sub" {
             u256,
             0x5,
         ),
-        Felt252.fromInt(u8, 10).sub(Felt252.fromInt(u8, 5)).toInteger(),
+        Felt252.fromInt(u8, 10).sub(Felt252.fromInt(u8, 5)).tou256(),
     );
     try expect(Felt252.fromInt(u256, std.math.maxInt(u256)).sub(Felt252.fromInt(u256, std.math.maxInt(u256))).isZero());
     try expect(Felt252.zero().sub(Felt252.zero()).isZero());
@@ -419,14 +421,14 @@ test "Felt252 mul" {
             u256,
             0x32,
         ),
-        Felt252.fromInt(u8, 10).mul(Felt252.fromInt(u8, 5)).toInteger(),
+        Felt252.fromInt(u8, 10).mul(Felt252.fromInt(u8, 5)).tou256(),
     );
     try expectEqual(
         @as(
             u256,
             0x7fffffffffffbd0ffffffffffffffffffffffffffffffffffffffffffffffbf,
         ),
-        Felt252.fromInt(u256, std.math.maxInt(u256)).mul(Felt252.two()).toInteger(),
+        Felt252.fromInt(u256, std.math.maxInt(u256)).mul(Felt252.two()).tou256(),
     );
 }
 
@@ -437,14 +439,14 @@ test "Felt252 mulBy5" {
             u256,
             5,
         ),
-        Felt252.one().mulBy5().toInteger(),
+        Felt252.one().mulBy5().tou256(),
     );
     try expectEqual(
         @as(
             u256,
             0x7fffffffffff570ffffffffffffffffffffffffffffffffffffffffffffff5c,
         ),
-        Felt252.fromInt(u256, std.math.maxInt(u256)).mulBy5().toInteger(),
+        Felt252.fromInt(u256, std.math.maxInt(u256)).mulBy5().tou256(),
     );
 }
 
@@ -454,14 +456,14 @@ test "Felt252 neg" {
             u256,
             0x800000000000010fffffffffffffffffffffffffffffffffffffffffffffff7,
         ),
-        Felt252.fromInt(u8, 10).neg().toInteger(),
+        Felt252.fromInt(u8, 10).neg().tou256(),
     );
     try expectEqual(
         @as(
             u256,
             0x220000000000000000000000000000000000000000000000021,
         ),
-        Felt252.fromInt(u256, std.math.maxInt(u256)).neg().toInteger(),
+        Felt252.fromInt(u256, std.math.maxInt(u256)).neg().tou256(),
     );
 }
 
@@ -471,14 +473,14 @@ test "Felt252 square" {
             u256,
             0x64,
         ),
-        Felt252.fromInt(u8, 10).square().toInteger(),
+        Felt252.fromInt(u8, 10).square().tou256(),
     );
     try expectEqual(
         @as(
             u256,
             0x7ffd4ab5e008c50ffffffffff6f800000000001330ffffffffffd737e000442,
         ),
-        Felt252.fromInt(u256, std.math.maxInt(u256)).square().toInteger(),
+        Felt252.fromInt(u256, std.math.maxInt(u256)).square().tou256(),
     );
 }
 
@@ -488,14 +490,14 @@ test "Felt252 pow2" {
             u256,
             0x4cdffe7c7b3f76a6ce28dde767fa09b60e963927bbd16d8b0d3a0fc13c6fa0,
         ),
-        Felt252.fromInt(u8, 10).pow2(10).toInteger(),
+        Felt252.fromInt(u8, 10).pow2(10).tou256(),
     );
     try expectEqual(
         @as(
             u256,
             0x25f7dc4108a227e91fb20740a4866274f449e9d427775a58bb7cb4eaff1e653,
         ),
-        Felt252.fromInt(u256, std.math.maxInt(u256)).pow2(3).toInteger(),
+        Felt252.fromInt(u256, std.math.maxInt(u256)).pow2(3).tou256(),
     );
 }
 
@@ -505,14 +507,14 @@ test "Felt252 pow" {
             u256,
             0x2540be400,
         ),
-        Felt252.fromInt(u8, 10).pow(10).toInteger(),
+        Felt252.fromInt(u8, 10).pow(10).tou256(),
     );
     try expectEqual(
         @as(
             u256,
             0x48ea9fffffffffffffff5ffffffffffffffe5000000000000449f,
         ),
-        Felt252.fromInt(u64, std.math.maxInt(u64)).pow(5).toInteger(),
+        Felt252.fromInt(u64, std.math.maxInt(u64)).pow(5).tou256(),
     );
 }
 
@@ -522,14 +524,14 @@ test "Felt252 inv" {
             u256,
             0x733333333333342800000000000000000000000000000000000000000000001,
         ),
-        Felt252.fromInt(u8, 10).inv().?.toInteger(),
+        Felt252.fromInt(u8, 10).inv().?.tou256(),
     );
     try expectEqual(
         @as(
             u256,
             0x538bf4edb6bf78474ef0f1979a0db0bdd364ce7aeda9f3c6c04bea822682ba,
         ),
-        Felt252.fromInt(u256, std.math.maxInt(u256)).inv().?.toInteger(),
+        Felt252.fromInt(u256, std.math.maxInt(u256)).inv().?.tou256(),
     );
     try expectEqual(
         @as(
@@ -549,14 +551,14 @@ test "Felt252 batchInv" {
             u256,
             0x733333333333342800000000000000000000000000000000000000000000001,
         ),
-        out[0].toInteger(),
+        out[0].tou256(),
     );
     try expectEqual(
         @as(
             u256,
             0x666666666666674000000000000000000000000000000000000000000000001,
         ),
-        out[1].toInteger(),
+        out[1].tou256(),
     );
 }
 
@@ -1045,8 +1047,6 @@ test "Felt252 wrapping_shr" {
         e.wrapping_shr(1),
     );
 }
-
-const starknet = @import("starknet");
 
 test "Felt252: fromSigned and toSigned" {
     try expectEqual(Felt252.zero().sub(Felt252.one()), Felt252.fromSignedInt(-1));

@@ -360,7 +360,7 @@ pub fn fromBiasedRepresentation(biased_repr: u16) i16 {
 /// # Returns
 /// `true` if the instruction, after decoding, is identified as a CALL instruction; otherwise, `false`.
 pub fn isCallInstruction(encoded_instruction: Felt252) bool {
-    return (decoder.decodeInstructions(encoded_instruction.intoU64() catch return false) catch return false).isCallInstruction();
+    return (decoder.decodeInstructions(encoded_instruction.toInt(u64) catch return false) catch return false).isCallInstruction();
 }
 
 // ************************************************************

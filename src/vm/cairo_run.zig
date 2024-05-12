@@ -46,7 +46,7 @@ pub fn writeEncodedMemory(relocated_memory: []?Felt252, dest: anytype) !void {
         if (memory_cell) |cell| {
             std.mem.writeInt(u64, &buf, i, .little);
             _ = try dest.write(&buf);
-            _ = try dest.write(&cell.toBytes());
+            _ = try dest.write(&cell.toBytesLe());
         }
     }
 }

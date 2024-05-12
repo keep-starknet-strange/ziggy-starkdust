@@ -1,6 +1,14 @@
 const std = @import("std");
+const starknet = @import("starknet");
 const MathError = @import("../../vm/error.zig").MathError;
 const Int = std.math.big.int.Managed;
+
+/// Maximum value of [Felt]. Equals to 2^251 + 17 * 2^192.
+pub inline fn felt252MaxValue() starknet.fields.Felt252 {
+    comptime {
+        return starknet.fields.Felt252.fromInt(u256, 3618502788666131213697322783095070105623107215331596699973092056135872020480);
+    }
+}
 
 ///Returns the integer square root of the nonnegative integer n.
 ///This is the floor of the exact square root of n.

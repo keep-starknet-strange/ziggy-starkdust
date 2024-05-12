@@ -96,10 +96,10 @@ pub fn uint384Split128(
     const bound = Felt252.pow2Const(128);
     const a = try hint_utils.getIntegerFromVarName("a", vm, ids_data, ap_tracking);
 
-    const high_low = try a.divRem(bound);
+    const high, const low = try a.divRem(bound);
 
-    try hint_utils.insertValueFromVarName(allocator, "low", MaybeRelocatable.fromFelt(high_low.r), vm, ids_data, ap_tracking);
-    try hint_utils.insertValueFromVarName(allocator, "high", MaybeRelocatable.fromFelt(high_low.q), vm, ids_data, ap_tracking);
+    try hint_utils.insertValueFromVarName(allocator, "low", MaybeRelocatable.fromFelt(low), vm, ids_data, ap_tracking);
+    try hint_utils.insertValueFromVarName(allocator, "high", MaybeRelocatable.fromFelt(high), vm, ids_data, ap_tracking);
 }
 
 // Implements Hint:
@@ -121,7 +121,7 @@ pub fn addNoUint384Check(
     const a = try Uint384.fromVarName("a", vm, ids_data, ap_tracking);
     const b = try Uint384.fromVarName("b", vm, ids_data, ap_tracking);
     // This hint is not from the cairo commonlib, and its lib can be found under different paths, so we cant rely on a full path name
-    var shift = try (try hint_utils.getConstantFromVarName("SHIFT", constants)).toSignedBigInt(allocator);
+    var shift = try (try hint_utils.getConstantFromVarName("SHIFT", constants)).toStdBigSignedInt(allocator);
     defer shift.deinit();
 
     var tmp = try Int.init(allocator);
@@ -134,8 +134,8 @@ pub fn addNoUint384Check(
     var buffer: [20]u8 = undefined;
 
     inline for (0..3) |i| {
-        try tmp.set(a.limbs[i].toSignedInt());
-        try tmp2.set(b.limbs[i].toSignedInt());
+        try tmp.set(try a.limbs[i].toSignedInt(i256));
+        try tmp2.set(try b.limbs[i].toSignedInt(i256));
 
         try tmp3.add(&tmp, &tmp2);
 
@@ -210,7 +210,7 @@ pub fn uint384SignedNn(
 
     const a_d2 = vm.getFelt(try a_addr.addUint(2)) catch return HintError.IdentifierHasNoMember;
 
-    try hint_utils.insertValueIntoAp(allocator, vm, if (a_d2.numBits() <= 127) MaybeRelocatable.fromInt(u8, 1) else MaybeRelocatable.fromInt(u8, 0));
+    try hint_utils.insertValueIntoAp(allocator, vm, if (a_d2.numBitsLe() <= 127) MaybeRelocatable.fromInt(u8, 1) else MaybeRelocatable.fromInt(u8, 0));
 }
 
 //  Implements Hint:

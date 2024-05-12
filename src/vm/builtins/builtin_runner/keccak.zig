@@ -366,7 +366,7 @@ pub const KeccakBuiltinRunner = struct {
                 return RunnerError.BuiltinExpectedInteger;
             };
 
-            if (num.ge(Felt252.one().wrapping_shl(self.state_rep.items[i]))) {
+            if (num.cmp(&Felt252.two().powToInt(self.state_rep.items[i])).compare(.gte)) {
                 return RunnerError.IntegerBiggerThanPowerOfTwo;
             }
 
@@ -377,7 +377,7 @@ pub const KeccakBuiltinRunner = struct {
         defer input_message.deinit();
 
         for (input_felts.items) |x| {
-            var tmp = x.toBytes();
+            var tmp = x.toBytesLe();
             var slice_len = tmp.len;
             while (tmp[slice_len - 1] == 0 and slice_len > 1) : (slice_len -= 1) {}
             var slice: []u8 = tmp[0..slice_len];
@@ -406,7 +406,7 @@ pub const KeccakBuiltinRunner = struct {
 
             try self.cache.put(
                 try first_output_addr.addUint(i),
-                Felt252.fromBytes(bytes),
+                Felt252.fromBytesLe(bytes),
             );
             start_index = end_index;
         }

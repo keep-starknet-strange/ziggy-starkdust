@@ -23,7 +23,8 @@ pub fn printArray(allocator: Allocator, vm: *CairoVM, ids_data: std.StringHashMa
     try printName(allocator, vm, ids_data, ap_tracking);
     const arr = try hint_utils.getPtrFromVarName("arr", vm, ids_data, ap_tracking);
     const temp = try hint_utils.getIntegerFromVarName("arr_len", vm, ids_data, ap_tracking);
-    const arr_len = try temp.intoUsize();
+    const arr_len = try temp.toInt(usize);
+
     var acc = try allocator.alloc(Felt252, arr_len);
     defer allocator.free(acc);
     for (0..arr_len) |i| {
@@ -41,7 +42,7 @@ pub fn printDict(allocator: Allocator, vm: *CairoVM, exec_scopes: *ExecutionScop
     try printName(allocator, vm, ids_data, ap_tracking);
     const dict_ptr = try hint_utils.getPtrFromVarName("dict_ptr", vm, ids_data, ap_tracking);
     const pointer_size_felt = try hint_utils.getIntegerFromVarName("pointer_size", vm, ids_data, ap_tracking);
-    const pointer_size = try pointer_size_felt.intoUsize();
+    const pointer_size = try pointer_size_felt.toInt(usize);
     if (pointer_size < 0) {
         return error.HintError("pointer_size is negative");
     }

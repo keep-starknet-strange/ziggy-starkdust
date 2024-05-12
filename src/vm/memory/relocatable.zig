@@ -470,7 +470,7 @@ pub const MaybeRelocatable = union(enum) {
     }!u64 {
         return switch (self.*) {
             .relocatable => CairoVMError.TypeMismatchNotFelt,
-            .felt => |felt| felt.intoU64(),
+            .felt => |felt| felt.toInt(u64),
         };
     }
 
@@ -535,7 +535,7 @@ pub const MaybeRelocatable = union(enum) {
             // If `self` is of type `felt`
             .felt => |self_value| switch (other) {
                 // If `other` is also `felt`, perform addition on `self_value`
-                .felt => |fe| .{ .felt = self_value.add(fe) },
+                .felt => |fe| .{ .felt = self_value.add(&fe) },
                 // If `other` is `relocatable`, call `addFelt` method on `other` with `self_value`
                 .relocatable => |r| .{ .relocatable = try r.addFelt(self_value) },
             },
@@ -563,7 +563,7 @@ pub const MaybeRelocatable = union(enum) {
                 .relocatable => |r| value: {
                     if (self_value.segment_index == r.segment_index) {
                         const res: i128 = @as(i128, self_value.offset) - @as(i128, r.offset);
-                        break :value MaybeRelocatable.fromFelt(Felt252.fromSignedInt(res));
+                        break :value MaybeRelocatable.fromFelt(Felt252.fromInt(i128, res));
                     }
 
                     break :value CairoVMError.TypeMismatchNotRelocatable;
@@ -574,7 +574,7 @@ pub const MaybeRelocatable = union(enum) {
             // If `self` is of type `felt`
             .felt => |self_value| switch (other) {
                 // If `other` is also `felt`, perform subtraction on `self_value`
-                .felt => |fe| .{ .felt = self_value.sub(fe) },
+                .felt => |fe| .{ .felt = self_value.sub(&fe) },
                 // If `other` is `relocatable`, return an error as subtraction is not supported
                 .relocatable => MathError.SubRelocatableFromInt,
             },
@@ -602,7 +602,7 @@ pub const MaybeRelocatable = union(enum) {
                 // If `other` is also `relocatable`, multiplication is not supported, return an error
                 .relocatable => MathError.RelocatableMul,
                 // If `other` is `felt`, call `mul` method on `self_value`
-                .felt => |fe| .{ .felt = self_value.mul(fe) },
+                .felt => |fe| .{ .felt = self_value.mul(&fe) },
             },
         };
     }
@@ -654,6 +654,7 @@ pub const MaybeRelocatable = union(enum) {
     /// # Returns
     /// A new `MaybeRelocatable` holding the converted field element (`Felt252`).
     pub fn fromInt(comptime T: type, value: T) Self {
+        std.debug.assert(@typeInfo(T).Int.bits <= 256);
         return .{ .felt = Felt252.fromInt(T, value) };
     }
 
@@ -1274,17 +1275,17 @@ test "MaybeRelocatable: intoFelt should return an error if MaybeRelocatable is R
 
 test "MaybeRelocatable: intoU64 should return a u64 if MaybeRelocatable is Felt" {
     var maybeRelocatable = MaybeRelocatable.fromInt(u8, 10);
-    try expectEqual(@as(u64, @intCast(10)), try maybeRelocatable.intoU64());
+    try expectEqual(@as(u64, @intCast(10)), try maybeRelocatable.toInt(u64));
 }
 
 test "MaybeRelocatable: intoU64 should return an error if MaybeRelocatable is Relocatable" {
     const maybeRelocatable = MaybeRelocatable.fromSegment(0, 10);
-    try expectError(CairoVMError.TypeMismatchNotFelt, maybeRelocatable.intoU64());
+    try expectError(CairoVMError.TypeMismatchNotFelt, maybeRelocatable.toInt(u64));
 }
 
 test "MaybeRelocatable: intoU64 should return an error if MaybeRelocatable Felt cannot be coerced to u64" {
     var maybeRelocatable = MaybeRelocatable.fromInt(u256, std.math.maxInt(u64) + 1);
-    try expectError(MathError.ValueTooLarge, maybeRelocatable.intoU64());
+    try expectError(MathError.ValueTooLarge, maybeRelocatable.toInt(u64));
 }
 
 test "MaybeRelocatable: any comparision should return false if other MaybeRelocatable is of different variant 1" {
@@ -1483,7 +1484,7 @@ test "MaybeRelocatable.mul: should return Felt multiplication operation if both 
             u256,
             0x32,
         ),
-        (try result1.intoFelt()).toInteger(),
+        (try result1.intoFelt()).toU256(),
     );
 
     // Test Case 2
@@ -1501,7 +1502,7 @@ test "MaybeRelocatable.mul: should return Felt multiplication operation if both 
             u256,
             0x7fffffffffffbd0ffffffffffffffffffffffffffffffffffffffffffffffbf,
         ),
-        (try result2.intoFelt()).toInteger(),
+        (try result2.intoFelt()).toU256(),
     );
 }
 

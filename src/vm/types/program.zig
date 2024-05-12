@@ -713,7 +713,7 @@ test "Program: getConstants should extract the constants from identifiers using 
     // Check if the extracted constant values match the expected values.
     try expectEqual(
         @as(u256, 0),
-        constants.get("starkware.cairo.common.alloc.alloc.SIZEOF_LOCALS").?.toInteger(),
+        constants.get("starkware.cairo.common.alloc.alloc.SIZEOF_LOCALS").?.toU256(),
     );
 
     try expectEqual(
@@ -723,22 +723,22 @@ test "Program: getConstants should extract the constants from identifiers using 
 
     try expectEqual(
         @as(u256, 8),
-        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_CAPACITY_IN_WORDS").?.toInteger(),
+        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_CAPACITY_IN_WORDS").?.toU256(),
     );
 
     try expectEqual(
         @as(u256, 136),
-        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_FULL_RATE_IN_BYTES").?.toInteger(),
+        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_FULL_RATE_IN_BYTES").?.toU256(),
     );
 
     try expectEqual(
         @as(u256, 17),
-        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_FULL_RATE_IN_WORDS").?.toInteger(),
+        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_FULL_RATE_IN_WORDS").?.toU256(),
     );
 
     try expectEqual(
         @as(u256, 25),
-        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_STATE_SIZE_FELTS").?.toInteger(),
+        constants.get("starkware.cairo.common.cairo_keccak.keccak.KECCAK_STATE_SIZE_FELTS").?.toU256(),
     );
 }
 

@@ -43,7 +43,7 @@ pub fn sha256Input(
     try hint_utils.insertValueFromVarName(
         allocator,
         "full_word",
-        MaybeRelocatable.fromInt(u8, if (n_bytes.cmp(Felt252.fromInt(u32, 4)).compare(.gte))
+        MaybeRelocatable.fromInt(u8, if (n_bytes.cmp(&Felt252.fromInt(u32, 4)).compare(.gte))
             1
         else
             0),
@@ -67,7 +67,7 @@ fn sha256Main(
     // The original code gets it from `ids` in both cases, and this makes it easier
     // to implement the arbitrary length one
     const input_chunk_size_felts =
-        (try hint_utils.getConstantFromVarName("SHA256_INPUT_CHUNK_SIZE_FELTS", constants)).intoUsizeOrOptional() orelse 100;
+        (try hint_utils.getConstantFromVarName("SHA256_INPUT_CHUNK_SIZE_FELTS", constants)).toInt(usize) catch 100;
 
     if (input_chunk_size_felts >= 100)
         return HintError.AssertionFailed;
@@ -152,7 +152,7 @@ pub fn sha256MainArbitraryInputLength(
         try hint_utils.getConstantFromVarName("SHA256_STATE_SIZE_FELTS", constants);
 
     const state_size = blk: {
-        const size = state_size_felt.intoUsizeOrOptional() orelse return HintError.AssertionFailed;
+        const size = state_size_felt.toInt(usize) catch return HintError.AssertionFailed;
         if (size == SHA256_STATE_SIZE_FELTS) break :blk size;
         if (size < 100) return HintError.InvalidValue;
         return HintError.AssertionFailed;

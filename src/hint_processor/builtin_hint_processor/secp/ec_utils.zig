@@ -605,7 +605,7 @@ pub fn ecMulInner(
 ) !void {
     //(ids.scalar % PRIME) % 2
     var scalar = try hint_utils.getIntegerFromVarName("scalar", vm, ids_data, ap_tracking);
-    scalar = scalar.mod(Felt252.two());
+    _, scalar = try scalar.divRem(Felt252.two());
 
     try hint_utils.insertValueIntoAp(allocator, vm, MaybeRelocatable.fromFelt(scalar));
 }
@@ -649,7 +649,7 @@ pub fn nPairBits(
 ) !void {
     const scalar_v = try hint_utils.getIntegerFromVarName("scalar_v", vm, ids_data, ap_tracking);
     const scalar_u = try hint_utils.getIntegerFromVarName("scalar_u", vm, ids_data, ap_tracking);
-    const m = (try hint_utils.getIntegerFromVarName("m", vm, ids_data, ap_tracking)).intoUsizeOrOptional() orelse 253;
+    const m = (try hint_utils.getIntegerFromVarName("m", vm, ids_data, ap_tracking)).toInt(usize) catch 253;
 
     // If m is too high the shift result will always be zero
     if (m >= 253) {
@@ -660,10 +660,10 @@ pub fn nPairBits(
         return HintError.NPairBitsTooLowM;
     }
 
-    var scalar_v_big = try Int.initSet(allocator, scalar_v.toInteger());
+    var scalar_v_big = try Int.initSet(allocator, scalar_v.toU256());
     defer scalar_v_big.deinit();
 
-    var scalar_u_big = try Int.initSet(allocator, scalar_u.toInteger());
+    var scalar_u_big = try Int.initSet(allocator, scalar_u.toU256());
     defer scalar_u_big.deinit();
 
     var result = try Int.initSet(allocator, 0);

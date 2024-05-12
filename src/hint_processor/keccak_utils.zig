@@ -52,7 +52,7 @@ pub fn unsafeKeccak(
     const length = try hint_utils.getIntegerFromVarName("length", vm, ids_data, ap_tracking);
 
     if (exec_scopes.getFelt("__keccak_max_size")) |keccak_max_size| {
-        if (length.gt(keccak_max_size))
+        if (length.cmp(&keccak_max_size).compare(.gt))
             return HintError.KeccakMaxSize;
     } else |_| {}
 
@@ -63,7 +63,7 @@ pub fn unsafeKeccak(
     const low_addr = try hint_utils.getRelocatableFromVarName("low", vm, ids_data, ap_tracking);
 
     // transform to u64 to make ranges cleaner in the for loop below
-    const u64_length = length.intoU64() catch return HintError.InvalidKeccakInputLength;
+    const u64_length = length.toInt(u64) catch return HintError.InvalidKeccakInputLength;
 
     const ZEROES = [_]u8{0} ** 32;
 
@@ -191,13 +191,13 @@ pub fn splitInput(
     const inputs_ptr = try hint_utils.getPtrFromVarName("inputs", vm, ids_data, ap_tracking);
     const binding = try vm.getFelt(try inputs_ptr.addUint(input_key));
     const split = Felt252.pow2Const(8 * exponent);
-    const high_low = try helper.divRem(u256, binding.toInteger(), split.toInteger());
+    const high, const low = try helper.divRem(u256, binding.toU256(), split.toU256());
     var buffer: [20]u8 = undefined;
 
     try hint_utils.insertValueFromVarName(
         allocator,
         try std.fmt.bufPrint(buffer[0..], "high{d}", .{input_key}),
-        MaybeRelocatable.fromInt(u256, high_low[0]),
+        MaybeRelocatable.fromInt(u256, high),
         vm,
         ids_data,
         ap_tracking,
@@ -205,7 +205,7 @@ pub fn splitInput(
     try hint_utils.insertValueFromVarName(
         allocator,
         try std.fmt.bufPrint(buffer[0..], "low{d}", .{input_key}),
-        MaybeRelocatable.fromInt(u256, high_low[1]),
+        MaybeRelocatable.fromInt(u256, low),
         vm,
         ids_data,
         ap_tracking,
@@ -224,7 +224,7 @@ pub fn splitOutput(
     var buffer: [30]u8 = undefined;
     const output = try hint_utils.getIntegerFromVarName(try std.fmt.bufPrint(buffer[0..], "output{d}", .{num}), vm, ids_data, ap_tracking);
 
-    const high_low = try helper.divRem(u256, output.toInteger(), Felt252.pow2Const(128).toInteger());
+    const high_low = try helper.divRem(u256, output.toU256(), Felt252.pow2Const(128).toU256());
     try hint_utils.insertValueFromVarName(
         allocator,
         try std.fmt.bufPrint(buffer[0..], "output{d}_high", .{num}),
@@ -417,9 +417,9 @@ pub fn splitNBytes(
     constants: *const std.StringHashMap(Felt252),
 ) !void {
     const n_bytes =
-        (try hint_utils.getIntegerFromVarName("n_bytes", vm, ids_data, ap_tracking)).intoU64() catch return HintError.Math;
+        (try hint_utils.getIntegerFromVarName("n_bytes", vm, ids_data, ap_tracking)).toInt(u64) catch return HintError.Math;
 
-    const bytes_in_word = constants.get(BYTES_IN_WORD).?.intoU64() catch return HintError.MissingConstant;
+    const bytes_in_word = constants.get(BYTES_IN_WORD).?.toInt(u64) catch return HintError.MissingConstant;
 
     const high_low = try helper.divModFloor(u64, n_bytes, bytes_in_word);
     try hint_utils.insertValueFromVarName(
@@ -450,8 +450,8 @@ pub fn splitOutputMidLowHigh(
     ap_tracking: ApTracking,
 ) !void {
     const output1 = try hint_utils.getIntegerFromVarName("output1", vm, ids_data, ap_tracking);
-    const tmp_output1_low = try helper.divRem(u256, output1.toInteger(), Felt252.pow2Const(8 * 7).toInteger());
-    const output1_high_output1_mid = try helper.divRem(u256, tmp_output1_low[0], Felt252.pow2Const(128).toInteger());
+    const tmp_output1_low = try helper.divRem(u256, output1.toU256(), Felt252.pow2Const(8 * 7).toU256());
+    const output1_high_output1_mid = try helper.divRem(u256, tmp_output1_low[0], Felt252.pow2Const(128).toU256());
 
     try hint_utils.insertValueFromVarName(allocator, "output1_high", MaybeRelocatable.fromInt(u256, output1_high_output1_mid[0]), vm, ids_data, ap_tracking);
     try hint_utils.insertValueFromVarName(allocator, "output1_mid", MaybeRelocatable.fromInt(u256, output1_high_output1_mid[1]), vm, ids_data, ap_tracking);

@@ -126,12 +126,12 @@ pub const BitwiseBuiltinRunner = struct {
         const num = memory.getFelt(address) catch return BitwiseError.InvalidAddressForBitwise;
 
         // Check the number of bits in the felt
-        if (num.numBits() > self.bitwise_builtin.total_n_bits) {
+        if (num.numBitsLe() > self.bitwise_builtin.total_n_bits) {
             return BitwiseError.UnsupportedNumberOfBits;
         }
 
         // If the felt fits within the expected amount of bits, return its integer representation
-        return num.toInteger();
+        return num.toU256();
     }
 
     /// Deduces the `MemoryCell`, where deduction in the case of Bitwise is a bitwise operation for a given address within the Bitwise runner's memory.

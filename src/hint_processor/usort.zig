@@ -32,7 +32,7 @@ pub fn usortEnterScope(allocator: std.mem.Allocator, exec_scopes: *ExecutionScop
 }
 
 fn orderFelt252(lhs: Felt252, rhs: Felt252) std.math.Order {
-    return lhs.cmp(rhs);
+    return lhs.cmp(&rhs);
 }
 
 /// improved binarysearch, return .found enum if found with index
@@ -79,7 +79,7 @@ pub fn usortBody(
 ) !void {
     const input_ptr = try hint_utils.getPtrFromVarName("input", vm, ids_data, ap_tracking);
     const input_len = try hint_utils.getIntegerFromVarName("input_len", vm, ids_data, ap_tracking);
-    const input_len_u64 = input_len.intoU64() catch return HintError.BigintToUsizeFail;
+    const input_len_u64 = input_len.toInt(u64) catch return HintError.BigintToUsizeFail;
 
     if (exec_scopes.getValue(u64, "usort_max_size")) |usort_max_size| {
         if (input_len_u64 > usort_max_size) return HintError.UsortOutOfRange;
@@ -203,7 +203,7 @@ pub fn verifyMultiplicityBody(
     const current_pos = (try exec_scopes
         .getValueRef(std.ArrayList(u64), "positions")).popOrNull() orelse return HintError.CouldntPopPositions;
 
-    const pos_diff = Felt252.fromInt(u64, current_pos).sub(try exec_scopes.getFelt("last_pos"));
+    const pos_diff = Felt252.fromInt(u64, current_pos).sub(&try exec_scopes.getFelt("last_pos"));
     try hint_utils.insertValueFromVarName(allocator, "next_item_index", MaybeRelocatable.fromFelt(pos_diff), vm, ids_data, ap_tracking);
 
     try exec_scopes.assignOrUpdateVariable("last_pos", .{ .felt = Felt252.fromInt(u64, current_pos + 1) });
