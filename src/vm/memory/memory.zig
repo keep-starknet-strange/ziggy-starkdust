@@ -409,16 +409,19 @@ pub const Memory = struct {
 
         // Check if the segment index is valid within the data structure.
         if (segment_index >= data.items.len) return null;
-        const segment_data = data.items[segment_index];
+        const segment_data = &data.items[segment_index];
 
         // Check if the offset is valid within the specified segment.
         if (address.offset >= segment_data.items.len) return null;
 
+        // TODO: rewrite all on self rel address
         // Return null if either the segment index or offset is not valid.
         // Otherwise, return the maybe_relocatable value at the specified address.
-        return if (segment_data.items[address.offset]) |val|
+        return if (segment_data.items[address.offset]) |*val|
             switch (val.maybe_relocatable) {
-                .relocatable => |addr| Self.relocateAddress(addr, self.relocation_rules) catch unreachable,
+                .relocatable => |addr| self.relAddress(
+                    addr,
+                ) catch unreachable,
                 else => |_| val.maybe_relocatable,
             }
         else
@@ -844,6 +847,20 @@ pub const Memory = struct {
     /// Returns the input `Felt252` value.
     pub fn relocateValueFromFelt(_: *Self, value: Felt252) Felt252 {
         return value;
+    }
+
+    pub fn relAddress(self: *const Self, address: Relocatable) !MaybeRelocatable {
+
+        // Check if the segment index of the provided address is already valid.
+        if (address.segment_index >= 0) return MaybeRelocatable.fromRelocatable(address);
+
+        // Attempt to retrieve relocation rules for the given segment index.
+        return if (self.relocation_rules.get(address.getAdjustedSegmentIndex())) |x|
+            // If rules exist, add the address offset according to the rules.
+            MaybeRelocatable.fromRelocatable(try x.addUint(address.offset))
+        else
+            // If no rules exist, return the address without modification.
+            MaybeRelocatable.fromRelocatable(address);
     }
 
     /// Relocates an address represented as `Relocatable` based on provided relocation rules.

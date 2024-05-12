@@ -37,7 +37,7 @@ test-filter:
 	@zig build test --summary all -Dtest-filter="$(FILTER)"
 
 build-integration-test:
-	@zig build integration_test
+	@zig build -Doptimize=ReleaseFast integration_test
 
 run-integration-test:
 	@zig build -Doptimize=ReleaseFast integration_test
