@@ -326,7 +326,7 @@ pub const Memory = struct {
     /// # Returns
     ///
     /// Returns a reference to the data in the form of `std.ArrayList(std.ArrayListUnmanaged(?MemoryCell))`.
-    pub fn getDataFromSegmentIndex(
+    pub inline fn getDataFromSegmentIndex(
         self: *const Self,
         segment_index: i64,
     ) []std.ArrayListUnmanaged(?MemoryCell) {

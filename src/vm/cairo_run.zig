@@ -79,6 +79,7 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
         config.proof_mode,
     );
     defer runner.deinit(allocator);
+
     const end = try runner.setupExecutionState(config.allow_missing_builtins orelse config.proof_mode);
 
     // TODO: make flag for extensive_hints
@@ -91,8 +92,8 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
         &hint_processor,
         false,
     );
-    // TODO readReturnValues necessary for builtins
 
+    // TODO readReturnValues necessary for builtins
     if (config.output_trace != null or config.output_memory != null) {
         try runner.relocate();
         var writer: std.io.BufferedWriter(5 * 1024 * 1024, std.fs.File.Writer) = .{ .unbuffered_writer = undefined };

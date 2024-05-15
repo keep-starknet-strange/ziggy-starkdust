@@ -55,7 +55,7 @@ pub const RunContext = struct {
     /// - The computed dst address.
     pub fn computeDstAddr(
         self: Self,
-        instruction: Instruction,
+        instruction: *const Instruction,
     ) !Relocatable {
         var base_addr = switch (instruction.dst_reg) {
             .AP => self.getAP(),
@@ -77,7 +77,7 @@ pub const RunContext = struct {
     /// - The computed OP 0 address.
     pub fn computeOp0Addr(
         self: Self,
-        instruction: Instruction,
+        instruction: *const Instruction,
     ) !Relocatable {
         var base_addr = switch (instruction.op_0_reg) {
             .AP => self.getAP(),
@@ -99,7 +99,7 @@ pub const RunContext = struct {
     /// - The computed OP 1 address.
     pub fn computeOp1Addr(
         self: Self,
-        instruction: Instruction,
+        instruction: *const Instruction,
         op_0: ?MaybeRelocatable,
     ) !Relocatable {
         const base_addr = switch (instruction.op_1_addr) {

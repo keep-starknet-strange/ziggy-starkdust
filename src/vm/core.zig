@@ -342,7 +342,7 @@ pub const CairoVM = struct {
         // Execute the instruction if skip_instruction_execution is false.
         if (!self.skip_instruction_execution) {
             try self.runInstruction(
-                inst,
+                &inst,
             );
         } else {
             // Advance the program counter if skip_instruction_execution is true.
@@ -393,15 +393,15 @@ pub const CairoVM = struct {
     // # Arguments
     /// - `allocator`: allocator where OperandsResult stored.
     /// - `op`: OperandsResult object that stores all operands.
-    pub fn insertDeducedOperands(self: *Self, allocator: Allocator, op: OperandsResult) !void {
+    pub inline fn insertDeducedOperands(self: *Self, op: OperandsResult) !void {
         if (op.wasOp0Deducted())
-            try self.segments.memory.set(allocator, op.op_0_addr, op.op_0);
+            try self.segments.memory.set(self.allocator, op.op_0_addr, op.op_0);
 
         if (op.wasOp1Deducted())
-            try self.segments.memory.set(allocator, op.op_1_addr, op.op_1);
+            try self.segments.memory.set(self.allocator, op.op_1_addr, op.op_1);
 
         if (op.wasDestDeducted())
-            try self.segments.memory.set(allocator, op.dst_addr, op.dst);
+            try self.segments.memory.set(self.allocator, op.dst_addr, op.dst);
     }
 
     /// Runs a specific instruction in the Cairo VM.
@@ -456,7 +456,7 @@ pub const CairoVM = struct {
     /// a controlled environment to ensure the correct execution of instructions and memory operations.
     pub fn runInstruction(
         self: *Self,
-        instruction: Instruction,
+        instruction: *const Instruction,
     ) !void {
         // Check if tracing is disabled and log the current state if not.
         if (self.trace) |*trace| {
@@ -470,10 +470,10 @@ pub const CairoVM = struct {
         }
 
         // Compute operands for the instruction.
-        const operands_result = try self.computeOperands(self.allocator, instruction);
+        const operands_result = try self.computeOperands(instruction);
 
         // Insert deduced operands into memory.
-        try self.insertDeducedOperands(self.allocator, operands_result);
+        try self.insertDeducedOperands(operands_result);
 
         // Perform opcode-specific assertions on operands using the `opcodeAssertions` function.
         try self.opcodeAssertions(instruction, operands_result);
@@ -519,12 +519,10 @@ pub const CairoVM = struct {
     /// A structured `OperandsResult` containing computed operands, the result, and destinations.
     pub fn computeOperands(
         self: *Self,
-        allocator: Allocator,
-        instruction: Instruction,
+        instruction: *const Instruction,
     ) !OperandsResult {
         // Create a default OperandsResult to store the computed operands.
         var op_res: OperandsResult = .{};
-        op_res.res = null;
 
         // Compute the destination address of the instruction.
         op_res.dst_addr = try self.run_context.computeDstAddr(instruction);
@@ -547,10 +545,9 @@ pub const CairoVM = struct {
             op_res.op_0 = op_0;
         } else {
             // Set flag to compute and deduce op_0.
-            op_res.setOp0(true);
+            op_res.setOp0(1);
             // Compute op_0 based on specific deductions.
             op_res.op_0 = try self.computeOp0Deductions(
-                allocator,
                 op_res.op_0_addr,
                 &op_res.res,
                 instruction,
@@ -564,10 +561,9 @@ pub const CairoVM = struct {
             op_res.op_1 = op_1;
         } else {
             // Set flag to compute and deduce op_1.
-            op_res.setOp1(true);
+            op_res.setOp1(1);
             // Compute op_1 based on specific deductions.
             op_res.op_1 = try self.computeOp1Deductions(
-                allocator,
                 op_res.op_1_addr,
                 &op_res.res,
                 instruction,
@@ -586,7 +582,7 @@ pub const CairoVM = struct {
             op_res.dst = dst;
         } else {
             // Set flag to compute and deduce the destination.
-            op_res.setDst(true);
+            op_res.setDst(1);
             // Compute the destination based on certain conditions.
             op_res.dst = try self.deduceDst(instruction, op_res.res);
         }
@@ -610,14 +606,13 @@ pub const CairoVM = struct {
     /// - `MaybeRelocatable`: The deduced Op0 operand or an error if deducing Op0 fails.
     pub fn computeOp0Deductions(
         self: *Self,
-        allocator: Allocator,
         op_0_addr: Relocatable,
         res: *?MaybeRelocatable,
-        instruction: Instruction,
+        instruction: *const Instruction,
         dst: ?MaybeRelocatable,
         op1: ?MaybeRelocatable,
     ) !MaybeRelocatable {
-        if (try self.deduceMemoryCell(allocator, op_0_addr)) |op0| {
+        if (try self.deduceMemoryCell(op_0_addr)) |op0| {
             return op0;
         }
         const op0_deductions = try self.deduceOp0(instruction, dst, op1);
@@ -642,14 +637,13 @@ pub const CairoVM = struct {
     /// - `MaybeRelocatable`: The deduced Op1 operand or an error if deducing Op1 fails.
     pub fn computeOp1Deductions(
         self: *Self,
-        allocator: Allocator,
         op1_addr: Relocatable,
         res: *?MaybeRelocatable,
-        instruction: Instruction,
+        instruction: *const Instruction,
         dst_op: ?MaybeRelocatable,
         op0: ?MaybeRelocatable,
     ) !MaybeRelocatable {
-        if (try self.deduceMemoryCell(allocator, op1_addr)) |op1|
+        if (try self.deduceMemoryCell(op1_addr)) |op1|
             return op1;
 
         const op1_deductions = try instruction.deduceOp1(dst_op, op0);
@@ -726,7 +720,7 @@ pub const CairoVM = struct {
     /// - `Tuple`: A tuple containing the deduced `op0` and `res`.
     pub fn deduceOp0(
         self: Self,
-        inst: Instruction,
+        inst: *const Instruction,
         dst: ?MaybeRelocatable,
         op1: ?MaybeRelocatable,
     ) !struct {
@@ -766,7 +760,7 @@ pub const CairoVM = struct {
     /// - `operands`: The operands of the instruction.
     pub inline fn updatePc(
         self: *Self,
-        instruction: Instruction,
+        instruction: *const Instruction,
         operands: OperandsResult,
     ) !void {
         self.run_context.pc = switch (instruction.pc_update) {
@@ -802,7 +796,7 @@ pub const CairoVM = struct {
     /// - `operands`: The operands of the instruction.
     pub inline fn updateAp(
         self: *Self,
-        instruction: Instruction,
+        instruction: *const Instruction,
         operands: OperandsResult,
     ) !void {
         self.run_context.ap = switch (instruction.ap_update) {
@@ -829,7 +823,7 @@ pub const CairoVM = struct {
     /// - `operands`: The operands of the instruction.
     pub inline fn updateFp(
         self: *Self,
-        instruction: Instruction,
+        instruction: *const Instruction,
         operands: OperandsResult,
     ) !void {
         self.run_context.fp = switch (instruction.fp_update) {
@@ -855,9 +849,9 @@ pub const CairoVM = struct {
     /// # Returns
     ///
     /// - Returns `void` on success, an error on failure.
-    pub fn updateRegisters(
+    pub inline fn updateRegisters(
         self: *Self,
-        instruction: Instruction,
+        instruction: *const Instruction,
         operands: OperandsResult,
     ) !void {
         try self.updateFp(instruction, operands);
@@ -881,7 +875,7 @@ pub const CairoVM = struct {
     /// - Returns the deduced destination register, or an error if no destination is deducible.
     pub fn deduceDst(
         self: Self,
-        instruction: Instruction,
+        instruction: *const Instruction,
         res: ?MaybeRelocatable,
     ) !MaybeRelocatable {
         return switch (instruction.opcode) {
@@ -899,13 +893,12 @@ pub const CairoVM = struct {
     /// - `MaybeRelocatable`: The deduced value.
     pub fn deduceMemoryCell(
         self: *Self,
-        allocator: Allocator,
         address: Relocatable,
     ) CairoVMError!?MaybeRelocatable {
         for (self.builtin_runners.items) |*builtin_item| {
             if (builtin_item.base() == address.segment_index)
                 return builtin_item.deduceMemoryCell(
-                    allocator,
+                    self.allocator,
                     address,
                     self.segments.memory,
                 ) catch CairoVMError.RunnerError;
@@ -1254,7 +1247,7 @@ pub const CairoVM = struct {
     ///
     /// This function assumes proper initialization of the CairoVM instance and must be called in
     /// a controlled environment to ensure the correct execution of instructions and memory operations.
-    pub fn opcodeAssertions(self: *Self, instruction: Instruction, operands: OperandsResult) !void {
+    pub fn opcodeAssertions(self: *Self, instruction: *const Instruction, operands: OperandsResult) !void {
         // Switch on the opcode to perform the appropriate assertion.
         switch (instruction.opcode) {
             // Assert that the result and destination operands are equal for AssertEq opcode.
@@ -1430,19 +1423,13 @@ pub const OperandsResult = struct {
     /// Indicator for deduced operands.
     deduced_operands: u8 = 0,
 
-    padding: u32 = 0,
-
-    comptime {
-        std.debug.assert(@sizeOf(Self) == 224);
-    }
-
     /// Sets the flag indicating the destination operand was deduced.
     ///
     /// # Arguments
     ///
     /// - `value`: A boolean value indicating whether the destination operand was deduced.
-    pub fn setDst(self: *Self, value: bool) void {
-        self.deduced_operands |= @intFromBool(value);
+    pub inline fn setDst(self: *Self, comptime value: u8) void {
+        self.deduced_operands |= value;
     }
 
     /// Sets the flag indicating the first operand was deduced.
@@ -1450,8 +1437,8 @@ pub const OperandsResult = struct {
     /// # Arguments
     ///
     /// - `value`: A boolean value indicating whether the first operand was deduced.
-    pub fn setOp0(self: *Self, value: bool) void {
-        self.deduced_operands |= if (value) 1 << 1 else 0 << 1;
+    pub inline fn setOp0(self: *Self, comptime value: u8) void {
+        self.deduced_operands |= (value << 1);
     }
 
     /// Sets the flag indicating the second operand was deduced.
@@ -1459,8 +1446,8 @@ pub const OperandsResult = struct {
     /// # Arguments
     ///
     /// - `value`: A boolean value indicating whether the second operand was deduced.
-    pub fn setOp1(self: *Self, value: bool) void {
-        self.deduced_operands |= if (value) 1 << 2 else 0 << 2;
+    pub inline fn setOp1(self: *Self, comptime value: u8) void {
+        self.deduced_operands |= (value << 2);
     }
 
     /// Checks if the destination operand was deduced.
@@ -1468,7 +1455,7 @@ pub const OperandsResult = struct {
     /// # Returns
     ///
     /// - A boolean indicating if the destination operand was deduced.
-    pub fn wasDestDeducted(self: *const Self) bool {
+    pub inline fn wasDestDeducted(self: *const Self) bool {
         return self.deduced_operands & 1 != 0;
     }
 
@@ -1477,7 +1464,7 @@ pub const OperandsResult = struct {
     /// # Returns
     ///
     /// - A boolean indicating if the first operand was deduced.
-    pub fn wasOp0Deducted(self: *const Self) bool {
+    pub inline fn wasOp0Deducted(self: *const Self) bool {
         return self.deduced_operands & (1 << 1) != 0;
     }
 
@@ -1486,7 +1473,7 @@ pub const OperandsResult = struct {
     /// # Returns
     ///
     /// - A boolean indicating if the second operand was deduced.
-    pub fn wasOp1Deducted(self: *const Self) bool {
+    pub inline fn wasOp1Deducted(self: *const Self) bool {
         return self.deduced_operands & (1 << 2) != 0;
     }
 };

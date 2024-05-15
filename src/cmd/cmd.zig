@@ -16,7 +16,7 @@ const ProgramJson = @import("../vm/types/programjson.zig").ProgramJson;
 const cairo_run = @import("../vm/cairo_run.zig");
 
 // var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-const gpa_allocator = std.heap.c_allocator;
+const gpa_allocator = std.heap.raw_c_allocator;
 
 // Configuration settings for the CLI.
 var config = Config{
@@ -189,10 +189,13 @@ const UsageError = error{
 /// Returns a `UsageError` if there's a misuse of the CLI, specifically if tracing is attempted
 /// while it's disabled in the build.
 fn execute() anyerror!void {
+    var arena = std.heap.ArenaAllocator.init(gpa_allocator);
+    defer arena.deinit();
+
     if (build_options.trace_disable and config.enable_trace) {
         std.log.err("Tracing is disabled in this build.\n", .{});
         return UsageError.IncompatibleBuildOptions;
     }
 
-    try cairo_run.runConfig(gpa_allocator, config);
+    try cairo_run.runConfig(arena.allocator(), config);
 }
