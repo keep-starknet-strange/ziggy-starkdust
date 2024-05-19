@@ -1,4 +1,3 @@
-
 from starkware.cairo.common.alloc import alloc
 
 func search(num_to_find: felt, arr: felt*, current_index: felt, arr_size: felt) -> (index: felt) {

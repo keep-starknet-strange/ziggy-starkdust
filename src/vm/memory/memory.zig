@@ -363,22 +363,28 @@ pub const Memory = struct {
         var data_segment = &data[insert_segment_index];
 
         // Ensure the data segment has sufficient capacity to accommodate the value at the specified offset.
-        if (data_segment.items.len <= address.offset) {
+        if (data_segment.items.len == address.offset) {
+            try data_segment.append(allocator, MemoryCell.init(value));
+            return;
+        } else if (data_segment.items.len < address.offset) {
             try data_segment.appendNTimes(
                 allocator,
                 null,
                 address.offset + 1 - data_segment.items.len,
             );
+
+            data_segment.items[address.offset] = MemoryCell.init(value);
+            return;
         }
 
         // Check for existing memory at the specified address to avoid overwriting.
         if (data_segment.items[address.offset]) |item| {
             if (!item.maybe_relocatable.eq(value))
                 return MemoryError.DuplicatedRelocation;
+        } else {
+            // Insert the value into the VM memory at the specified address.
+            data_segment.items[address.offset] = MemoryCell.init(value);
         }
-
-        // Insert the value into the VM memory at the specified address.
-        data_segment.items[address.offset] = MemoryCell.init(value);
     }
 
     /// Retrieves data at a specified address within a relocatable data structure.
@@ -850,7 +856,6 @@ pub const Memory = struct {
     }
 
     pub fn relAddress(self: *const Self, address: Relocatable) !MaybeRelocatable {
-
         // Check if the segment index of the provided address is already valid.
         if (address.segment_index >= 0) return MaybeRelocatable.fromRelocatable(address);
 

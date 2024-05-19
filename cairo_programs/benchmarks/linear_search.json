@@ -171,7 +171,7 @@
                             "end_col": 38,
                             "end_line": 3,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/alloc.cairo"
+                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/alloc.cairo"
                             },
                             "start_col": 5,
                             "start_line": 3
@@ -183,7 +183,7 @@
                     "end_col": 12,
                     "end_line": 4,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/alloc.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/alloc.cairo"
                     },
                     "start_col": 5,
                     "start_line": 4
@@ -206,7 +206,7 @@
                     "end_col": 40,
                     "end_line": 5,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/alloc.cairo"
+                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/alloc.cairo"
                     },
                     "start_col": 5,
                     "start_line": 5
@@ -232,12 +232,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 34,
-                    "end_line": 5,
+                    "end_line": 4,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 9,
-                    "start_line": 5
+                    "start_line": 4
                 }
             },
             "10": {
@@ -261,12 +261,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 7,
-                    "end_line": 5,
+                    "end_line": 4,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 5,
-                    "start_line": 5
+                    "start_line": 4
                 }
             },
             "12": {
@@ -290,12 +290,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 19,
-                    "end_line": 6,
+                    "end_line": 5,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 17,
-                    "start_line": 6
+                    "start_line": 5
                 }
             },
             "14": {
@@ -319,12 +319,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 22,
-                    "end_line": 6,
+                    "end_line": 5,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 9,
-                    "start_line": 6
+                    "start_line": 5
                 }
             },
             "15": {
@@ -348,12 +348,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 27,
-                    "end_line": 9,
+                    "end_line": 8,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 9,
-                    "start_line": 9
+                    "start_line": 8
                 }
             },
             "16": {
@@ -378,12 +378,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 27,
-                    "end_line": 9,
+                    "end_line": 8,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 9,
-                    "start_line": 9
+                    "start_line": 8
                 }
             },
             "17": {
@@ -409,12 +409,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 42,
-                    "end_line": 9,
+                    "end_line": 8,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 9,
-                    "start_line": 9
+                    "start_line": 8
                 }
             },
             "18": {
@@ -441,12 +441,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 7,
-                    "end_line": 9,
+                    "end_line": 8,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 5,
-                    "start_line": 9
+                    "start_line": 8
                 }
             },
             "20": {
@@ -473,24 +473,24 @@
                 "hints": [],
                 "inst": {
                     "end_col": 63,
-                    "end_line": 4,
+                    "end_line": 3,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 30,
-                            "end_line": 10,
+                            "end_line": 9,
                             "input_file": {
-                                "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                                "filename": "cairo_programs/benchmarks/linear_search.cairo"
                             },
                             "start_col": 17,
-                            "start_line": 10
+                            "start_line": 9
                         },
                         "While expanding the reference 'current_index' in:"
                     ],
                     "start_col": 44,
-                    "start_line": 4
+                    "start_line": 3
                 }
             },
             "21": {
@@ -517,12 +517,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 33,
-                    "end_line": 10,
+                    "end_line": 9,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 9,
-                    "start_line": 10
+                    "start_line": 9
                 }
             },
             "22": {
@@ -549,24 +549,24 @@
                 "hints": [],
                 "inst": {
                     "end_col": 30,
-                    "end_line": 4,
+                    "end_line": 3,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 41,
-                            "end_line": 12,
+                            "end_line": 11,
                             "input_file": {
-                                "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                                "filename": "cairo_programs/benchmarks/linear_search.cairo"
                             },
                             "start_col": 30,
-                            "start_line": 12
+                            "start_line": 11
                         },
                         "While expanding the reference 'num_to_find' in:"
                     ],
                     "start_col": 13,
-                    "start_line": 4
+                    "start_line": 3
                 }
             },
             "23": {
@@ -593,24 +593,24 @@
                 "hints": [],
                 "inst": {
                     "end_col": 42,
-                    "end_line": 4,
+                    "end_line": 3,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 46,
-                            "end_line": 12,
+                            "end_line": 11,
                             "input_file": {
-                                "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                                "filename": "cairo_programs/benchmarks/linear_search.cairo"
                             },
                             "start_col": 43,
-                            "start_line": 12
+                            "start_line": 11
                         },
                         "While expanding the reference 'arr' in:"
                     ],
                     "start_col": 32,
-                    "start_line": 4
+                    "start_line": 3
                 }
             },
             "24": {
@@ -637,12 +637,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 65,
-                    "end_line": 12,
+                    "end_line": 11,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 48,
-                    "start_line": 12
+                    "start_line": 11
                 }
             },
             "26": {
@@ -669,24 +669,24 @@
                 "hints": [],
                 "inst": {
                     "end_col": 79,
-                    "end_line": 4,
+                    "end_line": 3,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 75,
-                            "end_line": 12,
+                            "end_line": 11,
                             "input_file": {
-                                "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                                "filename": "cairo_programs/benchmarks/linear_search.cairo"
                             },
                             "start_col": 67,
-                            "start_line": 12
+                            "start_line": 11
                         },
                         "While expanding the reference 'arr_size' in:"
                     ],
                     "start_col": 65,
-                    "start_line": 4
+                    "start_line": 3
                 }
             },
             "27": {
@@ -713,12 +713,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 76,
-                    "end_line": 12,
+                    "end_line": 11,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 23,
-                    "start_line": 12
+                    "start_line": 11
                 }
             },
             "29": {
@@ -746,12 +746,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 25,
-                    "end_line": 13,
+                    "end_line": 12,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 9,
-                    "start_line": 13
+                    "start_line": 12
                 }
             },
             "30": {
@@ -773,12 +773,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 33,
-                    "end_line": 18,
+                    "end_line": 17,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 9,
-                    "start_line": 18
+                    "start_line": 17
                 }
             },
             "31": {
@@ -801,12 +801,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 7,
-                    "end_line": 18,
+                    "end_line": 17,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 5,
-                    "start_line": 18
+                    "start_line": 17
                 }
             },
             "33": {
@@ -829,12 +829,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 19,
-                    "end_line": 19,
+                    "end_line": 18,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 9,
-                    "start_line": 19
+                    "start_line": 18
                 }
             },
             "34": {
@@ -857,12 +857,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 27,
-                    "end_line": 21,
+                    "end_line": 20,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 12,
-                    "start_line": 21
+                    "start_line": 20
                 }
             },
             "35": {
@@ -886,12 +886,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 39,
-                    "end_line": 21,
+                    "end_line": 20,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 5,
-                    "start_line": 21
+                    "start_line": 20
                 }
             },
             "36": {
@@ -915,24 +915,24 @@
                 "hints": [],
                 "inst": {
                     "end_col": 29,
-                    "end_line": 17,
+                    "end_line": 16,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 28,
-                            "end_line": 22,
+                            "end_line": 21,
                             "input_file": {
-                                "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                                "filename": "cairo_programs/benchmarks/linear_search.cairo"
                             },
                             "start_col": 23,
-                            "start_line": 22
+                            "start_line": 21
                         },
                         "While expanding the reference 'array' in:"
                     ],
                     "start_col": 17,
-                    "start_line": 17
+                    "start_line": 16
                 }
             },
             "37": {
@@ -956,24 +956,24 @@
                 "hints": [],
                 "inst": {
                     "end_col": 49,
-                    "end_line": 17,
+                    "end_line": 16,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 42,
-                            "end_line": 22,
+                            "end_line": 21,
                             "input_file": {
-                                "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                                "filename": "cairo_programs/benchmarks/linear_search.cairo"
                             },
                             "start_col": 30,
-                            "start_line": 22
+                            "start_line": 21
                         },
                         "While expanding the reference 'array_length' in:"
                     ],
                     "start_col": 31,
-                    "start_line": 17
+                    "start_line": 16
                 }
             },
             "38": {
@@ -997,12 +997,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 56,
-                    "end_line": 22,
+                    "end_line": 21,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 44,
-                    "start_line": 22
+                    "start_line": 21
                 }
             },
             "40": {
@@ -1026,12 +1026,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 57,
-                    "end_line": 22,
+                    "end_line": 21,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 12,
-                    "start_line": 22
+                    "start_line": 21
                 }
             },
             "42": {
@@ -1055,12 +1055,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 58,
-                    "end_line": 22,
+                    "end_line": 21,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 5,
-                    "start_line": 22
+                    "start_line": 21
                 }
             },
             "43": {
@@ -1078,12 +1078,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 18,
-                    "end_line": 26,
+                    "end_line": 25,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 5,
-                    "start_line": 26
+                    "start_line": 25
                 }
             },
             "45": {
@@ -1101,12 +1101,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 38,
-                    "end_line": 27,
+                    "end_line": 26,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 31,
-                    "start_line": 27
+                    "start_line": 26
                 }
             },
             "47": {
@@ -1126,24 +1126,24 @@
                 "hints": [],
                 "inst": {
                     "end_col": 27,
-                    "end_line": 27,
+                    "end_line": 26,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 27,
-                            "end_line": 27,
+                            "end_line": 26,
                             "input_file": {
-                                "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                                "filename": "cairo_programs/benchmarks/linear_search.cairo"
                             },
                             "start_col": 10,
-                            "start_line": 27
+                            "start_line": 26
                         },
                         "While auto generating local variable for 'felt_array'."
                     ],
                     "start_col": 10,
-                    "start_line": 27
+                    "start_line": 26
                 }
             },
             "48": {
@@ -1163,36 +1163,36 @@
                 "hints": [],
                 "inst": {
                     "end_col": 27,
-                    "end_line": 27,
+                    "end_line": 26,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 27,
-                            "end_line": 27,
+                            "end_line": 26,
                             "input_file": {
-                                "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                                "filename": "cairo_programs/benchmarks/linear_search.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 26,
-                                    "end_line": 29,
+                                    "end_line": 28,
                                     "input_file": {
-                                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                                     },
                                     "start_col": 16,
-                                    "start_line": 29
+                                    "start_line": 28
                                 },
                                 "While expanding the reference 'felt_array' in:"
                             ],
                             "start_col": 10,
-                            "start_line": 27
+                            "start_line": 26
                         },
                         "While auto generating local variable for 'felt_array'."
                     ],
                     "start_col": 10,
-                    "start_line": 27
+                    "start_line": 26
                 }
             },
             "49": {
@@ -1212,12 +1212,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 34,
-                    "end_line": 29,
+                    "end_line": 28,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 28,
-                    "start_line": 29
+                    "start_line": 28
                 }
             },
             "51": {
@@ -1237,12 +1237,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 37,
-                    "end_line": 29,
+                    "end_line": 28,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 36,
-                    "start_line": 29
+                    "start_line": 28
                 }
             },
             "53": {
@@ -1262,12 +1262,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 38,
-                    "end_line": 29,
+                    "end_line": 28,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 5,
-                    "start_line": 29
+                    "start_line": 28
                 }
             },
             "55": {
@@ -1287,12 +1287,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 34,
-                    "end_line": 31,
+                    "end_line": 30,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 28,
-                    "start_line": 31
+                    "start_line": 30
                 }
             },
             "57": {
@@ -1312,36 +1312,36 @@
                 "hints": [],
                 "inst": {
                     "end_col": 27,
-                    "end_line": 27,
+                    "end_line": 26,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 27,
-                            "end_line": 27,
+                            "end_line": 26,
                             "input_file": {
-                                "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                                "filename": "cairo_programs/benchmarks/linear_search.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 46,
-                                    "end_line": 31,
+                                    "end_line": 30,
                                     "input_file": {
-                                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                                     },
                                     "start_col": 36,
-                                    "start_line": 31
+                                    "start_line": 30
                                 },
                                 "While expanding the reference 'felt_array' in:"
                             ],
                             "start_col": 10,
-                            "start_line": 27
+                            "start_line": 26
                         },
                         "While auto generating local variable for 'felt_array'."
                     ],
                     "start_col": 10,
-                    "start_line": 27
+                    "start_line": 26
                 }
             },
             "58": {
@@ -1361,12 +1361,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 49,
-                    "end_line": 31,
+                    "end_line": 30,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 48,
-                    "start_line": 31
+                    "start_line": 30
                 }
             },
             "60": {
@@ -1386,12 +1386,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 57,
-                    "end_line": 31,
+                    "end_line": 30,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 51,
-                    "start_line": 31
+                    "start_line": 30
                 }
             },
             "62": {
@@ -1411,12 +1411,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 58,
-                    "end_line": 31,
+                    "end_line": 30,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 21,
-                    "start_line": 31
+                    "start_line": 30
                 }
             },
             "64": {
@@ -1437,12 +1437,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 29,
-                    "end_line": 32,
+                    "end_line": 31,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 5,
-                    "start_line": 32
+                    "start_line": 31
                 }
             },
             "66": {
@@ -1463,12 +1463,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 34,
-                    "end_line": 33,
+                    "end_line": 32,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 28,
-                    "start_line": 33
+                    "start_line": 32
                 }
             },
             "68": {
@@ -1489,36 +1489,36 @@
                 "hints": [],
                 "inst": {
                     "end_col": 27,
-                    "end_line": 27,
+                    "end_line": 26,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 27,
-                            "end_line": 27,
+                            "end_line": 26,
                             "input_file": {
-                                "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                                "filename": "cairo_programs/benchmarks/linear_search.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 46,
-                                    "end_line": 33,
+                                    "end_line": 32,
                                     "input_file": {
-                                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                                     },
                                     "start_col": 36,
-                                    "start_line": 33
+                                    "start_line": 32
                                 },
                                 "While expanding the reference 'felt_array' in:"
                             ],
                             "start_col": 10,
-                            "start_line": 27
+                            "start_line": 26
                         },
                         "While auto generating local variable for 'felt_array'."
                     ],
                     "start_col": 10,
-                    "start_line": 27
+                    "start_line": 26
                 }
             },
             "69": {
@@ -1539,12 +1539,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 49,
-                    "end_line": 33,
+                    "end_line": 32,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 48,
-                    "start_line": 33
+                    "start_line": 32
                 }
             },
             "71": {
@@ -1565,12 +1565,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 57,
-                    "end_line": 33,
+                    "end_line": 32,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 51,
-                    "start_line": 33
+                    "start_line": 32
                 }
             },
             "73": {
@@ -1591,12 +1591,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 58,
-                    "end_line": 33,
+                    "end_line": 32,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 21,
-                    "start_line": 33
+                    "start_line": 32
                 }
             },
             "75": {
@@ -1618,12 +1618,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 29,
-                    "end_line": 34,
+                    "end_line": 33,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 5,
-                    "start_line": 34
+                    "start_line": 33
                 }
             },
             "77": {
@@ -1645,12 +1645,12 @@
                 "hints": [],
                 "inst": {
                     "end_col": 8,
-                    "end_line": 35,
+                    "end_line": 34,
                     "input_file": {
-                        "filename": "../cairo_programs/benchmarks/linear_search.cairo"
+                        "filename": "cairo_programs/benchmarks/linear_search.cairo"
                     },
                     "start_col": 5,
-                    "start_line": 35
+                    "start_line": 34
                 }
             }
         }

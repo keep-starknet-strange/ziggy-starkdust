@@ -32,4 +32,3 @@ func main() {
     assert result = TRUE;
     return ();
 }
-

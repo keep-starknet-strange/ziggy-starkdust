@@ -604,7 +604,7 @@ pub const CairoVM = struct {
     ///
     /// ## Returns
     /// - `MaybeRelocatable`: The deduced Op0 operand or an error if deducing Op0 fails.
-    pub fn computeOp0Deductions(
+    pub inline fn computeOp0Deductions(
         self: *Self,
         op_0_addr: Relocatable,
         res: *?MaybeRelocatable,
@@ -635,7 +635,7 @@ pub const CairoVM = struct {
     ///
     /// ## Returns
     /// - `MaybeRelocatable`: The deduced Op1 operand or an error if deducing Op1 fails.
-    pub fn computeOp1Deductions(
+    pub inline fn computeOp1Deductions(
         self: *Self,
         op1_addr: Relocatable,
         res: *?MaybeRelocatable,

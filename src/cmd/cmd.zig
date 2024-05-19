@@ -16,7 +16,7 @@ const ProgramJson = @import("../vm/types/programjson.zig").ProgramJson;
 const cairo_run = @import("../vm/cairo_run.zig");
 
 // var gpa = std.heap.GeneralPurposeAllocator(.{}){};
-const gpa_allocator = std.heap.raw_c_allocator;
+const gpa_allocator = std.heap.c_allocator;
 
 // Configuration settings for the CLI.
 var config = Config{
