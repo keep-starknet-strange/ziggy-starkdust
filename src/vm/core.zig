@@ -43,7 +43,7 @@ pub const CairoVM = struct {
     // *                        FIELDS                            *
     // ************************************************************
 
-    /// The memory allocator. Can be needed for the deallocation of the VM resources.
+    /// The memory allocator.
     allocator: Allocator,
     /// The run context.
     run_context: RunContext,
