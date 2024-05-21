@@ -396,7 +396,7 @@
                             "end_col": 7,
                             "end_line": 46,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                             },
                             "start_col": 5,
                             "start_line": 42
@@ -408,7 +408,7 @@
                     "end_col": 26,
                     "end_line": 47,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 5,
                     "start_line": 47
@@ -434,21 +434,21 @@
                     "end_col": 46,
                     "end_line": 48,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 31,
                             "end_line": 41,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 15,
                                     "end_line": 49,
                                     "input_file": {
-                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 49
@@ -484,7 +484,7 @@
                     "end_col": 15,
                     "end_line": 49,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 5,
                     "start_line": 49
@@ -511,21 +511,21 @@
                     "end_col": 31,
                     "end_line": 53,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 31,
                             "end_line": 41,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 21,
                                     "end_line": 54,
                                     "input_file": {
-                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 54
@@ -562,7 +562,7 @@
                     "end_col": 20,
                     "end_line": 54,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 15,
                     "start_line": 54
@@ -589,7 +589,7 @@
                     "end_col": 21,
                     "end_line": 54,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 5,
                     "start_line": 54
@@ -616,7 +616,7 @@
                     "end_col": 15,
                     "end_line": 55,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 5,
                     "start_line": 55
@@ -643,21 +643,21 @@
                     "end_col": 34,
                     "end_line": 70,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 31,
                             "end_line": 41,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 17,
                                     "end_line": 71,
                                     "input_file": {
-                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 71
@@ -694,14 +694,14 @@
                     "end_col": 37,
                     "end_line": 70,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 16,
                             "end_line": 71,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                             },
                             "start_col": 15,
                             "start_line": 71
@@ -733,7 +733,7 @@
                     "end_col": 17,
                     "end_line": 71,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 5,
                     "start_line": 71
@@ -760,14 +760,14 @@
                     "end_col": 37,
                     "end_line": 70,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 16,
                             "end_line": 72,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                             },
                             "start_col": 15,
                             "start_line": 72
@@ -799,14 +799,14 @@
                     "end_col": 40,
                     "end_line": 70,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 19,
                             "end_line": 72,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                             },
                             "start_col": 18,
                             "start_line": 72
@@ -838,7 +838,7 @@
                     "end_col": 20,
                     "end_line": 72,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 5,
                     "start_line": 72
@@ -865,7 +865,7 @@
                     "end_col": 15,
                     "end_line": 73,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                     },
                     "start_col": 5,
                     "start_line": 73
@@ -892,7 +892,7 @@
                     "end_col": 7,
                     "end_line": 8,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
                     },
                     "start_col": 5,
                     "start_line": 8
@@ -919,7 +919,7 @@
                     "end_col": 19,
                     "end_line": 9,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
                     },
                     "start_col": 9,
                     "start_line": 9
@@ -947,7 +947,7 @@
                             "end_col": 41,
                             "end_line": 12,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
                             },
                             "start_col": 5,
                             "start_line": 12
@@ -959,14 +959,14 @@
                     "end_col": 23,
                     "end_line": 2,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 38,
                             "end_line": 13,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
                             },
                             "start_col": 35,
                             "start_line": 13
@@ -998,14 +998,14 @@
                     "end_col": 35,
                     "end_line": 2,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 47,
                             "end_line": 13,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
                             },
                             "start_col": 44,
                             "start_line": 13
@@ -1038,7 +1038,7 @@
                     "end_col": 37,
                     "end_line": 17,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
                     },
                     "start_col": 26,
                     "start_line": 17
@@ -1067,7 +1067,7 @@
                     "end_col": 38,
                     "end_line": 17,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
                     },
                     "start_col": 5,
                     "start_line": 17
@@ -1098,7 +1098,7 @@
                     "end_col": 41,
                     "end_line": 22,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
                     },
                     "start_col": 5,
                     "start_line": 22
@@ -1129,7 +1129,7 @@
                     "end_col": 41,
                     "end_line": 23,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
                     },
                     "start_col": 5,
                     "start_line": 23
@@ -1161,7 +1161,7 @@
                             "end_col": 7,
                             "end_line": 27,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
                             },
                             "start_col": 5,
                             "start_line": 24
@@ -1173,7 +1173,7 @@
                     "end_col": 44,
                     "end_line": 29,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
                     },
                     "start_col": 5,
                     "start_line": 29
@@ -1204,7 +1204,7 @@
                     "end_col": 55,
                     "end_line": 31,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
                     },
                     "start_col": 5,
                     "start_line": 31
@@ -1236,7 +1236,7 @@
                             "end_col": 26,
                             "end_line": 33,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
                             },
                             "start_col": 5,
                             "start_line": 33
@@ -1248,7 +1248,7 @@
                     "end_col": 15,
                     "end_line": 34,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/memcpy.cairo"
                     },
                     "start_col": 5,
                     "start_line": 34
@@ -1277,7 +1277,7 @@
                     "end_col": 18,
                     "end_line": 31,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "start_col": 5,
                     "start_line": 31
@@ -1309,7 +1309,7 @@
                             "end_col": 7,
                             "end_line": 45,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                             },
                             "start_col": 5,
                             "start_line": 34
@@ -1321,7 +1321,7 @@
                     "end_col": 7,
                     "end_line": 46,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "start_col": 5,
                     "start_line": 46
@@ -1352,14 +1352,14 @@
                     "end_col": 49,
                     "end_line": 30,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 31,
                             "end_line": 54,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                             },
                             "start_col": 20,
                             "start_line": 54
@@ -1395,14 +1395,14 @@
                     "end_col": 91,
                     "end_line": 30,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 44,
                             "end_line": 54,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                             },
                             "start_col": 37,
                             "start_line": 54
@@ -1438,14 +1438,14 @@
                     "end_col": 75,
                     "end_line": 30,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 58,
                             "end_line": 54,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                             },
                             "start_col": 50,
                             "start_line": 54
@@ -1481,7 +1481,7 @@
                     "end_col": 59,
                     "end_line": 54,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "start_col": 9,
                     "start_line": 54
@@ -1512,21 +1512,21 @@
                     "end_col": 29,
                     "end_line": 30,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 29,
                             "end_line": 30,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 19,
                                     "end_line": 56,
                                     "input_file": {
-                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                                     },
                                     "start_col": 9,
                                     "start_line": 56
@@ -1567,21 +1567,21 @@
                     "end_col": 56,
                     "end_line": 55,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 49,
                             "end_line": 30,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 19,
                                     "end_line": 56,
                                     "input_file": {
-                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                                     },
                                     "start_col": 9,
                                     "start_line": 56
@@ -1622,7 +1622,7 @@
                     "end_col": 19,
                     "end_line": 56,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "start_col": 9,
                     "start_line": 56
@@ -1653,7 +1653,7 @@
                     "end_col": 66,
                     "end_line": 47,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "start_col": 50,
                     "start_line": 47
@@ -1685,7 +1685,7 @@
                     "end_col": 67,
                     "end_line": 47,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "start_col": 9,
                     "start_line": 47
@@ -1718,14 +1718,14 @@
                     "end_col": 30,
                     "end_line": 47,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 35,
                             "end_line": 49,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                             },
                             "start_col": 20,
                             "start_line": 49
@@ -1763,14 +1763,14 @@
                     "end_col": 91,
                     "end_line": 30,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 48,
                             "end_line": 49,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                             },
                             "start_col": 41,
                             "start_line": 49
@@ -1808,14 +1808,14 @@
                     "end_col": 75,
                     "end_line": 30,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 62,
                             "end_line": 49,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                             },
                             "start_col": 54,
                             "start_line": 49
@@ -1853,7 +1853,7 @@
                     "end_col": 63,
                     "end_line": 49,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "start_col": 9,
                     "start_line": 49
@@ -1886,7 +1886,7 @@
                     "end_col": 72,
                     "end_line": 50,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "start_col": 27,
                     "start_line": 50
@@ -1920,7 +1920,7 @@
                     "end_col": 84,
                     "end_line": 50,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "start_col": 26,
                     "start_line": 50
@@ -1955,21 +1955,21 @@
                     "end_col": 29,
                     "end_line": 30,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 34,
                             "end_line": 70,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/math.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 40,
                                     "end_line": 51,
                                     "input_file": {
-                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                                     },
                                     "start_col": 9,
                                     "start_line": 51
@@ -2014,14 +2014,14 @@
                     "end_col": 16,
                     "end_line": 33,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 27,
                             "end_line": 51,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                             },
                             "start_col": 22,
                             "start_line": 51
@@ -2061,7 +2061,7 @@
                     "end_col": 39,
                     "end_line": 51,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "start_col": 29,
                     "start_line": 51
@@ -2096,7 +2096,7 @@
                     "end_col": 40,
                     "end_line": 51,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "start_col": 9,
                     "start_line": 51
@@ -2131,21 +2131,21 @@
                     "end_col": 49,
                     "end_line": 30,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 49,
                             "end_line": 30,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 19,
                                     "end_line": 52,
                                     "input_file": {
-                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                                     },
                                     "start_col": 9,
                                     "start_line": 52
@@ -2190,7 +2190,7 @@
                     "end_col": 19,
                     "end_line": 52,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "start_col": 9,
                     "start_line": 52
@@ -2216,7 +2216,7 @@
                     "end_col": 30,
                     "end_line": 28,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                     },
                     "start_col": 5,
                     "start_line": 28
@@ -2242,7 +2242,7 @@
                     "end_col": 35,
                     "end_line": 29,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                     },
                     "start_col": 5,
                     "start_line": 29
@@ -2268,21 +2268,21 @@
                     "end_col": 46,
                     "end_line": 30,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 35,
                             "end_line": 27,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 15,
                                     "end_line": 31,
                                     "input_file": {
-                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 31
@@ -2318,7 +2318,7 @@
                     "end_col": 15,
                     "end_line": 31,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                     },
                     "start_col": 5,
                     "start_line": 31
@@ -2345,7 +2345,7 @@
                     "end_col": 18,
                     "end_line": 71,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                     },
                     "start_col": 5,
                     "start_line": 71
@@ -2376,7 +2376,7 @@
                             "end_col": 7,
                             "end_line": 80,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                             },
                             "start_col": 5,
                             "start_line": 75
@@ -2388,7 +2388,7 @@
                     "end_col": 46,
                     "end_line": 82,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                     },
                     "start_col": 5,
                     "start_line": 82
@@ -2418,7 +2418,7 @@
                     "end_col": 49,
                     "end_line": 83,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                     },
                     "start_col": 5,
                     "start_line": 83
@@ -2448,7 +2448,7 @@
                     "end_col": 35,
                     "end_line": 85,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                     },
                     "start_col": 22,
                     "start_line": 85
@@ -2479,7 +2479,7 @@
                     "end_col": 55,
                     "end_line": 85,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                     },
                     "start_col": 38,
                     "start_line": 85
@@ -2511,7 +2511,7 @@
                     "end_col": 56,
                     "end_line": 85,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                     },
                     "start_col": 5,
                     "start_line": 85
@@ -2543,7 +2543,7 @@
                     "end_col": 38,
                     "end_line": 86,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                     },
                     "start_col": 23,
                     "start_line": 86
@@ -2576,7 +2576,7 @@
                     "end_col": 50,
                     "end_line": 86,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                     },
                     "start_col": 23,
                     "start_line": 86
@@ -2610,7 +2610,7 @@
                     "end_col": 71,
                     "end_line": 86,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                     },
                     "start_col": 53,
                     "start_line": 86
@@ -2645,7 +2645,7 @@
                     "end_col": 72,
                     "end_line": 86,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                     },
                     "start_col": 5,
                     "start_line": 86
@@ -2680,21 +2680,21 @@
                     "end_col": 33,
                     "end_line": 70,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 35,
                             "end_line": 27,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 23,
                                     "end_line": 87,
                                     "input_file": {
-                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 87
@@ -2739,14 +2739,14 @@
                     "end_col": 14,
                     "end_line": 72,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 22,
                             "end_line": 87,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                             },
                             "start_col": 19,
                             "start_line": 87
@@ -2786,14 +2786,14 @@
                     "end_col": 14,
                     "end_line": 72,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 22,
                             "end_line": 87,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                             },
                             "start_col": 19,
                             "start_line": 87
@@ -2833,7 +2833,7 @@
                     "end_col": 23,
                     "end_line": 87,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                     },
                     "start_col": 5,
                     "start_line": 87
@@ -2868,14 +2868,14 @@
                     "end_col": 14,
                     "end_line": 72,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 16,
                             "end_line": 89,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                             },
                             "start_col": 13,
                             "start_line": 89
@@ -2915,14 +2915,14 @@
                     "end_col": 14,
                     "end_line": 72,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 16,
                             "end_line": 89,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                             },
                             "start_col": 13,
                             "start_line": 89
@@ -2962,14 +2962,14 @@
                     "end_col": 21,
                     "end_line": 74,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 28,
                             "end_line": 89,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                             },
                             "start_col": 18,
                             "start_line": 89
@@ -3009,7 +3009,7 @@
                     "end_col": 30,
                     "end_line": 89,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                     },
                     "start_col": 5,
                     "start_line": 89
@@ -3033,7 +3033,7 @@
                             "end_col": 38,
                             "end_line": 3,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/alloc.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/alloc.cairo"
                             },
                             "start_col": 5,
                             "start_line": 3
@@ -3045,7 +3045,7 @@
                     "end_col": 12,
                     "end_line": 4,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/alloc.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/alloc.cairo"
                     },
                     "start_col": 5,
                     "start_line": 4
@@ -3068,7 +3068,7 @@
                     "end_col": 40,
                     "end_line": 5,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/alloc.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/alloc.cairo"
                     },
                     "start_col": 5,
                     "start_line": 5
@@ -3098,7 +3098,7 @@
                     "end_col": 30,
                     "end_line": 10,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 9,
                     "start_line": 10
@@ -3129,7 +3129,7 @@
                     "end_col": 7,
                     "end_line": 10,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 5,
                     "start_line": 10
@@ -3160,21 +3160,21 @@
                     "end_col": 46,
                     "end_line": 7,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 46,
                             "end_line": 7,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 19,
                                     "end_line": 11,
                                     "input_file": {
-                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                                     },
                                     "start_col": 9,
                                     "start_line": 11
@@ -3215,7 +3215,7 @@
                     "end_col": 19,
                     "end_line": 11,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 9,
                     "start_line": 11
@@ -3246,21 +3246,21 @@
                     "end_col": 46,
                     "end_line": 7,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 33,
                             "end_line": 70,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 67,
                                     "end_line": 13,
                                     "input_file": {
-                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                                     },
                                     "start_col": 44,
                                     "start_line": 13
@@ -3301,14 +3301,14 @@
                     "end_col": 50,
                     "end_line": 8,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 60,
                             "end_line": 13,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 56,
                             "start_line": 13
@@ -3344,14 +3344,14 @@
                     "end_col": 50,
                     "end_line": 8,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 60,
                             "end_line": 13,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 56,
                             "start_line": 13
@@ -3387,14 +3387,14 @@
                     "end_col": 35,
                     "end_line": 8,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 66,
                             "end_line": 13,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 62,
                             "start_line": 13
@@ -3430,14 +3430,14 @@
                     "end_col": 35,
                     "end_line": 8,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 66,
                             "end_line": 13,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 62,
                             "start_line": 13
@@ -3473,7 +3473,7 @@
                     "end_col": 67,
                     "end_line": 13,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 44,
                     "start_line": 13
@@ -3506,7 +3506,7 @@
                     "end_col": 27,
                     "end_line": 15,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 12,
                     "start_line": 15
@@ -3540,7 +3540,7 @@
                     "end_col": 27,
                     "end_line": 15,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 12,
                     "start_line": 15
@@ -3575,7 +3575,7 @@
                     "end_col": 34,
                     "end_line": 15,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 5,
                     "start_line": 15
@@ -3610,7 +3610,7 @@
                     "end_col": 27,
                     "end_line": 15,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 12,
                     "start_line": 15
@@ -3646,7 +3646,7 @@
                     "end_col": 27,
                     "end_line": 15,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 12,
                     "start_line": 15
@@ -3683,7 +3683,7 @@
                     "end_col": 27,
                     "end_line": 15,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 12,
                     "start_line": 15
@@ -3721,7 +3721,7 @@
                     "end_col": 34,
                     "end_line": 15,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 5,
                     "start_line": 15
@@ -3759,7 +3759,7 @@
                     "end_col": 59,
                     "end_line": 16,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 44,
                     "start_line": 16
@@ -3798,7 +3798,7 @@
                     "end_col": 59,
                     "end_line": 16,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 44,
                     "start_line": 16
@@ -3838,7 +3838,7 @@
                     "end_col": 59,
                     "end_line": 16,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 44,
                     "start_line": 16
@@ -3879,7 +3879,7 @@
                     "end_col": 59,
                     "end_line": 16,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 44,
                     "start_line": 16
@@ -3921,7 +3921,7 @@
                     "end_col": 59,
                     "end_line": 16,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 44,
                     "start_line": 16
@@ -3964,28 +3964,28 @@
                     "end_col": 33,
                     "end_line": 70,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/uint256.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 67,
                             "end_line": 13,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 46,
                                     "end_line": 7,
                                     "input_file": {
-                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                                     },
                                     "parent_location": [
                                         {
                                             "end_col": 85,
                                             "end_line": 16,
                                             "input_file": {
-                                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                                             },
                                             "start_col": 12,
                                             "start_line": 16
@@ -4043,14 +4043,14 @@
                     "end_col": 20,
                     "end_line": 8,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 36,
                             "end_line": 16,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 31,
                             "start_line": 16
@@ -4098,14 +4098,14 @@
                     "end_col": 35,
                     "end_line": 8,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 42,
                             "end_line": 16,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 38,
                             "start_line": 16
@@ -4153,14 +4153,14 @@
                     "end_col": 35,
                     "end_line": 8,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 42,
                             "end_line": 16,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 38,
                             "start_line": 16
@@ -4208,7 +4208,7 @@
                     "end_col": 59,
                     "end_line": 16,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 44,
                     "start_line": 16
@@ -4251,7 +4251,7 @@
                     "end_col": 59,
                     "end_line": 16,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 44,
                     "start_line": 16
@@ -4294,14 +4294,14 @@
                     "end_col": 67,
                     "end_line": 8,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 70,
                             "end_line": 16,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 61,
                             "start_line": 16
@@ -4349,7 +4349,7 @@
                     "end_col": 84,
                     "end_line": 16,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 72,
                     "start_line": 16
@@ -4392,7 +4392,7 @@
                     "end_col": 85,
                     "end_line": 16,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 12,
                     "start_line": 16
@@ -4435,7 +4435,7 @@
                     "end_col": 86,
                     "end_line": 16,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 5,
                     "start_line": 16
@@ -4464,7 +4464,7 @@
                     "end_col": 28,
                     "end_line": 23,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 9,
                     "start_line": 23
@@ -4494,7 +4494,7 @@
                     "end_col": 7,
                     "end_line": 23,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 5,
                     "start_line": 23
@@ -4524,21 +4524,21 @@
                     "end_col": 55,
                     "end_line": 20,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 55,
                             "end_line": 20,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 19,
                                     "end_line": 24,
                                     "input_file": {
-                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                                     },
                                     "start_col": 9,
                                     "start_line": 24
@@ -4578,7 +4578,7 @@
                     "end_col": 19,
                     "end_line": 24,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 9,
                     "start_line": 24
@@ -4609,7 +4609,7 @@
                     "end_col": 99,
                     "end_line": 29,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 79,
                     "start_line": 29
@@ -4641,14 +4641,14 @@
                     "end_col": 40,
                     "end_line": 27,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 32,
                             "end_line": 29,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 25,
                             "start_line": 29
@@ -4686,21 +4686,21 @@
                     "end_col": 55,
                     "end_line": 20,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 29,
                             "end_line": 30,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 100,
                                     "end_line": 29,
                                     "input_file": {
-                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 29
@@ -4743,14 +4743,14 @@
                     "end_col": 40,
                     "end_line": 27,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 32,
                             "end_line": 29,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 25,
                             "start_line": 29
@@ -4788,14 +4788,14 @@
                     "end_col": 18,
                     "end_line": 21,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 45,
                             "end_line": 29,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 42,
                             "start_line": 29
@@ -4833,7 +4833,7 @@
                     "end_col": 68,
                     "end_line": 29,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 56,
                     "start_line": 29
@@ -4866,7 +4866,7 @@
                     "end_col": 99,
                     "end_line": 29,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 79,
                     "start_line": 29
@@ -4899,7 +4899,7 @@
                     "end_col": 100,
                     "end_line": 29,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 5,
                     "start_line": 29
@@ -4932,28 +4932,28 @@
                     "end_col": 29,
                     "end_line": 30,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 100,
                             "end_line": 29,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 55,
                                     "end_line": 20,
                                     "input_file": {
-                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                                     },
                                     "parent_location": [
                                         {
                                             "end_col": 6,
                                             "end_line": 33,
                                             "input_file": {
-                                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                                             },
                                             "start_col": 12,
                                             "start_line": 31
@@ -5001,14 +5001,14 @@
                     "end_col": 18,
                     "end_line": 21,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 16,
                             "end_line": 32,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 13,
                             "start_line": 32
@@ -5046,14 +5046,14 @@
                     "end_col": 40,
                     "end_line": 21,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 39,
                             "end_line": 32,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 29,
                             "start_line": 32
@@ -5091,14 +5091,14 @@
                     "end_col": 55,
                     "end_line": 21,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 56,
                             "end_line": 32,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 49,
                             "start_line": 32
@@ -5136,7 +5136,7 @@
                     "end_col": 79,
                     "end_line": 32,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 67,
                     "start_line": 32
@@ -5169,7 +5169,7 @@
                     "end_col": 6,
                     "end_line": 33,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 12,
                     "start_line": 31
@@ -5202,7 +5202,7 @@
                     "end_col": 7,
                     "end_line": 33,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 5,
                     "start_line": 31
@@ -5231,7 +5231,7 @@
                     "end_col": 28,
                     "end_line": 39,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 9,
                     "start_line": 39
@@ -5261,7 +5261,7 @@
                     "end_col": 7,
                     "end_line": 39,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 5,
                     "start_line": 39
@@ -5291,21 +5291,21 @@
                     "end_col": 46,
                     "end_line": 36,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 46,
                             "end_line": 36,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 19,
                                     "end_line": 40,
                                     "input_file": {
-                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                                     },
                                     "start_col": 9,
                                     "start_line": 40
@@ -5345,7 +5345,7 @@
                     "end_col": 19,
                     "end_line": 40,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 9,
                     "start_line": 40
@@ -5376,7 +5376,7 @@
                     "end_col": 99,
                     "end_line": 44,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 79,
                     "start_line": 44
@@ -5408,14 +5408,14 @@
                     "end_col": 39,
                     "end_line": 43,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 32,
                             "end_line": 44,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 25,
                             "start_line": 44
@@ -5453,21 +5453,21 @@
                     "end_col": 46,
                     "end_line": 36,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 29,
                             "end_line": 30,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 100,
                                     "end_line": 44,
                                     "input_file": {
-                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 44
@@ -5510,14 +5510,14 @@
                     "end_col": 39,
                     "end_line": 43,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 32,
                             "end_line": 44,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 25,
                             "start_line": 44
@@ -5555,14 +5555,14 @@
                     "end_col": 18,
                     "end_line": 37,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 45,
                             "end_line": 44,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 42,
                             "start_line": 44
@@ -5600,7 +5600,7 @@
                     "end_col": 68,
                     "end_line": 44,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 56,
                     "start_line": 44
@@ -5633,7 +5633,7 @@
                     "end_col": 99,
                     "end_line": 44,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 79,
                     "start_line": 44
@@ -5666,7 +5666,7 @@
                     "end_col": 100,
                     "end_line": 44,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 5,
                     "start_line": 44
@@ -5699,7 +5699,7 @@
                     "end_col": 25,
                     "end_line": 46,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 12,
                     "start_line": 46
@@ -5733,7 +5733,7 @@
                     "end_col": 25,
                     "end_line": 46,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 12,
                     "start_line": 46
@@ -5768,7 +5768,7 @@
                     "end_col": 48,
                     "end_line": 46,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 28,
                     "start_line": 46
@@ -5804,7 +5804,7 @@
                     "end_col": 48,
                     "end_line": 46,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 28,
                     "start_line": 46
@@ -5841,7 +5841,7 @@
                     "end_col": 48,
                     "end_line": 46,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 28,
                     "start_line": 46
@@ -5879,7 +5879,7 @@
                     "end_col": 49,
                     "end_line": 46,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 5,
                     "start_line": 46
@@ -5917,7 +5917,7 @@
                     "end_col": 25,
                     "end_line": 46,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 12,
                     "start_line": 46
@@ -5956,7 +5956,7 @@
                     "end_col": 25,
                     "end_line": 46,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 12,
                     "start_line": 46
@@ -5996,7 +5996,7 @@
                     "end_col": 25,
                     "end_line": 46,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 12,
                     "start_line": 46
@@ -6037,7 +6037,7 @@
                     "end_col": 48,
                     "end_line": 46,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 28,
                     "start_line": 46
@@ -6079,7 +6079,7 @@
                     "end_col": 48,
                     "end_line": 46,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 28,
                     "start_line": 46
@@ -6122,7 +6122,7 @@
                     "end_col": 48,
                     "end_line": 46,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 28,
                     "start_line": 46
@@ -6166,7 +6166,7 @@
                     "end_col": 48,
                     "end_line": 46,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 28,
                     "start_line": 46
@@ -6211,7 +6211,7 @@
                     "end_col": 49,
                     "end_line": 46,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 5,
                     "start_line": 46
@@ -6256,28 +6256,28 @@
                     "end_col": 29,
                     "end_line": 30,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/set.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 100,
                             "end_line": 44,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 46,
                                     "end_line": 36,
                                     "input_file": {
-                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                                     },
                                     "parent_location": [
                                         {
                                             "end_col": 6,
                                             "end_line": 50,
                                             "input_file": {
-                                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                                             },
                                             "start_col": 12,
                                             "start_line": 48
@@ -6337,14 +6337,14 @@
                     "end_col": 18,
                     "end_line": 37,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 16,
                             "end_line": 49,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 13,
                             "start_line": 49
@@ -6394,14 +6394,14 @@
                     "end_col": 40,
                     "end_line": 37,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 39,
                             "end_line": 49,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 29,
                             "start_line": 49
@@ -6451,14 +6451,14 @@
                     "end_col": 55,
                     "end_line": 37,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 56,
                             "end_line": 49,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 49,
                             "start_line": 49
@@ -6508,7 +6508,7 @@
                     "end_col": 79,
                     "end_line": 49,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 67,
                     "start_line": 49
@@ -6553,7 +6553,7 @@
                     "end_col": 6,
                     "end_line": 50,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 12,
                     "start_line": 48
@@ -6598,7 +6598,7 @@
                     "end_col": 7,
                     "end_line": 50,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 5,
                     "start_line": 48
@@ -6627,7 +6627,7 @@
                     "end_col": 28,
                     "end_line": 56,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 9,
                     "start_line": 56
@@ -6657,7 +6657,7 @@
                     "end_col": 7,
                     "end_line": 56,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 5,
                     "start_line": 56
@@ -6687,21 +6687,21 @@
                     "end_col": 45,
                     "end_line": 53,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 45,
                             "end_line": 53,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 19,
                                     "end_line": 57,
                                     "input_file": {
-                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                                     },
                                     "start_col": 9,
                                     "start_line": 57
@@ -6741,7 +6741,7 @@
                     "end_col": 19,
                     "end_line": 57,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 9,
                     "start_line": 57
@@ -6771,7 +6771,7 @@
                     "end_col": 25,
                     "end_line": 60,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 12,
                     "start_line": 60
@@ -6802,7 +6802,7 @@
                     "end_col": 25,
                     "end_line": 60,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 12,
                     "start_line": 60
@@ -6834,7 +6834,7 @@
                     "end_col": 48,
                     "end_line": 60,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 28,
                     "start_line": 60
@@ -6867,7 +6867,7 @@
                     "end_col": 48,
                     "end_line": 60,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 28,
                     "start_line": 60
@@ -6901,7 +6901,7 @@
                     "end_col": 48,
                     "end_line": 60,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 28,
                     "start_line": 60
@@ -6936,7 +6936,7 @@
                     "end_col": 49,
                     "end_line": 60,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 5,
                     "start_line": 60
@@ -6971,7 +6971,7 @@
                     "end_col": 25,
                     "end_line": 60,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 12,
                     "start_line": 60
@@ -7007,7 +7007,7 @@
                     "end_col": 25,
                     "end_line": 60,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 12,
                     "start_line": 60
@@ -7044,7 +7044,7 @@
                     "end_col": 25,
                     "end_line": 60,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 12,
                     "start_line": 60
@@ -7082,7 +7082,7 @@
                     "end_col": 48,
                     "end_line": 60,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 28,
                     "start_line": 60
@@ -7121,7 +7121,7 @@
                     "end_col": 48,
                     "end_line": 60,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 28,
                     "start_line": 60
@@ -7161,7 +7161,7 @@
                     "end_col": 48,
                     "end_line": 60,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 28,
                     "start_line": 60
@@ -7202,7 +7202,7 @@
                     "end_col": 48,
                     "end_line": 60,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 28,
                     "start_line": 60
@@ -7244,7 +7244,7 @@
                     "end_col": 49,
                     "end_line": 60,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 5,
                     "start_line": 60
@@ -7286,21 +7286,21 @@
                     "end_col": 45,
                     "end_line": 53,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 45,
                             "end_line": 53,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 6,
                                     "end_line": 64,
                                     "input_file": {
-                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                                     },
                                     "start_col": 12,
                                     "start_line": 62
@@ -7352,14 +7352,14 @@
                     "end_col": 18,
                     "end_line": 54,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 16,
                             "end_line": 63,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 13,
                             "start_line": 63
@@ -7406,14 +7406,14 @@
                     "end_col": 40,
                     "end_line": 54,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 39,
                             "end_line": 63,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 29,
                             "start_line": 63
@@ -7460,14 +7460,14 @@
                     "end_col": 55,
                     "end_line": 54,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 56,
                             "end_line": 63,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 49,
                             "start_line": 63
@@ -7514,7 +7514,7 @@
                     "end_col": 79,
                     "end_line": 63,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 67,
                     "start_line": 63
@@ -7556,7 +7556,7 @@
                     "end_col": 6,
                     "end_line": 64,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 12,
                     "start_line": 62
@@ -7598,7 +7598,7 @@
                     "end_col": 7,
                     "end_line": 64,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 5,
                     "start_line": 62
@@ -7624,7 +7624,7 @@
                     "end_col": 18,
                     "end_line": 68,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 5,
                     "start_line": 68
@@ -7650,7 +7650,7 @@
                     "end_col": 44,
                     "end_line": 70,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 37,
                     "start_line": 70
@@ -7677,14 +7677,14 @@
                     "end_col": 33,
                     "end_line": 70,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 33,
                             "end_line": 70,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 10,
                             "start_line": 70
@@ -7716,21 +7716,21 @@
                     "end_col": 31,
                     "end_line": 67,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 46,
                             "end_line": 7,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 86,
                                     "end_line": 71,
                                     "input_file": {
-                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 71
@@ -7767,21 +7767,21 @@
                     "end_col": 33,
                     "end_line": 70,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 33,
                             "end_line": 70,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 37,
                                     "end_line": 71,
                                     "input_file": {
-                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                                     },
                                     "start_col": 24,
                                     "start_line": 71
@@ -7818,7 +7818,7 @@
                     "end_col": 49,
                     "end_line": 71,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 47,
                     "start_line": 71
@@ -7845,7 +7845,7 @@
                     "end_col": 52,
                     "end_line": 71,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 51,
                     "start_line": 71
@@ -7872,7 +7872,7 @@
                     "end_col": 65,
                     "end_line": 71,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 63,
                     "start_line": 71
@@ -7899,7 +7899,7 @@
                     "end_col": 70,
                     "end_line": 71,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 67,
                     "start_line": 71
@@ -7926,14 +7926,14 @@
                     "end_col": 48,
                     "end_line": 67,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 82,
                             "end_line": 71,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 73,
                             "start_line": 71
@@ -7965,7 +7965,7 @@
                     "end_col": 85,
                     "end_line": 71,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 84,
                     "start_line": 71
@@ -7992,7 +7992,7 @@
                     "end_col": 86,
                     "end_line": 71,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 5,
                     "start_line": 71
@@ -8019,7 +8019,7 @@
                     "end_col": 42,
                     "end_line": 75,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 35,
                     "start_line": 75
@@ -8047,14 +8047,14 @@
                     "end_col": 31,
                     "end_line": 75,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 31,
                             "end_line": 75,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 10,
                             "start_line": 75
@@ -8087,28 +8087,28 @@
                     "end_col": 46,
                     "end_line": 7,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 86,
                             "end_line": 71,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 55,
                                     "end_line": 20,
                                     "input_file": {
-                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                                     },
                                     "parent_location": [
                                         {
                                             "end_col": 74,
                                             "end_line": 76,
                                             "input_file": {
-                                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                                             },
                                             "start_col": 5,
                                             "start_line": 76
@@ -8151,21 +8151,21 @@
                     "end_col": 31,
                     "end_line": 75,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 31,
                             "end_line": 75,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 44,
                                     "end_line": 76,
                                     "input_file": {
-                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                                     },
                                     "start_col": 33,
                                     "start_line": 76
@@ -8203,21 +8203,21 @@
                     "end_col": 33,
                     "end_line": 70,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 33,
                             "end_line": 70,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 59,
                                     "end_line": 76,
                                     "input_file": {
-                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                                     },
                                     "start_col": 46,
                                     "start_line": 76
@@ -8255,14 +8255,14 @@
                     "end_col": 48,
                     "end_line": 67,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 70,
                             "end_line": 76,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 61,
                             "start_line": 76
@@ -8295,7 +8295,7 @@
                     "end_col": 73,
                     "end_line": 76,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 72,
                     "start_line": 76
@@ -8323,7 +8323,7 @@
                     "end_col": 74,
                     "end_line": 76,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 5,
                     "start_line": 76
@@ -8351,21 +8351,21 @@
                     "end_col": 31,
                     "end_line": 75,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 31,
                             "end_line": 75,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 39,
                                     "end_line": 80,
                                     "input_file": {
-                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                                     },
                                     "start_col": 28,
                                     "start_line": 80
@@ -8403,21 +8403,21 @@
                     "end_col": 33,
                     "end_line": 70,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 33,
                             "end_line": 70,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 65,
                                     "end_line": 80,
                                     "input_file": {
-                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                                     },
                                     "start_col": 52,
                                     "start_line": 80
@@ -8455,14 +8455,14 @@
                     "end_col": 48,
                     "end_line": 67,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 84,
                             "end_line": 80,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 75,
                             "start_line": 80
@@ -8495,7 +8495,7 @@
                     "end_col": 96,
                     "end_line": 80,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 95,
                     "start_line": 80
@@ -8523,7 +8523,7 @@
                     "end_col": 97,
                     "end_line": 80,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 5,
                     "start_line": 80
@@ -8551,21 +8551,21 @@
                     "end_col": 31,
                     "end_line": 75,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 31,
                             "end_line": 75,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 38,
                                     "end_line": 83,
                                     "input_file": {
-                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                                     },
                                     "start_col": 27,
                                     "start_line": 83
@@ -8603,21 +8603,21 @@
                     "end_col": 33,
                     "end_line": 70,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 33,
                             "end_line": 70,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 64,
                                     "end_line": 83,
                                     "input_file": {
-                                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                                     },
                                     "start_col": 51,
                                     "start_line": 83
@@ -8655,14 +8655,14 @@
                     "end_col": 48,
                     "end_line": 67,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 83,
                             "end_line": 83,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "start_col": 74,
                             "start_line": 83
@@ -8695,7 +8695,7 @@
                     "end_col": 95,
                     "end_line": 83,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 94,
                     "start_line": 83
@@ -8723,7 +8723,7 @@
                     "end_col": 96,
                     "end_line": 83,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 5,
                     "start_line": 83
@@ -8751,7 +8751,7 @@
                     "end_col": 15,
                     "end_line": 85,
                     "input_file": {
-                        "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                     },
                     "start_col": 5,
                     "start_line": 85
@@ -8776,21 +8776,21 @@
                     "end_col": 26,
                     "end_line": 3,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/set_integration_benchmark.cairo"
+                        "filename": "../cairo_programs/benchmarks/set_integration_benchmark.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 31,
                             "end_line": 67,
                             "input_file": {
-                                "filename": "/Users/nikita/Projects/hobby/binance/cairo-vm/cairo_programs/set_integration_tests.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo_programs/set_integration_tests.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 20,
                                     "end_line": 4,
                                     "input_file": {
-                                        "filename": "cairo_programs/benchmarks/set_integration_benchmark.cairo"
+                                        "filename": "../cairo_programs/benchmarks/set_integration_benchmark.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 4
@@ -8825,7 +8825,7 @@
                     "end_col": 19,
                     "end_line": 4,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/set_integration_benchmark.cairo"
+                        "filename": "../cairo_programs/benchmarks/set_integration_benchmark.cairo"
                     },
                     "start_col": 15,
                     "start_line": 4
@@ -8850,7 +8850,7 @@
                     "end_col": 20,
                     "end_line": 4,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/set_integration_benchmark.cairo"
+                        "filename": "../cairo_programs/benchmarks/set_integration_benchmark.cairo"
                     },
                     "start_col": 5,
                     "start_line": 4
@@ -8875,7 +8875,7 @@
                     "end_col": 15,
                     "end_line": 5,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/set_integration_benchmark.cairo"
+                        "filename": "../cairo_programs/benchmarks/set_integration_benchmark.cairo"
                     },
                     "start_col": 5,
                     "start_line": 5

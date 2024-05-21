@@ -763,14 +763,12 @@ pub const BLAKE2S_FINALIZE_V3 =
     \\segments.write_arg(ids.blake2s_ptr_end, padding)
 ;
 
+pub const PRINT_FELT = "print(ids.x)";
+
 pub const PRINT_ARR =
     \\print(bytes.fromhex(f"{ids.name:062x}").decode().replace('\x00',''))
     \\arr = [memory[ids.arr + i] for i in range(ids.arr_len)]
     \\print(arr)
-;
-
-pub const PRINT_FELT =
-    \\print(ids.x)
 ;
 
 pub const PRINT_DICT =

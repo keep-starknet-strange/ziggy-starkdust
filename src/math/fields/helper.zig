@@ -722,10 +722,10 @@ pub fn sqrtPrimePower(allocator: std.mem.Allocator, a: Int, p: Int) !?Int {
     }
     defer result.deinit();
 
-    var val1, var val2, const succ = try tonelliShanksBigInt(allocator, result, p);
-    if (!succ) {
-        return null;
-    }
+    var val1, var val2, _ = try tonelliShanksBigInt(allocator, result, p);
+    // if (!succ) {
+    //     return null;
+    // }
 
     if (val1.order(val2).compare(.lt)) {
         val2.deinit();

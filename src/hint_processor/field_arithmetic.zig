@@ -164,7 +164,7 @@ pub fn bigIntIntGetSquareRoot(
         try Int.initSet(allocator, 0);
     defer root_gx.deinit();
 
-    if (!x.eqlZero() and success_x == success_gx)
+    if (!x.eqlZero() and success_x == success_gx and success_x)
         return HintError.AssertionFailed;
 
     try hint_utils.insertValueFromVarName(

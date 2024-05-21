@@ -9,9 +9,10 @@ const HintError = @import("../vm/error.zig").HintError;
 const MaybeRelocatable = @import("../vm/memory/relocatable.zig").MaybeRelocatable;
 const ExecutionScopes = @import("../vm/types/execution_scopes.zig").ExecutionScopes;
 const dict_manager = @import("../hint_processor/dict_manager.zig");
+
 pub fn printFelt(_: Allocator, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {
     const val = try hint_utils.getIntegerFromVarName("x", vm, ids_data, ap_tracking);
-    std.debug.print("{}\n", .{val});
+    std.log.err("{}\n", .{val.toU256()});
 }
 
 pub fn printName(_: Allocator, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {

@@ -235,26 +235,22 @@ pub const HashBuiltinRunner = struct {
         memory: *Memory,
     ) !?MaybeRelocatable {
         // hash has already been processed
-        if ((address.offset < self.verified_addresses.items.len) and self.verified_addresses.items[address.offset]) {
-            return null;
-        }
         if (address.offset % @as(u64, self.cells_per_instance) != 2) {
             return null;
         }
-        const a = (memory.get(Relocatable.init(address.segment_index, address.offset - 2)) orelse return null).intoFelt() catch {
-            return RunnerError.BuiltinExpectedInteger;
-        };
-        const b = (memory.get(Relocatable.init(address.segment_index, address.offset - 1)) orelse return null).intoFelt() catch {
-            return RunnerError.BuiltinExpectedInteger;
-        };
+        if ((address.offset < self.verified_addresses.items.len) and self.verified_addresses.items[address.offset]) {
+            return null;
+        }
 
-        const pedersen_result = pedersen_hash(a, b);
+        const num_a = memory.getFelt(Relocatable.init(address.segment_index, address.offset - 1)) catch return null;
 
-        try self.verified_addresses.ensureTotalCapacityPrecise(address.offset);
-        self.verified_addresses.expandToCapacity();
-        try self.verified_addresses.insert(address.offset, true);
+        const num_b = memory.getFelt(Relocatable.init(address.segment_index, address.offset - 2)) catch return null;
 
-        return (MaybeRelocatable.fromFelt(pedersen_result));
+        if (self.verified_addresses.items.len <= address.offset) try self.verified_addresses.appendNTimes(false, address.offset + 1 - self.verified_addresses.items.len);
+
+        self.verified_addresses.items[address.offset] = true;
+
+        return MaybeRelocatable.fromFelt(pedersen_hash(num_b, num_a));
     }
 
     /// Frees the resources owned by this instance of `HashBuiltinRunner`.

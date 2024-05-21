@@ -149,7 +149,7 @@
                     "end_col": 19,
                     "end_line": 14,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
                     },
                     "start_col": 5,
                     "start_line": 14
@@ -176,7 +176,7 @@
                     "end_col": 19,
                     "end_line": 15,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
                     },
                     "start_col": 5,
                     "start_line": 15
@@ -204,21 +204,21 @@
                     "end_col": 47,
                     "end_line": 17,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 34,
                             "end_line": 13,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 28,
                                     "end_line": 18,
                                     "input_file": {
-                                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
+                                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 18
@@ -256,14 +256,14 @@
                     "end_col": 33,
                     "end_line": 16,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 26,
                             "end_line": 18,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
                             },
                             "start_col": 20,
                             "start_line": 18
@@ -296,7 +296,7 @@
                     "end_col": 28,
                     "end_line": 18,
                     "input_file": {
-                        "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
+                        "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
                     },
                     "start_col": 5,
                     "start_line": 18
@@ -323,21 +323,21 @@
                     "end_col": 37,
                     "end_line": 6,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 34,
                             "end_line": 13,
                             "input_file": {
-                                "filename": "/Library/Frameworks/Python.framework/Versions/3.12/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
+                                "filename": "/Users/nikita/Projects/hobby/ziggy-starkdust/cairo-vm-env/lib/python3.12/site-packages/starkware/cairo/common/hash.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 43,
                                     "end_line": 10,
                                     "input_file": {
-                                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                                     },
                                     "start_col": 24,
                                     "start_line": 10
@@ -374,14 +374,14 @@
                     "end_col": 50,
                     "end_line": 6,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 35,
                             "end_line": 10,
                             "input_file": {
-                                "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                                "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                             },
                             "start_col": 30,
                             "start_line": 10
@@ -413,14 +413,14 @@
                     "end_col": 63,
                     "end_line": 6,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 42,
                             "end_line": 10,
                             "input_file": {
-                                "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                                "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                             },
                             "start_col": 37,
                             "start_line": 10
@@ -452,7 +452,7 @@
                     "end_col": 43,
                     "end_line": 10,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "start_col": 24,
                     "start_line": 10
@@ -480,7 +480,7 @@
                     "end_col": 42,
                     "end_line": 12,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "start_col": 5,
                     "start_line": 12
@@ -507,14 +507,14 @@
                     "end_col": 31,
                     "end_line": 16,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 61,
                             "end_line": 18,
                             "input_file": {
-                                "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                                "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                             },
                             "start_col": 49,
                             "start_line": 18
@@ -546,14 +546,14 @@
                     "end_col": 14,
                     "end_line": 17,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 68,
                             "end_line": 18,
                             "input_file": {
-                                "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                                "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                             },
                             "start_col": 63,
                             "start_line": 18
@@ -585,14 +585,14 @@
                     "end_col": 27,
                     "end_line": 17,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 75,
                             "end_line": 18,
                             "input_file": {
-                                "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                                "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                             },
                             "start_col": 70,
                             "start_line": 18
@@ -624,7 +624,7 @@
                     "end_col": 76,
                     "end_line": 18,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "start_col": 40,
                     "start_line": 18
@@ -652,21 +652,21 @@
                     "end_col": 22,
                     "end_line": 18,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 31,
                             "end_line": 16,
                             "input_file": {
-                                "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                                "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 15,
                                     "end_line": 20,
                                     "input_file": {
-                                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 20
@@ -704,7 +704,7 @@
                     "end_col": 15,
                     "end_line": 20,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "start_col": 5,
                     "start_line": 20
@@ -732,21 +732,21 @@
                     "end_col": 31,
                     "end_line": 24,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 31,
                             "end_line": 16,
                             "input_file": {
-                                "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                                "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 35,
                                     "end_line": 26,
                                     "input_file": {
-                                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 26
@@ -784,14 +784,14 @@
                     "end_col": 14,
                     "end_line": 25,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 27,
                             "end_line": 26,
                             "input_file": {
-                                "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                                "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                             },
                             "start_col": 22,
                             "start_line": 26
@@ -824,14 +824,14 @@
                     "end_col": 27,
                     "end_line": 25,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 34,
                             "end_line": 26,
                             "input_file": {
-                                "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                                "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                             },
                             "start_col": 29,
                             "start_line": 26
@@ -864,7 +864,7 @@
                     "end_col": 35,
                     "end_line": 26,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "start_col": 5,
                     "start_line": 26
@@ -892,7 +892,7 @@
                     "end_col": 7,
                     "end_line": 27,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "start_col": 5,
                     "start_line": 27
@@ -920,7 +920,7 @@
                     "end_col": 7,
                     "end_line": 27,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "start_col": 5,
                     "start_line": 27
@@ -948,14 +948,14 @@
                     "end_col": 14,
                     "end_line": 25,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 36,
                             "end_line": 28,
                             "input_file": {
-                                "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                                "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                             },
                             "start_col": 31,
                             "start_line": 28
@@ -988,14 +988,14 @@
                     "end_col": 27,
                     "end_line": 25,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 43,
                             "end_line": 28,
                             "input_file": {
-                                "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                                "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                             },
                             "start_col": 38,
                             "start_line": 28
@@ -1028,7 +1028,7 @@
                     "end_col": 61,
                     "end_line": 28,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "start_col": 45,
                     "start_line": 28
@@ -1056,7 +1056,7 @@
                     "end_col": 62,
                     "end_line": 28,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "start_col": 9,
                     "start_line": 28
@@ -1084,7 +1084,7 @@
                     "end_col": 15,
                     "end_line": 34,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "start_col": 5,
                     "start_line": 34
@@ -1111,21 +1111,21 @@
                     "end_col": 31,
                     "end_line": 38,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 31,
                             "end_line": 24,
                             "input_file": {
-                                "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                                "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                             },
                             "parent_location": [
                                 {
                                     "end_col": 47,
                                     "end_line": 42,
                                     "input_file": {
-                                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                                     },
                                     "start_col": 5,
                                     "start_line": 42
@@ -1162,14 +1162,14 @@
                     "end_col": 23,
                     "end_line": 40,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 32,
                             "end_line": 42,
                             "input_file": {
-                                "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                                "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                             },
                             "start_col": 27,
                             "start_line": 42
@@ -1201,14 +1201,14 @@
                     "end_col": 24,
                     "end_line": 41,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "parent_location": [
                         {
                             "end_col": 39,
                             "end_line": 42,
                             "input_file": {
-                                "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                                "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                             },
                             "start_col": 34,
                             "start_line": 42
@@ -1240,7 +1240,7 @@
                     "end_col": 46,
                     "end_line": 42,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "start_col": 41,
                     "start_line": 42
@@ -1267,7 +1267,7 @@
                     "end_col": 47,
                     "end_line": 42,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "start_col": 5,
                     "start_line": 42
@@ -1294,7 +1294,7 @@
                     "end_col": 15,
                     "end_line": 44,
                     "input_file": {
-                        "filename": "cairo_programs/benchmarks/pedersen.cairo"
+                        "filename": "../cairo_programs/benchmarks/pedersen.cairo"
                     },
                     "start_col": 5,
                     "start_line": 44

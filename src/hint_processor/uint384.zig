@@ -120,34 +120,36 @@ pub fn addNoUint384Check(
 ) !void {
     const a = try Uint384.fromVarName("a", vm, ids_data, ap_tracking);
     const b = try Uint384.fromVarName("b", vm, ids_data, ap_tracking);
+
     // This hint is not from the cairo commonlib, and its lib can be found under different paths, so we cant rely on a full path name
     var shift = try (try hint_utils.getConstantFromVarName("SHIFT", constants)).toStdBigSignedInt(allocator);
     defer shift.deinit();
 
-    var tmp = try Int.init(allocator);
-    defer tmp.deinit();
-    var tmp2 = try Int.init(allocator);
-    defer tmp2.deinit();
     var tmp3 = try Int.init(allocator);
     defer tmp3.deinit();
+
+    var prev_carry = false;
 
     var buffer: [20]u8 = undefined;
 
     inline for (0..3) |i| {
-        try tmp.set(try a.limbs[i].toSignedInt(i256));
-        try tmp2.set(try b.limbs[i].toSignedInt(i256));
+        var tmp = try a.limbs[i].toStdBigSignedInt(allocator);
+        defer tmp.deinit();
+        var tmp2 = try b.limbs[i].toStdBigSignedInt(allocator);
+        defer tmp2.deinit();
 
         try tmp3.add(&tmp, &tmp2);
+        if (prev_carry) try tmp3.addScalar(&tmp3, 1);
 
-        const result = if (tmp3.order(shift) == .gt or tmp3.order(shift) == .eq)
-            Felt252.one()
+        prev_carry = if (tmp3.order(shift).compare(.gte))
+            true
         else
-            Felt252.zero();
+            false;
 
         try hint_utils.insertValueFromVarName(
             allocator,
             try std.fmt.bufPrint(buffer[0..], "carry_d{d}", .{i}),
-            MaybeRelocatable.fromFelt(result),
+            MaybeRelocatable.fromFelt(if (prev_carry) Felt252.one() else Felt252.zero()),
             vm,
             ids_data,
             ap_tracking,
