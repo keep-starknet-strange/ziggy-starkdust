@@ -122,26 +122,18 @@ pub fn addNoUint384Check(
     const b = try Uint384.fromVarName("b", vm, ids_data, ap_tracking);
 
     // This hint is not from the cairo commonlib, and its lib can be found under different paths, so we cant rely on a full path name
-    var shift = try (try hint_utils.getConstantFromVarName("SHIFT", constants)).toStdBigSignedInt(allocator);
-    defer shift.deinit();
-
-    var tmp3 = try Int.init(allocator);
-    defer tmp3.deinit();
+    const shift = (try hint_utils.getConstantFromVarName("SHIFT", constants)).toU256();
 
     var prev_carry = false;
 
     var buffer: [20]u8 = undefined;
 
     inline for (0..3) |i| {
-        var tmp = try a.limbs[i].toStdBigSignedInt(allocator);
-        defer tmp.deinit();
-        var tmp2 = try b.limbs[i].toStdBigSignedInt(allocator);
-        defer tmp2.deinit();
+        var sum = try a.limbs[i].toInt(u258) + try b.limbs[i].toInt(u258);
 
-        try tmp3.add(&tmp, &tmp2);
-        if (prev_carry) try tmp3.addScalar(&tmp3, 1);
+        if (prev_carry) sum += 1;
 
-        prev_carry = if (tmp3.order(shift).compare(.gte))
+        prev_carry = if (sum >= shift)
             true
         else
             false;
