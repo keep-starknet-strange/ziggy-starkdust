@@ -86,7 +86,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
         .link_libc = true,
-        .omit_frame_pointer = false,
+        .omit_frame_pointer = if (optimize == .ReleaseFast) null else false,
     });
     // Add dependency modules to the executable.
     for (deps) |mod| exe.root_module.addImport(

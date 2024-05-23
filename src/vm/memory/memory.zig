@@ -363,10 +363,7 @@ pub const Memory = struct {
         var data_segment = &data[insert_segment_index];
 
         // Ensure the data segment has sufficient capacity to accommodate the value at the specified offset.
-        if (data_segment.items.len == address.offset) {
-            try data_segment.append(allocator, MemoryCell.init(value));
-            return;
-        } else if (data_segment.items.len < address.offset) {
+        if (data_segment.items.len <= address.offset) {
             try data_segment.appendNTimes(
                 allocator,
                 null,
@@ -406,7 +403,7 @@ pub const Memory = struct {
     /// const result = myDataStructure.get(targetAddress);
     /// // Handle the result accordingly
     /// ```
-    pub fn get(self: *const Self, address: Relocatable) ?MaybeRelocatable {
+    pub fn get(self: Self, address: Relocatable) ?MaybeRelocatable {
         // Retrieve the data corresponding to the segment index from the data structure.
         const data = if (address.segment_index < 0) self.temp_data else self.data;
 

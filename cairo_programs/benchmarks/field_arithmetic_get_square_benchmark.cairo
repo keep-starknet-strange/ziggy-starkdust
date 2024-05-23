@@ -32,6 +32,6 @@ func main{range_check_ptr: felt, bitwise_ptr: BitwiseBuiltin*}() {
     let p = Uint384(18446744069414584321, 0, 0);  // Goldilocks Prime
     let x = Uint384(5, 0, 0);
     let g = Uint384(7, 0, 0);
-    run_get_square(p, g, x, 10000);
+    run_get_square(p, g, x, 1000);
     return ();
 }

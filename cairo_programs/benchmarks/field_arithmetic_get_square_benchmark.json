@@ -947,7 +947,7 @@
         "0x480680017fff8000",
         "0x0",
         "0x480680017fff8000",
-        "0xa",
+        "0x3e8",
         "0x1104800180018000",
         "0x800000000000010ffffffffffffffffffffffffffffffffffffffffffffff94",
         "0x208b7fff7fff7ffe"
@@ -40592,7 +40592,7 @@
                             },
                             "parent_location": [
                                 {
-                                    "end_col": 32,
+                                    "end_col": 34,
                                     "end_line": 35,
                                     "input_file": {
                                         "filename": "../cairo_programs/benchmarks/field_arithmetic_get_square_benchmark.cairo"
@@ -40645,7 +40645,7 @@
                             },
                             "parent_location": [
                                 {
-                                    "end_col": 32,
+                                    "end_col": 34,
                                     "end_line": 35,
                                     "input_file": {
                                         "filename": "../cairo_programs/benchmarks/field_arithmetic_get_square_benchmark.cairo"
@@ -41053,7 +41053,7 @@
                 },
                 "hints": [],
                 "inst": {
-                    "end_col": 31,
+                    "end_col": 33,
                     "end_line": 35,
                     "input_file": {
                         "filename": "../cairo_programs/benchmarks/field_arithmetic_get_square_benchmark.cairo"
@@ -41082,7 +41082,7 @@
                 },
                 "hints": [],
                 "inst": {
-                    "end_col": 32,
+                    "end_col": 34,
                     "end_line": 35,
                     "input_file": {
                         "filename": "../cairo_programs/benchmarks/field_arithmetic_get_square_benchmark.cairo"
