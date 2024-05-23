@@ -139,11 +139,9 @@ pub const Relocatable = struct {
     /// # Returns
     /// A new Relocatable.
     pub fn addUint(self: Self, other: u64) !Self {
-        const offset = @addWithOverflow(self.offset, other);
-        if (offset[1] != 0) return MathError.RelocatableAdditionOffsetExceeded;
         return .{
             .segment_index = self.segment_index,
-            .offset = offset[0],
+            .offset = std.math.add(u64, self.offset, other) catch return MathError.RelocatableAdditionOffsetExceeded,
         };
     }
 
@@ -204,18 +202,11 @@ pub const Relocatable = struct {
         if (@reduce(.And, zero == bytes) == true) {
             return;
         } else if (@reduce(.And, zero == bytes * mask) == true) {
-            const new_offset, const bit = @addWithOverflow(self.offset, bytes[3]);
-            if (bit != 0) return MathError.ValueTooLarge;
-            self.offset = new_offset;
+            self.offset = std.math.add(u64, self.offset, bytes[3]) catch return MathError.ValueTooLarge;
         } else if (@reduce(.And, PRIME_DIGITS_BE_HI == bytes * mask) == true) {
-            const new_offset, const bit = @subWithOverflow(self.offset, 1);
-            if (bit != 0) return MathError.ValueTooLarge;
-            self.offset = new_offset;
+            self.offset = std.math.sub(u64, self.offset, 1) catch return MathError.ValueTooLarge;
         } else if (@reduce(.And, mask * bytes == PRIME_MINUS_U64_MAX_DIGITS_BE_HI) == true and bytes[3] >= 2) {
-            const new_offset, const bit = @subWithOverflow(self.offset, std.math.maxInt(u64) - bytes[3] + 2);
-            if (bit != 0) return MathError.ValueTooLarge;
-
-            self.offset = new_offset;
+            self.offset = std.math.sub(u64, self.offset, std.math.maxInt(u64) - bytes[3] + 2) catch return MathError.ValueTooLarge;
         } else return MathError.ValueTooLarge;
     }
 
