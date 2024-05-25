@@ -10,8 +10,8 @@
     },
     .dependencies = .{
         .@"zig-cli" = .{
-            .url = "https://github.com/sam701/zig-cli/archive/refs/heads/main.tar.gz",
-            .hash = "1220c008492d9460c3be2b209600a948181e6efb3bf0d79a1633def499632e708f4b",
+            .url = "https://github.com/sam701/zig-cli/archive/beff935fe77a0ed794e8727d48e7780485abb880.tar.gz",
+            .hash = "122092c8a98897c6e0946f39930ce7b48162bd62400834104c95c871f53887377aa7",
         },
     },
 }
