@@ -53,7 +53,7 @@ pub fn pow(
     try hint_utils.insertValueFromVarName(
         allocator,
         "locs",
-        MaybeRelocatable.fromFelt((try prev_locs_exp.divRem(Felt252.two()))[1]),
+        MaybeRelocatable.fromFelt((prev_locs_exp.modFloor2(Felt252.two()))),
         vm,
         ids_datas,
         ap_tracking,

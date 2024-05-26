@@ -605,7 +605,7 @@ pub fn ecMulInner(
 ) !void {
     //(ids.scalar % PRIME) % 2
     var scalar = try hint_utils.getIntegerFromVarName("scalar", vm, ids_data, ap_tracking);
-    _, scalar = try scalar.divRem(Felt252.two());
+    scalar = scalar.modFloor2(Felt252.two());
 
     try hint_utils.insertValueIntoAp(allocator, vm, MaybeRelocatable.fromFelt(scalar));
 }

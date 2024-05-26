@@ -139,7 +139,7 @@ pub fn bigintToUint256(allocator: std.mem.Allocator, vm: *CairoVM, ids_data: std
 
     const mask = pow2ConstNz(128);
 
-    const low = (try (d0.add(&d1.mul(&base_86))).divRem(mask))[1];
+    const low = ((d0.add(&d1.mul(&base_86))).modFloor2(mask));
 
     try hint_utils.insertValueFromVarName(allocator, "low", MaybeRelocatable.fromFelt(low), vm, ids_data, ap_tracking);
 }

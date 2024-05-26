@@ -49,8 +49,8 @@ pub fn keccakWriteArgs(
     const high = try hint_utils.getIntegerFromVarName("high", vm, ids_data, ap_tracking);
 
     const bound = Felt252.pow2Const(64);
-    const d1, const d0 = try low.divRem(bound);
-    const d3, const d2 = try high.divRem(bound);
+    const d1, const d0 = low.divRem(bound);
+    const d3, const d2 = high.divRem(bound);
 
     var arg = std.ArrayList(Felt252).init(allocator);
     defer arg.deinit();

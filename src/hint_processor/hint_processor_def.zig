@@ -197,7 +197,7 @@ pub const CairoVMHintProcessor = struct {
 
     // Executes the hint which's data is provided by a dynamic structure previously created by compile_hint
     // Note: if the `extensive_hints` feature is activated the method used by the vm to execute hints is `execute_hint_extensive`, which's default implementation calls this method.
-    pub fn executeHint(_: *const Self, allocator: Allocator, vm: *CairoVM, hint_data: *HintData, constants: *std.StringHashMap(Felt252), exec_scopes: *ExecutionScopes) !void {
+    pub inline fn executeHint(_: *const Self, allocator: Allocator, vm: *CairoVM, hint_data: *HintData, constants: *std.StringHashMap(Felt252), exec_scopes: *ExecutionScopes) !void {
         if (std.mem.eql(u8, hint_codes.ASSERT_NN, hint_data.code)) {
             try math_hints.assertNN(vm, hint_data.ids_data, hint_data.ap_tracking);
         } else if (std.mem.eql(u8, hint_codes.VERIFY_ECDSA_SIGNATURE, hint_data.code)) {

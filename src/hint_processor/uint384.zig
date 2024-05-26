@@ -96,7 +96,7 @@ pub fn uint384Split128(
     const bound = Felt252.pow2Const(128);
     const a = try hint_utils.getIntegerFromVarName("a", vm, ids_data, ap_tracking);
 
-    const high, const low = try a.divRem(bound);
+    const high, const low = a.divRem(bound);
 
     try hint_utils.insertValueFromVarName(allocator, "low", MaybeRelocatable.fromFelt(low), vm, ids_data, ap_tracking);
     try hint_utils.insertValueFromVarName(allocator, "high", MaybeRelocatable.fromFelt(high), vm, ids_data, ap_tracking);

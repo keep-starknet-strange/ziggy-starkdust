@@ -86,7 +86,8 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
         .link_libc = true,
-        .omit_frame_pointer = if (optimize == .ReleaseFast) null else false,
+        .omit_frame_pointer = if (optimize == .ReleaseFast) true else false,
+        .strip = true,
     });
     // Add dependency modules to the executable.
     for (deps) |mod| exe.root_module.addImport(
@@ -180,6 +181,8 @@ fn integration_test(
         .root_source_file = b.path("src/integration_tests.zig"),
         .target = target,
         .optimize = mode,
+        .omit_frame_pointer = if (mode == .ReleaseFast) true else false,
+        .strip = true,
     });
 
     // Add dependency modules to the executable.

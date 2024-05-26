@@ -111,8 +111,8 @@ pub fn abBitand1(
     const b = try hint_utils.getIntegerFromVarName("b", vm, ids_data, ap_tracking);
 
     const two = Felt252.two();
-    _, const a_lsb = (try a.divRem(two));
-    _, const b_lsb = (try b.divRem(two));
+    const a_lsb = a.modFloor2(two);
+    const b_lsb = b.modFloor2(two);
 
     try hint_utils.insertValueFromVarName(allocator, "a_lsb", MaybeRelocatable.fromFelt(a_lsb), vm, ids_data, ap_tracking);
     try hint_utils.insertValueFromVarName(allocator, "b_lsb", MaybeRelocatable.fromFelt(b_lsb), vm, ids_data, ap_tracking);
@@ -151,7 +151,7 @@ pub fn splitInt(
     const output = try hint_utils.getPtrFromVarName("output", vm, ids_data, ap_tracking);
 
     //Main Logic
-    _, const res = (try value.divRem(base));
+    const res = value.modFloor2(base);
 
     if (res.cmp(&bound).compare(.gt))
         return HintError.SplitIntLimbOutOfRange;
@@ -271,7 +271,7 @@ pub fn isQuadResidue(
     const value =
         if (x.isZero() or x.eql(Felt252.one()))
         x
-    else if (x.powToInt((try field_helper.felt252MaxValue().divRem(Felt252.two()))[0].toU256()).eql(Felt252.one()))
+    else if (x.powToInt((field_helper.felt252MaxValue().divRem(Felt252.two()))[0].toU256()).eql(Felt252.one()))
         x.sqrt() orelse Felt252.zero()
     else
         (try x.div(Felt252.three()))

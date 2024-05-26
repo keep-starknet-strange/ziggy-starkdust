@@ -82,7 +82,7 @@ pub const Uint256 = struct {
     }
 
     pub fn fromFelt(value: Felt252) Self {
-        const high, const low = value.divRem(Felt252.pow2Const(128)) catch unreachable;
+        const high, const low = value.divRem(Felt252.pow2Const(128));
 
         return .{
             .high = high,

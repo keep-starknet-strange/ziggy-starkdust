@@ -187,27 +187,27 @@ pub const Relocatable = struct {
     /// - self: Pointer to the Relocatable object to modify.
     /// - other: The felt to add to `self.offset`.
     pub fn addFeltInPlace(self: *Self, other: Felt252) !void {
-        const PRIME_DIGITS_BE_HI: @Vector(4, u64) =
-            .{ 0x0800000000000011, 0x0000000000000000, 0x0000000000000000, 0 };
+        const PRIME_DIGITS_BE_HI: [3]u64 =
+            .{ 0x0800000000000011, 0x0000000000000000, 0x0000000000000000 };
 
-        const PRIME_MINUS_U64_MAX_DIGITS_BE_HI: @Vector(4, u64) =
-            .{ 0x0800000000000010, 0xffffffffffffffff, 0xffffffffffffffff, 0 };
+        const PRIME_MINUS_U64_MAX_DIGITS_BE_HI: [3]u64 =
+            .{ 0x0800000000000010, 0xffffffffffffffff, 0xffffffffffffffff };
 
-        const zero: @Vector(4, u64) =
-            .{ 0, 0, 0, 0 };
-        const bytes: @Vector(4, u64) = other.toBeDigits();
+        const zero: [3]u64 =
+            .{ 0, 0, 0 };
+        const bytes: [4]u64 = other.toBeDigits();
 
-        const mask = @Vector(4, u64){ 1, 1, 1, 0 };
-
-        if (@reduce(.And, zero == bytes) == true) {
-            return;
-        } else if (@reduce(.And, zero == bytes * mask) == true) {
-            self.offset = std.math.add(u64, self.offset, bytes[3]) catch return MathError.ValueTooLarge;
-        } else if (@reduce(.And, PRIME_DIGITS_BE_HI == bytes * mask) == true) {
+        if (std.mem.eql(u64, &zero, bytes[0..3][0..])) {
+            if (bytes[3] != 0) {
+                self.offset = std.math.add(u64, self.offset, bytes[3]) catch return MathError.ValueTooLarge;
+            }
+        } else if (std.mem.eql(u64, &PRIME_DIGITS_BE_HI, bytes[0..3][0..])) {
             self.offset = std.math.sub(u64, self.offset, 1) catch return MathError.ValueTooLarge;
-        } else if (@reduce(.And, mask * bytes == PRIME_MINUS_U64_MAX_DIGITS_BE_HI) == true and bytes[3] >= 2) {
+        } else if (bytes[3] >= 2 and std.mem.eql(u64, &PRIME_MINUS_U64_MAX_DIGITS_BE_HI, bytes[0..3][0..])) {
             self.offset = std.math.sub(u64, self.offset, std.math.maxInt(u64) - bytes[3] + 2) catch return MathError.ValueTooLarge;
-        } else return MathError.ValueTooLarge;
+        } else {
+            return MathError.ValueTooLarge;
+        }
     }
 
     /// Performs additions if other contains a Felt value, fails otherwise.

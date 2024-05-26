@@ -187,7 +187,7 @@ pub fn blake2sAddUnit256(_: Allocator, vm: *CairoVM, ids_data: std.StringHashMap
     defer data.deinit();
     // first batch
     for (0..4) |_| {
-        const q, const r = try low.divRem(mask);
+        const q, const r = low.divRem(mask);
         try data.append(MaybeRelocatable.fromFelt(r));
         low = q;
     }
@@ -195,7 +195,7 @@ pub fn blake2sAddUnit256(_: Allocator, vm: *CairoVM, ids_data: std.StringHashMap
     data.shrinkAndFree(0);
     // second batch
     for (0..4) |_| {
-        const q, const r = try high.divRem(mask);
+        const q, const r = high.divRem(mask);
         try data.append(MaybeRelocatable.fromFelt(r));
         high = q;
     }
@@ -220,13 +220,13 @@ pub fn blake2sAddUnit256BigEnd(_: Allocator, vm: *CairoVM, ids_data: std.StringH
 
     // first batch
     for (0..4) |_| {
-        const q, const r = try low.divRem(mask);
+        const q, const r = low.divRem(mask);
         try data.append(MaybeRelocatable.fromFelt(r));
         low = q;
     }
     // second batch
     for (0..4) |_| {
-        const q, const r = try high.divRem(mask);
+        const q, const r = high.divRem(mask);
         try data.append(MaybeRelocatable.fromFelt(r));
         high = q;
     }

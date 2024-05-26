@@ -380,7 +380,7 @@ pub fn assert250Bit(
         return HintError.ValueOutside250BitRange;
     }
 
-    const q, const r = try value.divRem(shift);
+    const q, const r = value.divRem(shift);
 
     try hint_utils.insertValueFromVarName(allocator, "high", MaybeRelocatable.fromFelt(q), vm, ids_data, ap_tracking);
     try hint_utils.insertValueFromVarName(allocator, "low", MaybeRelocatable.fromFelt(r), vm, ids_data, ap_tracking);
@@ -417,7 +417,7 @@ pub fn splitFelt(
     //assert_integer(ids.value) (done by match)
     // ids.low = ids.value & ((1 << 128) - 1)
     // ids.high = ids.value >> 128
-    const high, const low = try value.divRem(bound);
+    const high, const low = value.divRem(bound);
 
     try hint_utils.insertValueFromVarName(allocator, "high", MaybeRelocatable.fromFelt(high), vm, ids_data, ap_tracking);
     try hint_utils.insertValueFromVarName(allocator, "low", MaybeRelocatable.fromFelt(low), vm, ids_data, ap_tracking);
