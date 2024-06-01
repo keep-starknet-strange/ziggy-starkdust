@@ -412,15 +412,14 @@ pub const Memory = struct {
 
         // Check if the segment index is valid within the data structure.
         if (segment_index >= data.items.len) return null;
-        const segment_data = data.items[segment_index];
 
         // Check if the offset is valid within the specified segment.
-        if (address.offset >= segment_data.items.len) return null;
+        if (address.offset >= data.items[segment_index].items.len) return null;
 
         // TODO: rewrite all on self rel address
         // Return null if either the segment index or offset is not valid.
         // Otherwise, return the maybe_relocatable value at the specified address.
-        return if (segment_data.items[address.offset]) |val|
+        return if (data.items[segment_index].items[address.offset]) |val|
             switch (val.maybe_relocatable) {
                 .relocatable => |addr| self.relAddress(
                     addr,
