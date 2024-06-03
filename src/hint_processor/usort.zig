@@ -70,6 +70,46 @@ pub fn binarySearch(
     };
 }
 
+fn partition(arr: []Felt252, low: usize, high: usize) usize {
+    //choose the pivot
+
+    const pivot = arr[high];
+    //Index of smaller element and Indicate
+    //the right position of pivot found so far
+    var i = low - 1;
+    var j = low;
+
+    while (j <= high) {
+        if (arr[j].cmp(&pivot).compare(.lt)) {
+            i += 1;
+            std.mem.swap(Felt252, &arr[i], &arr[j]);
+        }
+
+        j += 1;
+    }
+
+    std.mem.swap(Felt252, &arr[i + 1], &arr[high]);
+
+    return i + 1;
+}
+
+// The Quicksort function Implement
+
+fn quickSort(arr: []Felt252, low: usize, high: usize) void {
+    // when low is less than high
+    if (low < high) {
+        // pi is the partition return index of pivot
+
+        const pi = partition(arr, low, high);
+
+        //Recursion Call
+        //smaller element than pivot goes left and
+        //higher element goes right
+        quickSort(arr, low, pi - 1);
+        quickSort(arr, pi + 1, high);
+    }
+}
+
 pub fn usortBody(
     allocator: std.mem.Allocator,
     vm: *CairoVM,
@@ -95,11 +135,13 @@ pub fn usortBody(
         positions_dict.deinit();
     }
 
-    var output = std.ArrayList(Felt252).init(allocator);
+    var input = try vm.getFeltRange(input_ptr, input_len_u64);
+    defer input.deinit();
+
+    var output = try std.ArrayList(Felt252).initCapacity(allocator, input_len_u64);
     defer output.deinit();
 
-    for (0..input_len_u64) |i| {
-        const val = try vm.getFelt(try input_ptr.addUint(i));
+    for (input.items, 0..) |val, i| {
         switch (binarySearch(Felt252, val, output.items, orderFelt252)) {
             .not_found => |output_index| try output.insert(output_index, val),
             else => {},
@@ -120,7 +162,7 @@ pub fn usortBody(
         try entry.append(i);
     }
 
-    var multiplicities = std.ArrayList(usize).init(allocator);
+    var multiplicities = try std.ArrayList(usize).initCapacity(allocator, positions_dict.count());
     defer multiplicities.deinit();
 
     for (output.items) |k| {
