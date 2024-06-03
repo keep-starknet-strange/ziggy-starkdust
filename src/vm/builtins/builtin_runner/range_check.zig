@@ -236,7 +236,7 @@ pub const RangeCheckBuiltinRunner = struct {
             return null;
 
         for (rc_segment.items) |cell| {
-            var cellFelt = cell.?.maybe_relocatable.intoFelt() catch null;
+            var cellFelt = cell.getValue().?.intoFelt() catch null;
             const cellBytes = cellFelt.?.toBytesLe();
             var j: usize = 0;
             while (j < 32) : (j += 2) {

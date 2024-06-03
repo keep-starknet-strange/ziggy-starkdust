@@ -26,10 +26,17 @@ pub const validation_rule = *const fn (Allocator, *Memory, Relocatable) anyerror
 pub const MemoryCell = struct {
     /// Represents a memory cell that holds relocation information and access status.
     const Self = @This();
-    /// The index or relocation information of the memory segment.
-    maybe_relocatable: MaybeRelocatable,
-    /// Indicates whether the MemoryCell has been accessed.
-    is_accessed: bool = false,
+    const NONE_MASK: u64 = 1 << 63;
+    const ACCESS_MASK: u64 = 1 << 62;
+    const RELOCATABLE_MASK: u64 = 1 << 61;
+    const NONE: Self = .{ .data = .{
+        0,
+        0,
+        0,
+        Self.NONE_MASK,
+    } };
+
+    data: [4]u64,
 
     /// Creates a new MemoryCell.
     ///
@@ -37,8 +44,43 @@ pub const MemoryCell = struct {
     /// - `maybe_relocatable`: The index or relocation information of the memory segment.
     /// # Returns
     /// A new MemoryCell.
-    pub fn init(maybe_relocatable: MaybeRelocatable) Self {
-        return .{ .maybe_relocatable = maybe_relocatable };
+    pub fn init(value: MaybeRelocatable) Self {
+        return switch (value) {
+            .felt => |x| val: {
+                break :val .{ .data = x.fe.limbs };
+            },
+            .relocatable => |x| val: {
+                break :val .{ .data = .{
+                    0, @bitCast(x.segment_index), x.offset, Self.RELOCATABLE_MASK,
+                } };
+            },
+        };
+    }
+
+    pub fn isNone(self: Self) bool {
+        return self.data[3] & Self.NONE_MASK == Self.NONE_MASK;
+    }
+
+    pub fn isSome(self: Self) bool {
+        return !self.isNone();
+    }
+
+    pub fn markAccessed(self: *Self) void {
+        self.data[3] |= Self.ACCESS_MASK;
+    }
+
+    pub fn isAccessed(self: Self) bool {
+        return self.data[3] & Self.ACCESS_MASK == Self.ACCESS_MASK;
+    }
+
+    pub fn getValue(self: Self) ?MaybeRelocatable {
+        return if (self.isSome()) val: {
+            break :val if (self.data[3] & Self.RELOCATABLE_MASK == Self.RELOCATABLE_MASK) MaybeRelocatable.fromRelocatable(Relocatable.init(@bitCast(self.data[1]), self.data[2])) else v: {
+                var val = self.data;
+                val[3] &= 0x0fffffffffffffff;
+                break :v MaybeRelocatable.fromFelt(.{ .fe = .{ .limbs = val } });
+            };
+        } else null;
     }
 
     /// Checks equality between two MemoryCell instances.
@@ -54,7 +96,7 @@ pub const MemoryCell = struct {
     ///
     /// Returns `true` if both MemoryCell instances are equal, otherwise `false`.
     pub fn eql(self: Self, other: Self) bool {
-        return self.maybe_relocatable.eq(other.maybe_relocatable) and self.is_accessed == other.is_accessed;
+        return std.mem.eql(u64, self.data[0..], other.data[0..]);
     }
 
     /// Checks equality between slices of MemoryCell instances.
@@ -70,25 +112,14 @@ pub const MemoryCell = struct {
     /// # Returns
     ///
     /// Returns `true` if both slices of MemoryCell instances are equal, otherwise `false`.
-    pub fn eqlSlice(a: []const ?Self, b: []const ?Self) bool {
+    pub fn eqlSlice(a: []const Self, b: []const Self) bool {
         if (a.len != b.len) return false;
         if (a.ptr == b.ptr) return true;
+
         for (a, b) |a_elem, b_elem| {
-            if (a_elem) |ann| {
-                if (b_elem) |bnn| {
-                    if (!ann.eql(bnn)) return false;
-                } else {
-                    return false;
-                }
-            }
-            if (b_elem) |bnn| {
-                if (a_elem) |ann| {
-                    if (!ann.eql(bnn)) return false;
-                } else {
-                    return false;
-                }
-            }
+            if (!a_elem.eql(b_elem)) return false;
         }
+
         return true;
     }
 
@@ -110,20 +141,16 @@ pub const MemoryCell = struct {
     ///
     /// Returns a `std.math.Order` representing the order relationship between
     /// the two MemoryCell instances.
-    pub fn cmp(self: ?Self, other: ?Self) std.math.Order {
-        if (self) |lhs| {
-            if (other) |rhs| {
-                return switch (lhs.maybe_relocatable.cmp(rhs.maybe_relocatable)) {
-                    .eq => switch (lhs.is_accessed) {
-                        true => if (rhs.is_accessed) .eq else .gt,
-                        false => if (rhs.is_accessed) .lt else .eq,
-                    },
-                    else => |res| res,
-                };
+    pub fn cmp(self: Self, other: Self) std.math.Order {
+        inline for (0..4) |i| {
+            if (self.data[4 - i - 1] > other.data[4 - i - 1]) {
+                return .gt;
+            } else if (self.data[4 - i - 1] < self.limbs[4 - i - 1]) {
+                return .lt;
             }
-            return .gt;
         }
-        return if (other == null) .eq else .lt;
+
+        return .eq;
     }
 
     /// Compares two slices of MemoryCell instances for order relationship.
@@ -144,29 +171,14 @@ pub const MemoryCell = struct {
     ///
     /// Returns a `std.math.Order` representing the order relationship between
     /// the two slices of MemoryCell instances.
-    pub fn cmpSlice(a: []const ?Self, b: []const ?Self) std.math.Order {
+    pub fn cmpSlice(a: []const Self, b: []const Self) std.math.Order {
         if (a.ptr == b.ptr) return .eq;
 
         const len = @min(a.len, b.len);
 
         for (0..len) |i| {
-            if (a[i]) |a_elem| {
-                if (b[i]) |b_elem| {
-                    const comp = a_elem.cmp(b_elem);
-                    if (comp != .eq) return comp;
-                } else {
-                    return .gt;
-                }
-            }
-
-            if (b[i]) |b_elem| {
-                if (a[i]) |a_elem| {
-                    const comp = a_elem.cmp(b_elem);
-                    if (comp != .eq) return comp;
-                } else {
-                    return .lt;
-                }
-            }
+            const comp = a[i].cmp(b[i]);
+            if (comp != .eq) return comp;
         }
 
         if (a.len == b.len) return .eq;
@@ -239,9 +251,9 @@ pub const Memory = struct {
     /// Allocator responsible for memory allocation within the VM memory.
     allocator: Allocator,
     /// ArrayList storing the main data in the memory, indexed by Relocatable addresses.
-    data: std.ArrayList(std.ArrayListUnmanaged(?MemoryCell)),
+    data: std.ArrayList(std.ArrayListUnmanaged(MemoryCell)),
     /// ArrayList storing temporary data in the memory, indexed by Relocatable addresses.
-    temp_data: std.ArrayList(std.ArrayListUnmanaged(?MemoryCell)),
+    temp_data: std.ArrayList(std.ArrayListUnmanaged(MemoryCell)),
     /// Number of segments currently present in the memory.
     num_segments: u32 = 0,
     /// Number of temporary segments in the memory.
@@ -270,8 +282,8 @@ pub const Memory = struct {
 
         memory.* = .{
             .allocator = allocator,
-            .data = std.ArrayList(std.ArrayListUnmanaged(?MemoryCell)).init(allocator),
-            .temp_data = std.ArrayList(std.ArrayListUnmanaged(?MemoryCell)).init(allocator),
+            .data = std.ArrayList(std.ArrayListUnmanaged(MemoryCell)).init(allocator),
+            .temp_data = std.ArrayList(std.ArrayListUnmanaged(MemoryCell)).init(allocator),
             .validated_addresses = AddressSet.init(allocator),
             .relocation_rules = std.AutoHashMap(
                 u64,
@@ -329,7 +341,7 @@ pub const Memory = struct {
     pub inline fn getDataFromSegmentIndex(
         self: *const Self,
         segment_index: i64,
-    ) []std.ArrayListUnmanaged(?MemoryCell) {
+    ) []std.ArrayListUnmanaged(MemoryCell) {
         // Return the temporary data if the segment index is less than 0; otherwise, return the main data.
         return if (segment_index < 0) self.temp_data.items else self.data.items;
     }
@@ -366,7 +378,7 @@ pub const Memory = struct {
         if (data_segment.items.len <= address.offset) {
             try data_segment.appendNTimes(
                 allocator,
-                null,
+                MemoryCell.NONE,
                 address.offset + 1 - data_segment.items.len,
             );
 
@@ -375,8 +387,8 @@ pub const Memory = struct {
         }
 
         // Check for existing memory at the specified address to avoid overwriting.
-        if (data_segment.items[address.offset]) |item| {
-            if (!item.maybe_relocatable.eq(value))
+        if (data_segment.items[address.offset].getValue()) |item| {
+            if (!item.eq(value))
                 return MemoryError.DuplicatedRelocation;
         } else {
             // Insert the value into the VM memory at the specified address.
@@ -419,12 +431,12 @@ pub const Memory = struct {
         // TODO: rewrite all on self rel address
         // Return null if either the segment index or offset is not valid.
         // Otherwise, return the maybe_relocatable value at the specified address.
-        return if (data.items[segment_index].items[address.offset]) |val|
-            switch (val.maybe_relocatable) {
+        return if (data.items[segment_index].items[address.offset].getValue()) |val|
+            switch (val) {
                 .relocatable => |addr| self.relAddress(
                     addr,
                 ) catch unreachable,
-                else => |_| val.maybe_relocatable,
+                else => |_| val,
             }
         else
             null;
@@ -508,8 +520,8 @@ pub const Memory = struct {
 
         if (segment_index < data.len) {
             if (address.offset < data[segment_index].items.len) {
-                if (data[segment_index].items[address.offset]) |*memory_cell|
-                    memory_cell.is_accessed = true;
+                if (data[segment_index].items[address.offset].isSome())
+                    data[segment_index].items[address.offset].markAccessed();
             }
         }
     }
@@ -569,7 +581,7 @@ pub const Memory = struct {
     pub fn validateExistingMemory(self: *Self) !void {
         for (self.data.items, 0..) |row, i| {
             for (row.items, 0..) |cell, j| {
-                if (cell) |_| {
+                if (cell.isSome()) {
                     try self.validateMemoryCell(Relocatable.init(
                         @intCast(i),
                         j,
@@ -590,7 +602,7 @@ pub const Memory = struct {
     /// # Returns
     ///
     /// Returns the segment of MemoryCell items if it exists, or `null` if not found.
-    fn getSegmentAtIndex(self: *Self, idx: i64) ?[]?MemoryCell {
+    fn getSegmentAtIndex(self: *Self, idx: i64) ?[]MemoryCell {
         return switch (idx < 0) {
             true => blk: {
                 const i: usize = @intCast(-(idx + 1));
@@ -679,18 +691,17 @@ pub const Memory = struct {
         if (lhs.eq(rhs)) return true;
 
         // Get the segment starting from the left-hand address.
-        const l = if (self.getSegmentAtIndex(lhs.segment_index)) |s|
+        const l: ?[]MemoryCell = if (self.getSegmentAtIndex(lhs.segment_index)) |s|
             // Check if the offset is within the bounds of the segment.
             if (lhs.offset < s.len) s[lhs.offset..] else null
         else
             null;
 
         // Get the segment starting from the right-hand address.
-        const r = if (self.getSegmentAtIndex(rhs.segment_index)) |s|
+        const r: ?[]MemoryCell = if (self.getSegmentAtIndex(rhs.segment_index)) |s|
             // Check if the offset is within the bounds of the segment.
-            if (rhs.offset < s.len) s[rhs.offset..] else null
-        else
-            null;
+            if (rhs.offset < s.len) s[rhs.offset..] else if (l == null) return true else return false
+        else if (l == null) return true else return false;
 
         // If the left segment exists, perform further checks.
         if (l) |ls| {
@@ -701,11 +712,11 @@ pub const Memory = struct {
                 const rhs_len = @min(rs.len, len);
 
                 // Compare slices of MemoryCell items up to the specified length.
-                return switch (lhs_len == rhs_len) {
-                    true => MemoryCell.eqlSlice(ls[0..lhs_len], rs[0..rhs_len]),
-                    else => false,
-                };
+                if (lhs_len != rhs_len) return false;
+
+                return MemoryCell.eqlSlice(ls[0..lhs_len], rs[0..rhs_len]);
             }
+
             // If only the left segment exists, return false.
             return false;
         }
@@ -758,8 +769,8 @@ pub const Memory = struct {
         if (segment_index < self.data.items.len) {
             var count: usize = 0;
             for (self.data.items[segment_index].items) |item| {
-                if (item) |i| {
-                    if (i.is_accessed) count += 1;
+                if (item.isSome()) {
+                    if (item.isAccessed()) count += 1;
                 }
             }
             return count;
@@ -949,22 +960,20 @@ pub const Memory = struct {
     ///
     /// # Errors
     /// Returns an error if relocation of an address fails.
-    pub fn relocateSegment(segment: []?MemoryCell, relocation_rules: std.AutoHashMap(u64, Relocatable)) !void {
+    pub fn relocateSegment(segment: []MemoryCell, relocation_rules: std.AutoHashMap(u64, Relocatable)) !void {
         for (segment) |*memory_cell| {
-            if (memory_cell.*) |*cell| {
-                // Check if the memory cell contains a relocatable address.
-                switch (cell.maybe_relocatable) {
-                    .relocatable => |address| {
-                        // Check if the address is temporary.
-                        if (address.segment_index < 0)
-                            // Relocate the address using predefined rules.
-                            cell.*.maybe_relocatable = try Memory.relocateAddress(
-                                address,
-                                relocation_rules,
-                            );
-                    },
-                    else => {},
-                }
+            // Check if the memory cell contains a relocatable address.
+            switch (memory_cell.getValue() orelse continue) {
+                .relocatable => |address| {
+                    // Check if the address is temporary.
+                    if (address.segment_index < 0)
+                        // Relocate the address using predefined rules.
+                        memory_cell.* = MemoryCell.init(try Memory.relocateAddress(
+                            address,
+                            relocation_rules,
+                        ));
+                },
+                else => {},
             }
         }
     }
@@ -1011,14 +1020,14 @@ pub const Memory = struct {
 
                 // Copy and relocate each cell from the temporary segment to the main data.
                 for (data_segment.items) |cell| {
-                    if (cell) |c| {
+                    if (cell.getValue()) |c| {
                         try self.set(
                             self.allocator,
                             address,
-                            c.maybe_relocatable,
+                            c,
                         );
 
-                        if (c.is_accessed) self.markAsAccessed(address);
+                        if (cell.isAccessed()) self.markAsAccessed(address);
                     }
 
                     // Move to the next address.

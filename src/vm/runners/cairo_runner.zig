@@ -902,7 +902,7 @@ pub const CairoRunner = struct {
             // Iterate through each memory cell in the segment.
             for (segment.items, 0..) |memory_cell, segment_offset| {
                 // If the memory cell is not null (contains data).
-                if (memory_cell) |cell| {
+                if (memory_cell.getValue()) |cell| {
                     // Create a new `Relocatable` representing the relocated address.
                     const relocated_address = try Relocatable.init(
                         @intCast(index),
@@ -915,7 +915,7 @@ pub const CairoRunner = struct {
                     }
 
                     // Update the entry in `relocated_memory` with the relocated value of the memory cell.
-                    try self.relocated_memory.append(try cell.maybe_relocatable.relocateValue(relocation_table));
+                    try self.relocated_memory.append(try cell.relocateValue(relocation_table));
                 } else {
                     // If the memory cell is null, append `null` to `relocated_memory`.
                     try self.relocated_memory.append(null);

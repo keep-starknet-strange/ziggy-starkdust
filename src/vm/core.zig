@@ -666,12 +666,12 @@ pub const CairoVM = struct {
     pub fn verifyAutoDeductions(self: *const Self, allocator: Allocator) !void {
         for (self.builtin_runners.items) |*builtin| {
             const segment_index = builtin.base();
-            const segment = self.segments.memory.data.items[segment_index];
-            for (segment.items, 0..) |value, offset| {
-                if (value) |v| {
+
+            for (self.segments.memory.data.items[segment_index].items, 0..) |value, offset| {
+                if (value.getValue()) |v| {
                     const addr = Relocatable.init(@intCast(segment_index), offset);
                     const deduced_memory_cell = try builtin.deduceMemoryCell(allocator, addr, self.segments.memory) orelse continue;
-                    if (!deduced_memory_cell.eq(v.maybe_relocatable)) {
+                    if (!deduced_memory_cell.eq(v)) {
                         return CairoVMError.InconsistentAutoDeduction;
                     }
                 }

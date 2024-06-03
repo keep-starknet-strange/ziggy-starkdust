@@ -133,7 +133,7 @@ pub const MemorySegmentManager = struct {
 
         // Increment the number of segments.
         self.memory.num_segments += 1;
-        try self.memory.data.append(std.ArrayListUnmanaged(?MemoryCell){});
+        try self.memory.data.append(std.ArrayListUnmanaged(MemoryCell){});
 
         return relocatable_address;
     }
@@ -150,7 +150,7 @@ pub const MemorySegmentManager = struct {
         // Increment the number of temporary segments.
         self.memory.num_temp_segments += 1;
 
-        try self.memory.temp_data.append(std.ArrayListUnmanaged(?MemoryCell){});
+        try self.memory.temp_data.append(std.ArrayListUnmanaged(MemoryCell){});
 
         return .{ .segment_index = -@as(i64, @intCast(self.memory.num_temp_segments)) };
     }

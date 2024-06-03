@@ -205,9 +205,7 @@ pub fn main() !void {
 
     var ok_count: usize = 0;
     var fail_count: usize = 0;
-    var progress = std.Progress{
-        .dont_print_on_dumb = true,
-    };
+    var progress = std.Progress{};
     const root_node = progress.start("Test", cairo_programs.len);
     const have_tty = progress.terminal != null and
         (progress.supports_ansi_escape_codes or progress.is_windows_terminal);

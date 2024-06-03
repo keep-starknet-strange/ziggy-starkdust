@@ -190,15 +190,10 @@ pub fn unsignedDivRem(
         if (div.isZero() or div.cmp(&divPrimeByBound(b)).compare(.gt)) return HintError.OutOfValidRange;
     } else if (div.isZero()) return HintError.OutOfValidRange;
 
-    const qr = try (field_helper.divRem(u256, value.toU256(), div.toU256()) catch MathError.DividedByZero);
+    const q, const r = try (field_helper.divRem(u256, value.toU256(), div.toU256()) catch MathError.DividedByZero);
 
-    try hint_utils.insertValueFromVarName(allocator, "r", MaybeRelocatable.fromInt(u256, qr[1]), vm, ids_data, ap_tracking);
-    try hint_utils.insertValueFromVarName(allocator, "q", MaybeRelocatable.fromInt(u256, qr[0]), vm, ids_data, ap_tracking);
-}
-
-fn cmpFn(context: void, a: struct { u256, u64 }, b: struct { u256, u64 }) bool {
-    _ = context; // autofix
-    return a[0] > b[0];
+    try hint_utils.insertValueFromVarName(allocator, "r", MaybeRelocatable.fromInt(u256, r), vm, ids_data, ap_tracking);
+    try hint_utils.insertValueFromVarName(allocator, "q", MaybeRelocatable.fromInt(u256, q), vm, ids_data, ap_tracking);
 }
 
 //  Implements hint:from starkware.cairo.common.math_utils import assert_integer
