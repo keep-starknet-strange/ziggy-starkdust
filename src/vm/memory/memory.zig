@@ -516,12 +516,11 @@ pub const Memory = struct {
     /// to ensure that the provided `address` is within the valid bounds of the memory segment.
     pub fn markAsAccessed(self: *Self, address: Relocatable) void {
         const segment_index = address.getAdjustedSegmentIndex();
-        var data = self.getDataFromSegmentIndex(address.segment_index);
+        const data = self.getDataFromSegmentIndex(address.segment_index);
 
         if (segment_index < data.len) {
             if (address.offset < data[segment_index].items.len) {
-                if (data[segment_index].items[address.offset].isSome())
-                    data[segment_index].items[address.offset].markAccessed();
+                data[segment_index].items[address.offset].markAccessed();
             }
         }
     }
