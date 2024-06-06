@@ -248,7 +248,7 @@ pub const MemorySegmentManager = struct {
     /// # Returns
     ///
     /// A `Slice` of the `ArrayList(u32)` representing the relocated segments.
-    pub fn relocateSegments(self: *Self, allocator: Allocator) !ArrayList(usize) {
+    pub fn relocateSegments(self: *Self, allocator: Allocator) !struct { usize, ArrayList(usize) } {
         var relocatable_table = try ArrayList(usize).initCapacity(allocator, 1 + self.segment_used_sizes.count());
         errdefer relocatable_table.deinit();
 
@@ -258,8 +258,8 @@ pub const MemorySegmentManager = struct {
             try relocatable_table.append(relocatable_table.items[i] + segment_size);
         }
         // The last value corresponds to the total amount of elements across all segments, which isnt needed for relocation.
-        _ = relocatable_table.pop();
-        return relocatable_table;
+        const totalSize = relocatable_table.pop();
+        return .{ totalSize, relocatable_table };
     }
 
     /// Checks if a memory value is valid within the MemorySegmentManager.

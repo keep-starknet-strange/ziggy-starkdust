@@ -19,6 +19,9 @@ const external_dependencies = [_]build_helpers.Dependency{
 // declaratively construct a build graph that will be executed by an external
 // runner.
 pub fn build(b: *std.Build) void {
+    const options = b.addOptions();
+    options.addOption(bool, "extensive", false);
+
     // Standard target options allows the person running `zig build` to choose
     // what target to build for. Here we do not override the defaults, which
     // means any target is allowed, and the default is native. Other options
@@ -86,9 +89,11 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
         .link_libc = true,
-        .omit_frame_pointer = if (optimize == .ReleaseFast) false else false,
+        .omit_frame_pointer = if (optimize == .ReleaseFast) true else false,
         .strip = true,
     });
+    exe.root_module.addOptions("cfg", options);
+
     // Add dependency modules to the executable.
     for (deps) |mod| exe.root_module.addImport(
         mod.name,

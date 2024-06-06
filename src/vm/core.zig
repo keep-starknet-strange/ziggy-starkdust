@@ -33,6 +33,8 @@ const ExecutionScopes = @import("types/execution_scopes.zig").ExecutionScopes;
 const HintData = @import("../hint_processor/hint_processor_def.zig").HintData;
 const HintRange = @import("../vm/types/program.zig").HintRange;
 
+const cfg = @import("cfg");
+
 const decoder = @import("../vm/decoding/decoder.zig");
 
 /// Represents the Cairo VM.
@@ -342,7 +344,7 @@ pub const CairoVM = struct {
         // Execute the instruction if skip_instruction_execution is false.
         if (!self.skip_instruction_execution) {
             try self.runInstruction(
-                &inst,
+                inst,
             );
         } else {
             // Advance the program counter if skip_instruction_execution is true.
@@ -456,7 +458,7 @@ pub const CairoVM = struct {
     /// a controlled environment to ensure the correct execution of instructions and memory operations.
     pub fn runInstruction(
         self: *Self,
-        instruction: *const Instruction,
+        instruction: Instruction,
     ) !void {
         // Check if tracing is disabled and log the current state if not.
         if (self.trace) |*trace| {
@@ -479,16 +481,18 @@ pub const CairoVM = struct {
         try self.opcodeAssertions(instruction, operands_result);
 
         // Constants for offset bit manipulation.
-        const OFFSET_BITS: u32 = 16;
-        const off_0 = instruction.off_0 + (@as(isize, 1) << (OFFSET_BITS - 1));
-        const off_1 = instruction.off_1 + (@as(isize, 1) << (OFFSET_BITS - 1));
-        const off_2 = instruction.off_2 + (@as(isize, 1) << (OFFSET_BITS - 1));
+        const OFFSET = comptime @as(isize, 1) << 15;
+        const off_0 = instruction.off_0 + OFFSET;
+        const off_1 = instruction.off_1 + OFFSET;
+        const off_2 = instruction.off_2 + OFFSET;
 
         // Calculate and update relocation limits.
-        const limits = self.rc_limits orelse .{ off_0, off_0 };
-        self.rc_limits = .{
+        self.rc_limits = if (self.rc_limits) |limits| .{
             @min(limits[0], off_0, off_1, off_2),
             @max(limits[1], off_0, off_1, off_2),
+        } else .{
+            @min(off_0, off_1, off_2),
+            @max(off_0, off_1, off_2),
         };
 
         // Mark memory accesses for the instruction.
@@ -519,7 +523,7 @@ pub const CairoVM = struct {
     /// A structured `OperandsResult` containing computed operands, the result, and destinations.
     pub fn computeOperands(
         self: *Self,
-        instruction: *const Instruction,
+        instruction: Instruction,
     ) !OperandsResult {
         // Create a default OperandsResult to store the computed operands.
         var op_res: OperandsResult = .{};
@@ -608,7 +612,7 @@ pub const CairoVM = struct {
         self: *Self,
         op_0_addr: Relocatable,
         res: *?MaybeRelocatable,
-        instruction: *const Instruction,
+        instruction: Instruction,
         dst: ?MaybeRelocatable,
         op1: ?MaybeRelocatable,
     ) !MaybeRelocatable {
@@ -639,7 +643,7 @@ pub const CairoVM = struct {
         self: *Self,
         op1_addr: Relocatable,
         res: *?MaybeRelocatable,
-        instruction: *const Instruction,
+        instruction: Instruction,
         dst_op: ?MaybeRelocatable,
         op0: ?MaybeRelocatable,
     ) !MaybeRelocatable {
@@ -720,7 +724,7 @@ pub const CairoVM = struct {
     /// - `Tuple`: A tuple containing the deduced `op0` and `res`.
     pub fn deduceOp0(
         self: Self,
-        inst: *const Instruction,
+        inst: Instruction,
         dst: ?MaybeRelocatable,
         op1: ?MaybeRelocatable,
     ) !struct {
@@ -760,7 +764,7 @@ pub const CairoVM = struct {
     /// - `operands`: The operands of the instruction.
     pub inline fn updatePc(
         self: *Self,
-        instruction: *const Instruction,
+        instruction: Instruction,
         operands: OperandsResult,
     ) !void {
         self.run_context.pc = switch (instruction.pc_update) {
@@ -796,7 +800,7 @@ pub const CairoVM = struct {
     /// - `operands`: The operands of the instruction.
     pub inline fn updateAp(
         self: *Self,
-        instruction: *const Instruction,
+        instruction: Instruction,
         operands: OperandsResult,
     ) !void {
         self.run_context.ap = switch (instruction.ap_update) {
@@ -823,7 +827,7 @@ pub const CairoVM = struct {
     /// - `operands`: The operands of the instruction.
     pub inline fn updateFp(
         self: *Self,
-        instruction: *const Instruction,
+        instruction: Instruction,
         operands: OperandsResult,
     ) !void {
         self.run_context.fp = switch (instruction.fp_update) {
@@ -851,7 +855,7 @@ pub const CairoVM = struct {
     /// - Returns `void` on success, an error on failure.
     pub inline fn updateRegisters(
         self: *Self,
-        instruction: *const Instruction,
+        instruction: Instruction,
         operands: OperandsResult,
     ) !void {
         try self.updateFp(instruction, operands);
@@ -875,7 +879,7 @@ pub const CairoVM = struct {
     /// - Returns the deduced destination register, or an error if no destination is deducible.
     pub fn deduceDst(
         self: Self,
-        instruction: *const Instruction,
+        instruction: Instruction,
         res: ?MaybeRelocatable,
     ) !MaybeRelocatable {
         return switch (instruction.opcode) {
@@ -904,28 +908,6 @@ pub const CairoVM = struct {
                 ) catch CairoVMError.RunnerError;
         }
         return null;
-    }
-
-    /// Performs all relocation operations
-    ///
-    /// The relocation process:
-    ///
-    ///    1. Compute the sizes of each memory segment.
-    ///    2. Build an array that contains the first relocated address of each segment.
-    ///    3. Creates the relocated memory transforming the original memory by using the array built in 2.
-    ///    4. Creates the relocated trace transforming the original trace by using the array built in 2.
-    ///
-    pub fn relocate(self: *Self, allocator: Allocator, allow_tmp_segments: bool) !void {
-        _ = try self.segments.computeEffectiveSize(allow_tmp_segments);
-
-        const relocation_table = try self.segments.relocateSegments(allocator);
-
-        const relocated_memory = try self.segments.relocateMemory(relocation_table, allocator);
-
-        if (self.trace != null)
-            try self.relocateTrace(relocation_table);
-
-        self.relocated_memory = relocated_memory;
     }
 
     /// Relocates the trace within the Cairo VM, updating relocatable registers to numbered ones.
@@ -1247,7 +1229,11 @@ pub const CairoVM = struct {
     ///
     /// This function assumes proper initialization of the CairoVM instance and must be called in
     /// a controlled environment to ensure the correct execution of instructions and memory operations.
-    pub fn opcodeAssertions(self: *Self, instruction: *const Instruction, operands: OperandsResult) !void {
+    pub fn opcodeAssertions(
+        self: *Self,
+        instruction: Instruction,
+        operands: OperandsResult,
+    ) !void {
         // Switch on the opcode to perform the appropriate assertion.
         switch (instruction.opcode) {
             // Assert that the result and destination operands are equal for AssertEq opcode.

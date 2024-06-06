@@ -54,18 +54,17 @@ pub const HintsRanges = union(enum) {
     /// Returns: A new HintsRanges instance.
     pub fn init(
         allocator: Allocator,
-        extensive_hints: bool,
     ) !Self {
-        return switch (extensive_hints) {
-            true => .{ .Extensive = std.AutoHashMap(Relocatable, HintRange).init(allocator) },
-            false => .{
+        return if (@import("cfg").extensive)
+            .{ .Extensive = std.AutoHashMap(Relocatable, HintRange).init(allocator) }
+        else
+            .{
                 .NonExtensive = blk: {
                     var res = std.ArrayList(?HintRange).init(allocator);
                     errdefer res.deinit();
                     break :blk res;
                 },
-            },
-        };
+            };
     }
 
     /// Adds a hint range to the collection.
@@ -189,10 +188,10 @@ pub const HintsCollection = struct {
     ///
     /// # Params:
     ///   - `allocator`: The allocator used to initialize the collection.
-    pub fn initDefault(allocator: Allocator, extensive_hints: bool) !Self {
+    pub fn initDefault(allocator: Allocator) !Self {
         return .{
             .hints = std.ArrayList(HintParams).init(allocator),
-            .hints_ranges = try HintsRanges.init(allocator, extensive_hints),
+            .hints_ranges = try HintsRanges.init(allocator),
         };
     }
 

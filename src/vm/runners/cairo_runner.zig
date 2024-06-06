@@ -30,11 +30,14 @@ const RunnerError = @import("../error.zig").RunnerError;
 const MemoryError = @import("../error.zig").MemoryError;
 const trace_context = @import("../trace_context.zig");
 const RelocatedTraceEntry = trace_context.RelocatedTraceEntry;
+const RelocatedFelt252 = trace_context.RelocatedFelt252;
 const starknet_felt = @import("../../math/fields/starknet.zig");
 const Felt252 = starknet_felt.Felt252;
 const ExecutionScopes = @import("../types/execution_scopes.zig").ExecutionScopes;
 const TraceEntry = @import("../trace_context.zig").TraceEntry;
 const TestingUtils = @import("../../utils/testing.zig");
+
+const cfg = @import("cfg");
 
 const OutputBuiltinRunner = @import("../builtins/builtin_runner/output.zig").OutputBuiltinRunner;
 const BitwiseBuiltinRunner = @import("../builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
@@ -547,7 +550,6 @@ pub const CairoRunner = struct {
     pub fn runUntilPC(
         self: *Self,
         end: Relocatable,
-        extensive_hints: bool,
         hint_processor: *HintProcessor,
     ) !void {
         const references = self.program.shared_program_data.reference_manager.items;
@@ -557,15 +559,15 @@ pub const CairoRunner = struct {
 
         var hint_ranges: std.AutoHashMap(Relocatable, HintRange) = undefined;
         defer {
-            if (extensive_hints) hint_ranges.deinit();
+            if (cfg.extensive) hint_ranges.deinit();
         }
 
-        if (extensive_hints)
+        if (cfg.extensive)
             hint_ranges = try self.program.shared_program_data
                 .hints_collection.hints_ranges.Extensive.clone();
 
         while (!end.eq(self.vm.run_context.pc) and !hint_processor.run_resources.consumed()) {
-            if (extensive_hints) {
+            if (cfg.extensive) {
                 try self.vm.stepExtensive(
                     hint_processor.*,
                     &self.execution_scopes,
@@ -892,26 +894,25 @@ pub const CairoRunner = struct {
     pub fn relocateMemory(self: *Self, relocation_table: []usize) !void {
         // Check if relocation has already been performed.
         // If `relocated_memory` is not empty, return `MemoryError.Relocation`.
-        if (!(self.relocated_memory.items.len == 0)) return MemoryError.Relocation;
+        if (self.relocated_memory.items.len > 0) return MemoryError.Relocation;
 
         // Initialize the first entry in `relocated_memory` with `null`.
-        try self.relocated_memory.append(null);
+        // try self.relocated_memory.append(null);
         // Iterate through each memory segment in the VM.
-        for (self.vm.segments.memory.data.items, 0..) |segment, index| {
-            try self.relocated_memory.ensureUnusedCapacity(segment.items.len);
+        for (self.vm.segments.memory.data.items, 0..) |segment, index| { // try self.relocated_memory.ensureUnusedCapacity(segment.items.len);
             // Iterate through each memory cell in the segment.
             for (segment.items, 0..) |memory_cell, segment_offset| {
                 // If the memory cell is not null (contains data).
                 if (memory_cell.getValue()) |cell| {
                     // Create a new `Relocatable` representing the relocated address.
                     const relocated_address = try Relocatable.init(
-                        @intCast(index),
+                        @bitCast(index),
                         segment_offset,
                     ).relocateAddress(relocation_table);
 
                     // Resize `relocated_memory` if needed.
-                    if (self.relocated_memory.items.len < relocated_address) {
-                        try self.relocated_memory.appendNTimes(null, relocated_address - self.relocated_memory.items.len);
+                    if (self.relocated_memory.items.len <= relocated_address) {
+                        try self.relocated_memory.appendNTimes(null, relocated_address - self.relocated_memory.items.len + 1);
                     }
 
                     // Update the entry in `relocated_memory` with the relocated value of the memory cell.
@@ -928,8 +929,11 @@ pub const CairoRunner = struct {
         // Presuming the default case of `allow_tmp_segments` in python version
         _ = try self.vm.segments.computeEffectiveSize(false);
 
-        const relocation_table = try self.vm.segments.relocateSegments(self.allocator);
+        const totalSize, const relocation_table = try self.vm.segments.relocateSegments(self.allocator);
         defer relocation_table.deinit();
+
+        // totalSize is hack to preallocate all capacity for relocatedMemory
+        try self.relocated_memory.ensureTotalCapacityPrecise(totalSize);
 
         try self.relocateMemory(relocation_table.items);
 

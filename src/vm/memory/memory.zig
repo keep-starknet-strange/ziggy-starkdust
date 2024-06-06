@@ -26,9 +26,10 @@ pub const validation_rule = *const fn (Allocator, *Memory, Relocatable) anyerror
 pub const MemoryCell = struct {
     /// Represents a memory cell that holds relocation information and access status.
     const Self = @This();
-    const NONE_MASK: u64 = 1 << 63;
     const ACCESS_MASK: u64 = 1 << 62;
     const RELOCATABLE_MASK: u64 = 1 << 61;
+
+    const NONE_MASK: u64 = 1 << 63;
     const NONE: Self = .{ .data = .{
         0,
         0,

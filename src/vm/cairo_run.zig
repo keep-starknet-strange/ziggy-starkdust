@@ -12,6 +12,7 @@ const HintProcessor = @import("../hint_processor/hint_processor_def.zig").CairoV
 
 const trace_context = @import("./trace_context.zig");
 const RelocatedTraceEntry = trace_context.RelocatedTraceEntry;
+const RelocatedFelt252 = trace_context.RelocatedFelt252;
 
 /// Writes the relocated/encoded trace to specified destination.
 ///
@@ -72,7 +73,7 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
     // TODO: add flag for extensive_hints
     var runner = try CairoRunner.init(
         allocator,
-        try parsed_program.value.parseProgramJson(allocator, &entrypoint, false),
+        try parsed_program.value.parseProgramJson(allocator, &entrypoint),
         config.layout,
         instructions,
         &vm,
@@ -84,7 +85,7 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
 
     // TODO: make flag for extensive_hints
     var hint_processor: HintProcessor = .{};
-    try runner.runUntilPC(end, false, &hint_processor);
+    try runner.runUntilPC(end, &hint_processor);
     try runner.endRun(
         allocator,
         false,
@@ -96,6 +97,7 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
     // TODO readReturnValues necessary for builtins
     if (config.output_trace != null or config.output_memory != null) {
         try runner.relocate();
+
         var writer: std.io.BufferedWriter(5 * 1024 * 1024, std.fs.File.Writer) = .{ .unbuffered_writer = undefined };
 
         if (config.output_trace) |trace_path| {

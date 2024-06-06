@@ -465,7 +465,7 @@ pub const ProgramJson = struct {
     /// error messages, instruction locations, and identifiers with associated metadata.
     ///
     /// To use this function effectively, ensure correct and compatible JSON data representing a Cairo v0 program.
-    pub fn parseProgramJson(self: *Self, allocator: Allocator, entrypoint: ?*[]const u8, extensive_hints: bool) !Program {
+    pub fn parseProgramJson(self: *Self, allocator: Allocator, entrypoint: ?*[]const u8) !Program {
         // Check if the prime string matches the expected value.
         if (!std.mem.eql(u8, PRIME_STR, self.prime.?))
             return ProgramError.PrimeDiffers;
@@ -478,7 +478,7 @@ pub const ProgramJson = struct {
             defer allocator.free(e.*);
         }
 
-        const hints_collection = try self.getHintsCollections(allocator, extensive_hints);
+        const hints_collection = try self.getHintsCollections(allocator);
 
         // Construct and return a `Program` instance.
         return .{
@@ -835,7 +835,7 @@ pub const ProgramJson = struct {
     ///
     /// # Returns:
     ///   - A `HintsCollection` containing organized hint information.
-    pub fn getHintsCollections(self: *Self, allocator: Allocator, extensive_hints: bool) !HintsCollection {
+    pub fn getHintsCollections(self: *Self, allocator: Allocator) !HintsCollection {
         // Initialize variables to track maximum hint PC and total length of hints.
         var max_hint_pc: ?usize = null;
         var full_len: ?usize = null;
@@ -860,10 +860,10 @@ pub const ProgramJson = struct {
 
             // Initialize a new HintsCollection.
 
-            var hints_collection = try HintsCollection.initDefault(allocator, extensive_hints);
+            var hints_collection = try HintsCollection.initDefault(allocator);
             errdefer hints_collection.deinit();
 
-            if (!extensive_hints) {
+            if (!@import("cfg").extensive) {
                 try hints_collection.hints_ranges.NonExtensive.appendNTimes(null, max_hint_pc.? + 1);
             }
 
@@ -876,7 +876,7 @@ pub const ProgramJson = struct {
                     if (entry.value_ptr.len <= 0) return ProgramError.EmptyVecAlreadyFiltered;
                     const pc = try std.fmt.parseInt(u64, entry.key_ptr.*, 10);
 
-                    if (extensive_hints) {
+                    if (@import("cfg").extensive) {
                         // Populate hints_ranges and hints in the HintsCollection.
                         try hints_collection.hints_ranges.Extensive.put(
                             Relocatable.init(
@@ -903,7 +903,7 @@ pub const ProgramJson = struct {
         }
 
         // Return an empty HintsCollection if there are no valid hints.
-        return HintsCollection.initDefault(allocator, extensive_hints);
+        return HintsCollection.initDefault(allocator);
     }
 };
 
