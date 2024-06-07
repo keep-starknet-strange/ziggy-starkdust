@@ -62,6 +62,9 @@ build-and-run-poseidon-consts-gen:
 build-compare-benchmarks: build_cairo_vm_cli build-optimize
 	cd scripts; sh benchmarks.sh
 
+build-compare-output: build_cairo_vm_cli build-optimize
+	cd scripts; sh test_compare_output.sh
+
 clean:
 	@rm -rf zig-cache
 	@rm -rf zig-out

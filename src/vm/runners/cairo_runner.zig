@@ -916,7 +916,7 @@ pub const CairoRunner = struct {
                     }
 
                     // Update the entry in `relocated_memory` with the relocated value of the memory cell.
-                    try self.relocated_memory.append(try cell.relocateValue(relocation_table));
+                    self.relocated_memory.items[relocated_address] = try cell.relocateValue(relocation_table);
                 } else {
                     // If the memory cell is null, append `null` to `relocated_memory`.
                     try self.relocated_memory.append(null);

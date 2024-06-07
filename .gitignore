@@ -17,6 +17,7 @@ zig-out/
 docsite/
 cairo-vm-env
 cairo-vm
+# cairo-programs/**.json
 
 # Misc
 .vscode/
