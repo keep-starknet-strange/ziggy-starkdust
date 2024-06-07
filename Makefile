@@ -47,18 +47,6 @@ run-integration-test-filter:
 	@zig build integration_test
 	./zig-out/bin/integration_test $(FILTER)
 
-build-and-run-pedersen-table-gen:
-	@zig build pedersen_table_gen
-	> ./src/math/crypto/pedersen/gen/constants.zig
-	./zig-out/bin/pedersen_table_gen
-	@zig fmt ./src/math/crypto/pedersen/gen/constants.zig
-
-build-and-run-poseidon-consts-gen:
-	@zig build poseidon_consts_gen
-	> ./src/math/crypto/poseidon/gen/constants.zig
-	./zig-out/bin/poseidon_consts_gen
-	@zig fmt ./src/math/crypto/poseidon/gen/constants.zig
-
 build-compare-benchmarks: build_cairo_vm_cli build-optimize
 	cd scripts; sh benchmarks.sh
 
