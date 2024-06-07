@@ -11,7 +11,7 @@
     .dependencies = .{
         .@"zig-cli" = .{
             .url = "https://github.com/sam701/zig-cli/archive/refs/heads/main.tar.gz",
-            .hash = "1220c008492d9460c3be2b209600a948181e6efb3bf0d79a1633def499632e708f4b",
+            .hash = "1220ab73fb7cc11b2308edc3364988e05efcddbcac31b707f55e6216d1b9c0da13f1",
         },
         .starknet = .{
             .url = "https://github.com/StringNick/starknet-zig/archive/refs/heads/main.tar.gz",
