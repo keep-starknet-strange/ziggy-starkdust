@@ -28,6 +28,7 @@ build:
 	@zig build
 
 build-optimize:
+	clean
 	@zig build -Doptimize=ReleaseFast
 
 test:
@@ -54,5 +55,5 @@ build-compare-output: build_cairo_vm_cli build-optimize
 	cd scripts; sh test_compare_output.sh
 
 clean:
-	@rm -rf zig-cache
+	@rm -rf ./zig-cache
 	@rm -rf zig-out
