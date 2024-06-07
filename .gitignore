@@ -17,7 +17,9 @@ zig-out/
 docsite/
 cairo-vm-env
 cairo-vm
-# cairo-programs/**.json
+# we dont need compiled cairo programs in repo
+/cairo_programs/*.json
+/cairo_programs/benchmarks/*.json
 
 # Misc
 .vscode/
