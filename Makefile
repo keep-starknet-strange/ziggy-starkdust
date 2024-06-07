@@ -28,7 +28,6 @@ build:
 	@zig build
 
 build-optimize:
-	clean
 	@zig build -Doptimize=ReleaseFast
 
 test:
