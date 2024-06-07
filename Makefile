@@ -3,7 +3,7 @@
 CAIRO_VM_CLI:=cairo-vm/target/release/cairo-vm-cli
 
 $(CAIRO_VM_CLI):
-	git clone --depth 1 -b v0.9.1 https://github.com/lambdaclass/cairo-vm
+	git clone --depth 1 -b v0.9.2 https://github.com/lambdaclass/cairo-vm
 	cd cairo-vm; cargo b --release --bin cairo-vm-cli
 
 build_cairo_vm_cli: | $(CAIRO_VM_CLI)
