@@ -71,5 +71,4 @@ jobs:
       - name: Integration test
         run: |
           zig version
-          make build-integration-test
-          ./zig-out/bin/integration_test
+          make build-compare-output
