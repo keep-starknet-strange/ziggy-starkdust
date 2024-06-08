@@ -15,7 +15,7 @@
         },
         .starknet = .{
             .url = "https://github.com/StringNick/starknet-zig/archive/refs/heads/main.tar.gz",
-            .hash = "1220a2f61c637a1504b02ceb39f7ef7e0de461deb7f6c92eb2a19804a25e0b214896",
+            .hash = "122007b3d62d49652273501917951f16cd3787b5299624f2aa54614f78c37e2e6eb6",
         },
     },
 }
