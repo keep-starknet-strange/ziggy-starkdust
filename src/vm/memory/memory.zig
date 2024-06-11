@@ -74,7 +74,7 @@ pub const MemoryCell = struct {
         return self.data[3] & Self.ACCESS_MASK == Self.ACCESS_MASK;
     }
 
-    pub fn getValue(self: Self) ?MaybeRelocatable {
+    pub inline fn getValue(self: *const Self) ?MaybeRelocatable {
         return if (self.isSome()) val: {
             break :val if (self.data[3] & Self.RELOCATABLE_MASK == Self.RELOCATABLE_MASK) MaybeRelocatable.fromRelocatable(Relocatable.init(@bitCast(self.data[1]), self.data[2])) else v: {
                 var val = self.data;
@@ -416,7 +416,7 @@ pub const Memory = struct {
     /// const result = myDataStructure.get(targetAddress);
     /// // Handle the result accordingly
     /// ```
-    pub fn get(self: Self, address: Relocatable) ?MaybeRelocatable {
+    pub inline fn get(self: Self, address: Relocatable) ?MaybeRelocatable {
         // Retrieve the data corresponding to the segment index from the data structure.
         const data = if (address.segment_index < 0) self.temp_data else self.data;
 

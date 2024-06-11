@@ -315,7 +315,7 @@ pub const CairoVM = struct {
     /// - `allocator`: The allocator used for memory operations.
     /// # Errors
     /// - If accessing an unknown memory cell occurs.
-    pub fn stepInstruction(self: *Self) !void {
+    pub inline fn stepInstruction(self: *Self) !void {
         const inst = if (self.run_context.pc.segment_index == 0) value: {
             // Run instructions from the program segment, using the instruction cache.
             const pc = self.run_context.pc.offset;
@@ -355,7 +355,7 @@ pub const CairoVM = struct {
 
     /// Do a single step of the VM with not extensive hints.
     /// Process an instruction cycle using the typical fetch-decode-execute cycle.
-    pub fn stepNotExtensive(
+    pub inline fn stepNotExtensive(
         self: *Self,
         hint_processor: HintProcessor,
         exec_scopes: *ExecutionScopes,
@@ -456,7 +456,7 @@ pub const CairoVM = struct {
     ///
     /// This function assumes proper initialization of the CairoVM instance and must be called in
     /// a controlled environment to ensure the correct execution of instructions and memory operations.
-    pub fn runInstruction(
+    pub inline fn runInstruction(
         self: *Self,
         instruction: Instruction,
     ) !void {
@@ -521,7 +521,7 @@ pub const CairoVM = struct {
     ///
     /// # Returns
     /// A structured `OperandsResult` containing computed operands, the result, and destinations.
-    pub fn computeOperands(
+    pub inline fn computeOperands(
         self: *Self,
         instruction: Instruction,
     ) !OperandsResult {
@@ -723,7 +723,7 @@ pub const CairoVM = struct {
     /// # Returns
     /// - `Tuple`: A tuple containing the deduced `op0` and `res`.
     pub fn deduceOp0(
-        self: Self,
+        self: *const Self,
         inst: Instruction,
         dst: ?MaybeRelocatable,
         op1: ?MaybeRelocatable,
@@ -878,7 +878,7 @@ pub const CairoVM = struct {
     ///
     /// - Returns the deduced destination register, or an error if no destination is deducible.
     pub fn deduceDst(
-        self: Self,
+        self: *const Self,
         instruction: Instruction,
         res: ?MaybeRelocatable,
     ) !MaybeRelocatable {
@@ -1296,7 +1296,7 @@ pub const CairoVM = struct {
     /// # Errors
     ///
     /// Returns an error if the instruction encoding is invalid.
-    pub fn decodeCurrentInstruction(self: *const Self) !Instruction {
+    pub inline fn decodeCurrentInstruction(self: *const Self) !Instruction {
         const felt = try self.segments.memory.getFelt(self.run_context.getPC());
 
         const instruction = felt.toInt(u64) catch

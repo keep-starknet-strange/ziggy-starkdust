@@ -232,7 +232,7 @@ pub const Instruction = struct {
     /// - `op_1`: The operand 1.
     /// # Returns
     /// - `res`: The result of the operation.
-    pub fn computeRes(
+    pub inline fn computeRes(
         instruction: *const Self,
         op_0: MaybeRelocatable,
         op_1: MaybeRelocatable,

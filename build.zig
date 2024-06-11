@@ -91,6 +91,7 @@ pub fn build(b: *std.Build) void {
         .link_libc = true,
         .omit_frame_pointer = if (optimize == .ReleaseFast) true else false,
         .strip = true,
+        .error_tracing = false,
     });
     exe.root_module.addOptions("cfg", options);
 
