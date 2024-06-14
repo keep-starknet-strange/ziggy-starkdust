@@ -9,6 +9,9 @@ $(CAIRO_VM_CLI):
 build_cairo_vm_cli: | $(CAIRO_VM_CLI)
 BENCH_DIR=cairo_programs/benchmarks
 
+
+check:
+
 # Creates a pyenv and installs cairo-lang
 deps:
 	pyenv install  -s 3.9.15

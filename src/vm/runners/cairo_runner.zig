@@ -4595,12 +4595,12 @@ test "CairoRunner: run for steps" {
 
     // Full takes 10 steps.
     // Execute the Cairo runner for 8 steps.
-    try cairo_runner.runForSteps(8, false, &hint_processor);
+    try cairo_runner.runForSteps(8, &hint_processor);
 
     // Expect an error indicating the end of the program when attempting to execute the Cairo runner for 8 steps again.
     try expectError(
         CairoVMError.EndOfProgram,
-        cairo_runner.runForSteps(8, false, &hint_processor),
+        cairo_runner.runForSteps(8, &hint_processor),
     );
 }
 
@@ -4703,40 +4703,40 @@ test "CairoRunner: run until next power of 2" {
 
     // Full takes 10 steps.
     // Execute the Cairo runner for 1 step and then until the next power of two steps, ensuring a total of 10 steps.
-    try cairo_runner.runForSteps(1, false, &hint_processor);
-    try cairo_runner.runUntilNextPowerOf2(false, &hint_processor);
+    try cairo_runner.runForSteps(1, &hint_processor);
+    try cairo_runner.runUntilNextPowerOf2(&hint_processor);
 
     // Assert that the current step count is 1.
     try expectEqual(@as(usize, 1), cairo_runner.vm.current_step);
 
     // Execute the Cairo runner for 1 step and then until the next power of two steps.
-    try cairo_runner.runForSteps(1, false, &hint_processor);
-    try cairo_runner.runUntilNextPowerOf2(false, &hint_processor);
+    try cairo_runner.runForSteps(1, &hint_processor);
+    try cairo_runner.runUntilNextPowerOf2(&hint_processor);
 
     // Assert that the current step count is 2.
     try expectEqual(@as(usize, 2), cairo_runner.vm.current_step);
 
     // Execute the Cairo runner for 1 step and then until the next power of two steps.
-    try cairo_runner.runForSteps(1, false, &hint_processor);
-    try cairo_runner.runUntilNextPowerOf2(false, &hint_processor);
+    try cairo_runner.runForSteps(1, &hint_processor);
+    try cairo_runner.runUntilNextPowerOf2(&hint_processor);
 
     // Assert that the current step count is 4.
     try expectEqual(@as(usize, 4), cairo_runner.vm.current_step);
 
     // Execute the Cairo runner for 1 step and then until the next power of two steps.
-    try cairo_runner.runForSteps(1, false, &hint_processor);
-    try cairo_runner.runUntilNextPowerOf2(false, &hint_processor);
+    try cairo_runner.runForSteps(1, &hint_processor);
+    try cairo_runner.runUntilNextPowerOf2(&hint_processor);
 
     // Assert that the current step count is 8.
     try expectEqual(@as(usize, 8), cairo_runner.vm.current_step);
 
     // Execute the Cairo runner for 1 step.
-    try cairo_runner.runForSteps(1, false, &hint_processor);
+    try cairo_runner.runForSteps(1, &hint_processor);
 
     // Expect an error indicating the end of the program when attempting to run until the next power of two steps.
     try expectError(
         CairoVMError.EndOfProgram,
-        cairo_runner.runUntilNextPowerOf2(false, &hint_processor),
+        cairo_runner.runUntilNextPowerOf2(&hint_processor),
     );
 
     // Assert that the current step count is 10.
@@ -4879,7 +4879,6 @@ test "CairoRunner: endRun with a run that is already finished" {
             true,
             false,
             &hint_processor,
-            false,
         ),
     );
 }
@@ -4908,7 +4907,6 @@ test "CairoRunner: endRun with a simple test" {
         true,
         false,
         &hint_processor,
-        false,
     );
 
     cairo_runner.run_ended = false;
@@ -4920,7 +4918,6 @@ test "CairoRunner: endRun with a simple test" {
         true,
         true,
         &hint_processor,
-        false,
     );
 
     try expect(!cairo_runner.run_ended);
