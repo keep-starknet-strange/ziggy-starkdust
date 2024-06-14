@@ -1,5 +1,5 @@
 
-#!/bin/bash
+#!/usr/bin/env bash
 
 set -e
 . ../cairo-vm-env/bin/activate
@@ -24,7 +24,7 @@ ZIG_TRACE_OUTPUT="./tmp/zig_trace.tmp"
 
 trap ctrl_c INT
 
-function ctrl_c() {
+ctrl_c() {
     rm -rf tmp
 }
 
