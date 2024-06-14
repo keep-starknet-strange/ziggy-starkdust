@@ -33,9 +33,6 @@ jobs:
           source scripts/install/install-ubuntu.sh
           make check
 
-      - name: Setup cairo-compile
-        run: make deps
-
       - name: Build
         run: make build
 
@@ -81,6 +78,23 @@ jobs:
         uses: korandoru/setup-zig@v1
         with:
           zig-version: master
+
+      - name: Setup Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+
+      - name: Install python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+        # NOTE: we do it in one step because GitHub cleans the PATH between steps
+      - name: Install dependencies and compile project
+        run: |
+          source scripts/install/install-ubuntu.sh
+          make check
+
 
       - name: Integration test
         run: |
