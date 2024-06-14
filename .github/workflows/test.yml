@@ -22,6 +22,10 @@ jobs:
         with:
           toolchain: stable
 
+      - name: Install python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
       - name: Setup cairo-compile
         run: make deps
 
