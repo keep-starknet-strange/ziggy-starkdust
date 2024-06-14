@@ -774,7 +774,8 @@ test "Helper: tonelli-shanks ok" {
 test "Helper: SqrtPrimePower" {
     var n = try Int.initSet(std.testing.allocator, 25);
     defer n.deinit();
-    var p = try Int.initSet(std.testing.allocator, 18446744069414584321);
+
+    var p = try Int.initSet(std.testing.allocator, 577);
     defer p.deinit();
 
     var result = (try sqrtPrimePower(std.testing.allocator, n, p)).?;

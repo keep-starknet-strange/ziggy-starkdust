@@ -18,7 +18,7 @@ pub fn bigIntToBytesLe(allocator: std.mem.Allocator, bigint: std.math.big.int.Ma
     errdefer allocator.free(buf);
 
     for (0..bigint.len()) |i|
-        std.mem.writeInt(usize, buf[i * @sizeOf(usize) .. (i + 1) * @sizeOf(usize)][0..@sizeOf(usize)], bigint.limbs[i], .little);
+        @memcpy(buf[i * @sizeOf(usize) .. (i + 1) * @sizeOf(usize)], @as([@sizeOf(usize)]u8, @bitCast(bigint.limbs[i]))[0..]);
 
     return buf;
 }

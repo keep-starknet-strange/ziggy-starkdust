@@ -164,7 +164,7 @@ pub fn bigIntIntGetSquareRoot(
         try Int.initSet(allocator, 0);
     defer root_gx.deinit();
 
-    if (!x.eqlZero() and success_x == success_gx and success_x)
+    if (!x.eqlZero() and (@intFromBool(success_x) ^ @intFromBool(success_gx)) == 0)
         return HintError.AssertionFailed;
 
     try hint_utils.insertValueFromVarName(
@@ -402,7 +402,7 @@ test "FieldArithmetic: run u384 getSquareOk no successes" {
             std.testing.allocator,
             &vm,
             ids_data,
-            hint_codes.UINT256_GET_SQUARE_ROOT,
+            hint_codes.UINT384_GET_SQUARE_ROOT,
             undefined,
             undefined,
         ),

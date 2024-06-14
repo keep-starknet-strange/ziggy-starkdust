@@ -267,9 +267,7 @@ pub const BitwiseBuiltinRunner = struct {
         allocator: Allocator,
         vm: *CairoVM,
     ) !ArrayList(Relocatable) {
-        const segment_size = try (vm.segments.getSegmentUsedSize(
-            @intCast(self.base),
-        ) orelse MemoryError.MissingSegmentUsedSizes);
+        const segment_size = vm.segments.getSegmentUsedSize(self.base) orelse return MemoryError.MissingSegmentUsedSizes;
         var result = ArrayList(Relocatable).init(allocator);
         errdefer result.deinit();
         for (0..segment_size) |i| {
@@ -602,6 +600,7 @@ test "BitwiseBuiltinRunner: getMemoryAccesses should return the memory accesses"
     );
     defer vm.deinit();
 
+    try vm.segments.segment_used_sizes.appendNTimes(0, 5);
     try vm.segments.segment_used_sizes.append(4);
 
     var actual = try builtin.getMemoryAccesses(
@@ -1032,6 +1031,7 @@ test "BitwiseBuiltinRunner: finalStack should return InvalidStopPointer error if
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
+    try memory_segment_manager.segment_used_sizes.appendNTimes(0, 22);
     try memory_segment_manager.segment_used_sizes.append(345);
 
     // then
