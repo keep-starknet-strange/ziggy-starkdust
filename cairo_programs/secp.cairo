@@ -1,6 +1,6 @@
 %builtins range_check
-from starkware.cairo.common.cairo_secp.bigint import nondet_bigint3, BigInt3, bigint_to_uint256
-
+from starkware.cairo.common.cairo_secp.bigint3 import BigInt3, SumBigInt3
+from starkware.cairo.common.cairo_secp.bigint import nondet_bigint3, bigint_to_uint256
 from starkware.cairo.common.cairo_secp.field import verify_zero, UnreducedBigInt3, reduce, is_zero
 
 func main{range_check_ptr: felt}() {
@@ -43,17 +43,17 @@ func main{range_check_ptr: felt}() {
     );
 
     // is_zero
-    let (u) = is_zero(BigInt3(0, 0, 0));
+    let (u) = is_zero(SumBigInt3(0, 0, 0));
     assert u = 1;
     let (v) = is_zero(
-        BigInt3(232113757366008801543585, 232113757366008801543585, 232113757366008801543585)
+        SumBigInt3(232113757366008801543585, 232113757366008801543585, 232113757366008801543585)
     );
     assert v = 0;
 
-    let (w) = is_zero(BigInt3(-10, -10, -10));
+    let (w) = is_zero(SumBigInt3(-10, -10, -10));
     assert w = 0;
 
-    let (z) = is_zero(BigInt3(1833312543, 67523423, 8790312));
+    let (z) = is_zero(SumBigInt3(1833312543, 67523423, 8790312));
     assert z = 0;
 
     return ();
