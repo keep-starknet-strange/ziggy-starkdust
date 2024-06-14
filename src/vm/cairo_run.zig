@@ -91,7 +91,6 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
         false,
         false,
         &hint_processor,
-        false,
     );
 
     // TODO readReturnValues necessary for builtins
