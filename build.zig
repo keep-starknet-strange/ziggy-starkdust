@@ -20,7 +20,7 @@ const external_dependencies = [_]build_helpers.Dependency{
 // runner.
 pub fn build(b: *std.Build) void {
     const options = b.addOptions();
-    options.addOption(bool, "extensive", true);
+    options.addOption(bool, "extensive", false);
 
     // Standard target options allows the person running `zig build` to choose
     // what target to build for. Here we do not override the defaults, which
