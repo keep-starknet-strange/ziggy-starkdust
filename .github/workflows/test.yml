@@ -99,4 +99,4 @@ jobs:
       - name: Integration test
         run: |
           zig version
-          make build-compare-output
+          zig build -Doptimize=ReleaseFast integration_test
