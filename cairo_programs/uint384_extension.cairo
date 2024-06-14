@@ -6,7 +6,7 @@ from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.pow import pow
 from starkware.cairo.common.registers import get_ap, get_fp_and_pc
 // Import uint384 files
-from uint384 import u384, Uint384, Uint384_expand, ALL_ONES
+from cairo_programs.uint384 import u384, Uint384, Uint384_expand, ALL_ONES
 // Functions for operating 384-bit integers with 768-bit integers
 
 // Represents an integer in the range [0, 2^768).

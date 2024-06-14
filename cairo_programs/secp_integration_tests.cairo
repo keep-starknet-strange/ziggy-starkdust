@@ -1,12 +1,12 @@
 %builtins range_check
 
 from starkware.cairo.common.cairo_secp.bigint import (
-    BigInt3,
     bigint_mul,
     nondet_bigint3,
     bigint_to_uint256,
     uint256_to_bigint,
 )
+from starkware.cairo.common.cairo_secp.bigint3 import BigInt3, SumBigInt3
 from starkware.cairo.common.cairo_secp.signature import (
     get_generator_point,
     validate_signature_entry,
@@ -86,7 +86,7 @@ func test_operations{range_check_ptr}(point: EcPoint) {
     let (zero_uint, _) = uint256_add(slope_uint, neg_slope);
     let (zero) = uint256_to_bigint(zero_uint);
 
-    let (is_z) = is_zero(zero);
+    let (is_z) = is_zero(SumBigInt3(d0=zero.d0, d1=zero.d1, d2=zero.d2));
     assert is_z = 1;
 
     let (pow2, scaled) = ec_mul_inner(point, 0, 0);

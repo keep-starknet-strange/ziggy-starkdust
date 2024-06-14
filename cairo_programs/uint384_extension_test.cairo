@@ -1,6 +1,6 @@
 %builtins range_check
 
-from uint384_extension import u384_ext, Uint768, Uint384
+from cairo_programs.uint384_extension import u384_ext, Uint768, Uint384
 
 func test_uint384_extension_operations{range_check_ptr}() {
     // Test unsigned_div_rem_uint768_by_uint384

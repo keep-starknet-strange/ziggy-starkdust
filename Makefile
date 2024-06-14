@@ -3,7 +3,7 @@
 CAIRO_VM_CLI:=cairo-vm/target/release/cairo-vm-cli
 
 $(CAIRO_VM_CLI):
-	git clone --depth 1 -b v0.9.2 https://github.com/lambdaclass/cairo-vm
+	git clone --depth 1 https://github.com/lambdaclass/cairo-vm
 	cd cairo-vm; cargo b --release --bin cairo-vm-cli
 
 build_cairo_vm_cli: | $(CAIRO_VM_CLI)
@@ -22,6 +22,7 @@ deps:
 # Creates a pyenv and installs cairo-lang
 deps-macos:
 	brew install gmp pyenv
+	brew install python@3.9
 	pyenv install -s 3.9.15
 	PYENV_VERSION=3.9.15 /opt/homebrew/bin/python3.9 -m venv cairo-vm-env
 	. cairo-vm-env/bin/activate ; \
@@ -39,16 +40,11 @@ test:
 test-filter:
 	@zig build test --summary all -Dtest-filter="$(FILTER)"
 
-build-integration-test:
-	@zig build -Doptimize=ReleaseFast integration_test
-
 run-integration-test:
 	@zig build -Doptimize=ReleaseFast integration_test
-	./zig-out/bin/integration_test
 
 run-integration-test-filter:
-	@zig build integration_test
-	./zig-out/bin/integration_test $(FILTER)
+	@zig build -Doptimize=ReleaseFast integration_test $(FILTER)
 
 build-compare-benchmarks: build_cairo_vm_cli build-optimize
 	cd scripts; sh benchmarks.sh

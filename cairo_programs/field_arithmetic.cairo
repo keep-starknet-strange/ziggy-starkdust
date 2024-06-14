@@ -8,8 +8,8 @@ from starkware.cairo.common.math_cmp import is_le
 from starkware.cairo.common.pow import pow
 from starkware.cairo.common.registers import get_ap, get_fp_and_pc
 from starkware.cairo.common.uint256 import Uint256
-from uint384 import u384, Uint384, Uint384_expand, SHIFT, HALF_SHIFT
-from uint384_extension import u384_ext, Uint768
+from cairo_programs.uint384 import u384, Uint384, Uint384_expand, SHIFT, HALF_SHIFT
+from cairo_programs.uint384_extension import u384_ext, Uint768
 
 // Functions for operating elements in a finite field F_p (i.e. modulo a prime p), with p of at most 384 bits
 namespace field_arithmetic {
