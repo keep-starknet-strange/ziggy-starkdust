@@ -43,6 +43,23 @@ pub fn nGreaterThan2(
     try hint_utils.insertValueIntoAp(allocator, vm, MaybeRelocatable.fromFelt(if (n >= 2) Felt252.one() else Felt252.zero()));
 }
 
+// TODO: implement test
+// Implements hint: "memory[ap] = to_felt_or_relocatable(ids.elements_end - ids.elements >= x)"
+pub fn elementsOverX(
+    allocator: std.mem.Allocator,
+    vm: *CairoVM,
+    ids_data: std.StringHashMap(HintReference),
+    ap_tracking: ApTracking,
+    x: usize,
+) !void {
+    const elements_end = try hint_utils.getPtrFromVarName("elements_end", vm, ids_data, ap_tracking);
+    const elements = try hint_utils.getPtrFromVarName("elements", vm, ids_data, ap_tracking);
+
+    const value = Felt252.fromInt(u64, @intFromBool((try elements_end.sub(elements)).offset >= x));
+
+    try hint_utils.insertValueIntoAp(allocator, vm, MaybeRelocatable.fromFelt(value));
+}
+
 test "PoseidonUtils: run nGreaterThan10 true" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
