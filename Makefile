@@ -53,6 +53,10 @@ run-integration-test-filter:
 build-compare-benchmarks: build_cairo_vm_cli build-optimize
 	cd scripts; sh benchmarks.sh
 
+
+compile-cairo-programs:
+	cd scripts; sh build_cairo_programs.sh
+
 build-compare-output: build_cairo_vm_cli build-optimize
 	cd scripts; sh test_compare_output.sh
 
