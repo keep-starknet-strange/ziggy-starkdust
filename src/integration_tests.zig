@@ -13,29 +13,28 @@ pub fn main() !void {
     const cairo_programs = [_]struct {
         pathname: []const u8,
         layout: []const u8,
-        extensive_hints: bool = false,
     }{
         .{ .pathname = "cairo_programs/chained_ec_op.json", .layout = "all_cairo" },
 
-        .{ .pathname = "cairo_programs/abs_value_array_compiled.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/array_sum_compiled.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/abs_value_array.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/array_sum.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/assert_lt_felt.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/assert_250_bit_element_array_compiled.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/assert_le_felt_hint_compiled.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/assert_le_felt_old_compiled.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/assert_nn_compiled.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/assert_not_zero_compiled.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/assert_250_bit_element_array.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/assert_le_felt_hint.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/assert_le_felt_old.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/assert_nn.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/assert_not_zero.json", .layout = "all_cairo" },
 
-        .{ .pathname = "cairo_programs/bigint_compiled.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/big_struct_compiled.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/bitand_hint_compiled.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/bitwise_output_compiled.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/bigint.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/big_struct.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/bitand_hint.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/bitwise_output.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/bitwise_builtin_test.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/bitwise_recursion_compiled.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/bitwise_recursion.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/blake2s_felts.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/blake2s_hello_world_hash.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/blake2s_integration_tests.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/cairo_finalize_keccak_compiled.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/cairo_finalize_keccak.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/cairo_finalize_keccak_block_size_1000.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/call_function_assign_param_by_name.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/common_signature.json", .layout = "all_cairo" },
@@ -96,10 +95,9 @@ pub fn main() !void {
         .{ .pathname = "cairo_programs/jmp.json", .layout = "all_cairo" },
 
         .{ .pathname = "cairo_programs/keccak_add_uint256.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/keccak_alternative_hint.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/_keccak_alternative_hint.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/keccak_uint256.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/keccak.json", .layout = "all_cairo" },
-        .{ .pathname = "cairo_programs/keccak_compiled.json", .layout = "all_cairo" },
+        .{ .pathname = "cairo_programs/_keccak.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/keccak_builtin.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/keccak_integration_tests.json", .layout = "all_cairo" },
         .{ .pathname = "cairo_programs/keccak_copy_inputs.json", .layout = "all_cairo" },
@@ -205,40 +203,32 @@ pub fn main() !void {
 
     var ok_count: usize = 0;
     var fail_count: usize = 0;
-    var progress = std.Progress{};
-    const root_node = progress.start("Test", cairo_programs.len);
-    const have_tty = progress.terminal != null and
-        (progress.supports_ansi_escape_codes or progress.is_windows_terminal);
 
     for (cairo_programs, 0..) |test_cairo_program, i| {
         // Check if the current test's pathname contains the provided test filter substring
         if (test_substring.len > 0 and !std.mem.containsAtLeast(u8, test_cairo_program.pathname, 1, test_substring)) {
             continue;
         }
-        var test_node = root_node.start(test_cairo_program.pathname, 0);
-        test_node.activate();
-        progress.refresh();
-        if (!have_tty) {
-            std.debug.print("{d}/{d} {s}... \n", .{ i + 1, cairo_programs.len, test_cairo_program.pathname });
-        }
 
-        const result = cairo_run(allocator, test_cairo_program.pathname, test_cairo_program.layout, test_cairo_program.extensive_hints);
+        std.log.debug("{d}/{d} {s}... \n", .{ i + 1, cairo_programs.len, test_cairo_program.pathname });
+
+        const result = cairo_run(
+            allocator,
+            test_cairo_program.pathname,
+            test_cairo_program.layout,
+        );
 
         if (result) |_| {
             ok_count += 1;
-            test_node.end();
-            if (!have_tty) std.debug.print("OK\n", .{});
+            // std.debug.print("OK\n", .{});
         } else |err| {
             fail_count += 1;
-            progress.log("FAIL ({s})\n", .{@errorName(err)});
+            std.debug.print("[{s}] FAIL ({s})\n", .{ test_cairo_program.pathname, @errorName(err) });
             if (@errorReturnTrace()) |trace| {
                 std.debug.dumpStackTrace(trace.*);
             }
-            test_node.end();
         }
     }
-
-    root_node.end();
 
     if (ok_count == cairo_programs.len) {
         std.debug.print("All {d} tests passed.\n", .{ok_count});
@@ -247,7 +237,7 @@ pub fn main() !void {
     }
 }
 
-pub fn cairo_run(allocator: std.mem.Allocator, pathname: []const u8, layout: []const u8, extensive_hints: bool) !void {
+pub fn cairo_run(allocator: std.mem.Allocator, pathname: []const u8, layout: []const u8) !void {
     var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
     const path = try std.posix.realpath(pathname, &buffer);
 
@@ -266,7 +256,10 @@ pub fn cairo_run(allocator: std.mem.Allocator, pathname: []const u8, layout: []c
     // when
     var runner = try CairoRunner.init(
         allocator,
-        try parsed_program.value.parseProgramJson(allocator, &entrypoint, extensive_hints),
+        try parsed_program.value.parseProgramJson(
+            allocator,
+            &entrypoint,
+        ),
         layout,
         instructions,
         &vm,
@@ -275,16 +268,15 @@ pub fn cairo_run(allocator: std.mem.Allocator, pathname: []const u8, layout: []c
     defer runner.deinit(allocator);
 
     const end = try runner.setupExecutionState(false);
-    errdefer std.debug.print("failed on step: {}\n", .{runner.vm.current_step});
+    errdefer std.log.debug("failed on step: {}\n", .{runner.vm.current_step});
 
     // then
     var hint_processor: HintProcessor = .{};
-    try runner.runUntilPC(end, extensive_hints, &hint_processor);
+    try runner.runUntilPC(end, &hint_processor);
     try runner.endRun(
         allocator,
         true,
         false,
         &hint_processor,
-        extensive_hints,
     );
 }

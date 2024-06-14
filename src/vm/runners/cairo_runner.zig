@@ -611,14 +611,13 @@ pub const CairoRunner = struct {
     /// reaches the end, it may return a `CairoVMError`.
     pub fn runUntilNextPowerOf2(
         self: *Self,
-        extensive_hints: bool,
         hint_processor: *HintProcessor,
     ) !void {
         // Calculate the next power of two for the current step count
         const next_power_of_two_steps = try std.math.ceilPowerOfTwo(usize, self.vm.current_step);
 
         // Run the program until the next power of two steps
-        try self.runUntilSteps(next_power_of_two_steps, extensive_hints, hint_processor);
+        try self.runUntilSteps(next_power_of_two_steps, hint_processor);
     }
 
     /// Executes the Cairo program until a specified number of steps is reached.
@@ -640,14 +639,13 @@ pub const CairoRunner = struct {
     pub fn runUntilSteps(
         self: *Self,
         steps: usize,
-        extensive_hints: bool,
         hint_processor: *HintProcessor,
     ) !void {
         // Calculate the remaining steps needed based on the current step count
         const remaining_steps = steps -| self.vm.current_step;
 
         // Run the program for the remaining steps
-        try self.runForSteps(remaining_steps, extensive_hints, hint_processor);
+        try self.runForSteps(remaining_steps, hint_processor);
     }
 
     /// Executes the Cairo program for a specified number of steps.
@@ -669,7 +667,6 @@ pub const CairoRunner = struct {
     pub fn runForSteps(
         self: *Self,
         steps: usize,
-        extensive_hints: bool,
         hint_processor: *HintProcessor,
     ) !void {
         // Get references for hint processing
@@ -682,11 +679,11 @@ pub const CairoRunner = struct {
         // Prepare hint ranges for extensive hint processing
         var hint_ranges: std.AutoHashMap(Relocatable, HintRange) = undefined;
         defer {
-            if (extensive_hints) hint_ranges.deinit();
+            if (@import("cfg").extensive) hint_ranges.deinit();
         }
 
         // Clone extensive hint ranges if extensive hints are enabled
-        if (extensive_hints)
+        if (@import("cfg").extensive)
             hint_ranges = try self.program.shared_program_data
                 .hints_collection.hints_ranges.Extensive.clone();
 
@@ -694,7 +691,7 @@ pub const CairoRunner = struct {
         var hint_data_final: []HintData = &.{};
 
         // If extensive hints are not enabled, determine the hint data for the current PC offset
-        if (!extensive_hints) {
+        if (!@import("cfg").extensive) {
             if (self.program
                 .shared_program_data
                 .hints_collection
@@ -711,7 +708,7 @@ pub const CairoRunner = struct {
                 return CairoVMError.EndOfProgram;
 
             // Execute a single step of the program, considering extensive or non-extensive hints
-            if (extensive_hints) {
+            if (@import("cfg").extensive) {
                 try self.vm.stepExtensive(
                     hint_processor.*,
                     &self.execution_scopes,
@@ -831,7 +828,6 @@ pub const CairoRunner = struct {
         disable_trace_padding: bool,
         disable_finalize_all: bool,
         hint_processor: *HintProcessor,
-        extensive_hints: bool,
     ) !void {
         // Check if the method has already been called
         if (self.run_ended)
@@ -852,7 +848,7 @@ pub const CairoRunner = struct {
         // Perform trace padding in proof mode if not disabled
         if (self.isProofMode() and !disable_trace_padding) {
             // Run until the next power of 2 is reached
-            try self.runUntilNextPowerOf2(extensive_hints, hint_processor);
+            try self.runUntilNextPowerOf2(hint_processor);
 
             // Loop until sufficient allocated cells are available
             while (true) {
@@ -870,8 +866,8 @@ pub const CairoRunner = struct {
                 }
 
                 // Run for one step and continue padding traces
-                try self.runForSteps(1, extensive_hints, hint_processor);
-                try self.runUntilNextPowerOf2(extensive_hints, hint_processor);
+                try self.runForSteps(1, hint_processor);
+                try self.runUntilNextPowerOf2(hint_processor);
             }
         }
 
