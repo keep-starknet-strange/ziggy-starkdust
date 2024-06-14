@@ -240,7 +240,7 @@ pub const Relocatable = struct {
     ///
     /// # Errors
     /// - Returns a `MemoryError` in case of relocation failure or encountering a temporary segment.
-    pub fn relocateAddress(self: *const Self, relocation_table: []usize) MemoryError!usize {
+    pub fn relocateAddress(self: Self, relocation_table: []usize) MemoryError!usize {
         if (self.segment_index >= 0) {
             if (relocation_table.len <= self.segment_index) {
                 return MemoryError.Relocation;
@@ -316,7 +316,7 @@ pub const MaybeRelocatable = union(enum) {
             // If `self` is of type `felt`
             .felt => |self_value| switch (other) {
                 // Compare the `felt` values if both `self` and `other` are `felt`
-                .felt => self_value.lt(other.felt),
+                .felt => self_value.lt(&other.felt),
                 // If `self` is `felt` and `other` is `relocatable`, they are not equal
                 .relocatable => false,
             },
@@ -344,7 +344,7 @@ pub const MaybeRelocatable = union(enum) {
             // If `self` is of type `felt`
             .felt => |self_value| switch (other) {
                 // Compare the `felt` values if both `self` and `other` are `felt`
-                .felt => self_value.le(other.felt),
+                .felt => self_value.cmp(&other.felt).compare(.lte),
                 // If `self` is `felt` and `other` is `relocatable`, they are not equal
                 .relocatable => false,
             },
@@ -372,7 +372,7 @@ pub const MaybeRelocatable = union(enum) {
             // If `self` is of type `felt`
             .felt => |self_value| switch (other) {
                 // Compare the `felt` values if both `self` and `other` are `felt`
-                .felt => self_value.gt(other.felt),
+                .felt => self_value.cmp(&other.felt).compare(.gt),
                 // If `self` is `felt` and `other` is `relocatable`, they are not equal
                 .relocatable => false,
             },
@@ -400,7 +400,7 @@ pub const MaybeRelocatable = union(enum) {
             // If `self` is of type `felt`
             .felt => |self_value| switch (other) {
                 // Compare the `felt` values if both `self` and `other` are `felt`
-                .felt => self_value.ge(other.felt),
+                .felt => self_value.cmp(&other.felt).compare(.gte),
                 // If `self` is `felt` and `other` is `relocatable`, they are not equal
                 .relocatable => false,
             },
@@ -435,7 +435,7 @@ pub const MaybeRelocatable = union(enum) {
             // If `self` is of type `felt`
             .felt => |self_value| switch (other) {
                 // If `other` is also `felt`, compare the `felt` values
-                .felt => self_value.cmp(other.felt),
+                .felt => self_value.cmp(&other.felt),
                 // If `other` is `relocatable`, the comparison is invalid, return an error
                 .relocatable => .gt,
             },
@@ -613,8 +613,8 @@ pub const MaybeRelocatable = union(enum) {
     ///
     /// # Errors
     /// - Returns a `MemoryError` if encountering relocation issues or mismatches in the conversion.
-    pub fn relocateValue(self: *const Self, relocation_table: []usize) MemoryError!Felt252 {
-        return switch (self.*) {
+    pub fn relocateValue(self: Self, relocation_table: []usize) MemoryError!Felt252 {
+        return switch (self) {
             .felt => |fe| fe,
             .relocatable => |r| Felt252.fromInt(usize, try r.relocateAddress(relocation_table)),
         };
@@ -1266,17 +1266,17 @@ test "MaybeRelocatable: intoFelt should return an error if MaybeRelocatable is R
 
 test "MaybeRelocatable: intoU64 should return a u64 if MaybeRelocatable is Felt" {
     var maybeRelocatable = MaybeRelocatable.fromInt(u8, 10);
-    try expectEqual(@as(u64, @intCast(10)), try maybeRelocatable.toInt(u64));
+    try expectEqual(10, try maybeRelocatable.intoU64());
 }
 
 test "MaybeRelocatable: intoU64 should return an error if MaybeRelocatable is Relocatable" {
     const maybeRelocatable = MaybeRelocatable.fromSegment(0, 10);
-    try expectError(CairoVMError.TypeMismatchNotFelt, maybeRelocatable.toInt(u64));
+    try expectError(CairoVMError.TypeMismatchNotFelt, maybeRelocatable.intoU64());
 }
 
 test "MaybeRelocatable: intoU64 should return an error if MaybeRelocatable Felt cannot be coerced to u64" {
     var maybeRelocatable = MaybeRelocatable.fromInt(u256, std.math.maxInt(u64) + 1);
-    try expectError(MathError.ValueTooLarge, maybeRelocatable.toInt(u64));
+    try expectError(MathError.ValueTooLarge, maybeRelocatable.intoU64());
 }
 
 test "MaybeRelocatable: any comparision should return false if other MaybeRelocatable is of different variant 1" {

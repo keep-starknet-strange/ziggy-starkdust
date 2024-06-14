@@ -125,7 +125,7 @@ test "FeltBitLength: range test" {
         try vm.segments.memory.set(
             std.testing.allocator,
             Relocatable.init(1, 0),
-            MaybeRelocatable.fromFelt(Felt252.two().pow(i)),
+            MaybeRelocatable.fromFelt(Felt252.two().powToInt(@intCast(i))),
         );
         defer vm.segments.memory.deinitData(std.testing.allocator);
 
@@ -171,7 +171,7 @@ test "FeltBitLength: wrap around" {
         std.testing.allocator,
         Relocatable.init(1, 0),
         MaybeRelocatable.fromFelt(
-            Felt252.fromInt(u256, Felt252.Modulo - 1).add(Felt252.one()),
+            Felt252.fromInt(u256, Felt252.Modulus.toU256() - 1).add(&Felt252.one()),
         ),
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);

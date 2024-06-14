@@ -335,9 +335,11 @@ test "used instances" {
 
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    try memory_segment_manager.segment_used_sizes.put(0, 1);
+
+    try memory_segment_manager.segment_used_sizes.append(1);
+
     try std.testing.expectEqual(
-        @as(usize, @intCast(1)),
+        1,
         try builtin.getUsedInstances(memory_segment_manager),
     );
 }

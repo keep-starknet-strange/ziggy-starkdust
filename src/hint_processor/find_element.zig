@@ -295,7 +295,7 @@ test "Element found by search" {
 
     try expectEqual(
         MaybeRelocatable.fromInt(u8, 1),
-        setup.vm.segments.memory.data.items[1].items[3].?.maybe_relocatable,
+        setup.vm.segments.memory.data.items[1].items[3].getValue().?,
     );
 }
 
@@ -328,7 +328,7 @@ test "Element found by oracle" {
 
     try expectEqual(
         MaybeRelocatable.fromInt(u8, 1),
-        setup.vm.segments.memory.data.items[1].items[3].?.maybe_relocatable,
+        setup.vm.segments.memory.data.items[1].items[3].getValue().?,
     );
 }
 
@@ -693,7 +693,7 @@ test "Search sorted lower simple" {
 
     try expectEqual(
         MaybeRelocatable.fromInt(u8, 1),
-        setup.vm.segments.memory.data.items[1].items[3].?.maybe_relocatable,
+        setup.vm.segments.memory.data.items[1].items[3].getValue().?,
     );
 }
 
@@ -725,7 +725,7 @@ test "Search sorted lower with no match" {
 
     try expectEqual(
         MaybeRelocatable.fromInt(u8, 2),
-        setup.vm.segments.memory.data.items[1].items[3].?.maybe_relocatable,
+        setup.vm.segments.memory.data.items[1].items[3].getValue().?,
     );
 }
 

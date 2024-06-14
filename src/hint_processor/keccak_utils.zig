@@ -399,7 +399,7 @@ test "KeccakUtils: unsafeKeccak invalid word size" {
     defer exec_scopes.deinit();
 
     inline for (0..3) |i| {
-        try vm.insertInMemory(std.testing.allocator, Relocatable.init(data_ptr.segment_index, data_ptr.offset + i), MaybeRelocatable.fromFelt(Felt252.fromSignedInt(-1)));
+        try vm.insertInMemory(std.testing.allocator, Relocatable.init(data_ptr.segment_index, data_ptr.offset + i), MaybeRelocatable.fromFelt(Felt252.fromInt(i8, -1)));
     }
 
     const hint_processor: HintProcessor = .{};

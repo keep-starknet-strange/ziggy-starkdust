@@ -570,7 +570,7 @@ test "KeccakBuiltinRunner: getUsedCells should return the number of used cells" 
     defer keccak_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    try memory_segment_manager.segment_used_sizes.put(0, 10);
+    try memory_segment_manager.segment_used_sizes.append(10);
     try expectEqual(
         @as(
             u32,
@@ -630,7 +630,7 @@ test "KeccakBuiltinRunner: getUsedInstances should return the number of used ins
     defer keccak_builtin.deinit();
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    try memory_segment_manager.segment_used_sizes.put(0, 345);
+    try memory_segment_manager.segment_used_sizes.append(345);
     try expectEqual(
         @as(usize, @intCast(22)),
         try keccak_builtin.getUsedInstances(memory_segment_manager),
@@ -673,15 +673,21 @@ test "KeccakBuiltinRunner: getMemoryAccesses should return the memory accesses" 
         true,
     );
     defer keccak_builtin.deinit();
+
     keccak_builtin.base = 5;
+
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
+
     var vm = try CairoVM.init(
         std.testing.allocator,
         .{},
     );
     defer vm.deinit();
-    try vm.segments.segment_used_sizes.put(5, 4);
+
+    try vm.segments.segment_used_sizes.appendNTimes(0, 5);
+    try vm.segments.segment_used_sizes.append(4);
+
     var expected = ArrayList(Relocatable).init(std.testing.allocator);
     defer expected.deinit();
     try expected.append(Relocatable{
@@ -937,7 +943,8 @@ test "KeccakBuiltinRunner: finalStack should return InvalidStopPointer error if 
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
-    try memory_segment_manager.segment_used_sizes.put(22, 345);
+    try memory_segment_manager.segment_used_sizes.appendNTimes(0, 22);
+    try memory_segment_manager.segment_used_sizes.append(345);
     try expectError(
         RunnerError.InvalidStopPointer,
         keccak_builtin.finalStack(
@@ -977,7 +984,9 @@ test "KeccakBuiltinRunner: finalStack should return stop pointer address and upd
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
-    try memory_segment_manager.segment_used_sizes.put(22, 345);
+    try memory_segment_manager.segment_used_sizes.appendNTimes(0, 22);
+    try memory_segment_manager.segment_used_sizes.append(345);
+
     try expectEqual(
         Relocatable.init(2, 1),
         try keccak_builtin.finalStack(

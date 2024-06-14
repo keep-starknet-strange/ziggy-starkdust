@@ -130,6 +130,6 @@ test "Segments: run temporary array" {
     // Verifies that the temporary array was successfully created in the memory segments.
     try expectEqual(
         MaybeRelocatable.fromSegment(-1, 0),
-        vm.segments.memory.data.items[1].items[0].?.maybe_relocatable,
+        vm.segments.memory.data.items[1].items[0].getValue().?,
     );
 }

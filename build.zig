@@ -20,7 +20,7 @@ const external_dependencies = [_]build_helpers.Dependency{
 // runner.
 pub fn build(b: *std.Build) void {
     const options = b.addOptions();
-    options.addOption(bool, "extensive", false);
+    options.addOption(bool, "extensive", true);
 
     // Standard target options allows the person running `zig build` to choose
     // what target to build for. Here we do not override the defaults, which
@@ -91,7 +91,6 @@ pub fn build(b: *std.Build) void {
         .link_libc = true,
         .omit_frame_pointer = if (optimize == .ReleaseFast) true else false,
         .strip = true,
-        .error_tracing = false,
     });
     exe.root_module.addOptions("cfg", options);
 
@@ -125,14 +124,6 @@ pub fn build(b: *std.Build) void {
     integration_test(b, optimize, target, deps);
 
     // This creates a build step. It will be visible in the `zig build --help` menu,
-    // and can be selected like this: `zig build poseidon_consts_gen`
-    poseidon_consts_gen(b, optimize, target);
-
-    // This creates a build step. It will be visible in the `zig build --help` menu,
-    // and can be selected like this: `zig build pedersen_table_gen`
-    pedersen_table_gen(b, optimize, target);
-
-    // This creates a build step. It will be visible in the `zig build --help` menu,
     // and can be selected like this: `zig build run`
     // This will evaluate the `run` step rather than the default, which is "install".
     const run_step = b.step(
@@ -154,8 +145,8 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
         .filter = test_filter,
-        .single_threaded = false,
     });
+    unit_tests.root_module.addOptions("cfg", options);
 
     // Add dependency modules to the tests.
     for (deps) |mod| unit_tests.root_module.addImport(
@@ -202,42 +193,4 @@ fn integration_test(
 
     const install_step = b.addInstallArtifact(binary, .{});
     integration_test_build.dependOn(&install_step.step);
-}
-
-fn poseidon_consts_gen(
-    b: *std.Build,
-    mode: std.builtin.Mode,
-    target: std.Build.ResolvedTarget,
-) void {
-    const binary = b.addExecutable(.{
-        .name = "poseidon_consts_gen",
-        .root_source_file = b.path("src/poseidon_consts_gen.zig"),
-        .target = target,
-        .optimize = mode,
-    });
-
-    const poseidon_consts_gen_build = b.step("poseidon_consts_gen", "Cli: poseidon consts generator");
-    poseidon_consts_gen_build.dependOn(&binary.step);
-
-    const install_step = b.addInstallArtifact(binary, .{});
-    poseidon_consts_gen_build.dependOn(&install_step.step);
-}
-
-fn pedersen_table_gen(
-    b: *std.Build,
-    mode: std.builtin.Mode,
-    target: std.Build.ResolvedTarget,
-) void {
-    const binary = b.addExecutable(.{
-        .name = "pedersen_table_gen",
-        .root_source_file = b.path("src/pedersen_table_gen.zig"),
-        .target = target,
-        .optimize = mode,
-    });
-
-    const pedersen_table_gen_build = b.step("pedersen_table_gen", "Cli: pedersen table generator");
-    pedersen_table_gen_build.dependOn(&binary.step);
-
-    const install_step = b.addInstallArtifact(binary, .{});
-    pedersen_table_gen_build.dependOn(&install_step.step);
 }

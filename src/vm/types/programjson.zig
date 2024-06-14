@@ -397,7 +397,7 @@ pub const ProgramJson = struct {
         // Read the entire file content into a buffer using the provided allocator
         const buffer = try file.readToEndAlloc(
             allocator,
-            1024 * 1024 * 500,
+            try file.getEndPos(),
         );
         defer allocator.free(buffer);
 
@@ -514,7 +514,8 @@ pub const ProgramJson = struct {
     /// # Errors
     /// - If the string in the array is not able to be treated as a hex string to be parsed as an u256
     pub fn readData(self: Self, allocator: Allocator) !std.ArrayList(MaybeRelocatable) {
-        var parsed_data = try std.ArrayList(MaybeRelocatable).initCapacity(allocator, self.data.?.len);
+        // var parsed_data = try std.ArrayList(MaybeRelocatable).initCapacity(allocator, self.data.?.len);
+        var parsed_data = std.ArrayList(MaybeRelocatable).init(allocator);
         errdefer parsed_data.deinit();
 
         for (self.data.?) |instruction| {
@@ -1288,7 +1289,6 @@ test "ProgramJson: parseProgramJson should parse a Cairo v0 JSON Program and con
     var program = try parsed_program.value.parseProgramJson(
         std.testing.allocator,
         &entrypoint,
-        true,
     );
     defer program.deinit(std.testing.allocator);
 
@@ -1401,7 +1401,6 @@ test "ProgramJson: parseProgramJson with missing entry point should return an er
         parsed_program.value.parseProgramJson(
             std.testing.allocator,
             &entrypoint,
-            true,
         ),
     );
 }
@@ -1428,7 +1427,6 @@ test "ProgramJson: parseProgramJson should parse a valid manually compiled progr
     var program = try parsed_program.value.parseProgramJson(
         std.testing.allocator,
         &entrypoint,
-        true,
     );
     // Deallocate program at the end of the scope
     defer program.deinit(std.testing.allocator);
@@ -1535,7 +1533,6 @@ test "ProgramJson: parseProgramJson should parse a valid manually compiled progr
     var program = try parsed_program.value.parseProgramJson(
         std.testing.allocator,
         null,
-        true,
     );
     // Deallocate program at the end of the scope
     defer program.deinit(std.testing.allocator);
@@ -1642,7 +1639,6 @@ test "ProgramJson: parseProgramJson with constant deserialization" {
     var program = try parsed_program.value.parseProgramJson(
         std.testing.allocator,
         null,
-        true,
     );
     // Deallocate program at the end of the scope.
     defer program.deinit(std.testing.allocator);
@@ -2361,7 +2357,6 @@ test "ProgramJson: Program deserialization with instruction locations containing
     var program = try parsed_program.value.parseProgramJson(
         std.testing.allocator,
         null,
-        true,
     );
     // Deallocate program at the end of the scope.
     defer program.deinit(std.testing.allocator);

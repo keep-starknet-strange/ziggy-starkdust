@@ -98,7 +98,7 @@ test "PowUtils: run pow" {
     // Verify that the value at memory location [1][12] is equal to 1.
     try expectEqual(
         MaybeRelocatable.fromInt(u8, 1),
-        vm.segments.memory.data.items[1].items[12].?.maybe_relocatable,
+        vm.segments.memory.data.items[1].items[12].getValue().?,
     );
 }
 

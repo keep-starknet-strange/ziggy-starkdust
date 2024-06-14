@@ -88,7 +88,7 @@ pub const CairoVM = struct {
         const memory_segment_manager = try segments.MemorySegmentManager.init(allocator);
         errdefer memory_segment_manager.deinit();
         // Initialize the trace context.
-        var trace: ?std.ArrayList(TraceEntry) = if (config.enable_trace) std.ArrayList(TraceEntry).init(allocator) else null;
+        var trace: ?std.ArrayList(TraceEntry) = if (config.enable_trace) try std.ArrayList(TraceEntry).initCapacity(allocator, 100) else null;
         errdefer if (trace != null) trace.?.deinit();
         // Initialize the run context.
         const run_context = .{};
@@ -96,7 +96,7 @@ pub const CairoVM = struct {
         const builtin_runners = ArrayList(BuiltinRunner).init(allocator);
         errdefer builtin_runners.deinit();
         // Initialize the instruction cache.
-        const instruction_cache = ArrayList(?Instruction).init(allocator);
+        const instruction_cache = try ArrayList(?Instruction).initCapacity(allocator, 100);
         errdefer instruction_cache.deinit();
 
         return .{
@@ -227,7 +227,7 @@ pub const CairoVM = struct {
     /// # Returns
     ///
     /// - The used size of the segment at the specified index, or null if not computed.
-    pub fn getSegmentUsedSize(self: *Self, index: u32) ?u32 {
+    pub fn getSegmentUsedSize(self: *Self, index: usize) ?usize {
         return self.segments.getSegmentUsedSize(index);
     }
 
@@ -243,7 +243,7 @@ pub const CairoVM = struct {
     /// # Returns
     ///
     /// - The size of the segment at the specified index, or a computed effective size if not available.
-    pub fn getSegmentSize(self: *Self, index: u32) ?u32 {
+    pub fn getSegmentSize(self: *Self, index: usize) ?usize {
         return self.segments.getSegmentSize(index);
     }
 
@@ -327,7 +327,10 @@ pub const CairoVM = struct {
             // Resize the instruction cache if necessary.
             const new_cache_len = @max(pc + 1, self.instruction_cache.items.len);
             if (self.instruction_cache.items.len < new_cache_len) {
-                try self.instruction_cache.appendNTimes(null, new_cache_len - self.instruction_cache.items.len);
+                if (self.instruction_cache.capacity < new_cache_len)
+                    try self.instruction_cache.ensureTotalCapacityPrecise(self.instruction_cache.capacity * 2);
+
+                self.instruction_cache.appendNTimesAssumeCapacity(null, new_cache_len - self.instruction_cache.items.len);
             }
 
             // Get the instruction related to the PC.
@@ -462,7 +465,10 @@ pub const CairoVM = struct {
     ) !void {
         // Check if tracing is disabled and log the current state if not.
         if (self.trace) |*trace| {
-            try trace.append(
+            if (trace.capacity < trace.items.len + 1)
+                try trace.ensureTotalCapacityPrecise(trace.capacity * 2);
+
+            trace.appendAssumeCapacity(
                 .{
                     .pc = self.run_context.pc,
                     .ap = self.run_context.ap,
@@ -481,7 +487,7 @@ pub const CairoVM = struct {
         try self.opcodeAssertions(instruction, operands_result);
 
         // Constants for offset bit manipulation.
-        const OFFSET = comptime @as(isize, 1) << 15;
+        const OFFSET = 1 << 15;
         const off_0 = instruction.off_0 + OFFSET;
         const off_1 = instruction.off_1 + OFFSET;
         const off_2 = instruction.off_2 + OFFSET;
@@ -939,7 +945,7 @@ pub const CairoVM = struct {
         errdefer relocated_trace.deinit();
 
         for (self.trace.?.items) |trace|
-            try relocated_trace.append(.{
+            relocated_trace.appendAssumeCapacity(.{
                 .pc = try trace.pc.relocateAddress(relocation_table),
                 .ap = trace.ap + relocation_table[1],
                 .fp = trace.fp + relocation_table[1],
@@ -1369,11 +1375,11 @@ pub const CairoVM = struct {
         const segment_index = builtin.?.base();
 
         // Iterate through the memory segments and write output based on their content.
-        for (0..segment_used_sizes.get(@intCast(segment_index)).?) |i| {
+        for (0..segment_used_sizes.items[@intCast(segment_index)]) |i| {
             if (self.segments.memory.get(Relocatable.init(@intCast(segment_index), i))) |v| {
                 switch (v) {
                     // Write felt value.
-                    .felt => |f| std.fmt.format(writer, "{}\n", .{f.toSignedInt()}) catch
+                    .felt => |f| std.fmt.format(writer, "{}\n", .{try f.toSignedInt(i256)}) catch
                         return CairoVMError.FailedToWriteOutput,
                     // Write relocatable value.
                     .relocatable => |r| std.fmt.format(writer, "{}:{}\n", .{ r.segment_index, r.offset }) catch

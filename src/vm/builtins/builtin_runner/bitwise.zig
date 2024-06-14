@@ -489,7 +489,7 @@ test "BitwiseBuiltinRunner: getUsedCells should return the number of used cells"
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memory_segment_manager.segment_used_sizes.put(0, 10);
+    try memory_segment_manager.segment_used_sizes.append(10);
 
     // then
     try expectEqual(
@@ -539,7 +539,7 @@ test "BitwiseBuiltinRunner: getUsedInstances should return the number of used in
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memory_segment_manager.segment_used_sizes.put(0, 345);
+    try memory_segment_manager.segment_used_sizes.append(345);
     // default cells per instance is 5
 
     // then
@@ -602,7 +602,7 @@ test "BitwiseBuiltinRunner: getMemoryAccesses should return the memory accesses"
     );
     defer vm.deinit();
 
-    try vm.segments.segment_used_sizes.put(5, 4);
+    try vm.segments.segment_used_sizes.append(4);
 
     var actual = try builtin.getMemoryAccesses(
         std.testing.allocator,
@@ -729,7 +729,7 @@ test "BitwiseBuiltinRunner: getAllocatedMemoryUnits should return expected memor
     // default cells per instance -> 5
     // used is the amount of cells the base segment has
     // -> 10
-    try vm.segments.segment_used_sizes.put(0, 10);
+    try vm.segments.segment_used_sizes.append(10);
 
     // instances is used / cell per instance
     // -> (2)
@@ -1032,7 +1032,7 @@ test "BitwiseBuiltinRunner: finalStack should return InvalidStopPointer error if
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
-    try memory_segment_manager.segment_used_sizes.put(22, 345);
+    try memory_segment_manager.segment_used_sizes.append(345);
 
     // then
     try expectError(
@@ -1072,7 +1072,8 @@ test "BitwiseBuiltinRunner: finalStack should return stop pointer address and up
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
-    try memory_segment_manager.segment_used_sizes.put(22, 345);
+    try memory_segment_manager.segment_used_sizes.appendNTimes(0, 22);
+    try memory_segment_manager.segment_used_sizes.append(345);
 
     // then
     try expectEqual(

@@ -353,7 +353,8 @@ test "ECOPBuiltinRunner: assert that the number of instances used by the builtin
     defer vm.deinit();
 
     const segment = try vm.segments.addSegment();
-    try vm.segments.segment_used_sizes.put(@intCast(segment.segment_index), 1);
+    try vm.segments.segment_used_sizes.appendNTimes(0, @intCast(segment.segment_index));
+    try vm.segments.segment_used_sizes.append(1);
 
     try expectEqual(try builtin.getUsedInstances(vm.segments), 1);
 }
@@ -382,15 +383,10 @@ test "ECOPBuiltinRunner: final stack success" {
         },
     );
 
-    var segment_used_size = std.ArrayHashMap(
-        i64,
-        u32,
-        std.array_hash_map.AutoContext(i64),
-        false,
-    ).init(std.testing.allocator);
+    var segment_used_size = std.ArrayList(usize).init(std.testing.allocator);
 
-    try segment_used_size.put(0, 0);
-    vm.segments.segment_used_sizes.data = segment_used_size;
+    try segment_used_size.append(0);
+    vm.segments.segment_used_sizes = segment_used_size;
 
     const pointer = Relocatable.init(2, 2);
 
@@ -424,15 +420,10 @@ test "ECOPBuiltinRunner: final stack error stop pointer" {
         },
     );
 
-    var segment_used_size = std.ArrayHashMap(
-        i64,
-        u32,
-        std.array_hash_map.AutoContext(i64),
-        false,
-    ).init(std.testing.allocator);
+    var segment_used_size = std.ArrayList(usize).init(std.testing.allocator);
 
-    try segment_used_size.put(0, 999);
-    vm.segments.segment_used_sizes.data = segment_used_size;
+    try segment_used_size.append(999);
+    vm.segments.segment_used_sizes = segment_used_size;
 
     const pointer = Relocatable.init(2, 2);
 
@@ -466,15 +457,10 @@ test "ECOPBuiltinRunner: final stack error when not included" {
         },
     );
 
-    var segment_used_size = std.ArrayHashMap(
-        i64,
-        u32,
-        std.array_hash_map.AutoContext(i64),
-        false,
-    ).init(std.testing.allocator);
+    var segment_used_size = std.ArrayList(usize).init(std.testing.allocator);
 
-    try segment_used_size.put(0, 0);
-    vm.segments.segment_used_sizes.data = segment_used_size;
+    try segment_used_size.append(0);
+    vm.segments.segment_used_sizes = segment_used_size;
 
     const pointer = Relocatable.init(2, 2);
 
@@ -508,15 +494,10 @@ test "ECOPBuiltinRunner: final stack error non relocatable" {
         },
     );
 
-    var segment_used_size = std.ArrayHashMap(
-        i64,
-        u32,
-        std.array_hash_map.AutoContext(i64),
-        false,
-    ).init(std.testing.allocator);
+    var segment_used_size = std.ArrayList(usize).init(std.testing.allocator);
 
-    try segment_used_size.put(0, 0);
-    vm.segments.segment_used_sizes.data = segment_used_size;
+    try segment_used_size.append(0);
+    vm.segments.segment_used_sizes = segment_used_size;
 
     const pointer = Relocatable.init(2, 2);
 
@@ -701,7 +682,7 @@ test "ECOPBuiltinRunner: get memory accesses missing segment used sizes" {
     );
     defer vm.deinit();
 
-    try vm.segments.segment_used_sizes.put(0, 0);
+    try vm.segments.segment_used_sizes.append(0);
 
     const actual = try builtin.getMemoryAccesses(std.testing.allocator, &vm);
     defer actual.deinit();
@@ -721,7 +702,7 @@ test "ECOPBuiltinRunner: get memory accesses empty" {
     );
     defer vm.deinit();
 
-    try vm.segments.segment_used_sizes.put(0, 0);
+    try vm.segments.segment_used_sizes.append(0);
 
     const actual = try builtin.getMemoryAccesses(std.testing.allocator, &vm);
     defer actual.deinit();
@@ -741,7 +722,7 @@ test "ECOPBuiltinRunner: get memory accesses" {
     );
     defer vm.deinit();
 
-    try vm.segments.segment_used_sizes.put(0, 4);
+    try vm.segments.segment_used_sizes.append(4);
 
     const expected = [_]Relocatable{
         Relocatable.init(@intCast(builtin.base), 0),
@@ -784,7 +765,7 @@ test "ECOPBuiltinRunner: get used cells empty" {
     );
     defer vm.deinit();
 
-    try vm.segments.segment_used_sizes.put(0, 0);
+    try vm.segments.segment_used_sizes.append(0);
 
     try expectEqual(0, try builtin.getUsedCells(vm.segments));
 }
@@ -803,7 +784,8 @@ test "ECOPBuiltinRunner: get used cells and allocated size test" {
     defer vm.deinit();
 
     const segment = try vm.segments.addSegment();
-    try vm.segments.segment_used_sizes.put(@intCast(segment.segment_index), 4);
+    try vm.segments.segment_used_sizes.appendNTimes(0, @intCast(segment.segment_index));
+    try vm.segments.segment_used_sizes.append(4);
 
     try expectEqual(4, builtin.getUsedCells(vm.segments));
 }
@@ -822,7 +804,8 @@ test "ECOPBuiltinRunner: get used cells success" {
     defer vm.deinit();
 
     const segment = try vm.segments.addSegment();
-    try vm.segments.segment_used_sizes.put(@intCast(segment.segment_index), 4);
+    try vm.segments.segment_used_sizes.appendNTimes(0, @intCast(segment.segment_index));
+    try vm.segments.segment_used_sizes.append(4);
 
     try expectEqual(4, builtin.getUsedCells(vm.segments));
 }

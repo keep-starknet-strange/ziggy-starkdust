@@ -67,7 +67,7 @@ pub const RunContext = struct {
             try base_addr.subUint(@abs(instruction.off_0))
         else
             // Convert i16 to u64 safely
-            try base_addr.addUint(@intCast(instruction.off_0));
+            try base_addr.addUint(@bitCast(instruction.off_0));
     }
 
     /// Compute OP 0 address for a given instruction.
@@ -157,7 +157,7 @@ test "RunContext: computeDstAddr should return self.ap - instruction.off_0 if in
 
     try expectEqual(
         Relocatable.init(1, 15),
-        try run_context.computeDstAddr(&.{
+        try run_context.computeDstAddr(.{
             .off_0 = -10,
             .off_1 = 2,
             .off_2 = 3,
@@ -178,7 +178,7 @@ test "RunContext: computeDstAddr should return self.ap + instruction.off_0 if in
 
     try expectEqual(
         Relocatable.init(1, 35),
-        try run_context.computeDstAddr(&.{
+        try run_context.computeDstAddr(.{
             .off_0 = 10,
             .off_1 = 2,
             .off_2 = 3,
@@ -198,7 +198,7 @@ test "RunContext: computeDstAddr should return self.fp - instruction.off_0 if in
     const run_context = RunContext.init(Relocatable.init(0, 4), 25, 40);
     try expectEqual(
         Relocatable.init(1, 30),
-        try run_context.computeDstAddr(&.{
+        try run_context.computeDstAddr(.{
             .off_0 = -10,
             .off_1 = 2,
             .off_2 = 3,
@@ -218,7 +218,7 @@ test "RunContext: computeDstAddr should return self.fp + instruction.off_0 if in
     const run_context = RunContext.init(Relocatable.init(0, 4), 25, 30);
     try expectEqual(
         Relocatable.init(1, 40),
-        try run_context.computeDstAddr(&.{
+        try run_context.computeDstAddr(.{
             .off_0 = 10,
             .off_1 = 2,
             .off_2 = 3,
@@ -239,7 +239,7 @@ test "RunContext: computeOp0Addr should return self.ap - instruction.off_1 if in
 
     try expectEqual(
         Relocatable.init(1, 23),
-        try run_context.computeOp0Addr(&.{
+        try run_context.computeOp0Addr(.{
             .off_0 = 10,
             .off_1 = -2,
             .off_2 = 3,
@@ -260,7 +260,7 @@ test "RunContext: computeOp0Addr should return self.ap + instruction.off_1 if in
 
     try expectEqual(
         Relocatable.init(1, 27),
-        try run_context.computeOp0Addr(&.{
+        try run_context.computeOp0Addr(.{
             .off_0 = 10,
             .off_1 = 2,
             .off_2 = 3,
@@ -281,7 +281,7 @@ test "RunContext: computeOp0Addr should return self.fp - instruction.off_1 if in
 
     try expectEqual(
         Relocatable.init(1, 38),
-        try run_context.computeOp0Addr(&.{
+        try run_context.computeOp0Addr(.{
             .off_0 = 10,
             .off_1 = -2,
             .off_2 = 3,
@@ -302,7 +302,7 @@ test "RunContext: computeOp0Addr should return self.fp + instruction.off_1 if in
 
     try expectEqual(
         Relocatable.init(1, 32),
-        try run_context.computeOp0Addr(&.{
+        try run_context.computeOp0Addr(.{
             .off_0 = 10,
             .off_1 = 2,
             .off_2 = 3,
@@ -324,7 +324,7 @@ test "RunContext: compute_op1_addr for FP op1 addr and instruction off_2 < 0" {
     try expectEqual(
         Relocatable.init(1, 3),
         try run_context.computeOp1Addr(
-            &.{
+            .{
                 .off_0 = 1,
                 .off_1 = 2,
                 .off_2 = -3,
@@ -348,7 +348,7 @@ test "RunContext: compute_op1_addr for FP op1 addr and instruction off_2 > 0" {
     try expectEqual(
         Relocatable.init(1, 9),
         try run_context.computeOp1Addr(
-            &.{
+            .{
                 .off_0 = 1,
                 .off_1 = 2,
                 .off_2 = 3,
@@ -372,7 +372,7 @@ test "RunContext: compute_op1_addr for AP op1 addr and instruction off_2 < 0" {
     try expectEqual(
         Relocatable.init(1, 2),
         try run_context.computeOp1Addr(
-            &.{
+            .{
                 .off_0 = 1,
                 .off_1 = 2,
                 .off_2 = -3,
@@ -396,7 +396,7 @@ test "RunContext: compute_op1_addr for AP op1 addr and instruction off_2 > 0" {
     try expectEqual(
         Relocatable.init(1, 8),
         try run_context.computeOp1Addr(
-            &.{
+            .{
                 .off_0 = 1,
                 .off_1 = 2,
                 .off_2 = 3,
@@ -420,7 +420,7 @@ test "RunContext: compute_op1_addr for IMM op1 addr and instruction off_2 != 1" 
     try expectError(
         error.ImmShouldBe1,
         run_context.computeOp1Addr(
-            &.{
+            .{
                 .off_0 = 1,
                 .off_1 = 2,
                 .off_2 = -3,
@@ -447,7 +447,7 @@ test "RunContext: compute_op1_addr for IMM op1 addr and instruction off_2 == 1" 
             5,
         ),
         try run_context.computeOp1Addr(
-            &.{
+            .{
                 .off_0 = 1,
                 .off_1 = 2,
                 .off_2 = 1,
@@ -471,7 +471,7 @@ test "RunContext: compute_op1_addr for OP0 op1 addr and instruction op_0 is null
     try expectError(
         error.UnknownOp0,
         run_context.computeOp1Addr(
-            &.{
+            .{
                 .off_0 = 1,
                 .off_1 = 2,
                 .off_2 = -3,
@@ -498,7 +498,7 @@ test "RunContext: compute_op1_addr for OP0 op1 addr and instruction off_2 < 0" {
             28,
         ),
         try run_context.computeOp1Addr(
-            &.{
+            .{
                 .off_0 = 1,
                 .off_1 = 2,
                 .off_2 = -4,
@@ -528,7 +528,7 @@ test "RunContext: compute_op1_addr for OP0 op1 addr and instruction off_2 > 0" {
             36,
         ),
         try run_context.computeOp1Addr(
-            &.{
+            .{
                 .off_0 = 1,
                 .off_1 = 2,
                 .off_2 = 4,

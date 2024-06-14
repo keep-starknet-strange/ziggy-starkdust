@@ -209,11 +209,11 @@ test "Set add already exists" {
     // Verify that the memory segments at the expected locations contain the correct values after the operation.
     try expectEqual(
         MaybeRelocatable.fromInt(u8, 1),
-        setup.vm.segments.memory.data.items[1].items[0].?.maybe_relocatable,
+        setup.vm.segments.memory.data.items[1].items[0].getValue().?,
     );
     try expectEqual(
         MaybeRelocatable.fromInt(u8, 0),
-        setup.vm.segments.memory.data.items[1].items[1].?.maybe_relocatable,
+        setup.vm.segments.memory.data.items[1].items[1].getValue().?,
     );
 }
 

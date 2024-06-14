@@ -1003,7 +1003,7 @@ test "BuiltinRunner: getMemoryAccesses with empty access" {
     defer vm.deinit();
 
     // Set segment used sizes to simulate empty memory access
-    try vm.segments.segment_used_sizes.put(0, 0);
+    try vm.segments.segment_used_sizes.append(0);
 
     // Initialize a BuiltinRunner instance with Bitwise runner
     var builtin: BuiltinRunner = .{ .Bitwise = .{} };
@@ -1072,7 +1072,7 @@ test "BuiltinRunner: getMemoryAccesses with real data" {
     defer vm.deinit();
 
     // Set segment used sizes to simulate real memory access data
-    try vm.segments.segment_used_sizes.put(0, 4);
+    try vm.segments.segment_used_sizes.append(4);
 
     // Initialize a BuiltinRunner instance with Bitwise runner
     var builtin: BuiltinRunner = .{ .Bitwise = .{} };
@@ -1433,7 +1433,7 @@ test "BuiltinRunner:getUsedPermRangeCheckUnits with bitwise builtin" {
 
     // Set segment used sizes to simulate real memory access data
     // Here, the segment used size at index 0 is set to 5, indicating memory usage.
-    try vm.segments.segment_used_sizes.put(0, 5);
+    try vm.segments.segment_used_sizes.append(5);
 
     // Call the `getUsedPermRangeCheckUnits` function of the `builtin` instance
     try expectEqual(@as(usize, 0), builtin.getUsedPermRangeCheckUnits(&vm));
@@ -1455,7 +1455,7 @@ test "BuiltinRunner:getUsedPermRangeCheckUnits with elliptic curve operation bui
 
     // Set segment used sizes to simulate real memory access data
     // Here, the segment used size at index 0 is set to 5, indicating memory usage.
-    try vm.segments.segment_used_sizes.put(0, 5);
+    try vm.segments.segment_used_sizes.append(5);
 
     // Call the `getUsedPermRangeCheckUnits` function of the `builtin` instance
     // This function retrieves the number of used permanent range check units associated with the built-in runner.
@@ -1478,7 +1478,7 @@ test "BuiltinRunner:getUsedPermRangeCheckUnits with hash builtin" {
 
     // Set segment used sizes to simulate real memory access data
     // Here, the segment used size at index 0 is set to 5, indicating memory usage.
-    try vm.segments.segment_used_sizes.put(0, 5);
+    try vm.segments.segment_used_sizes.append(5);
 
     // Call the `getUsedPermRangeCheckUnits` function of the `builtin` instance
     // This function retrieves the number of used permanent range check units associated with the built-in runner.
@@ -1501,7 +1501,7 @@ test "BuiltinRunner:getUsedPermRangeCheckUnits with output builtin" {
 
     // Set segment used sizes to simulate real memory access data
     // Here, the segment used size at index 0 is set to 5, indicating memory usage.
-    try vm.segments.segment_used_sizes.put(0, 5);
+    try vm.segments.segment_used_sizes.append(5);
 
     // Call the `getUsedPermRangeCheckUnits` function of the `builtin` instance
     // This function retrieves the number of used permanent range check units associated with the built-in runner.
@@ -1523,7 +1523,7 @@ test "BuiltinRunner:getUsedPermRangeCheckUnits with range check builtin" {
 
     // Set segment used sizes to simulate real memory access data
     // Here, the segment used size at index 0 is set to 1, indicating memory usage.
-    try vm.segments.segment_used_sizes.put(0, 1);
+    try vm.segments.segment_used_sizes.append(1);
 
     // Call the `getUsedPermRangeCheckUnits` function of the `builtin` instance
     // This function retrieves the number of used permanent range check units associated with the built-in runner.

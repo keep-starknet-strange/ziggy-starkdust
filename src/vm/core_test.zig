@@ -51,10 +51,10 @@ test "CairoVM: deduceMemoryCell no builtin" {
         .{},
     );
     defer vm.deinit();
+
     try expectEqual(
         @as(?MaybeRelocatable, null),
         try vm.deduceMemoryCell(
-            std.testing.allocator,
             .{},
         ),
     );
@@ -88,7 +88,6 @@ test "CairoVM: deduceMemoryCell with pedersen builtin" {
     try expectEqual(
         MaybeRelocatable.fromInt(u256, 0x73b3ec210cccbb970f80c6826fb1c40ae9f487617696234ff147451405c339f),
         try vm.deduceMemoryCell(
-            std.testing.allocator,
             Relocatable.init(0, 5),
         ),
     );
@@ -119,7 +118,6 @@ test "CairoVM: deduceMemoryCell with elliptic curve operation builtin" {
     try expectEqual(
         MaybeRelocatable.fromInt(u256, 0x7f49de2c3a7d1671437406869edb1805ba43e1c0173b35f8c2e8fcc13c3fa6d),
         try vm.deduceMemoryCell(
-            std.testing.allocator,
             Relocatable.init(0, 6),
         ),
     );
@@ -151,7 +149,7 @@ test "CairoVM: deduceMemoryCell builtin valid" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
     try expectEqual(
         MaybeRelocatable.fromInt(u8, 8),
-        (try vm.deduceMemoryCell(std.testing.allocator, Relocatable.init(
+        (try vm.deduceMemoryCell(Relocatable.init(
             0,
             7,
         ))).?,
@@ -169,7 +167,7 @@ test "update pc regular no imm" {
 
     // Test body
     try vm.updatePc(
-        &.{
+        .{
             .off_0 = 0,
             .off_1 = 1,
             .off_2 = 2,
@@ -206,7 +204,7 @@ test "update pc regular with imm" {
 
     // Test body
     try vm.updatePc(
-        &.{
+        .{
             .off_0 = 0,
             .off_1 = 1,
             .off_2 = 2,
@@ -246,7 +244,7 @@ test "update pc jump with operands res null" {
     try expectError(
         error.ResUnconstrainedUsedWithPcUpdateJump,
         vm.updatePc(
-            &.{
+            .{
                 .off_0 = 0,
                 .off_1 = 1,
                 .off_2 = 2,
@@ -277,7 +275,7 @@ test "update pc jump with operands res not relocatable" {
     try expectError(
         error.PcUpdateJumpResNotRelocatable,
         vm.updatePc(
-            &.{
+            .{
                 .off_0 = 0,
                 .off_1 = 1,
                 .off_2 = 2,
@@ -309,7 +307,7 @@ test "update pc jump with operands res relocatable" {
 
     // Test body
     try vm.updatePc(
-        &.{
+        .{
             .off_0 = 0,
             .off_1 = 1,
             .off_2 = 2,
@@ -349,7 +347,7 @@ test "update pc jump rel with operands res null" {
     try expectError(
         error.ResUnconstrainedUsedWithPcUpdateJumpRel,
         vm.updatePc(
-            &.{
+            .{
                 .off_0 = 0,
                 .off_1 = 1,
                 .off_2 = 2,
@@ -383,7 +381,7 @@ test "update pc jump rel with operands res not felt" {
     try expectError(
         error.PcUpdateJumpRelResNotFelt,
         vm.updatePc(
-            &.{
+            .{
                 .off_0 = 0,
                 .off_1 = 1,
                 .off_2 = 2,
@@ -412,7 +410,7 @@ test "update pc jump rel with operands res felt" {
 
     // Test body
     try vm.updatePc(
-        &.{
+        .{
             .off_0 = 0,
             .off_1 = 1,
             .off_2 = 2,
@@ -450,7 +448,7 @@ test "update pc update jnz with operands dst zero" {
 
     // Test body
     try vm.updatePc(
-        &.{
+        .{
             .off_0 = 0,
             .off_1 = 1,
             .off_2 = 2,
@@ -494,7 +492,7 @@ test "update pc update jnz with operands dst not zero op1 not felt" {
     try expectError(
         error.TypeMismatchNotFelt,
         vm.updatePc(
-            &.{
+            .{
                 .off_0 = 0,
                 .off_1 = 1,
                 .off_2 = 2,
@@ -524,7 +522,7 @@ test "update pc update jnz with operands dst not zero op1 felt" {
 
     // Test body
     try vm.updatePc(
-        &.{
+        .{
             .off_0 = 0,
             .off_1 = 1,
             .off_2 = 2,
@@ -564,7 +562,7 @@ test "CairoVM: updateAp using Add for AP update with null operands res" {
     try expectError(
         error.ApUpdateAddResUnconstrained,
         vm.updateAp(
-            &.{
+            .{
                 .off_0 = 0,
                 .off_1 = 1,
                 .off_2 = 2,
@@ -596,7 +594,7 @@ test "CairoVM: updateAp using Add for AP update with non-null operands result" {
 
     // Invoke the updateAp function with specified parameters.
     try vm.updateAp(
-        &.{
+        .{
             .off_0 = 0,
             .off_1 = 1,
             .off_2 = 2,
@@ -629,7 +627,7 @@ test "CairoVM: updateAp using Add1 for AP update" {
 
     // Test body
     try vm.updateAp(
-        &.{
+        .{
             .off_0 = 0,
             .off_1 = 1,
             .off_2 = 2,
@@ -661,7 +659,7 @@ test "update ap add2" {
 
     // Test body
     try vm.updateAp(
-        &.{
+        .{
             .off_0 = 0,
             .off_1 = 1,
             .off_2 = 2,
@@ -693,7 +691,7 @@ test "update fp appplus2" {
 
     // Test body
     try vm.updateFp(
-        &.{
+        .{
             .off_0 = 0,
             .off_1 = 1,
             .off_2 = 2,
@@ -729,7 +727,7 @@ test "update fp dst relocatable" {
 
     // Test body
     try vm.updateFp(
-        &.{
+        .{
             .off_0 = 0,
             .off_1 = 1,
             .off_2 = 2,
@@ -762,7 +760,7 @@ test "update fp dst felt" {
 
     // Test body
     try vm.updateFp(
-        &.{
+        .{
             .off_0 = 0,
             .off_1 = 1,
             .off_2 = 2,
@@ -932,8 +930,8 @@ test "CairoVM: relocateTrace and trace comparison (simple use case)" {
     );
     defer vm.deinit();
     const pc = .{};
-    const ap = Relocatable.init(2, 0);
-    const fp = Relocatable.init(2, 0);
+    const ap = 2;
+    const fp = 2;
 
     try vm.trace.?.append(.{ .pc = pc, .ap = ap, .fp = fp });
 
@@ -953,7 +951,8 @@ test "CairoVM: relocateTrace and trace comparison (simple use case)" {
 
     _ = try vm.computeSegmentsEffectiveSizes(false);
 
-    const relocation_table = try vm.segments.relocateSegments(allocator);
+    _, const relocation_table = try vm.segments.relocateSegments(allocator);
+
     defer relocation_table.deinit();
     try vm.relocateTrace(relocation_table.items);
 
@@ -1024,7 +1023,6 @@ test "CairoVM: test step for preset memory" {
     defer constants.deinit();
 
     try vm.stepExtensive(
-        std.testing.allocator,
         .{},
         &exec_scopes,
         &hint_datas,
@@ -1041,16 +1039,16 @@ test "CairoVM: test step for preset memory" {
         &[_]TraceEntry{
             .{
                 .pc = Relocatable.init(0, 0),
-                .ap = Relocatable.init(1, 2),
-                .fp = Relocatable.init(1, 2),
+                .ap = 2,
+                .fp = 2,
             },
         },
         vm.trace.?.items,
     );
 
     // Check that the following addresses have been accessed
-    try expect(vm.segments.memory.data.items[1].items[0].?.is_accessed);
-    try expect(vm.segments.memory.data.items[1].items[1].?.is_accessed);
+    try expect(vm.segments.memory.data.items[1].items[0].isAccessed());
+    try expect(vm.segments.memory.data.items[1].items[1].isAccessed());
 }
 
 test "CairoVM: relocateTrace and trace comparison (more complex use case)" {
@@ -1091,63 +1089,63 @@ test "CairoVM: relocateTrace and trace comparison (more complex use case)" {
     // pc, ap, and fp values are initialized and appended in pairs.
     try vm.trace.?.append(.{
         .pc = Relocatable.init(0, 4),
-        .ap = Relocatable.init(1, 3),
-        .fp = Relocatable.init(1, 3),
+        .ap = 3,
+        .fp = 3,
     });
     try vm.trace.?.append(.{
         .pc = Relocatable.init(0, 5),
-        .ap = Relocatable.init(1, 4),
-        .fp = Relocatable.init(1, 3),
+        .ap = 4,
+        .fp = 3,
     });
     try vm.trace.?.append(.{
         .pc = Relocatable.init(0, 7),
-        .ap = Relocatable.init(1, 5),
-        .fp = Relocatable.init(1, 3),
+        .ap = 5,
+        .fp = 3,
     });
     try vm.trace.?.append(.{
         .pc = .{},
-        .ap = Relocatable.init(1, 7),
-        .fp = Relocatable.init(1, 7),
+        .ap = 7,
+        .fp = 7,
     });
     try vm.trace.?.append(.{
         .pc = Relocatable.init(0, 1),
-        .ap = Relocatable.init(1, 7),
-        .fp = Relocatable.init(1, 7),
+        .ap = 7,
+        .fp = 7,
     });
     try vm.trace.?.append(.{
         .pc = Relocatable.init(0, 3),
-        .ap = Relocatable.init(1, 8),
-        .fp = Relocatable.init(1, 7),
+        .ap = 8,
+        .fp = 7,
     });
     try vm.trace.?.append(.{
         .pc = Relocatable.init(0, 9),
-        .ap = Relocatable.init(1, 8),
-        .fp = Relocatable.init(1, 3),
+        .ap = 8,
+        .fp = 3,
     });
     try vm.trace.?.append(.{
         .pc = Relocatable.init(0, 11),
-        .ap = Relocatable.init(1, 9),
-        .fp = Relocatable.init(1, 3),
+        .ap = 9,
+        .fp = 3,
     });
     try vm.trace.?.append(.{
         .pc = .{},
-        .ap = Relocatable.init(1, 11),
-        .fp = Relocatable.init(1, 11),
+        .ap = 11,
+        .fp = 11,
     });
     try vm.trace.?.append(.{
         .pc = Relocatable.init(0, 1),
-        .ap = Relocatable.init(1, 11),
-        .fp = Relocatable.init(1, 11),
+        .ap = 11,
+        .fp = 11,
     });
     try vm.trace.?.append(.{
         .pc = Relocatable.init(0, 3),
-        .ap = Relocatable.init(1, 12),
-        .fp = Relocatable.init(1, 11),
+        .ap = 12,
+        .fp = 11,
     });
     try vm.trace.?.append(.{
         .pc = Relocatable.init(0, 13),
-        .ap = Relocatable.init(1, 12),
-        .fp = Relocatable.init(1, 3),
+        .ap = 12,
+        .fp = 3,
     });
 
     // Create a relocation table
@@ -1272,7 +1270,7 @@ test "deduceOp0 when opcode == .Call" {
     var instr = deduceOpTestInstr;
     instr.opcode = .Call;
 
-    const deduceOp0 = try vm.deduceOp0(&instr, null, null);
+    const deduceOp0 = try vm.deduceOp0(instr, null, null);
 
     // Test checks
     const expected_op_0: ?MaybeRelocatable = MaybeRelocatable.fromRelocatable(Relocatable.init(0, 1)); // temp var needed for type inference
@@ -1294,7 +1292,7 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Add, input is felt" {
     const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 3);
     const op1: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 2);
 
-    const deduceOp0 = try vm.deduceOp0(&instr, dst, op1);
+    const deduceOp0 = try vm.deduceOp0(instr, dst, op1);
 
     // Test checks
     try expect(deduceOp0.op_0.?.eq(MaybeRelocatable.fromInt(u64, 1)));
@@ -1311,7 +1309,7 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Add, with no input" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Add;
 
-    const deduceOp0 = try vm.deduceOp0(&instr, null, null);
+    const deduceOp0 = try vm.deduceOp0(instr, null, null);
 
     // Test checks
     const expected_op_0: ?MaybeRelocatable = null; // temp var needed for type inference
@@ -1333,7 +1331,7 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Mul, input is felt 1" {
     const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 4);
     const op1: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 2);
 
-    const deduceOp0 = try vm.deduceOp0(&instr, dst, op1);
+    const deduceOp0 = try vm.deduceOp0(instr, dst, op1);
 
     // Test checks
     const expected_op_0: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 2); // temp var needed for type inference
@@ -1355,7 +1353,7 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Op1, input is felt" {
     const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 4);
     const op1: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 0);
 
-    const deduceOp0 = try vm.deduceOp0(&instr, dst, op1);
+    const deduceOp0 = try vm.deduceOp0(instr, dst, op1);
 
     // Test checks
     const expected_op_0: ?MaybeRelocatable = null; // temp var needed for type inference
@@ -1377,7 +1375,7 @@ test "deduceOp0 when opcode == .AssertEq, res_logic == .Mul, input is felt 2" {
     const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 4);
     const op1: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 0);
 
-    const deduceOp0 = try vm.deduceOp0(&instr, dst, op1);
+    const deduceOp0 = try vm.deduceOp0(instr, dst, op1);
 
     // Test checks
     const expected_op_0: ?MaybeRelocatable = null; // temp var needed for type inference
@@ -1399,7 +1397,7 @@ test "deduceOp0 when opcode == .Ret, res_logic == .Mul, input is felt" {
     const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 4);
     const op1: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 0);
 
-    const deduceOp0 = try vm.deduceOp0(&instr, dst, op1);
+    const deduceOp0 = try vm.deduceOp0(instr, dst, op1);
 
     // Test checks
     const expected_op_0: ?MaybeRelocatable = null; // temp var needed for type inference
@@ -1468,8 +1466,7 @@ test "CairoVM: compute operands add AP" {
     };
 
     const actual_operands = try vm.computeOperands(
-        std.testing.allocator,
-        &.{
+        .{
             .off_0 = 0,
             .off_1 = 1,
             .off_2 = 2,
@@ -1524,8 +1521,7 @@ test "CairoVM: compute operands mul FP" {
     };
 
     const actual_operands = try vm.computeOperands(
-        std.testing.allocator,
-        &.{
+        .{
             .off_0 = 0,
             .off_1 = 1,
             .off_2 = 2,
@@ -1578,8 +1574,7 @@ test "CairoVM: compute operands JNZ" {
     };
 
     const actual_operands = try vm.computeOperands(
-        std.testing.allocator,
-        &.{
+        .{
             .off_0 = 1,
             .off_1 = 1,
             .off_2 = 1,
@@ -1610,7 +1605,6 @@ test "CairoVM: compute operands JNZ" {
     defer constants.deinit();
 
     try vm.stepExtensive(
-        std.testing.allocator,
         .{},
         &exec_scopes,
         &hint_datas,
@@ -1642,8 +1636,7 @@ test "CairoVM: compute operands deduce dst none" {
     try expectError(
         CairoVMError.NoDst,
         vm.computeOperands(
-            std.testing.allocator,
-            &.{
+            .{
                 .off_0 = 2,
                 .off_1 = 0,
                 .off_2 = 0,
@@ -1694,8 +1687,7 @@ test "CairoVM: compute operands with op_1_addr as Op0" {
     };
 
     const actual_operands = try vm.computeOperands(
-        std.testing.allocator,
-        &.{
+        .{
             .off_0 = 1,
             .off_1 = 1,
             .off_2 = 1,
@@ -1774,7 +1766,7 @@ test "updateRegisters all regular" {
 
     // Test body
     try vm.updateRegisters(
-        &.{
+        .{
             .off_0 = 1,
             .off_1 = 2,
             .off_2 = 3,
@@ -1844,7 +1836,7 @@ test "updateRegisters with mixed types" {
 
     // Test body
     try vm.updateRegisters(
-        &instruction,
+        instruction,
         operands,
     );
 
@@ -1882,10 +1874,9 @@ test "CairoVM: computeOp0Deductions should return op0 from deduceOp0 if deduceMe
     try expectEqual(
         MaybeRelocatable.fromSegment(0, 1),
         try vm.computeOp0Deductions(
-            std.testing.allocator,
             Relocatable.init(0, 7),
             &res,
-            &instr,
+            instr,
             null,
             null,
         ),
@@ -1923,10 +1914,9 @@ test "CairoVM: computeOp0Deductions with a valid built in and non null deduceMem
     try expectEqual(
         MaybeRelocatable.fromInt(u8, 8),
         try vm.computeOp0Deductions(
-            std.testing.allocator,
             Relocatable.init(0, 7),
             &res,
-            &deduceOpTestInstr,
+            deduceOpTestInstr,
             .{ .relocatable = .{} },
             .{ .relocatable = .{} },
         ),
@@ -1948,10 +1938,9 @@ test "CairoVM: computeOp0Deductions should return VM error if deduceOp0 and dedu
     try expectError(
         CairoVMError.FailedToComputeOp0,
         vm.computeOp0Deductions(
-            std.testing.allocator,
             Relocatable.init(0, 7),
             &res,
-            &instr,
+            instr,
             MaybeRelocatable.fromInt(u64, 4),
             MaybeRelocatable.fromInt(u64, 0),
         ),
@@ -1973,10 +1962,10 @@ test "CairoVM: computeSegmentsEffectiveSizes should return the computed effectiv
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    var actual = try vm.computeSegmentsEffectiveSizes(false);
+    const actual = try vm.computeSegmentsEffectiveSizes(false);
 
-    try expectEqual(@as(usize, 1), actual.count());
-    try expectEqual(@as(u32, 3), actual.get(0).?);
+    try expectEqual(1, actual.items.len);
+    try expectEqual(3, actual.items[0]);
 }
 
 test "CairoVM: deduceDst should return res if AssertEq opcode" {
@@ -1990,7 +1979,7 @@ test "CairoVM: deduceDst should return res if AssertEq opcode" {
     try expectEqual(
         MaybeRelocatable.fromInt(u8, 7),
         try vm.deduceDst(
-            &.{
+            .{
                 .off_0 = 0,
                 .off_1 = 1,
                 .off_2 = 2,
@@ -2017,7 +2006,7 @@ test "CairoVM: deduceDst should return VM error No dst if AssertEq opcode withou
     try expectError(
         CairoVMError.NoDst,
         vm.deduceDst(
-            &.{
+            .{
                 .off_0 = 0,
                 .off_1 = 1,
                 .off_2 = 2,
@@ -2045,7 +2034,7 @@ test "CairoVM: deduceDst should return fp Relocatable if Call opcode" {
     try expectEqual(
         MaybeRelocatable.fromSegment(1, 23),
         try vm.deduceDst(
-            &.{
+            .{
                 .off_0 = 0,
                 .off_1 = 1,
                 .off_2 = 2,
@@ -2072,7 +2061,7 @@ test "CairoVM: deduceDst should return VM error No dst if not AssertEq or Call o
     try expectError(
         CairoVMError.NoDst,
         vm.deduceDst(
-            &.{
+            .{
                 .off_0 = 0,
                 .off_1 = 1,
                 .off_2 = 2,
@@ -2192,9 +2181,11 @@ test "CairoVM: getSegmentUsedSize should return the size of a memory segment by 
     );
     defer vm.deinit();
 
-    try vm.segments.segment_used_sizes.put(10, 4);
+    try vm.segments.segment_used_sizes.appendNTimes(0, 10);
+    try vm.segments.segment_used_sizes.append(4);
+
     try expectEqual(
-        @as(u32, @intCast(4)),
+        4,
         vm.getSegmentUsedSize(10).?,
     );
 }
@@ -2217,8 +2208,9 @@ test "CairoVM: getSegmentSize should return the size of the segment via getSegme
     );
     defer vm.deinit();
 
-    try vm.segments.segment_used_sizes.put(3, 6);
-    try expectEqual(@as(u32, 6), vm.getSegmentSize(3).?);
+    try vm.segments.segment_used_sizes.appendNTimes(0, 3);
+    try vm.segments.segment_used_sizes.append(6);
+    try expectEqual(6, vm.getSegmentSize(3).?);
 }
 
 test "CairoVM: getFelt should return UnknownMemoryCell error if no value at the given address" {
@@ -2305,17 +2297,16 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceMemoryCell if n
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    var instr = deduceOpTestInstr;
+    const instr = deduceOpTestInstr;
     var res: ?MaybeRelocatable = null;
 
     // Test check
     try expectEqual(
         MaybeRelocatable.fromInt(u8, 8),
         try vm.computeOp1Deductions(
-            std.testing.allocator,
             Relocatable.init(0, 7),
             &res,
-            &instr,
+            instr,
             null,
             null,
         ),
@@ -2338,10 +2329,9 @@ test "CairoVM: computeOp1Deductions should return op1 from deduceOp1 if deduceMe
     try expectEqual(
         MaybeRelocatable.fromInt(u64, 7),
         try vm.computeOp1Deductions(
-            std.testing.allocator,
             Relocatable.init(0, 7),
             &res,
-            &instr,
+            instr,
             dst,
             null,
         ),
@@ -2361,10 +2351,9 @@ test "CairoVM: computeOp1Deductions should modify res (if null) using res from d
     var res: ?MaybeRelocatable = null;
 
     _ = try vm.computeOp1Deductions(
-        std.testing.allocator,
         Relocatable.init(0, 7),
         &res,
-        &instr,
+        instr,
         dst,
         null,
     );
@@ -2392,10 +2381,9 @@ test "CairoVM: computeOp1Deductions should return CairoVMError error if deduceMe
     try expectError(
         CairoVMError.FailedToComputeOp1,
         vm.computeOp1Deductions(
-            std.testing.allocator,
             Relocatable.init(0, 7),
             &res,
-            &instr,
+            instr,
             null,
             op0,
         ),
@@ -2419,16 +2407,16 @@ test "CairoVM: core utility function for testing test" {
     );
     defer cairo_vm.segments.memory.deinitData(std.testing.allocator);
 
-    var actual = try cairo_vm.computeSegmentsEffectiveSizes(false);
+    const actual = try cairo_vm.computeSegmentsEffectiveSizes(false);
 
-    try expectEqual(@as(usize, 1), actual.count());
-    try expectEqual(@as(u32, 3), actual.get(0).?);
+    try expectEqual(1, actual.items.len);
+    try expectEqual(3, actual.items[0]);
 }
 
 test "CairoVM: OperandsResult set " {
     // Test setup
     var operands = OperandsResult{};
-    operands.setDst(true);
+    operands.setDst(1);
 
     // Test body
     try expectEqual(operands.deduced_operands, 1);
@@ -2437,9 +2425,9 @@ test "CairoVM: OperandsResult set " {
 test "CairoVM: OperandsResult set Op1" {
     // Test setup
     var operands = OperandsResult{};
-    operands.setOp0(true);
-    operands.setOp1(true);
-    operands.setDst(true);
+    operands.setOp0(1);
+    operands.setOp1(1);
+    operands.setDst(1);
 
     // Test body
     try expectEqual(operands.deduced_operands, 7);
@@ -2448,7 +2436,7 @@ test "CairoVM: OperandsResult set Op1" {
 test "CairoVM: OperandsResult deduced set and was functionality" {
     // Test setup
     var operands = OperandsResult{};
-    operands.setOp1(true);
+    operands.setOp1(1);
 
     // Test body
     try expect(operands.wasOp1Deducted());
@@ -2490,7 +2478,7 @@ test "CairoVM: InserDeducedOperands should insert operands if set as deduced" {
     test_operands.res = dst_val;
     test_operands.deduced_operands = 7;
 
-    try vm.insertDeducedOperands(allocator, test_operands);
+    try vm.insertDeducedOperands(test_operands);
 
     // Test checks
     try expectEqual(
@@ -2544,7 +2532,7 @@ test "CairoVM: InserDeducedOperands insert operands should not be inserted if no
     // 0 means no operands should be inserted
     test_operands.deduced_operands = 0;
 
-    try vm.insertDeducedOperands(allocator, test_operands);
+    try vm.insertDeducedOperands(test_operands);
 
     // Test checks
     try expectEqual(
@@ -2586,11 +2574,11 @@ test "CairoVM: markAddressRangeAsAccessed should mark memory segments as accesse
     try vm.markAddressRangeAsAccessed(Relocatable.init(0, 10), 2);
     try vm.markAddressRangeAsAccessed(Relocatable.init(1, 1), 1);
 
-    try expect(vm.segments.memory.data.items[0].items[0].?.is_accessed);
-    try expect(vm.segments.memory.data.items[0].items[1].?.is_accessed);
-    try expect(vm.segments.memory.data.items[0].items[2].?.is_accessed);
-    try expect(vm.segments.memory.data.items[0].items[10].?.is_accessed);
-    try expect(vm.segments.memory.data.items[1].items[1].?.is_accessed);
+    try expect(vm.segments.memory.data.items[0].items[0].isAccessed());
+    try expect(vm.segments.memory.data.items[0].items[1].isAccessed());
+    try expect(vm.segments.memory.data.items[0].items[2].isAccessed());
+    try expect(vm.segments.memory.data.items[0].items[10].isAccessed());
+    try expect(vm.segments.memory.data.items[1].items[1].isAccessed());
     try expectEqual(
         @as(?usize, 4),
         vm.segments.memory.countAccessedAddressesInSegment(0),
@@ -2632,7 +2620,7 @@ test "CairoVM: opcodeAssertions should throw UnconstrainedAssertEq error" {
     try expectError(
         CairoVMError.UnconstrainedResAssertEq,
         vm.opcodeAssertions(
-            &.{
+            .{
                 .off_0 = 0,
                 .off_1 = 1,
                 .off_2 = 2,
@@ -2668,7 +2656,7 @@ test "CairoVM: opcodeAssertions instructions failed - should throw DiffAssertVal
     try expectError(
         CairoVMError.DiffAssertValues,
         vm.opcodeAssertions(
-            &.{
+            .{
                 .off_0 = 0,
                 .off_1 = 1,
                 .off_2 = 2,
@@ -2704,7 +2692,7 @@ test "CairoVM: opcodeAssertions instructions failed relocatables - should throw 
     try expectError(
         CairoVMError.DiffAssertValues,
         vm.opcodeAssertions(
-            &.{
+            .{
                 .off_0 = 0,
                 .off_1 = 1,
                 .off_2 = 2,
@@ -2742,7 +2730,7 @@ test "CairoVM: opcodeAssertions inconsistent op0 - should throw CantWriteReturnP
     try expectError(
         CairoVMError.CantWriteReturnPc,
         vm.opcodeAssertions(
-            &.{
+            .{
                 .off_0 = 0,
                 .off_1 = 1,
                 .off_2 = 2,
@@ -2780,7 +2768,7 @@ test "CairoVM: opcodeAssertions inconsistent dst - should throw CantWriteReturnF
     try expectError(
         CairoVMError.CantWriteReturnFp,
         vm.opcodeAssertions(
-            &.{
+            .{
                 .off_0 = 0,
                 .off_1 = 1,
                 .off_2 = 2,
@@ -2950,11 +2938,11 @@ test "CairoVM: loadData should give the correct segment size" {
     );
 
     // Check the segment size
-    var segment_size = try vm.segments.computeEffectiveSize(false);
+    const segment_size = try vm.segments.computeEffectiveSize(false);
 
     // Assert segment size count and the value at index 0
-    try expectEqual(@as(usize, 1), segment_size.count());
-    try expectEqual(@as(u32, 4), segment_size.get(0).?);
+    try expectEqual(1, segment_size.items.len);
+    try expectEqual(4, segment_size.items[0]);
 }
 
 test "CairoVM: loadData should resize the instruction cache with null elements if ptr segment index is zero" {
@@ -3570,10 +3558,10 @@ test "CairoVM: runInstruction without any insertion in the memory" {
     // Mark all cells in memory as accessed except for one specific cell.
     for (vm.segments.memory.data.items) |*d| {
         for (d.items) |*cell| {
-            cell.*.?.is_accessed = true;
+            cell.*.markAccessed();
         }
     }
-    vm.segments.memory.data.items[1].items[1].?.is_accessed = false;
+    vm.segments.memory.data.items[1].items[1].markNotAccessed();
 
     // Add two memory segments to the VM.
     _ = try vm.addMemorySegment();
@@ -3586,15 +3574,14 @@ test "CairoVM: runInstruction without any insertion in the memory" {
     vm.run_context.fp = 3;
 
     // Ensure that the specific cell marked as not accessed is indeed not accessed.
-    try expect(!vm.segments.memory.data.items[1].items[1].?.is_accessed);
+    try expect(!vm.segments.memory.data.items[1].items[1].isAccessed());
 
     // Ensure the current step counter is initialized to zero.
     try expectEqual(@as(usize, 0), vm.current_step);
 
     // Execute a specific instruction with predefined properties.
     try vm.runInstruction(
-        std.testing.allocator,
-        &.{
+        .{
             .off_0 = -2,
             .off_1 = -1,
             .off_2 = -1,
@@ -3672,14 +3659,14 @@ test "CairoVM: runInstruction without any insertion in the memory" {
     // Mark all cells in the expected memory as accessed.
     for (expected_memory.data.items) |*d| {
         for (d.items) |*cell| {
-            cell.*.?.is_accessed = true;
+            cell.*.markAccessed();
         }
     }
 
     // Compare each cell in VM's memory with the corresponding cell in the expected memory.
     for (vm.segments.memory.data.items, 0..) |d, i| {
         for (d.items, 0..) |cell, j| {
-            try expect(cell.?.eql(expected_memory.data.items[i].items[j].?));
+            try expect(cell.eql(expected_memory.data.items[i].items[j]));
         }
     }
 }
@@ -3743,11 +3730,11 @@ test "CairoVM: runInstruction with Op0 being deduced" {
     // Mark all cells in memory as accessed except for one specific cell.
     for (vm.segments.memory.data.items) |*d| {
         for (d.items) |*cell| {
-            cell.*.?.is_accessed = true;
+            cell.markAccessed();
         }
     }
     // Mark a specific cell as not accessed.
-    vm.segments.memory.data.items[1].items[1].?.is_accessed = false;
+    vm.segments.memory.data.items[1].items[1].markNotAccessed();
 
     // Add two memory segments to the VM.
     _ = try vm.addMemorySegment();
@@ -3760,15 +3747,14 @@ test "CairoVM: runInstruction with Op0 being deduced" {
     vm.run_context.fp = 3;
 
     // Ensure that the specific cell marked as not accessed is indeed not accessed.
-    try expect(!vm.segments.memory.data.items[1].items[1].?.is_accessed);
+    try expect(!vm.segments.memory.data.items[1].items[1].isAccessed());
 
     // Ensure the current step counter is initialized to zero.
-    try expectEqual(@as(usize, 0), vm.current_step);
+    try expectEqual(0, vm.current_step);
 
     // Execute a specific instruction with Op0 being deduced.
     try vm.runInstruction(
-        std.testing.allocator,
-        &.{
+        .{
             .off_0 = 0,
             .off_1 = 1,
             .off_2 = 1,
@@ -3844,16 +3830,16 @@ test "CairoVM: runInstruction with Op0 being deduced" {
     // Mark all cells in the expected memory as accessed.
     for (expected_memory.data.items) |*d| {
         for (d.items) |*cell| {
-            cell.*.?.is_accessed = true;
+            cell.markAccessed();
         }
     }
     // Mark a specific cell in the expected memory as not accessed.
-    expected_memory.data.items[1].items[1].?.is_accessed = false;
+    expected_memory.data.items[1].items[1].markNotAccessed();
 
     // Compare each cell in VM's memory with the corresponding cell in the expected memory.
     for (vm.segments.memory.data.items, 0..) |d, i| {
         for (d.items, 0..) |cell, j| {
-            try expect(cell.?.eql(expected_memory.data.items[i].items[j].?));
+            try expect(cell.eql(expected_memory.data.items[i].items[j]));
         }
     }
 }
@@ -3935,7 +3921,6 @@ test "CairoVM: test step for preset memory 1" {
         defer constants.deinit();
 
         try vm.stepExtensive(
-            std.testing.allocator,
             .{},
             &exec_scopes,
             &hint_datas,
@@ -3959,42 +3944,42 @@ test "CairoVM: test step for preset memory 1" {
         &[_]TraceEntry{
             .{
                 .pc = Relocatable.init(0, 3),
-                .ap = Relocatable.init(1, 2),
-                .fp = Relocatable.init(1, 2),
+                .ap = 2,
+                .fp = 2,
             },
             .{
                 .pc = Relocatable.init(0, 5),
-                .ap = Relocatable.init(1, 3),
-                .fp = Relocatable.init(1, 2),
+                .ap = 3,
+                .fp = 2,
             },
             .{
                 .pc = Relocatable.init(0, 0),
-                .ap = Relocatable.init(1, 5),
-                .fp = Relocatable.init(1, 5),
+                .ap = 5,
+                .fp = 5,
             },
             .{
                 .pc = Relocatable.init(0, 2),
-                .ap = Relocatable.init(1, 6),
-                .fp = Relocatable.init(1, 5),
+                .ap = 6,
+                .fp = 5,
             },
             .{
                 .pc = Relocatable.init(0, 7),
-                .ap = Relocatable.init(1, 6),
-                .fp = Relocatable.init(1, 2),
+                .ap = 6,
+                .fp = 2,
             },
         },
         vm.trace.?.items,
     );
 
     // Check that the following addresses have been accessed
-    try expect(vm.segments.memory.data.items[0].items[1].?.is_accessed);
-    try expect(vm.segments.memory.data.items[0].items[4].?.is_accessed);
-    try expect(vm.segments.memory.data.items[0].items[6].?.is_accessed);
-    try expect(vm.segments.memory.data.items[1].items[0].?.is_accessed);
-    try expect(vm.segments.memory.data.items[1].items[2].?.is_accessed);
-    try expect(vm.segments.memory.data.items[1].items[3].?.is_accessed);
-    try expect(vm.segments.memory.data.items[1].items[4].?.is_accessed);
-    try expect(vm.segments.memory.data.items[1].items[5].?.is_accessed);
+    try expect(vm.segments.memory.data.items[0].items[1].isAccessed());
+    try expect(vm.segments.memory.data.items[0].items[4].isAccessed());
+    try expect(vm.segments.memory.data.items[0].items[6].isAccessed());
+    try expect(vm.segments.memory.data.items[1].items[0].isAccessed());
+    try expect(vm.segments.memory.data.items[1].items[2].isAccessed());
+    try expect(vm.segments.memory.data.items[1].items[3].isAccessed());
+    try expect(vm.segments.memory.data.items[1].items[4].isAccessed());
+    try expect(vm.segments.memory.data.items[1].items[5].isAccessed());
 
     try expectEqual(
         @as(usize, 3),
@@ -4062,7 +4047,6 @@ test "CairoVM: test step for preset memory program loaded into user segment" {
     defer constants.deinit();
 
     try vm.stepExtensive(
-        std.testing.allocator,
         .{},
         &exec_scopes,
         &hint_datas,
@@ -4085,16 +4069,16 @@ test "CairoVM: test step for preset memory program loaded into user segment" {
         &[_]TraceEntry{
             .{
                 .pc = Relocatable.init(2, 0),
-                .ap = Relocatable.init(1, 2),
-                .fp = Relocatable.init(1, 2),
+                .ap = 2,
+                .fp = 2,
             },
         },
         vm.trace.?.items,
     );
 
     // Check that the following addresses have been accessed
-    try expect(vm.segments.memory.data.items[1].items[0].?.is_accessed);
-    try expect(vm.segments.memory.data.items[1].items[1].?.is_accessed);
+    try expect(vm.segments.memory.data.items[1].items[0].isAccessed());
+    try expect(vm.segments.memory.data.items[1].items[1].isAccessed());
 }
 
 test "CairoVM: test step for preset memory program loaded into user segment 1" {
@@ -4176,7 +4160,6 @@ test "CairoVM: test step for preset memory program loaded into user segment 1" {
         defer constants.deinit();
 
         try vm.stepExtensive(
-            std.testing.allocator,
             .{},
             &exec_scopes,
             &hint_datas,
@@ -4200,49 +4183,49 @@ test "CairoVM: test step for preset memory program loaded into user segment 1" {
         &[_]TraceEntry{
             .{
                 .pc = Relocatable.init(4, 3),
-                .ap = Relocatable.init(1, 2),
-                .fp = Relocatable.init(1, 2),
+                .ap = 2,
+                .fp = 2,
             },
             .{
                 .pc = Relocatable.init(4, 5),
-                .ap = Relocatable.init(1, 3),
-                .fp = Relocatable.init(1, 2),
+                .ap = 3,
+                .fp = 2,
             },
             .{
                 .pc = Relocatable.init(4, 0),
-                .ap = Relocatable.init(1, 5),
-                .fp = Relocatable.init(1, 5),
+                .ap = 5,
+                .fp = 5,
             },
             .{
                 .pc = Relocatable.init(4, 2),
-                .ap = Relocatable.init(1, 6),
-                .fp = Relocatable.init(1, 5),
+                .ap = 6,
+                .fp = 5,
             },
             .{
                 .pc = Relocatable.init(4, 7),
-                .ap = Relocatable.init(1, 6),
-                .fp = Relocatable.init(1, 2),
+                .ap = 6,
+                .fp = 2,
             },
         },
         vm.trace.?.items,
     );
 
     // Check that the following addresses have been accessed
-    try expect(vm.segments.memory.data.items[4].items[1].?.is_accessed);
-    try expect(vm.segments.memory.data.items[4].items[4].?.is_accessed);
-    try expect(vm.segments.memory.data.items[4].items[6].?.is_accessed);
-    try expect(vm.segments.memory.data.items[1].items[0].?.is_accessed);
-    try expect(vm.segments.memory.data.items[1].items[2].?.is_accessed);
-    try expect(vm.segments.memory.data.items[1].items[3].?.is_accessed);
-    try expect(vm.segments.memory.data.items[1].items[4].?.is_accessed);
-    try expect(vm.segments.memory.data.items[1].items[5].?.is_accessed);
+    try expect(vm.segments.memory.data.items[4].items[1].isAccessed());
+    try expect(vm.segments.memory.data.items[4].items[4].isAccessed());
+    try expect(vm.segments.memory.data.items[4].items[6].isAccessed());
+    try expect(vm.segments.memory.data.items[1].items[0].isAccessed());
+    try expect(vm.segments.memory.data.items[1].items[2].isAccessed());
+    try expect(vm.segments.memory.data.items[1].items[3].isAccessed());
+    try expect(vm.segments.memory.data.items[1].items[4].isAccessed());
+    try expect(vm.segments.memory.data.items[1].items[5].isAccessed());
 
     try expectEqual(
-        @as(usize, 3),
+        3,
         vm.segments.memory.countAccessedAddressesInSegment(4),
     );
     try expectEqual(
-        @as(usize, 6),
+        6,
         vm.segments.memory.countAccessedAddressesInSegment(1),
     );
 }
@@ -4324,7 +4307,6 @@ test "CairoVM: multiplication and different ap increase" {
     defer constants.deinit();
 
     try vm.stepExtensive(
-        std.testing.allocator,
         .{},
         &exec_scopes,
         &hint_datas,
@@ -4343,7 +4325,6 @@ test "CairoVM: multiplication and different ap increase" {
     );
 
     try vm.stepExtensive(
-        std.testing.allocator,
         .{},
         &exec_scopes,
         &hint_datas,
@@ -4362,7 +4343,6 @@ test "CairoVM: multiplication and different ap increase" {
     );
 
     try vm.stepExtensive(
-        std.testing.allocator,
         .{},
         &exec_scopes,
         &hint_datas,
@@ -4454,7 +4434,12 @@ test "Core: test step for preset memory alloc hint not extensive" {
     inline for (0..6) |_| {
         const hint_data = if (vm.run_context.pc.eq(Relocatable.init(0, 0))) hint_datas.items[0..] else hint_datas.items[0..0];
 
-        try vm.stepNotExtensive(std.testing.allocator, hint_processor, &exec_scopes, hint_data, &constants);
+        try vm.stepNotExtensive(
+            hint_processor,
+            &exec_scopes,
+            hint_data,
+            &constants,
+        );
     }
 
     const expected_trace = [_][3][2]u64{
@@ -4472,8 +4457,8 @@ test "Core: test step for preset memory alloc hint not extensive" {
         // pc, ap, fp
         const trace_entry_a = vm.trace.?.items[idx];
         try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[0][0]), trace_entry[0][1]), trace_entry_a.pc);
-        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[1][0]), trace_entry[1][1]), trace_entry_a.ap);
-        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[2][0]), trace_entry[2][1]), trace_entry_a.fp);
+        try std.testing.expectEqual(trace_entry[1][1], trace_entry_a.ap);
+        try std.testing.expectEqual(trace_entry[2][1], trace_entry_a.fp);
     }
 }
 
@@ -4530,7 +4515,13 @@ test "Core: test step for preset memory alloc hint extensive" {
             .length = 1,
         });
 
-        try vm.stepExtensive(std.testing.allocator, hint_processor, &exec_scopes, &hint_datas, &hint_ranges, &constants);
+        try vm.stepExtensive(
+            hint_processor,
+            &exec_scopes,
+            &hint_datas,
+            &hint_ranges,
+            &constants,
+        );
     }
 
     const expected_trace = [_][3][2]u64{
@@ -4548,7 +4539,7 @@ test "Core: test step for preset memory alloc hint extensive" {
         // pc, ap, fp
         const trace_entry_a = vm.trace.?.items[idx];
         try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[0][0]), trace_entry[0][1]), trace_entry_a.pc);
-        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[1][0]), trace_entry[1][1]), trace_entry_a.ap);
-        try std.testing.expectEqual(Relocatable.init(@intCast(trace_entry[2][0]), trace_entry[2][1]), trace_entry_a.fp);
+        try std.testing.expectEqual(trace_entry[1][1], trace_entry_a.ap);
+        try std.testing.expectEqual(trace_entry[2][1], trace_entry_a.fp);
     }
 }
