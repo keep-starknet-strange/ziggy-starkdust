@@ -132,7 +132,7 @@ const tmpDir = std.testing.tmpDir;
 test "EncodedMemory: can round trip from valid memory binary" {
     // Given
     const allocator = std.testing.allocator;
-    var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+    var buffer: [std.fs.max_path_bytes]u8 = undefined;
     // where  `cairo_memory_struct` is sourced (graciously) from
     // https://github.com/lambdaclass/cairo-vm/blob/main/cairo_programs/trace_memory/cairo_trace_struct#L1
     const path = try std.posix.realpath("cairo_programs/trace_memory/cairo_memory_struct", &buffer);

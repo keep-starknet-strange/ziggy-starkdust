@@ -10,11 +10,11 @@
     },
     .dependencies = .{
         .@"zig-cli" = .{
-            .url = "https://github.com/sam701/zig-cli/archive/refs/heads/main.tar.gz",
+            .url = "https://github.com/sam701/zig-cli/archive/9a94c4803a52e54c26b198096d63fb5bde752da2.zip",
             .hash = "1220ab73fb7cc11b2308edc3364988e05efcddbcac31b707f55e6216d1b9c0da13f1",
         },
         .starknet = .{
-            .url = "https://github.com/StringNick/starknet-zig/archive/refs/heads/main.tar.gz",
+            .url = "https://github.com/StringNick/starknet-zig/archive/8cfb4286ffda4ad2781647c3d96b2aec8ccfeb32.zip",
             .hash = "122026eaa24834fd2e2cc7e8b6c4eefb03dda08158a2844615f189758fa24d32fc44",
         },
     },

@@ -17,10 +17,10 @@ jobs:
         with:
           zig-version: master
 
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
+      # - name: Setup Rust
+      #   uses: actions-rs/toolchain@v1
+      #   with:
+      #     toolchain: stable
 
       - name: Build ReleaseFast
         run: |

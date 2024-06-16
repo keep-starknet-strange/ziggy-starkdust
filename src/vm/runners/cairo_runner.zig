@@ -5217,7 +5217,7 @@ test "CairoRunner: endRun in proof mode with insufficient allocated cells" {
         .{ .proof_mode = true, .enable_trace = true },
     );
     // Get the absolute path of the current working directory.
-    var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+    var buffer: [std.fs.max_path_bytes]u8 = undefined;
     const path = try std.posix.realpath("cairo_programs/proof_programs/fibonacci.json", &buffer);
     // Parse the JSON file into a `ProgramJson` structure
     var parsed_program = try ProgramJson.parseFromFile(std.testing.allocator, path);
