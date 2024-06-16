@@ -58,15 +58,15 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # - name: Set up Zig
-      #   uses: korandoru/setup-zig@v1
-      #   with:
-      #     zig-version: master
-
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
+      - name: Set up Zig
+        uses: korandoru/setup-zig@v1
         with:
-          toolchain: stable
+          zig-version: master
+
+      # - name: Setup Rust
+      #   uses: actions-rs/toolchain@v1
+      #   with:
+      #     toolchain: stable
 
       - name: Install python
         uses: actions/setup-python@v4
