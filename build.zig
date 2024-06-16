@@ -88,9 +88,10 @@ pub fn build(b: *std.Build) void {
         .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
+
         .link_libc = true,
-        .omit_frame_pointer = if (optimize == .ReleaseFast) true else false,
-        .strip = true,
+        .omit_frame_pointer = if (optimize == .ReleaseFast) null else false,
+        .strip = if (optimize == .ReleaseFast) true else null,
     });
     exe.root_module.addOptions("cfg", options);
 
