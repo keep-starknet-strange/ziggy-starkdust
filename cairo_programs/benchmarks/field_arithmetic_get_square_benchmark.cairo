@@ -1,8 +1,8 @@
 from starkware.cairo.common.cairo_builtins import BitwiseBuiltin
 from starkware.cairo.common.bool import TRUE
-from uint384 import u384, Uint384
-from uint384_extension import u384_ext
-from field_arithmetic import field_arithmetic
+from cairo_programs.uint384 import u384, Uint384
+from cairo_programs.uint384_extension import u384_ext
+from cairo_programs.field_arithmetic import field_arithmetic
 
 func run_get_square{range_check_ptr, bitwise_ptr: BitwiseBuiltin*}(
     prime: Uint384, generator: Uint384, num: Uint384, iterations: felt

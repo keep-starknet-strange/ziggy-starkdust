@@ -93,13 +93,15 @@ pub fn uint384Split128(
     ids_data: std.StringHashMap(HintReference),
     ap_tracking: ApTracking,
 ) !void {
-    const bound = Felt252.pow2Const(128);
     const a = try hint_utils.getIntegerFromVarName("a", vm, ids_data, ap_tracking);
 
-    const high, const low = a.divRem(bound);
+    const number = a.toU256();
 
-    try hint_utils.insertValueFromVarName(allocator, "low", MaybeRelocatable.fromFelt(low), vm, ids_data, ap_tracking);
-    try hint_utils.insertValueFromVarName(allocator, "high", MaybeRelocatable.fromFelt(high), vm, ids_data, ap_tracking);
+    const low = number & ((1 << 128) - 1);
+    const high = number >> 128;
+
+    try hint_utils.insertValueFromVarName(allocator, "low", MaybeRelocatable.fromInt(u256, low), vm, ids_data, ap_tracking);
+    try hint_utils.insertValueFromVarName(allocator, "high", MaybeRelocatable.fromInt(u256, high), vm, ids_data, ap_tracking);
 }
 
 // Implements Hint:
@@ -129,7 +131,7 @@ pub fn addNoUint384Check(
     var buffer: [20]u8 = undefined;
 
     inline for (0..3) |i| {
-        var sum = try a.limbs[i].toInt(u258) + try b.limbs[i].toInt(u258);
+        var sum = try a.limbs[i].toInt(u512) + try b.limbs[i].toInt(u512);
 
         if (prev_carry) sum += 1;
 

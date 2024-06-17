@@ -36,7 +36,11 @@ pub fn getConstantFromVarName(
     var it = constants.iterator();
     while (it.next()) |k| {
         if (k.key_ptr.*.len < var_name.len) continue;
-        if (std.mem.eql(u8, var_name, k.key_ptr.*[k.key_ptr.*.len - var_name.len ..]))
+        var iter =
+            std.mem.splitBackwardsSequence(u8, k.key_ptr.*, ".");
+
+        const v = iter.next() orelse continue;
+        if (std.mem.eql(u8, var_name, v))
             return k.value_ptr.*;
     }
 

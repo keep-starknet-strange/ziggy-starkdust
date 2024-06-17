@@ -1407,11 +1407,11 @@ pub const OperandsResult = struct {
     /// The second operand value.
     op_1: MaybeRelocatable = undefined,
     /// The relocatable address of the destination operand.
-    dst_addr: Relocatable = .{},
+    dst_addr: Relocatable = undefined,
     /// The relocatable address of the first operand.
-    op_0_addr: Relocatable = .{},
+    op_0_addr: Relocatable = undefined,
     /// The relocatable address of the second operand.
-    op_1_addr: Relocatable = .{},
+    op_1_addr: Relocatable = undefined,
     /// Indicator for deduced operands.
     deduced_operands: u8 = 0,
 
