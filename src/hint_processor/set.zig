@@ -42,7 +42,7 @@ pub fn setAdd(
 
     // Retrieve the size of the element.
     const elm_size: usize = (hint_utils.getIntegerFromVarName("elm_size", vm, ids_datas, ap_tracking) catch
-        return MathError.Felt252ToUsizeConversion).intoU64() catch
+        return MathError.Felt252ToUsizeConversion).toInt(u64) catch
         return MathError.Felt252ToUsizeConversion;
 
     // Retrieve pointer to the element.
@@ -124,7 +124,7 @@ pub fn initVmIdsData(
     try vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true) });
 
     // Set the fp pointer in run_context.
-    vm.run_context.fp.* = 6;
+    vm.run_context.fp = 6;
 
     // Set default values if not provided.
     const _set_ptr: std.meta.Tuple(&.{ isize, usize }) = set_ptr orelse .{ 2, 0 };
@@ -209,11 +209,11 @@ test "Set add already exists" {
     // Verify that the memory segments at the expected locations contain the correct values after the operation.
     try expectEqual(
         MaybeRelocatable.fromInt(u8, 1),
-        setup.vm.segments.memory.data.items[1].items[0].?.maybe_relocatable,
+        setup.vm.segments.memory.data.items[1].items[0].getValue().?,
     );
     try expectEqual(
         MaybeRelocatable.fromInt(u8, 0),
-        setup.vm.segments.memory.data.items[1].items[1].?.maybe_relocatable,
+        setup.vm.segments.memory.data.items[1].items[1].getValue().?,
     );
 }
 

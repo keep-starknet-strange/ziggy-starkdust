@@ -906,6 +906,22 @@ pub const CairoVMHintProcessor = struct {
                 hint_data.ids_data,
                 hint_data.ap_tracking,
             );
+        } else if (std.mem.eql(u8, hint_codes.NONDET_ELEMENTS_OVER_TEN, hint_data.code)) {
+            try poseidon_utils.elementsOverX(
+                allocator,
+                vm,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+                10,
+            );
+        } else if (std.mem.eql(u8, hint_codes.NONDET_ELEMENTS_OVER_TWO, hint_data.code)) {
+            try poseidon_utils.elementsOverX(
+                allocator,
+                vm,
+                hint_data.ids_data,
+                hint_data.ap_tracking,
+                2,
+            );
         } else {
             std.log.err("not implemented: {s}\n", .{hint_data.code});
             return HintError.HintNotImplemented;
@@ -1048,7 +1064,7 @@ test "memcpyContinueCopying valid" {
     _ = try vm.segments.addSegment();
     _ = try vm.segments.addSegment();
     // initialize fp
-    vm.run_context.fp.* = 2;
+    vm.run_context.fp = 2;
     // initialize vm scope with variable `n`
     var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();

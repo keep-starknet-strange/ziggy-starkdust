@@ -38,7 +38,7 @@ pub fn pack(allocator: std.mem.Allocator, comptime N: usize, limbs: [N]Felt252, 
     defer tmp.deinit();
 
     for (0..N) |i| {
-        try tmp.set(limbs[i].toInteger());
+        try tmp.set(limbs[i].toU256());
 
         try tmp.shiftLeft(&tmp, num_bits_shift * i);
 

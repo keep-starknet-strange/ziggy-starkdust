@@ -49,14 +49,14 @@ pub fn keccakWriteArgs(
     const high = try hint_utils.getIntegerFromVarName("high", vm, ids_data, ap_tracking);
 
     const bound = Felt252.pow2Const(64);
-    const d1_d0 = try low.divRem(bound);
-    const d3_d2 = try high.divRem(bound);
+    const d1, const d0 = low.divRem(bound);
+    const d3, const d2 = high.divRem(bound);
 
     var arg = std.ArrayList(Felt252).init(allocator);
     defer arg.deinit();
 
     try arg.appendSlice(&.{
-        d1_d0.r, d1_d0.q, d3_d2.r, d3_d2.q,
+        d0, d1, d2, d3,
     });
 
     _ = try vm.segments.writeArg(std.ArrayList(Felt252), inputs_ptr, &arg);
@@ -85,7 +85,7 @@ pub fn compareBytesInWordNondet(
     const bytes_in_word = constants
         .get(BYTES_IN_WORD) orelse return HintError.MissingConstant;
 
-    const value = if (n_bytes.lt(bytes_in_word)) Felt252.one() else Felt252.zero();
+    const value = if (n_bytes.cmp(&bytes_in_word).compare(.lt)) Felt252.one() else Felt252.zero();
 
     try hint_utils.insertValueIntoAp(allocator, vm, MaybeRelocatable.fromFelt(value));
 }
@@ -108,7 +108,7 @@ pub fn compareKeccakFullRateInBytesNondet(
     const keccak_full_rate_in_bytes = constants
         .get(KECCAK_FULL_RATE_IN_BYTES_CAIRO_KECCAK) orelse constants.get(KECCAK_FULL_RATE_IN_BYTES_BUILTIN_KECCAK) orelse return HintError.MissingConstant;
 
-    const value = if (n_bytes.ge(keccak_full_rate_in_bytes)) Felt252.one() else Felt252.zero();
+    const value = if (n_bytes.cmp(&keccak_full_rate_in_bytes).compare(.gte)) Felt252.one() else Felt252.zero();
     try hint_utils.insertValueIntoAp(allocator, vm, MaybeRelocatable.fromFelt(value));
 }
 
@@ -139,7 +139,7 @@ pub fn blockPermutationV1(
     constants: *std.StringHashMap(Felt252),
 ) !void {
     const keccak_state_size_felts = try (constants
-        .get(KECCAK_STATE_SIZE_FELTS) orelse return HintError.MissingConstant).intoU64();
+        .get(KECCAK_STATE_SIZE_FELTS) orelse return HintError.MissingConstant).toInt(u64);
 
     if (keccak_state_size_felts >= 100)
         return HintError.InvalidKeccakStateSizeFelt252s;
@@ -183,7 +183,7 @@ pub fn cairoKeccakIsFullWord(
     ids_data: std.StringHashMap(HintReference),
     ap_tracking: ApTracking,
 ) !void {
-    const n_bytes = (try hint_utils.getIntegerFromVarName("n_bytes", vm, ids_data, ap_tracking)).intoUsize() catch 8;
+    const n_bytes = (try hint_utils.getIntegerFromVarName("n_bytes", vm, ids_data, ap_tracking)).toInt(usize) catch 8;
 
     const full_word = if (n_bytes >= 8) Felt252.one() else Felt252.zero();
     try hint_utils.insertValueFromVarName(allocator, "full_word", MaybeRelocatable.fromFelt(full_word), vm, ids_data, ap_tracking);
@@ -206,7 +206,7 @@ pub fn blockPermutationV2(
     constants: *std.StringHashMap(Felt252),
 ) !void {
     const keccak_state_size_felts = try (constants
-        .get(KECCAK_STATE_SIZE_FELTS) orelse return HintError.MissingConstant).intoUsize();
+        .get(KECCAK_STATE_SIZE_FELTS) orelse return HintError.MissingConstant).toInt(usize);
 
     if (keccak_state_size_felts >= 100) {
         return HintError.InvalidKeccakStateSizeFelt252s;
@@ -246,9 +246,9 @@ fn cairoKeccakFinalize(
     block_size_limit: usize,
 ) !void {
     const keccak_state_size_felts = try (constants
-        .get(KECCAK_STATE_SIZE_FELTS) orelse return HintError.MissingConstant).intoUsize();
+        .get(KECCAK_STATE_SIZE_FELTS) orelse return HintError.MissingConstant).toInt(usize);
     const block_size = try (constants
-        .get(BLOCK_SIZE) orelse return HintError.MissingConstant).intoUsize();
+        .get(BLOCK_SIZE) orelse return HintError.MissingConstant).toInt(usize);
 
     if (keccak_state_size_felts >= 100) return HintError.InvalidKeccakStateSizeFelt252s;
 
@@ -329,7 +329,7 @@ pub fn maybeRelocVecToU64Array(allocator: std.mem.Allocator, vec: []const ?Maybe
     for (vec) |maybe_relocatable| {
         if (maybe_relocatable) |n| {
             switch (n) {
-                .felt => |num| try array.append(try num.intoU64()),
+                .felt => |num| try array.append(try num.toInt(u64)),
                 else => {},
             }
         } else {
@@ -374,7 +374,7 @@ test "CairoKeccakHints: is full word" {
         try vm.segments.memory.setUpMemory(std.testing.allocator, .{
             .{ .{ 1, 1 }, .{case[0]} },
         });
-        vm.run_context.fp.* = 2;
+        vm.run_context.fp = 2;
 
         const ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "full_word", "n_bytes" });
 
@@ -404,7 +404,7 @@ test "CairoKeccakHints: writeArgs valid" {
         .{ .{ 1, 2 }, .{ 2, 0 } },
         .{ .{ 2, 4 }, .{5} },
     });
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
 
     const ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "low", "high", "inputs" });
 
@@ -430,7 +430,7 @@ test "CairoKeccakHints: writeArgs error" {
         .{ .{ 1, 1 }, .{351} },
         .{ .{ 1, 2 }, .{ 2, 0 } },
     });
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
 
     const ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{ "low", "high", "inputs" });
 
@@ -456,9 +456,9 @@ test "CairoKeccakHints: compareBytesInWordNondet valid" {
     });
     _ = try vm.segments.addSegment();
 
-    vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.fp.* = 1;
-    vm.run_context.ap.* = 1;
+    vm.run_context.pc = Relocatable.init(0, 0);
+    vm.run_context.fp = 1;
+    vm.run_context.ap = 1;
 
     const ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "n_bytes",
@@ -496,9 +496,9 @@ test "CairoKeccakHints: compareKeccakFullRateInBytesNondet valid" {
     });
     _ = try vm.segments.addSegment();
 
-    vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.fp.* = 1;
-    vm.run_context.ap.* = 1;
+    vm.run_context.pc = Relocatable.init(0, 0);
+    vm.run_context.fp = 1;
+    vm.run_context.ap = 1;
 
     const ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "n_bytes",

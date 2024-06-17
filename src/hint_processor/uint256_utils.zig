@@ -73,35 +73,20 @@ pub const Uint256 = struct {
     }
 
     pub fn pack(self: Self, allocator: std.mem.Allocator) !Int {
-        var result = try Int.initSet(allocator, self.high.toInteger());
+        var result = try Int.initSet(allocator, self.high.toU256());
         errdefer result.deinit();
 
         try result.shiftLeft(&result, 128);
-        try result.addScalar(&result, self.low.toInteger());
+        try result.addScalar(&result, self.low.toU256());
         return result;
     }
 
-    // converting self to biguint value
-    pub fn toBigUint(self: Self, allocator: std.mem.Allocator) !Int {
-        var value = try self.high.toBigUint(allocator);
-        errdefer value.deinit();
-
-        var low = try self.low.toBigUint(allocator);
-        defer low.deinit();
-
-        try value.shiftLeft(&value, 128);
-
-        try value.add(&value, &low);
-
-        return value;
-    }
-
     pub fn fromFelt(value: Felt252) Self {
-        const high_low = value.divRem(Felt252.pow2Const(128)) catch unreachable;
+        const high, const low = value.divRem(Felt252.pow2Const(128));
 
         return .{
-            .high = high_low.q,
-            .low = high_low.r,
+            .high = high,
+            .low = low,
         };
     }
 };
@@ -134,7 +119,7 @@ pub fn uint256Add(
     // Main logic
     // sum_low = ids.a.low + ids.b.low
     // ids.carry_low = 1 if sum_low >= ids.SHIFT else 0
-    const carry_low = Felt252.fromInt(u8, if (a_low.add(b_low).ge(shift)) 1 else 0);
+    const carry_low = Felt252.fromInt(u8, if (a_low.add(&b_low).cmp(&shift).compare(.gte)) 1 else 0);
 
     if (!low_only) {
         const a_high = a.high;
@@ -143,7 +128,7 @@ pub fn uint256Add(
         // Main logic
         // sum_high = ids.a.high + ids.b.high + ids.carry_low
         // ids.carry_high = 1 if sum_high >= ids.SHIFT else 0
-        const carry_high = Felt252.fromInt(u8, if (a_high.add(b_high).add(carry_low).ge(shift)) 1 else 0);
+        const carry_high = Felt252.fromInt(u8, if (a_high.add(&b_high).add(&carry_low).cmp(&shift).compare(.gte)) 1 else 0);
 
         try hint_utils.insertValueFromVarName(allocator, "carry_high", MaybeRelocatable.fromFelt(carry_high), vm, ids_data, ap_tracking);
     }
@@ -169,7 +154,7 @@ pub fn uint128Add(
     // Main logic
     // res = ids.a + ids.b
     // ids.carry = 1 if res >= ids.SHIFT else 0
-    const carry = Felt252.fromInt(u8, if (a.add(b).ge(shift)) 1 else 0);
+    const carry = Felt252.fromInt(u8, if (a.add(&b).cmp(&shift).compare(.gte)) 1 else 0);
 
     try hint_utils.insertValueFromVarName(allocator, "carry", MaybeRelocatable.fromFelt(carry), vm, ids_data, ap_tracking);
 }
@@ -200,10 +185,10 @@ pub fn uint256Sub(
     ids_data: std.StringHashMap(HintReference),
     ap_tracking: ApTracking,
 ) !void {
-    var a = try (try Uint256.fromVarName("a", vm, ids_data, ap_tracking)).toBigUint(allocator);
+    var a = try (try Uint256.fromVarName("a", vm, ids_data, ap_tracking)).pack(allocator);
     defer a.deinit();
 
-    var b = try (try Uint256.fromVarName("b", vm, ids_data, ap_tracking)).toBigUint(allocator);
+    var b = try (try Uint256.fromVarName("b", vm, ids_data, ap_tracking)).pack(allocator);
     defer b.deinit();
 
     // Main logic:
@@ -270,17 +255,15 @@ pub fn split64(
     ap_tracking: ApTracking,
 ) !void {
     const a = try hint_utils.getIntegerFromVarName("a", vm, ids_data, ap_tracking);
-    const digits = a.toBytes();
+    const digits = a.toLeDigits();
     var bytes = [_]u8{0} ** 32;
-    @memcpy(bytes[0..8], digits[8..16]);
-    @memcpy(bytes[8..16], digits[16..24]);
-    @memcpy(bytes[16..24], digits[24..32]);
 
-    var low_digits = [_]u8{0} ** 32;
-    @memcpy(low_digits[0..8], digits[0..8]);
+    inline for (1..4) |i| {
+        std.mem.writeInt(u64, bytes[(i - 1) * 8 .. i * 8], digits[i], .little);
+    }
 
-    const low = Felt252.fromBytes(low_digits);
-    const high = Felt252.fromBytes(bytes);
+    const low = Felt252.fromInt(u64, digits[0]);
+    const high = Felt252.fromBytesLe(bytes);
 
     try hint_utils.insertValueFromVarName(allocator, "high", MaybeRelocatable.fromFelt(high), vm, ids_data, ap_tracking);
     try hint_utils.insertValueFromVarName(allocator, "low", MaybeRelocatable.fromFelt(low), vm, ids_data, ap_tracking);
@@ -303,7 +286,7 @@ pub fn uint256Sqrt(
     only_low: bool,
 ) !void {
     // todo use big int for this
-    var n = try (try Uint256.fromVarName("n", vm, ids_data, ap_tracking)).toBigUint(allocator);
+    var n = try (try Uint256.fromVarName("n", vm, ids_data, ap_tracking)).pack(allocator);
     defer n.deinit();
 
     // Main logic
@@ -344,7 +327,7 @@ pub fn uint256SignedNn(
     //Main logic
     //memory[ap] = 1 if 0 <= (ids.a.high % PRIME) < 2 ** 127 else 0
     const result: Felt252 =
-        if (a_high.ge(Felt252.zero()) and a_high.le(Felt252.fromInt(u128, std.math.maxInt(i128))))
+        if (a_high.cmp(&Felt252.zero()).compare(.gte) and a_high.cmp(&Felt252.fromInt(u128, std.math.maxInt(i128))).compare(.lte))
         Felt252.one()
     else
         Felt252.zero();
@@ -418,10 +401,10 @@ pub fn uint256OffsetedUnsignedDivRem(
     //ids.remainder.low = remainder & ((1 << 128) - 1)
     //ids.remainder.high = remainder >> 128
 
-    var a_high_big = try a_high.toBigUint(allocator);
+    var a_high_big = try a_high.toStdBigInt(allocator);
     defer a_high_big.deinit();
 
-    var a_low_big = try a_low.toBigUint(allocator);
+    var a_low_big = try a_low.toStdBigInt(allocator);
     defer a_low_big.deinit();
 
     var tmp = try Int.init(allocator);
@@ -429,10 +412,10 @@ pub fn uint256OffsetedUnsignedDivRem(
     var tmp2 = try Int.init(allocator);
     defer tmp2.deinit();
 
-    var div_high_big = try div_high.toBigUint(allocator);
+    var div_high_big = try div_high.toStdBigInt(allocator);
     defer div_high_big.deinit();
 
-    var div_low_big = try div_low.toBigUint(allocator);
+    var div_low_big = try div_low.toStdBigInt(allocator);
     defer div_low_big.deinit();
 
     try tmp.shiftLeft(&a_high_big, 128);
@@ -448,7 +431,6 @@ pub fn uint256OffsetedUnsignedDivRem(
 
     var remainder = try Int.init(allocator);
     defer remainder.deinit();
-
     //a and div will always be positive numbers
     //Then, Rust div_rem equals Python divmod
     try quotient.divTrunc(&remainder, &tmp, &tmp2);
@@ -499,48 +481,90 @@ pub fn uint256MulDivMod(
 
     // Main Logic
     // TODO: optimize use bigint instead of u512
-    const a = (@as(u512, a_high.toInteger()) << 128) + @as(u512, a_low.toInteger());
-    const b = (@as(u512, b_high.toInteger()) << 128) + @as(u512, b_low.toInteger());
-    const div = (@as(u512, div_high.toInteger()) << 128) + div_low.toInteger();
-    if (div == 0) {
+
+    var tmp = try a_high.toStdBigInt(allocator);
+    defer tmp.deinit();
+
+    try tmp.shiftLeft(&tmp, 128);
+
+    var tmp1 = try a_low.toStdBigInt(allocator);
+    defer tmp1.deinit();
+
+    try tmp.add(&tmp, &tmp1);
+
+    var a = try tmp.clone();
+    defer a.deinit();
+
+    try tmp.set(b_high.toU256());
+    try tmp.shiftLeft(&tmp, 128);
+
+    try tmp1.set(b_low.toU256());
+
+    var b = try Int.init(allocator);
+    defer b.deinit();
+
+    try b.add(&tmp, &tmp1);
+
+    var div = try div_high.toStdBigInt(allocator);
+    defer div.deinit();
+
+    try div.shiftLeft(&div, 128);
+
+    try tmp.set(div_low.toU256());
+
+    try div.add(&div, &tmp);
+
+    if (div.eqlZero()) {
         return MathError.DividedByZero;
     }
 
-    const quotient_remainder = try helper.divModFloor(u512, (a * b), div);
+    try tmp1.mul(&a, &b);
+
+    // tmp quotient, tmp1 remaninder
+    try tmp.divFloor(&tmp1, &tmp1, &div);
+
+    var maxU128 = try Int.initSet(allocator, std.math.maxInt(u128));
+    defer maxU128.deinit();
 
     // ids.quotient_low.low
+    try a.bitAnd(&tmp, &maxU128);
     try vm.insertInMemory(
         allocator,
         quotient_low_addr,
-        MaybeRelocatable.fromFelt(Felt252.fromInt(u512, quotient_remainder[0] & std.math.maxInt(u128))),
+        MaybeRelocatable.fromFelt(try fromBigInt(allocator, a)),
     );
     // ids.quotient_low.high
+    try a.shiftRight(&tmp, 128);
+    try a.bitAnd(&a, &maxU128);
     try vm.insertInMemory(
         allocator,
         try quotient_low_addr.addUint(1),
-        MaybeRelocatable.fromFelt(Felt252.fromInt(u512, (quotient_remainder[0] >> 128) & std.math.maxInt(u128))),
+        MaybeRelocatable.fromFelt(try fromBigInt(allocator, a)),
     );
     // ids.quotient_high.low
+    try a.shiftRight(&tmp, 256);
+    try a.bitAnd(&a, &maxU128);
     try vm.insertInMemory(
         allocator,
         quotient_high_addr,
-        MaybeRelocatable.fromFelt(Felt252.fromInt(u512, (quotient_remainder[0] >> 256) & std.math.maxInt(u128))),
+        MaybeRelocatable.fromFelt(try fromBigInt(allocator, a)),
     );
     // ids.quotient_high.high
-    try vm.insertInMemory(allocator, try quotient_high_addr.addUint(1), MaybeRelocatable.fromFelt(
-        Felt252.fromInt(u512, (quotient_remainder[0] >> 384)),
-    ));
+    try a.shiftRight(&tmp, 384);
+    try vm.insertInMemory(allocator, try quotient_high_addr.addUint(1), MaybeRelocatable.fromFelt(try fromBigInt(allocator, a)));
     //ids.remainder.low
+    try a.bitAnd(&tmp1, &maxU128);
     try vm.insertInMemory(
         allocator,
         remainder_addr,
-        MaybeRelocatable.fromFelt(Felt252.fromInt(u512, quotient_remainder[1] & std.math.maxInt(u128))),
+        MaybeRelocatable.fromFelt(try fromBigInt(allocator, a)),
     );
     //ids.remainder.high
+    try a.shiftRight(&tmp1, 128);
     try vm.insertInMemory(
         allocator,
         try remainder_addr.addUint(1),
-        MaybeRelocatable.fromFelt(Felt252.fromInt(u512, quotient_remainder[1] >> 128)),
+        MaybeRelocatable.fromFelt(try fromBigInt(allocator, a)),
     );
 }
 
@@ -553,7 +577,7 @@ test "Uint256: uint256AddLowOnly ok" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = 10;
+    vm.run_context.fp = 10;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -586,7 +610,7 @@ test "Uint256: uint256Add ok" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = 10;
+    vm.run_context.fp = 10;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -620,7 +644,7 @@ test "Uint256: uint128Add ok" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = 0;
+    vm.run_context.fp = 0;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -651,7 +675,7 @@ test "Uint256: uint256Sub b high gt 256 gt a" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = 0;
+    vm.run_context.fp = 0;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -685,7 +709,7 @@ test "Uint256: uint256Sub negative ok" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = 0;
+    vm.run_context.fp = 0;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -719,7 +743,7 @@ test "Uint256: uint256Sub nonnegative ok" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = 0;
+    vm.run_context.fp = 0;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -753,7 +777,7 @@ test "Uint256: uint256Sub missing number" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = 0;
+    vm.run_context.fp = 0;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -781,7 +805,7 @@ test "Uint256: uint256Sub b high gt 256 lte a" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = 0;
+    vm.run_context.fp = 0;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -815,7 +839,7 @@ test "Uint256: split64 ok" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = 10;
+    vm.run_context.fp = 10;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -846,7 +870,7 @@ test "Uint256: split64 with big a" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = 10;
+    vm.run_context.fp = 10;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -877,7 +901,7 @@ test "Uint256: uint256Sqrt ok" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = 5;
+    vm.run_context.fp = 5;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -912,7 +936,7 @@ test "Uint256: uint256Sqrt felt ok" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = 0;
+    vm.run_context.fp = 0;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -946,7 +970,7 @@ test "Uint256: uint256Sqrt assert error" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = 5;
+    vm.run_context.fp = 5;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -978,9 +1002,9 @@ test "Uint256: signedNN ok result one" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.ap.* = 5;
-    vm.run_context.fp.* = 4;
+    vm.run_context.pc = Relocatable.init(0, 0);
+    vm.run_context.ap = 5;
+    vm.run_context.fp = 4;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -1012,9 +1036,9 @@ test "Uint256: signedNN ok result zero" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.ap.* = 5;
-    vm.run_context.fp.* = 4;
+    vm.run_context.pc = Relocatable.init(0, 0);
+    vm.run_context.ap = 5;
+    vm.run_context.fp = 4;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -1046,7 +1070,7 @@ test "Uint256: unsigned div rem ok" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = 10;
+    vm.run_context.fp = 10;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -1087,7 +1111,7 @@ test "Uint256: unsigned div rem expanded ok" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = 0;
+    vm.run_context.fp = 0;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(
@@ -1131,7 +1155,7 @@ test "Uint256: mul div mod ok" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = 10;
+    vm.run_context.fp = 10;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsNonContinuousIdsData(

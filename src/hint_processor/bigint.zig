@@ -45,10 +45,10 @@ pub fn bigintPackDivModHint(allocator: std.mem.Allocator, vm: *CairoVM, exec_sco
         }).pack86(allocator);
         defer x_lower.deinit();
 
-        var d3 = try x_bigint5.limbs[3].toSignedBigInt(allocator);
+        var d3 = try x_bigint5.limbs[3].toStdBigSignedInt(allocator);
         defer d3.deinit();
 
-        var d4 = try x_bigint5.limbs[3].toSignedBigInt(allocator);
+        var d4 = try x_bigint5.limbs[3].toStdBigSignedInt(allocator);
         defer d4.deinit();
 
         var tmp = try Int.init(allocator);
@@ -158,7 +158,7 @@ test "big int pack div mod hint" {
 
     defer ids_data.deinit();
 
-    vm.run_context.fp.* = 0;
+    vm.run_context.fp = 0;
     inline for (0..11) |_| _ = try vm.addMemorySegment();
 
     // Set up memory segments in the virtual machine.
@@ -206,7 +206,7 @@ test "big int safe div hint" {
     defer ids_data.deinit();
 
     // Set the frame pointer to point to the beginning of the stack.
-    vm.run_context.*.fp.* = 0;
+    vm.run_context.fp = 0;
     _ = try vm.addMemorySegment();
     _ = try vm.addMemorySegment();
 

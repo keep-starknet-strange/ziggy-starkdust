@@ -763,14 +763,12 @@ pub const BLAKE2S_FINALIZE_V3 =
     \\segments.write_arg(ids.blake2s_ptr_end, padding)
 ;
 
+pub const PRINT_FELT = "print(ids.x)";
+
 pub const PRINT_ARR =
     \\print(bytes.fromhex(f"{ids.name:062x}").decode().replace('\x00',''))
     \\arr = [memory[ids.arr + i] for i in range(ids.arr_len)]
     \\print(arr)
-;
-
-pub const PRINT_FELT =
-    \\print(ids.x)
 ;
 
 pub const PRINT_DICT =
@@ -1644,3 +1642,8 @@ pub const UINT384_DIV =
     \\ids.b_inverse_mod_p.d1 = b_inverse_mod_p_split[1]
     \\ids.b_inverse_mod_p.d2 = b_inverse_mod_p_split[2]
 ;
+
+pub const NONDET_ELEMENTS_OVER_TEN =
+    "memory[ap] = to_felt_or_relocatable(ids.elements_end - ids.elements >= 10)";
+pub const NONDET_ELEMENTS_OVER_TWO =
+    "memory[ap] = to_felt_or_relocatable(ids.elements_end - ids.elements >= 2)";

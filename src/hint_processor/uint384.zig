@@ -96,10 +96,10 @@ pub fn uint384Split128(
     const bound = Felt252.pow2Const(128);
     const a = try hint_utils.getIntegerFromVarName("a", vm, ids_data, ap_tracking);
 
-    const high_low = try a.divRem(bound);
+    const high, const low = a.divRem(bound);
 
-    try hint_utils.insertValueFromVarName(allocator, "low", MaybeRelocatable.fromFelt(high_low.r), vm, ids_data, ap_tracking);
-    try hint_utils.insertValueFromVarName(allocator, "high", MaybeRelocatable.fromFelt(high_low.q), vm, ids_data, ap_tracking);
+    try hint_utils.insertValueFromVarName(allocator, "low", MaybeRelocatable.fromFelt(low), vm, ids_data, ap_tracking);
+    try hint_utils.insertValueFromVarName(allocator, "high", MaybeRelocatable.fromFelt(high), vm, ids_data, ap_tracking);
 }
 
 // Implements Hint:
@@ -120,34 +120,28 @@ pub fn addNoUint384Check(
 ) !void {
     const a = try Uint384.fromVarName("a", vm, ids_data, ap_tracking);
     const b = try Uint384.fromVarName("b", vm, ids_data, ap_tracking);
-    // This hint is not from the cairo commonlib, and its lib can be found under different paths, so we cant rely on a full path name
-    var shift = try (try hint_utils.getConstantFromVarName("SHIFT", constants)).toSignedBigInt(allocator);
-    defer shift.deinit();
 
-    var tmp = try Int.init(allocator);
-    defer tmp.deinit();
-    var tmp2 = try Int.init(allocator);
-    defer tmp2.deinit();
-    var tmp3 = try Int.init(allocator);
-    defer tmp3.deinit();
+    // This hint is not from the cairo commonlib, and its lib can be found under different paths, so we cant rely on a full path name
+    const shift = (try hint_utils.getConstantFromVarName("SHIFT", constants)).toU256();
+
+    var prev_carry = false;
 
     var buffer: [20]u8 = undefined;
 
     inline for (0..3) |i| {
-        try tmp.set(a.limbs[i].toSignedInt());
-        try tmp2.set(b.limbs[i].toSignedInt());
+        var sum = try a.limbs[i].toInt(u258) + try b.limbs[i].toInt(u258);
 
-        try tmp3.add(&tmp, &tmp2);
+        if (prev_carry) sum += 1;
 
-        const result = if (tmp3.order(shift) == .gt or tmp3.order(shift) == .eq)
-            Felt252.one()
+        prev_carry = if (sum >= shift)
+            true
         else
-            Felt252.zero();
+            false;
 
         try hint_utils.insertValueFromVarName(
             allocator,
             try std.fmt.bufPrint(buffer[0..], "carry_d{d}", .{i}),
-            MaybeRelocatable.fromFelt(result),
+            MaybeRelocatable.fromFelt(if (prev_carry) Felt252.one() else Felt252.zero()),
             vm,
             ids_data,
             ap_tracking,
@@ -210,7 +204,7 @@ pub fn uint384SignedNn(
 
     const a_d2 = vm.getFelt(try a_addr.addUint(2)) catch return HintError.IdentifierHasNoMember;
 
-    try hint_utils.insertValueIntoAp(allocator, vm, if (a_d2.numBits() <= 127) MaybeRelocatable.fromInt(u8, 1) else MaybeRelocatable.fromInt(u8, 0));
+    try hint_utils.insertValueIntoAp(allocator, vm, if (a_d2.numBitsLe() <= 127) MaybeRelocatable.fromInt(u8, 1) else MaybeRelocatable.fromInt(u8, 0));
 }
 
 //  Implements Hint:
@@ -341,7 +335,7 @@ test "Uint384: runUnsignedDivRemOk" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 10;
+    vm.run_context.fp = 10;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -9 }, .{ "div", -6 }, .{ "quotient", -3 }, .{ "remainder", 0 },
@@ -374,7 +368,7 @@ test "Uint384: runUnsignedDivRem divide by zero" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 10;
+    vm.run_context.fp = 10;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -9 }, .{ "div", -6 }, .{ "quotient", -3 }, .{ "remainder", 0 },
@@ -408,7 +402,7 @@ test "Uint384: runSplit128 ok" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "a", "low", "high",
@@ -432,7 +426,7 @@ test "Uint384: runSplit128 ok big number" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
         "a", "low", "high",
@@ -458,7 +452,7 @@ test "Uint384: run addNoCheck ok" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 10;
+    vm.run_context.fp = 10;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -10 },       .{ "b", -7 },        .{ "carry_d0", -4 },
@@ -493,7 +487,7 @@ test "Uint384: sqrt ok" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 5;
+    vm.run_context.fp = 5;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -5 }, .{ "root", -2 },
@@ -520,7 +514,7 @@ test "Uint384: sqrt assertetion failed" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 5;
+    vm.run_context.fp = 5;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -5 }, .{ "root", -2 },
@@ -551,7 +545,7 @@ test "Uint384: signedNn ok positive" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -2 },
@@ -574,7 +568,7 @@ test "Uint384: signedNn ok missing identifier" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -2 },
@@ -604,7 +598,7 @@ test "Uint384: signedNn ok negative" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -2 },
@@ -627,7 +621,7 @@ test "Uint384: subAsubB ok a max" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 10;
+    vm.run_context.fp = 10;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -10 },
@@ -670,7 +664,7 @@ test "Uint384: subAsubB ok b max" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 10;
+    vm.run_context.fp = 10;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -10 },
@@ -713,7 +707,7 @@ test "Uint384: runUnsignedDivRem784 ok" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 17;
+    vm.run_context.fp = 17;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -17 }, .{ "div", -11 }, .{ "quotient", -8 }, .{ "remainder", -2 },
@@ -752,7 +746,7 @@ test "Uint384: runUnsignedDivRem784 divide by zero" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 17;
+    vm.run_context.fp = 17;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -17 }, .{ "div", -11 }, .{ "quotient", -8 }, .{ "remainder", -2 },

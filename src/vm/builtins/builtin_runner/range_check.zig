@@ -19,7 +19,7 @@ const RunnerError = Error.RunnerError;
 
 const N_PARTS: u64 = 8;
 const INNER_RC_BOUND_SHIFT: u64 = 16;
-const BOUND = Felt252.two().pow(16 * N_PARTS);
+const BOUND = Felt252.two().powToInt(16 * N_PARTS);
 
 /// Range check built-in runner
 pub const RangeCheckBuiltinRunner = struct {
@@ -63,7 +63,7 @@ pub const RangeCheckBuiltinRunner = struct {
         n_parts: u32,
         included: bool,
     ) Self {
-        const bound = Felt252.two().pow(16 * n_parts);
+        const bound = Felt252.two().powToInt(16 * n_parts);
         return .{
             .ratio = ratio,
             .bound = if (n_parts != 0 and bound.isZero()) null else bound,
@@ -120,7 +120,7 @@ pub const RangeCheckBuiltinRunner = struct {
     ///
     /// The number of used cells as a `u32`, or `MemoryError.MissingSegmentUsedSizes` if
     /// the size is not available.
-    pub fn getUsedCells(self: *const Self, segments: *MemorySegmentManager) !u32 {
+    pub fn getUsedCells(self: *const Self, segments: *MemorySegmentManager) !usize {
         return segments.getSegmentUsedSize(
             @intCast(self.base),
         ) orelse MemoryError.MissingSegmentUsedSizes;
@@ -236,8 +236,8 @@ pub const RangeCheckBuiltinRunner = struct {
             return null;
 
         for (rc_segment.items) |cell| {
-            var cellFelt = cell.?.maybe_relocatable.intoFelt() catch null;
-            const cellBytes = cellFelt.?.toBytes();
+            var cellFelt = cell.getValue().?.intoFelt() catch null;
+            const cellBytes = cellFelt.?.toBytesLe();
             var j: usize = 0;
             while (j < 32) : (j += 2) {
                 const tempVal = @as(u16, cellBytes[j + 1]) << 8 | @as(u16, cellBytes[j]);
@@ -285,7 +285,7 @@ pub fn rangeCheckValidationRule(allocator: Allocator, memory: *Memory, address: 
         error.ExpectedInteger => return MemoryError.RangecheckNonInt,
     };
 
-    if (num.numBits() <= N_PARTS * INNER_RC_BOUND_SHIFT) {
+    if (num.numBitsLe() <= N_PARTS * INNER_RC_BOUND_SHIFT) {
         try result.append(address);
         return result;
     } else {
@@ -335,9 +335,11 @@ test "used instances" {
 
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    try memory_segment_manager.segment_used_sizes.put(0, 1);
+
+    try memory_segment_manager.segment_used_sizes.append(1);
+
     try std.testing.expectEqual(
-        @as(usize, @intCast(1)),
+        1,
         try builtin.getUsedInstances(memory_segment_manager),
     );
 }

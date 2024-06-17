@@ -12,7 +12,6 @@ const STARKNET_PRIME = @import("../../math/fields/constants.zig").STARKNET_PRIME
 pub const Relocatable = struct {
     const Self = @This();
 
-
     /// The index of the memory segment.
     segment_index: i64 = 0,
     /// The offset in the memory segment.
@@ -116,8 +115,8 @@ pub const Relocatable = struct {
     /// A new Relocatable after the subtraction operation.
     /// # Errors
     /// An error is returned if the subtraction results in an underflow (negative value).
-    pub fn subFelt(self: Self, other: Felt252) MathError!Self {
-        return try self.subUint(try other.intoU64());
+    pub fn subFelt(self: Self, other: Felt252) !Self {
+        return self.addFelt(other.neg());
     }
 
     /// Substract a u64 from a Relocatable and return a new Relocatable.
@@ -140,11 +139,9 @@ pub const Relocatable = struct {
     /// # Returns
     /// A new Relocatable.
     pub fn addUint(self: Self, other: u64) !Self {
-        const offset = @addWithOverflow(self.offset, other);
-        if (offset[1] != 0) return MathError.RelocatableAdditionOffsetExceeded;
         return .{
             .segment_index = self.segment_index,
-            .offset = offset[0],
+            .offset = std.math.add(u64, self.offset, other) catch return MathError.RelocatableAdditionOffsetExceeded,
         };
     }
 
@@ -152,7 +149,7 @@ pub const Relocatable = struct {
     /// # Arguments
     /// - self: Pointer to the Relocatable object to modify.
     /// - other: The u64 to add to `self.offset`.
-    pub fn addUintInPlace(self: *Self, other: u64) void {
+    pub fn addUintInPlace(self: *Self, other: usize) void {
         // Modify the offset of the existing Relocatable object
         self.offset += other;
     }
@@ -179,11 +176,10 @@ pub const Relocatable = struct {
     /// A new Relocatable after the addition operation.
     /// # Errors
     /// An error is returned if the addition results in an overflow (exceeding u64).
-    pub fn addFelt(self: Self, other: Felt252) MathError!Self {
-        return .{
-            .segment_index = self.segment_index,
-            .offset = try Felt252.fromInt(u64, self.offset).add(other).intoU64(),
-        };
+    pub fn addFelt(self: Self, other: Felt252) !Self {
+        var cpy = self;
+        try cpy.addFeltInPlace(other);
+        return cpy;
     }
 
     /// Add a felt to this Relocatable, modifying it in place.
@@ -191,7 +187,27 @@ pub const Relocatable = struct {
     /// - self: Pointer to the Relocatable object to modify.
     /// - other: The felt to add to `self.offset`.
     pub fn addFeltInPlace(self: *Self, other: Felt252) !void {
-        self.offset = try Felt252.fromInt(u64, self.offset).add(other).intoU64();
+        const PRIME_DIGITS_BE_HI: [3]u64 =
+            .{ 0x0800000000000011, 0x0000000000000000, 0x0000000000000000 };
+
+        const PRIME_MINUS_U64_MAX_DIGITS_BE_HI: [3]u64 =
+            .{ 0x0800000000000010, 0xffffffffffffffff, 0xffffffffffffffff };
+
+        const zero: [3]u64 =
+            .{ 0, 0, 0 };
+        const bytes: [4]u64 = other.toBeDigits();
+
+        if (std.mem.eql(u64, &zero, bytes[0..3][0..])) {
+            if (bytes[3] != 0) {
+                self.offset = std.math.add(u64, self.offset, bytes[3]) catch return MathError.ValueTooLarge;
+            }
+        } else if (std.mem.eql(u64, &PRIME_DIGITS_BE_HI, bytes[0..3][0..])) {
+            self.offset = std.math.sub(u64, self.offset, 1) catch return MathError.ValueTooLarge;
+        } else if (bytes[3] >= 2 and std.mem.eql(u64, &PRIME_MINUS_U64_MAX_DIGITS_BE_HI, bytes[0..3][0..])) {
+            self.offset = std.math.sub(u64, self.offset, std.math.maxInt(u64) - bytes[3] + 2) catch return MathError.ValueTooLarge;
+        } else {
+            return MathError.ValueTooLarge;
+        }
     }
 
     /// Performs additions if other contains a Felt value, fails otherwise.
@@ -224,11 +240,12 @@ pub const Relocatable = struct {
     ///
     /// # Errors
     /// - Returns a `MemoryError` in case of relocation failure or encountering a temporary segment.
-    pub fn relocateAddress(self: *const Self, relocation_table: []usize) MemoryError!usize {
+    pub fn relocateAddress(self: Self, relocation_table: []usize) MemoryError!usize {
         if (self.segment_index >= 0) {
             if (relocation_table.len <= self.segment_index) {
                 return MemoryError.Relocation;
             }
+
             return relocation_table[@intCast(self.segment_index)] + self.offset;
         }
         return MemoryError.TemporarySegmentInRelocation;
@@ -244,11 +261,11 @@ pub const Relocatable = struct {
     ///
     /// # Returns
     /// The adjusted `usize` value representing the segment index.
-    pub fn getAdjustedSegmentIndex(self: *const Self) usize {
-        return @intCast(if (self.segment_index < 0)
-            -(self.segment_index + 1)
+    pub inline fn getAdjustedSegmentIndex(self: Self) usize {
+        return if (self.segment_index < 0)
+            @abs(self.segment_index + 1)
         else
-            self.segment_index);
+            @intCast(self.segment_index);
     }
 };
 
@@ -274,24 +291,8 @@ pub const MaybeRelocatable = union(enum) {
     /// ## Returns:
     ///   * `true` if the two instances are equal.
     ///   * `false` otherwise.
-    pub fn eq(self: *const Self, other: Self) bool {
-        // Switch on the type of `self`
-        return switch (self.*) {
-            // If `self` is of type `relocatable`
-            .relocatable => |self_value| switch (other) {
-                // Compare the `relocatable` values if both `self` and `other` are `relocatable`
-                .relocatable => |other_value| self_value.eq(other_value),
-                // If `self` is `relocatable` and `other` is `felt`, they are not equal
-                .felt => false,
-            },
-            // If `self` is of type `felt`
-            .felt => |self_value| switch (other) {
-                // Compare the `felt` values if both `self` and `other` are `felt`
-                .felt => self_value.equal(other.felt),
-                // If `self` is `felt` and `other` is `relocatable`, they are not equal
-                .relocatable => false,
-            },
-        };
+    pub fn eq(self: Self, other: Self) bool {
+        return std.meta.eql(self, other);
     }
 
     /// Determines if self is less than other.
@@ -315,7 +316,7 @@ pub const MaybeRelocatable = union(enum) {
             // If `self` is of type `felt`
             .felt => |self_value| switch (other) {
                 // Compare the `felt` values if both `self` and `other` are `felt`
-                .felt => self_value.lt(other.felt),
+                .felt => self_value.lt(&other.felt),
                 // If `self` is `felt` and `other` is `relocatable`, they are not equal
                 .relocatable => false,
             },
@@ -343,7 +344,7 @@ pub const MaybeRelocatable = union(enum) {
             // If `self` is of type `felt`
             .felt => |self_value| switch (other) {
                 // Compare the `felt` values if both `self` and `other` are `felt`
-                .felt => self_value.le(other.felt),
+                .felt => self_value.cmp(&other.felt).compare(.lte),
                 // If `self` is `felt` and `other` is `relocatable`, they are not equal
                 .relocatable => false,
             },
@@ -371,7 +372,7 @@ pub const MaybeRelocatable = union(enum) {
             // If `self` is of type `felt`
             .felt => |self_value| switch (other) {
                 // Compare the `felt` values if both `self` and `other` are `felt`
-                .felt => self_value.gt(other.felt),
+                .felt => self_value.cmp(&other.felt).compare(.gt),
                 // If `self` is `felt` and `other` is `relocatable`, they are not equal
                 .relocatable => false,
             },
@@ -399,7 +400,7 @@ pub const MaybeRelocatable = union(enum) {
             // If `self` is of type `felt`
             .felt => |self_value| switch (other) {
                 // Compare the `felt` values if both `self` and `other` are `felt`
-                .felt => self_value.ge(other.felt),
+                .felt => self_value.cmp(&other.felt).compare(.gte),
                 // If `self` is `felt` and `other` is `relocatable`, they are not equal
                 .relocatable => false,
             },
@@ -434,7 +435,7 @@ pub const MaybeRelocatable = union(enum) {
             // If `self` is of type `felt`
             .felt => |self_value| switch (other) {
                 // If `other` is also `felt`, compare the `felt` values
-                .felt => self_value.cmp(other.felt),
+                .felt => self_value.cmp(&other.felt),
                 // If `other` is `relocatable`, the comparison is invalid, return an error
                 .relocatable => .gt,
             },
@@ -460,7 +461,7 @@ pub const MaybeRelocatable = union(enum) {
     }!u64 {
         return switch (self.*) {
             .relocatable => CairoVMError.TypeMismatchNotFelt,
-            .felt => |felt| felt.intoU64(),
+            .felt => |felt| felt.toInt(u64),
         };
     }
 
@@ -512,9 +513,9 @@ pub const MaybeRelocatable = union(enum) {
     /// # Returns:
     ///   * A new MaybeRelocatable value after the addition operation.
     ///   * An error in case of type mismatch or specific math errors.
-    pub fn add(self: *const Self, other: Self) MathError!Self {
+    pub fn add(self: Self, other: Self) !Self {
         // Switch on the type of `self`
-        return switch (self.*) {
+        return switch (self) {
             // If `self` is of type `relocatable`
             .relocatable => |self_value| switch (other) {
                 // If `other` is also `relocatable`, addition is not supported, return an error
@@ -525,7 +526,7 @@ pub const MaybeRelocatable = union(enum) {
             // If `self` is of type `felt`
             .felt => |self_value| switch (other) {
                 // If `other` is also `felt`, perform addition on `self_value`
-                .felt => |fe| .{ .felt = self_value.add(fe) },
+                .felt => |fe| .{ .felt = self_value.add(&fe) },
                 // If `other` is `relocatable`, call `addFelt` method on `other` with `self_value`
                 .relocatable => |r| .{ .relocatable = try r.addFelt(self_value) },
             },
@@ -550,25 +551,21 @@ pub const MaybeRelocatable = union(enum) {
             // If `self` is of type `relocatable`
             .relocatable => |self_value| switch (other) {
                 // If `other` is also `relocatable`, call `sub` method on `self_value`
-                .relocatable => |r| blk: {
+                .relocatable => |r| value: {
                     if (self_value.segment_index == r.segment_index) {
                         const res: i128 = @as(i128, self_value.offset) - @as(i128, r.offset);
-
-                        break :blk if (res < 0)
-                            MaybeRelocatable.fromFelt(Felt252.fromInt(u128, @intCast(-res)).neg())
-                        else
-                            MaybeRelocatable.fromFelt(Felt252.fromInt(u128, @intCast(res)));
+                        break :value MaybeRelocatable.fromFelt(Felt252.fromInt(i128, res));
                     }
 
-                    break :blk CairoVMError.TypeMismatchNotRelocatable;
+                    break :value CairoVMError.TypeMismatchNotRelocatable;
                 },
                 // If `other` is `felt`, call `subFelt` method on `self_value`
-                .felt => |fe| .{ .relocatable = try self_value.subFelt(fe) },
+                .felt => |fe| .{ .relocatable = self_value.subFelt(fe) catch return MathError.RelocatableSubUsizeNegOffset },
             },
             // If `self` is of type `felt`
             .felt => |self_value| switch (other) {
                 // If `other` is also `felt`, perform subtraction on `self_value`
-                .felt => |fe| .{ .felt = self_value.sub(fe) },
+                .felt => |fe| .{ .felt = self_value.sub(&fe) },
                 // If `other` is `relocatable`, return an error as subtraction is not supported
                 .relocatable => MathError.SubRelocatableFromInt,
             },
@@ -596,7 +593,7 @@ pub const MaybeRelocatable = union(enum) {
                 // If `other` is also `relocatable`, multiplication is not supported, return an error
                 .relocatable => MathError.RelocatableMul,
                 // If `other` is `felt`, call `mul` method on `self_value`
-                .felt => |fe| .{ .felt = self_value.mul(fe) },
+                .felt => |fe| .{ .felt = self_value.mul(&fe) },
             },
         };
     }
@@ -616,10 +613,10 @@ pub const MaybeRelocatable = union(enum) {
     ///
     /// # Errors
     /// - Returns a `MemoryError` if encountering relocation issues or mismatches in the conversion.
-    pub fn relocateValue(self: *const Self, relocation_table: []usize) MemoryError!Felt252 {
-        return switch (self.*) {
+    pub fn relocateValue(self: Self, relocation_table: []usize) MemoryError!Felt252 {
+        return switch (self) {
             .felt => |fe| fe,
-            .relocatable => |r| Felt252.fromInt(u256, try r.relocateAddress(relocation_table)),
+            .relocatable => |r| Felt252.fromInt(usize, try r.relocateAddress(relocation_table)),
         };
     }
 
@@ -648,6 +645,7 @@ pub const MaybeRelocatable = union(enum) {
     /// # Returns
     /// A new `MaybeRelocatable` holding the converted field element (`Felt252`).
     pub fn fromInt(comptime T: type, value: T) Self {
+        std.debug.assert(@typeInfo(T).Int.bits <= 256);
         return .{ .felt = Felt252.fromInt(T, value) };
     }
 
@@ -954,7 +952,7 @@ test "Relocatable: subFelt should return an error if relocatable cannot be coerc
 
 test "Relocatable: subFelt should return an error if relocatable offset is smaller than Felt252" {
     try expectError(
-        MathError.RelocatableSubUsizeNegOffset,
+        MathError.ValueTooLarge,
         Relocatable.init(2, 7).subFelt(Felt252.fromInt(u8, 10)),
     );
 }
@@ -1268,7 +1266,7 @@ test "MaybeRelocatable: intoFelt should return an error if MaybeRelocatable is R
 
 test "MaybeRelocatable: intoU64 should return a u64 if MaybeRelocatable is Felt" {
     var maybeRelocatable = MaybeRelocatable.fromInt(u8, 10);
-    try expectEqual(@as(u64, @intCast(10)), try maybeRelocatable.intoU64());
+    try expectEqual(10, try maybeRelocatable.intoU64());
 }
 
 test "MaybeRelocatable: intoU64 should return an error if MaybeRelocatable is Relocatable" {
@@ -1477,7 +1475,7 @@ test "MaybeRelocatable.mul: should return Felt multiplication operation if both 
             u256,
             0x32,
         ),
-        (try result1.intoFelt()).toInteger(),
+        (try result1.intoFelt()).toU256(),
     );
 
     // Test Case 2
@@ -1495,7 +1493,7 @@ test "MaybeRelocatable.mul: should return Felt multiplication operation if both 
             u256,
             0x7fffffffffffbd0ffffffffffffffffffffffffffffffffffffffffffffffbf,
         ),
-        (try result2.intoFelt()).toInteger(),
+        (try result2.intoFelt()).toU256(),
     );
 }
 

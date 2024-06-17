@@ -9,12 +9,19 @@ const external_dependencies = [_]build_helpers.Dependency{
         .name = "zig-cli",
         .module_name = "zig-cli",
     },
+    .{
+        .name = "starknet",
+        .module_name = "ziggy-starkdust",
+    },
 };
 
 // Although this function looks imperative, note that its job is to
 // declaratively construct a build graph that will be executed by an external
 // runner.
 pub fn build(b: *std.Build) void {
+    const options = b.addOptions();
+    options.addOption(bool, "extensive", false);
+
     // Standard target options allows the person running `zig build` to choose
     // what target to build for. Here we do not override the defaults, which
     // means any target is allowed, and the default is native. Other options
@@ -46,7 +53,7 @@ pub fn build(b: *std.Build) void {
     // **************************************************************
     // expose ziggy-starkdust as a module
     _ = b.addModule(package_name, .{
-        .root_source_file = .{ .path = package_path },
+        .root_source_file = b.path(package_path),
         .imports = deps,
     });
 
@@ -57,7 +64,7 @@ pub fn build(b: *std.Build) void {
         .name = "ziggy-starkdust",
         // In this case the main source file is merely a path, however, in more
         // complicated build scripts, this could be a generated file.
-        .root_source_file = .{ .path = "src/lib.zig" },
+        .root_source_file = b.path("src/lib.zig"),
         .target = target,
         .optimize = optimize,
     });
@@ -78,10 +85,16 @@ pub fn build(b: *std.Build) void {
         .name = "ziggy-starkdust",
         // In this case the main source file is merely a path, however, in more
         // complicated build scripts, this could be a generated file.
-        .root_source_file = .{ .path = "src/main.zig" },
+        .root_source_file = b.path("src/main.zig"),
         .target = target,
         .optimize = optimize,
+
+        .link_libc = true,
+        .omit_frame_pointer = if (optimize == .ReleaseFast) null else false,
+        .strip = if (optimize == .ReleaseFast) true else null,
     });
+    exe.root_module.addOptions("cfg", options);
+
     // Add dependency modules to the executable.
     for (deps) |mod| exe.root_module.addImport(
         mod.name,
@@ -109,15 +122,7 @@ pub fn build(b: *std.Build) void {
         run_cmd.addArgs(args);
     }
 
-    integration_test(b, optimize, target);
-
-    // This creates a build step. It will be visible in the `zig build --help` menu,
-    // and can be selected like this: `zig build poseidon_consts_gen`
-    poseidon_consts_gen(b, optimize, target);
-
-    // This creates a build step. It will be visible in the `zig build --help` menu,
-    // and can be selected like this: `zig build pedersen_table_gen`
-    pedersen_table_gen(b, optimize, target);
+    integration_test(b, optimize, target, deps, options);
 
     // This creates a build step. It will be visible in the `zig build --help` menu,
     // and can be selected like this: `zig build run`
@@ -137,12 +142,12 @@ pub fn build(b: *std.Build) void {
     // Creates a step for unit testing. This only builds the test executable
     // but does not run it.
     const unit_tests = b.addTest(.{
-        .root_source_file = .{ .path = "src/tests.zig" },
+        .root_source_file = b.path("src/tests.zig"),
         .target = target,
         .optimize = optimize,
         .filter = test_filter,
-        .single_threaded = false,
     });
+    unit_tests.root_module.addOptions("cfg", options);
 
     // Add dependency modules to the tests.
     for (deps) |mod| unit_tests.root_module.addImport(
@@ -167,55 +172,31 @@ fn integration_test(
     b: *std.Build,
     mode: std.builtin.Mode,
     target: std.Build.ResolvedTarget,
+    deps: []std.Build.Module.Import,
+    options: *std.Build.Step.Options,
 ) void {
     const binary = b.addExecutable(.{
         .name = "integration_test",
-        .root_source_file = .{ .path = "src/integration_tests.zig" },
+        .root_source_file = b.path("src/integration_tests.zig"),
         .target = target,
         .optimize = mode,
+        .omit_frame_pointer = if (mode == .ReleaseFast) true else false,
+        .strip = true,
     });
+
+    binary.root_module.addOptions("cfg", options);
+
+    // Add dependency modules to the executable.
+    for (deps) |mod| binary.root_module.addImport(
+        mod.name,
+        mod.module,
+    );
 
     const integration_test_build = b.step("integration_test", "Build cli integration tests");
     integration_test_build.dependOn(&binary.step);
 
-    const install_step = b.addInstallArtifact(binary, .{});
+    const install_step = b.addRunArtifact(
+        binary,
+    );
     integration_test_build.dependOn(&install_step.step);
-}
-
-fn poseidon_consts_gen(
-    b: *std.Build,
-    mode: std.builtin.Mode,
-    target: std.Build.ResolvedTarget,
-) void {
-    const binary = b.addExecutable(.{
-        .name = "poseidon_consts_gen",
-        .root_source_file = .{ .path = "src/poseidon_consts_gen.zig" },
-        .target = target,
-        .optimize = mode,
-    });
-
-    const poseidon_consts_gen_build = b.step("poseidon_consts_gen", "Cli: poseidon consts generator");
-    poseidon_consts_gen_build.dependOn(&binary.step);
-
-    const install_step = b.addInstallArtifact(binary, .{});
-    poseidon_consts_gen_build.dependOn(&install_step.step);
-}
-
-fn pedersen_table_gen(
-    b: *std.Build,
-    mode: std.builtin.Mode,
-    target: std.Build.ResolvedTarget,
-) void {
-    const binary = b.addExecutable(.{
-        .name = "pedersen_table_gen",
-        .root_source_file = .{ .path = "src/pedersen_table_gen.zig" },
-        .target = target,
-        .optimize = mode,
-    });
-
-    const pedersen_table_gen_build = b.step("pedersen_table_gen", "Cli: pedersen table generator");
-    pedersen_table_gen_build.dependOn(&binary.step);
-
-    const install_step = b.addInstallArtifact(binary, .{});
-    pedersen_table_gen_build.dependOn(&install_step.step);
 }

@@ -32,7 +32,7 @@ pub fn usortEnterScope(allocator: std.mem.Allocator, exec_scopes: *ExecutionScop
 }
 
 fn orderFelt252(lhs: Felt252, rhs: Felt252) std.math.Order {
-    return lhs.cmp(rhs);
+    return lhs.cmp(&rhs);
 }
 
 /// improved binarysearch, return .found enum if found with index
@@ -70,6 +70,46 @@ pub fn binarySearch(
     };
 }
 
+fn partition(arr: []Felt252, low: usize, high: usize) usize {
+    //choose the pivot
+
+    const pivot = arr[high];
+    //Index of smaller element and Indicate
+    //the right position of pivot found so far
+    var i = low - 1;
+    var j = low;
+
+    while (j <= high) {
+        if (arr[j].cmp(&pivot).compare(.lt)) {
+            i += 1;
+            std.mem.swap(Felt252, &arr[i], &arr[j]);
+        }
+
+        j += 1;
+    }
+
+    std.mem.swap(Felt252, &arr[i + 1], &arr[high]);
+
+    return i + 1;
+}
+
+// The Quicksort function Implement
+
+fn quickSort(arr: []Felt252, low: usize, high: usize) void {
+    // when low is less than high
+    if (low < high) {
+        // pi is the partition return index of pivot
+
+        const pi = partition(arr, low, high);
+
+        //Recursion Call
+        //smaller element than pivot goes left and
+        //higher element goes right
+        quickSort(arr, low, pi - 1);
+        quickSort(arr, pi + 1, high);
+    }
+}
+
 pub fn usortBody(
     allocator: std.mem.Allocator,
     vm: *CairoVM,
@@ -79,7 +119,7 @@ pub fn usortBody(
 ) !void {
     const input_ptr = try hint_utils.getPtrFromVarName("input", vm, ids_data, ap_tracking);
     const input_len = try hint_utils.getIntegerFromVarName("input_len", vm, ids_data, ap_tracking);
-    const input_len_u64 = input_len.intoU64() catch return HintError.BigintToUsizeFail;
+    const input_len_u64 = input_len.toInt(u64) catch return HintError.BigintToUsizeFail;
 
     if (exec_scopes.getValue(u64, "usort_max_size")) |usort_max_size| {
         if (input_len_u64 > usort_max_size) return HintError.UsortOutOfRange;
@@ -95,11 +135,13 @@ pub fn usortBody(
         positions_dict.deinit();
     }
 
-    var output = std.ArrayList(Felt252).init(allocator);
+    var input = try vm.getFeltRange(input_ptr, input_len_u64);
+    defer input.deinit();
+
+    var output = try std.ArrayList(Felt252).initCapacity(allocator, input_len_u64);
     defer output.deinit();
 
-    for (0..input_len_u64) |i| {
-        const val = try vm.getFelt(try input_ptr.addUint(i));
+    for (input.items, 0..) |val, i| {
         switch (binarySearch(Felt252, val, output.items, orderFelt252)) {
             .not_found => |output_index| try output.insert(output_index, val),
             else => {},
@@ -120,7 +162,7 @@ pub fn usortBody(
         try entry.append(i);
     }
 
-    var multiplicities = std.ArrayList(usize).init(allocator);
+    var multiplicities = try std.ArrayList(usize).initCapacity(allocator, positions_dict.count());
     defer multiplicities.deinit();
 
     for (output.items) |k| {
@@ -203,7 +245,7 @@ pub fn verifyMultiplicityBody(
     const current_pos = (try exec_scopes
         .getValueRef(std.ArrayList(u64), "positions")).popOrNull() orelse return HintError.CouldntPopPositions;
 
-    const pos_diff = Felt252.fromInt(u64, current_pos).sub(try exec_scopes.getFelt("last_pos"));
+    const pos_diff = Felt252.fromInt(u64, current_pos).sub(&try exec_scopes.getFelt("last_pos"));
     try hint_utils.insertValueFromVarName(allocator, "next_item_index", MaybeRelocatable.fromFelt(pos_diff), vm, ids_data, ap_tracking);
 
     try exec_scopes.assignOrUpdateVariable("last_pos", .{ .felt = Felt252.fromInt(u64, current_pos + 1) });
@@ -229,7 +271,7 @@ test "Usort: usort out of range" {
         .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true),
     });
     //Initialize fp
-    vm.run_context.fp.* = 2;
+    vm.run_context.fp = 2;
     //Create hint_data
     var ids_data =
         try testing_utils.setupIdsForTestWithoutMemory(

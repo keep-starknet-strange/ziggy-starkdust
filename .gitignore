@@ -7,6 +7,7 @@ target/
 
 # Zig-specific build artifacts
 zig-cache/
+.zig-cache/
 zig-out/
 /release/
 /debug/
@@ -16,6 +17,11 @@ zig-out/
 docsite/
 cairo-vm-env
 cairo-vm
+tmp/
+
+# we dont need compiled cairo programs in repo
+/cairo_programs/*.json
+/cairo_programs/benchmarks/*.json
 
 # Misc
 .vscode/

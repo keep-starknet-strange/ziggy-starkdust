@@ -136,15 +136,15 @@ pub const Instruction = struct {
     /// Offset 0
     ///
     /// In the range [-2**15, 2*15) = [-2**(OFFSET_BITS-1), 2**(OFFSET_BITS-1)).
-    off_0: i16 = 0,
+    off_0: isize = 0,
     /// Offset 1
     ///
     /// In the range [-2**15, 2*15) = [-2**(OFFSET_BITS-1), 2**(OFFSET_BITS-1)).
-    off_1: i16 = 0,
+    off_1: isize = 0,
     /// Offset 2
     ///
     /// In the range [-2**15, 2*15) = [-2**(OFFSET_BITS-1), 2**(OFFSET_BITS-1)).
-    off_2: i16 = 0,
+    off_2: isize = 0,
     /// Destination register.
     dst_reg: Register = .FP,
     /// Operand 0 register.
@@ -196,8 +196,8 @@ pub const Instruction = struct {
     /// - `Tuple`: A tuple containing the deduced `op1` and `res`.
     pub fn deduceOp1(
         inst: *const Self,
-        dst: *const ?MaybeRelocatable,
-        op0: *const ?MaybeRelocatable,
+        dst: ?MaybeRelocatable,
+        op0: ?MaybeRelocatable,
     ) !struct {
         /// The computed operand Op1.
         op_1: ?MaybeRelocatable = null,
@@ -207,11 +207,11 @@ pub const Instruction = struct {
         if (inst.opcode != .AssertEq) return .{};
 
         switch (inst.res_logic) {
-            .Op1 => if (dst.*) |dst_val| return .{ .op_1 = dst_val, .res = dst_val },
-            .Add => if (dst.*) |d|
-                if (op0.*) |op| return .{ .op_1 = try d.sub(op), .res = d },
-            .Mul => if (dst.*) |d| {
-                if (op0.*) |op| {
+            .Op1 => if (dst) |dst_val| return .{ .op_1 = dst_val, .res = dst_val },
+            .Add => if (dst) |d|
+                if (op0) |op| return .{ .op_1 = try d.sub(op), .res = d },
+            .Mul => if (dst) |d| {
+                if (op0) |op| {
                     if (d.isFelt() and op.isFelt() and !op.felt.isZero())
                         return .{
                             .op_1 = MaybeRelocatable.fromFelt(try d.felt.div(op.felt)),
@@ -232,7 +232,7 @@ pub const Instruction = struct {
     /// - `op_1`: The operand 1.
     /// # Returns
     /// - `res`: The result of the operation.
-    pub fn computeRes(
+    pub inline fn computeRes(
         instruction: *const Self,
         op_0: MaybeRelocatable,
         op_1: MaybeRelocatable,
@@ -360,7 +360,7 @@ pub fn fromBiasedRepresentation(biased_repr: u16) i16 {
 /// # Returns
 /// `true` if the instruction, after decoding, is identified as a CALL instruction; otherwise, `false`.
 pub fn isCallInstruction(encoded_instruction: Felt252) bool {
-    return (decoder.decodeInstructions(encoded_instruction.intoU64() catch return false) catch return false).isCallInstruction();
+    return (decoder.decodeInstructions(encoded_instruction.toInt(u64) catch return false) catch return false).isCallInstruction();
 }
 
 // ************************************************************
@@ -400,7 +400,7 @@ test "deduceOp1 when opcode == .Call" {
     var instr = deduceOpTestInstr;
     instr.opcode = .Call;
 
-    const op1Deduction = try instr.deduceOp1(&null, &null);
+    const op1Deduction = try instr.deduceOp1(null, null);
 
     // Test checks
     const expected_op_1: ?MaybeRelocatable = null; // temp var needed for type inference
@@ -421,7 +421,7 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Add, input is felt" {
     const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 3);
     const op0: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 2);
 
-    const op1Deduction = try instr.deduceOp1(&dst, &op0);
+    const op1Deduction = try instr.deduceOp1(dst, op0);
 
     // Test checks
     try expect(op1Deduction.op_1.?.eq(MaybeRelocatable.fromInt(u64, 1)));
@@ -440,7 +440,7 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, non-zero op0" {
     const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 4);
     const op0: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 2);
 
-    const op1Deduction = try instr.deduceOp1(&dst, &op0);
+    const op1Deduction = try instr.deduceOp1(dst, op0);
 
     // Test checks
     try expect(op1Deduction.op_1.?.eq(MaybeRelocatable.fromInt(u64, 2)));
@@ -459,7 +459,7 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Mul, zero op0" {
     const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 4);
     const op0: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 0);
 
-    const op1Deduction = try instr.deduceOp1(&dst, &op0);
+    const op1Deduction = try instr.deduceOp1(dst, op0);
 
     // Test checks
     const expected_op_1: ?MaybeRelocatable = null; // temp var needed for type inference
@@ -477,7 +477,7 @@ test "deduceOp1 when opcode == .AssertEq, res_logic = .Mul, no input" {
     instr.opcode = .AssertEq;
     instr.res_logic = .Mul;
 
-    const op1Deduction = try instr.deduceOp1(&null, &null);
+    const op1Deduction = try instr.deduceOp1(null, null);
 
     // Test checks
     const expected_op_1: ?MaybeRelocatable = null; // temp var needed for type inference
@@ -497,7 +497,7 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no dst" {
 
     const op0: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 0);
 
-    const op1Deduction = try instr.deduceOp1(&null, &op0);
+    const op1Deduction = try instr.deduceOp1(null, op0);
 
     // Test checks
     const expected_op_1: ?MaybeRelocatable = null; // temp var needed for type inference
@@ -517,7 +517,7 @@ test "deduceOp1 when opcode == .AssertEq, res_logic == .Op1, no op0" {
 
     const dst: ?MaybeRelocatable = MaybeRelocatable.fromInt(u64, 7);
 
-    const op1Deduction = try instr.deduceOp1(&dst, &null);
+    const op1Deduction = try instr.deduceOp1(dst, null);
 
     // Test checks
     try expect(op1Deduction.op_1.?.eq(MaybeRelocatable.fromInt(u64, 7)));

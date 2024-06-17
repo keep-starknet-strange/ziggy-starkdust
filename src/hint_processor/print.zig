@@ -9,9 +9,10 @@ const HintError = @import("../vm/error.zig").HintError;
 const MaybeRelocatable = @import("../vm/memory/relocatable.zig").MaybeRelocatable;
 const ExecutionScopes = @import("../vm/types/execution_scopes.zig").ExecutionScopes;
 const dict_manager = @import("../hint_processor/dict_manager.zig");
+
 pub fn printFelt(_: Allocator, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {
     const val = try hint_utils.getIntegerFromVarName("x", vm, ids_data, ap_tracking);
-    std.debug.print("{}\n", .{val});
+    std.log.err("{}\n", .{val.toU256()});
 }
 
 pub fn printName(_: Allocator, vm: *CairoVM, ids_data: std.StringHashMap(HintReference), ap_tracking: ApTracking) !void {
@@ -23,7 +24,8 @@ pub fn printArray(allocator: Allocator, vm: *CairoVM, ids_data: std.StringHashMa
     try printName(allocator, vm, ids_data, ap_tracking);
     const arr = try hint_utils.getPtrFromVarName("arr", vm, ids_data, ap_tracking);
     const temp = try hint_utils.getIntegerFromVarName("arr_len", vm, ids_data, ap_tracking);
-    const arr_len = try temp.intoUsize();
+    const arr_len = try temp.toInt(usize);
+
     var acc = try allocator.alloc(Felt252, arr_len);
     defer allocator.free(acc);
     for (0..arr_len) |i| {
@@ -41,7 +43,7 @@ pub fn printDict(allocator: Allocator, vm: *CairoVM, exec_scopes: *ExecutionScop
     try printName(allocator, vm, ids_data, ap_tracking);
     const dict_ptr = try hint_utils.getPtrFromVarName("dict_ptr", vm, ids_data, ap_tracking);
     const pointer_size_felt = try hint_utils.getIntegerFromVarName("pointer_size", vm, ids_data, ap_tracking);
-    const pointer_size = try pointer_size_felt.intoUsize();
+    const pointer_size = try pointer_size_felt.toInt(usize);
     if (pointer_size < 0) {
         return error.HintError("pointer_size is negative");
     }

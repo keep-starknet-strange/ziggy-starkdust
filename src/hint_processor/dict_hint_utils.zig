@@ -325,7 +325,7 @@ test "DictHintUtils: dictRead valid" {
         .{ .{ 1, 0 }, .{5} },
         .{ .{ 1, 2 }, .{ 2, 0 } },
     });
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
 
     var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();
@@ -366,7 +366,7 @@ test "DictHintUtils: dictRead invalid key" {
         .{ .{ 1, 0 }, .{6} },
         .{ .{ 1, 2 }, .{ 2, 0 } },
     });
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
 
     var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();
@@ -406,7 +406,7 @@ test "DictHintUtils: dictRead no tracker" {
         .{ .{ 1, 0 }, .{6} },
         .{ .{ 1, 2 }, .{ 2, 0 } },
     });
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
 
     var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();
@@ -441,9 +441,9 @@ test "DictHintUtils: defaultDictInit valid" {
     var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();
 
-    vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.ap.* = 1;
-    vm.run_context.fp.* = 1;
+    vm.run_context.pc = Relocatable.init(0, 0);
+    vm.run_context.ap = 1;
+    vm.run_context.fp = 1;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{17} },
@@ -485,7 +485,7 @@ test "DictHintUtils: dictWrite valid empty dict" {
 
     try testing_utils.initDictManagerDefault(std.testing.allocator, &exec_scopes, 2, 2, &.{});
 
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{5} },
@@ -524,7 +524,7 @@ test "DictHintUtils: dictWriteSimple valid overwrite value" {
 
     try testing_utils.initDictManager(std.testing.allocator, &exec_scopes, 2, &.{.{ 5, 10 }});
 
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{5} },
@@ -564,7 +564,7 @@ test "DictHintUtils: dictUpdate simple valid" {
 
     try testing_utils.initDictManager(std.testing.allocator, &exec_scopes, 2, &.{.{ 5, 10 }});
 
-    vm.run_context.fp.* = 4;
+    vm.run_context.fp = 4;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{5} },
@@ -603,7 +603,7 @@ test "DictHintUtils: dictUpdate simple valid no change" {
 
     try testing_utils.initDictManager(std.testing.allocator, &exec_scopes, 2, &.{.{ 5, 10 }});
 
-    vm.run_context.fp.* = 4;
+    vm.run_context.fp = 4;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{5} },
@@ -642,7 +642,7 @@ test "DictHintUtils: dictUpdate simple invalid wrong prev key" {
 
     try testing_utils.initDictManager(std.testing.allocator, &exec_scopes, 2, &.{.{ 5, 10 }});
 
-    vm.run_context.fp.* = 4;
+    vm.run_context.fp = 4;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{5} },
@@ -678,7 +678,7 @@ test "DictHintUtils: dictUpdate default valid no change" {
 
     try testing_utils.initDictManagerDefault(std.testing.allocator, &exec_scopes, 2, 2, &.{.{ 5, 10 }});
 
-    vm.run_context.fp.* = 4;
+    vm.run_context.fp = 4;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{5} },
@@ -717,7 +717,7 @@ test "DictHintUtils: dictUpdate default valid" {
 
     try testing_utils.initDictManagerDefault(std.testing.allocator, &exec_scopes, 2, 2, &.{.{ 5, 10 }});
 
-    vm.run_context.fp.* = 4;
+    vm.run_context.fp = 4;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{5} },
@@ -756,7 +756,7 @@ test "DictHintUtils: dictUpdate default invalid wrong prev key" {
 
     try testing_utils.initDictManagerDefault(std.testing.allocator, &exec_scopes, 2, 2, &.{.{ 5, 10 }});
 
-    vm.run_context.fp.* = 4;
+    vm.run_context.fp = 4;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{5} },
@@ -792,7 +792,7 @@ test "DictHintUtils: dictUpdate default valid no key prev value equals default" 
 
     try testing_utils.initDictManagerDefault(std.testing.allocator, &exec_scopes, 2, 17, &.{});
 
-    vm.run_context.fp.* = 4;
+    vm.run_context.fp = 4;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{5} },
@@ -831,7 +831,7 @@ test "DictHintUtils: dictSquashCopyDict valid empty dict" {
 
     try testing_utils.initDictManager(std.testing.allocator, &exec_scopes, 2, &.{});
 
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{ 2, 0 } },
@@ -876,7 +876,7 @@ test "DictHintUtils: dictSquashCopyDict valid non-empty dict" {
 
     try testing_utils.initDictManager(std.testing.allocator, &exec_scopes, 2, &.{ .{ 1, 2 }, .{ 3, 4 }, .{ 5, 6 } });
 
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{ 2, 0 } },
@@ -927,7 +927,7 @@ test "DictHintUtils: dictSquashUpdate ptr no tracker" {
         .dict_manager = try Rc(DictManager).init(std.testing.allocator, try DictManager.init(std.testing.allocator)),
     });
 
-    vm.run_context.fp.* = 2;
+    vm.run_context.fp = 2;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{ 2, 0 } },
@@ -963,7 +963,7 @@ test "DictHintUtils: dictSquashUpdate ptr valid" {
 
     try testing_utils.initDictManager(std.testing.allocator, &exec_scopes, 2, &.{.{ 1, 2 }});
 
-    vm.run_context.fp.* = 2;
+    vm.run_context.fp = 2;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{ 2, 0 } },
@@ -1001,7 +1001,7 @@ test "DictHintUtils: dictSquashUpdate ptr mismatched dict ptr" {
 
     try testing_utils.initDictManager(std.testing.allocator, &exec_scopes, 2, &.{.{ 1, 2 }});
 
-    vm.run_context.fp.* = 2;
+    vm.run_context.fp = 2;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{ 2, 3 } },
@@ -1036,7 +1036,7 @@ test "DictHintUtils: dictWrite valid relocatable new value" {
 
     try testing_utils.initDictManagerDefault(std.testing.allocator, &exec_scopes, 2, 2, &.{});
 
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{5} },

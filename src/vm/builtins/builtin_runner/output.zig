@@ -149,7 +149,7 @@ pub const OutputBuiltinRunner = struct {
     ///
     /// The count of used memory cells associated with the OutputBuiltinRunner's base address.
     /// If the information is unavailable, it returns MemoryError.MissingSegmentUsedSizes.
-    pub fn getUsedCells(self: *const Self, segments: *MemorySegmentManager) !u32 {
+    pub fn getUsedCells(self: *const Self, segments: *MemorySegmentManager) !usize {
         return segments.getSegmentUsedSize(
             @intCast(self.base),
         ) orelse MemoryError.MissingSegmentUsedSizes;
@@ -171,7 +171,7 @@ pub const OutputBuiltinRunner = struct {
     ///
     /// The count of used instances associated with the OutputBuiltinRunner's base address.
     /// If the information is unavailable, it returns MemoryError.MissingSegmentUsedSizes.
-    pub fn getUsedInstances(self: *Self, segments: *MemorySegmentManager) !u32 {
+    pub fn getUsedInstances(self: *Self, segments: *MemorySegmentManager) !usize {
         return try self.getUsedCells(segments);
     }
 
@@ -432,9 +432,11 @@ test "OutputBuiltinRunner: getUsedCells should return memory error if segment us
 test "OutputBuiltinRunner: getUsedCells should return the number of used cells" {
     var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
     defer output_builtin.deinit();
+
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    try memory_segment_manager.segment_used_sizes.put(0, 10);
+
+    try memory_segment_manager.segment_used_sizes.append(10);
     try expectEqual(
         @as(
             u32,
@@ -458,11 +460,14 @@ test "OutputBuiltinRunner: getUsedInstances should return memory error if segmen
 test "OutputBuiltinRunner: getUsedInstances should return the number of used instances" {
     var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
     defer output_builtin.deinit();
+
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
-    try memory_segment_manager.segment_used_sizes.put(0, 345);
+
+    try memory_segment_manager.segment_used_sizes.append(345);
+
     try expectEqual(
-        @as(u32, @intCast(345)),
+        345,
         try output_builtin.getUsedInstances(memory_segment_manager),
     );
 }
@@ -595,7 +600,8 @@ test "OutputBuiltinRunner: finalStack should return InvalidStopPointer error if 
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
-    try memory_segment_manager.segment_used_sizes.put(22, 345);
+    try memory_segment_manager.segment_used_sizes.appendNTimes(0, 22);
+    try memory_segment_manager.segment_used_sizes.append(345);
     try expectError(
         RunnerError.InvalidStopPointer,
         output_builtin.finalStack(
@@ -628,7 +634,9 @@ test "OutputBuiltinRunner: finalStack should return stop pointer address and upd
     );
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
-    try memory_segment_manager.segment_used_sizes.put(22, 345);
+    try memory_segment_manager.segment_used_sizes.appendNTimes(0, 22);
+    try memory_segment_manager.segment_used_sizes.append(345);
+
     try expectEqual(
         Relocatable.init(2, 1),
         try output_builtin.finalStack(

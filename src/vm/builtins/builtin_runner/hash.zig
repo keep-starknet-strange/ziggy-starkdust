@@ -19,7 +19,7 @@ const Allocator = std.mem.Allocator;
 const ArrayList = std.ArrayList;
 const MemorySegmentManager = Segments.MemorySegmentManager;
 const RunnerError = Error.RunnerError;
-const pedersen_hash = @import("../../../math/crypto/pedersen/pedersen.zig").pedersenHash;
+const pedersen_hash = @import("starknet").crypto.pedersenHash;
 const CairoVMError = @import("../../../vm/error.zig").CairoVMError;
 
 /// Hash built-in runner
@@ -118,7 +118,7 @@ pub const HashBuiltinRunner = struct {
     ///
     /// The number of used cells as a `u32`, or `MemoryError.MissingSegmentUsedSizes` if
     /// the size is not available.
-    pub fn getUsedCells(self: *const Self, segments: *MemorySegmentManager) !u32 {
+    pub fn getUsedCells(self: *const Self, segments: *MemorySegmentManager) !usize {
         return segments.getSegmentUsedSize(
             @intCast(self.base),
         ) orelse MemoryError.MissingSegmentUsedSizes;
@@ -235,26 +235,22 @@ pub const HashBuiltinRunner = struct {
         memory: *Memory,
     ) !?MaybeRelocatable {
         // hash has already been processed
-        if ((address.offset < self.verified_addresses.items.len) and self.verified_addresses.items[address.offset]) {
-            return null;
-        }
         if (address.offset % @as(u64, self.cells_per_instance) != 2) {
             return null;
         }
-        const a = (memory.get(Relocatable.init(address.segment_index, address.offset - 2)) orelse return null).intoFelt() catch {
-            return RunnerError.BuiltinExpectedInteger;
-        };
-        const b = (memory.get(Relocatable.init(address.segment_index, address.offset - 1)) orelse return null).intoFelt() catch {
-            return RunnerError.BuiltinExpectedInteger;
-        };
+        if ((address.offset < self.verified_addresses.items.len) and self.verified_addresses.items[address.offset]) {
+            return null;
+        }
 
-        const pedersen_result = pedersen_hash(a, b);
+        const num_a = memory.getFelt(Relocatable.init(address.segment_index, address.offset - 1)) catch return null;
 
-        try self.verified_addresses.ensureTotalCapacityPrecise(address.offset);
-        self.verified_addresses.expandToCapacity();
-        try self.verified_addresses.insert(address.offset, true);
+        const num_b = memory.getFelt(Relocatable.init(address.segment_index, address.offset - 2)) catch return null;
 
-        return (MaybeRelocatable.fromFelt(pedersen_result));
+        if (self.verified_addresses.items.len <= address.offset) try self.verified_addresses.appendNTimes(false, address.offset + 1 - self.verified_addresses.items.len);
+
+        self.verified_addresses.items[address.offset] = true;
+
+        return MaybeRelocatable.fromFelt(pedersen_hash(num_b, num_a));
     }
 
     /// Frees the resources owned by this instance of `HashBuiltinRunner`.
@@ -296,7 +292,7 @@ test "HashBuiltinRunner: get used instances" {
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memory_segment_manager.segment_used_sizes.put(0, 345);
+    try memory_segment_manager.segment_used_sizes.append(345);
     try expectEqual(hash_builtin.getUsedInstances(memory_segment_manager), @as(usize, @intCast(115)));
 }
 
@@ -319,14 +315,9 @@ test "HashBuiltinRunner: final stack success" {
         .{ .{ 2, 1 }, .{ 0, 0 } },
     });
 
-    var segment_used_size = std.ArrayHashMap(
-        i64,
-        u32,
-        std.array_hash_map.AutoContext(i64),
-        false,
-    ).init(std.testing.allocator);
+    var segment_used_size = std.ArrayList(usize).init(std.testing.allocator);
 
-    try segment_used_size.put(0, 0);
+    try segment_used_size.append(0);
     vm.segments.segment_used_sizes = segment_used_size;
     const pointer = Relocatable.init(2, 2);
     try expectEqual(Relocatable.init(2, 1), try hash_builtin.finalStack(vm.segments, pointer));
@@ -352,13 +343,8 @@ test "HashBuiltinRunner: final stack error stop pointer" {
         .{ .{ 2, 1 }, .{ 0, 0 } },
     });
 
-    var segment_used_size = std.ArrayHashMap(
-        i64,
-        u32,
-        std.array_hash_map.AutoContext(i64),
-        false,
-    ).init(std.testing.allocator);
-    try segment_used_size.put(0, 999);
+    var segment_used_size = std.ArrayList(usize).init(std.testing.allocator);
+    try segment_used_size.append(999);
     vm.segments.segment_used_sizes = segment_used_size;
     const pointer = Relocatable.init(2, 2);
     try expectError(RunnerError.InvalidStopPointer, hash_builtin.finalStack(vm.segments, pointer));
@@ -383,7 +369,7 @@ test "HashBuiltinRunner: final stack error when not included" {
         .{ .{ 2, 1 }, .{ 0, 0 } },
     });
 
-    try vm.segments.segment_used_sizes.put(0, 0);
+    try vm.segments.segment_used_sizes.append(0);
 
     const pointer = Relocatable.init(2, 2);
     try expectEqual(Relocatable.init(2, 2), try hash_builtin.finalStack(vm.segments, pointer));
@@ -408,13 +394,8 @@ test "HashBuiltinRunner: final stack error non relocatable" {
         .{ .{ 2, 1 }, .{2} },
     });
 
-    var segment_used_size = std.ArrayHashMap(
-        i64,
-        u32,
-        std.array_hash_map.AutoContext(i64),
-        false,
-    ).init(std.testing.allocator);
-    try segment_used_size.put(0, 0);
+    var segment_used_size = std.ArrayList(usize).init(std.testing.allocator);
+    try segment_used_size.append(0);
 
     vm.segments.segment_used_sizes = segment_used_size;
 
@@ -560,14 +541,9 @@ test "HashBuiltinRunner: get memory accesses empty" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    var segment_used_size = std.ArrayHashMap(
-        i64,
-        u32,
-        std.array_hash_map.AutoContext(i64),
-        false,
-    ).init(std.testing.allocator);
+    var segment_used_size = std.ArrayList(usize).init(std.testing.allocator);
 
-    try segment_used_size.put(0, 0);
+    try segment_used_size.append(0);
     vm.segments.segment_used_sizes = segment_used_size;
 
     var actual = try hash_builtin.getMemoryAccesses(std.testing.allocator, &vm);
@@ -588,7 +564,7 @@ test "HashBuiltinRunner: get memory accesses valid" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    try vm.segments.segment_used_sizes.put(0, 4);
+    try vm.segments.segment_used_sizes.append(4);
 
     const expected = [_]Relocatable{ Relocatable.init(@as(i64, @intCast(hash_builtin.base)), 0), Relocatable.init(@as(i64, @intCast(hash_builtin.base)), 1), Relocatable.init(@as(i64, @intCast(hash_builtin.base)), 2), Relocatable.init(@as(i64, @intCast(hash_builtin.base)), 3) };
 
@@ -628,7 +604,7 @@ test "HashBuiltinRunner: get used cells empty" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    try vm.segments.segment_used_sizes.put(0, 0);
+    try vm.segments.segment_used_sizes.append(0);
 
     try expectEqual(@as(?usize, 0), try hash_builtin.getUsedCells(vm.segments));
 }
@@ -647,7 +623,7 @@ test "HashBuiltinRunner: get used cells valid" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    try vm.segments.segment_used_sizes.put(0, 4);
+    try vm.segments.segment_used_sizes.append(4);
 
     try expectEqual(@as(?usize, 4), try hash_builtin.getUsedCells(vm.segments));
 }

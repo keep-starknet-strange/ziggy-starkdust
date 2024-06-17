@@ -1,5 +1,6 @@
 const std = @import("std");
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
+const feltFromBigInt = @import("../../../math/fields/starknet.zig").fromBigInt;
 const Relocatable = @import("../../../vm/memory/relocatable.zig").Relocatable;
 const CairoVM = @import("../../../vm/core.zig").CairoVM;
 const HintError = @import("../../../vm/error.zig").HintError;
@@ -21,6 +22,8 @@ const bigInt3Split = secp_utils.bigInt3Split;
 const BigInt = std.math.big.int.Managed;
 const BASE = @import("../../../math//fields/constants.zig").BASE;
 const hint_codes = @import("../../builtin_hint_codes.zig");
+
+const field_helper = @import("../../../math/fields/helper.zig");
 
 pub const BigInt3 = BigIntN(3);
 pub const Uint384 = BigIntN(3);
@@ -76,7 +79,7 @@ pub fn BigIntN(comptime NUM_LIMBS: usize) type {
             errdefer result.deinit();
 
             inline for (0..3) |i| {
-                var tmp = try self.limbs[i].toSignedBigInt(allocator);
+                var tmp = try self.limbs[i].toStdBigSignedInt(allocator);
                 defer tmp.deinit();
 
                 try tmp.shiftLeft(&tmp, i * 86);
@@ -115,9 +118,9 @@ pub fn nondetBigInt3(allocator: std.mem.Allocator, vm: *CairoVM, exec_scopes: *E
     defer for (0..arg.len) |x| arg[x].deinit();
 
     const result: [3]MaybeRelocatable = .{
-        MaybeRelocatable.fromInt(u512, try arg[0].to(u512)),
-        MaybeRelocatable.fromInt(u512, try arg[1].to(u512)),
-        MaybeRelocatable.fromInt(u512, try arg[2].to(u512)),
+        MaybeRelocatable.fromFelt(try feltFromBigInt(allocator, arg[0])),
+        MaybeRelocatable.fromFelt(try feltFromBigInt(allocator, arg[1])),
+        MaybeRelocatable.fromFelt(try feltFromBigInt(allocator, arg[2])),
     };
 
     _ = try vm.segments.loadData(allocator, res_reloc, result[0..]);
@@ -136,7 +139,7 @@ pub fn bigintToUint256(allocator: std.mem.Allocator, vm: *CairoVM, ids_data: std
 
     const mask = pow2ConstNz(128);
 
-    const low = (d0.add(d1.mul(base_86))).mod(mask);
+    const low = ((d0.add(&d1.mul(&base_86))).modFloor2(mask));
 
     try hint_utils.insertValueFromVarName(allocator, "low", MaybeRelocatable.fromFelt(low), vm, ids_data, ap_tracking);
 }
@@ -148,13 +151,13 @@ pub fn hiMaxBitlen(vm: *CairoVM, allocator: std.mem.Allocator, ids_data: std.Str
     var scalar_v = try BigInt3.fromVarName("scalar_v", vm, ids_data, ap_tracking);
 
     // get number of bits in the highest limb
-    const len_hi_u = scalar_u.limbs[2].numBits();
-    const len_hi_v = scalar_v.limbs[2].numBits();
+    const len_hi_u = scalar_u.limbs[2].numBitsLe();
+    const len_hi_v = scalar_v.limbs[2].numBitsLe();
 
     const len_hi = @max(len_hi_u, len_hi_v);
 
     // equal to `len_hi.wrapping_sub(1)`
-    const res = if (len_hi == 0) Felt252.Max.toInteger() else len_hi - 1;
+    const res = if (len_hi == 0) field_helper.felt252MaxValue().toU256() else len_hi - 1;
 
     try hint_utils.insertValueFromVarName(allocator, "len_hi", MaybeRelocatable.fromInt(u256, res), vm, ids_data, ap_tracking);
 }
@@ -248,7 +251,7 @@ test "BigIntUtils: get bigint3 from var name ok" {
         .{ .{ 1, 2 }, .{3} },
     });
 
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
@@ -275,7 +278,7 @@ test "BigIntUtils: get bigint5 from var name ok" {
         .{ .{ 1, 4 }, .{5} },
     });
 
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
@@ -303,7 +306,7 @@ test "BigIntUtils: get bigint3 from var name with missing member fail" {
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{"x"});
     defer ids_data.deinit();
@@ -325,7 +328,7 @@ test "BigIntUtils: get bigint5 from var name with missing member should fail" {
 
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     var ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{"x"});
     defer ids_data.deinit();
@@ -401,8 +404,8 @@ test "BigIntUtils: Run hiMaxBitlen ok" {
     });
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 0;
-    vm.run_context.ap.* = 7;
+    vm.run_context.fp = 0;
+    vm.run_context.ap = 7;
 
     //Execute the hint
     const hint_code = "ids.len_hi = max(ids.scalar_u.d2.bit_length(), ids.scalar_v.d2.bit_length())-1";
@@ -426,9 +429,9 @@ test "BigIntUtils: nondet bigint3 ok" {
 
     try exec_scopes.assignOrUpdateVariable("value", .{ .big_int = try Int.initSet(std.testing.allocator, 7737125245533626718119526477371252455336267181195264773712524553362) });
 
-    vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.ap.* = 6;
-    vm.run_context.fp.* = 6;
+    vm.run_context.pc = Relocatable.init(0, 0);
+    vm.run_context.ap = 6;
+    vm.run_context.fp = 6;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(
         std.testing.allocator,
@@ -491,9 +494,9 @@ test "BigIntUtils: nondet bigint3 value not in scope" {
     var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();
 
-    vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.ap.* = 6;
-    vm.run_context.fp.* = 6;
+    vm.run_context.pc = Relocatable.init(0, 0);
+    vm.run_context.ap = 6;
+    vm.run_context.fp = 6;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(
         std.testing.allocator,

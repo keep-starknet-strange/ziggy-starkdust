@@ -164,7 +164,7 @@ pub fn bigIntIntGetSquareRoot(
         try Int.initSet(allocator, 0);
     defer root_gx.deinit();
 
-    if (!x.eqlZero() and success_x == success_gx)
+    if (!x.eqlZero() and (@intFromBool(success_x) ^ @intFromBool(success_gx)) == 0)
         return HintError.AssertionFailed;
 
     try hint_utils.insertValueFromVarName(
@@ -252,7 +252,7 @@ test "FieldArithmetic: run u384 getSquareOk goldilocks prime" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     //Initialize fp
-    vm.run_context.fp.* = 14;
+    vm.run_context.fp = 14;
     //Create hint_data
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "p", -14 },
@@ -308,7 +308,7 @@ test "FieldArithmetic: run u384 getSquareOk success gx" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     //Initialize fp
-    vm.run_context.fp.* = 14;
+    vm.run_context.fp = 14;
     //Create hint_data
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "p", -14 },
@@ -364,7 +364,7 @@ test "FieldArithmetic: run u384 getSquareOk no successes" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     //Initialize fp
-    vm.run_context.fp.* = 14;
+    vm.run_context.fp = 14;
     //Create hint_data
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "p", -14 },
@@ -402,7 +402,7 @@ test "FieldArithmetic: run u384 getSquareOk no successes" {
             std.testing.allocator,
             &vm,
             ids_data,
-            hint_codes.UINT256_GET_SQUARE_ROOT,
+            hint_codes.UINT384_GET_SQUARE_ROOT,
             undefined,
             undefined,
         ),
@@ -415,7 +415,7 @@ test "FieldArithmetic: run u384 div ok" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     //Initialize fp
-    vm.run_context.fp.* = 11;
+    vm.run_context.fp = 11;
     //Create hint_data
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -11 },
@@ -467,7 +467,7 @@ test "FieldArithmetic: run u384 div b is zero" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     //Initialize fp
-    vm.run_context.fp.* = 11;
+    vm.run_context.fp = 11;
     //Create hint_data
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "a", -11 },

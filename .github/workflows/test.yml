@@ -17,11 +17,6 @@ jobs:
         with:
           zig-version: master
 
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
-
       - name: Build
         run: make build
 
@@ -48,10 +43,10 @@ jobs:
         with:
           zig-version: master
 
-      - name: Setup Rust
-        uses: actions-rs/toolchain@v1
-        with:
-          toolchain: stable
+      # - name: Setup Rust
+      #   uses: actions-rs/toolchain@v1
+      #   with:
+      #     toolchain: stable
 
       - name: Test
         run: |
@@ -68,8 +63,27 @@ jobs:
         with:
           zig-version: master
 
+      # - name: Setup Rust
+      #   uses: actions-rs/toolchain@v1
+      #   with:
+      #     toolchain: stable
+
+      - name: Install python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+
+        # NOTE: we do it in one step because GitHub cleans the PATH between steps
+      - name: Install dependencies and compile project
+        run: |
+          source scripts/install/install-ubuntu.sh
+          make check
+
+      - name: Compile cairo programs
+        run: |
+          make compile-cairo-programs
+
       - name: Integration test
         run: |
           zig version
-          make build-integration-test
-          ./zig-out/bin/integration_test
+          zig build -Doptimize=ReleaseFast integration_test

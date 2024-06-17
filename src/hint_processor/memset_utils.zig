@@ -55,10 +55,10 @@ pub fn memsetStepLoop(
     // get `n` variable from vm scope
     var n = try exec_scopes.getValueRef(Felt252, "n");
     // this variable will hold the value of `n - 1`
-    n.* = n.sub(Felt252.one());
+    n.* = n.sub(&Felt252.one());
     // if `new_n` is positive, insert 1 in the address of `continue_loop`
     // else, insert 0
-    const flag = if (n.gt(Felt252.zero())) Felt252.one() else Felt252.zero();
+    const flag = if (n.cmp(&Felt252.zero()).compare(.gt)) Felt252.one() else Felt252.zero();
     try hint_utils.insertValueFromVarName(allocator, i_name, MaybeRelocatable.fromFelt(flag), vm, ids_data, ap_tracking);
     // Reassign `n` with `n - 1`
     // we do it at the end of the function so that the borrow checker doesn't complain
@@ -70,7 +70,7 @@ test "MemsetUtils: enterScope valid" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     // initialize vm
-    vm.run_context.fp.* = 2;
+    vm.run_context.fp = 2;
     // insert ids into memory
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 1 }, .{5} },
@@ -105,7 +105,7 @@ test "MemsetUtils: enterScope invalid" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     // initialize vm
-    vm.run_context.fp.* = 2;
+    vm.run_context.fp = 2;
     // insert ids into memory
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 1 }, .{ 1, 0 } },
@@ -138,7 +138,7 @@ test "MemsetUtils: continue loop valid continue loop equal 1" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     // initialize vm
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
     // insert ids into memory
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 1 }, .{5} },
@@ -176,7 +176,7 @@ test "MemsetUtils: continue loop valid continue loop equal 5" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     // initialize vm
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
     // insert ids into memory
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 2 }, .{5} },
@@ -214,7 +214,7 @@ test "MemsetUtils: continue loop " {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     // initialize vm
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
     // insert ids into memory
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 2 }, .{5} },

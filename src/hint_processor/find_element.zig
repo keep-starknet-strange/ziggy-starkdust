@@ -49,7 +49,7 @@ pub fn findElement(
 ) !void {
     // Retrieve key, element size, number of elements, and array start pointer.
     const key = try hint_utils.getIntegerFromVarName("key", vm, ids_datas, ap_tracking);
-    const elm_size_bigint = (try hint_utils.getIntegerFromVarName("elm_size", vm, ids_datas, ap_tracking)).toInteger();
+    const elm_size_bigint = (try hint_utils.getIntegerFromVarName("elm_size", vm, ids_datas, ap_tracking)).toU256();
     const n_elms = try hint_utils.getIntegerFromVarName("n_elms", vm, ids_datas, ap_tracking);
     const array_start = try hint_utils.getPtrFromVarName("array_ptr", vm, ids_datas, ap_tracking);
 
@@ -64,14 +64,14 @@ pub fn findElement(
 
     if (find_element_index) |find_element_index_value| {
         // Retrieve the key at the calculated index.
-        const find_element_index_usize: usize = find_element_index_value.intoU64() catch
+        const find_element_index_usize: usize = find_element_index_value.toInt(u64) catch
             return MathError.Felt252ToUsizeConversion;
         const found_key = vm.getFelt(array_start.addUint(elm_size * find_element_index_usize) catch
             return HintError.KeyNotFound) catch
             return HintError.KeyNotFound;
 
         // Compare the retrieved key with the provided key.
-        if (!found_key.equal(key)) return HintError.InvalidIndex;
+        if (!found_key.eql(key)) return HintError.InvalidIndex;
 
         // Update the index variable and delete the stored index.
         try hint_utils.insertValueFromVarName(
@@ -86,11 +86,11 @@ pub fn findElement(
     } else {
         // Check if the maximum size of elements to search is defined and exceeded.
         if (exec_scopes.getFelt("find_element_max_size") catch null) |find_element_max_size| {
-            if (n_elms.gt(find_element_max_size)) return HintError.FindElemMaxSize;
+            if (n_elms.cmp(&find_element_max_size).compare(.gt)) return HintError.FindElemMaxSize;
         }
 
         // Convert the number of elements to search to u32.
-        const n_elms_int = n_elms.toInteger();
+        const n_elms_int = n_elms.toU256();
         const n_elms_iter: u32 = if (n_elms_int <= std.math.maxInt(u32))
             @intCast(n_elms_int)
         else
@@ -101,7 +101,7 @@ pub fn findElement(
             const iter_key = vm.getFelt(array_start.addUint(elm_size * i) catch
                 return HintError.KeyNotFound) catch
                 return HintError.KeyNotFound;
-            if (iter_key.equal(key)) {
+            if (iter_key.eql(key)) {
                 // Update the index variable if the key is found.
                 return try hint_utils.insertValueFromVarName(
                     allocator,
@@ -147,9 +147,9 @@ pub fn searchSortedLower(
 ) !void {
     // Retrieve maximum element size, number of elements, array pointer, element size, and key.
     const find_element_max_size = exec_scopes.getFelt("find_element_max_size") catch null;
-    const n_elms = (try hint_utils.getIntegerFromVarName("n_elms", vm, ids_datas, ap_tracking)).toInteger();
+    const n_elms = (try hint_utils.getIntegerFromVarName("n_elms", vm, ids_datas, ap_tracking)).toU256();
     const rel_array_ptr = try hint_utils.getRelocatableFromVarName("array_ptr", vm, ids_datas, ap_tracking);
-    const elm_size = (try hint_utils.getIntegerFromVarName("elm_size", vm, ids_datas, ap_tracking)).toInteger();
+    const elm_size = (try hint_utils.getIntegerFromVarName("elm_size", vm, ids_datas, ap_tracking)).toU256();
     const key = try hint_utils.getIntegerFromVarName("key", vm, ids_datas, ap_tracking);
 
     // Check if the element size is valid.
@@ -157,7 +157,7 @@ pub fn searchSortedLower(
 
     // Check if the maximum size of elements to search is defined and exceeded.
     if (find_element_max_size) |max_size| {
-        if (n_elms > max_size.toInteger()) return HintError.FindElemMaxSize;
+        if (n_elms > max_size.toU256()) return HintError.FindElemMaxSize;
     }
 
     // Retrieve the array iterator and convert number of elements and element size to usize.
@@ -174,7 +174,7 @@ pub fn searchSortedLower(
     // Iterate through the array to find the lower bound for the key.
     for (0..n_elms_usize) |i| {
         const value = try vm.getFelt(array_iter);
-        if (value.ge(key)) {
+        if (value.cmp(&key).compare(.gte)) {
             // Update the index variable if the lower bound is found.
             return try hint_utils.insertValueFromVarName(
                 allocator,
@@ -217,7 +217,7 @@ pub fn initVmIdsData(
 
     // Set the starting offset for the frame pointer.
     const fp_offset_start: usize = 4;
-    vm.run_context.fp.* = fp_offset_start;
+    vm.run_context.fp = fp_offset_start;
 
     // Allocate memory space.
     inline for (0..3) |_| _ = try vm.addMemorySegment();
@@ -295,7 +295,7 @@ test "Element found by search" {
 
     try expectEqual(
         MaybeRelocatable.fromInt(u8, 1),
-        setup.vm.segments.memory.data.items[1].items[3].?.maybe_relocatable,
+        setup.vm.segments.memory.data.items[1].items[3].getValue().?,
     );
 }
 
@@ -328,7 +328,7 @@ test "Element found by oracle" {
 
     try expectEqual(
         MaybeRelocatable.fromInt(u8, 1),
-        setup.vm.segments.memory.data.items[1].items[3].?.maybe_relocatable,
+        setup.vm.segments.memory.data.items[1].items[3].getValue().?,
     );
 }
 
@@ -397,7 +397,7 @@ test "Find element failed ids get from memory" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
 
-    vm.run_context.fp.* = 5;
+    vm.run_context.fp = 5;
 
     // Initialize a hashmap to store variable references.
     var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
@@ -693,7 +693,7 @@ test "Search sorted lower simple" {
 
     try expectEqual(
         MaybeRelocatable.fromInt(u8, 1),
-        setup.vm.segments.memory.data.items[1].items[3].?.maybe_relocatable,
+        setup.vm.segments.memory.data.items[1].items[3].getValue().?,
     );
 }
 
@@ -725,7 +725,7 @@ test "Search sorted lower with no match" {
 
     try expectEqual(
         MaybeRelocatable.fromInt(u8, 2),
-        setup.vm.segments.memory.data.items[1].items[3].?.maybe_relocatable,
+        setup.vm.segments.memory.data.items[1].items[3].getValue().?,
     );
 }
 

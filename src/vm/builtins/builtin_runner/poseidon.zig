@@ -7,7 +7,7 @@ const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatabl
 const Memory = @import("../../memory/memory.zig").Memory;
 const MemorySegmentManager = @import("../../memory/segments.zig").MemorySegmentManager;
 const RunnerError = @import("../../error.zig").RunnerError;
-const poseidonPermuteComp = @import("../../../math/crypto/poseidon/poseidon.zig").poseidonPermuteComp;
+const starknet = @import("starknet");
 const MemoryError = @import("../../error.zig").MemoryError;
 const CairoVMError = @import("../../error.zig").CairoVMError;
 const Program = @import("../../types/program.zig").Program;
@@ -175,7 +175,7 @@ pub const PoseidonBuiltinRunner = struct {
     ///
     /// The number of used cells as a `u32`, or `MemoryError.MissingSegmentUsedSizes` if
     /// the size is not available.
-    pub fn getUsedCells(self: *const Self, segments: *MemorySegmentManager) !u32 {
+    pub fn getUsedCells(self: *const Self, segments: *MemorySegmentManager) !usize {
         return segments.getSegmentUsedSize(
             @intCast(self.base),
         ) orelse MemoryError.MissingSegmentUsedSizes;
@@ -254,7 +254,15 @@ pub const PoseidonBuiltinRunner = struct {
         }
 
         // Perform Poseidon permutation computation on the input cells.
-        poseidonPermuteComp(input_felts.items[0..3]);
+        // TODO: optimize to use pointer on state
+        var PoseidonHasher = starknet.crypto.PoseidonHasher{
+            .state = input_felts.items[0..3].*,
+        };
+
+        PoseidonHasher.permuteComp();
+
+        @memcpy(input_felts.items[0..3], PoseidonHasher.state[0..3]);
+
         // Iterate over input cells and cache their computed values.
         for (0..self.n_input_cells, input_felts.items) |i, elem| {
             try self.cache.put(try first_output_addr.addUint(i), elem);
@@ -273,7 +281,7 @@ test "PoseidonBuiltinRunner: getUsedInstances should return number of cells" {
     defer memory_segment_manager.deinit();
 
     // Set number of used cells in segment 0 of memory_segment_manager to 1.
-    try memory_segment_manager.segment_used_sizes.put(0, 1);
+    try memory_segment_manager.segment_used_sizes.append(1);
 
     // Test if getUsedInstances returns expected number of used instances.
     try expectEqual(@as(usize, 1), try builtin.getUsedInstances(memory_segment_manager));
@@ -309,7 +317,7 @@ test "PoseidonBuiltinRunner: getUsedInstances for BuiltinRunner enum" {
     defer memory_segment_manager.deinit();
 
     // Set the number of used cells in segment 0 of memory_segment_manager to 1.
-    try memory_segment_manager.segment_used_sizes.put(0, 1);
+    try memory_segment_manager.segment_used_sizes.append(1);
 
     // Test if getUsedInstances returns the expected number of used instances.
     try expectEqual(@as(usize, 1), try builtin.getUsedInstances(memory_segment_manager));
@@ -338,7 +346,8 @@ test "PoseidonBuiltinRunner: finalStack InvalidStopPointerError" {
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
     // Set the number of used cells in segment 22 of `memory_segment_manager` to 1999.
-    try memory_segment_manager.segment_used_sizes.put(22, 1999);
+    try memory_segment_manager.segment_used_sizes.appendNTimes(0, 22);
+    try memory_segment_manager.segment_used_sizes.append(1999);
 
     // Test if an InvalidStopPointer error is raised when calling the finalStack method of `builtin`.
     try expectError(
@@ -359,7 +368,7 @@ test "PoseidonBuiltinRunner: finalStack" {
     defer memory_segment_manager.deinit();
 
     // Set the number of used cells in segment 0 of `memory_segment_manager` to 0.
-    try memory_segment_manager.segment_used_sizes.put(0, 0);
+    try memory_segment_manager.segment_used_sizes.append(0);
 
     // Set up memory for `memory_segment_manager`.
     try memory_segment_manager.memory.setUpMemory(
@@ -388,7 +397,7 @@ test "PoseidonBuiltinRunner: finalStack with multiple segments" {
     defer memory_segment_manager.deinit();
 
     // Set the number of used cells in segment 0 of `memory_segment_manager` to 0.
-    try memory_segment_manager.segment_used_sizes.put(0, 0);
+    try memory_segment_manager.segment_used_sizes.append(0);
 
     // Set up memory for `memory_segment_manager`.
     try memory_segment_manager.memory.setUpMemory(
@@ -404,7 +413,7 @@ test "PoseidonBuiltinRunner: finalStack with multiple segments" {
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
     // Set the number of used cells in segment 0 of `memory_segment_manager` to 0.
-    try memory_segment_manager.segment_used_sizes.put(0, 0);
+    try memory_segment_manager.segment_used_sizes.append(0);
 
     // Test if the finalStack method of `builtin` returns the expected Relocatable instance.
     try expectEqual(
@@ -425,7 +434,7 @@ test "PoseidonBuiltinRunner: finalStack when not included" {
     defer memory_segment_manager.deinit();
 
     // Set the number of used cells in segment 0 of `memory_segment_manager` to 0.
-    try memory_segment_manager.segment_used_sizes.put(0, 0);
+    try memory_segment_manager.segment_used_sizes.append(0);
 
     // Set up memory for `memory_segment_manager`.
     try memory_segment_manager.memory.setUpMemory(
@@ -441,7 +450,7 @@ test "PoseidonBuiltinRunner: finalStack when not included" {
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
     // Set the number of used cells in segment 0 of `memory_segment_manager` to 0.
-    try memory_segment_manager.segment_used_sizes.put(0, 0);
+    try memory_segment_manager.segment_used_sizes.append(0);
 
     // Test if the finalStack method of `builtin` returns the expected Relocatable instance.
     // The method is called with `memory_segment_manager` and a Relocatable instance initialized with values (2, 2).
@@ -466,7 +475,7 @@ test "PoseidonBuiltinRunner: finalStack should return NoStopPointer error if dat
     defer memory_segment_manager.deinit();
 
     // Set the number of used cells in segment 0 of `memory_segment_manager` to 0.
-    try memory_segment_manager.segment_used_sizes.put(0, 0);
+    try memory_segment_manager.segment_used_sizes.append(0);
 
     // Set up memory for `memory_segment_manager` with specific segment sizes, including a non-Relocatable value at stop pointer address.
     try memory_segment_manager.memory.setUpMemory(
@@ -482,7 +491,7 @@ test "PoseidonBuiltinRunner: finalStack should return NoStopPointer error if dat
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
     // Set the number of used cells in segment 0 of `memory_segment_manager` to 0.
-    try memory_segment_manager.segment_used_sizes.put(0, 0);
+    try memory_segment_manager.segment_used_sizes.append(0);
 
     // Test if a NoStopPointer error is raised when calling the finalStack method of `builtin`.
     try expectError(
@@ -514,7 +523,8 @@ test "PoseidonBuiltinRunner: finalStack stop ptr check" {
     defer memory_segment_manager.memory.deinitData(std.testing.allocator);
 
     // Set the number of used cells in segment 22 of `memory_segment_manager` to 17.
-    try memory_segment_manager.segment_used_sizes.put(22, 17);
+    try memory_segment_manager.segment_used_sizes.appendNTimes(0, 22);
+    try memory_segment_manager.segment_used_sizes.append(17);
 
     // Test if the finalStack method of `builtin` returns the expected Relocatable instance.
     // The method is called with `memory_segment_manager` and a Relocatable instance initialized with values (2, 2).

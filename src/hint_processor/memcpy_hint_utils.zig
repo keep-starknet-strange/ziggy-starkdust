@@ -73,7 +73,7 @@ test "MemCpyHintUtils: getIntegerFromVarNameValid" {
     }, &vm);
     defer ids_data.deinit();
 
-    try std.testing.expectEqual(Felt252.fromSignedInt(10), try hint_utils.getIntegerFromVarName(var_name, &vm, ids_data, .{}));
+    try std.testing.expectEqual(Felt252.fromInt(u16, 10), try hint_utils.getIntegerFromVarName(var_name, &vm, ids_data, .{}));
 }
 
 test "MemCpyHintUtils: getIntegerFromVarNameValid invalid expected integer" {

@@ -3,11 +3,14 @@
 CAIRO_VM_CLI:=cairo-vm/target/release/cairo-vm-cli
 
 $(CAIRO_VM_CLI):
-	git clone --depth 1 -b v0.9.1 https://github.com/lambdaclass/cairo-vm
+	git clone --depth 1 https://github.com/lambdaclass/cairo-vm
 	cd cairo-vm; cargo b --release --bin cairo-vm-cli
 
 build_cairo_vm_cli: | $(CAIRO_VM_CLI)
 BENCH_DIR=cairo_programs/benchmarks
+
+
+check:
 
 # Creates a pyenv and installs cairo-lang
 deps:
@@ -19,6 +22,7 @@ deps:
 # Creates a pyenv and installs cairo-lang
 deps-macos:
 	brew install gmp pyenv
+	brew install python@3.9
 	pyenv install -s 3.9.15
 	PYENV_VERSION=3.9.15 /opt/homebrew/bin/python3.9 -m venv cairo-vm-env
 	. cairo-vm-env/bin/activate ; \
@@ -36,32 +40,22 @@ test:
 test-filter:
 	@zig build test --summary all -Dtest-filter="$(FILTER)"
 
-build-integration-test:
-	@zig build integration_test
-
 run-integration-test:
-	@zig build integration_test
-	./zig-out/bin/integration_test
+	@zig build -Doptimize=ReleaseFast integration_test
 
 run-integration-test-filter:
-	@zig build integration_test
-	./zig-out/bin/integration_test $(FILTER)
+	@zig build -Doptimize=ReleaseFast integration_test $(FILTER)
 
-build-and-run-pedersen-table-gen:
-	@zig build pedersen_table_gen
-	> ./src/math/crypto/pedersen/gen/constants.zig
-	./zig-out/bin/pedersen_table_gen
-	@zig fmt ./src/math/crypto/pedersen/gen/constants.zig
-
-build-and-run-poseidon-consts-gen:
-	@zig build poseidon_consts_gen
-	> ./src/math/crypto/poseidon/gen/constants.zig
-	./zig-out/bin/poseidon_consts_gen
-	@zig fmt ./src/math/crypto/poseidon/gen/constants.zig
-
-build-compare-benchmarks: build_cairo_vm_cli build
+build-compare-benchmarks: build_cairo_vm_cli build-optimize
 	cd scripts; sh benchmarks.sh
 
+
+compile-cairo-programs:
+	cd scripts; sh build_cairo_programs.sh
+
+build-compare-output: build_cairo_vm_cli build-optimize
+	cd scripts; sh test_compare_output.sh
+
 clean:
-	@rm -rf zig-cache
+	@rm -rf ./zig-cache
 	@rm -rf zig-out

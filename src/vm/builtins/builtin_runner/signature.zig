@@ -1,5 +1,5 @@
 const std = @import("std");
-const Signature = @import("../../../math/crypto/signatures.zig").Signature;
+const Signature = @import("starknet").crypto.Signature;
 const Relocatable = @import("../../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../../memory/relocatable.zig").MaybeRelocatable;
 const Memory = @import("../../memory/memory.zig").Memory;
@@ -7,7 +7,6 @@ const validation_rule = @import("../../memory/memory.zig").validation_rule;
 const MemorySegmentManager = @import("../../memory/segments.zig").MemorySegmentManager;
 const Felt252 = @import("../../../math/fields/starknet.zig").Felt252;
 const EcdsaInstanceDef = @import("../../types/ecdsa_instance_def.zig").EcdsaInstanceDef;
-const verify = @import("../../../math/crypto/signatures.zig").verify;
 
 const CairoVM = @import("../../core.zig").CairoVM;
 
@@ -125,9 +124,9 @@ pub const SignatureBuiltinRunner = struct {
         const msg = memory.getFelt(pubkey_message_addr[1]) catch
             return if (cell_index == 0) result else MemoryError.MsgNonInt;
 
-        const signature = self.signatures.get(pubkey_message_addr[0]) catch return MemoryError.SignatureNotFound;
+        const signature = self.signatures.get(pubkey_message_addr[0]) orelse return MemoryError.SignatureNotFound;
 
-        if (verify(pubkey, msg, signature.r, signature.s) catch
+        if (signature.verify(pubkey, msg) catch
             return MemoryError.InvalidSignature)
         {
             return result;
@@ -215,7 +214,7 @@ test "Signature: Used Cells" {
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memory_segment_manager.segment_used_sizes.put(0, 1);
+    try memory_segment_manager.segment_used_sizes.append(1);
 
     try std.testing.expectEqual(
         @as(usize, @intCast(1)),
@@ -244,7 +243,7 @@ test "Signature: get used instances" {
     var memory_segment_manager = try MemorySegmentManager.init(std.testing.allocator);
     defer memory_segment_manager.deinit();
 
-    try memory_segment_manager.segment_used_sizes.put(0, 1);
+    try memory_segment_manager.segment_used_sizes.append(1);
 
     try std.testing.expectEqual(
         1,
@@ -275,7 +274,7 @@ test "Signature: final stack" {
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    try vm.segments.segment_used_sizes.put(0, 0);
+    try vm.segments.segment_used_sizes.append(0);
 
     const pointer = Relocatable.init(2, 2);
 
@@ -308,7 +307,7 @@ test "Signature: final stack error stop pointer" {
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    try vm.segments.segment_used_sizes.put(0, 998);
+    try vm.segments.segment_used_sizes.append(998);
 
     const pointer = Relocatable.init(2, 2);
 
@@ -341,7 +340,7 @@ test "Signature: final stack error non relocatable" {
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    try vm.segments.segment_used_sizes.put(0, 0);
+    try vm.segments.segment_used_sizes.append(0);
 
     const pointer = Relocatable.init(2, 2);
 
@@ -368,7 +367,7 @@ test "Signature: get used cells empty" {
     );
     defer vm.deinit();
 
-    try vm.segments.segment_used_sizes.put(0, 0);
+    try vm.segments.segment_used_sizes.append(0);
 
     try std.testing.expectEqual(
         0,
@@ -388,7 +387,7 @@ test "Signature: get used cells" {
     );
     defer vm.deinit();
 
-    try vm.segments.segment_used_sizes.put(0, 4);
+    try vm.segments.segment_used_sizes.append(4);
 
     try std.testing.expectEqual(
         4,

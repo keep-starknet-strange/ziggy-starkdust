@@ -49,7 +49,7 @@ pub fn getFeltBitLength(
     try hint_utils.insertValueFromVarName(
         allocator,
         "bit_length",
-        MaybeRelocatable.fromInt(usize, x.numBits()),
+        MaybeRelocatable.fromInt(usize, x.numBitsLe()),
         vm,
         ids_datas,
         ap_tracking,
@@ -71,7 +71,7 @@ test "FeltBitLength: simple test" {
     defer vm.deinit();
 
     // Set the frame pointer to point to the beginning of the stack.
-    vm.run_context.fp.* = 0;
+    vm.run_context.fp = 0;
 
     // Allocate memory space for variables `ids.x` and `ids.bit_length`.
     inline for (0..2) |_| _ = try vm.addMemorySegment();
@@ -116,7 +116,7 @@ test "FeltBitLength: range test" {
         defer vm.deinit();
 
         // Set the frame pointer to point to the beginning of the stack.
-        vm.run_context.fp.* = 0;
+        vm.run_context.fp = 0;
 
         // Allocate memory space for variables `ids.x` and `ids.bit_length`.
         inline for (0..2) |_| _ = try vm.addMemorySegment();
@@ -125,7 +125,7 @@ test "FeltBitLength: range test" {
         try vm.segments.memory.set(
             std.testing.allocator,
             Relocatable.init(1, 0),
-            MaybeRelocatable.fromFelt(Felt252.two().pow(i)),
+            MaybeRelocatable.fromFelt(Felt252.two().powToInt(@intCast(i))),
         );
         defer vm.segments.memory.deinitData(std.testing.allocator);
 
@@ -161,7 +161,7 @@ test "FeltBitLength: wrap around" {
     defer vm.deinit();
 
     // Set the frame pointer to point to the beginning of the stack.
-    vm.run_context.fp.* = 0;
+    vm.run_context.fp = 0;
 
     // Allocate memory space for variables `ids.x` and `ids.bit_length`.
     inline for (0..2) |_| _ = try vm.addMemorySegment();
@@ -171,7 +171,7 @@ test "FeltBitLength: wrap around" {
         std.testing.allocator,
         Relocatable.init(1, 0),
         MaybeRelocatable.fromFelt(
-            Felt252.fromInt(u256, Felt252.Modulo - 1).add(Felt252.one()),
+            Felt252.fromInt(u256, Felt252.Modulus.toU256() - 1).add(&Felt252.one()),
         ),
     );
     defer vm.segments.memory.deinitData(std.testing.allocator);

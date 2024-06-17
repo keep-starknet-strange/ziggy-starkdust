@@ -17,7 +17,7 @@ const expectEqual = std.testing.expectEqual;
 // 15|14 13 12|    11 10|  9  8  7|     6  5|4  3  2|      1|      0
 
 /// Decodes an instruction. The encoding is little endian, so flags go from bit 63 to 48.
-pub fn decodeInstructions(encoded_instr: u64) !Instruction {
+pub inline fn decodeInstructions(encoded_instr: u64) !Instruction {
     const HIGH_BIT: u64 = 1 << 63;
     const DST_REG_MASK: u64 = 0x0001;
     const DST_REG_OFF: u64 = 0;
@@ -118,7 +118,7 @@ pub fn decodeOffset(offset: u64) !i16 {
     var vectorized_offset: [8]u8 = std.mem.toBytes(offset);
     return @bitCast(
         @subWithOverflow(
-            std.mem.readInt(u16, vectorized_offset[0..2], std.builtin.Endian.little),
+            std.mem.readInt(u16, vectorized_offset[0..2], .little),
             0x8000,
         )[0],
     );

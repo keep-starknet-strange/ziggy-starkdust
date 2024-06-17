@@ -39,11 +39,11 @@ fn getAccessIndices(
 }
 
 fn cmpByValue(_: void, a: Felt252, b: Felt252) bool {
-    return a.lt(b);
+    return a.cmp(&b).compare(.lt);
 }
 
 fn reversedCmpByValue(_: void, a: Felt252, b: Felt252) bool {
-    return a.gt(b);
+    return a.cmp(&b).compare(.gt);
 }
 
 // Implements hint:
@@ -131,7 +131,7 @@ pub fn squashDictInnerCheckAccessIndex(
     //Main Logic
     const new_access_index = current_access_indices
         .popOrNull() orelse return HintError.EmptyCurrentAccessIndices;
-    const index_delta_minus1 = new_access_index.sub(current_access_index).sub(Felt252.one());
+    const index_delta_minus1 = new_access_index.sub(&current_access_index).sub(&Felt252.one());
     //loop_temps.delta_minus1 = loop_temps + 0 as it is the first field of the struct
     //Insert loop_temps.delta_minus1 into memory
     try hint_utils.insertValueFromVarName(allocator, "loop_temps", MaybeRelocatable.fromFelt(index_delta_minus1), vm, ids_data, ap_tracking);
@@ -185,7 +185,7 @@ pub fn squashDictInnerUsedAccessesAssert(
     const access_indices_at_key = access_indices
         .get(key) orelse return HintError.NoKeyInAccessIndices;
 
-    if (!n_used_accesses.equal(Felt252.fromInt(usize, access_indices_at_key.items.len)))
+    if (!n_used_accesses.eql(Felt252.fromInt(usize, access_indices_at_key.items.len)))
         return HintError.NumUsedAccessesAssertFail;
 }
 
@@ -248,7 +248,7 @@ pub fn squashDict(
 ) !void {
     //Get necessary variables addresses from ids
     const address = try hint_utils.getPtrFromVarName("dict_accesses", vm, ids_data, ap_tracking);
-    const ptr_diff = (try hint_utils.getIntegerFromVarName("ptr_diff", vm, ids_data, ap_tracking)).intoUsize() catch return HintError.PtrDiffNotDivisibleByDictAccessSize;
+    const ptr_diff = (try hint_utils.getIntegerFromVarName("ptr_diff", vm, ids_data, ap_tracking)).toInt(usize) catch return HintError.PtrDiffNotDivisibleByDictAccessSize;
     const n_accesses = try hint_utils.getIntegerFromVarName("n_accesses", vm, ids_data, ap_tracking);
     //Get range_check_builtin
     const range_check_builtin = try vm.getRangeCheckBuiltin();
@@ -259,12 +259,12 @@ pub fn squashDict(
         return HintError.PtrDiffNotDivisibleByDictAccessSize;
 
     if (exec_scopes.getValue(Felt252, "__squash_dict_max_size")) |max_size| {
-        if (n_accesses.gt(max_size))
+        if (n_accesses.cmp(&max_size).compare(.gt))
             return HintError.SquashDictMaxSizeExceeded;
     } else |_| {}
 
     const n_accesses_usize = n_accesses
-        .intoUsize() catch return HintError.NAccessesTooBig;
+        .toInt(u64) catch return HintError.NAccessesTooBig;
 
     //A map from key to the list of indices accessing it.
     var access_indices = std.AutoHashMap(Felt252, std.ArrayList(Felt252)).init(allocator);
@@ -296,7 +296,7 @@ pub fn squashDict(
     std.sort.block(Felt252, keys.items, {}, reversedCmpByValue);
 
     //Are the keys used bigger than the range_check bound.
-    const big_keys = if (keys.items[0].ge(range_check_bound))
+    const big_keys = if (keys.items[0].cmp(&range_check_bound).compare(.gte))
         Felt252.one()
     else
         Felt252.zero();
@@ -338,7 +338,7 @@ test "SquashDictUtil: squashDictInnerFirstIteration valid" {
     try exec_scopes.assignOrUpdateVariable("key", .{ .felt = Felt252.fromInt(u8, 5) });
 
     //Initialize fp
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
     //Insert ids into memory (range_check_ptr)
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{ 2, 0 } },
@@ -382,7 +382,7 @@ test "SquashDictUtil: squashDictInnerFirstIteration no local variable" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
     //Initialize fp
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
     //Insert ids into memory (range_check_ptr)
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{ 2, 0 } },
@@ -428,7 +428,7 @@ test "SquashDictUtil: squashDictInnerFirstIteration empty accessed indices" {
     try exec_scopes.assignOrUpdateVariable("key", .{ .felt = Felt252.fromInt(u8, 5) });
 
     //Initialize fp
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
     //Insert ids into memory (range_check_ptr)
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{ 2, 0 } },
@@ -470,7 +470,7 @@ test "SquashDictUtil: should skip valid empty access indices" {
     _ = try vm.addMemorySegment();
     _ = try vm.addMemorySegment();
     //Initialize fp
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     //Create ids_data
     const ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
@@ -513,7 +513,7 @@ test "SquashDictUtil: should skip valid non-empty access indices" {
     _ = try vm.addMemorySegment();
     _ = try vm.addMemorySegment();
     //Initialize fp
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     //Create ids_data
     const ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{
@@ -559,7 +559,7 @@ test "SquashDictUtil: squashDictInnerCheckAccessIndex valid" {
     try exec_scopes.assignOrUpdateVariable("current_access_index", .{ .felt = Felt252.fromInt(u8, 1) });
 
     //Initialize fp
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
     //Insert ids into memory (range_check_ptr)
 
     _ = try vm.addMemorySegment();
@@ -611,7 +611,7 @@ test "SquashDictUtil: squashDictInnerCheckAccessIndex current addr empty" {
     try exec_scopes.assignOrUpdateVariable("current_access_index", .{ .felt = Felt252.fromInt(u8, 1) });
 
     //Initialize fp
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
     //Insert ids into memory (range_check_ptr)
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{ 2, 0 } },
@@ -653,7 +653,7 @@ test "SquashDictUtil: squashDictInnerContinueLoop non-empty current_access_indic
     try exec_scopes.assignOrUpdateVariable("current_access_indices", .{ .felt_list = current_accessed_indices });
 
     //Initialize fp
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
     //Insert ids into memory (range_check_ptr)
 
     _ = try vm.addMemorySegment();
@@ -696,7 +696,7 @@ test "SquashDictUtil: squashDictInnerContinueLoop empty current_access_indicies"
     try exec_scopes.assignOrUpdateVariable("current_access_indices", .{ .felt_list = current_accessed_indices });
 
     //Initialize fp
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
     //Insert ids into memory (range_check_ptr)
 
     _ = try vm.addMemorySegment();
@@ -801,7 +801,7 @@ test "SquashDictUtil: squashDictInnerUsesAccessesAssert valid" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{4} },
@@ -849,7 +849,7 @@ test "SquashDictUtil: squashDictInnerUsesAccessesAssert number relocatable" {
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{ 1, 2 } },
@@ -975,7 +975,7 @@ test "SquashDictUtil: squashDictInnerNextKey non-empty" {
     _ = try vm.segments.addSegment();
     _ = try vm.segments.addSegment();
 
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{3} },
@@ -1021,7 +1021,7 @@ test "SquashDictUtil: squashDictInnerNextKey key and keys empty" {
     _ = try vm.segments.addSegment();
     _ = try vm.segments.addSegment();
 
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     //Store scope variables
     var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
@@ -1053,7 +1053,7 @@ test "SquashDictUtil: squashDict valid one key dict no max size" {
 
     try vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner{} });
 
-    vm.run_context.fp.* = 5;
+    vm.run_context.fp = 5;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{ 2, 0 } },
@@ -1112,7 +1112,7 @@ test "SquashDictUtil: squashDict valid two key dict no max size" {
 
     try vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true) });
 
-    vm.run_context.fp.* = 5;
+    vm.run_context.fp = 5;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{ 2, 0 } },
@@ -1178,7 +1178,7 @@ test "SquashDictUtil: squashDict one key with max size" {
 
     try vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner{} });
 
-    vm.run_context.fp.* = 5;
+    vm.run_context.fp = 5;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{ 2, 0 } },
@@ -1239,7 +1239,7 @@ test "SquashDictUtil: squashDict one key with max size exceeded" {
 
     try vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner{} });
 
-    vm.run_context.fp.* = 5;
+    vm.run_context.fp = 5;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{ 2, 0 } },
@@ -1287,7 +1287,7 @@ test "SquashDictUtil: squashDict one key dict bad ptr diff" {
 
     try vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner{} });
 
-    vm.run_context.fp.* = 5;
+    vm.run_context.fp = 5;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{ 2, 0 } },
@@ -1333,7 +1333,7 @@ test "SquashDictUtil: squashDict one key dict with n access too big" {
 
     try vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner{} });
 
-    vm.run_context.fp.* = 5;
+    vm.run_context.fp = 5;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{ 2, 0 } },
@@ -1379,7 +1379,7 @@ test "SquashDictUtil: squashDict one key dict no max size big keys" {
 
     try vm.builtin_runners.append(.{ .RangeCheck = RangeCheckBuiltinRunner{} });
 
-    vm.run_context.fp.* = 5;
+    vm.run_context.fp = 5;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{ 2, 0 } },

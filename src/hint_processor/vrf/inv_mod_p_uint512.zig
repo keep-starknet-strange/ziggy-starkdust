@@ -102,7 +102,7 @@ test "Uint512: invModPUint512 ok" {
 
     inline for (0..3) |_| _ = try vm.segments.addSegment();
 
-    vm.run_context.fp.* = 25;
+    vm.run_context.fp = 25;
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
         .{ "x", -5 }, .{ "p", -10 }, .{ "x_inverse_mod_p", -20 },

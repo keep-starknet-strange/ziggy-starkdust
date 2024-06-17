@@ -301,9 +301,9 @@ test "SecpFieldUtils: verify zero ok" {
         );
 
         //Initialize fp
-        vm.run_context.pc.* = Relocatable.init(0, 0);
-        vm.run_context.ap.* = 9;
-        vm.run_context.fp.* = 9;
+        vm.run_context.pc = Relocatable.init(0, 0);
+        vm.run_context.ap = 9;
+        vm.run_context.fp = 9;
         //Create hint_data
 
         var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
@@ -352,9 +352,9 @@ test "SecpFieldUtils: verify zero v3 ok" {
         );
 
         //Initialize fp
-        vm.run_context.pc.* = Relocatable.init(0, 0);
-        vm.run_context.ap.* = 9;
-        vm.run_context.fp.* = 9;
+        vm.run_context.pc = Relocatable.init(0, 0);
+        vm.run_context.ap = 9;
+        vm.run_context.fp = 9;
         //Create hint_data
 
         var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
@@ -390,9 +390,9 @@ test "SecpFieldUtils: verify zero external const ok" {
     defer vm.segments.memory.deinitData(std.testing.allocator);
 
     //Initialize fp
-    vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.ap.* = 9;
-    vm.run_context.fp.* = 9;
+    vm.run_context.pc = Relocatable.init(0, 0);
+    vm.run_context.ap = 9;
+    vm.run_context.fp = 9;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 4 }, .{55} },
@@ -442,9 +442,9 @@ test "SecpFieldUtils: verify zero error" {
     inline for (0..3) |_| _ = try vm.addMemorySegment();
 
     //Initialize fp
-    vm.run_context.pc.* = Relocatable.init(0, 0);
-    vm.run_context.ap.* = 9;
-    vm.run_context.fp.* = 9;
+    vm.run_context.pc = Relocatable.init(0, 0);
+    vm.run_context.ap = 9;
+    vm.run_context.fp = 9;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 4 }, .{0} },
@@ -489,7 +489,7 @@ test "SecpFieldUtils: reduce ok" {
     });
 
     //Initialize fp
-    vm.run_context.fp.* = 25;
+    vm.run_context.fp = 25;
     //Create hint_data
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{.{ "x", -5 }});
@@ -527,7 +527,7 @@ test "SecpFieldUtils: reduce error" {
     inline for (0..3) |_| _ = try vm.segments.addSegment();
 
     //Initialize fp
-    vm.run_context.fp.* = 25;
+    vm.run_context.fp = 25;
     //Create hint_data
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{.{ "x", -5 }});
@@ -563,7 +563,7 @@ test "SecpFieldUtils: reduceV2 ok" {
     });
 
     //Initialize fp
-    vm.run_context.fp.* = 25;
+    vm.run_context.fp = 25;
     //Create hint_data
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{.{ "x", -5 }});
@@ -621,7 +621,7 @@ test "SecpFieldUtils: is zero pack ok" {
         );
 
         //Initialize fp
-        vm.run_context.fp.* = 15;
+        vm.run_context.fp = 15;
         //Create hint_data
 
         var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
@@ -671,7 +671,7 @@ test "SecpFieldUtils: is zero nondet ok true" {
         }
 
         //Initialize fp
-        vm.run_context.ap.* = 15;
+        vm.run_context.ap = 15;
         //Create hint_data
 
         var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);
@@ -717,7 +717,7 @@ test "SecpFieldUtils: is zero nondet ok false" {
         }
 
         //Initialize fp
-        vm.run_context.ap.* = 15;
+        vm.run_context.ap = 15;
         //Create hint_data
 
         var ids_data = std.StringHashMap(HintReference).init(std.testing.allocator);

@@ -136,7 +136,7 @@ fn assertIsZeroPackEd25519Equals(comptime x_d0: i128, comptime x_d1: i128, compt
     });
     defer ids_data.deinit();
 
-    vm.run_context.fp.* = 0;
+    vm.run_context.fp = 0;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{x_d0} },
@@ -176,7 +176,7 @@ fn assertReduceEd25519Equals(x_d0: i128, x_d1: i128, x_d2: i128, expected: Int) 
     });
     defer ids_data.deinit();
 
-    vm.run_context.fp.* = 0;
+    vm.run_context.fp = 0;
 
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{x_d0} },
@@ -256,7 +256,7 @@ test "VrfPack: is zero assign scope vars ed25519 with one" {
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{});
     defer ids_data.deinit();
 
-    vm.run_context.fp.* = 0;
+    vm.run_context.fp = 0;
 
     var exec_scopes = try ExecutionScopes.init(std.testing.allocator);
     defer exec_scopes.deinit();

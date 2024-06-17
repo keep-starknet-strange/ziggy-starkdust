@@ -19,7 +19,7 @@ pub fn nGreaterThan10(
     ap_tracking: ApTracking,
 ) !void {
     const n = try hint_utils.getIntegerFromVarName("n", vm, ids_data, ap_tracking);
-    var val = n.toInteger();
+    var val = n.toU256();
     if (val > std.math.maxInt(usize))
         val = 10;
 
@@ -35,12 +35,29 @@ pub fn nGreaterThan2(
     ids_data: std.StringHashMap(HintReference),
     ap_tracking: ApTracking,
 ) !void {
-    var n = (try hint_utils.getIntegerFromVarName("n", vm, ids_data, ap_tracking)).toInteger();
+    var n = (try hint_utils.getIntegerFromVarName("n", vm, ids_data, ap_tracking)).toU256();
 
     if (n > std.math.maxInt(usize))
         n = 2;
 
     try hint_utils.insertValueIntoAp(allocator, vm, MaybeRelocatable.fromFelt(if (n >= 2) Felt252.one() else Felt252.zero()));
+}
+
+// TODO: implement test
+// Implements hint: "memory[ap] = to_felt_or_relocatable(ids.elements_end - ids.elements >= x)"
+pub fn elementsOverX(
+    allocator: std.mem.Allocator,
+    vm: *CairoVM,
+    ids_data: std.StringHashMap(HintReference),
+    ap_tracking: ApTracking,
+    x: usize,
+) !void {
+    const elements_end = try hint_utils.getPtrFromVarName("elements_end", vm, ids_data, ap_tracking);
+    const elements = try hint_utils.getPtrFromVarName("elements", vm, ids_data, ap_tracking);
+
+    const value = Felt252.fromInt(u64, @intFromBool((try elements_end.sub(elements)).offset >= x));
+
+    try hint_utils.insertValueIntoAp(allocator, vm, MaybeRelocatable.fromFelt(value));
 }
 
 test "PoseidonUtils: run nGreaterThan10 true" {
@@ -62,8 +79,8 @@ test "PoseidonUtils: run nGreaterThan10 true" {
     const hint_processor: HintProcessor = .{};
     var hint_data = HintData.init(hint_codes.NONDET_N_GREATER_THAN_10, ids_data, .{});
 
-    vm.run_context.ap.* = 3;
-    vm.run_context.fp.* = 1;
+    vm.run_context.ap = 3;
+    vm.run_context.fp = 1;
 
     try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
 
@@ -89,8 +106,8 @@ test "PoseidonUtils: run nGreaterThan10 false" {
     const hint_processor: HintProcessor = .{};
     var hint_data = HintData.init(hint_codes.NONDET_N_GREATER_THAN_10, ids_data, .{});
 
-    vm.run_context.ap.* = 3;
-    vm.run_context.fp.* = 1;
+    vm.run_context.ap = 3;
+    vm.run_context.fp = 1;
 
     try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
 
@@ -116,8 +133,8 @@ test "PoseidonUtils: run nGreaterThan2 true" {
     const hint_processor: HintProcessor = .{};
     var hint_data = HintData.init(hint_codes.NONDET_N_GREATER_THAN_2, ids_data, .{});
 
-    vm.run_context.ap.* = 3;
-    vm.run_context.fp.* = 1;
+    vm.run_context.ap = 3;
+    vm.run_context.fp = 1;
 
     try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
 
@@ -143,8 +160,8 @@ test "PoseidonUtils: run nGreaterThan2 false" {
     const hint_processor: HintProcessor = .{};
     var hint_data = HintData.init(hint_codes.NONDET_N_GREATER_THAN_2, ids_data, .{});
 
-    vm.run_context.ap.* = 3;
-    vm.run_context.fp.* = 1;
+    vm.run_context.ap = 3;
+    vm.run_context.fp = 1;
 
     try hint_processor.executeHint(std.testing.allocator, &vm, &hint_data, undefined, undefined);
 

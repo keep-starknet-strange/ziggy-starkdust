@@ -11,7 +11,8 @@ const ProgramJson = @import("./types/programjson.zig").ProgramJson;
 const HintProcessor = @import("../hint_processor/hint_processor_def.zig").CairoVMHintProcessor;
 
 const trace_context = @import("./trace_context.zig");
-const RelocatedTraceEntry = trace_context.TraceContext.RelocatedTraceEntry;
+const RelocatedTraceEntry = trace_context.RelocatedTraceEntry;
+const RelocatedFelt252 = trace_context.RelocatedFelt252;
 
 /// Writes the relocated/encoded trace to specified destination.
 ///
@@ -19,11 +20,17 @@ const RelocatedTraceEntry = trace_context.TraceContext.RelocatedTraceEntry;
 ///
 /// - `relocated_trace`:  The trace of register execution cycles, relocated.
 /// - `dest`: The destination file that the trace is to be written.
-pub fn writeEncodedTrace(relocated_trace: []const RelocatedTraceEntry, dest: *std.fs.File.Writer) !void {
+pub fn writeEncodedTrace(relocated_trace: []const RelocatedTraceEntry, dest: anytype) !void {
+    var buf: [8]u8 = undefined;
     for (relocated_trace) |entry| {
-        try dest.writeInt(u64, try entry.ap.intoU64(), .little);
-        try dest.writeInt(u64, try entry.fp.intoU64(), .little);
-        try dest.writeInt(u64, try entry.pc.intoU64(), .little);
+        std.mem.writeInt(u64, &buf, entry.ap, .little);
+        _ = try dest.write(&buf);
+
+        std.mem.writeInt(u64, &buf, entry.fp, .little);
+        _ = try dest.write(&buf);
+
+        std.mem.writeInt(u64, &buf, entry.pc, .little);
+        _ = try dest.write(&buf);
     }
 }
 
@@ -33,11 +40,14 @@ pub fn writeEncodedTrace(relocated_trace: []const RelocatedTraceEntry, dest: *st
 ///
 /// - `relocated_memory`:  The post-execution memory, relocated.
 /// - `dest`: The destination file that the memory is to be written.
-pub fn writeEncodedMemory(relocated_memory: []?Felt252, dest: *std.fs.File.Writer) !void {
+pub fn writeEncodedMemory(relocated_memory: []?Felt252, dest: anytype) !void {
+    var buf: [8]u8 = undefined;
+
     for (relocated_memory, 0..) |memory_cell, i| {
         if (memory_cell) |cell| {
-            try dest.writeInt(u64, i, .little);
-            try dest.writeInt(u256, cell.toInteger(), .little);
+            std.mem.writeInt(u64, &buf, i, .little);
+            _ = try dest.write(&buf);
+            _ = try dest.write(&cell.toBytesLe());
         }
     }
 }
@@ -49,7 +59,7 @@ pub fn writeEncodedMemory(relocated_memory: []?Felt252, dest: *std.fs.File.Write
 /// - `allocator`:  The allocator to initialize the CairoRunner and parsing of the program json.
 /// - `config`: The config struct that defines the params that the CairoRunner uses to instantiate the vm state for running.
 pub fn runConfig(allocator: Allocator, config: Config) !void {
-    const vm = try CairoVM.init(
+    var vm = try CairoVM.init(
         allocator,
         config,
     );
@@ -63,44 +73,52 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
     // TODO: add flag for extensive_hints
     var runner = try CairoRunner.init(
         allocator,
-        try parsed_program.value.parseProgramJson(allocator, &entrypoint, false),
+        try parsed_program.value.parseProgramJson(allocator, &entrypoint),
         config.layout,
         instructions,
-        vm,
+        &vm,
         config.proof_mode,
     );
     defer runner.deinit(allocator);
+
     const end = try runner.setupExecutionState(config.allow_missing_builtins orelse config.proof_mode);
+
     // TODO: make flag for extensive_hints
     var hint_processor: HintProcessor = .{};
-    try runner.runUntilPC(end, false, &hint_processor);
+    try runner.runUntilPC(end, &hint_processor);
     try runner.endRun(
         allocator,
-        true,
+        false,
         false,
         &hint_processor,
-        false,
     );
-    // TODO readReturnValues necessary for builtins
 
+    // TODO readReturnValues necessary for builtins
     if (config.output_trace != null or config.output_memory != null) {
         try runner.relocate();
-    }
 
-    if (config.output_trace) |trace_path| {
-        const trace_file = try std.fs.cwd().createFile(trace_path, .{});
-        defer trace_file.close();
+        var writer: std.io.BufferedWriter(5 * 1024 * 1024, std.fs.File.Writer) = .{ .unbuffered_writer = undefined };
 
-        var trace_writer = trace_file.writer();
-        try writeEncodedTrace(runner.relocated_trace, &trace_writer);
-    }
+        if (config.output_trace) |trace_path| {
+            const trace_file = try std.fs.cwd().createFile(trace_path, .{});
+            defer trace_file.close();
 
-    if (config.output_memory) |mem_path| {
-        const mem_file = try std.fs.cwd().createFile(mem_path, .{});
-        defer mem_file.close();
+            writer.unbuffered_writer = trace_file.writer();
 
-        var mem_writer = mem_file.writer();
-        try writeEncodedMemory(runner.relocated_memory.items, &mem_writer);
+            try writeEncodedTrace(runner.relocated_trace.?, &writer);
+
+            try writer.flush();
+        }
+
+        if (config.output_memory) |mem_path| {
+            const mem_file = try std.fs.cwd().createFile(mem_path, .{});
+            defer mem_file.close();
+
+            writer.unbuffered_writer = mem_file.writer();
+
+            try writeEncodedMemory(runner.relocated_memory.items, &writer);
+            try writer.flush();
+        }
     }
 }
 
@@ -114,7 +132,7 @@ const tmpDir = std.testing.tmpDir;
 test "EncodedMemory: can round trip from valid memory binary" {
     // Given
     const allocator = std.testing.allocator;
-    var buffer: [std.fs.MAX_PATH_BYTES]u8 = undefined;
+    var buffer: [std.fs.max_path_bytes]u8 = undefined;
     // where  `cairo_memory_struct` is sourced (graciously) from
     // https://github.com/lambdaclass/cairo-vm/blob/main/cairo_programs/trace_memory/cairo_trace_struct#L1
     const path = try std.posix.realpath("cairo_programs/trace_memory/cairo_memory_struct", &buffer);

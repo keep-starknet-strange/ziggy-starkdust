@@ -140,7 +140,7 @@ pub fn getPointFromX(
         try exec_scopes.assignOrUpdateVariable("SECP_P", .{ .big_int = secp_p });
     }
 
-    var beta = try (constants.get(secp_utils.BETA) orelse return HintError.MissingConstant).toSignedBigInt(allocator);
+    var beta = try (constants.get(secp_utils.BETA) orelse return HintError.MissingConstant).toStdBigSignedInt(allocator);
     defer beta.deinit();
 
     var x_cube_int = try (try Uint384.fromVarName("x_cube", vm, ids_data, ap_tracking)).pack86(allocator);
@@ -165,7 +165,7 @@ pub fn getPointFromX(
     var y = try field_helper.powModulusBigInt(allocator, y_cube_int, tmp, secp_p);
     errdefer y.deinit();
 
-    var v = try (try hint_utils.getIntegerFromVarName("v", vm, ids_data, ap_tracking)).toSignedBigInt(allocator);
+    var v = try (try hint_utils.getIntegerFromVarName("v", vm, ids_data, ap_tracking)).toStdBigSignedInt(allocator);
     defer v.deinit();
 
     if (v.isEven() != y.isEven()) {
@@ -247,7 +247,7 @@ test "SecpSignature: safe div ok" {
             .{ .{ 1, 5 }, .{1} },
         });
 
-        vm.run_context.fp.* = 3;
+        vm.run_context.fp = 3;
 
         var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{
             .{ "a", -3 },
@@ -299,7 +299,7 @@ test "SecpSignature: get point from x ok" {
     );
 
     //Initialize fp
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
     //Create hint_data
 
     var ids_data = try testing_utils.setupIdsNonContinuousIdsData(std.testing.allocator, &.{

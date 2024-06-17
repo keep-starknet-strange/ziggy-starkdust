@@ -17,6 +17,8 @@ const TraceError = @import("error.zig").TraceError;
 const ExecScopeError = @import("error.zig").ExecScopeError;
 const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
+const TraceEntry = @import("trace_context.zig").TraceEntry;
+const RelocatedTraceEntry = @import("trace_context.zig").RelocatedTraceEntry;
 const build_options = @import("../build_options.zig");
 const RangeCheckBuiltinRunner = @import("builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
 const SignatureBuiltinRunner = @import("builtins/builtin_runner/signature.zig").SignatureBuiltinRunner;
@@ -31,6 +33,8 @@ const ExecutionScopes = @import("types/execution_scopes.zig").ExecutionScopes;
 const HintData = @import("../hint_processor/hint_processor_def.zig").HintData;
 const HintRange = @import("../vm/types/program.zig").HintRange;
 
+const cfg = @import("cfg");
+
 const decoder = @import("../vm/decoding/decoder.zig");
 
 /// Represents the Cairo VM.
@@ -41,10 +45,10 @@ pub const CairoVM = struct {
     // *                        FIELDS                            *
     // ************************************************************
 
-    /// The memory allocator. Can be needed for the deallocation of the VM resources.
+    /// The memory allocator.
     allocator: Allocator,
     /// The run context.
-    run_context: *RunContext,
+    run_context: RunContext,
     /// ArrayList of built-in runners
     builtin_runners: ArrayList(BuiltinRunner),
     /// The memory segment manager.
@@ -52,9 +56,8 @@ pub const CairoVM = struct {
     /// Whether the run is finished or not.
     is_run_finished: bool = false,
     /// VM trace
-    trace_context: TraceContext,
-    /// Whether the trace has been relocated
-    trace_relocated: bool = false,
+    trace: ?std.ArrayList(TraceEntry) = null,
+    relocated_trace: ?std.ArrayList(RelocatedTraceEntry) = null,
     /// Current Step
     current_step: usize = 0,
     /// Rc limits
@@ -84,17 +87,16 @@ pub const CairoVM = struct {
         // Initialize the memory segment manager.
         const memory_segment_manager = try segments.MemorySegmentManager.init(allocator);
         errdefer memory_segment_manager.deinit();
-        // Initialize the run context.
-        const run_context = try RunContext.init(allocator);
-        errdefer run_context.deinit();
         // Initialize the trace context.
-        const trace_context = try TraceContext.init(allocator, config.enable_trace);
-        errdefer trace_context.deinit();
+        var trace: ?std.ArrayList(TraceEntry) = if (config.enable_trace) try std.ArrayList(TraceEntry).initCapacity(allocator, 100) else null;
+        errdefer if (trace != null) trace.?.deinit();
+        // Initialize the run context.
+        const run_context = .{};
         // Initialize the built-in runners.
         const builtin_runners = ArrayList(BuiltinRunner).init(allocator);
         errdefer builtin_runners.deinit();
         // Initialize the instruction cache.
-        const instruction_cache = ArrayList(?Instruction).init(allocator);
+        const instruction_cache = try ArrayList(?Instruction).initCapacity(allocator, 100);
         errdefer instruction_cache.deinit();
 
         return .{
@@ -102,8 +104,8 @@ pub const CairoVM = struct {
             .run_context = run_context,
             .builtin_runners = builtin_runners,
             .segments = memory_segment_manager,
-            .trace_context = trace_context,
             .instruction_cache = instruction_cache,
+            .trace = trace,
         };
     }
 
@@ -118,10 +120,9 @@ pub const CairoVM = struct {
     pub fn deinit(self: *Self) void {
         // Deallocate the memory segment manager.
         self.segments.deinit();
-        // Deallocate the run context.
-        self.run_context.deinit();
         // Deallocate trace context.
-        self.trace_context.deinit();
+        if (self.trace) |trace| trace.deinit();
+        if (self.relocated_trace) |trace| trace.deinit();
         // Loop through the built-in runners and deallocate their resources.
         for (self.builtin_runners.items) |*builtin| {
             builtin.deinit();
@@ -148,7 +149,7 @@ pub const CairoVM = struct {
     /// # Returns
     ///
     /// An AutoArrayHashMap representing the computed effective sizes of memory segments.
-    pub fn computeSegmentsEffectiveSizes(self: *Self, allow_temp_segments: bool) !std.AutoArrayHashMap(i64, u32) {
+    pub fn computeSegmentsEffectiveSizes(self: *Self, allow_temp_segments: bool) !std.ArrayList(usize) {
         return self.segments.computeEffectiveSize(allow_temp_segments);
     }
 
@@ -226,7 +227,7 @@ pub const CairoVM = struct {
     /// # Returns
     ///
     /// - The used size of the segment at the specified index, or null if not computed.
-    pub fn getSegmentUsedSize(self: *Self, index: u32) ?u32 {
+    pub fn getSegmentUsedSize(self: *Self, index: usize) ?usize {
         return self.segments.getSegmentUsedSize(index);
     }
 
@@ -242,7 +243,7 @@ pub const CairoVM = struct {
     /// # Returns
     ///
     /// - The size of the segment at the specified index, or a computed effective size if not available.
-    pub fn getSegmentSize(self: *Self, index: u32) ?u32 {
+    pub fn getSegmentSize(self: *Self, index: usize) ?usize {
         return self.segments.getSegmentSize(index);
     }
 
@@ -264,7 +265,6 @@ pub const CairoVM = struct {
 
     pub fn stepHintExtensive(
         self: *Self,
-        allocator: Allocator,
         hint_processor: HintProcessor,
         exec_scopes: *ExecutionScopes,
         hint_datas: *std.ArrayList(HintData),
@@ -276,7 +276,7 @@ pub const CairoVM = struct {
             for (hint_range.start..hint_range.start + hint_range.length) |idx| {
                 const hint_data = if (idx < hint_datas.items.len) &hint_datas.items[idx] else return CairoVMError.Unexpected;
 
-                var hint_extension = try hint_processor.executeHintExtensive(allocator, self, hint_data, constants, exec_scopes);
+                var hint_extension = try hint_processor.executeHintExtensive(self.allocator, self, hint_data, constants, exec_scopes);
                 defer hint_extension.deinit();
 
                 var it = hint_extension.iterator();
@@ -292,14 +292,13 @@ pub const CairoVM = struct {
 
     pub fn stepHintNotExtensive(
         self: *Self,
-        allocator: Allocator,
         hint_processor: HintProcessor,
         exec_scopes: *ExecutionScopes,
         hint_datas: []HintData,
         constants: *std.StringHashMap(Felt252),
     ) !void {
         for (hint_datas) |*hint_data| {
-            try hint_processor.executeHint(allocator, self, hint_data, constants, exec_scopes);
+            try hint_processor.executeHint(self.allocator, self, hint_data, constants, exec_scopes);
         }
     }
 
@@ -316,8 +315,8 @@ pub const CairoVM = struct {
     /// - `allocator`: The allocator used for memory operations.
     /// # Errors
     /// - If accessing an unknown memory cell occurs.
-    pub fn stepInstruction(self: *Self, allocator: Allocator) !void {
-        if (self.run_context.pc.segment_index == 0) {
+    pub inline fn stepInstruction(self: *Self) !void {
+        const inst = if (self.run_context.pc.segment_index == 0) value: {
             // Run instructions from the program segment, using the instruction cache.
             const pc = self.run_context.pc.offset;
 
@@ -325,69 +324,60 @@ pub const CairoVM = struct {
             if (self.segments.memory.data.items[0].items.len <= pc)
                 return MemoryError.UnknownMemoryCell;
 
-            // Copy the instruction cache.
-            var inst_cache = std.ArrayList(?Instruction).fromOwnedSlice(allocator, try self.instruction_cache.toOwnedSlice());
-            defer inst_cache.deinit();
-
             // Resize the instruction cache if necessary.
-            const new_cache_len = @max(pc + 1, inst_cache.items.len);
-            if (inst_cache.items.len < new_cache_len) {
-                try inst_cache.appendNTimes(null, new_cache_len - inst_cache.items.len);
+            const new_cache_len = @max(pc + 1, self.instruction_cache.items.len);
+            if (self.instruction_cache.items.len < new_cache_len) {
+                if (self.instruction_cache.capacity < new_cache_len)
+                    try self.instruction_cache.ensureTotalCapacityPrecise(self.instruction_cache.capacity * 2);
+
+                self.instruction_cache.appendNTimesAssumeCapacity(null, new_cache_len - self.instruction_cache.items.len);
             }
 
             // Get the instruction related to the PC.
-            const instruction = &inst_cache.items[pc];
+            const instruction = &self.instruction_cache.items[pc];
 
             // If the instruction does not exist in the cache, decode the current instruction.
-            if (instruction.* == null) instruction.* = try self.decodeCurrentInstruction();
-
-            // Execute the instruction if skip_instruction_execution is false.
-            if (!self.skip_instruction_execution) {
-                try self.runInstruction(allocator, &instruction.*.?);
-            } else {
-                // Advance the program counter if skip_instruction_execution is true.
-                self.run_context.pc.* = try self.run_context.pc.addUint(instruction.*.?.size());
-                self.skip_instruction_execution = false;
+            if (instruction.* == null) {
+                instruction.* = try self.decodeCurrentInstruction();
             }
-            try self.instruction_cache.appendSlice(inst_cache.items);
+
+            break :value instruction.*.?;
+        } else try self.decodeCurrentInstruction();
+
+        // Execute the instruction if skip_instruction_execution is false.
+        if (!self.skip_instruction_execution) {
+            try self.runInstruction(
+                inst,
+            );
         } else {
-            // Decode and execute the current instruction if the program counter is not in the program segment.
-            const instruction = try self.decodeCurrentInstruction();
-
-            if (!self.skip_instruction_execution) {
-                try self.runInstruction(allocator, &instruction);
-            } else {
-                self.run_context.pc.* = try self.run_context.pc.addUint(instruction.size());
-                self.skip_instruction_execution = false;
-            }
+            // Advance the program counter if skip_instruction_execution is true.
+            self.run_context.pc = try self.run_context.pc.addUint(inst.size());
+            self.skip_instruction_execution = false;
         }
     }
 
     /// Do a single step of the VM with not extensive hints.
     /// Process an instruction cycle using the typical fetch-decode-execute cycle.
-    pub fn stepNotExtensive(
+    pub inline fn stepNotExtensive(
         self: *Self,
-        allocator: Allocator,
         hint_processor: HintProcessor,
         exec_scopes: *ExecutionScopes,
         hint_datas: []HintData,
         constants: *std.StringHashMap(Felt252),
     ) !void {
         try self.stepHintNotExtensive(
-            allocator,
             hint_processor,
             exec_scopes,
             hint_datas,
             constants,
         );
-        try self.stepInstruction(allocator);
+        try self.stepInstruction();
     }
 
     /// Do a single step of the VM with extensive hints.
     /// Process an instruction cycle using the typical fetch-decode-execute cycle.
     pub fn stepExtensive(
         self: *Self,
-        allocator: Allocator,
         hint_processor: HintProcessor,
         exec_scopes: *ExecutionScopes,
         hint_datas: *std.ArrayList(HintData),
@@ -395,29 +385,28 @@ pub const CairoVM = struct {
         constants: *std.StringHashMap(Felt252),
     ) !void {
         try self.stepHintExtensive(
-            allocator,
             hint_processor,
             exec_scopes,
             hint_datas,
             hint_ranges,
             constants,
         );
-        try self.stepInstruction(allocator);
+        try self.stepInstruction();
     }
 
     /// Insert Operands only after checking if they were deduced.
     // # Arguments
     /// - `allocator`: allocator where OperandsResult stored.
     /// - `op`: OperandsResult object that stores all operands.
-    pub fn insertDeducedOperands(self: *Self, allocator: Allocator, op: OperandsResult) !void {
+    pub inline fn insertDeducedOperands(self: *Self, op: OperandsResult) !void {
         if (op.wasOp0Deducted())
-            try self.segments.memory.set(allocator, op.op_0_addr, op.op_0);
+            try self.segments.memory.set(self.allocator, op.op_0_addr, op.op_0);
 
         if (op.wasOp1Deducted())
-            try self.segments.memory.set(allocator, op.op_1_addr, op.op_1);
+            try self.segments.memory.set(self.allocator, op.op_1_addr, op.op_1);
 
         if (op.wasDestDeducted())
-            try self.segments.memory.set(allocator, op.dst_addr, op.dst);
+            try self.segments.memory.set(self.allocator, op.dst_addr, op.dst);
     }
 
     /// Runs a specific instruction in the Cairo VM.
@@ -470,52 +459,55 @@ pub const CairoVM = struct {
     ///
     /// This function assumes proper initialization of the CairoVM instance and must be called in
     /// a controlled environment to ensure the correct execution of instructions and memory operations.
-    pub fn runInstruction(
+    pub inline fn runInstruction(
         self: *Self,
-        allocator: Allocator,
-        instruction: *const Instruction,
+        instruction: Instruction,
     ) !void {
         // Check if tracing is disabled and log the current state if not.
-        if (!build_options.trace_disable) {
-            try self.trace_context.traceInstruction(
+        if (self.trace) |*trace| {
+            if (trace.capacity < trace.items.len + 1)
+                try trace.ensureTotalCapacityPrecise(trace.capacity * 2);
+
+            trace.appendAssumeCapacity(
                 .{
-                    .pc = self.run_context.pc.*,
-                    .ap = self.run_context.getAP(),
-                    .fp = self.run_context.getFP(),
+                    .pc = self.run_context.pc,
+                    .ap = self.run_context.ap,
+                    .fp = self.run_context.fp,
                 },
             );
         }
 
         // Compute operands for the instruction.
-        const operands_result = try self.computeOperands(allocator, instruction);
+        const operands_result = try self.computeOperands(instruction);
 
         // Insert deduced operands into memory.
-        try self.insertDeducedOperands(allocator, operands_result);
+        try self.insertDeducedOperands(operands_result);
 
         // Perform opcode-specific assertions on operands using the `opcodeAssertions` function.
         try self.opcodeAssertions(instruction, operands_result);
 
-        // Update registers based on the instruction and operands.
-        try self.updateRegisters(instruction, operands_result);
-
         // Constants for offset bit manipulation.
-        const OFFSET_BITS: u32 = 16;
-        const off_0 = instruction.off_0 + (@as(isize, 1) << (OFFSET_BITS - 1));
-        const off_1 = instruction.off_1 + (@as(isize, 1) << (OFFSET_BITS - 1));
-        const off_2 = instruction.off_2 + (@as(isize, 1) << (OFFSET_BITS - 1));
+        const OFFSET = 1 << 15;
+        const off_0 = instruction.off_0 + OFFSET;
+        const off_1 = instruction.off_1 + OFFSET;
+        const off_2 = instruction.off_2 + OFFSET;
 
         // Calculate and update relocation limits.
-        const limits = self.rc_limits orelse .{ off_0, off_0 };
-
-        self.rc_limits = .{
+        self.rc_limits = if (self.rc_limits) |limits| .{
             @min(limits[0], off_0, off_1, off_2),
             @max(limits[1], off_0, off_1, off_2),
+        } else .{
+            @min(off_0, off_1, off_2),
+            @max(off_0, off_1, off_2),
         };
 
         // Mark memory accesses for the instruction.
         self.segments.memory.markAsAccessed(operands_result.dst_addr);
         self.segments.memory.markAsAccessed(operands_result.op_0_addr);
         self.segments.memory.markAsAccessed(operands_result.op_1_addr);
+
+        // Update registers based on the instruction and operands.
+        try self.updateRegisters(instruction, operands_result);
 
         // Increment the current step counter.
         self.current_step += 1;
@@ -535,14 +527,12 @@ pub const CairoVM = struct {
     ///
     /// # Returns
     /// A structured `OperandsResult` containing computed operands, the result, and destinations.
-    pub fn computeOperands(
+    pub inline fn computeOperands(
         self: *Self,
-        allocator: Allocator,
-        instruction: *const Instruction,
+        instruction: Instruction,
     ) !OperandsResult {
         // Create a default OperandsResult to store the computed operands.
         var op_res: OperandsResult = .{};
-        op_res.res = null;
 
         // Compute the destination address of the instruction.
         op_res.dst_addr = try self.run_context.computeDstAddr(instruction);
@@ -565,15 +555,14 @@ pub const CairoVM = struct {
             op_res.op_0 = op_0;
         } else {
             // Set flag to compute and deduce op_0.
-            op_res.setOp0(true);
+            op_res.setOp0(1);
             // Compute op_0 based on specific deductions.
             op_res.op_0 = try self.computeOp0Deductions(
-                allocator,
                 op_res.op_0_addr,
                 &op_res.res,
                 instruction,
-                &dst_op,
-                &op_1_op,
+                dst_op,
+                op_1_op,
             );
         }
 
@@ -582,15 +571,14 @@ pub const CairoVM = struct {
             op_res.op_1 = op_1;
         } else {
             // Set flag to compute and deduce op_1.
-            op_res.setOp1(true);
+            op_res.setOp1(1);
             // Compute op_1 based on specific deductions.
             op_res.op_1 = try self.computeOp1Deductions(
-                allocator,
                 op_res.op_1_addr,
                 &op_res.res,
                 instruction,
-                &dst_op,
-                &@as(?MaybeRelocatable, op_res.op_0),
+                dst_op,
+                op_res.op_0,
             );
         }
 
@@ -604,7 +592,7 @@ pub const CairoVM = struct {
             op_res.dst = dst;
         } else {
             // Set flag to compute and deduce the destination.
-            op_res.setDst(true);
+            op_res.setDst(1);
             // Compute the destination based on certain conditions.
             op_res.dst = try self.deduceDst(instruction, op_res.res);
         }
@@ -626,16 +614,15 @@ pub const CairoVM = struct {
     ///
     /// ## Returns
     /// - `MaybeRelocatable`: The deduced Op0 operand or an error if deducing Op0 fails.
-    pub fn computeOp0Deductions(
+    pub inline fn computeOp0Deductions(
         self: *Self,
-        allocator: Allocator,
         op_0_addr: Relocatable,
         res: *?MaybeRelocatable,
-        instruction: *const Instruction,
-        dst: *const ?MaybeRelocatable,
-        op1: *const ?MaybeRelocatable,
+        instruction: Instruction,
+        dst: ?MaybeRelocatable,
+        op1: ?MaybeRelocatable,
     ) !MaybeRelocatable {
-        if (try self.deduceMemoryCell(allocator, op_0_addr)) |op0| {
+        if (try self.deduceMemoryCell(op_0_addr)) |op0| {
             return op0;
         }
         const op0_deductions = try self.deduceOp0(instruction, dst, op1);
@@ -658,16 +645,15 @@ pub const CairoVM = struct {
     ///
     /// ## Returns
     /// - `MaybeRelocatable`: The deduced Op1 operand or an error if deducing Op1 fails.
-    pub fn computeOp1Deductions(
+    pub inline fn computeOp1Deductions(
         self: *Self,
-        allocator: Allocator,
         op1_addr: Relocatable,
         res: *?MaybeRelocatable,
-        instruction: *const Instruction,
-        dst_op: *const ?MaybeRelocatable,
-        op0: *const ?MaybeRelocatable,
+        instruction: Instruction,
+        dst_op: ?MaybeRelocatable,
+        op0: ?MaybeRelocatable,
     ) !MaybeRelocatable {
-        if (try self.deduceMemoryCell(allocator, op1_addr)) |op1|
+        if (try self.deduceMemoryCell(op1_addr)) |op1|
             return op1;
 
         const op1_deductions = try instruction.deduceOp1(dst_op, op0);
@@ -690,12 +676,12 @@ pub const CairoVM = struct {
     pub fn verifyAutoDeductions(self: *const Self, allocator: Allocator) !void {
         for (self.builtin_runners.items) |*builtin| {
             const segment_index = builtin.base();
-            const segment = self.segments.memory.data.items[segment_index];
-            for (segment.items, 0..) |value, offset| {
-                if (value) |v| {
+
+            for (self.segments.memory.data.items[segment_index].items, 0..) |value, offset| {
+                if (value.getValue()) |v| {
                     const addr = Relocatable.init(@intCast(segment_index), offset);
                     const deduced_memory_cell = try builtin.deduceMemoryCell(allocator, addr, self.segments.memory) orelse continue;
-                    if (!deduced_memory_cell.eq(v.maybe_relocatable)) {
+                    if (!deduced_memory_cell.eq(v)) {
                         return CairoVMError.InconsistentAutoDeduction;
                     }
                 }
@@ -743,10 +729,10 @@ pub const CairoVM = struct {
     /// # Returns
     /// - `Tuple`: A tuple containing the deduced `op0` and `res`.
     pub fn deduceOp0(
-        self: *Self,
-        inst: *const Instruction,
-        dst: *const ?MaybeRelocatable,
-        op1: *const ?MaybeRelocatable,
+        self: *const Self,
+        inst: Instruction,
+        dst: ?MaybeRelocatable,
+        op1: ?MaybeRelocatable,
     ) !struct {
         /// The computed operand Op0.
         op_0: ?MaybeRelocatable = null,
@@ -760,17 +746,16 @@ pub const CairoVM = struct {
                 };
             },
             .AssertEq => {
-                const dst_val = dst.* orelse return .{};
-                const op1_val = op1.* orelse return .{};
+                if (dst == null or op1 == null) return .{};
                 if (inst.res_logic == .Add) {
                     return .{
-                        .op_0 = try dst_val.sub(op1_val),
-                        .res = dst_val,
+                        .op_0 = try dst.?.sub(op1.?),
+                        .res = dst,
                     };
-                } else if (dst_val.isFelt() and op1_val.isFelt() and !op1_val.felt.isZero()) {
+                } else if (dst.?.isFelt() and op1.?.isFelt() and !op1.?.felt.isZero()) {
                     return .{
-                        .op_0 = MaybeRelocatable.fromFelt(try dst_val.felt.div(op1_val.felt)),
-                        .res = dst_val,
+                        .op_0 = MaybeRelocatable.fromFelt(try dst.?.felt.div(op1.?.felt)),
+                        .res = dst,
                     };
                 }
             },
@@ -783,112 +768,84 @@ pub const CairoVM = struct {
     /// # Arguments
     /// - `instruction`: The instruction that was executed.
     /// - `operands`: The operands of the instruction.
-    pub fn updatePc(
+    pub inline fn updatePc(
         self: *Self,
-        instruction: *const Instruction,
+        instruction: Instruction,
         operands: OperandsResult,
     ) !void {
-        switch (instruction.pc_update) {
+        self.run_context.pc = switch (instruction.pc_update) {
             // PC update regular
-            .Regular => { // Update the PC.
-                self.run_context.pc.*.addUintInPlace(instruction.size());
-            },
+            .Regular => // Update the PC.
+            try self.run_context.pc.addUint(instruction.size()),
             // PC update jump
-            .Jump => {
-                // Check that the res is not null.
-                if (operands.res) |val| {
-                    // Check that the res is a relocatable.
-                    self.run_context.pc.* = val.intoRelocatable() catch
-                        return error.PcUpdateJumpResNotRelocatable;
-                } else {
-                    return error.ResUnconstrainedUsedWithPcUpdateJump;
-                }
-            },
+            .Jump =>
+            // Check that the res is not null.
+            if (operands.res) |val|
+                val.intoRelocatable() catch
+                    return error.PcUpdateJumpResNotRelocatable
+            else
+                return error.ResUnconstrainedUsedWithPcUpdateJump,
             // PC update Jump Rel
-            .JumpRel => {
-                // Check that the res is not null.
-                if (operands.res) |val| {
-                    // Check that the res is a felt.
-                    try self.run_context.pc.*.addFeltInPlace(val.intoFelt() catch return error.PcUpdateJumpRelResNotFelt);
-                } else {
-                    return error.ResUnconstrainedUsedWithPcUpdateJumpRel;
-                }
-            },
+            .JumpRel =>
+            // Check that the res is not null.
+            if (operands.res) |val|
+                try self.run_context.pc.addFelt(val.intoFelt() catch return error.PcUpdateJumpRelResNotFelt)
+            else
+                return error.ResUnconstrainedUsedWithPcUpdateJumpRel,
             // PC update Jnz
-            .Jnz => {
-                if (operands.dst.isZero()) {
-
-                    // Update the PC.
-                    self.run_context.pc.*.addUintInPlace(instruction.size());
-                } else {
-                    // Update the PC.
-                    try self.run_context.pc.*.addMaybeRelocatableInplace(operands.op_1);
-                }
-            },
-        }
+            .Jnz => if (operands.dst.isZero())
+                try self.run_context.pc.addUint(instruction.size())
+            else
+                try self.run_context.pc.addMaybeRelocatable(operands.op_1),
+        };
     }
 
     /// Updates the value of AP according to the executed instruction.
     /// # Arguments
     /// - `instruction`: The instruction that was executed.
     /// - `operands`: The operands of the instruction.
-    pub fn updateAp(
+    pub inline fn updateAp(
         self: *Self,
-        instruction: *const Instruction,
+        instruction: Instruction,
         operands: OperandsResult,
     ) !void {
-        switch (instruction.ap_update) {
+        self.run_context.ap = switch (instruction.ap_update) {
             // AP update Add
-            .Add => {
-                // Check that Res is not null.
-                if (operands.res) |val| {
-                    // Update AP.
-                    self.run_context.ap.* = (try self.run_context.getAP().addMaybeRelocatable(val)).offset;
-                } else {
-                    return error.ApUpdateAddResUnconstrained;
-                }
-            },
+            .Add =>
+            // Check that Res is not null.
+            if (operands.res) |val|
+                // Update AP.
+                (try self.run_context.getAP().addMaybeRelocatable(val)).offset
+            else
+                return error.ApUpdateAddResUnconstrained,
             // AP update Add1
-            .Add1 => self.run_context.ap.* = (try self.run_context.getAP().addUint(1)).offset,
+            .Add1 => self.run_context.ap + 1,
             // AP update Add2
-            .Add2 => self.run_context.ap.* = (try self.run_context.getAP().addUint(2)).offset,
+            .Add2 => self.run_context.ap + 2,
             // AP update regular
-            .Regular => {},
-        }
+            .Regular => return,
+        };
     }
 
     /// Updates the value of AP according to the executed instruction.
     /// # Arguments
     /// - `instruction`: The instruction that was executed.
     /// - `operands`: The operands of the instruction.
-    pub fn updateFp(
+    pub inline fn updateFp(
         self: *Self,
-        instruction: *const Instruction,
+        instruction: Instruction,
         operands: OperandsResult,
     ) !void {
-        switch (instruction.fp_update) {
+        self.run_context.fp = switch (instruction.fp_update) {
             // FP update Add + 2
-            .APPlus2 => { // Update the FP.
-                // FP = AP + 2.
-                self.run_context.fp.* = self.run_context.ap.* + 2;
-            },
+            .APPlus2 => self.run_context.ap + 2,
             // FP update Dst
-            .Dst => {
-                switch (operands.dst) {
-                    .relocatable => |rel| {
-                        // Update the FP.
-                        // FP = DST.
-                        self.run_context.fp.* = rel.offset;
-                    },
-                    .felt => |f| {
-                        // Update the FP.
-                        // FP += DST.
-                        self.run_context.fp.* = (try self.run_context.getFP().addFelt(f)).offset;
-                    },
-                }
+            .Dst => switch (operands.dst) {
+                .relocatable => |rel| rel.offset,
+                .felt => |f| try f.toInt(usize),
             },
-            else => {},
-        }
+            else => return,
+        };
     }
 
     /// Updates the registers (fp, ap, and pc) based on the given instruction and operands.
@@ -902,9 +859,9 @@ pub const CairoVM = struct {
     /// # Returns
     ///
     /// - Returns `void` on success, an error on failure.
-    pub fn updateRegisters(
+    pub inline fn updateRegisters(
         self: *Self,
-        instruction: *const Instruction,
+        instruction: Instruction,
         operands: OperandsResult,
     ) !void {
         try self.updateFp(instruction, operands);
@@ -927,13 +884,13 @@ pub const CairoVM = struct {
     ///
     /// - Returns the deduced destination register, or an error if no destination is deducible.
     pub fn deduceDst(
-        self: *Self,
-        instruction: *const Instruction,
+        self: *const Self,
+        instruction: Instruction,
         res: ?MaybeRelocatable,
     ) !MaybeRelocatable {
         return switch (instruction.opcode) {
             .AssertEq => if (res) |r| r else CairoVMError.NoDst,
-            .Call => MaybeRelocatable.fromRelocatable(self.run_context.getFP()),
+            .Call => MaybeRelocatable.fromRelocatable(.{ .segment_index = 1, .offset = self.run_context.fp }),
             else => CairoVMError.NoDst,
         };
     }
@@ -946,38 +903,17 @@ pub const CairoVM = struct {
     /// - `MaybeRelocatable`: The deduced value.
     pub fn deduceMemoryCell(
         self: *Self,
-        allocator: Allocator,
         address: Relocatable,
     ) CairoVMError!?MaybeRelocatable {
         for (self.builtin_runners.items) |*builtin_item| {
             if (builtin_item.base() == address.segment_index)
                 return builtin_item.deduceMemoryCell(
-                    allocator,
+                    self.allocator,
                     address,
                     self.segments.memory,
                 ) catch CairoVMError.RunnerError;
         }
         return null;
-    }
-
-    /// Performs all relocation operations
-    ///
-    /// The relocation process:
-    ///
-    ///    1. Compute the sizes of each memory segment.
-    ///    2. Build an array that contains the first relocated address of each segment.
-    ///    3. Creates the relocated memory transforming the original memory by using the array built in 2.
-    ///    4. Creates the relocated trace transforming the original trace by using the array built in 2.
-    ///
-    pub fn relocate(self: *Self, allocator: Allocator, allow_tmp_segments: bool) !void {
-        _ = try self.segments.computeEffectiveSize(allow_tmp_segments);
-
-        const relocation_table = try self.segments.relocateSegments(allocator);
-
-        const relocated_memory = try self.segments.relocateMemory(relocation_table, allocator);
-
-        try self.relocateTrace(relocation_table);
-        self.relocated_memory = relocated_memory;
     }
 
     /// Relocates the trace within the Cairo VM, updating relocatable registers to numbered ones.
@@ -1001,38 +937,29 @@ pub const CairoVM = struct {
     /// This function assumes that the relocation table indices correspond correctly to the addresses
     /// needing relocation within the Cairo VM's trace.
     pub fn relocateTrace(self: *Self, relocation_table: []usize) !void {
-        if (self.trace_relocated) return TraceError.AlreadyRelocated;
+        if (self.relocated_trace != null) return TraceError.AlreadyRelocated;
         if (relocation_table.len < 2) return TraceError.NoRelocationFound;
+        if (self.trace == null) return TraceError.TraceNotEnabled;
 
-        switch (self.trace_context.state) {
-            .enabled => |trace_enabled| {
-                for (trace_enabled.entries.items) |entry| {
-                    try self.trace_context.addRelocatedTrace(
-                        .{
-                            .pc = Felt252.fromInt(usize, try entry.pc.relocateAddress(relocation_table)),
-                            .ap = Felt252.fromInt(usize, try entry.ap.relocateAddress(relocation_table)),
-                            .fp = Felt252.fromInt(usize, try entry.fp.relocateAddress(relocation_table)),
-                        },
-                    );
-                }
-                self.trace_relocated = true;
-            },
-            .disabled => return TraceError.TraceNotEnabled,
-        }
+        var relocated_trace = try std.ArrayList(RelocatedTraceEntry).initCapacity(self.allocator, self.trace.?.items.len);
+        errdefer relocated_trace.deinit();
+
+        for (self.trace.?.items) |trace|
+            relocated_trace.appendAssumeCapacity(.{
+                .pc = try trace.pc.relocateAddress(relocation_table),
+                .ap = trace.ap + relocation_table[1],
+                .fp = trace.fp + relocation_table[1],
+            });
+
+        self.relocated_trace = relocated_trace;
     }
 
     /// Gets the relocated trace
     /// Returns `TraceError.TraceNotRelocated` error the trace has not been relocated
     /// # Returns
     /// - `[]RelocatedTraceEntry`: an array of relocated trace.
-    pub fn getRelocatedTrace(self: *Self) TraceError![]TraceContext.RelocatedTraceEntry {
-        return if (self.trace_relocated)
-            switch (self.trace_context.state) {
-                .enabled => |trace_enabled| trace_enabled.relocated_trace_entries.items,
-                .disabled => TraceError.TraceNotEnabled,
-            }
-        else
-            TraceError.TraceNotRelocated;
+    pub fn getRelocatedTrace(self: *Self) TraceError![]RelocatedTraceEntry {
+        return if (self.relocated_trace) |rel_trace| return rel_trace.items else TraceError.TraceNotRelocated;
     }
 
     /// Marks a range of memory addresses as accessed within the Cairo VM's memory segment.
@@ -1308,7 +1235,11 @@ pub const CairoVM = struct {
     ///
     /// This function assumes proper initialization of the CairoVM instance and must be called in
     /// a controlled environment to ensure the correct execution of instructions and memory operations.
-    pub fn opcodeAssertions(self: *Self, instruction: *const Instruction, operands: OperandsResult) !void {
+    pub fn opcodeAssertions(
+        self: *Self,
+        instruction: Instruction,
+        operands: OperandsResult,
+    ) !void {
         // Switch on the opcode to perform the appropriate assertion.
         switch (instruction.opcode) {
             // Assert that the result and destination operands are equal for AssertEq opcode.
@@ -1371,10 +1302,10 @@ pub const CairoVM = struct {
     /// # Errors
     ///
     /// Returns an error if the instruction encoding is invalid.
-    pub fn decodeCurrentInstruction(self: *const Self) !Instruction {
+    pub inline fn decodeCurrentInstruction(self: *const Self) !Instruction {
         const felt = try self.segments.memory.getFelt(self.run_context.getPC());
 
-        const instruction = felt.intoU64() catch
+        const instruction = felt.toInt(u64) catch
             return CairoVMError.InvalidInstructionEncoding;
 
         return decoder.decodeInstructions(instruction);
@@ -1444,11 +1375,11 @@ pub const CairoVM = struct {
         const segment_index = builtin.?.base();
 
         // Iterate through the memory segments and write output based on their content.
-        for (0..segment_used_sizes.get(@intCast(segment_index)).?) |i| {
+        for (0..segment_used_sizes.items[@intCast(segment_index)]) |i| {
             if (self.segments.memory.get(Relocatable.init(@intCast(segment_index), i))) |v| {
                 switch (v) {
                     // Write felt value.
-                    .felt => |f| std.fmt.format(writer, "{}\n", .{f.toSignedInt()}) catch
+                    .felt => |f| std.fmt.format(writer, "{}\n", .{try f.toSignedInt(i256)}) catch
                         return CairoVMError.FailedToWriteOutput,
                     // Write relocatable value.
                     .relocatable => |r| std.fmt.format(writer, "{}:{}\n", .{ r.segment_index, r.offset }) catch
@@ -1468,13 +1399,13 @@ pub const OperandsResult = struct {
     const Self = @This();
 
     /// The destination operand value.
-    dst: MaybeRelocatable = MaybeRelocatable.fromFelt(Felt252.zero()),
+    dst: MaybeRelocatable = undefined,
     /// The result operand value.
-    res: ?MaybeRelocatable = MaybeRelocatable.fromFelt(Felt252.zero()),
+    res: ?MaybeRelocatable = null,
     /// The first operand value.
-    op_0: MaybeRelocatable = MaybeRelocatable.fromFelt(Felt252.zero()),
+    op_0: MaybeRelocatable = undefined,
     /// The second operand value.
-    op_1: MaybeRelocatable = MaybeRelocatable.fromFelt(Felt252.zero()),
+    op_1: MaybeRelocatable = undefined,
     /// The relocatable address of the destination operand.
     dst_addr: Relocatable = .{},
     /// The relocatable address of the first operand.
@@ -1489,8 +1420,8 @@ pub const OperandsResult = struct {
     /// # Arguments
     ///
     /// - `value`: A boolean value indicating whether the destination operand was deduced.
-    pub fn setDst(self: *Self, value: bool) void {
-        self.deduced_operands |= @intFromBool(value);
+    pub inline fn setDst(self: *Self, comptime value: u8) void {
+        self.deduced_operands |= value;
     }
 
     /// Sets the flag indicating the first operand was deduced.
@@ -1498,8 +1429,8 @@ pub const OperandsResult = struct {
     /// # Arguments
     ///
     /// - `value`: A boolean value indicating whether the first operand was deduced.
-    pub fn setOp0(self: *Self, value: bool) void {
-        self.deduced_operands |= if (value) 1 << 1 else 0 << 1;
+    pub inline fn setOp0(self: *Self, comptime value: u8) void {
+        self.deduced_operands |= (value << 1);
     }
 
     /// Sets the flag indicating the second operand was deduced.
@@ -1507,8 +1438,8 @@ pub const OperandsResult = struct {
     /// # Arguments
     ///
     /// - `value`: A boolean value indicating whether the second operand was deduced.
-    pub fn setOp1(self: *Self, value: bool) void {
-        self.deduced_operands |= if (value) 1 << 2 else 0 << 2;
+    pub inline fn setOp1(self: *Self, comptime value: u8) void {
+        self.deduced_operands |= (value << 2);
     }
 
     /// Checks if the destination operand was deduced.
@@ -1516,7 +1447,7 @@ pub const OperandsResult = struct {
     /// # Returns
     ///
     /// - A boolean indicating if the destination operand was deduced.
-    pub fn wasDestDeducted(self: *const Self) bool {
+    pub inline fn wasDestDeducted(self: *const Self) bool {
         return self.deduced_operands & 1 != 0;
     }
 
@@ -1525,7 +1456,7 @@ pub const OperandsResult = struct {
     /// # Returns
     ///
     /// - A boolean indicating if the first operand was deduced.
-    pub fn wasOp0Deducted(self: *const Self) bool {
+    pub inline fn wasOp0Deducted(self: *const Self) bool {
         return self.deduced_operands & (1 << 1) != 0;
     }
 
@@ -1534,7 +1465,7 @@ pub const OperandsResult = struct {
     /// # Returns
     ///
     /// - A boolean indicating if the second operand was deduced.
-    pub fn wasOp1Deducted(self: *const Self) bool {
+    pub inline fn wasOp1Deducted(self: *const Self) bool {
         return self.deduced_operands & (1 << 2) != 0;
     }
 };

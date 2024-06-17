@@ -22,7 +22,7 @@ const blake2s_hash = @import("blake2s_hash.zig");
 const builtin_hints = @import("builtin_hint_codes.zig");
 
 pub fn feltToU32(felt: Felt252) MathError!u32 {
-    const u256_val = felt.toInteger();
+    const u256_val = felt.toU256();
     if (u256_val > 0xFFFFFFFF) {
         return MathError.Felt252ToU32Conversion;
     }
@@ -187,9 +187,7 @@ pub fn blake2sAddUnit256(_: Allocator, vm: *CairoVM, ids_data: std.StringHashMap
     defer data.deinit();
     // first batch
     for (0..4) |_| {
-        const temp = try low.divRem(mask);
-        const q = temp.q;
-        const r = temp.r;
+        const q, const r = low.divRem(mask);
         try data.append(MaybeRelocatable.fromFelt(r));
         low = q;
     }
@@ -197,9 +195,7 @@ pub fn blake2sAddUnit256(_: Allocator, vm: *CairoVM, ids_data: std.StringHashMap
     data.shrinkAndFree(0);
     // second batch
     for (0..4) |_| {
-        const temp = try high.divRem(mask);
-        const q = temp.q;
-        const r = temp.r;
+        const q, const r = high.divRem(mask);
         try data.append(MaybeRelocatable.fromFelt(r));
         high = q;
     }
@@ -224,17 +220,13 @@ pub fn blake2sAddUnit256BigEnd(_: Allocator, vm: *CairoVM, ids_data: std.StringH
 
     // first batch
     for (0..4) |_| {
-        const temp = try low.divRem(mask);
-        const q = temp.q;
-        const r = temp.r;
+        const q, const r = low.divRem(mask);
         try data.append(MaybeRelocatable.fromFelt(r));
         low = q;
     }
     // second batch
     for (0..4) |_| {
-        const temp = try high.divRem(mask);
-        const q = temp.q;
-        const r = temp.r;
+        const q, const r = high.divRem(mask);
         try data.append(MaybeRelocatable.fromFelt(r));
         high = q;
     }
@@ -297,7 +289,7 @@ test "compute blake2s output offset zero" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
-    vm.run_context.fp.* = 4;
+    vm.run_context.fp = 4;
     try vm.segments.memory.setUpMemory(std.testing.allocator, .{
         .{ .{ 1, 0 }, .{ 2, 26 } },
     });
@@ -330,7 +322,7 @@ test "compute blake2s output empty segment" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     _ = try vm.addMemorySegment();
     const output = try vm.segments.addSegment();
@@ -361,7 +353,7 @@ test "compute blake2s output not relocatable" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     _ = try vm.addMemorySegment();
     const ids_data = try testing_utils.setupIdsForTestWithoutMemory(std.testing.allocator, &.{"output"});
@@ -386,7 +378,7 @@ test "compute blake2s output input bigger than u32" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     _ = try vm.segments.addSegment();
     var output = try vm.segments.addTempSegment();
@@ -419,7 +411,7 @@ test "compute blake2s output input relocatable" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     _ = try vm.segments.addSegment();
     var output = try vm.segments.addTempSegment();
@@ -452,7 +444,7 @@ test "compute blake2s ok" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     _ = try vm.segments.addSegment();
     var output = try vm.segments.addTempSegment();
@@ -484,7 +476,7 @@ test "finalize blake2s ok" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
-    vm.run_context.fp.* = 1;
+    vm.run_context.fp = 1;
 
     // add segments
     _ = try vm.segments.addSegment();
@@ -554,7 +546,7 @@ test "blake2s add uint256 valid zero" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
     _ = try vm.segments.addSegment();
     _ = try vm.segments.addSegment();
     const data = try vm.segments.addSegment();
@@ -596,7 +588,7 @@ test "blake2s add uint256 valid non zero" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
     _ = try vm.segments.addSegment();
     _ = try vm.segments.addSegment();
     const data = try vm.segments.addSegment();
@@ -640,7 +632,7 @@ test "blake2s add uint256 big endian valid non zero" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
     _ = try vm.segments.addSegment();
     _ = try vm.segments.addSegment();
     const data = try vm.segments.addSegment();
@@ -683,7 +675,7 @@ test "example blake2s empty input" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
     const output = try vm.segments.addSegment();
     const blake2s_start = try vm.segments.addSegment();
     const ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{ .{
@@ -712,7 +704,7 @@ test "example blake2s compress n bytes over u32" {
     var vm = try CairoVM.init(std.testing.allocator, .{});
     defer vm.deinit();
     defer vm.segments.memory.deinitData(std.testing.allocator);
-    vm.run_context.fp.* = 3;
+    vm.run_context.fp = 3;
     const output = try vm.segments.addSegment();
     const blake2s_start = try vm.segments.addSegment();
     const ids_data = try testing_utils.setupIdsForTest(std.testing.allocator, &.{ .{
