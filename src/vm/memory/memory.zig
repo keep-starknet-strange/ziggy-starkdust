@@ -442,15 +442,12 @@ pub const Memory = struct {
         // TODO: rewrite all on self rel address
         // Return null if either the segment index or offset is not valid.
         // Otherwise, return the maybe_relocatable value at the specified address.
-        return if (data.items[segment_index].items[address.offset].getValue()) |val|
-            switch (val) {
-                .relocatable => |addr| self.relAddress(
-                    addr,
-                ) catch unreachable,
-                else => |_| val,
-            }
-        else
-            null;
+        return switch (data.items[segment_index].items[address.offset].getValue() orelse return null) {
+            .relocatable => |addr| self.relAddress(
+                addr,
+            ) catch unreachable,
+            else => |v| v,
+        };
     }
 
     /// Retrieves a `Felt252` value from the memory at the specified relocatable address.

@@ -255,15 +255,10 @@ pub fn split64(
     ap_tracking: ApTracking,
 ) !void {
     const a = try hint_utils.getIntegerFromVarName("a", vm, ids_data, ap_tracking);
-    const digits = a.toLeDigits();
-    var bytes = [_]u8{0} ** 32;
+    const numb = a.toU256();
 
-    inline for (1..4) |i| {
-        std.mem.writeInt(u64, bytes[(i - 1) * 8 .. i * 8], digits[i], .little);
-    }
-
-    const low = Felt252.fromInt(u64, digits[0]);
-    const high = Felt252.fromBytesLe(bytes);
+    const low = Felt252.fromInt(u256, numb & ((1 << 64) - 1));
+    const high = Felt252.fromInt(u256, numb >> 64);
 
     try hint_utils.insertValueFromVarName(allocator, "high", MaybeRelocatable.fromFelt(high), vm, ids_data, ap_tracking);
     try hint_utils.insertValueFromVarName(allocator, "low", MaybeRelocatable.fromFelt(low), vm, ids_data, ap_tracking);

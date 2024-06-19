@@ -162,6 +162,7 @@ pub fn bigIntIntGetSquareRoot(
         (try field_helper.sqrtPrimePower(allocator, gx, p)) orelse try Int.initSet(allocator, 0)
     else
         try Int.initSet(allocator, 0);
+
     defer root_gx.deinit();
 
     if (!x.eqlZero() and (@intFromBool(success_x) ^ @intFromBool(success_gx)) == 0)

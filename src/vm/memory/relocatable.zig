@@ -280,6 +280,26 @@ pub const MaybeRelocatable = union(enum) {
     relocatable: Relocatable,
     felt: Felt252,
 
+    /// This method is interface method, when format is calling for this struct, this method is called
+    ///
+    pub fn format(
+        self: Self,
+        comptime fmt: []const u8,
+        options: std.fmt.FormatOptions,
+        writer: anytype,
+    ) !void {
+        _ = fmt;
+        _ = options;
+        switch (self) {
+            .relocatable => |r| {
+                try writer.print("MaybeRelocatable(Relocatable(offset={},index={}))", .{ r.offset, r.segment_index });
+            },
+            .felt => |f| {
+                try writer.print("MaybeRelocatable(Felt({}))", .{f.toU256()});
+            },
+        }
+    }
+
     /// Determines if two `MaybeRelocatable` instances are equal.
     ///
     /// This method compares the variant type and the contained value. If both the variant

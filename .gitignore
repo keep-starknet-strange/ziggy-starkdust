@@ -18,6 +18,7 @@ docsite/
 cairo-vm-env
 cairo-vm
 tmp/
+profile.json
 
 # we dont need compiled cairo programs in repo
 /cairo_programs/*.json
