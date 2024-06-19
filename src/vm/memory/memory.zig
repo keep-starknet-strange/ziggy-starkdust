@@ -613,7 +613,7 @@ pub const Memory = struct {
     /// # Returns
     ///
     /// Returns the segment of MemoryCell items if it exists, or `null` if not found.
-    inline fn getSegmentAtIndex(self: *const Self, idx: i64) ?[]MemoryCell {
+    pub inline fn getSegmentAtIndex(self: *const Self, idx: i64) ?[]MemoryCell {
         return if (idx < 0) {
             const i: usize = @bitCast(-(idx + 1));
             return if (i >= self.temp_data.items.len) null else self.temp_data.items[i].items;
@@ -693,21 +693,35 @@ pub const Memory = struct {
         // Check if the left and right addresses are the same, in which case the segments are equal.
         if (lhs.eq(rhs)) return true;
 
+        // Get the segment starting from the left-hand address.
+        const l: ?[]MemoryCell = if (self.getSegmentAtIndex(lhs.segment_index)) |s|
+            // Check if the offset is within the bounds of the segment.
+            if (lhs.offset < s.len) s[lhs.offset..] else null
+        else
+            null;
+
         // Get the segment starting from the right-hand address.
-        const r: ?[]MemoryCell = self.getSegmentAtIndex(rhs.segment_index);
+        const r: ?[]MemoryCell = if (self.getSegmentAtIndex(rhs.segment_index)) |s|
+            // Check if the offset is within the bounds of the segment.
+            if (rhs.offset < s.len) s[rhs.offset..] else return l == null
+        else
+            return l == null;
 
         // If the left segment exists, perform further checks.
-        if (self.getSegmentAtIndex(lhs.segment_index)) |ls| {
+        if (l) |ls| {
             // If the right segment also exists, compare the segments up to the specified length.
-            if (r) |rs| {
-                return MemoryCell.eqlSlice(ls[lhs.offset .. lhs.offset + len], rs[rhs.offset .. rhs.offset + len]);
-            }
+            // Determine the actual lengths to compare.
+            const lhs_len = @min(ls.len, len);
+            const rhs_len = @min(r.?.len, len);
 
-            // If only the left segment exists, return false.
-            return false;
+            // Compare slices of MemoryCell items up to the specified length.
+            if (lhs_len != rhs_len) return false;
+
+            return MemoryCell.eqlSlice(ls[0..lhs_len], r.?[0..rhs_len]);
         }
 
-        return r == null;
+        // If only the left segment exists, return false.
+        return false;
     }
 
     /// Retrieves a range of memory values starting from a specified address.
@@ -727,6 +741,36 @@ pub const Memory = struct {
     ///
     /// Returns an error if there are any issues encountered during the retrieval of the memory range.
     pub fn getRange(
+        self: *Self,
+        allocator: Allocator,
+        address: Relocatable,
+        size: usize,
+    ) !std.ArrayList(?MaybeRelocatable) {
+        var values = std.ArrayList(?MaybeRelocatable).init(allocator);
+        errdefer values.deinit();
+        for (0..size) |i| {
+            try values.append(self.get(try address.addUint(i)));
+        }
+        return values;
+    }
+
+    /// Retrieves a range of memory values starting from a specified address.
+    ///
+    /// # Arguments
+    ///
+    /// * `allocator`: The allocator used for the memory allocation of the returned list.
+    /// * `address`: The starting address in the memory from which the range is retrieved.
+    /// * `size`: The size of the range to be retrieved.
+    ///
+    /// # Returns
+    ///
+    /// Returns a list containing memory values retrieved from the specified range starting at the given address.
+    /// The list may contain `MemoryCell.NONE` elements for inaccessible memory positions.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if there are any issues encountered during the retrieval of the memory range.
+    pub fn getRangeRaw(
         self: *Self,
         allocator: Allocator,
         address: Relocatable,
@@ -2397,9 +2441,9 @@ test "MemoryCell: eql function" {
     memoryCell4.markAccessed();
 
     // Test checks
-    try expect(memoryCell1.eql(memoryCell2));
-    try expect(!memoryCell1.eql(memoryCell3));
-    try expect(!memoryCell1.eql(memoryCell4));
+    try expect(memoryCell1.eql(&memoryCell2));
+    try expect(!memoryCell1.eql(&memoryCell3));
+    try expect(!memoryCell1.eql(&memoryCell4));
 }
 
 test "MemoryCell: eqlSlice should return false if slice len are not the same" {
