@@ -62,13 +62,13 @@ pub fn setAdd(
     const range_limit = (try set_end_ptr.sub(set_ptr)).offset;
 
     // load all list, and then we compare elements
-    var elm_segment = vm.segments.memory.getSegmentAtIndex(elm_ptr.segment_index) orelse return error.InvalidSetRange1;
+    var elm_segment = vm.segments.memory.getSegmentAtIndex(elm_ptr.segment_index) orelse return HintError.InvalidSetRange;
 
-    if (elm_segment.len < elm_ptr.offset + elm_size) return error.InvalidSetRange2;
+    if (elm_segment.len < elm_ptr.offset + elm_size) return HintError.InvalidSetRange;
 
-    var set_segment = vm.segments.memory.getSegmentAtIndex(set_ptr.segment_index) orelse return error.InvalidSetRange3;
+    var set_segment = vm.segments.memory.getSegmentAtIndex(set_ptr.segment_index) orelse return HintError.InvalidSetRange;
 
-    if (set_ptr.offset + range_limit > set_segment.len) return error.InvalidSetRange4;
+    if (set_ptr.offset + range_limit > set_segment.len) return HintError.InvalidSetRange;
 
     elm_segment = elm_segment[elm_ptr.offset .. elm_ptr.offset + elm_size];
     set_segment = set_segment[set_ptr.offset .. set_ptr.offset + range_limit];
