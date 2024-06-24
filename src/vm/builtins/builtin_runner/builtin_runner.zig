@@ -182,6 +182,7 @@ pub const BuiltinRunner = union(BuiltinName) {
     pub fn cellsPerInstance(self: *const BuiltinRunner) u32 {
         return switch (self.*) {
             .Output => 0,
+            .Poseidon => 6,
             inline else => |*builtin| builtin.cells_per_instance,
         };
     }

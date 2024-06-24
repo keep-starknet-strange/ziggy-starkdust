@@ -35,10 +35,6 @@ pub const PoseidonBuiltinRunner = struct {
     base: usize = 0,
     /// Ratio
     ratio: ?u32,
-    /// Number of cells per instance
-    cells_per_instance: u32 = poseidon_instance_def.CELLS_PER_POSEIDON,
-    /// Number of input cells
-    n_input_cells: u32 = poseidon_instance_def.INPUT_CELLS_PER_POSEIDON,
     /// Stop pointer
     stop_ptr: ?usize = null,
     /// Included boolean flag
@@ -201,7 +197,7 @@ pub const PoseidonBuiltinRunner = struct {
         return std.math.divCeil(
             usize,
             try self.getUsedCells(segments),
-            self.cells_per_instance,
+            6,
         );
     }
 
@@ -226,32 +222,27 @@ pub const PoseidonBuiltinRunner = struct {
         address: Relocatable,
         memory: *Memory,
     ) !?MaybeRelocatable {
+        _ = allocator; // autofix
         // Calculate the index of the memory cell.
-        const index = @mod(
+        const index: usize = @mod(
             @as(usize, @intCast(address.offset)),
-            @as(usize, @intCast(self.cells_per_instance)),
+            poseidon_instance_def.CELLS_PER_POSEIDON,
         );
 
         // Check if the index corresponds to an input cell, if so, return null.
-        if (index < self.n_input_cells) return null;
+        if (index < poseidon_instance_def.INPUT_CELLS_PER_POSEIDON) return null;
 
         // Check if the cell value is already cached, if so, return it.
         if (self.cache.get(address)) |felt| return .{ .felt = felt };
 
         // Calculate the addresses for the first input cell and first output cell.
         const first_input_addr = try address.subUint(index);
-        const first_output_addr = try first_input_addr.addUint(self.n_input_cells);
+        const first_output_addr = try first_input_addr.addUint(poseidon_instance_def.INPUT_CELLS_PER_POSEIDON);
 
         // Initialize an array list to store input cell values.
-        var input_felts = try ArrayList(Felt252).initCapacity(allocator, self.n_input_cells);
-        defer input_felts.deinit();
-
         // Iterate over input cells, retrieve their values, and append them to the array list.
-        for (0..self.n_input_cells) |i| {
-            const val = memory.get(try first_input_addr.addUint(i)) orelse return null;
-            try input_felts.append(val.intoFelt() catch
-                return RunnerError.BuiltinExpectedInteger);
-        }
+        var input_felts = memory.getFeltRange(first_input_addr, poseidon_instance_def.INPUT_CELLS_PER_POSEIDON) catch return RunnerError.BuiltinExpectedInteger;
+        defer input_felts.deinit();
 
         // Perform Poseidon permutation computation on the input cells.
         // TODO: optimize to use pointer on state
@@ -261,11 +252,12 @@ pub const PoseidonBuiltinRunner = struct {
 
         PoseidonHasher.permuteComp();
 
-        @memcpy(input_felts.items[0..3], PoseidonHasher.state[0..3]);
-
         // Iterate over input cells and cache their computed values.
-        for (0..self.n_input_cells, input_felts.items) |i, elem| {
-            try self.cache.put(try first_output_addr.addUint(i), elem);
+        inline for (0..3) |i| {
+            try self.cache.put(
+                try first_output_addr.addUint(i),
+                PoseidonHasher.state[i],
+            );
         }
 
         // Return the cached value for the specified memory cell address.
