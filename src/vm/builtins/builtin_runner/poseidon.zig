@@ -31,6 +31,8 @@ const expectEqualSlices = std.testing.expectEqualSlices;
 pub const PoseidonBuiltinRunner = struct {
     const Self = @This();
 
+    pub const INPUT_CELLS_PER_POSEIDON = poseidon_instance_def.INPUT_CELLS_PER_POSEIDON;
+
     /// Base
     base: usize = 0,
     /// Ratio
@@ -153,7 +155,7 @@ pub const PoseidonBuiltinRunner = struct {
 
         // Calculate the expected stop pointer value based on the number of used instances.
         const stop_ptr = stop_pointer.offset;
-        if (stop_ptr != try self.getUsedInstances(segments) * self.cells_per_instance)
+        if (stop_ptr != try self.getUsedInstances(segments) * poseidon_instance_def.CELLS_PER_POSEIDON)
             return RunnerError.InvalidStopPointer;
 
         // Set the stop pointer and return the address of the stop pointer.

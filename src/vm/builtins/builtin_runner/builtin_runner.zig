@@ -608,6 +608,7 @@ pub const BuiltinRunner = union(BuiltinName) {
         return switch (self.*) {
             .Output => 0,
             .SegmentArena => |*segment_arena| segment_arena.n_input_cells_per_instance,
+            .Poseidon => PoseidonBuiltinRunner.INPUT_CELLS_PER_POSEIDON,
             inline else => |*builtin| builtin.n_input_cells,
         };
     }
