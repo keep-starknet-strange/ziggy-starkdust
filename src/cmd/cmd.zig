@@ -51,6 +51,20 @@ pub fn run() !void {
         .required = false,
     };
 
+    // Command-line option for enabling secure run.
+    const execute_secure_run = cli.Option{
+        // The full name of the option.
+        .long_name = "secure-run",
+        // Description of the option's purpose.
+        .help = "Whether to run in proof mode or not.",
+        // Short alias for the option.
+        .short_alias = 'p',
+        // Reference to the proof mode configuration.
+        .value_ref = r.mkRef(&config.proof_mode),
+        // Indicates if the option is required.
+        .required = false,
+    };
+
     // Command-line option for specifying the filename.
     const program_option = cli.Option{
         // The full name of the option.
@@ -161,6 +175,7 @@ pub fn run() !void {
                             program_option,
                             output_trace,
                             output_memory,
+                            execute_secure_run,
                         },
                         // Action to be executed for the subcommand.
                         .target = .{ .action = .{ .exec = execute } },

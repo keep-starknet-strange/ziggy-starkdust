@@ -4,6 +4,7 @@
 
 /// Config used to initiate CairoVM
 pub const Config = struct {
+    secure_run: ?bool = false,
     /// Generate a proof for execution of the program
     proof_mode: bool = false,
     /// When enabled trace is generated

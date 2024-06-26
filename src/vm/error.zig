@@ -148,6 +148,12 @@ pub const CairoRunnerError = error{
 
 /// Represents different error conditions that occur in the built-in runners.
 pub const RunnerError = error{
+    // Error while finalizing segments
+    FinalizeSegements,
+    // Finalize_segments called but proof_mode is not enabled
+    FinalizeSegmentsNoProofMode,
+    // end_run must be called before finalize_segments.
+    FinalizeNoEndRun,
     // Given builtins are not in appropiate order
     DisorderedBuiltins,
     // Builtin(s) not present in layout

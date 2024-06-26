@@ -156,6 +156,7 @@ pub const CairoRunner = struct {
     relocated_trace: ?[]RelocatedTraceEntry = null,
     relocated_memory: ArrayList(?Felt252),
     execution_scopes: ExecutionScopes = undefined,
+    segments_finalized: bool,
 
     pub fn init(
         allocator: Allocator,
@@ -182,6 +183,8 @@ pub const CairoRunner = struct {
             .relocated_memory = ArrayList(?Felt252).init(allocator),
             .execution_scopes = try ExecutionScopes.init(allocator),
             .entrypoint = program.shared_program_data.main,
+            .segments_finalized = false,
+            .execution_public_memory = if (proof_mode) std.ArrayList(usize).init(allocator) else null,
         };
     }
 
@@ -426,7 +429,7 @@ pub const CairoRunner = struct {
             var target_offset: usize = 2;
 
             // If in canonical proof mode, adjust stack and execution state accordingly.
-            if (self.runner_mode == .proof_mode_canonical) {
+            if (self.runner_mode != .proof_mode_cairo1) {
                 // Prepare stack prefix with additional execution context.
                 var stack_prefix = try std.ArrayList(MaybeRelocatable).initCapacity(self.allocator, 2 + stack.items.len);
                 defer stack_prefix.deinit();
@@ -1149,6 +1152,77 @@ pub const CairoRunner = struct {
                 return MemoryError.InsufficientAllocatedCells;
             }
         }
+    }
+
+    // Finalizes the segments.
+    //     Note:
+    //     1.  end_run() must precede a call to this method.
+    //     2.  Call read_return_values() *before* finalize_segments(), otherwise the return values
+    //         will not be included in the public memory.
+    pub fn finalizeSegments(self: *Self) !void {
+        if (self.segments_finalized) {
+            return;
+        }
+
+        if (!self.run_ended) {
+            return RunnerError.FinalizeNoEndRun;
+        }
+
+        const size = self.program.shared_program_data.data.items.len;
+        {
+            var public_memory = try std.ArrayList(std.meta.Tuple(&.{ usize, usize })).initCapacity(self.allocator, size);
+            errdefer public_memory.deinit();
+
+            for (0..size) |i| {
+                public_memory.appendAssumeCapacity(.{ i, 0 });
+            }
+
+            try self.vm.segments.finalize(
+                @intCast((self.program_base orelse return RunnerError.NoProgBase)
+                    .segment_index),
+                size,
+                public_memory,
+            );
+        }
+
+        {
+            var public_memory = std.ArrayList(std.meta.Tuple(&.{ usize, usize })).init(self.allocator);
+            errdefer public_memory.deinit();
+
+            const exec_base = self
+                .execution_base orelse return RunnerError.NoExecBase;
+
+            for ((self
+                .execution_public_memory orelse return RunnerError.FinalizeSegmentsNoProofMode).items) |elem|
+            {
+                try public_memory.append(.{ elem + exec_base.offset, 0 });
+            }
+
+            try self.vm
+                .segments
+                .finalize(@intCast(exec_base.segment_index), null, public_memory);
+        }
+
+        for (self.vm.builtin_runners.items) |builtin_runner| {
+            _, const s = (builtin_runner
+                .getUsedCellsAndAllocatedSize(self.vm) catch return RunnerError.FinalizeSegements);
+
+            if (builtin_runner == .Output) {
+                var public_memory = try builtin_runner.Output.getPublicMemory(self.allocator, self.vm.segments);
+                errdefer public_memory.deinit();
+
+                try self.vm
+                    .segments
+                    .finalize(builtin_runner.base(), s, public_memory);
+            } else {
+                try self.vm
+                    .segments
+                    .finalize(builtin_runner.base(), s, null);
+            }
+        }
+
+        try self.vm.segments.finalizeZeroSegment();
+        self.segments_finalized = true;
     }
 
     /// Retrieves a pointer to the list of built-in functions defined in the program associated with the CairoRunner.
@@ -5254,4 +5328,238 @@ test "CairoRunner: endRun in proof mode with insufficient allocated cells" {
 
     // Run the program until reaching the specified PC.
     try cairo_runner.runUntilPC(end, &hint_processor);
+}
+
+test "CairoRunner: finalizeSegments run not ended" {
+    var vm =
+        try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator),
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        &vm,
+        false,
+    );
+
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    try expectError(RunnerError.FinalizeNoEndRun, cairo_runner.finalizeSegments());
+}
+
+test "CairoRunner: finalizeSegments run ended empty no prog base" {
+    var vm =
+        try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator),
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        &vm,
+        false,
+    );
+
+    cairo_runner.execution_base = Relocatable.init(1, 0);
+    cairo_runner.run_ended = true;
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    try expectError(RunnerError.NoProgBase, cairo_runner.finalizeSegments());
+}
+
+test "CairoRunner: finalizeSegments run ended empty no exec base" {
+    var vm =
+        try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator),
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        &vm,
+        false,
+    );
+
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    cairo_runner.runner_mode = .proof_mode_canonical;
+    cairo_runner.program_base = Relocatable.init(0, 0);
+    cairo_runner.run_ended = true;
+
+    try expectError(RunnerError.NoExecBase, cairo_runner.finalizeSegments());
+}
+
+test "CairoRunner: finalizeSegments run ended empty no proof mode" {
+    var vm =
+        try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator),
+        "all_cairo",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        &vm,
+        false,
+    );
+
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    cairo_runner.program_base = Relocatable.init(0, 0);
+    cairo_runner.execution_base = Relocatable.init(1, 0);
+    cairo_runner.run_ended = true;
+
+    try expectError(RunnerError.FinalizeSegmentsNoProofMode, cairo_runner.finalizeSegments());
+}
+
+test "CairoRunner: finalizeSegments run ended empty empty proof mode" {
+    var vm =
+        try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        try Program.initDefault(std.testing.allocator),
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        &vm,
+        true,
+    );
+
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    cairo_runner.program_base = Relocatable.init(0, 0);
+    cairo_runner.execution_base = Relocatable.init(1, 0);
+    cairo_runner.run_ended = true;
+
+    try cairo_runner.finalizeSegments();
+    try expectEqual(true, cairo_runner.segments_finalized);
+    try expectEqual(0, cairo_runner.execution_public_memory.?.items.len);
+}
+
+test "CairoRunner: finalizeSegments run ended not emptyproof mode empty execution_public_memory" {
+    var vm =
+        try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+
+    var program = try Program.initDefault(std.testing.allocator);
+
+    program.shared_program_data.data.clearRetainingCapacity();
+    try program.shared_program_data.data.appendSlice(
+        &val: {
+            var data: [8]MaybeRelocatable = undefined;
+
+            inline for (0..data.len) |i| {
+                data[i] = .{ .felt = Felt252.fromInt(usize, i + 1) };
+            }
+
+            break :val data;
+        },
+    );
+
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        &vm,
+        true,
+    );
+
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    cairo_runner.program_base = Relocatable.init(0, 0);
+    cairo_runner.execution_base = Relocatable.init(1, 0);
+    cairo_runner.run_ended = true;
+
+    try cairo_runner.finalizeSegments();
+    try expectEqual(true, cairo_runner.segments_finalized);
+    try expectEqual(8, cairo_runner.vm.segments.segment_sizes.get(0));
+
+    var expected = blk: {
+        var data: [8]std.meta.Tuple(&.{ usize, usize }) = undefined;
+        inline for (0..8) |i|
+            data[i] = .{ i, 0 };
+        break :blk data;
+    };
+
+    try expectEqualSlices(std.meta.Tuple(&.{ usize, usize }), &expected, cairo_runner.vm.segments.public_memory_offsets.get(0).?.items);
+
+    try expectEqual(null, cairo_runner.vm.segments.segment_sizes.get(1));
+    try expectEqualSlices(std.meta.Tuple(&.{ usize, usize }), &.{}, cairo_runner.vm.segments.public_memory_offsets.get(1).?.items);
+}
+
+test "CairoRunner: finalizeSegments run ended not emptyproof mode with execution_public_memory" {
+    var vm =
+        try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+
+    var program = try Program.initDefault(std.testing.allocator);
+
+    program.shared_program_data.data.clearRetainingCapacity();
+    try program.shared_program_data.data.appendSlice(
+        &val: {
+            var data: [4]MaybeRelocatable = undefined;
+
+            inline for (0..data.len) |i| {
+                data[i] = .{ .felt = Felt252.fromInt(usize, i + 1) };
+            }
+
+            break :val data;
+        },
+    );
+
+    var cairo_runner = try CairoRunner.init(
+        std.testing.allocator,
+        program,
+        "plain",
+        ArrayList(MaybeRelocatable).init(std.testing.allocator),
+        &vm,
+        true,
+    );
+
+    defer cairo_runner.deinit(std.testing.allocator);
+
+    cairo_runner.program_base = Relocatable.init(0, 0);
+    cairo_runner.execution_base = Relocatable.init(1, 1);
+    try cairo_runner.execution_public_memory.?.appendSlice(&.{ 1, 3, 5, 4 });
+    cairo_runner.run_ended = true;
+
+    try cairo_runner.finalizeSegments();
+    try expectEqual(true, cairo_runner.segments_finalized);
+
+    try expectEqual(4, cairo_runner.vm.segments.segment_sizes.get(0));
+
+    var expected = blk: {
+        var data: [4]std.meta.Tuple(&.{ usize, usize }) = undefined;
+        inline for (0..4) |i|
+            data[i] = .{ i, 0 };
+        break :blk data;
+    };
+    try expectEqualSlices(std.meta.Tuple(&.{ usize, usize }), &expected, cairo_runner.vm.segments.public_memory_offsets.get(0).?.items);
+
+    //Check values written by second call to segments.finalize()
+    try expectEqual(null, cairo_runner.vm.segments.segment_sizes.get(1));
+
+    expected = .{ .{ 2, 0 }, .{ 4, 0 }, .{ 6, 0 }, .{ 5, 0 } };
+
+    try expectEqualSlices(std.meta.Tuple(&.{ usize, usize }), &expected, cairo_runner.vm.segments.public_memory_offsets.get(1).?.items);
 }

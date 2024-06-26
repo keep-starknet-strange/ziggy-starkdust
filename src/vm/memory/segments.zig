@@ -45,6 +45,12 @@ pub const MemorySegmentManager = struct {
         std.ArrayList(Tuple(&.{ usize, usize })),
     ),
 
+    // Segment index of the zero segment index, a memory segment filled with zeroes, used exclusively by builtin runners
+    // This segment will never have index 0 so we use 0 to represent uninitialized value
+    zero_segment_index: usize = 0,
+    // Segment size of the zero segment index
+    zero_segment_size: usize = 0,
+
     // ************************************************************
     // *             MEMORY ALLOCATION AND DEALLOCATION           *
     // ************************************************************
@@ -88,6 +94,10 @@ pub const MemorySegmentManager = struct {
         // Clear the hash maps
         self.segment_used_sizes.deinit();
         self.segment_sizes.deinit();
+
+        var it = self.public_memory_offsets.valueIterator();
+        while (it.next()) |v| v.deinit();
+
         self.public_memory_offsets.deinit();
         // Deallocate the memory.
         self.memory.deinit();
@@ -289,6 +299,15 @@ pub const MemorySegmentManager = struct {
         return ptr.addUint(data.len) catch MemoryError.Math;
     }
 
+    // Finalizes the zero segment and clears it's tracking data from the manager
+    pub fn finalizeZeroSegment(self: *Self) !void {
+        if (self.zero_segment_index != 0) {
+            try self.finalize(self.zero_segment_index, self.zero_segment_size, null);
+            self.zero_segment_index = 0;
+            self.zero_segment_size = 0;
+        }
+    }
+
     /// Records details for a specified segment, facilitating relocation:
     /// - `segment_index`: The index of the segment to finalize.
     /// - `size`: The size of the segment for `relocate_segments`.
@@ -307,18 +326,17 @@ pub const MemorySegmentManager = struct {
         if (size) |s| {
             if (s > std.math.maxInt(u32)) return MathError.ValueTooLarge;
             try self.segment_sizes.put(
-                @intCast(segment_index),
-                @intCast(s),
+                segment_index,
+                s,
             );
         }
+
         try self.public_memory_offsets.put(
             segment_index,
             if (public_memory) |p|
                 p
             else blk: {
-                var default = std.ArrayList(Tuple(&.{ usize, usize })).init(self.allocator);
-                defer default.deinit();
-                break :blk default;
+                break :blk std.ArrayList(Tuple(&.{ usize, usize })).init(self.allocator);
             },
         );
     }

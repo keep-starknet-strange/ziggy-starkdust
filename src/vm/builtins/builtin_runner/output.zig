@@ -155,6 +155,29 @@ pub const OutputBuiltinRunner = struct {
         ) orelse MemoryError.MissingSegmentUsedSizes;
     }
 
+    // return ArrayList owner is caller, so he should call free
+    pub fn getPublicMemory(
+        self: *const Self,
+        allocator: std.mem.Allocator,
+        segments: *MemorySegmentManager,
+    ) !std.ArrayList(std.meta.Tuple(&.{ usize, usize })) {
+        const size = try self.getUsedCells(segments);
+
+        var public_memory = try std.ArrayList(std.meta.Tuple(&.{ usize, usize })).initCapacity(allocator, size);
+        errdefer public_memory.deinit();
+
+        for (0..size) |i| public_memory.appendAssumeCapacity(.{ i, 0 });
+
+        var it = self.pages.iterator();
+
+        while (it.next()) |entry| {
+            for (0..entry.value_ptr.size) |index|
+                public_memory.items[entry.value_ptr.start + index][1] = entry.key_ptr.*;
+        }
+
+        return public_memory;
+    }
+
     /// Retrieves the count of used instances for the OutputBuiltinRunner instance.
     ///
     /// This function acts as an alias for `getUsedCells`, obtaining the number of used instances
