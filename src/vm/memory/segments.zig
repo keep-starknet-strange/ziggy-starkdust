@@ -354,9 +354,7 @@ pub const MemorySegmentManager = struct {
         segment_offsets: *const std.ArrayList(usize),
     ) !std.ArrayList(Tuple(&.{ usize, usize })) {
         // Initialize a list to store the resulting public memory addresses
-        var public_memory_addresses = std.ArrayList(Tuple(&.{ usize, usize })).init(self.allocator);
-        // Ensure that the list has enough capacity to accommodate the addresses
-        try public_memory_addresses.ensureTotalCapacity(self.numSegments());
+        var public_memory_addresses = try std.ArrayList(Tuple(&.{ usize, usize })).initCapacity(self.allocator, self.numSegments());
         // Defer deallocation of the list to handle potential errors
         errdefer public_memory_addresses.deinit();
 
@@ -1090,18 +1088,18 @@ test "MemorySegmentManager: getPublicMemoryAddresses with correct segment offset
 
     // Initialize inner lists to store specific offsets for segments.
     var inner_list_1 = std.ArrayList(Tuple(&.{ usize, usize })).init(allocator);
-    defer inner_list_1.deinit();
+    errdefer inner_list_1.deinit();
     try inner_list_1.append(.{ 0, 0 });
     try inner_list_1.append(.{ 1, 1 });
 
     var inner_list_2 = std.ArrayList(Tuple(&.{ usize, usize })).init(allocator);
-    defer inner_list_2.deinit();
+    errdefer inner_list_2.deinit();
     inline for (0..8) |i| {
         try inner_list_2.append(.{ i, 0 });
     }
 
     var inner_list_5 = std.ArrayList(Tuple(&.{ usize, usize })).init(allocator);
-    defer inner_list_5.deinit();
+    errdefer inner_list_5.deinit();
     try inner_list_5.append(.{ 1, 2 });
 
     // Append inner lists containing offsets to public_memory_offsets.
@@ -1187,18 +1185,18 @@ test "MemorySegmentManager: getPublicMemoryAddresses with incorrect segment offs
 
     // Initialize inner lists to store specific offsets for segments.
     var inner_list_1 = std.ArrayList(Tuple(&.{ usize, usize })).init(allocator);
-    defer inner_list_1.deinit();
+    errdefer inner_list_1.deinit();
     try inner_list_1.append(.{ 0, 0 });
     try inner_list_1.append(.{ 1, 1 });
 
     var inner_list_2 = std.ArrayList(Tuple(&.{ usize, usize })).init(allocator);
-    defer inner_list_2.deinit();
+    errdefer inner_list_2.deinit();
     inline for (0..8) |i| {
         try inner_list_2.append(.{ i, 0 });
     }
 
     var inner_list_5 = std.ArrayList(Tuple(&.{ usize, usize })).init(allocator);
-    defer inner_list_5.deinit();
+    errdefer inner_list_5.deinit();
     try inner_list_5.append(.{ 1, 2 });
 
     // Append inner lists containing offsets to public_memory_offsets.

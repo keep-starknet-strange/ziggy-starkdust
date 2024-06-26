@@ -873,3 +873,42 @@ test "OutputBuiltinRunner: clearStateWithBase should set a new base and clear pa
     // Verifies if the count of pages in the OutputBuiltinRunner's hashmap is 0 after the state clearing.
     try expectEqual(@as(usize, 0), output_builtin.pages.count());
 }
+
+test "OutputBuiltinRunner: getPublicMemory" {
+    // Creates a new OutputBuiltinRunner instance and initializes it with a base address of 10.
+    var output_builtin = OutputBuiltinRunner.initDefault(std.testing.allocator);
+    // Deinitializes the runner when the function scope ends.
+    defer output_builtin.deinit();
+
+    // Sets up the initial pages in the runner's hashmap with various IDs and configurations.
+    try output_builtin.addPage(1, MaybeRelocatable.fromRelocatable(
+        Relocatable.init(
+            @intCast(output_builtin.base),
+            2,
+        ),
+    ), 2);
+    try output_builtin.addPage(2, MaybeRelocatable.fromRelocatable(
+        Relocatable.init(
+            @intCast(output_builtin.base),
+            4,
+        ),
+    ), 3);
+
+    var segments = try MemorySegmentManager.init(std.testing.allocator);
+    defer segments.deinit();
+
+    try segments.segment_used_sizes.append(7);
+
+    const public_memory = try output_builtin.getPublicMemory(std.testing.allocator, segments);
+    defer public_memory.deinit();
+
+    try expectEqualSlices(std.meta.Tuple(&.{ usize, usize }), &.{
+        .{ 0, 0 },
+        .{ 1, 0 },
+        .{ 2, 1 },
+        .{ 3, 1 },
+        .{ 4, 2 },
+        .{ 5, 2 },
+        .{ 6, 2 },
+    }, public_memory.items);
+}

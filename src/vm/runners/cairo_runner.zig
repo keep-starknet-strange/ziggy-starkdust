@@ -132,7 +132,7 @@ const ResourceTracker = struct {
 
 pub const RunnerMode = enum { execution_mode, proof_mode_canonical, proof_mode_cairo1 };
 
-const BuiltinInfo = struct { segment_index: usize, stop_pointer: usize };
+pub const BuiltinInfo = struct { segment_index: usize, stop_pointer: usize };
 
 pub const CairoRunner = struct {
     const Self = @This();
