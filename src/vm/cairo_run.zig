@@ -2,6 +2,7 @@ const std = @import("std");
 const json = std.json;
 const Allocator = std.mem.Allocator;
 
+const security = @import("security.zig");
 const CairoRunner = @import("./runners/cairo_runner.zig").CairoRunner;
 const CairoVM = @import("./core.zig").CairoVM;
 const Config = @import("./config.zig").Config;
@@ -88,6 +89,9 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
     // TODO: make flag for extensive_hints
     var hint_processor: HintProcessor = .{};
     try runner.runUntilPC(end, &hint_processor);
+
+    if (config.proof_mode) try runner.runForSteps(1, &hint_processor);
+
     try runner.endRun(
         allocator,
         false,
@@ -95,13 +99,15 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
         &hint_processor,
     );
 
-    // TODO     cairo_runner.vm.verify_auto_deductions()?;
+    try runner.vm.verifyAutoDeductions(allocator);
+
     // cairo_runner.read_return_values(allow_missing_builtins)?;
 
     if (config.proof_mode)
-        runner.finalizeSegments();
+        try runner.finalizeSegments();
 
-    if (secure_run) {}
+    if (secure_run)
+        try security.verifySecureRunner(allocator, &runner, true, null);
 
     if (config.output_trace != null or config.output_memory != null) {
         try runner.relocate();

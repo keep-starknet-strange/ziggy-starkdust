@@ -36,9 +36,9 @@ for file in $(ls ${CAIRO_PROGRAMS_DIR} | grep .cairo | sed -E 's/\.cairo//'); do
     cairo-compile --cairo_path="${CAIRO_DIR}:" ${CAIRO_PROGRAMS_DIR}/${file}.cairo --output ${CAIRO_PROGRAMS_DIR}/${file}.json --proof_mode
     echo "Running ${file}"
 
-    ${CAIRO_VM_CLI} ${CAIRO_PROGRAMS_DIR}/${file}.json --memory_file $RUST_MEMORY_OUTPUT --trace_file $RUST_TRACE_OUTPUT --layout all_cairo
+    ${CAIRO_VM_CLI} ${CAIRO_PROGRAMS_DIR}/${file}.json --memory_file $RUST_MEMORY_OUTPUT --trace_file $RUST_TRACE_OUTPUT --proof_mode --layout all_cairo
 
-    ${ZIG_CLI} execute --filename ${CAIRO_PROGRAMS_DIR}/${file}.json --enable-trace=true --output-memory=$ZIG_MEMORY_OUTPUT --output-trace=$ZIG_TRACE_OUTPUT --layout all_cairo
+    ${ZIG_CLI} execute --filename ${CAIRO_PROGRAMS_DIR}/${file}.json --enable-trace=true --output-memory=$ZIG_MEMORY_OUTPUT --output-trace=$ZIG_TRACE_OUTPUT --proof-mode=true --layout all_cairo
         
     if sameContents $RUST_TRACE_OUTPUT $ZIG_TRACE_OUTPUT; then 
         echo "Rust & Zig output trace is same"
