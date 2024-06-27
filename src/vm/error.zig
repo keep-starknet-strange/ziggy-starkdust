@@ -1,5 +1,7 @@
 /// Represents different error conditions that occur in the Cairo VM.
 pub const CairoVMError = error{
+    // Out of bounds access to program segment
+    OutOfBoundsProgramSegmentAccess,
     // Out of bounds access to builtin segment
     OutOfBoundsBuiltinSegmentAccess,
     // Expected integer, found
