@@ -312,7 +312,16 @@ pub const MaybeRelocatable = union(enum) {
     ///   * `true` if the two instances are equal.
     ///   * `false` otherwise.
     pub fn eq(self: Self, other: Self) bool {
-        return std.meta.eql(self, other);
+        return switch (self) {
+            inline .felt => |f| switch (other) {
+                inline .felt => |f1| f.eql(f1),
+                else => false,
+            },
+            inline .relocatable => |r| switch (other) {
+                inline .relocatable => |r1| r.eq(r1),
+                else => false,
+            },
+        };
     }
 
     /// Determines if self is less than other.
