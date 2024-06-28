@@ -1,5 +1,9 @@
 /// Represents different error conditions that occur in the Cairo VM.
 pub const CairoVMError = error{
+    // Out of bounds access to program segment
+    OutOfBoundsProgramSegmentAccess,
+    // Out of bounds access to builtin segment
+    OutOfBoundsBuiltinSegmentAccess,
     // Expected integer, found
     ExpectedIntAtRange,
     // Failed to compile hint
@@ -80,6 +84,10 @@ pub const CairoVMError = error{
 
 /// Represents different error conditions that are memory-related.
 pub const MemoryError = error{
+    // Missing memory cells for
+    MissingMemoryCells,
+    // Missing memory cells for
+    MissingMemoryCellsWithOffsets,
     /// Occurs when the ratio of the builtin operation does not divide evenly into the current VM steps.
     ErrorCalculatingMemoryUnits,
     /// The amount of used cells associated with the Range Check runner is not available.
@@ -148,6 +156,12 @@ pub const CairoRunnerError = error{
 
 /// Represents different error conditions that occur in the built-in runners.
 pub const RunnerError = error{
+    // Error while finalizing segments
+    FinalizeSegements,
+    // Finalize_segments called but proof_mode is not enabled
+    FinalizeSegmentsNoProofMode,
+    // end_run must be called before finalize_segments.
+    FinalizeNoEndRun,
     // Given builtins are not in appropiate order
     DisorderedBuiltins,
     // Builtin(s) not present in layout

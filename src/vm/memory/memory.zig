@@ -30,7 +30,7 @@ pub const MemoryCell = struct {
     const RELOCATABLE_MASK: u64 = 1 << 63;
 
     const NONE_MASK: u64 = 1 << 61;
-    const NONE: Self = .{ .data = .{
+    pub const NONE: Self = .{ .data = .{
         0,
         0,
         0,

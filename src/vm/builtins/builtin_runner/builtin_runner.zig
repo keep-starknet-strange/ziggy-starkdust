@@ -631,6 +631,77 @@ pub const BuiltinRunner = union(BuiltinName) {
         }
     }
 
+    pub fn runSecurityChecks(self: *Self, allocator: std.mem.Allocator, vm: *CairoVM) !void {
+        switch (self.*) {
+            inline .Output, .SegmentArena => return,
+            else => {},
+        }
+
+        // if let BuiltinRunner::Mod(modulo) = self {
+        //     modulo.run_additional_security_checks(vm)?;
+        // }
+
+        const cells_per_instance: usize = self.cellsPerInstance();
+        const n_input_cells: usize = self.getNumberInputCells();
+        const builtin_segment_index = self.base();
+        // If the builtin's segment is empty, there are no security checks to run
+
+        if (vm.segments.memory.data.items.len <= builtin_segment_index or vm.segments.memory.data.items[builtin_segment_index].items.len == 0) return;
+
+        const builtin_segment = vm.segments.memory.data.items[builtin_segment_index].items;
+
+        // The builtin segment's size - 1 is the maximum offset within the segment's addresses
+        // Assumption: The last element is not a None value
+        // It is safe to asume this for normal program execution
+        // If there are trailing None values at the end, the following security checks will fail
+
+        const offset_max, _ = @subWithOverflow(builtin_segment.len, 1);
+        // offset_len is the amount of non-None values in the segment
+
+        const offset_len = blk: {
+            var counter: usize = 0;
+            for (builtin_segment) |cell| {
+                if (cell.isSome()) counter += 1;
+            }
+            break :blk counter;
+        };
+
+        const n = if (offset_len == 0) 0 else @divFloor(offset_max, cells_per_instance) + 1;
+
+        // Verify that n is not too large to make sure the expected_offsets set that is constructed
+        // below is not too large.
+        if (n > @divFloor(offset_len, n_input_cells))
+            return MemoryError.MissingMemoryCells;
+
+        // Check that the two inputs (x and y) of each instance are set.
+        var missing_offsets = try std.ArrayList(usize).initCapacity(allocator, n);
+        defer missing_offsets.deinit();
+
+        // Check for missing expected offsets (either their address is no present, or their value is None)
+        for (0..n) |i| {
+            for (0..n_input_cells) |j| {
+                const offset = cells_per_instance * i + j;
+                if (builtin_segment.len < offset or builtin_segment[offset].isNone()) {
+                    try missing_offsets.append(offset);
+                }
+            }
+        }
+
+        if (missing_offsets.items.len != 0)
+            return MemoryError.MissingMemoryCellsWithOffsets;
+
+        // Verify auto deduction rules for the unasigned output cells
+        // Assigned output cells are checked as part of the call to verify_auto_deductions().
+        for (0..n) |i| {
+            for (n_input_cells..cells_per_instance) |j| {
+                const offset = cells_per_instance * i + j;
+                if (builtin_segment.len < offset or builtin_segment[offset].isNone()) {
+                    try vm.verifyAutoDeductionsForAddr(allocator, Relocatable.init(@intCast(builtin_segment_index), offset), self);
+                }
+            }
+        }
+    }
+
     /// Deinitializes the built-in runner.
     ///
     /// This method is used to deinitialize the specific type of built-in runner,
@@ -1940,4 +2011,365 @@ test "BuiltinRunner: getMemorySegmentAddresses after set stop ptr" {
         // Expect that the second element of the result of `getMemorySegmentAddresses` is equal to `ptr`
         try expectEqual(ptr, builtin.getMemorySegmentAddresses()[1]);
     }
+}
+
+test "BuiltinRunner: runSecurityChecks for output" {
+    var builtin = BuiltinRunner{ .Output = OutputBuiltinRunner.init(std.testing.allocator, true) };
+    defer builtin.deinit();
+
+    // Initialize Cairo VM
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try builtin.runSecurityChecks(std.testing.allocator, &vm);
+}
+
+test "BuiltinRunner: runSecurityChecks empty memory" {
+    const instance_def = BitwiseInstanceDef.init(256);
+    var builtin = BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.init(&instance_def, true) };
+    defer builtin.deinit();
+
+    // Initialize Cairo VM
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try builtin.runSecurityChecks(std.testing.allocator, &vm);
+}
+
+test "BuiltinRunner: runSecurityChecks empty offsets" {
+    const instance_def = BitwiseInstanceDef.init(256);
+    var builtin = BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.init(&instance_def, true) };
+    defer builtin.deinit();
+
+    // Initialize Cairo VM
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    // vm.segments.memory.setUpMemory(std.testing.allocator, .{});
+
+    try builtin.runSecurityChecks(std.testing.allocator, &vm);
+}
+
+test "BuiltinRunner: runSecurityChecks bitwise missing memory cells with offsets" {
+    const instance_def = BitwiseInstanceDef.init(256);
+    var builtin = BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.init(&instance_def, true) };
+    defer builtin.deinit();
+
+    // Initialize Cairo VM
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 1 }, .{ 0, 1 } },
+        .{ .{ 0, 2 }, .{ 0, 2 } },
+        .{ .{ 0, 3 }, .{ 0, 3 } },
+        .{ .{ 0, 4 }, .{ 0, 4 } },
+    });
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // vm.segments.memory.setUpMemory(std.testing.allocator, .{});
+
+    try std.testing.expectError(
+        MemoryError.MissingMemoryCellsWithOffsets,
+        builtin.runSecurityChecks(std.testing.allocator, &vm),
+    );
+}
+
+test "BuiltinRunner: runSecurityChecks bitwise missing memory cells" {
+    const instance_def = BitwiseInstanceDef.init(256);
+    var builtin = BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.init(&instance_def, true) };
+    defer builtin.deinit();
+
+    // Initialize Cairo VM
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 4 }, .{ 0, 5 } },
+    });
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // vm.segments.memory.setUpMemory(std.testing.allocator, .{});
+
+    try std.testing.expectError(
+        MemoryError.MissingMemoryCells,
+        builtin.runSecurityChecks(std.testing.allocator, &vm),
+    );
+}
+
+test "BuiltinRunner: runSecurityChecks hash missing memory cells with offsets" {
+    var builtin = BuiltinRunner{ .Hash = HashBuiltinRunner.init(std.testing.allocator, 8, true) };
+    defer builtin.deinit();
+
+    // Initialize Cairo VM
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 1 }, .{ 0, 1 } },
+        .{ .{ 0, 2 }, .{ 0, 2 } },
+        .{ .{ 0, 3 }, .{ 0, 3 } },
+        .{ .{ 0, 4 }, .{ 0, 4 } },
+        .{ .{ 0, 5 }, .{ 0, 5 } },
+    });
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // vm.segments.memory.setUpMemory(std.testing.allocator, .{});
+
+    try std.testing.expectError(
+        MemoryError.MissingMemoryCellsWithOffsets,
+        builtin.runSecurityChecks(std.testing.allocator, &vm),
+    );
+}
+
+test "BuiltinRunner: runSecurityChecks hash missing memory cells" {
+    var builtin = BuiltinRunner{ .Hash = HashBuiltinRunner.init(std.testing.allocator, 8, true) };
+    defer builtin.deinit();
+
+    // Initialize Cairo VM
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 0 }, .{ 0, 0 } },
+    });
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // vm.segments.memory.setUpMemory(std.testing.allocator, .{});
+
+    try std.testing.expectError(
+        MemoryError.MissingMemoryCells,
+        builtin.runSecurityChecks(std.testing.allocator, &vm),
+    );
+}
+
+test "BuiltinRunner: runSecurityChecks rangeCheck missing memory cells with offsets" {
+    var builtin = BuiltinRunner{ .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true) };
+    defer builtin.deinit();
+
+    // Initialize Cairo VM
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 1 }, .{100} },
+        .{ .{ 0, 2 }, .{2} },
+        .{ .{ 0, 3 }, .{3} },
+        .{ .{ 0, 5 }, .{5} },
+        .{ .{ 0, 6 }, .{17} },
+        .{ .{ 0, 7 }, .{22} },
+    });
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // vm.segments.memory.setUpMemory(std.testing.allocator, .{});
+
+    try std.testing.expectError(
+        MemoryError.MissingMemoryCells,
+        builtin.runSecurityChecks(std.testing.allocator, &vm),
+    );
+}
+
+test "BuiltinRunner: runSecurityChecks rangeCheck missing memory cells" {
+    var builtin = BuiltinRunner{ .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true) };
+    defer builtin.deinit();
+
+    // Initialize Cairo VM
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 1 }, .{1} },
+    });
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    // vm.segments.memory.setUpMemory(std.testing.allocator, .{});
+
+    try std.testing.expectError(
+        MemoryError.MissingMemoryCells,
+        builtin.runSecurityChecks(std.testing.allocator, &vm),
+    );
+}
+
+test "BuiltinRunner: runSecurityChecks rangeCheck check empty" {
+    const MemoryCell = @import("../../memory/memory.zig").MemoryCell;
+    var builtin = BuiltinRunner{ .RangeCheck = RangeCheckBuiltinRunner.init(8, 8, true) };
+    defer builtin.deinit();
+
+    // Initialize Cairo VM
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    _ = try vm.segments.addSegment();
+
+    try vm.segments.memory.data.items[0].appendSlice(std.testing.allocator, &.{
+        MemoryCell.NONE,
+        MemoryCell.NONE,
+        MemoryCell.NONE,
+    });
+
+    try builtin.runSecurityChecks(std.testing.allocator, &vm);
+}
+
+test "BuiltinRunner: runSecurityChecks validate auto deductions" {
+    const instance_def = BitwiseInstanceDef.init(256);
+    var builtin = BuiltinRunner{ .Bitwise = BitwiseBuiltinRunner.init(&instance_def, true) };
+    defer builtin.deinit();
+
+    // Initialize Cairo VM
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.memory.validated_addresses.addAddresses(&.{.{ .segment_index = 0, .offset = 2 }});
+
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 0 }, .{ 0, 0 } },
+        .{ .{ 0, 1 }, .{ 0, 1 } },
+        .{ .{ 0, 2 }, .{ 0, 2 } },
+        .{ .{ 0, 3 }, .{ 0, 3 } },
+        .{ .{ 0, 4 }, .{ 0, 4 } },
+    });
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    try builtin.runSecurityChecks(std.testing.allocator, &vm);
+}
+
+test "BuiltinRunner: runSecurityChecks ecOp check memory empty" {
+    var builtin = BuiltinRunner{ .EcOp = EcOpBuiltinRunner.init(std.testing.allocator, .{ .ratio = 256 }, true) };
+    defer builtin.deinit();
+
+    // Initialize Cairo VM
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try builtin.runSecurityChecks(std.testing.allocator, &vm);
+}
+
+test "BuiltinRunner: runSecurityChecks ecOp check memory 1 element" {
+    var builtin = BuiltinRunner{ .EcOp = EcOpBuiltinRunner.init(std.testing.allocator, .{ .ratio = 256 }, true) };
+    defer builtin.deinit();
+
+    // Initialize Cairo VM
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 0 }, .{0} },
+    });
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    try std.testing.expectError(MemoryError.MissingMemoryCells, builtin.runSecurityChecks(std.testing.allocator, &vm));
+}
+
+test "BuiltinRunner: runSecurityChecks ecOp check memory 3 element" {
+    var builtin = BuiltinRunner{ .EcOp = EcOpBuiltinRunner.init(std.testing.allocator, .{ .ratio = 256 }, true) };
+    defer builtin.deinit();
+
+    // Initialize Cairo VM
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 0 }, .{0} },
+        .{ .{ 0, 1 }, .{0} },
+        .{ .{ 0, 2 }, .{0} },
+    });
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    try std.testing.expectError(MemoryError.MissingMemoryCells, builtin.runSecurityChecks(std.testing.allocator, &vm));
+}
+
+test "BuiltinRunner: runSecurityChecks ecOp missing memory cells with offsets" {
+    var builtin = BuiltinRunner{ .EcOp = EcOpBuiltinRunner.init(std.testing.allocator, .{ .ratio = 256 }, true) };
+    defer builtin.deinit();
+
+    // Initialize Cairo VM
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 1 }, .{ 0, 1 } },
+        .{ .{ 0, 2 }, .{ 0, 2 } },
+        .{ .{ 0, 3 }, .{ 0, 3 } },
+        .{ .{ 0, 4 }, .{ 0, 4 } },
+        .{ .{ 0, 5 }, .{ 0, 5 } },
+        .{ .{ 0, 6 }, .{ 0, 6 } },
+    });
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    try std.testing.expectError(MemoryError.MissingMemoryCellsWithOffsets, builtin.runSecurityChecks(std.testing.allocator, &vm));
+}
+
+test "BuiltinRunner: runSecurityChecks ecOp check memory gap" {
+    var builtin = BuiltinRunner{ .EcOp = EcOpBuiltinRunner.init(std.testing.allocator, .{ .ratio = 256 }, true) };
+    defer builtin.deinit();
+
+    // Initialize Cairo VM
+    var vm = try CairoVM.init(
+        std.testing.allocator,
+        .{},
+    );
+    defer vm.deinit();
+
+    try vm.segments.memory.setUpMemory(std.testing.allocator, .{
+        .{ .{ 0, 0 }, .{0} },
+        .{ .{ 0, 1 }, .{1} },
+        .{ .{ 0, 2 }, .{2} },
+        .{ .{ 0, 3 }, .{3} },
+        .{ .{ 0, 4 }, .{4} },
+        .{ .{ 0, 5 }, .{5} },
+        .{ .{ 0, 6 }, .{6} },
+        .{ .{ 0, 8 }, .{8} },
+        .{ .{ 0, 9 }, .{9} },
+        .{ .{ 0, 10 }, .{10} },
+        .{ .{ 0, 11 }, .{11} },
+    });
+    defer vm.segments.memory.deinitData(std.testing.allocator);
+
+    try std.testing.expectError(MemoryError.MissingMemoryCellsWithOffsets, builtin.runSecurityChecks(std.testing.allocator, &vm));
 }

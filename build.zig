@@ -142,6 +142,7 @@ pub fn build(b: *std.Build) void {
     // Creates a step for unit testing. This only builds the test executable
     // but does not run it.
     const unit_tests = b.addTest(.{
+        .name = "unit_tests",
         .root_source_file = b.path("src/tests.zig"),
         .target = target,
         .optimize = optimize,
@@ -155,6 +156,13 @@ pub fn build(b: *std.Build) void {
         mod.module,
     );
 
+    const build_unit_tests = b.addInstallArtifact(unit_tests, .{});
+
+    // Creating run step for building unit tests
+    const build_test_step = b.step("build-test", "Build test binary");
+    build_test_step.dependOn(&lib.step);
+    build_test_step.dependOn(&build_unit_tests.step);
+
     const run_unit_tests = b.addRunArtifact(unit_tests);
 
     // Similar to creating the run step earlier, this exposes a `test` step to
@@ -164,6 +172,7 @@ pub fn build(b: *std.Build) void {
         "test",
         "Run unit tests",
     );
+
     test_step.dependOn(&lib.step);
     test_step.dependOn(&run_unit_tests.step);
 }

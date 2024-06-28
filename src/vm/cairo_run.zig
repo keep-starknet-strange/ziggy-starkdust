@@ -2,6 +2,7 @@ const std = @import("std");
 const json = std.json;
 const Allocator = std.mem.Allocator;
 
+const security = @import("security.zig");
 const CairoRunner = @import("./runners/cairo_runner.zig").CairoRunner;
 const CairoVM = @import("./core.zig").CairoVM;
 const Config = @import("./config.zig").Config;
@@ -59,6 +60,8 @@ pub fn writeEncodedMemory(relocated_memory: []?Felt252, dest: anytype) !void {
 /// - `allocator`:  The allocator to initialize the CairoRunner and parsing of the program json.
 /// - `config`: The config struct that defines the params that the CairoRunner uses to instantiate the vm state for running.
 pub fn runConfig(allocator: Allocator, config: Config) !void {
+    const secure_run = config.secure_run orelse !config.proof_mode;
+
     var vm = try CairoVM.init(
         allocator,
         config,
@@ -84,12 +87,27 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
 
     var hint_processor: HintProcessor = .{};
     try runner.runUntilPC(end, &hint_processor);
+
+    if (config.proof_mode) try runner.runForSteps(1, &hint_processor);
+
     try runner.endRun(
         allocator,
         false,
         false,
         &hint_processor,
     );
+
+
+    try runner.vm.verifyAutoDeductions(allocator);
+
+    // cairo_runner.read_return_values(allow_missing_builtins)?;
+
+    if (config.proof_mode)
+        try runner.finalizeSegments();
+
+    if (secure_run)
+        try security.verifySecureRunner(allocator, &runner, true, null);
+
 
     if (config.print_output) {
         var buf = try std.ArrayList(u8).initCapacity(allocator, 100);
@@ -102,6 +120,7 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
     }
 
     // TODO readReturnValues necessary for builtins
+
     if (config.output_trace != null or config.output_memory != null) {
         try runner.relocate();
 
