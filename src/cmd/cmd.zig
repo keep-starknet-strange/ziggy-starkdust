@@ -93,6 +93,18 @@ pub fn run() !void {
         .required = false,
     };
 
+    // Command-line option for enabling trace mode.
+    const print_output = cli.Option{
+        // The full name of the option.
+        .long_name = "print-output",
+        // Description of the option's purpose.
+        .help = "Print output from Output runner",
+        // Reference to the trace mode configuration.
+        .value_ref = r.mkRef(&config.print_output),
+        // Indicates if the option is required.
+        .required = false,
+    };
+
     // Command-line option for specifying the output trace file.
     const output_trace = cli.Option{
         // The full name of the option.
@@ -176,6 +188,7 @@ pub fn run() !void {
                             output_trace,
                             output_memory,
                             execute_secure_run,
+                            print_output,
                         },
                         // Action to be executed for the subcommand.
                         .target = .{ .action = .{ .exec = execute } },
