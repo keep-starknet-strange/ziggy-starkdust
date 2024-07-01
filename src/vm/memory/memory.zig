@@ -23,7 +23,7 @@ const RangeCheckBuiltinRunner = @import("../builtins/builtin_runner/range_check.
 // Function that validates a memory address and returns a list of validated adresses
 pub const validation_rule = *const fn (Allocator, *Memory, Relocatable) anyerror!std.ArrayList(Relocatable);
 
-pub const MemoryCell = struct {
+pub const MemoryCell = extern struct {
     /// Represents a memory cell that holds relocation information and access status.
     const Self = @This();
     const ACCESS_MASK: u64 = 1 << 62;
@@ -103,8 +103,12 @@ pub const MemoryCell = struct {
     /// # Returns
     ///
     /// Returns `true` if both MemoryCell instances are equal, otherwise `false`.
-    pub fn eql(self: Self, other: Self) bool {
-        return std.mem.eql(u64, self.data[0..], other.data[0..]);
+    pub fn eql(self: *const Self, other: *const Self) bool {
+        inline for (0..4) |i| {
+            if (self.data[i] != other.data[i]) return false;
+        }
+
+        return true;
     }
 
     /// Checks equality between slices of MemoryCell instances.
@@ -124,7 +128,7 @@ pub const MemoryCell = struct {
         if (a.len != b.len) return false;
         if (a.ptr == b.ptr) return true;
 
-        for (a, b) |a_elem, b_elem| {
+        for (a, b) |*a_elem, *b_elem| {
             if (!a_elem.eql(b_elem)) return false;
         }
 
@@ -609,20 +613,11 @@ pub const Memory = struct {
     /// # Returns
     ///
     /// Returns the segment of MemoryCell items if it exists, or `null` if not found.
-    fn getSegmentAtIndex(self: *Self, idx: i64) ?[]MemoryCell {
-        return switch (idx < 0) {
-            true => blk: {
-                const i: usize = @intCast(-(idx + 1));
-                break :blk if (i < self.temp_data.items.len)
-                    self.temp_data.items[i].items
-                else
-                    null;
-            },
-            false => if (idx < self.data.items.len)
-                self.data.items[@intCast(idx)].items
-            else
-                null,
-        };
+    pub inline fn getSegmentAtIndex(self: *const Self, idx: i64) ?[]MemoryCell {
+        return if (idx < 0) {
+            const i: usize = @bitCast(-(idx + 1));
+            return if (i >= self.temp_data.items.len) null else self.temp_data.items[i].items;
+        } else if (idx >= self.data.items.len) null else self.data.items[@intCast(idx)].items;
     }
 
     /// Compares two memory segments within the VM's memory starting from specified addresses
@@ -663,12 +658,6 @@ pub const Memory = struct {
                     const l_idx = lhs.offset + i;
                     const r_idx = rhs.offset + i;
 
-                    // std.log.err("lhs: {any}, rhs: {any}, i: {any}, {any}", .{
-                    //     if (l_idx < ls.len) ls[l_idx] else MemoryCell.NONE, if (r_idx < rs.len) rs[r_idx] else MemoryCell.NONE, i, MemoryCell.cmp(
-                    //         if (l_idx < ls.len) ls[l_idx] else MemoryCell.NONE,
-                    //         if (r_idx < rs.len) rs[r_idx] else MemoryCell.NONE,
-                    //     ),
-                    // });
                     return switch (MemoryCell.cmp(
                         if (l_idx < ls.len) ls[l_idx] else MemoryCell.NONE,
                         if (r_idx < rs.len) rs[r_idx] else MemoryCell.NONE,
@@ -700,7 +689,7 @@ pub const Memory = struct {
     /// # Returns
     ///
     /// Returns `true` if segments are equal up to the specified length, otherwise `false`.
-    pub fn memEq(self: *Self, lhs: Relocatable, rhs: Relocatable, len: usize) !bool {
+    pub fn memEq(self: *const Self, lhs: Relocatable, rhs: Relocatable, len: usize) !bool {
         // Check if the left and right addresses are the same, in which case the segments are equal.
         if (lhs.eq(rhs)) return true;
 
@@ -714,29 +703,25 @@ pub const Memory = struct {
         // Get the segment starting from the right-hand address.
         const r: ?[]MemoryCell = if (self.getSegmentAtIndex(rhs.segment_index)) |s|
             // Check if the offset is within the bounds of the segment.
-            if (rhs.offset < s.len) s[rhs.offset..] else if (l == null) return true else return false
-        else if (l == null) return true else return false;
+            if (rhs.offset < s.len) s[rhs.offset..] else return l == null
+        else
+            return l == null;
 
         // If the left segment exists, perform further checks.
         if (l) |ls| {
             // If the right segment also exists, compare the segments up to the specified length.
-            if (r) |rs| {
-                // Determine the actual lengths to compare.
-                const lhs_len = @min(ls.len, len);
-                const rhs_len = @min(rs.len, len);
+            // Determine the actual lengths to compare.
+            const lhs_len = @min(ls.len, len);
+            const rhs_len = @min(r.?.len, len);
 
-                // Compare slices of MemoryCell items up to the specified length.
-                if (lhs_len != rhs_len) return false;
+            // Compare slices of MemoryCell items up to the specified length.
+            if (lhs_len != rhs_len) return false;
 
-                return MemoryCell.eqlSlice(ls[0..lhs_len], rs[0..rhs_len]);
-            }
-
-            // If only the left segment exists, return false.
-            return false;
+            return MemoryCell.eqlSlice(ls[0..lhs_len], r.?[0..rhs_len]);
         }
 
-        // If the left segment does not exist, return true only if the right segment is also null.
-        return r == null;
+        // If only the left segment exists, return false.
+        return false;
     }
 
     /// Retrieves a range of memory values starting from a specified address.
@@ -756,6 +741,36 @@ pub const Memory = struct {
     ///
     /// Returns an error if there are any issues encountered during the retrieval of the memory range.
     pub fn getRange(
+        self: *Self,
+        allocator: Allocator,
+        address: Relocatable,
+        size: usize,
+    ) !std.ArrayList(?MaybeRelocatable) {
+        var values = std.ArrayList(?MaybeRelocatable).init(allocator);
+        errdefer values.deinit();
+        for (0..size) |i| {
+            try values.append(self.get(try address.addUint(i)));
+        }
+        return values;
+    }
+
+    /// Retrieves a range of memory values starting from a specified address.
+    ///
+    /// # Arguments
+    ///
+    /// * `allocator`: The allocator used for the memory allocation of the returned list.
+    /// * `address`: The starting address in the memory from which the range is retrieved.
+    /// * `size`: The size of the range to be retrieved.
+    ///
+    /// # Returns
+    ///
+    /// Returns a list containing memory values retrieved from the specified range starting at the given address.
+    /// The list may contain `MemoryCell.NONE` elements for inaccessible memory positions.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if there are any issues encountered during the retrieval of the memory range.
+    pub fn getRangeRaw(
         self: *Self,
         allocator: Allocator,
         address: Relocatable,
@@ -2426,9 +2441,9 @@ test "MemoryCell: eql function" {
     memoryCell4.markAccessed();
 
     // Test checks
-    try expect(memoryCell1.eql(memoryCell2));
-    try expect(!memoryCell1.eql(memoryCell3));
-    try expect(!memoryCell1.eql(memoryCell4));
+    try expect(memoryCell1.eql(&memoryCell2));
+    try expect(!memoryCell1.eql(&memoryCell3));
+    try expect(!memoryCell1.eql(&memoryCell4));
 }
 
 test "MemoryCell: eqlSlice should return false if slice len are not the same" {
