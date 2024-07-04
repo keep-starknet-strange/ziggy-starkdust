@@ -754,6 +754,36 @@ pub const Memory = struct {
         return values;
     }
 
+    /// Retrieves a range of memory values starting from a specified address.
+    ///
+    /// # Arguments
+    ///
+    /// * `allocator`: The allocator used for the memory allocation of the returned list.
+    /// * `address`: The starting address in the memory from which the range is retrieved.
+    /// * `size`: The size of the range to be retrieved.
+    ///
+    /// # Returns
+    ///
+    /// Returns a list containing memory values retrieved from the specified range starting at the given address.
+    /// The list may contain `MemoryCell.NONE` elements for inaccessible memory positions.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if there are any issues encountered during the retrieval of the memory range.
+    pub fn getRangeRaw(
+        self: *Self,
+        allocator: Allocator,
+        address: Relocatable,
+        size: usize,
+    ) !std.ArrayList(?MaybeRelocatable) {
+        var values = std.ArrayList(?MaybeRelocatable).init(allocator);
+        errdefer values.deinit();
+        for (0..size) |i| {
+            try values.append(self.get(try address.addUint(i)));
+        }
+        return values;
+    }
+
     /// Counts the number of accessed addresses within a specified segment in the VM memory.
     ///
     /// # Arguments
