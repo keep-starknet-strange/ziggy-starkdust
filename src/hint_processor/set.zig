@@ -12,6 +12,7 @@ const HintProcessor = @import("hint_processor_def.zig").CairoVMHintProcessor;
 const HintData = @import("hint_processor_def.zig").HintData;
 const Relocatable = @import("../vm/memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../vm/memory/relocatable.zig").MaybeRelocatable;
+const MemoryCell = @import("../vm/memory/memory.zig").MemoryCell;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const hint_codes = @import("builtin_hint_codes.zig");
 const MathError = @import("../vm/error.zig").MathError;
@@ -60,10 +61,22 @@ pub fn setAdd(
     // Calculate the range limit.
     const range_limit = (try set_end_ptr.sub(set_ptr)).offset;
 
+    // load all list, and then we compare elements
+    var elm_segment = vm.segments.memory.getSegmentAtIndex(elm_ptr.segment_index) orelse return HintError.InvalidSetRange;
+
+    if (elm_segment.len < elm_ptr.offset + elm_size) return HintError.InvalidSetRange;
+
+    var set_segment = vm.segments.memory.getSegmentAtIndex(set_ptr.segment_index) orelse return HintError.InvalidSetRange;
+
+    if (set_ptr.offset + range_limit > set_segment.len) return HintError.InvalidSetRange;
+
+    elm_segment = elm_segment[elm_ptr.offset .. elm_ptr.offset + elm_size];
+    set_segment = set_segment[set_ptr.offset .. set_ptr.offset + range_limit];
+
     // Iterate over the set elements.
-    for (0..range_limit) |i| {
+    for (0..range_limit / elm_size) |i| {
         // Check if the element is in the set.
-        if (try vm.memEq(elm_ptr, try set_ptr.addUint(elm_size * i), elm_size)) {
+        if (MemoryCell.eqlSlice(elm_segment, set_segment[i * elm_size .. (i + 1) * elm_size])) {
             // Insert index of the element into the virtual machine.
             try hint_utils.insertValueFromVarName(
                 allocator,
