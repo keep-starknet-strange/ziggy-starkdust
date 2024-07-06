@@ -67,7 +67,7 @@ pub const RunContext = struct {
             try base_addr.subUint(@abs(instruction.off_0))
         else
             // Convert i16 to u64 safely
-            try base_addr.addUint(@bitCast(instruction.off_0));
+            try base_addr.addUint(@intCast(instruction.off_0));
     }
 
     /// Compute OP 0 address for a given instruction.

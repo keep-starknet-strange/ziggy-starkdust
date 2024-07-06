@@ -869,8 +869,16 @@ pub const Memory = struct {
         );
         errdefer values.deinit();
 
-        for (0..size) |i| {
-            try values.append(try self.getFelt(try address.addUint(i)));
+        var segment = self.getSegmentAtIndex(address.segment_index) orelse return MemoryError.UnknownMemoryCell;
+        if (segment.len < address.offset + size) return MemoryError.UnknownMemoryCell;
+
+        for (segment[address.offset .. address.offset + size]) |cell| {
+            if (cell.getValue()) |mr| {
+                switch (mr) {
+                    inline .felt => |f| values.appendAssumeCapacity(f),
+                    inline else => return MemoryError.ExpectedInteger,
+                }
+            } else return MemoryError.UnknownMemoryCell;
         }
 
         return values;
