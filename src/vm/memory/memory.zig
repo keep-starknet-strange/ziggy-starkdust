@@ -376,6 +376,9 @@ pub const Memory = struct {
         var data = self.getDataFromSegmentIndex(address.segment_index);
         const insert_segment_index = address.getAdjustedSegmentIndex();
 
+        // if (address.segment_index == 0 and value.isFelt())
+        // std.debug.panic("set {any}, value {any}", .{ address, value });
+
         // Check if the data segment is allocated for the given segment index.
         if (data.len <= insert_segment_index)
             return MemoryError.UnallocatedSegment;

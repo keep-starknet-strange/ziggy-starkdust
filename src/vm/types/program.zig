@@ -322,7 +322,7 @@ pub const SharedProgramData = struct {
             // Iterate through each instruction location.
             while (it.next()) |kv| {
                 // Check if the parent_location_instruction exists.
-                if (instruction_locations.getPtr(kv.key_ptr.*).?.inst.parent_location_instruction) |*p| {
+                if (kv.value_ptr.inst.parent_location_instruction) |*p| {
                     // Retrieve and remove the first element of the list.
                     var it_list = p.popFirst();
 

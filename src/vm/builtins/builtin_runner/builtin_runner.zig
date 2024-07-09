@@ -24,6 +24,8 @@ const EcdsaInstanceDef = @import("../../types/ecdsa_instance_def.zig").EcdsaInst
 const BitwiseInstanceDef = @import("../../types/bitwise_instance_def.zig").BitwiseInstanceDef;
 const EcOpInstanceDef = @import("../../types/ec_op_instance_def.zig").EcOpInstanceDef;
 
+const programjson = @import("../../types/programjson.zig");
+
 const ArrayList = std.ArrayList;
 
 const expectError = std.testing.expectError;
@@ -40,6 +42,9 @@ pub const HASH_BUILTIN_NAME = "pedersen_builtin";
 
 /// The name of the range check builtin.
 pub const RANGE_CHECK_BUILTIN_NAME = "range_check_builtin";
+
+/// The name of the range check 96 builtin.
+pub const RANGE_CHECK96_BUILTIN_NAME = "range_check96_builtin";
 
 /// The name of the ECDSA signature verification builtin.
 pub const SIGNATURE_BUILTIN_NAME = "ecdsa_builtin";
@@ -70,6 +75,8 @@ pub const BuiltinName = enum {
     Output,
     /// Range Check built-in runner for range check operations.
     RangeCheck,
+    /// Range Check 96 built-in runner for range check operations.
+    RangeCheck96,
     /// Keccak built-in runner for Keccak operations.
     Keccak,
     /// Signature built-in runner for signature operations.
@@ -78,6 +85,21 @@ pub const BuiltinName = enum {
     Poseidon,
     /// Segment Arena built-in runner for segment arena operations.
     SegmentArena,
+
+    pub fn fromProgramJsonName(name: programjson.BuiltinName) BuiltinName {
+        return switch (name) {
+            inline .output => .Output,
+            inline .range_check => .RangeCheck,
+            inline .pedersen => .Hash,
+            inline .ecdsa => .Signature,
+            inline .keccak => .Keccak,
+            inline .bitwise => .Bitwise,
+            inline .ec_op => .EcOp,
+            inline .poseidon => .Poseidon,
+            inline .segment_arena => .SegmentArena,
+            inline .range_check96 => .RangeCheck96,
+        };
+    }
 };
 
 /// Built-in runner
@@ -94,6 +116,8 @@ pub const BuiltinRunner = union(BuiltinName) {
     Output: OutputBuiltinRunner,
     /// Range Check built-in runner for range check operations.
     RangeCheck: RangeCheckBuiltinRunner,
+    /// Range Check built-in runner for range check operations.
+    RangeCheck96: RangeCheckBuiltinRunner,
     /// Keccak built-in runner for Keccak operations.
     Keccak: KeccakBuiltinRunner,
     /// Signature built-in runner for signature operations.
@@ -532,7 +556,7 @@ pub const BuiltinRunner = union(BuiltinName) {
     /// # Returns
     ///
     /// A null-terminated byte slice representing the name of the built-in runner.
-    pub fn name(self: *Self) []const u8 {
+    pub fn name(self: *const Self) []const u8 {
         return switch (self.*) {
             .Bitwise => BITWISE_BUILTIN_NAME,
             .EcOp => EC_OP_BUILTIN_NAME,
@@ -543,6 +567,7 @@ pub const BuiltinRunner = union(BuiltinName) {
             .Signature => SIGNATURE_BUILTIN_NAME,
             .Poseidon => POSEIDON_BUILTIN_NAME,
             .SegmentArena => SEGMENT_ARENA_BUILTIN_NAME,
+            .RangeCheck96 => RANGE_CHECK96_BUILTIN_NAME,
         };
     }
 
@@ -655,7 +680,7 @@ pub const BuiltinRunner = union(BuiltinName) {
         // It is safe to asume this for normal program execution
         // If there are trailing None values at the end, the following security checks will fail
 
-        const offset_max, _ = @subWithOverflow(builtin_segment.len, 1);
+        const offset_max = builtin_segment.len -| 1;
         // offset_len is the amount of non-None values in the segment
 
         const offset_len = blk: {
@@ -681,7 +706,7 @@ pub const BuiltinRunner = union(BuiltinName) {
         for (0..n) |i| {
             for (0..n_input_cells) |j| {
                 const offset = cells_per_instance * i + j;
-                if (builtin_segment.len < offset or builtin_segment[offset].isNone()) {
+                if (builtin_segment.len <= offset or builtin_segment[offset].isNone()) {
                     try missing_offsets.append(offset);
                 }
             }
@@ -695,7 +720,7 @@ pub const BuiltinRunner = union(BuiltinName) {
         for (0..n) |i| {
             for (n_input_cells..cells_per_instance) |j| {
                 const offset = cells_per_instance * i + j;
-                if (builtin_segment.len < offset or builtin_segment[offset].isNone()) {
+                if (builtin_segment.len <= offset or builtin_segment[offset].isNone()) {
                     try vm.verifyAutoDeductionsForAddr(allocator, Relocatable.init(@intCast(builtin_segment_index), offset), self);
                 }
             }

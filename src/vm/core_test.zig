@@ -22,7 +22,6 @@ const MathError = @import("error.zig").MathError;
 const Config = @import("config.zig").Config;
 const TraceEntry = @import("trace_context.zig").TraceEntry;
 const RelocatedTraceEntry = @import("trace_context.zig").RelocatedTraceEntry;
-const build_options = @import("../build_options.zig");
 const BuiltinRunner = @import("./builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
 const BitwiseBuiltinRunner = @import("./builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
 const KeccakBuiltinRunner = @import("./builtins/builtin_runner/keccak.zig").KeccakBuiltinRunner;

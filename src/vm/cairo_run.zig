@@ -3,13 +3,15 @@ const json = std.json;
 const Allocator = std.mem.Allocator;
 
 const security = @import("security.zig");
-const CairoRunner = @import("./runners/cairo_runner.zig").CairoRunner;
-const CairoVM = @import("./core.zig").CairoVM;
-const Config = @import("./config.zig").Config;
+const CairoRunner = @import("runners/cairo_runner.zig").CairoRunner;
+const CairoVM = @import("core.zig").CairoVM;
+const Config = @import("config.zig").Config;
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
-const Program = @import("./types/program.zig").Program;
-const ProgramJson = @import("./types/programjson.zig").ProgramJson;
+const Program = @import("types/program.zig").Program;
+const ProgramJson = @import("types/programjson.zig").ProgramJson;
 const HintProcessor = @import("../hint_processor/hint_processor_def.zig").CairoVMHintProcessor;
+const ExecutionScopes = @import("types/execution_scopes.zig").ExecutionScopes;
+const MaybeRelocatable = @import("./memory/relocatable.zig").MaybeRelocatable;
 
 const trace_context = @import("./trace_context.zig");
 const RelocatedTraceEntry = trace_context.RelocatedTraceEntry;
@@ -53,13 +55,131 @@ pub fn writeEncodedMemory(relocated_memory: []?Felt252, dest: anytype) !void {
     }
 }
 
+pub const CairoRunConfig = struct {
+    entrypoint: []const u8 = "main",
+    trace_enabled: bool = false,
+    relocate_mem: bool = false,
+    layout: []const u8 = "plain",
+    proof_mode: bool = false,
+    secure_run: ?bool = null,
+    disable_trace_padding: bool = false,
+    allow_missing_builtins: ?bool = null,
+};
+
+// cairoRun - running cairo program, after call u own runner.vm, own runner and own runner.vm.segments.memory
+// so after call u need deallocate runner.vm, calll runner.vm.segments.memory.deinitData and runner.deinit
+pub fn cairoRun(
+    allocator: std.mem.Allocator,
+    program_content: []const u8,
+    cairo_run_config: CairoRunConfig,
+    hint_processor: *HintProcessor,
+) !CairoRunner {
+    var parsed_program = try ProgramJson.parseFromString(allocator, program_content);
+    defer parsed_program.deinit();
+
+    var program = try parsed_program.value.parseProgramJson(allocator, @constCast(&cairo_run_config.entrypoint));
+
+    const instructions = parsed_program.value.readData(allocator) catch |err| {
+        program.deinit(allocator);
+        return err;
+    };
+
+    return cairoRunProgram(allocator, program, cairo_run_config, hint_processor, instructions);
+}
+
+pub fn cairoRunProgram(
+    allocator: std.mem.Allocator,
+    program: Program,
+    cairo_run_config: CairoRunConfig,
+    hint_processor: *HintProcessor,
+    instructions: std.ArrayList(MaybeRelocatable),
+) !CairoRunner {
+    const execution_scopes = ExecutionScopes.init(allocator) catch |err| {
+        // hack to deallocate program (TODO: think how to do it better)
+        var p = program;
+        p.deinit(allocator);
+        instructions.deinit();
+        return err;
+    };
+
+    return cairoRunProgramWithInitialScope(allocator, program, cairo_run_config, hint_processor, instructions, execution_scopes);
+}
+
+/// Runs a program with a customized execution scope.
+/// put exec_scopes as argument, func take controll on it deallocation due error, due success CairoRunner will control deallocate
+/// also as passed program, CairoRunner take control on program on error/success run
+pub fn cairoRunProgramWithInitialScope(
+    allocator: std.mem.Allocator,
+    program: Program,
+    cairo_run_config: CairoRunConfig,
+    hint_processor: *HintProcessor,
+    instructions: std.ArrayList(MaybeRelocatable),
+    exec_scopes: ExecutionScopes,
+) !CairoRunner {
+    const secure_run = cairo_run_config.secure_run orelse !cairo_run_config.proof_mode;
+
+    const allow_missing_builtins = cairo_run_config.allow_missing_builtins orelse cairo_run_config.proof_mode;
+
+    var runner = val: {
+        errdefer instructions.deinit();
+        errdefer exec_scopes.deinit();
+        errdefer {
+            // hack to deallocate
+            var p = program;
+            p.deinit(allocator);
+        }
+
+        var vm = try allocator.create(CairoVM);
+        errdefer allocator.destroy(vm);
+
+        vm.* = try CairoVM.initV2(allocator, cairo_run_config.trace_enabled);
+        errdefer vm.deinit();
+
+        break :val try CairoRunner.initV2(
+            allocator,
+            program,
+            cairo_run_config.layout,
+            instructions,
+            vm,
+            cairo_run_config.proof_mode,
+            exec_scopes,
+        );
+    };
+    errdefer runner.deinit(allocator);
+
+    const end = try runner.setupExecutionState(allow_missing_builtins);
+
+    try runner.runUntilPC(end, hint_processor);
+
+    if (cairo_run_config.proof_mode) try runner.runForSteps(1, hint_processor);
+
+    try runner.endRun(
+        allocator,
+        cairo_run_config.disable_trace_padding,
+        false,
+        hint_processor,
+    );
+
+    try runner.vm.verifyAutoDeductions(allocator);
+    try runner.readReturnValue(allow_missing_builtins);
+
+    //     cairo_runner.read_return_values(allow_missing_builtins)?;
+    if (cairo_run_config.proof_mode) try runner.finalizeSegments();
+
+    if (secure_run) try security.verifySecureRunner(allocator, &runner, true, null);
+
+    try runner.relocate(cairo_run_config.relocate_mem);
+
+    return runner;
+}
+
 /// Instruments the `CairoRunner` to initialize an execution of a cairo program based on Config params.
 ///
 /// # Arguments
 ///
 /// - `allocator`:  The allocator to initialize the CairoRunner and parsing of the program json.
 /// - `config`: The config struct that defines the params that the CairoRunner uses to instantiate the vm state for running.
-pub fn runConfig(allocator: Allocator, config: Config) !void {
+pub fn runConfig(allocator: Allocator, config: Config) !CairoRunner {
     const secure_run = config.secure_run orelse !config.proof_mode;
 
     var vm = try CairoVM.init(
@@ -82,7 +202,7 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
         &vm,
         config.proof_mode,
     );
-    defer runner.deinit(allocator);
+    errdefer runner.deinit(allocator);
 
     const end = try runner.setupExecutionState(config.allow_missing_builtins orelse config.proof_mode);
 
@@ -135,6 +255,8 @@ pub fn runConfig(allocator: Allocator, config: Config) !void {
             try writer.flush();
         }
     }
+
+    return runner;
 }
 
 const expect = std.testing.expect;

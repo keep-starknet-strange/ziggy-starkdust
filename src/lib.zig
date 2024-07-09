@@ -8,6 +8,7 @@ pub const vm = struct {
     pub usingnamespace @import("vm/run_context.zig");
     pub usingnamespace @import("vm/trace_context.zig");
     pub usingnamespace @import("vm/security.zig");
+    pub usingnamespace @import("vm/air_input_public.zig");
     pub usingnamespace @import("vm/types/program.zig");
     pub usingnamespace @import("vm/types/programjson.zig");
     pub usingnamespace @import("vm/types/pedersen_instance_def.zig");
@@ -47,8 +48,6 @@ pub const utils = struct {
     pub usingnamespace @import("utils/log.zig");
     pub usingnamespace @import("utils/time.zig");
 };
-
-pub const build_options = @import("build_options.zig");
 
 pub const hint_processor = struct {
     pub usingnamespace @import("hint_processor/hint_processor_def.zig");

@@ -1,5 +1,7 @@
 /// Represents different error conditions that occur in the Cairo VM.
 pub const CairoVMError = error{
+    // Failed to find index in the vm's relocation table
+    RelocationNotFound,
     // Out of bounds access to program segment
     OutOfBoundsProgramSegmentAccess,
     // Out of bounds access to builtin segment
@@ -156,6 +158,16 @@ pub const CairoRunnerError = error{
 
 /// Represents different error conditions that occur in the built-in runners.
 pub const RunnerError = error{
+    // Missing execution public memory
+    NoExecPublicMemory,
+    // Cannot add the return values to the public memory after segment finalization.
+    FailedAddingReturnValues,
+    // is missing
+    MissingBuiltin,
+    // The stop pointer of the missing builtin {0} must be 0
+    MissingBuiltinStopPtrNotZero,
+    //  end_run must be called before read_return_values.
+    ReadReturnValuesNoEndRun,
     // Error while finalizing segments
     FinalizeSegements,
     // Finalize_segments called but proof_mode is not enabled
@@ -415,4 +427,15 @@ pub const InsufficientAllocatedCellsError = error{
 pub const ExecScopeError = error{
     ExitMainScopeError,
     NoScopeError,
+};
+
+pub const PublicInputError = error{
+    // The trace slice provided is empty")]
+    EmptyTrace,
+    // The provided memory doesn't contain public address {0}")]
+    MemoryNotFound,
+    // Range check values are missing")]
+    NoRangeCheckLimits,
+    // Failed to (de)serialize data
+    Serialize,
 };

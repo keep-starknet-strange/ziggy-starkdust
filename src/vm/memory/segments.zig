@@ -238,7 +238,8 @@ pub const MemorySegmentManager = struct {
         var relocatable_table = try ArrayList(usize).initCapacity(allocator, 1 + self.segment_used_sizes.items.len);
         errdefer relocatable_table.deinit();
 
-        try relocatable_table.append(1);
+        relocatable_table.appendAssumeCapacity(1);
+
         for (0..self.segment_used_sizes.items.len) |i| {
             const segment_size = self.getSegmentSize(i) orelse return MemoryError.MissingSegmentUsedSizes;
             relocatable_table.appendAssumeCapacity(relocatable_table.items[i] + segment_size);
