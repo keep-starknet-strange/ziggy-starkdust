@@ -22,6 +22,7 @@ const RelocatedTraceEntry = @import("trace_context.zig").RelocatedTraceEntry;
 const RangeCheckBuiltinRunner = @import("builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
 const SignatureBuiltinRunner = @import("builtins/builtin_runner/signature.zig").SignatureBuiltinRunner;
 const BuiltinRunner = @import("builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
+const builtin_runner = @import("builtins/builtin_runner/builtin_runner.zig");
 const Felt252 = @import("../math/fields/starknet.zig").Felt252;
 const HashBuiltinRunner = @import("./builtins/builtin_runner/hash.zig").HashBuiltinRunner;
 const Instruction = instructions.Instruction;
@@ -1361,22 +1362,21 @@ pub const CairoVM = struct {
     ///
     /// Returns an error if writing the output fails.
     pub fn writeOutput(self: *Self, writer: anytype) !void {
-        var builtin: ?*BuiltinRunner = null;
+        var builtin: *BuiltinRunner = val: {
 
-        // Iterate through the built-in runners to find the output runner.
-        for (self.builtin_runners.items) |*runner| {
-            if (runner.* == .Output) {
-                builtin = runner;
-                break;
+            // Iterate through the built-in runners to find the output runner.
+            for (self.builtin_runners.items) |*runner| {
+                if (runner.* == .Output) {
+                    break :val runner;
+                }
             }
-        }
-
-        // If no output runner is found, return.
-        if (builtin == null) return;
+            // Output runner is not exist, so we just return
+            return;
+        };
 
         // Compute effective sizes of memory segments.
         const segment_used_sizes = try self.segments.computeEffectiveSize(false);
-        const segment_index = builtin.?.base();
+        const segment_index = builtin.base();
 
         // Iterate through the memory segments and write output based on their content.
         for (0..segment_used_sizes.items[@intCast(segment_index)]) |i| {

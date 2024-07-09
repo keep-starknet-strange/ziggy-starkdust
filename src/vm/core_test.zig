@@ -3665,7 +3665,7 @@ test "CairoVM: runInstruction without any insertion in the memory" {
     // Compare each cell in VM's memory with the corresponding cell in the expected memory.
     for (vm.segments.memory.data.items, 0..) |d, i| {
         for (d.items, 0..) |cell, j| {
-            try expect(cell.eql(expected_memory.data.items[i].items[j]));
+            try expect(cell.eql(&expected_memory.data.items[i].items[j]));
         }
     }
 }
@@ -3838,7 +3838,7 @@ test "CairoVM: runInstruction with Op0 being deduced" {
     // Compare each cell in VM's memory with the corresponding cell in the expected memory.
     for (vm.segments.memory.data.items, 0..) |d, i| {
         for (d.items, 0..) |cell, j| {
-            try expect(cell.eql(expected_memory.data.items[i].items[j]));
+            try expect(cell.eql(&expected_memory.data.items[i].items[j]));
         }
     }
 }

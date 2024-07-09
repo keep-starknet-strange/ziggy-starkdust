@@ -17,6 +17,8 @@ pub const Config = struct {
     output_trace: ?[]const u8 = undefined,
     /// Write memory to binary file
     output_memory: ?[]const u8 = undefined,
+    /// Print output from Output runner
+    print_output: bool = false,
 
     allow_missing_builtins: ?bool = null,
 };

@@ -193,7 +193,6 @@ pub fn runConfig(allocator: Allocator, config: Config) !CairoRunner {
 
     var entrypoint: []const u8 = "main";
 
-    // TODO: add flag for extensive_hints
     var runner = try CairoRunner.init(
         allocator,
         try parsed_program.value.parseProgramJson(allocator, &entrypoint),
@@ -206,7 +205,6 @@ pub fn runConfig(allocator: Allocator, config: Config) !CairoRunner {
 
     const end = try runner.setupExecutionState(config.allow_missing_builtins orelse config.proof_mode);
 
-    // TODO: make flag for extensive_hints
     var hint_processor: HintProcessor = .{};
     try runner.runUntilPC(end, &hint_processor);
 
@@ -219,6 +217,7 @@ pub fn runConfig(allocator: Allocator, config: Config) !CairoRunner {
         &hint_processor,
     );
 
+
     try runner.vm.verifyAutoDeductions(allocator);
 
     // cairo_runner.read_return_values(allow_missing_builtins)?;
@@ -228,6 +227,19 @@ pub fn runConfig(allocator: Allocator, config: Config) !CairoRunner {
 
     if (secure_run)
         try security.verifySecureRunner(allocator, &runner, true, null);
+
+
+    if (config.print_output) {
+        var buf = try std.ArrayList(u8).initCapacity(allocator, 100);
+        defer buf.deinit();
+
+        try buf.appendSlice("Program Output:\n");
+        try vm.writeOutput(buf.writer());
+
+        std.log.debug("{s}", .{buf.items});
+    }
+
+    // TODO readReturnValues necessary for builtins
 
     if (config.output_trace != null or config.output_memory != null) {
         try runner.relocate();

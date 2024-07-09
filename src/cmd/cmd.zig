@@ -65,7 +65,7 @@ pub fn run() !void {
     };
 
     // Command-line option for enabling secure run.
-    const secure_rune = cli.Option{
+    const secure_run = cli.Option{
         // The full name of the option.
         .long_name = "secure-run",
         // Description of the option's purpose.
@@ -212,7 +212,7 @@ pub fn run() !void {
                             layout,
                             program_option,
                             output_trace,
-                            secure_rune,
+                            secure_run,
                             memory_file,
                             air_input_public,
                             air_input_private,
