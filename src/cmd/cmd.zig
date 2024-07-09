@@ -291,10 +291,10 @@ fn runProgram(allocator: std.mem.Allocator, _cfg: Args) !void {
         try runner.vm.writeOutput(output_buffer.writer());
     }
 
+    var writer: std.io.BufferedWriter(5 * 1024 * 1024, std.fs.File.Writer) = .{ .unbuffered_writer = undefined };
+
     if (_cfg.trace_file) |trace_path| {
         const relocated_trace = runner.relocated_trace orelse return errors.TraceError.TraceNotRelocated;
-
-        var writer: std.io.BufferedWriter(3 * 1024 * 1024, std.fs.File.Writer) = .{ .unbuffered_writer = undefined };
 
         const trace_file = try std.fs.cwd().createFile(trace_path, .{});
         defer trace_file.close();
@@ -307,8 +307,6 @@ fn runProgram(allocator: std.mem.Allocator, _cfg: Args) !void {
     }
 
     if (_cfg.memory_file) |memory_path| {
-        var writer: std.io.BufferedWriter(5 * 1024 * 1024, std.fs.File.Writer) = .{ .unbuffered_writer = undefined };
-
         const memory_file = try std.fs.cwd().createFile(memory_path, .{});
         defer memory_file.close();
 
