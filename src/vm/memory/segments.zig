@@ -45,6 +45,12 @@ pub const MemorySegmentManager = struct {
         std.ArrayList(Tuple(&.{ usize, usize })),
     ),
 
+    // Segment index of the zero segment index, a memory segment filled with zeroes, used exclusively by builtin runners
+    // This segment will never have index 0 so we use 0 to represent uninitialized value
+    zero_segment_index: usize = 0,
+    // Segment size of the zero segment index
+    zero_segment_size: usize = 0,
+
     // ************************************************************
     // *             MEMORY ALLOCATION AND DEALLOCATION           *
     // ************************************************************
@@ -88,6 +94,10 @@ pub const MemorySegmentManager = struct {
         // Clear the hash maps
         self.segment_used_sizes.deinit();
         self.segment_sizes.deinit();
+
+        var it = self.public_memory_offsets.valueIterator();
+        while (it.next()) |v| v.deinit();
+
         self.public_memory_offsets.deinit();
         // Deallocate the memory.
         self.memory.deinit();
@@ -228,7 +238,8 @@ pub const MemorySegmentManager = struct {
         var relocatable_table = try ArrayList(usize).initCapacity(allocator, 1 + self.segment_used_sizes.items.len);
         errdefer relocatable_table.deinit();
 
-        try relocatable_table.append(1);
+        relocatable_table.appendAssumeCapacity(1);
+
         for (0..self.segment_used_sizes.items.len) |i| {
             const segment_size = self.getSegmentSize(i) orelse return MemoryError.MissingSegmentUsedSizes;
             relocatable_table.appendAssumeCapacity(relocatable_table.items[i] + segment_size);
@@ -289,6 +300,15 @@ pub const MemorySegmentManager = struct {
         return ptr.addUint(data.len) catch MemoryError.Math;
     }
 
+    // Finalizes the zero segment and clears it's tracking data from the manager
+    pub fn finalizeZeroSegment(self: *Self) !void {
+        if (self.zero_segment_index != 0) {
+            try self.finalize(self.zero_segment_index, self.zero_segment_size, null);
+            self.zero_segment_index = 0;
+            self.zero_segment_size = 0;
+        }
+    }
+
     /// Records details for a specified segment, facilitating relocation:
     /// - `segment_index`: The index of the segment to finalize.
     /// - `size`: The size of the segment for `relocate_segments`.
@@ -307,18 +327,17 @@ pub const MemorySegmentManager = struct {
         if (size) |s| {
             if (s > std.math.maxInt(u32)) return MathError.ValueTooLarge;
             try self.segment_sizes.put(
-                @intCast(segment_index),
-                @intCast(s),
+                segment_index,
+                s,
             );
         }
+
         try self.public_memory_offsets.put(
             segment_index,
             if (public_memory) |p|
                 p
             else blk: {
-                var default = std.ArrayList(Tuple(&.{ usize, usize })).init(self.allocator);
-                defer default.deinit();
-                break :blk default;
+                break :blk std.ArrayList(Tuple(&.{ usize, usize })).init(self.allocator);
             },
         );
     }
@@ -336,9 +355,7 @@ pub const MemorySegmentManager = struct {
         segment_offsets: *const std.ArrayList(usize),
     ) !std.ArrayList(Tuple(&.{ usize, usize })) {
         // Initialize a list to store the resulting public memory addresses
-        var public_memory_addresses = std.ArrayList(Tuple(&.{ usize, usize })).init(self.allocator);
-        // Ensure that the list has enough capacity to accommodate the addresses
-        try public_memory_addresses.ensureTotalCapacity(self.numSegments());
+        var public_memory_addresses = try std.ArrayList(Tuple(&.{ usize, usize })).initCapacity(self.allocator, self.numSegments());
         // Defer deallocation of the list to handle potential errors
         errdefer public_memory_addresses.deinit();
 
@@ -1072,18 +1089,18 @@ test "MemorySegmentManager: getPublicMemoryAddresses with correct segment offset
 
     // Initialize inner lists to store specific offsets for segments.
     var inner_list_1 = std.ArrayList(Tuple(&.{ usize, usize })).init(allocator);
-    defer inner_list_1.deinit();
+    errdefer inner_list_1.deinit();
     try inner_list_1.append(.{ 0, 0 });
     try inner_list_1.append(.{ 1, 1 });
 
     var inner_list_2 = std.ArrayList(Tuple(&.{ usize, usize })).init(allocator);
-    defer inner_list_2.deinit();
+    errdefer inner_list_2.deinit();
     inline for (0..8) |i| {
         try inner_list_2.append(.{ i, 0 });
     }
 
     var inner_list_5 = std.ArrayList(Tuple(&.{ usize, usize })).init(allocator);
-    defer inner_list_5.deinit();
+    errdefer inner_list_5.deinit();
     try inner_list_5.append(.{ 1, 2 });
 
     // Append inner lists containing offsets to public_memory_offsets.
@@ -1169,18 +1186,18 @@ test "MemorySegmentManager: getPublicMemoryAddresses with incorrect segment offs
 
     // Initialize inner lists to store specific offsets for segments.
     var inner_list_1 = std.ArrayList(Tuple(&.{ usize, usize })).init(allocator);
-    defer inner_list_1.deinit();
+    errdefer inner_list_1.deinit();
     try inner_list_1.append(.{ 0, 0 });
     try inner_list_1.append(.{ 1, 1 });
 
     var inner_list_2 = std.ArrayList(Tuple(&.{ usize, usize })).init(allocator);
-    defer inner_list_2.deinit();
+    errdefer inner_list_2.deinit();
     inline for (0..8) |i| {
         try inner_list_2.append(.{ i, 0 });
     }
 
     var inner_list_5 = std.ArrayList(Tuple(&.{ usize, usize })).init(allocator);
-    defer inner_list_5.deinit();
+    errdefer inner_list_5.deinit();
     try inner_list_5.append(.{ 1, 2 });
 
     // Append inner lists containing offsets to public_memory_offsets.

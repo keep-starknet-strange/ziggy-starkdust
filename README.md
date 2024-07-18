@@ -83,6 +83,11 @@ Run all benchmarks and compare:
 make build-compare-benchmarks
 ```
 
+Run all programs and compare output memory/trace for Zig/Rust cairo-vm:
+```bash
+make build-compare-output
+```
+
 
 Run all unit tests with test summary:
 

@@ -301,7 +301,7 @@ pub const ExecutionScopes = struct {
     }
 
     /// Deinitializes the execution scope.
-    pub fn deinit(self: *Self) void {
+    pub fn deinit(self: *const Self) void {
         for (self.data.items) |*m| {
             var it = m.valueIterator();
 

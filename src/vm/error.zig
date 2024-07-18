@@ -1,5 +1,11 @@
 /// Represents different error conditions that occur in the Cairo VM.
 pub const CairoVMError = error{
+    // Failed to find index in the vm's relocation table
+    RelocationNotFound,
+    // Out of bounds access to program segment
+    OutOfBoundsProgramSegmentAccess,
+    // Out of bounds access to builtin segment
+    OutOfBoundsBuiltinSegmentAccess,
     // Expected integer, found
     ExpectedIntAtRange,
     // Failed to compile hint
@@ -80,6 +86,10 @@ pub const CairoVMError = error{
 
 /// Represents different error conditions that are memory-related.
 pub const MemoryError = error{
+    // Missing memory cells for
+    MissingMemoryCells,
+    // Missing memory cells for
+    MissingMemoryCellsWithOffsets,
     /// Occurs when the ratio of the builtin operation does not divide evenly into the current VM steps.
     ErrorCalculatingMemoryUnits,
     /// The amount of used cells associated with the Range Check runner is not available.
@@ -148,6 +158,22 @@ pub const CairoRunnerError = error{
 
 /// Represents different error conditions that occur in the built-in runners.
 pub const RunnerError = error{
+    // Missing execution public memory
+    NoExecPublicMemory,
+    // Cannot add the return values to the public memory after segment finalization.
+    FailedAddingReturnValues,
+    // is missing
+    MissingBuiltin,
+    // The stop pointer of the missing builtin {0} must be 0
+    MissingBuiltinStopPtrNotZero,
+    //  end_run must be called before read_return_values.
+    ReadReturnValuesNoEndRun,
+    // Error while finalizing segments
+    FinalizeSegements,
+    // Finalize_segments called but proof_mode is not enabled
+    FinalizeSegmentsNoProofMode,
+    // end_run must be called before finalize_segments.
+    FinalizeNoEndRun,
     // Given builtins are not in appropiate order
     DisorderedBuiltins,
     // Builtin(s) not present in layout
@@ -401,4 +427,15 @@ pub const InsufficientAllocatedCellsError = error{
 pub const ExecScopeError = error{
     ExitMainScopeError,
     NoScopeError,
+};
+
+pub const PublicInputError = error{
+    // The trace slice provided is empty")]
+    EmptyTrace,
+    // The provided memory doesn't contain public address {0}")]
+    MemoryNotFound,
+    // Range check values are missing")]
+    NoRangeCheckLimits,
+    // Failed to (de)serialize data
+    Serialize,
 };

@@ -14,8 +14,8 @@
             .hash = "1220ab73fb7cc11b2308edc3364988e05efcddbcac31b707f55e6216d1b9c0da13f1",
         },
         .starknet = .{
-            .url = "https://github.com/StringNick/starknet-zig/archive/7d51aed59982146df3581d3d3320d509b0b10f54.zip",
-            .hash = "1220b00c055ce40da237598e0f1c8758e3434470be648816fa4701a09f683146d4cd",
+            .url = "https://github.com/StringNick/starknet-zig/archive/d9e95579ce9f61a8acf42da03d9371af62925a9e.zip",
+            .hash = "12205f6b98ed2d3b99420d95f94a28d4e2f25f49001aca5db539d6a23e7b1840710e",
         },
     },
 }

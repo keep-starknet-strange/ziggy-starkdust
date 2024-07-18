@@ -118,13 +118,11 @@ fn randomEcPointSeeded(allocator: std.mem.Allocator, seed_bytes: []const u8) !st
 
         const x = std.mem.readInt(u256, &hash_buffer, .big);
 
-        // const y_coef = std.math.pow(i32, -1, seed[0] & 1);
-
         // Calculate y
         if (recoverY(Felt252.fromInt(u256, x))) |y| {
             return .{
                 Felt252.fromInt(u256, x),
-                y,
+                if (seed[0] & 1 == 1) y.neg() else y,
             };
         }
     }

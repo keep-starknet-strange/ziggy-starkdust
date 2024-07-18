@@ -19,7 +19,6 @@ const Config = @import("config.zig").Config;
 const TraceContext = @import("trace_context.zig").TraceContext;
 const TraceEntry = @import("trace_context.zig").TraceEntry;
 const RelocatedTraceEntry = @import("trace_context.zig").RelocatedTraceEntry;
-const build_options = @import("../build_options.zig");
 const RangeCheckBuiltinRunner = @import("builtins/builtin_runner/range_check.zig").RangeCheckBuiltinRunner;
 const SignatureBuiltinRunner = @import("builtins/builtin_runner/signature.zig").SignatureBuiltinRunner;
 const BuiltinRunner = @import("builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
@@ -76,20 +75,13 @@ pub const CairoVM = struct {
     // *             MEMORY ALLOCATION AND DEALLOCATION           *
     // ************************************************************
 
-    /// Creates a new Cairo VM.
-    /// # Arguments
-    /// - `allocator`: The allocator to use for the VM.
-    /// - `config`: Configurations used to initialize the VM.
-    /// # Returns
-    /// - `CairoVM`: The created VM.
-    /// # Errors
-    /// - If a memory allocation fails.
-    pub fn init(allocator: Allocator, config: Config) !Self {
+    pub fn initV2(allocator: Allocator, trace_enabled: bool) !Self {
+
         // Initialize the memory segment manager.
         const memory_segment_manager = try segments.MemorySegmentManager.init(allocator);
         errdefer memory_segment_manager.deinit();
         // Initialize the trace context.
-        var trace: ?std.ArrayList(TraceEntry) = if (config.enable_trace) try std.ArrayList(TraceEntry).initCapacity(allocator, 100) else null;
+        var trace: ?std.ArrayList(TraceEntry) = if (trace_enabled) try std.ArrayList(TraceEntry).initCapacity(allocator, 100) else null;
         errdefer if (trace != null) trace.?.deinit();
         // Initialize the run context.
         const run_context = .{};
@@ -108,6 +100,18 @@ pub const CairoVM = struct {
             .instruction_cache = instruction_cache,
             .trace = trace,
         };
+    }
+
+    /// Creates a new Cairo VM.
+    /// # Arguments
+    /// - `allocator`: The allocator to use for the VM.
+    /// - `config`: Configurations used to initialize the VM.
+    /// # Returns
+    /// - `CairoVM`: The created VM.
+    /// # Errors
+    /// - If a memory allocation fails.
+    pub fn init(allocator: Allocator, config: Config) !Self {
+        return Self.initV2(allocator, config.enable_trace);
     }
 
     /// Safely deallocates resources used by the CairoVM instance.

@@ -33,6 +33,36 @@ const expectEqual = std.testing.expectEqual;
 const expectError = std.testing.expectError;
 const expectEqualSlices = std.testing.expectEqualSlices;
 
+pub const LayoutName = enum {
+    plain,
+    small,
+    dex,
+    recursive,
+    starknet,
+    starknet_with_keccak,
+    recursive_large_output,
+    recursive_with_poseidon,
+    all_solidity,
+    all_cairo,
+    dynamic,
+
+    pub fn toString(self: @This()) []const u8 {
+        return switch (self) {
+            .plain => "plain",
+            .small => "small",
+            .dex => "dex",
+            .recursive => "recursive",
+            .starknet => "starknet",
+            .starknet_with_keccak => "starknet_with_keccak",
+            .recursive_large_output => "recursive_large_output",
+            .recursive_with_poseidon => "recursive_with_poseidon",
+            .all_solidity => "all_solidity",
+            .all_cairo => "all_cairo",
+            .dynamic => "all_cairo",
+        };
+    }
+};
+
 /// Represents the layout configuration for Cairo programs.
 pub const CairoLayout = struct {
     const Self = @This();

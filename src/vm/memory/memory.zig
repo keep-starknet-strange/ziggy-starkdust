@@ -30,7 +30,7 @@ pub const MemoryCell = extern struct {
     const RELOCATABLE_MASK: u64 = 1 << 63;
 
     const NONE_MASK: u64 = 1 << 61;
-    const NONE: Self = .{ .data = .{
+    pub const NONE: Self = .{ .data = .{
         0,
         0,
         0,
@@ -379,6 +379,9 @@ pub const Memory = struct {
         // Retrieve the appropriate data segment based on the segment index of the given address.
         var data = self.getDataFromSegmentIndex(address.segment_index);
         const insert_segment_index = address.getAdjustedSegmentIndex();
+
+        // if (address.segment_index == 0 and value.isFelt())
+        // std.debug.panic("set {any}, value {any}", .{ address, value });
 
         // Check if the data segment is allocated for the given segment index.
         if (data.len <= insert_segment_index)

@@ -22,7 +22,6 @@ const MathError = @import("error.zig").MathError;
 const Config = @import("config.zig").Config;
 const TraceEntry = @import("trace_context.zig").TraceEntry;
 const RelocatedTraceEntry = @import("trace_context.zig").RelocatedTraceEntry;
-const build_options = @import("../build_options.zig");
 const BuiltinRunner = @import("./builtins/builtin_runner/builtin_runner.zig").BuiltinRunner;
 const BitwiseBuiltinRunner = @import("./builtins/builtin_runner/bitwise.zig").BitwiseBuiltinRunner;
 const KeccakBuiltinRunner = @import("./builtins/builtin_runner/keccak.zig").KeccakBuiltinRunner;
@@ -3092,13 +3091,13 @@ test "CairoVM: getPublicMemoryAddresses should return Cairo VM Memory error if s
     // Initialize inner lists to store specific offsets for segments.
     var inner_list_1 = std.ArrayList(std.meta.Tuple(&.{ usize, usize })).init(allocator);
     // Ensure proper deallocation of resources.
-    defer inner_list_1.deinit();
+    errdefer inner_list_1.deinit();
     try inner_list_1.append(.{ 0, 0 });
     try inner_list_1.append(.{ 1, 1 });
 
     var inner_list_2 = std.ArrayList(std.meta.Tuple(&.{ usize, usize })).init(allocator);
     // Ensure proper deallocation of resources.
-    defer inner_list_2.deinit();
+    errdefer inner_list_2.deinit();
     // Inline to append specific offsets to the list.
     inline for (0..8) |i| {
         try inner_list_2.append(.{ i, 0 });
@@ -3106,7 +3105,7 @@ test "CairoVM: getPublicMemoryAddresses should return Cairo VM Memory error if s
 
     var inner_list_5 = std.ArrayList(std.meta.Tuple(&.{ usize, usize })).init(allocator);
     // Ensure proper deallocation of resources.
-    defer inner_list_5.deinit();
+    errdefer inner_list_5.deinit();
     try inner_list_5.append(.{ 1, 2 });
 
     // Append inner lists containing offsets to public_memory_offsets.
@@ -3182,13 +3181,13 @@ test "CairoVM: getPublicMemoryAddresses should return a proper ArrayList if succ
     // Initialize inner lists to store specific offsets for segments.
     var inner_list_1 = std.ArrayList(std.meta.Tuple(&.{ usize, usize })).init(allocator);
     // Ensure proper deallocation of resources.
-    defer inner_list_1.deinit();
+    errdefer inner_list_1.deinit();
     try inner_list_1.append(.{ 0, 0 });
     try inner_list_1.append(.{ 1, 1 });
 
     var inner_list_2 = std.ArrayList(std.meta.Tuple(&.{ usize, usize })).init(allocator);
     // Ensure proper deallocation of resources.
-    defer inner_list_2.deinit();
+    errdefer inner_list_2.deinit();
     // Inline to append specific offsets to the list.
     inline for (0..8) |i| {
         try inner_list_2.append(.{ i, 0 });
@@ -3196,7 +3195,7 @@ test "CairoVM: getPublicMemoryAddresses should return a proper ArrayList if succ
 
     var inner_list_5 = std.ArrayList(std.meta.Tuple(&.{ usize, usize })).init(allocator);
     // Ensure proper deallocation of resources.
-    defer inner_list_5.deinit();
+    errdefer inner_list_5.deinit();
     try inner_list_5.append(.{ 1, 2 });
 
     // Append inner lists containing offsets to public_memory_offsets.

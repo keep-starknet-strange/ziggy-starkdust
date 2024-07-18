@@ -32,6 +32,11 @@ pub const BuiltinsInstanceDef = struct {
     ///
     /// If present, contains the instance definition for the 'range_check' builtin; otherwise, it's `null`.
     range_check: ?RangeCheckInstanceDef = null,
+    /// Represents the instance of the 'range_check96' builtin.
+    ///
+    /// If present, contains the instance definition for the 'range_check' builtin; otherwise, it's `null`.
+    range_check96: ?RangeCheckInstanceDef = null,
+
     /// Represents the instance of the 'ECDSA' builtin.
     ///
     /// If present, contains the instance definition for the 'ECDSA' builtin; otherwise, it's `null`.
@@ -87,6 +92,7 @@ pub const BuiltinsInstanceDef = struct {
             .ec_op = EcOpInstanceDef.init(1024),
             .keccak = KeccakInstanceDef.init(2048, state_rep_keccak),
             .poseidon = PoseidonInstanceDef.init(256),
+            .range_check96 = RangeCheckInstanceDef.init(8, 6),
         };
     }
 

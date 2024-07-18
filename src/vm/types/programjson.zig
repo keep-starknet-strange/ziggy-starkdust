@@ -25,6 +25,8 @@ pub const BuiltinName = enum {
     output,
     /// Represents the range check builtin.
     range_check,
+    /// Represents the range check 96 builtin.
+    range_check96,
     /// Represents the Pedersen builtin.
     pedersen,
     /// Represents the ECDSA builtin.
