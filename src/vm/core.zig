@@ -492,10 +492,10 @@ pub const CairoVM = struct {
         try self.opcodeAssertions(instruction, operands_result);
 
         // Constants for offset bit manipulation.
-        const OFFSET = 1 << 15;
-        const off_0 = instruction.off_0 + OFFSET;
-        const off_1 = instruction.off_1 + OFFSET;
-        const off_2 = instruction.off_2 + OFFSET;
+        const OFFSET: u16 = 1 << 15;
+        const off_0 = @as(isize, instruction.off_0) + OFFSET;
+        const off_1 = @as(isize, instruction.off_1) + OFFSET;
+        const off_2 = @as(isize, instruction.off_2) + OFFSET;
 
         // Calculate and update relocation limits.
         self.rc_limits = if (self.rc_limits) |limits| .{

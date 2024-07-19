@@ -156,7 +156,7 @@ pub const CairoRunner = struct {
     run_ended: bool = false,
     execution_public_memory: ?std.ArrayList(usize) = null,
     relocated_trace: ?[]RelocatedTraceEntry = null,
-    relocated_memory: ArrayList(?Felt252),
+    relocated_memory: ArrayList(RelocatedFelt252),
     execution_scopes: ExecutionScopes = undefined,
     segments_finalized: bool,
 
@@ -184,7 +184,7 @@ pub const CairoRunner = struct {
             .instructions = instructions,
             .vm = vm,
             .runner_mode = if (proof_mode) .proof_mode_canonical else .execution_mode,
-            .relocated_memory = ArrayList(?Felt252).init(allocator),
+            .relocated_memory = ArrayList(RelocatedFelt252).init(allocator),
             .execution_scopes = exec_scopes,
             .entrypoint = program.shared_program_data.main,
             .segments_finalized = false,
@@ -939,14 +939,14 @@ pub const CairoRunner = struct {
 
                     // Resize `relocated_memory` if needed.
                     if (self.relocated_memory.items.len <= relocated_address) {
-                        self.relocated_memory.appendNTimesAssumeCapacity(null, relocated_address - self.relocated_memory.items.len + 1);
+                        self.relocated_memory.appendNTimesAssumeCapacity(RelocatedFelt252.NONE, relocated_address - self.relocated_memory.items.len + 1);
                     }
 
                     // Update the entry in `relocated_memory` with the relocated value of the memory cell.
-                    self.relocated_memory.items[relocated_address] = try cell.relocateValue(relocation_table);
+                    self.relocated_memory.items[relocated_address] = RelocatedFelt252.init(try cell.relocateValue(relocation_table));
                 } else {
                     // If the memory cell is null, append `null` to `relocated_memory`.
-                    self.relocated_memory.appendAssumeCapacity(null);
+                    self.relocated_memory.appendAssumeCapacity(RelocatedFelt252.NONE);
                 }
             }
         }

@@ -1,6 +1,7 @@
 const std = @import("std");
 const Felt252 = @import("starknet").fields.Felt252;
 const RelocatedTraceEntry = @import("trace_context.zig").RelocatedTraceEntry;
+const RelocatedFelt252 = @import("trace_context.zig").RelocatedFelt252;
 const HintProcessor = @import("../hint_processor/hint_processor_def.zig").CairoVMHintProcessor;
 
 const Config = @import("config.zig").Config;
@@ -117,7 +118,7 @@ pub const PublicInput = struct {
     // new - creating new PublicInput, all arguments caller is owner
     pub fn new(
         allocator: std.mem.Allocator,
-        memory: []const ?Felt252,
+        memory: []const RelocatedFelt252,
         layout: []const u8,
         public_memory_addresses: []const std.meta.Tuple(&.{ usize, usize }),
         memory_segment_addresses: std.StringHashMap(std.meta.Tuple(&.{ usize, usize })),
@@ -125,7 +126,7 @@ pub const PublicInput = struct {
         rc_limits: std.meta.Tuple(&.{ isize, isize }),
     ) !Self {
         const memory_entry = (struct {
-            fn func(mem: []const ?Felt252, addresses: std.meta.Tuple(&.{ usize, usize })) !PublicMemoryEntry {
+            fn func(mem: []const RelocatedFelt252, addresses: std.meta.Tuple(&.{ usize, usize })) !PublicMemoryEntry {
                 const address, const page = addresses;
                 return .{
                     .address = address,
@@ -181,7 +182,7 @@ pub const PublicMemoryEntry = struct {
     address: usize,
     value: struct {
         /// using struct only for json parse abstraction
-        value: ?Felt252,
+        value: RelocatedFelt252,
 
         pub fn jsonParse(allocator: std.mem.Allocator, source: anytype, options: std.json.ParseOptions) !@This() {
             _ = allocator; // autofix
@@ -200,7 +201,7 @@ pub const PublicMemoryEntry = struct {
         }
 
         pub fn jsonStringify(self: @This(), out: anytype) !void {
-            if (self.value) |v| try out.print("\"0x{x}\"", .{v.toU256()}) else try out.write(null);
+            if (self.value.getValue()) |v| try out.print("\"0x{x}\"", .{v.toU256()}) else try out.write(null);
         }
     },
     page: usize,

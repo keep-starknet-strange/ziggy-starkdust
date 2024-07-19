@@ -136,15 +136,16 @@ pub const Instruction = struct {
     /// Offset 0
     ///
     /// In the range [-2**15, 2*15) = [-2**(OFFSET_BITS-1), 2**(OFFSET_BITS-1)).
-    off_0: isize = 0,
+    /// 16 bit signed integer
+    off_0: i16 = 0,
     /// Offset 1
     ///
     /// In the range [-2**15, 2*15) = [-2**(OFFSET_BITS-1), 2**(OFFSET_BITS-1)).
-    off_1: isize = 0,
+    off_1: i16 = 0,
     /// Offset 2
     ///
     /// In the range [-2**15, 2*15) = [-2**(OFFSET_BITS-1), 2**(OFFSET_BITS-1)).
-    off_2: isize = 0,
+    off_2: i16 = 0,
     /// Destination register.
     dst_reg: Register = .FP,
     /// Operand 0 register.
