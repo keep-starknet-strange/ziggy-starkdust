@@ -248,13 +248,13 @@ const UsageError = error{
 /// Returns a `UsageError` if there's a misuse of the CLI, specifically if tracing is attempted
 /// while it's disabled in the build.
 fn execute() anyerror!void {
-    try runProgram(global_allocator, cfg);
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+
+    try runProgram(arena.allocator(), cfg);
 }
 
 fn runProgram(allocator: std.mem.Allocator, _cfg: Args) !void {
-    var arena = std.heap.ArenaAllocator.init(allocator);
-    defer arena.deinit();
-
     const trace_enabled = _cfg.trace_file != null or _cfg.air_public_input != null;
 
     const file = try std.fs.cwd().openFile(_cfg.filename, .{});
@@ -262,13 +262,13 @@ fn runProgram(allocator: std.mem.Allocator, _cfg: Args) !void {
 
     // Read the entire file content into a buffer using the provided allocator
     const buffer = try file.readToEndAlloc(
-        arena.allocator(),
+        allocator,
         try file.getEndPos(),
     );
-    defer arena.allocator().free(buffer);
+    defer allocator.free(buffer);
 
     var runner = try cairo_run.cairoRun(
-        arena.allocator(),
+        allocator,
         buffer,
         .{
             .entrypoint = _cfg.entrypoint,
@@ -281,11 +281,11 @@ fn runProgram(allocator: std.mem.Allocator, _cfg: Args) !void {
         },
         @constCast(&.{}),
     );
-    defer runner.deinit(arena.allocator());
-    defer runner.vm.segments.memory.deinitData(arena.allocator());
+    defer runner.deinit(allocator);
+    defer runner.vm.segments.memory.deinitData(allocator);
 
     if (_cfg.print_output) {
-        var output_buffer = try std.ArrayList(u8).initCapacity(arena.allocator(), 100);
+        var output_buffer = try std.ArrayList(u8).initCapacity(allocator, 100);
         output_buffer.appendSliceAssumeCapacity("Program Output:\n");
 
         try runner.vm.writeOutput(output_buffer.writer());
@@ -321,8 +321,8 @@ fn runProgram(allocator: std.mem.Allocator, _cfg: Args) !void {
         var public_input = try runner.getAirPublicInput();
         defer public_input.deinit();
 
-        const public_input_json = try public_input.serialize(arena.allocator());
-        defer arena.allocator().free(public_input_json);
+        const public_input_json = try public_input.serialize(allocator);
+        defer allocator.free(public_input_json);
 
         var air_file = try std.fs.cwd().createFile(file_path, .{});
         defer air_file.close();
