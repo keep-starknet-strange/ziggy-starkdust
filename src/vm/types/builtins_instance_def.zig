@@ -65,6 +65,89 @@ pub const BuiltinsInstanceDef = struct {
         return .{};
     }
 
+    /// Initializes the 'dex' layout.
+    pub fn dex() !Self {
+        return .{
+            .output = true,
+            .pedersen = PedersenInstanceDef{},
+            .range_check = RangeCheckInstanceDef{},
+            .ecdsa = EcdsaInstanceDef{},
+        };
+    }
+
+    /// Initializes the 'recursive' layout.
+    pub fn recursive() !Self {
+        return .{
+            .output = true,
+            .pedersen = PedersenInstanceDef.init(128, 4),
+            .range_check = RangeCheckInstanceDef{},
+            .bitwise = BitwiseInstanceDef.init(8),
+        };
+    }
+
+    /// Initializes the 'starknet' layout.
+    pub fn starknet() !Self {
+        return .{
+            .output = true,
+            .pedersen = PedersenInstanceDef.init(32, 4),
+            .range_check = RangeCheckInstanceDef.init(16, 8),
+            .ecdsa = EcdsaInstanceDef.init(2048),
+            .bitwise = BitwiseInstanceDef.init(64),
+            .ec_op = EcOpInstanceDef.init(1024),
+            .poseidon = PoseidonInstanceDef{},
+        };
+    }
+
+    /// Initializes the 'starknet_with_keccak' layout.
+    pub fn starknetWithKeccak(allocator: std.mem.Allocator) !Self {
+        var state_rep_keccak = std.ArrayList(u32).init(allocator);
+        try state_rep_keccak.appendNTimes(200, 8);
+        return .{
+            .output = true,
+            .pedersen = PedersenInstanceDef.init(32, 4),
+            .range_check = RangeCheckInstanceDef.init(16, 8),
+            .ecdsa = EcdsaInstanceDef.init(2048),
+            .bitwise = BitwiseInstanceDef.init(64),
+            .ec_op = EcOpInstanceDef.init(1024),
+            .poseidon = PoseidonInstanceDef{},
+            .keccak = KeccakInstanceDef.init(2048, state_rep_keccak),
+        };
+    }
+
+    /// Initializes the 'recursive_large_output' layout.
+    pub fn recursiveLargeOutput() !Self {
+        return .{
+            .output = true,
+            .pedersen = PedersenInstanceDef.init(128, 4),
+            .range_check = RangeCheckInstanceDef{},
+            .bitwise = BitwiseInstanceDef.init(8),
+            .poseidon = PoseidonInstanceDef.init(8),
+        };
+    }
+
+    /// Initializes the 'recursive_with_poseidon' layout.
+    pub fn recursiveWithPoseidon() !Self {
+        return .{
+            .output = true,
+            .pedersen = PedersenInstanceDef.init(256, 4),
+            .range_check = RangeCheckInstanceDef.init(16, 8),
+            .bitwise = BitwiseInstanceDef.init(16),
+            .poseidon = PoseidonInstanceDef.init(64),
+        };
+    }
+
+    /// Initializes the 'recursive_with_poseidon' layout.
+    pub fn allSolidity() !Self {
+        return .{
+            .output = true,
+            .pedersen = PedersenInstanceDef{},
+            .range_check = RangeCheckInstanceDef{},
+            .ecdsa = EcdsaInstanceDef{},
+            .bitwise = BitwiseInstanceDef{},
+            .ec_op = EcOpInstanceDef{},
+        };
+    }
+
     /// Represents the 'small' layout in Cairo.
     ///
     /// Incorporates specific builtins with predefined ratios such as Pedersen, Range Check, and ECDSA instances.

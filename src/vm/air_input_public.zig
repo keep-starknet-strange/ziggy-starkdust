@@ -191,10 +191,10 @@ pub const PublicMemoryEntry = struct {
                 inline .string => |data| {
                     const val = try std.fmt.parseInt(u256, data, 0);
 
-                    return .{ .value = Felt252.fromInt(u256, val) };
+                    return .{ .value = RelocatedFelt252.init(Felt252.fromInt(u256, val)) };
                 },
                 inline .null => return .{
-                    .value = null,
+                    .value = RelocatedFelt252.NONE,
                 },
                 else => return error.UnexpectedToken,
             }

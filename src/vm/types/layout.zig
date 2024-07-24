@@ -46,6 +46,10 @@ pub const LayoutName = enum {
     all_cairo,
     dynamic,
 
+    pub fn fromString(str: []const u8) ?@This() {
+        return std.meta.stringToEnum(@This(), str);
+    }
+
     pub fn toString(self: @This()) []const u8 {
         return switch (self) {
             .plain => "plain",
@@ -125,6 +129,83 @@ pub const CairoLayout = struct {
             .diluted_pool_instance_def = null,
             .n_trace_columns = 25,
             .cpu_instance_def = .{},
+        };
+    }
+
+    // Constructs a layout instance called 'dex'.
+    pub fn dexInstance() !Self {
+        return .{
+            .name = "dex",
+            .rc_units = 4,
+            .builtins = try BuiltinsInstanceDef.dex(),
+            .public_memory_fraction = 4,
+            .diluted_pool_instance_def = null,
+        };
+    }
+
+    // Constructs a layout instance called 'recursive'.
+    pub fn recursiveInstance() !Self {
+        return .{
+            .name = "recursive",
+            .rc_units = 4,
+            .builtins = try BuiltinsInstanceDef.recursive(),
+            .public_memory_fraction = 8,
+            .diluted_pool_instance_def = DilutedPoolInstanceDef{},
+        };
+    }
+
+    // Constructs a layout instance called 'starknet'.
+    pub fn starknetInstance() !Self {
+        return .{
+            .name = "starknet",
+            .rc_units = 4,
+            .builtins = try BuiltinsInstanceDef.starknet(),
+            .public_memory_fraction = 8,
+            .diluted_pool_instance_def = DilutedPoolInstanceDef.init(2, 4, 16),
+        };
+    }
+
+    // Constructs a layout instance called 'starknet_with_keccak'.
+    pub fn starknetWithKeccakInstance(allocator: std.mem.Allocator) !Self {
+        return .{
+            .name = "starknet_with_keccak",
+            .rc_units = 4,
+            .builtins = try BuiltinsInstanceDef.starknetWithKeccak(allocator),
+            .public_memory_fraction = 8,
+            .diluted_pool_instance_def = DilutedPoolInstanceDef{},
+        };
+    }
+
+    // Constructs a layout instance called 'recursive_large_output'.
+    pub fn recursiveLargeOutputInstance() !Self {
+        return .{
+            .name = "recursive_large_output",
+            .rc_units = 4,
+            .builtins = try BuiltinsInstanceDef.recursiveLargeOutput(),
+            .public_memory_fraction = 8,
+            .diluted_pool_instance_def = DilutedPoolInstanceDef{},
+        };
+    }
+
+    // Constructs a layout instance called 'recursive_with_poseidon'.
+    pub fn recursiveWithPoseidonInstance() !Self {
+        return .{
+            .name = "recursive_with_poseidon",
+            .rc_units = 4,
+            .builtins = try BuiltinsInstanceDef.recursiveWithPoseidon(),
+            .public_memory_fraction = 8,
+            .diluted_pool_instance_def = DilutedPoolInstanceDef.init(8, 4, 16),
+        };
+    }
+
+    // Constructs a layout instance called 'recursive_with_poseidon'.
+    pub fn allSolidityInstance() !Self {
+        return .{
+            .name = "all_solidity",
+            .rc_units = 8,
+            .builtins = try BuiltinsInstanceDef.allSolidity(),
+            .public_memory_fraction = 8,
+            .diluted_pool_instance_def = DilutedPoolInstanceDef{},
         };
     }
 

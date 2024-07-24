@@ -11,6 +11,7 @@ const BuiltinRunner = @import("../builtins/builtin_runner/builtin_runner.zig").B
 const Config = @import("../config.zig").Config;
 const CairoVM = @import("../core.zig").CairoVM;
 const CairoLayout = @import("../types/layout.zig").CairoLayout;
+const LayoutName = @import("../types/layout.zig").LayoutName;
 const Relocatable = @import("../memory/relocatable.zig").Relocatable;
 const MaybeRelocatable = @import("../memory/relocatable.zig").MaybeRelocatable;
 const Program = @import("../types/program.zig").Program;
@@ -170,16 +171,23 @@ pub const CairoRunner = struct {
         proof_mode: bool,
         exec_scopes: ExecutionScopes,
     ) !Self {
-        const Case = enum { plain, small, dynamic, all_cairo };
         return .{
             .allocator = allocator,
             .program = program,
-            .layout = switch (std.meta.stringToEnum(Case, layout) orelse
+            .layout = switch (LayoutName.fromString(layout) orelse
                 return CairoRunnerError.InvalidLayout) {
                 .plain => CairoLayout.plainInstance(),
                 .small => CairoLayout.smallInstance(),
                 .dynamic => CairoLayout.dynamicInstance(),
                 .all_cairo => try CairoLayout.allCairoInstance(allocator),
+
+                .dex => try CairoLayout.dexInstance(),
+                .recursive => try CairoLayout.recursiveInstance(),
+                .starknet => try CairoLayout.starknetInstance(),
+                .starknet_with_keccak => try CairoLayout.starknetWithKeccakInstance(allocator),
+                .recursive_large_output => try CairoLayout.recursiveLargeOutputInstance(),
+                .recursive_with_poseidon => try CairoLayout.recursiveWithPoseidonInstance(),
+                .all_solidity => try CairoLayout.allSolidityInstance(),
             },
             .instructions = instructions,
             .vm = vm,
@@ -1835,18 +1843,18 @@ test "CairoRunner: relocateMemory should relocated memory properly with gaps" {
 
     // Perform assertions to check if memory relocation is correct.
     try expectEqualSlices(
-        ?Felt252,
-        &[_]?Felt252{
-            null,
-            Felt252.fromInt(u256, 4613515612218425347),
-            Felt252.fromInt(u8, 5),
-            Felt252.fromInt(u256, 2345108766317314046),
-            Felt252.fromInt(u8, 10),
-            Felt252.fromInt(u8, 10),
-            null,
-            null,
-            null,
-            Felt252.fromInt(u8, 5),
+        RelocatedFelt252,
+        &[_]RelocatedFelt252{
+            RelocatedFelt252.NONE,
+            RelocatedFelt252.init(Felt252.fromInt(u256, 4613515612218425347)),
+            RelocatedFelt252.init(Felt252.fromInt(u8, 5)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 2345108766317314046)),
+            RelocatedFelt252.init(Felt252.fromInt(u8, 10)),
+            RelocatedFelt252.init(Felt252.fromInt(u8, 10)),
+            RelocatedFelt252.NONE,
+            RelocatedFelt252.NONE,
+            RelocatedFelt252.NONE,
+            RelocatedFelt252.init(Felt252.fromInt(u8, 5)),
         },
         cairo_runner.relocated_memory.items,
     );
@@ -4062,37 +4070,37 @@ test "CairoRunner: initialize and run relocate with output builtin" {
 
     // Perform assertions to check if memory relocation is correct.
     try expectEqualSlices(
-        ?Felt252,
-        &[_]?Felt252{
-            null,
-            Felt252.fromInt(u256, 4612671182993129469),
-            Felt252.fromInt(u256, 5198983563776393216),
-            Felt252.fromInt(u256, 1),
-            Felt252.fromInt(u256, 2345108766317314046),
-            Felt252.fromInt(u256, 5191102247248822272),
-            Felt252.fromInt(u256, 5189976364521848832),
-            Felt252.fromInt(u256, 1),
-            Felt252.fromInt(u256, 1226245742482522112),
-            Felt252.fromInt(u256, 0x800000000000010fffffffffffffffffffffffffffffffffffffffffffffffa),
-            Felt252.fromInt(u256, 5189976364521848832),
-            Felt252.fromInt(u256, 17),
-            Felt252.fromInt(u256, 1226245742482522112),
-            Felt252.fromInt(u256, 0x800000000000010fffffffffffffffffffffffffffffffffffffffffffffff6),
-            Felt252.fromInt(u256, 2345108766317314046),
-            Felt252.fromInt(u256, 27),
-            Felt252.fromInt(u256, 29),
-            Felt252.fromInt(u256, 29),
-            Felt252.fromInt(u256, 27),
-            Felt252.fromInt(u256, 1),
-            Felt252.fromInt(u256, 18),
-            Felt252.fromInt(u256, 10),
-            Felt252.fromInt(u256, 28),
-            Felt252.fromInt(u256, 17),
-            Felt252.fromInt(u256, 18),
-            Felt252.fromInt(u256, 14),
-            Felt252.fromInt(u256, 29),
-            Felt252.fromInt(u256, 1),
-            Felt252.fromInt(u256, 17),
+        RelocatedFelt252,
+        &[_]RelocatedFelt252{
+            RelocatedFelt252.NONE,
+            RelocatedFelt252.init(Felt252.fromInt(u256, 4612671182993129469)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 5198983563776393216)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 1)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 2345108766317314046)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 5191102247248822272)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 5189976364521848832)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 1)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 1226245742482522112)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 0x800000000000010fffffffffffffffffffffffffffffffffffffffffffffffa)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 5189976364521848832)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 17)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 1226245742482522112)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 0x800000000000010fffffffffffffffffffffffffffffffffffffffffffffff6)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 2345108766317314046)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 27)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 29)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 29)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 27)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 1)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 18)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 10)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 28)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 17)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 18)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 14)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 29)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 1)),
+            RelocatedFelt252.init(Felt252.fromInt(u256, 17)),
         },
         cairo_runner.relocated_memory.items,
     );

@@ -281,11 +281,14 @@ fn runProgram(allocator: std.mem.Allocator, _cfg: Args) !void {
         },
         @constCast(&.{}),
     );
+    defer allocator.destroy(runner.vm);
     defer runner.deinit(allocator);
     defer runner.vm.segments.memory.deinitData(allocator);
 
     if (_cfg.print_output) {
         var output_buffer = try std.ArrayList(u8).initCapacity(allocator, 100);
+        defer output_buffer.deinit();
+
         output_buffer.appendSliceAssumeCapacity("Program Output:\n");
 
         try runner.vm.writeOutput(output_buffer.writer());
@@ -334,13 +337,13 @@ fn runProgram(allocator: std.mem.Allocator, _cfg: Args) !void {
 test "RunOK" {
     for ([_][]const u8{
         "plain",
-        // "small",
-        // "dex",
+        "small",
+        "dex",
         // "starknet",
-        // "starknet_with_keccak",
-        // "recursive_large_output",
+        "starknet_with_keccak",
+        "recursive_large_output",
         "all_cairo",
-        // "all_solidity",
+        "all_solidity",
     }) |layout| {
         inline for ([_]bool{ false, true }) |memory_file| {
             inline for ([_]bool{ false, true }) |_trace_file| {

@@ -288,12 +288,12 @@ test "EncodedMemory: can round trip from valid memory binary" {
     defer file.close();
 
     var reader = file.reader();
-    var relocated_memory = std.ArrayList(?Felt252).init(allocator);
+    var relocated_memory = std.ArrayList(RelocatedFelt252).init(allocator);
     defer relocated_memory.deinit();
 
     // Relocated addresses start at 1,
     // it's the law.
-    try relocated_memory.append(null);
+    try relocated_memory.append(RelocatedFelt252.NONE);
 
     // Read the entire file into a bytes buffer
     var expected_file_bytes = std.ArrayList(u8).init(allocator);
@@ -317,7 +317,7 @@ test "EncodedMemory: can round trip from valid memory binary" {
 
         const value = std.mem.readInt(u256, &value_buf, .little);
 
-        try relocated_memory.insert(idx, Felt252.fromInt(u256, value));
+        try relocated_memory.insert(idx, RelocatedFelt252.init(Felt252.fromInt(u256, value)));
     }
 
     // now we have the shape of a bonafide relocated memory,
