@@ -78,6 +78,32 @@ pub fn build(b: *std.Build) void {
     // running `zig build`).
     b.installArtifact(lib);
 
+    // LSP helper for errors (check step)
+    {
+        const exe_check = b.addExecutable(.{
+            .name = "ziggy-starkdust",
+            // In this case the main source file is merely a path, however, in more
+            // complicated build scripts, this could be a generated file.
+            .root_source_file = b.path("src/main.zig"),
+            .target = target,
+            .optimize = optimize,
+
+            .link_libc = false,
+            .omit_frame_pointer = if (optimize == .ReleaseFast) null else false,
+            .strip = if (optimize == .ReleaseFast) true else null,
+        });
+        exe_check.root_module.addOptions("cfg", options);
+
+        // Add dependency modules to the executable.
+        for (deps) |mod| exe_check.root_module.addImport(
+            mod.name,
+            mod.module,
+        );
+
+        const check = b.step("check", "Check if cairo-vm compiles");
+        check.dependOn(&exe_check.step);
+    }
+
     // **************************************************************
     // *              ZIGGY STARKDUST AS AN EXECUTABLE                    *
     // **************************************************************
@@ -89,7 +115,7 @@ pub fn build(b: *std.Build) void {
         .target = target,
         .optimize = optimize,
 
-        .link_libc = true,
+        .link_libc = false,
         .omit_frame_pointer = if (optimize == .ReleaseFast) null else false,
         .strip = if (optimize == .ReleaseFast) true else null,
     });

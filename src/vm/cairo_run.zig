@@ -43,11 +43,11 @@ pub fn writeEncodedTrace(relocated_trace: []const RelocatedTraceEntry, dest: any
 ///
 /// - `relocated_memory`:  The post-execution memory, relocated.
 /// - `dest`: The destination file that the memory is to be written.
-pub fn writeEncodedMemory(relocated_memory: []?Felt252, dest: anytype) !void {
+pub fn writeEncodedMemory(relocated_memory: []RelocatedFelt252, dest: anytype) !void {
     var buf: [8]u8 = undefined;
 
     for (relocated_memory, 0..) |memory_cell, i| {
-        if (memory_cell) |cell| {
+        if (memory_cell.getValue()) |cell| {
             std.mem.writeInt(u64, &buf, i, .little);
             _ = try dest.write(&buf);
             _ = try dest.write(&cell.toBytesLe());
@@ -217,7 +217,6 @@ pub fn runConfig(allocator: Allocator, config: Config) !CairoRunner {
         &hint_processor,
     );
 
-
     try runner.vm.verifyAutoDeductions(allocator);
 
     // cairo_runner.read_return_values(allow_missing_builtins)?;
@@ -227,7 +226,6 @@ pub fn runConfig(allocator: Allocator, config: Config) !CairoRunner {
 
     if (secure_run)
         try security.verifySecureRunner(allocator, &runner, true, null);
-
 
     if (config.print_output) {
         var buf = try std.ArrayList(u8).initCapacity(allocator, 100);
@@ -290,12 +288,12 @@ test "EncodedMemory: can round trip from valid memory binary" {
     defer file.close();
 
     var reader = file.reader();
-    var relocated_memory = std.ArrayList(?Felt252).init(allocator);
+    var relocated_memory = std.ArrayList(RelocatedFelt252).init(allocator);
     defer relocated_memory.deinit();
 
     // Relocated addresses start at 1,
     // it's the law.
-    try relocated_memory.append(null);
+    try relocated_memory.append(RelocatedFelt252.NONE);
 
     // Read the entire file into a bytes buffer
     var expected_file_bytes = std.ArrayList(u8).init(allocator);
@@ -319,7 +317,7 @@ test "EncodedMemory: can round trip from valid memory binary" {
 
         const value = std.mem.readInt(u256, &value_buf, .little);
 
-        try relocated_memory.insert(idx, Felt252.fromInt(u256, value));
+        try relocated_memory.insert(idx, RelocatedFelt252.init(Felt252.fromInt(u256, value)));
     }
 
     // now we have the shape of a bonafide relocated memory,
