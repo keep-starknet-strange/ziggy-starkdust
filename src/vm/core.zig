@@ -470,7 +470,7 @@ pub const CairoVM = struct {
     ) !void {
         // Check if tracing is disabled and log the current state if not.
         if (self.trace) |*trace| {
-            if (trace.capacity < trace.items.len + 1)
+            if (trace.capacity <= trace.items.len)
                 try trace.ensureTotalCapacityPrecise(trace.capacity * 2);
 
             trace.appendAssumeCapacity(

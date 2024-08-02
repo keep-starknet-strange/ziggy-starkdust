@@ -248,7 +248,7 @@ const UsageError = error{
 /// Returns a `UsageError` if there's a misuse of the CLI, specifically if tracing is attempted
 /// while it's disabled in the build.
 fn execute() anyerror!void {
-    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    var arena = std.heap.ArenaAllocator.init(global_allocator);
     defer arena.deinit();
 
     try runProgram(arena.allocator(), cfg);

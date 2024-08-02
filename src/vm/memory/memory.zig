@@ -370,7 +370,7 @@ pub const Memory = struct {
     /// - `MemoryError.DuplicatedRelocation` if there is an attempt to overwrite existing memory.
     /// # Safety
     /// This function assumes proper initialization and management of the VM memory.
-    pub fn set(
+    pub inline fn set(
         self: *Self,
         allocator: Allocator,
         address: Relocatable,
@@ -379,9 +379,6 @@ pub const Memory = struct {
         // Retrieve the appropriate data segment based on the segment index of the given address.
         var data = self.getDataFromSegmentIndex(address.segment_index);
         const insert_segment_index = address.getAdjustedSegmentIndex();
-
-        // if (address.segment_index == 0 and value.isFelt())
-        // std.debug.panic("set {any}, value {any}", .{ address, value });
 
         // Check if the data segment is allocated for the given segment index.
         if (data.len <= insert_segment_index)
@@ -902,7 +899,7 @@ pub const Memory = struct {
         return value;
     }
 
-    pub fn relAddress(self: *const Self, address: Relocatable) !MaybeRelocatable {
+    pub inline fn relAddress(self: *const Self, address: Relocatable) !MaybeRelocatable {
         // Attempt to retrieve relocation rules for the given segment index.
         if (address.segment_index < 0)
             if (self.relocation_rules.get(address.getAdjustedSegmentIndex())) |x|
