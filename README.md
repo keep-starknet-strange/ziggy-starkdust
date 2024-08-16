@@ -27,6 +27,18 @@
 
 Alternatively, if you have [nix](https://nixos.org/) installed, you can get the full development environment `nix develop`.
 
+- Also you need installed python, so we can compile cairo0 programs in benchmarks/integration tests, to insatll them just run: 
+  ```bash
+  make deps
+  ```
+  if u got macos:
+  ```bash 
+  make deps-macos
+  ```
+- After you need compile all cairo0 programs, to use test or benchmarks:
+  ```bash
+  make compile-cairo-programs
+  ```
 ## ⚡ Wanna get up to speed fast?
 
 <details>
@@ -64,9 +76,19 @@ You can display the help message by running:
 
 ### Run a cairo program
 
+Without proof mode:
 ```bash
+./zig-out/bin/ziggy-starkdust execute --filename cairo_programs/fibonacci.json
+```
 
-./zig-out/bin/ziggy-starkdust execute --filename cairo_programs/fibonacci.json --proof-mode=false
+With proof mode:
+```bash
+./zig-out/bin/ziggy-starkdust execute --filename cairo_programs/fibonacci.json --proof-mode
+```
+
+With memory layout, trace, proof mode and custom layout:
+```bash
+./zig-out/bin/ziggy-starkdust execute --filename cairo_programs/fibonacci.json --memory-file=/dev/null --trace-file=/dev/null --proof-mode=true --layout all_cairo
 ```
 
 
