@@ -65,15 +65,14 @@ pub fn isPositive(allocator: Allocator, vm: *CairoVM, ids_data: std.StringHashMa
     ), vm, ids_data, ap_tracking);
 }
 
-// Implements hint:from starkware.cairo.common.math.cairo
+//Implements hint:from starkware.cairo.common.math.cairo
 //
-//	%{
-//	    from starkware.cairo.common.math_utils import assert_integer
-//	    assert_integer(ids.value)
-//	    assert ids.value % PRIME != 0, f'assert_not_zero failed: {ids.value} = 0.'
+//%{
+//    from starkware.cairo.common.math_utils import assert_integer
+//    assert_integer(ids.value)
+//    assert ids.value % PRIME != 0, f'assert_not_zero failed: {ids.value} = 0.'
 //
 // %}
-
 pub fn assertNonZero(
     vm: *CairoVM,
     ids_data: std.StringHashMap(HintReference),
