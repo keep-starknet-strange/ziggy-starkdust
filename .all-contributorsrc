@@ -153,6 +153,15 @@
       "contributions": [
         "doc"
       ]
+    },
+    {
+      "login": "StringNick",
+      "name": "Nikita Orlov",
+      "avatar_url": "https://avatars.githubusercontent.com/u/13052752?v=4",
+      "profile": "https://github.com/StringNick",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

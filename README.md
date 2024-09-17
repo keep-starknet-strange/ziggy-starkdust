@@ -246,6 +246,7 @@ Thanks goes to these wonderful people ([emoji key](https://allcontributors.org/d
     <tr>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/pjserol"><img src="https://avatars.githubusercontent.com/u/3019795?v=4?s=100" width="100px;" alt="Pierre-Jean"/><br /><sub><b>Pierre-Jean</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/ziggy-starkdust/commits?author=pjserol" title="Code">💻</a></td>
       <td align="center" valign="top" width="14.28%"><a href="https://github.com/tudorpintea999"><img src="https://avatars.githubusercontent.com/u/87604944?v=4?s=100" width="100px;" alt="iwantanode"/><br /><sub><b>iwantanode</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/ziggy-starkdust/commits?author=tudorpintea999" title="Documentation">📖</a></td>
+      <td align="center" valign="top" width="14.28%"><a href="https://github.com/StringNick"><img src="https://avatars.githubusercontent.com/u/13052752?v=4?s=100" width="100px;" alt="Nikita Orlov"/><br /><sub><b>Nikita Orlov</b></sub></a><br /><a href="https://github.com/keep-starknet-strange/ziggy-starkdust/commits?author=StringNick" title="Code">💻</a></td>
     </tr>
   </tbody>
 </table>
